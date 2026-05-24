@@ -28,14 +28,26 @@
 ## Next Steps
 
 ### Immediate (next session start)
-- [ ] Push `vercel.json` commit to GitHub (need new GitHub token or `gh auth login` in terminal)
+- [ ] Push all commits to GitHub (need new GitHub token or `gh auth login` in terminal)
 - [ ] Connect repo to Vercel via vercel.com/new → import `pandapau-ship-it/sales-os`
 
-### Phase 2 — Design System
-- [ ] Create `src/theme.ts` with full Mantine theme (colors, font sizes, spacing tokens)
-- [ ] Define color palette: primary, neutral, status colors (heat status: heiss/warm/lauwarm/kalt/tot)
-- [ ] Typography scale: compact, Claude.ai-inspired
-- [ ] Build component showcase page with dummy data (all 3 progressive disclosure levels)
+### Phase 2 — Design System ✅ COMPLETE
+- [x] `src/theme.ts` — full Mantine v8 theme from Sherloq Brand Identity
+- [x] Color system: 7 custom color scales (sherloq, ai, insight, opportunity, urgent, growth, intelligence)
+- [x] Domain tokens: heatStatusColors, dealStageColors, churnRiskColors, personalityColors
+- [x] Typography: Plus Jakarta Sans, compact scale (11/13/14/16/18px)
+- [x] Spacing: 4px grid (4/8/12/16/24px)
+- [x] Shadows: brand-teal-tinted, 5 elevation levels
+- [x] Component defaults: NavLink, Button, Badge, Card, Table, AppShell, etc.
+- [x] `docs/design-system.md` — full documentation with examples
+- [x] `index.html` — Plus Jakarta Sans via Google Fonts
+- [x] `CLAUDE.md` — updated with all final color values
+
+### Phase 3 — Component Showcase (next)
+- [ ] Build `src/pages/Showcase.tsx` with dummy data showing all 3 progressive disclosure levels
+- [ ] Heat status badge component using `heatStatusColors`
+- [ ] Engagement chain component (icon row of last communications)
+- [ ] Semantic accent cards (matching Sherloq moodboard style)
 
 ### Phase 3 — Supabase Setup
 - [ ] Create Supabase project

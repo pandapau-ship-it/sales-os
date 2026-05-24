@@ -37,17 +37,60 @@
 **Single source of truth for all visual decisions: `src/theme.ts`**
 - All colors, font sizes, spacing, radius values live there — never inline
 - `theme.ts` extends Mantine's `createTheme()` — never override Mantine components with raw CSS
+- Full docs: `docs/design-system.md`
+
+**Font:** Plus Jakarta Sans (Google Fonts, loaded in `index.html`)
 
 **Visual reference: Claude.ai's own navigation**
 - Very compact, very clean, no oversized elements
-- Font sizes: use Mantine's `xs` and `sm` — never `lg` or `xl` for body/navigation text
-- Icon sizes: 16–18px — never larger unless it's a hero/empty state
-- Lots of white space, clear hierarchy — dense information without feeling cramped
+- Font sizes: `xs`=11px (labels) · `sm`=13px (body/nav — PRIMARY) · `md`=14px · `lg`=16px
+- Icon sizes: 16–18px — never larger unless hero/empty state
+- Spacing: 4px grid — `xs`=4 · `sm`=8 · `md`=12 · `lg`=16 · `xl`=24
+- Default radius: `md` = 8px
 
 **What this is NOT:**
 - No generic AI design (no purple gradients, no Inter font as hero choice, no oversized cards)
-- No heavy borders or shadows everywhere — use them only to establish hierarchy
+- No heavy borders or shadows — use only to establish hierarchy
 - No empty dashboards — every screen has data or a concrete next action on first load
+
+---
+
+## Color System (from Sherloq Brand Identity)
+
+Brand mood: **calm · intelligent · action-oriented**
+
+### Primary — Sherloq Deep Teal
+```
+#EDF5F5 (0) · #C8E6E7 (1) · #9DD2D3 (2) · #67B8BA (3) · #3A9EA1 (4)
+#2A8283 (5) · #185557 (6=PRIMARY) · #113F41 (7) · #0B2B2C (8) · #061617 (9)
+```
+`primaryColor: 'sherloq'` · `primaryShade: { light: 6, dark: 7 }`
+
+### Semantic Colors (action + background)
+
+| Name | Action | Background | Used for |
+|---|---|---|---|
+| `ai` | `#2563EB` | `#DBEAFE` | AI features, automation |
+| `insight` | `#8B5CF6` | `#EDE9FE` | Analytics, kurzakte |
+| `opportunity` | `#F59E0B` | `#FEF3C7` | Leads, upsell signals |
+| `urgent` | `#E11D48` | `#FEF4E9` | Errors, churn critical |
+| `growth` | `#10B961` | `#D1FAE5` | Won deals, success |
+| `intelligence` | `#F274F6` | `#FFF4FE` | AI-generated content (sparingly) |
+
+Strong orange accent: `#EA660B` (high-emphasis opportunity, at `opportunity[8]`)
+
+### Domain Semantic Tokens (exported from theme.ts)
+
+```typescript
+import { heatStatusColors, dealStageColors, churnRiskColors, personalityColors } from './theme'
+```
+
+| Token | Keys |
+|---|---|
+| `heatStatusColors` | `heiss` · `warm` · `lauwarm` · `kalt` · `tot` |
+| `dealStageColors` | `backlog` · `demo_vereinbart` · `followup_offen` · `onboarding_trial` · `gewonnen` · `verloren` |
+| `churnRiskColors` | `low` · `medium` · `high` · `critical` |
+| `personalityColors` | `rot` · `gelb` · `gruen` · `blau` |
 
 ---
 
