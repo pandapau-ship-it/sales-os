@@ -43,11 +43,32 @@
 - [x] `index.html` — Plus Jakarta Sans via Google Fonts
 - [x] `CLAUDE.md` — updated with all final color values
 
-### Phase 3 — Component Showcase (next)
-- [ ] Build `src/pages/Showcase.tsx` with dummy data showing all 3 progressive disclosure levels
-- [ ] Heat status badge component using `heatStatusColors`
-- [ ] Engagement chain component (icon row of last communications)
-- [ ] Semantic accent cards (matching Sherloq moodboard style)
+### Phase 3 — App Shell ✅ COMPLETE
+- [x] `src/types/navigation.ts` — UserRole, MainNavId, MainNavItem, SubNavItem, CurrentUser types
+- [x] `src/hooks/useCurrentUser.ts` — Mock user hook (replace with Supabase auth in Phase 5)
+- [x] `src/components/shell/navConfig.tsx` — All nav items, sub-items, role access map, helpers
+- [x] `src/components/shell/shell.module.css` — CSS module: nav pills, Cmd+K button, sidebar icons
+- [x] `src/components/shell/TopBar.tsx` — Header with logo, horizontal pill-nav, Cmd+K, user avatar
+- [x] `src/components/shell/SubSidebar.tsx` — Left icon sidebar (56px), context-sensitive sub-nav
+- [x] `src/App.tsx` — AppShell wiring, role-based nav, auto-select first sub-item on section change
+- [x] `src/App.css` — Cleaned (Vite template styles removed)
+- [x] `.claude/launch.json` — Preview server config (npm path hardcoded for nvm)
+- [x] TypeScript build: 0 errors ✓
+
+**Navigation structure:**
+- Primary: Mein Tag · Hunting · Farming · Marketing · Sherloq System
+- Secondary (separated): Jira (smaller, gray pill when active)
+- Role-based: solo/admin = all 5+Jira · hunter = Mein Tag+Hunting+Jira · farmer = Mein Tag+Farming+Jira
+- Sub-nav: Hunting (4) · Farming (4) · Marketing (4) · Sherloq (4) · Jira (3) · Mein Tag (none)
+- Cmd+K: placeholder button with ⌘K hint, wired to useHotkeys (mod+k captured)
+- Dark/light toggle in bottom of SubSidebar
+
+### Phase 4 — Real Page Stubs (next)
+- [ ] Replace PlaceholderPage with real stub components per section
+- [ ] Mein Tag: Morning briefing layout with section containers (dummy data)
+- [ ] Hunting/Lead-Liste: Table skeleton with 3-level progressive disclosure structure
+- [ ] Hunting/Pipeline: Kanban column skeleton
+- [ ] Shared components: HeatBadge, StageBadge, EngagementChain, PersonalityDot
 
 ### Phase 3 — Supabase Setup
 - [ ] Create Supabase project
