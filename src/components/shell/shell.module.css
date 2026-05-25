@@ -1,84 +1,142 @@
-/* ─── TopBar — Main Navigation Pills ──────────────────────────────────────── */
+/* ─── Shell CSS — Hyper-Modern Floating UI ─────────────────────────────────
+ * Design rules:
+ *   Background : var(--mantine-color-gray-0)  — never pure white
+ *   Cards / panels : #FFFFFF, elevated by box-shadow only (no borders)
+ *   Active state : linear-gradient(135deg, #175253, #3f8383) + white text
+ *   Rounding : radius={9999} for pills, 10px for icon buttons
+ *   Shadows : ultra-soft diffuse — 0 10px 40px -10px rgba(0,0,0,0.05)
+ *   No dividers, no withBorder, no hard lines anywhere
+ * ─────────────────────────────────────────────────────────────────────────── */
 
-.navItem {
-  padding: 4px 11px;
-  border-radius: 999px;
-  color: var(--mantine-color-gray-7);
-  font-size: var(--mantine-font-size-sm);
-  font-weight: 400;
+
+/* ── TOP NAV (horizontal section pills in the header) ─────────────────────── */
+
+/* Logo lockup — icon + wordmark */
+.logoArea {
   display: flex;
   align-items: center;
-  gap: 5px;
-  white-space: nowrap;
+  gap: 7px;
+  flex-shrink: 0;
+  margin-right: 20px;
+}
+
+/* Primary section pill — gradient fill when active */
+.topNavPill {
+  padding: 5px 14px;
+  border-radius: 9999px;
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 500;
   cursor: pointer;
   border: none;
   background: transparent;
-  line-height: 1;
-  transition: background-color 0.12s ease, color 0.12s ease;
-  text-decoration: none;
-  font-family: inherit;
-}
-
-.navItem:hover {
-  background-color: var(--mantine-color-gray-1);
-  color: var(--mantine-color-dark-6);
-}
-
-/* Active: filled sherloq pill — matches SugarCRM reference screenshot */
-.navItem[data-active='true'] {
-  background-color: var(--mantine-color-sherloq-6);
-  color: white;
-  font-weight: 500;
-}
-
-/* Secondary item (Jira) — slightly smaller, less emphasis */
-.navItemSecondary {
-  font-size: var(--mantine-font-size-xs);
   color: var(--mantine-color-gray-6);
-  padding: 4px 9px;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  font-family: inherit;
+  white-space: nowrap;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
 }
 
-.navItemSecondary:hover {
+.topNavPill:hover {
   background-color: var(--mantine-color-gray-1);
-  color: var(--mantine-color-dark-5);
+  color: var(--mantine-color-gray-8);
 }
 
-.navItemSecondary[data-active='true'] {
-  background-color: var(--mantine-color-gray-7);
+.topNavPill[data-active='true'] {
+  background: linear-gradient(135deg, #175253, #3f8383);
   color: white;
-  font-weight: 500;
+  font-weight: 600;
 }
 
-/* Visual separator before secondary (Jira) item */
-.navSeparator {
-  width: 1px;
-  height: 16px;
-  background-color: var(--mantine-color-gray-3);
+/* Secondary pill (Jira) — same pill shape, smaller and softer */
+.topNavPillSecondary {
+  font-size: var(--mantine-font-size-xs);
+  padding: 4px 12px;
+  color: var(--mantine-color-gray-5);
+}
+
+.topNavPillSecondary[data-active='true'] {
+  background: linear-gradient(135deg, #175253, #3f8383);
+  color: white;
+}
+
+
+/* ── LEFT SIDEBAR (context-sensitive icon sub-nav) ────────────────────────── */
+
+/* Icon button — soft-square shape, gradient when active */
+.sidebarItem {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: var(--mantine-color-gray-5);
+  transition: background 0.15s ease, color 0.15s ease;
+  font-family: inherit;
   flex-shrink: 0;
 }
 
-/* ─── TopBar — Cmd+K Button ────────────────────────────────────────────────── */
+.sidebarItem:hover {
+  background-color: var(--mantine-color-gray-1);
+  color: var(--mantine-color-gray-8);
+}
 
-/* Styled to look like a compact search input — triggers Cmd+K modal (later) */
+.sidebarItem[data-active='true'] {
+  background: linear-gradient(135deg, #175253, #3f8383);
+  color: white;
+}
+
+
+/* ── UTILITY BUTTONS (settings, theme toggle — bottom of sidebar) ─────────── */
+
+.utilBtn {
+  width: 36px;
+  height: 36px;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: var(--mantine-color-gray-4);
+  transition: background-color 0.15s ease, color 0.15s ease;
+  font-family: inherit;
+  flex-shrink: 0;
+}
+
+.utilBtn:hover {
+  background-color: var(--mantine-color-gray-1);
+  color: var(--mantine-color-gray-7);
+}
+
+
+/* ── CMD+K (pill-shaped search trigger in header) ─────────────────────────── */
+
 .cmdK {
   display: flex;
   align-items: center;
   gap: 5px;
-  padding: 4px 8px 4px 10px;
-  border-radius: 6px;
-  border: 1px solid var(--mantine-color-gray-3);
-  background-color: var(--mantine-color-gray-0);
+  padding: 5px 10px 5px 12px;
+  border-radius: 9999px;
+  border: 1px solid var(--mantine-color-gray-2);
+  background: white;
   color: var(--mantine-color-gray-5);
   font-size: var(--mantine-font-size-xs);
   cursor: pointer;
-  min-width: 160px;
+  min-width: 150px;
   font-family: inherit;
-  transition: border-color 0.12s ease, background-color 0.12s ease;
+  box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.06);
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
 }
 
 .cmdK:hover {
   border-color: var(--mantine-color-gray-4);
-  background-color: white;
+  box-shadow: 0 4px 14px -4px rgba(0, 0, 0, 0.10);
   color: var(--mantine-color-gray-7);
 }
 
@@ -87,56 +145,4 @@
   text-align: left;
   color: var(--mantine-color-gray-5);
   font-size: var(--mantine-font-size-xs);
-}
-
-/* ─── SubSidebar — Icon Buttons ────────────────────────────────────────────── */
-
-/* Circular icon button — matches the reference screenshot style */
-.subNavBtn {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  background-color: var(--mantine-color-gray-1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  border: none;
-  color: var(--mantine-color-gray-6);
-  flex-shrink: 0;
-  transition: background-color 0.12s ease, color 0.12s ease;
-  font-family: inherit;
-}
-
-.subNavBtn:hover {
-  background-color: var(--mantine-color-gray-2);
-  color: var(--mantine-color-dark-5);
-}
-
-/* Active: subtle sherloq teal tint — recognizable but not overwhelming */
-.subNavBtn[data-active='true'] {
-  background-color: var(--mantine-color-sherloq-0);
-  color: var(--mantine-color-sherloq-6);
-}
-
-/* Utility buttons at the bottom (settings, theme toggle) */
-.subNavBtnUtil {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  background-color: transparent;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  border: none;
-  color: var(--mantine-color-gray-5);
-  flex-shrink: 0;
-  transition: background-color 0.12s ease, color 0.12s ease;
-  font-family: inherit;
-}
-
-.subNavBtnUtil:hover {
-  background-color: var(--mantine-color-gray-1);
-  color: var(--mantine-color-gray-7);
 }

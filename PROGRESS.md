@@ -4,7 +4,7 @@
 
 ---
 
-## Current Status: Phase 1 — Project Setup ✅
+## Current Status: Phase 3 — App Shell ✅ → Phase 4 (Page Stubs) next
 
 ---
 
@@ -43,25 +43,31 @@
 - [x] `index.html` — Plus Jakarta Sans via Google Fonts
 - [x] `CLAUDE.md` — updated with all final color values
 
-### Phase 3 — App Shell ✅ COMPLETE
+### Phase 3 — App Shell ✅ COMPLETE (rebuilt Session 2 — 2026-05-25)
+
+**Session 1 (initial):**
 - [x] `src/types/navigation.ts` — UserRole, MainNavId, MainNavItem, SubNavItem, CurrentUser types
 - [x] `src/hooks/useCurrentUser.ts` — Mock user hook (replace with Supabase auth in Phase 5)
 - [x] `src/components/shell/navConfig.tsx` — All nav items, sub-items, role access map, helpers
-- [x] `src/components/shell/shell.module.css` — CSS module: nav pills, Cmd+K button, sidebar icons
-- [x] `src/components/shell/TopBar.tsx` — Header with logo, horizontal pill-nav, Cmd+K, user avatar
-- [x] `src/components/shell/SubSidebar.tsx` — Left icon sidebar (56px), context-sensitive sub-nav
-- [x] `src/App.tsx` — AppShell wiring, role-based nav, auto-select first sub-item on section change
 - [x] `src/App.css` — Cleaned (Vite template styles removed)
 - [x] `.claude/launch.json` — Preview server config (npm path hardcoded for nvm)
+
+**Session 2 (redesign — Hyper-Modern Floating UI):**
+- [x] `src/components/shell/TopNav.tsx` — Horizontal pill nav (5 sections + Jira) + Cmd+K + avatar
+- [x] `src/components/shell/SubSidebar.tsx` — Context-sensitive icon sub-nav (changes per section)
+- [x] `src/components/shell/shell.module.css` — Full rewrite: gradient active states, pill shapes, no borders
+- [x] `src/App.tsx` — layout="default", TopNav in header, SubSidebar in navbar, gray-0 bg
+- [x] `CLAUDE.md` — Design Vision "Hyper-Modern Floating UI" section added permanently
 - [x] TypeScript build: 0 errors ✓
 
-**Navigation structure:**
-- Primary: Mein Tag · Hunting · Farming · Marketing · Sherloq System
-- Secondary (separated): Jira (smaller, gray pill when active)
+**Final navigation structure:**
+- **Top bar**: Mein Tag · Hunting · Farming · Marketing · Sherloq System (pills) + Jira (secondary pill)
+- **Left sidebar**: Context sub-nav icons for active section (e.g. Hunting → Lead-Liste, Pipeline…)
+- Active state: `linear-gradient(135deg, #175253, #3f8383)` + white — on pills AND sidebar icons
 - Role-based: solo/admin = all 5+Jira · hunter = Mein Tag+Hunting+Jira · farmer = Mein Tag+Farming+Jira
-- Sub-nav: Hunting (4) · Farming (4) · Marketing (4) · Sherloq (4) · Jira (3) · Mein Tag (none)
-- Cmd+K: placeholder button with ⌘K hint, wired to useHotkeys (mod+k captured)
-- Dark/light toggle in bottom of SubSidebar
+- Sub-nav items: Hunting (4) · Farming (4) · Marketing (4) · Sherloq (4) · Jira (3) · Mein Tag (none)
+- Cmd+K: pill-shaped button, ⌘K shortcut captured via useHotkeys
+- Dark/light toggle pinned to bottom of SubSidebar
 
 ### Phase 4 — Real Page Stubs (next)
 - [ ] Replace PlaceholderPage with real stub components per section

@@ -94,25 +94,83 @@ import { heatStatusColors, dealStageColors, churnRiskColors, personalityColors }
 
 ---
 
-## Navigation Structure
+## Navigation Architecture (Final — do not change)
 
-Exactly **3 primary navigation points** — never more:
+**AppShell `layout="default"`** — header full-width at top, navbar below it on the left.
 
+### Top bar — `TopNav.tsx` (primary section navigation)
+Horizontal pill navigation spanning the full header width.
+- **5 primary sections as pills**: Mein Tag · Hunting · Farming · Marketing · Sherloq System
+- **Jira** as secondary pill (smaller, `topNavPillSecondary` class, separated by gap)
+- **Right side**: Cmd+K pill button + user avatar
+- Active pill: gradient `linear-gradient(135deg, #175253, #3f8383)` + white text
+- Inactive: transparent background, gray text — zero borders, zero dividers
+
+### Left sidebar — `SubSidebar.tsx` (context-sensitive sub-nav)
+Icon-only sidebar (68px wide) that changes content based on the active section.
+- Shows sub-nav icons for the active section (e.g. Hunting → Lead-Liste, Pipeline, Sequenzen, Outreach)
+- Active icon: gradient background + white icon
+- Inactive: transparent, gray icon
+- Utility buttons (Settings, Theme toggle) pinned to bottom
+- Mein Tag has no sub-items → sidebar shows only utility buttons
+
+### Role-based access (`navConfig.tsx → roleAccess`)
+- `solo` / `admin` → all 5 sections + Jira
+- `hunter` → Mein Tag · Hunting · Jira
+- `farmer` → Mein Tag · Farming · Jira
+
+---
+
+## Design Vision — Hyper-Modern Floating UI (Binding for Every Component)
+
+This is the permanent visual language of Sales OS. Every new component must follow these rules exactly.
+
+### Backgrounds
+- **Global app background**: always `var(--mantine-color-gray-0)` — never pure white
+- **Cards, panels, sidebar, header**: white `#FFFFFF`, elevated above the gray background by shadow alone
+
+### Active State (gradient — never plain green or black)
+```css
+background: linear-gradient(135deg, #175253, #3f8383);
+color: white;
 ```
-☀️ Mein Tag    |    🎯 Hunter    |    🌱 Farmer
+Used for: active nav pills, active sidebar icons, active tabs, primary CTA buttons.
+
+### Typography
+- Headers: `var(--mantine-color-gray-9)` (dark-9)
+- Subtext / labels: `var(--mantine-color-gray-5)` (dimmed)
+- All sizes from `theme.ts` — never new hex codes for text
+
+### Geometry
+- Cards: `radius="xl"` (24–32px) — extreme rounding everywhere
+- Pills (nav, buttons, badges): `radius={9999}` — full pill shape, no exceptions
+- Sidebar icon buttons: `border-radius: 10px` — soft square
+- **No hard borders anywhere** — `withBorder={false}` on all AppShell parts, no CSS `border` lines
+
+### Shadows (ultra-soft diffuse)
+```css
+/* Card / panel */
+box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.05);
+/* Header */
+box-shadow: 0 1px 20px -4px rgba(0, 0, 0, 0.06);
+/* Sidebar */
+box-shadow: 2px 0 20px -8px rgba(0, 0, 0, 0.06);
 ```
+Never use heavy or sharp shadows.
 
-Secondary (via sub-nav or Cmd+K only):
-- 🎫 Jira Board
-- 📣 Marketing Board (placeholder)
-- 🔍 Sherloq Board (placeholder)
-- ⚙️ Admin / Settings
+### Dividers & Separators
+- **Zero dividers** — no `<Divider>` components, no `withBorder`, no CSS border lines
+- Separation achieved exclusively through spacing (`gap`, `padding`, `margin`)
 
-Navigation renders dynamically based on `users.role`:
-- `solo` → all three + all boards
-- `hunter` → Hunter + Mein Tag
-- `farmer` → Farmer + Mein Tag
-- `admin` → everything + Admin
+### CSS Class Patterns (`shell.module.css`)
+| Class | Purpose |
+|---|---|
+| `.topNavPill` | Primary section pill in header |
+| `.topNavPillSecondary` | Jira / secondary pills (smaller) |
+| `.sidebarItem` | Context sub-nav icon button (10px radius) |
+| `.utilBtn` | Utility buttons (settings, theme — pill shape) |
+| `.cmdK` / `.cmdKLabel` | Pill-shaped Cmd+K search trigger |
+| `.logoArea` | Logo lockup flex container |
 
 ---
 

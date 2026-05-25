@@ -2,10 +2,9 @@ import { useState } from 'react'
 import { AppShell, Badge, Box, Stack, Text, ThemeIcon, rem } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { useCurrentUser } from './hooks/useCurrentUser'
-import { TopBar } from './components/shell/TopBar'
+import { TopNav } from './components/shell/TopNav'
 import { SubSidebar } from './components/shell/SubSidebar'
 import {
-  getVisibleMainItems,
   getSubItems,
   getDefaultSection,
   sectionMeta,
@@ -15,53 +14,61 @@ import type { MainNavId } from './types/navigation'
 
 export default function App() {
   const user = useCurrentUser()
-  const [mobileOpen, { toggle: toggleMobile }] = useDisclosure(false)
+  const [mobileOpen] = useDisclosure(false)
 
-  // Determine visible nav items based on user's role
-  const visibleItems = getVisibleMainItems(user.role)
-
-  // Active section defaults to first accessible section for this role
   const [activeSection, setActiveSection] = useState<MainNavId>(
     getDefaultSection(user.role)
   )
-
-  // Active sub-item: auto-select first sub-item when switching sections
   const [activeSubItem, setActiveSubItem] = useState<string | null>(() => {
     const firstSub = getSubItems(getDefaultSection(user.role))[0]
     return firstSub?.id ?? null
   })
 
+  // Auto-select first sub-item when switching sections
   function handleSectionChange(id: MainNavId) {
     setActiveSection(id)
-    // Auto-select first sub-item of the new section
     const firstSub = getSubItems(id)[0]
     setActiveSubItem(firstSub?.id ?? null)
   }
 
   return (
     <AppShell
+      // layout="default": header spans full viewport width, navbar sits below it on the left.
+      // TopNav (5 section pills) lives in the header — full width.
+      // SubSidebar (context sub-icons) lives in the navbar — below the header on the left.
+      layout="default"
       header={{ height: 52 }}
       navbar={{
-        width: 56,
+        width: 68,
         breakpoint: 'sm',
         collapsed: { mobile: !mobileOpen },
       }}
       padding="lg"
+      style={{ backgroundColor: 'var(--mantine-color-gray-0)' }}
     >
-      {/* ── Header ─────────────────────────────────────────────────────── */}
-      <AppShell.Header>
-        <TopBar
+      {/* ── Full-width top bar — primary section navigation ───────────── */}
+      <AppShell.Header
+        withBorder={false}
+        style={{
+          backgroundColor: 'white',
+          boxShadow: '0 1px 20px -4px rgba(0, 0, 0, 0.06)',
+        }}
+      >
+        <TopNav
           user={user}
-          visibleItems={visibleItems}
           activeSection={activeSection}
           onSectionChange={handleSectionChange}
-          mobileMenuOpen={mobileOpen}
-          onMobileMenuToggle={toggleMobile}
         />
       </AppShell.Header>
 
-      {/* ── Left Icon Sidebar ───────────────────────────────────────────── */}
-      <AppShell.Navbar>
+      {/* ── Left sidebar — context-sensitive sub-nav icons ───────────── */}
+      <AppShell.Navbar
+        withBorder={false}
+        style={{
+          backgroundColor: 'white',
+          boxShadow: '2px 0 20px -8px rgba(0, 0, 0, 0.06)',
+        }}
+      >
         <SubSidebar
           activeSection={activeSection}
           activeSubItem={activeSubItem}
@@ -69,7 +76,7 @@ export default function App() {
         />
       </AppShell.Navbar>
 
-      {/* ── Main Content ────────────────────────────────────────────────── */}
+      {/* ── Page content — gray-0 background, white cards ────────────── */}
       <AppShell.Main>
         <PlaceholderPage
           section={activeSection}
@@ -80,9 +87,7 @@ export default function App() {
   )
 }
 
-// ─── Placeholder Page ─────────────────────────────────────────────────────────
-// Temporary content shown for each section/sub-item combination.
-// Replace with real page components as each module is built.
+// ─── Placeholder content — replaced section by section as modules are built ──
 
 interface PlaceholderPageProps {
   section: MainNavId
@@ -91,12 +96,8 @@ interface PlaceholderPageProps {
 
 function PlaceholderPage({ section, subItemId }: PlaceholderPageProps) {
   const meta = sectionMeta[section]
-
-  // Get the section icon from mainNavItems
   const navItem = mainNavItems.find(n => n.id === section)
   const SectionIcon = navItem?.icon
-
-  // Find the active sub-item label
   const subItems = getSubItems(section)
   const activeSubItem = subItems.find(s => s.id === subItemId)
   const SubItemIcon = activeSubItem?.icon
@@ -112,33 +113,18 @@ function PlaceholderPage({ section, subItemId }: PlaceholderPageProps) {
     >
       <Stack align="center" gap="md" maw={420} ta="center">
 
-        {/* Section icon */}
         {SectionIcon && (
-          <ThemeIcon
-            size={56}
-            radius="xl"
-            color="sherloq"
-            variant="light"
-          >
+          <ThemeIcon size={56} radius="xl" color="sherloq" variant="light">
             <SectionIcon size={28} stroke={1.5} />
           </ThemeIcon>
         )}
 
-        {/* Section + sub-item title */}
         <Stack gap={4} align="center">
           <Text fw={600} size="lg" style={{ letterSpacing: '-0.01em' }}>
             {meta.title}
           </Text>
-
           {activeSubItem && SubItemIcon ? (
-            <Box
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: rem(5),
-                color: 'var(--mantine-color-gray-6)',
-              }}
-            >
+            <Box style={{ display: 'flex', alignItems: 'center', gap: rem(5), color: 'var(--mantine-color-gray-6)' }}>
               <SubItemIcon size={13} stroke={1.5} />
               <Text size="sm" c="dimmed">{activeSubItem.label}</Text>
             </Box>
@@ -147,19 +133,11 @@ function PlaceholderPage({ section, subItemId }: PlaceholderPageProps) {
           )}
         </Stack>
 
-        {/* Description (only when sub-item is active) */}
         {activeSubItem && (
-          <Text size="xs" c="dimmed" maw={300}>
-            {meta.description}
-          </Text>
+          <Text size="xs" c="dimmed" maw={300}>{meta.description}</Text>
         )}
 
-        <Badge
-          color="sherloq"
-          variant="light"
-          size="sm"
-          radius="sm"
-        >
+        <Badge color="sherloq" variant="light" size="sm" radius="sm">
           Kommt bald
         </Badge>
 

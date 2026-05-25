@@ -1,4 +1,4 @@
-import { Divider, Stack, Tooltip } from '@mantine/core'
+import { Stack, Tooltip } from '@mantine/core'
 import { useMantineColorScheme } from '@mantine/core'
 import { IconMoon, IconSettings, IconSun } from '@tabler/icons-react'
 import type { MainNavId } from '../../types/navigation'
@@ -12,35 +12,30 @@ interface SubSidebarProps {
 }
 
 /**
- * Left icon-only sidebar.
- * Shows context-sensitive sub-navigation for the active section.
- * Style reference: vertical circular icon buttons (see design screenshots).
- * Mein Tag has no sub-items — sidebar shows only utility buttons.
+ * Context-sensitive left sidebar — shows sub-nav icons for the active section.
+ * Switches content when the top nav section changes (Hunting → Farming, etc.).
+ * Mein Tag has no sub-items → sidebar shows only utility buttons at the bottom.
+ * No borders, no dividers — separation via spacing only.
  */
 export function SubSidebar({ activeSection, activeSubItem, onSubItemChange }: SubSidebarProps) {
   const { colorScheme, toggleColorScheme } = useMantineColorScheme()
   const subItems = getSubItems(activeSection)
 
   return (
-    <Stack
-      h="100%"
-      justify="space-between"
-      align="center"
-      py="sm"
-      gap={0}
-    >
-      {/* ── Sub-navigation items for current section ──────────────────── */}
-      <Stack gap={6} align="center">
+    <Stack h="100%" justify="space-between" align="center" py="sm" gap={0}>
+
+      {/* ── Context-sensitive sub-nav icons ─────────────────────────── */}
+      <Stack gap={6} align="center" px={4}>
         {subItems.map(item => (
           <Tooltip
             key={item.id}
             label={item.label}
             position="right"
             withArrow
-            openDelay={300}
+            openDelay={250}
           >
             <button
-              className={css.subNavBtn}
+              className={css.sidebarItem}
               data-active={activeSubItem === item.id ? 'true' : undefined}
               onClick={() => onSubItemChange(item.id)}
               type="button"
@@ -52,13 +47,11 @@ export function SubSidebar({ activeSection, activeSubItem, onSubItemChange }: Su
         ))}
       </Stack>
 
-      {/* ── Utility buttons: settings + theme toggle ──────────────────── */}
-      <Stack gap={4} align="center">
-        <Divider w={24} mb={4} />
-
+      {/* ── Utility buttons — pinned to bottom ─────────────────────── */}
+      <Stack gap={4} align="center" px={4}>
         <Tooltip label="Einstellungen" position="right" withArrow>
           <button
-            className={css.subNavBtnUtil}
+            className={css.utilBtn}
             type="button"
             aria-label="Einstellungen"
             onClick={() => console.log('Settings — coming soon')}
@@ -67,25 +60,24 @@ export function SubSidebar({ activeSection, activeSubItem, onSubItemChange }: Su
           </button>
         </Tooltip>
 
-        {/* Theme toggle — switches between light and dark mode */}
         <Tooltip
           label={colorScheme === 'dark' ? 'Hell-Modus' : 'Dunkel-Modus'}
           position="right"
           withArrow
         >
           <button
-            className={css.subNavBtnUtil}
+            className={css.utilBtn}
             type="button"
             aria-label="Theme wechseln"
             onClick={() => toggleColorScheme()}
           >
             {colorScheme === 'dark'
               ? <IconSun size={16} stroke={1.5} />
-              : <IconMoon size={16} stroke={1.5} />
-            }
+              : <IconMoon size={16} stroke={1.5} />}
           </button>
         </Tooltip>
       </Stack>
+
     </Stack>
   )
 }
