@@ -280,6 +280,53 @@ await checkPermission(userId, resource, action); // throws if unauthorized
 
 ---
 
+## Realtime Events & Webhooks — PFLICHT bei Datenbankbau
+
+**NIEMALS Supabase verbinden ohne diese fünf Punkte vollständig implementiert.**
+
+### 1. Supabase Realtime aktivieren
+```sql
+alter publication supabase_realtime add table
+  contacts, companies, tasks, pipeline_deals,
+  communications, kpis_daily, jira_tasks;
+```
+
+### 2. Webhook Endpunkte als Vercel API Routes
+
+| Route | Body | Aktion |
+|---|---|---|
+| `POST /api/webhooks/sherloq-signal` | `{ contact_id, signal_type, payload }` | Signal in `communications` schreiben, Task erstellen, Signale-Feed aktualisieren |
+| `POST /api/webhooks/sherloq-usage` | `{ contact_id, login_at, enrichments, messages, posts }` | `contacts` updaten, Churn Risk neu berechnen, Upsell Signal wenn Limit >80% |
+| `POST /api/webhooks/email-received` | `{ contact_email, subject, body, sentiment }` | Communication erstellen, `followup_status` → `answered`, Kurzakte-Update triggern |
+| `POST /api/webhooks/slack-message` | `{ contact_id, message, channel, direction }` | Communication erstellen, Heat Status prüfen, Kurzakte-Update triggern |
+| `POST /api/webhooks/teams-message` | `{ contact_id, message, channel, direction }` | Communication erstellen, Heat Status prüfen, Kurzakte-Update triggern |
+| `POST /api/webhooks/hubspot-update` | `{ contact_id, deal_id, field, old_value, new_value }` | `pipeline_deals` updaten, Stage-Änderung vorschlagen wenn relevant |
+| `POST /api/webhooks/jira-update` | `{ jira_id, status, priority, assigned_to }` | `jira_tasks` updaten, Alert in Mein Tag wenn kritisch |
+| `POST /api/webhooks/calendar-event` | `{ contact_id, event_type, start_time, title }` | Meeting-Prep vorbereiten, Communication erstellen, Stage-Änderung wenn Keywords (Demo, Onboarding, Trial) |
+
+**Sicherheit:** Jeder Webhook prüft `x-webhook-secret` Header gegen Vercel Environment Variable. Ohne gültigen Secret → sofort `401`.
+
+### 3. Database Triggers (immer mitbauen)
+- **Cluster-Vererbung** — Company wird Customer → alle verknüpften Contacts automatisch mitziehen
+- **Audit Log** — alle Tabellen schreiben automatisch in `audit_log`
+- **Heat Status Timestamp** — `heat_status_updated_at` auf `now()` bei jeder Statusänderung
+- **Updated At** — alle Tabellen mit `updated_at` Feld automatisch aktualisieren
+
+### 4. Frontend Subscriptions
+Jede Komponente die Live-Daten zeigt **muss** einen Supabase Channel haben. Pattern einmal definieren, überall anwenden — nie einzeln nachrüsten.
+
+Betroffene Bereiche: Kacheln, Drawer, Mein Tag, Pipeline Kanban, Signale-Feed.
+
+Ohne Subscriptions sieht der User veraltete Daten bis er die Seite neu lädt.
+
+### 5. Offline Handling
+- Toast wenn Verbindung verloren
+- 3× Retry für Webhooks mit exponential backoff: `1s → 5s → 30s`
+- Vollständiger Refresh nach Reconnect
+- `error_log` Tabelle für fehlgeschlagene Events
+
+---
+
 ## Key Business Logic
 
 ### Heat Status Calculation
