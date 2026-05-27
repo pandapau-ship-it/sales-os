@@ -3,7 +3,7 @@
   "configurations": [
     {
       "name": "sales-os",
-      "runtimeExecutable": "npm",
+      "runtimeExecutable": "/Users/oliversand/.nvm/versions/node/v24.16.0/bin/npm",
       "runtimeArgs": ["run", "dev", "--", "--port", "5173"],
       "port": 5173
     }

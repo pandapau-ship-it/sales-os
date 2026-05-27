@@ -1,147 +1,90 @@
 import { useState } from 'react'
-import { AppShell, Badge, Box, Stack, Text, ThemeIcon, rem } from '@mantine/core'
-import { useDisclosure } from '@mantine/hooks'
-import { useCurrentUser } from './hooks/useCurrentUser'
-import { TopNav } from './components/shell/TopNav'
-import { SubSidebar } from './components/shell/SubSidebar'
-import {
-  getSubItems,
-  getDefaultSection,
-  sectionMeta,
-  mainNavItems,
-} from './components/shell/navConfig'
-import type { MainNavId } from './types/navigation'
+import { TopBar } from '@/components/layout/TopBar'
+
+// Section IDs — extend as screens are built
+type NavId = 'mein-tag' | 'hunting' | 'farming' | 'marketing' | 'sherloq' | 'jira'
 
 export default function App() {
-  const user = useCurrentUser()
-  const [mobileOpen] = useDisclosure(false)
+  const [activeSection, setActiveSection] = useState<NavId>('mein-tag')
 
-  const [activeSection, setActiveSection] = useState<MainNavId>(
-    getDefaultSection(user.role)
+  return (
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--sherloq-bg)' }}>
+
+      {/* ── Top navigation bar ──────────────────────────────────────── */}
+      <TopBar
+        activeSection={activeSection}
+        onSectionChange={setActiveSection}
+        userName="Oliver Sand"
+        userInitials="OS"
+      />
+
+      {/* ── Page content — offset by header height ──────────────────── */}
+      <div className="pt-[52px] flex">
+
+        {/* Left sidebar placeholder — filled by SubSidebar once confirmed */}
+        <aside
+          className="fixed top-[52px] left-0 bottom-0 w-[68px] flex flex-col items-center pt-3 pb-3"
+          style={{
+            backgroundColor: 'var(--sherloq-surface)',
+            boxShadow: 'var(--sherloq-shadow-sidebar)',
+          }}
+        />
+
+        {/* Main content area */}
+        <main className="ml-[68px] flex-1 flex items-center justify-center min-h-[calc(100vh-52px)]">
+          <PlaceholderContent section={activeSection} />
+        </main>
+      </div>
+    </div>
   )
-  const [activeSubItem, setActiveSubItem] = useState<string | null>(() => {
-    const firstSub = getSubItems(getDefaultSection(user.role))[0]
-    return firstSub?.id ?? null
-  })
+}
 
-  // Auto-select first sub-item when switching sections
-  function handleSectionChange(id: MainNavId) {
-    setActiveSection(id)
-    const firstSub = getSubItems(id)[0]
-    setActiveSubItem(firstSub?.id ?? null)
+/* ── Placeholder — replaced screen by screen as modules are built ─────── */
+
+function PlaceholderContent({ section }: { section: NavId }) {
+  const meta: Record<NavId, { title: string; description: string }> = {
+    'mein-tag':  { title: 'Mein Tag',       description: 'Tagesstruktur, Prioritäten, Meeting-Prep und AI-Briefing' },
+    hunting:     { title: 'Hunting',         description: 'Lead-Pipeline, Outreach-Sequenzen und Neukundengewinnung' },
+    farming:     { title: 'Farming',         description: 'Bestandskunden, Health-Monitoring und Upsell-Potenziale' },
+    marketing:   { title: 'Marketing',       description: 'Content-Planung, Posts, Newsletter und Kampagnen' },
+    sherloq:     { title: 'Sherloq System',  description: 'Produkt-Statistiken, Usage-Daten und Subscription-Übersicht' },
+    jira:        { title: 'Jira',            description: 'Meine Tickets, Epics und Smart Alerts aus Jira' },
   }
+  const { title, description } = meta[section]
 
   return (
-    <AppShell
-      // layout="default": header spans full viewport width, navbar sits below it on the left.
-      // TopNav (5 section pills) lives in the header — full width.
-      // SubSidebar (context sub-icons) lives in the navbar — below the header on the left.
-      layout="default"
-      header={{ height: 52 }}
-      navbar={{
-        width: 68,
-        breakpoint: 'sm',
-        collapsed: { mobile: !mobileOpen },
-      }}
-      padding="lg"
-      style={{ backgroundColor: 'var(--mantine-color-gray-0)' }}
-    >
-      {/* ── Full-width top bar — primary section navigation ───────────── */}
-      <AppShell.Header
-        withBorder={false}
+    <div className="flex flex-col items-center gap-4 text-center max-w-sm px-4">
+
+      {/* Icon placeholder */}
+      <div
+        className="flex h-14 w-14 items-center justify-center rounded-2xl text-white text-2xl"
+        style={{ background: 'linear-gradient(135deg, #125455, #3f8383)' }}
+      >
+        ✦
+      </div>
+
+      <div className="flex flex-col gap-1">
+        <p
+          className="text-base font-semibold tracking-tight"
+          style={{ color: 'var(--sherloq-text)' }}
+        >
+          {title}
+        </p>
+        <p className="text-sm" style={{ color: 'var(--sherloq-text-muted)' }}>
+          {description}
+        </p>
+      </div>
+
+      <span
+        className="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium"
         style={{
-          backgroundColor: 'white',
-          boxShadow: '0 1px 20px -4px rgba(0, 0, 0, 0.06)',
+          backgroundColor: 'var(--sherloq-primary-light)',
+          color: 'var(--sherloq-primary)',
         }}
       >
-        <TopNav
-          user={user}
-          activeSection={activeSection}
-          onSectionChange={handleSectionChange}
-        />
-      </AppShell.Header>
+        Kommt bald
+      </span>
 
-      {/* ── Left sidebar — context-sensitive sub-nav icons ───────────── */}
-      <AppShell.Navbar
-        withBorder={false}
-        style={{
-          backgroundColor: 'white',
-          boxShadow: '2px 0 20px -8px rgba(0, 0, 0, 0.06)',
-        }}
-      >
-        <SubSidebar
-          activeSection={activeSection}
-          activeSubItem={activeSubItem}
-          onSubItemChange={setActiveSubItem}
-        />
-      </AppShell.Navbar>
-
-      {/* ── Page content — gray-0 background, white cards ────────────── */}
-      <AppShell.Main>
-        <PlaceholderPage
-          section={activeSection}
-          subItemId={activeSubItem}
-        />
-      </AppShell.Main>
-    </AppShell>
-  )
-}
-
-// ─── Placeholder content — replaced section by section as modules are built ──
-
-interface PlaceholderPageProps {
-  section: MainNavId
-  subItemId: string | null
-}
-
-function PlaceholderPage({ section, subItemId }: PlaceholderPageProps) {
-  const meta = sectionMeta[section]
-  const navItem = mainNavItems.find(n => n.id === section)
-  const SectionIcon = navItem?.icon
-  const subItems = getSubItems(section)
-  const activeSubItem = subItems.find(s => s.id === subItemId)
-  const SubItemIcon = activeSubItem?.icon
-
-  return (
-    <Box
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: `calc(100vh - ${rem(52)} - ${rem(32)})`,
-      }}
-    >
-      <Stack align="center" gap="md" maw={420} ta="center">
-
-        {SectionIcon && (
-          <ThemeIcon size={56} radius="xl" color="sherloq" variant="light">
-            <SectionIcon size={28} stroke={1.5} />
-          </ThemeIcon>
-        )}
-
-        <Stack gap={4} align="center">
-          <Text fw={600} size="lg" style={{ letterSpacing: '-0.01em' }}>
-            {meta.title}
-          </Text>
-          {activeSubItem && SubItemIcon ? (
-            <Box style={{ display: 'flex', alignItems: 'center', gap: rem(5), color: 'var(--mantine-color-gray-6)' }}>
-              <SubItemIcon size={13} stroke={1.5} />
-              <Text size="sm" c="dimmed">{activeSubItem.label}</Text>
-            </Box>
-          ) : (
-            <Text size="sm" c="dimmed">{meta.description}</Text>
-          )}
-        </Stack>
-
-        {activeSubItem && (
-          <Text size="xs" c="dimmed" maw={300}>{meta.description}</Text>
-        )}
-
-        <Badge color="sherloq" variant="light" size="sm" radius="sm">
-          Kommt bald
-        </Badge>
-
-      </Stack>
-    </Box>
+    </div>
   )
 }

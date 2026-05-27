@@ -1,111 +1,131 @@
+@import "tailwindcss";
+
+/* ─── CSS Variables — used by shadcn components as hsl(var(--x)) ─────────
+ * HSL format: "H S% L%" (no hsl() wrapper here, added when referenced)
+ * ─────────────────────────────────────────────────────────────────────────── */
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+  --background:            210 17% 98%;   /* #F8F9FA — global app bg */
+  --foreground:            215 18% 14%;   /* #212529 — primary text   */
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
+  --card:                  0 0% 100%;     /* #FFFFFF — card surface   */
+  --card-foreground:       215 18% 14%;
 
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  --popover:               0 0% 100%;
+  --popover-foreground:    215 18% 14%;
 
-  @media (max-width: 1024px) {
-    font-size: 16px;
+  --primary:               181 69% 20%;   /* #125455 — Sherloq teal   */
+  --primary-foreground:    0 0% 100%;
+
+  --secondary:             210 17% 95%;
+  --secondary-foreground:  215 18% 14%;
+
+  --muted:                 210 17% 95%;
+  --muted-foreground:      217 10% 54%;   /* #868E96 */
+
+  --accent:                210 17% 95%;
+  --accent-foreground:     215 18% 14%;
+
+  --destructive:           0 72% 51%;
+  --destructive-foreground:0 0% 100%;
+
+  --border:                214 14% 91%;   /* #E9ECEF */
+  --input:                 214 14% 91%;
+  --ring:                  181 69% 20%;
+
+  --radius: 0.5rem;
+}
+
+.dark {
+  --background:            215 28% 10%;
+  --foreground:            210 17% 95%;
+  --card:                  215 28% 13%;
+  --card-foreground:       210 17% 95%;
+  --popover:               215 28% 13%;
+  --popover-foreground:    210 17% 95%;
+  --primary:               181 55% 45%;
+  --primary-foreground:    0 0% 100%;
+  --secondary:             215 28% 18%;
+  --secondary-foreground:  210 17% 95%;
+  --muted:                 215 28% 18%;
+  --muted-foreground:      217 10% 60%;
+  --accent:                215 28% 18%;
+  --accent-foreground:     210 17% 95%;
+  --destructive:           0 63% 55%;
+  --destructive-foreground:0 0% 100%;
+  --border:                215 28% 20%;
+  --input:                 215 28% 20%;
+  --ring:                  181 55% 45%;
+}
+
+/* ─── Tailwind v4 theme — maps CSS vars to utility classes ─────────────────
+ * @theme inline: utilities inherit computed values at render time
+ * This is what makes bg-background, text-foreground, border-border etc. work
+ * ─────────────────────────────────────────────────────────────────────────── */
+@theme inline {
+  --color-background:           hsl(var(--background));
+  --color-foreground:           hsl(var(--foreground));
+  --color-card:                 hsl(var(--card));
+  --color-card-foreground:      hsl(var(--card-foreground));
+  --color-popover:              hsl(var(--popover));
+  --color-popover-foreground:   hsl(var(--popover-foreground));
+  --color-primary:              hsl(var(--primary));
+  --color-primary-foreground:   hsl(var(--primary-foreground));
+  --color-secondary:            hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted:                hsl(var(--muted));
+  --color-muted-foreground:     hsl(var(--muted-foreground));
+  --color-accent:               hsl(var(--accent));
+  --color-accent-foreground:    hsl(var(--accent-foreground));
+  --color-destructive:          hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border:               hsl(var(--border));
+  --color-input:                hsl(var(--input));
+  --color-ring:                 hsl(var(--ring));
+
+  --radius-sm:  calc(var(--radius) - 2px);
+  --radius-md:  var(--radius);
+  --radius-lg:  calc(var(--radius) + 2px);
+  --radius-xl:  calc(var(--radius) + 4px);
+}
+
+/* ─── Sherloq brand tokens (direct use in inline styles / components) ─────── */
+:root {
+  --sherloq-primary:        #125455;
+  --sherloq-primary-hover:  #0f4344;
+  --sherloq-primary-light:  #e8f4f4;
+  --sherloq-bg:             #F8F9FA;
+  --sherloq-surface:        #FFFFFF;
+  --sherloq-text:           #212529;
+  --sherloq-text-muted:     #868E96;
+  --sherloq-border:         #E9ECEF;
+  --sherloq-radius-card:    16px;
+  --sherloq-radius-pill:    9999px;
+  --sherloq-shadow-sm:      0 1px 20px -4px rgba(0,0,0,0.06);
+  --sherloq-shadow-md:      0 4px 24px -6px rgba(0,0,0,0.08);
+  --sherloq-shadow-card:    0 10px 40px -10px rgba(0,0,0,0.05);
+  --sherloq-shadow-sidebar: 2px 0 20px -8px rgba(0,0,0,0.06);
+}
+
+/* ─── Base reset ─────────────────────────────────────────────────────────── */
+@layer base {
+  * {
+    box-sizing: border-box;
+    border-color: hsl(var(--border));
   }
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: 'Plus Jakarta Sans', Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    margin: 0;
   }
 
-  #social .button-icon {
-    filter: invert(1) brightness(2);
+  #root {
+    width: 100%;
+    min-height: 100svh;
   }
-}
-
-#root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-}
-
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
-}
-
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
-}
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
-p {
-  margin: 0;
-}
-
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
-}
-
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
 }
