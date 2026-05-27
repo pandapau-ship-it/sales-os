@@ -1,90 +1,110 @@
 import { useState } from 'react'
 import { TopBar } from '@/components/layout/TopBar'
+import { Sidebar } from '@/components/layout/Sidebar'
+import { ScreenMyDay } from '@/components/screens/ScreenMyDay'
+import { ScreenHunting } from '@/components/screens/ScreenHunting'
+import { ScreenFarming } from '@/components/screens/ScreenFarming'
+import { ScreenPlaceholder } from '@/components/screens/ScreenPlaceholder'
+import { currentUser } from '@/data'
+import type { NavId, SubNavId, HuntingSubId, FarmingSubId } from '@/types'
 
-// Section IDs — extend as screens are built
-type NavId = 'mein-tag' | 'hunting' | 'farming' | 'marketing' | 'sherloq' | 'jira'
+// Default sub-item per section — shown when section is first entered
+const DEFAULT_SUB: Partial<Record<NavId, SubNavId>> = {
+  hunting:   'hunting-leads',
+  farming:   'farming-customers',
+  marketing: 'marketing-plan',
+  sherloq:   'sherloq-overview',
+  jira:      'jira-tickets',
+}
 
 export default function App() {
   const [activeSection, setActiveSection] = useState<NavId>('mein-tag')
+  const [activeSubItem, setActiveSubItem] = useState<SubNavId | null>(null)
+  const [darkMode, setDarkMode] = useState(false)
+
+  function handleSectionChange(id: NavId) {
+    setActiveSection(id)
+    setActiveSubItem(DEFAULT_SUB[id] ?? null)
+  }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: 'var(--sherloq-bg)' }}>
+    // Dark mode: add .dark class to root to activate dark CSS variables
+    <div className={darkMode ? 'dark' : ''}>
+      <div style={{ backgroundColor: 'var(--sherloq-bg)', minHeight: '100vh' }}>
 
-      {/* ── Top navigation bar ──────────────────────────────────────── */}
-      <TopBar
-        activeSection={activeSection}
-        onSectionChange={setActiveSection}
-        userName="Oliver Sand"
-        userInitials="OS"
-      />
-
-      {/* ── Page content — offset by header height ──────────────────── */}
-      <div className="pt-[52px] flex">
-
-        {/* Left sidebar placeholder — filled by SubSidebar once confirmed */}
-        <aside
-          className="fixed top-[52px] left-0 bottom-0 w-[68px] flex flex-col items-center pt-3 pb-3"
-          style={{
-            backgroundColor: 'var(--sherloq-surface)',
-            boxShadow: 'var(--sherloq-shadow-sidebar)',
-          }}
+        {/* ── Top navigation bar ────────────────────────────────────── */}
+        <TopBar
+          activeSection={activeSection}
+          onSectionChange={handleSectionChange}
+          userName={currentUser.name}
+          userInitials={currentUser.initials}
         />
 
-        {/* Main content area */}
-        <main className="ml-[68px] flex-1 flex items-center justify-center min-h-[calc(100vh-52px)]">
-          <PlaceholderContent section={activeSection} />
+        {/* ── Left sidebar ──────────────────────────────────────────── */}
+        <Sidebar
+          activeSection={activeSection}
+          activeSubItem={activeSubItem}
+          onSubItemChange={setActiveSubItem}
+          darkMode={darkMode}
+          onToggleDarkMode={() => setDarkMode(d => !d)}
+        />
+
+        {/* ── Main content area ─────────────────────────────────────── */}
+        <main className="pt-[52px] ml-[68px]">
+          <ActiveScreen
+            section={activeSection}
+            subItem={activeSubItem}
+          />
         </main>
+
       </div>
     </div>
   )
 }
 
-/* ── Placeholder — replaced screen by screen as modules are built ─────── */
+// ─── Route active screen based on section + sub-item ─────────────────────────
 
-function PlaceholderContent({ section }: { section: NavId }) {
-  const meta: Record<NavId, { title: string; description: string }> = {
-    'mein-tag':  { title: 'Mein Tag',       description: 'Tagesstruktur, Prioritäten, Meeting-Prep und AI-Briefing' },
-    hunting:     { title: 'Hunting',         description: 'Lead-Pipeline, Outreach-Sequenzen und Neukundengewinnung' },
-    farming:     { title: 'Farming',         description: 'Bestandskunden, Health-Monitoring und Upsell-Potenziale' },
-    marketing:   { title: 'Marketing',       description: 'Content-Planung, Posts, Newsletter und Kampagnen' },
-    sherloq:     { title: 'Sherloq System',  description: 'Produkt-Statistiken, Usage-Daten und Subscription-Übersicht' },
-    jira:        { title: 'Jira',            description: 'Meine Tickets, Epics und Smart Alerts aus Jira' },
+interface ActiveScreenProps {
+  section: NavId
+  subItem: SubNavId | null
+}
+
+function ActiveScreen({ section, subItem }: ActiveScreenProps) {
+  switch (section) {
+    case 'mein-tag':
+      return <ScreenMyDay />
+
+    case 'hunting':
+      return <ScreenHunting activeSubItem={subItem as HuntingSubId | null} />
+
+    case 'farming':
+      return <ScreenFarming activeSubItem={subItem as FarmingSubId | null} />
+
+    case 'marketing':
+      return (
+        <ScreenPlaceholder
+          title="Marketing"
+          description="Content-Planung, Posts, Newsletter und Kampagnen"
+        />
+      )
+
+    case 'sherloq':
+      return (
+        <ScreenPlaceholder
+          title="Sherloq System"
+          description="Produkt-Statistiken, Usage-Daten und Subscription-Übersicht"
+        />
+      )
+
+    case 'jira':
+      return (
+        <ScreenPlaceholder
+          title="Jira"
+          description="Meine Tickets, Epics und Smart Alerts aus Jira"
+        />
+      )
+
+    default:
+      return null
   }
-  const { title, description } = meta[section]
-
-  return (
-    <div className="flex flex-col items-center gap-4 text-center max-w-sm px-4">
-
-      {/* Icon placeholder */}
-      <div
-        className="flex h-14 w-14 items-center justify-center rounded-2xl text-white text-2xl"
-        style={{ background: 'linear-gradient(135deg, #125455, #3f8383)' }}
-      >
-        ✦
-      </div>
-
-      <div className="flex flex-col gap-1">
-        <p
-          className="text-base font-semibold tracking-tight"
-          style={{ color: 'var(--sherloq-text)' }}
-        >
-          {title}
-        </p>
-        <p className="text-sm" style={{ color: 'var(--sherloq-text-muted)' }}>
-          {description}
-        </p>
-      </div>
-
-      <span
-        className="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium"
-        style={{
-          backgroundColor: 'var(--sherloq-primary-light)',
-          color: 'var(--sherloq-primary)',
-        }}
-      >
-        Kommt bald
-      </span>
-
-    </div>
-  )
 }
