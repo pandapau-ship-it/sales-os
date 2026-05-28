@@ -1,204 +1,699 @@
-import { useState } from 'react'
-import { ChevronDown, AlertCircle, Plus } from 'lucide-react'
-import type { HuntingSubId } from '@/types'
-import { mockContacts, mockDeals } from '@/data'
-import { HeatDot } from '@/components/shared/HeatDot'
-import { EngagementChain } from '@/components/shared/EngagementChain'
-import { PersonalityBadge } from '@/components/shared/PersonalityBadge'
-import { cn } from '@/lib/utils'
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
-const STAGE_LABELS: Record<string, string> = {
-  backlog:           'Backlog',
-  demo_vereinbart:   'Demo vereinbart',
-  followup_offen:    'Follow-up offen',
-  onboarding_trial:  'Onboarding / Trial',
-  gewonnen:          'Gewonnen',
-  verloren:          'Verloren',
-}
-
-const STAGE_COLORS: Record<string, string> = {
-  backlog:           '#ADB5BD',
-  demo_vereinbart:   '#125455',
-  followup_offen:    '#F59E0B',
-  onboarding_trial:  '#2563EB',
-  gewonnen:          '#10B961',
-  verloren:          '#E11D48',
-}
+import React, { useState } from 'react';
+import { 
+  Target, 
+  Sparkles, 
+  Mail, 
+  Link2, 
+  Hash, 
+  Phone, 
+  ArrowRight, 
+  MessageSquare, 
+  Compass, 
+  Flame, 
+  Cpu, 
+  Layers, 
+  CheckCircle, 
+  Activity, 
+  Lock,
+  ChevronLeft,
+  ChevronRight,
+  RefreshCw,
+  Plus,
+  Video,
+  Briefcase,
+  Zap,
+  ChevronDown,
+  ChevronUp,
+  ArrowLeft,
+  CheckCircle2,
+  GitBranch,
+  AlertTriangle,
+  CalendarCheck,
+  Check,
+  Trash,
+  X
+} from 'lucide-react';
+import type { Lead, HeatStatus, CommunicationChannel } from '@/types';
+import { ICPDonut } from '@/components/shared/ICPDonut';
+import CommunicationChain from '@/components/shared/CommunicationChain';
 
 interface ScreenHuntingProps {
-  activeSubItem: HuntingSubId | null
+  leads: Lead[];
+  onSelectLead: (lead: Lead) => void;
+  onUpdateLeadStage: (leadId: string, newStage: string) => void;
+  onAddLead: (lead: Lead) => void;
+  onSelectCommunication?: (personId: string, tpId: string) => void;
 }
 
-export function ScreenHunting({ activeSubItem }: ScreenHuntingProps) {
-  const view = activeSubItem ?? 'hunting-leads'
+export default function ScreenHunting({
+  leads,
+  onSelectLead,
+  onUpdateLeadStage,
+  onAddLead,
+  onSelectCommunication
+}: ScreenHuntingProps) {
+  const [subTab, setSubTab] = useState<'overview' | 'leads' | 'pipeline' | 'signals' | 'sequences'>('leads');
+  const [expandedLeadId, setExpandedLeadId] = useState<string | null>(null);
+  const [selectedLeadIds, setSelectedLeadIds] = useState<string[]>([]);
+  const [expandedCols, setExpandedCols] = useState<Record<string, boolean>>({ lead: true, pipeline: true, signal: true, sequence: false, trial: false });
+  
+  // Local state for Quick Lead Adder Dialog
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newLeadName, setNewLeadName] = useState('');
+  const [newLeadCompany, setNewLeadCompany] = useState('');
+  const [newLeadRole, setNewLeadRole] = useState('');
+  const [newLeadEmail, setNewLeadEmail] = useState('');
+  const [newLeadAka, setNewLeadAka] = useState('');
+  const [newLeadHeat, setNewLeadHeat] = useState<HeatStatus>('HOT');
 
-  if (view === 'hunting-pipeline') return <PipelineView />
-  return <LeadListeView />
-}
+  const toggleLeadSelection = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedLeadIds(prev => 
+      prev.includes(id) ? prev.filter(lId => lId !== id) : [...prev, id]
+    );
+  };
+  const selectAll = () => setSelectedLeadIds(leads.map(l => l.id));
+  const deselectAll = () => setSelectedLeadIds([]);
 
-// ─── Lead-Liste ───────────────────────────────────────────────────────────────
+  const handleCreateLead = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newLeadName || !newLeadCompany) return;
 
-function LeadListeView() {
-  const [expandedId, setExpandedId] = useState<string | null>(null)
+    const newLead: Lead = {
+      id: `lead-new-${Date.now()}`,
+      person: {
+        id: `pers-new-${Date.now()}`,
+        name: newLeadName,
+        jobTitle: newLeadRole || 'Decision Maker',
+        company: newLeadCompany,
+        initials: newLeadName.split(' ').map(n => n[0]).join('').toUpperCase()
+      },
+      kurzakte: newLeadAka || 'Neu angelegter Lead für Outreach.',
+      fullTimeline: ['Gerade erstellt via Lead-Formular.'],
+      engagementChain: ['LINKEDIN'],
+      lastTouchpoints: [
+        { channel: 'LINKEDIN', date: 'vor 1 Min', sentiment: 'neutral', summary: 'Hinzugefügt' }
+      ],
+      heatStatus: newLeadHeat,
+      heatScore: newLeadHeat === 'HOT' ? 5 : newLeadHeat === 'WARM' ? 4 : 3,
+      lastActivity: 'Gerade eben',
+      pipelineStage: 'lead',
+      contactEmail: newLeadEmail || 'info@company.com'
+    };
+
+    onAddLead(newLead);
+    setShowAddModal(false);
+    // Reset
+    setNewLeadName('');
+    setNewLeadCompany('');
+    setNewLeadRole('');
+    setNewLeadEmail('');
+    setNewLeadAka('');
+  };
+
+  const menuItems = [
+    { id: 'overview', label: 'Übersicht', count: null },
+    { id: 'leads', label: 'Leads', count: leads.length },
+    { id: 'pipeline', label: 'Pipeline (Kanban)', count: null },
+  ];
+
+  const getHeatColor = (status: HeatStatus) => {
+    switch (status) {
+      case 'HOT': return { bg: 'bg-[#EBFBEE]', text: 'text-[#2B8A3E] border-[#EBFBEE]', emoji: '🟢 Aktiv' };
+      case 'WARM': return { bg: 'bg-[#FFF4E6]', text: 'text-[#DD6B20] border-[#FFF4E6]', emoji: '🟠 Stabil' };
+      case 'LUKEWARM': return { bg: 'bg-[#FFF9DB]', text: 'text-[#F59E0B] border-[#FFF9DB]', emoji: '🟡 Rückläufig' };
+      case 'COLD': return { bg: 'bg-[#EBF8FF]', text: 'text-[#3182CE] border-[#EBF8FF]', emoji: '🔵 Ruhend' };
+      default: return { bg: 'bg-[#F7FAFC]', text: 'text-[#718096] border-[#F7FAFC]', emoji: '⚫ Inaktiv' };
+    }
+  };
+
+  const getChannelIcon = (chan: CommunicationChannel) => {
+    switch (chan) {
+      case 'EMAIL': return <Mail className="w-3.5 h-3.5 text-blue-600" />;
+      case 'LINKEDIN': return <Link2 className="w-3.5 h-3.5 text-cyan-600" />;
+      case 'SLACK': return <Hash className="w-3.5 h-3.5 text-amber-600" />;
+      case 'TEAMS': return <span className="text-[11px] font-bold text-indigo-700">T</span>;
+      case 'PHONE': return <Phone className="w-3.5 h-3.5 text-emerald-600" />;
+      default: return <MessageSquare className="w-3.5 h-3.5" />;
+    }
+  };
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
-
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
+    <div className="flex flex-col gap-6 w-full animate-fade-in font-sans pb-12">
+      {/* Page Header */}
+      <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-base font-semibold tracking-tight" style={{ color: 'var(--sherloq-text)' }}>Lead-Liste</h2>
-          <p className="text-xs mt-0.5" style={{ color: 'var(--sherloq-text-muted)' }}>
-            {mockContacts.length} Kontakte · nach Heat Status sortiert
-          </p>
+          <h1 className="text-[20px] font-semibold text-[#212529] tracking-tight">Hunting (Outreach & Pipeline)</h1>
+          <p className="text-[12px] text-[#868E96] mt-0.5">Finde Leads, tracke Signale und verwalte Abschlussphasen.</p>
         </div>
-        <button type="button"
-          className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium text-white transition-opacity hover:opacity-90"
-          style={{ background: 'linear-gradient(135deg, #125455, #3f8383)' }}>
-          <Plus size={13} strokeWidth={2.5} />
-          Neuer Lead
+        <button
+          onClick={() => setShowAddModal(true)}
+          className="bg-[#125455] hover:bg-[#125455]/95 text-white text-[12px] font-semibold px-4 py-2 rounded-full cursor-pointer shadow-sm flex items-center gap-1.5"
+        >
+          <Plus className="w-4 h-4" />
+          <span>SDR Lead hinzufügen</span>
         </button>
       </div>
 
-      {/* Table */}
-      <div className="rounded-2xl overflow-hidden" style={{ boxShadow: 'var(--sherloq-shadow-card)', backgroundColor: 'var(--sherloq-surface)' }}>
-
-        {/* Column headers */}
-        <div className="grid px-4 py-2 text-xs font-semibold uppercase tracking-wide"
-          style={{ gridTemplateColumns: '2fr 1.5fr 1fr 1fr 1fr 1fr', color: 'var(--sherloq-text-muted)', borderBottom: '1px solid var(--sherloq-border)' }}>
-          <span>Kontakt / Firma</span>
-          <span>Kurzakte</span>
-          <span>Letzter Kontakt</span>
-          <span>Touchpoints</span>
-          <span>Typ</span>
-          <span></span>
-        </div>
-
-        {/* Rows */}
-        {mockContacts.map(contact => (
-          <div key={contact.id}>
-
-            {/* Level 1 — always visible */}
-            <div
-              className="grid px-4 py-3 items-center cursor-pointer transition-colors hover:bg-[#FAFAFA]"
-              style={{ gridTemplateColumns: '2fr 1.5fr 1fr 1fr 1fr 1fr', borderBottom: '1px solid var(--sherloq-border)' }}
-              onClick={() => setExpandedId(expandedId === contact.id ? null : contact.id)}
-            >
-              {/* Name + company + heat */}
-              <div className="flex items-center gap-2.5 min-w-0">
-                <HeatDot status={contact.heatStatus} />
-                <div className="min-w-0">
-                  <p className="text-sm font-medium truncate" style={{ color: 'var(--sherloq-text)' }}>{contact.name}</p>
-                  <p className="text-xs truncate" style={{ color: 'var(--sherloq-text-muted)' }}>{contact.company}</p>
-                </div>
-              </div>
-
-              {/* Kurzakte — one liner */}
-              <p className="text-xs truncate pr-4" style={{ color: 'var(--sherloq-text-muted)' }}>{contact.kurzakte}</p>
-
-              {/* Last contact */}
-              <p className={cn('text-xs', contact.lastContactDaysAgo > 30 ? 'font-medium' : '')}
-                style={{ color: contact.lastContactDaysAgo > 30 ? '#E11D48' : contact.lastContactDaysAgo > 14 ? '#F59E0B' : 'var(--sherloq-text-muted)' }}>
-                {contact.lastContactDaysAgo === 0 ? 'Heute' : `vor ${contact.lastContactDaysAgo}d`}
-              </p>
-
-              {/* Engagement chain */}
-              <EngagementChain channels={contact.engagementChain} />
-
-              {/* Personality */}
-              <PersonalityBadge type={contact.personality} />
-
-              {/* Expand arrow */}
-              <ChevronDown size={14} strokeWidth={1.7}
-                className={cn('ml-auto transition-transform', expandedId === contact.id ? 'rotate-180' : '')}
-                style={{ color: 'var(--sherloq-text-muted)' }} />
-            </div>
-
-            {/* Level 2 — inline expand */}
-            {expandedId === contact.id && (
-              <div className="px-4 py-4 space-y-3" style={{ backgroundColor: '#F8FAFA', borderBottom: '1px solid var(--sherloq-border)' }}>
-                <p className="text-sm leading-relaxed" style={{ color: 'var(--sherloq-text)' }}>{contact.kurzakte}</p>
-                <div className="flex gap-2">
-                  <button type="button" className="rounded-full px-3 py-1.5 text-xs font-medium text-white transition-opacity hover:opacity-90"
-                    style={{ background: 'linear-gradient(135deg, #125455, #3f8383)' }}>
-                    Follow-up schreiben
-                  </button>
-                  <button type="button" className="rounded-full px-3 py-1.5 text-xs font-medium transition-colors hover:bg-[#E9ECEF]"
-                    style={{ backgroundColor: 'var(--sherloq-border)', color: 'var(--sherloq-text)' }}>
-                    Task erstellen
-                  </button>
-                  <button type="button" className="rounded-full px-3 py-1.5 text-xs font-medium transition-colors hover:bg-[#E9ECEF]"
-                    style={{ backgroundColor: 'var(--sherloq-border)', color: 'var(--sherloq-text)' }}>
-                    Deal anlegen
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-// ─── Pipeline / Kanban ────────────────────────────────────────────────────────
-
-const PIPELINE_COLUMNS = ['backlog', 'demo_vereinbart', 'followup_offen', 'onboarding_trial', 'gewonnen'] as const
-
-function PipelineView() {
-  return (
-    <div className="p-6 overflow-x-auto">
-      <div className="flex items-start gap-3 min-w-max">
-        {PIPELINE_COLUMNS.map(stage => {
-          const stageDeals = mockDeals.filter(d => d.stage === stage)
-          const stageColor = STAGE_COLORS[stage]
+      {/* Sub-Navigation (Section 12) */}
+      <div className="flex gap-2 p-1.5 bg-white rounded-full shadow-[0_4px_20px_rgb(0,0,0,0.04)] w-fit items-center">
+        {menuItems.map((item) => {
+          const isActive = subTab === item.id;
           return (
-            <div key={stage} className="w-[240px] flex-shrink-0">
-              {/* Column header */}
-              <div className="flex items-center gap-2 mb-2 px-1">
-                <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: stageColor }} />
-                <span className="text-xs font-semibold" style={{ color: 'var(--sherloq-text)' }}>{STAGE_LABELS[stage]}</span>
-                <span className="text-xs ml-auto" style={{ color: 'var(--sherloq-text-muted)' }}>{stageDeals.length}</span>
+            <button
+              key={item.id}
+              onClick={() => setSubTab(item.id as any)}
+              className={`px-4.5 py-1.5 text-[12px] font-medium transition-all rounded-full cursor-pointer flex items-center gap-1.5 ${
+                isActive
+                  ? 'bg-[#125455] text-white shadow-sm'
+                  : 'text-[#495057] hover:bg-[#F8F9FA] hover:text-[#212529]'
+              }`}
+            >
+              <span>{item.label}</span>
+              {item.count !== null && (
+                <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full ${isActive ? 'bg-white text-[#175253]' : 'bg-[#E9ECEF] text-[#495057]'}`}>
+                  {item.count}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* 1. VIEW OVERVIEW */}
+      {subTab === 'overview' && (
+        <div className="flex flex-col gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-white rounded-[32px] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+              <span className="text-[10px] text-[#868E96] uppercase font-semibold">Conversations</span>
+              <h3 className="text-[28px] font-bold text-[#212529] mt-1">48 Mails</h3>
+              <p className="text-[12px] text-[#495057] mt-1.5">Letzte 7 Tage geschickt</p>
+              <div className="w-full h-1 bg-[#ECFEF9] rounded-full mt-4 overflow-hidden">
+                <div className="w-4/5 h-full bg-[#125455]"></div>
               </div>
+            </div>
+            <div className="bg-white rounded-[32px] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+              <span className="text-[10px] text-[#868E96] uppercase font-semibold">LinkedIn Connector Rate</span>
+              <h3 className="text-[28px] font-bold text-[#212529] mt-1">68.4%</h3>
+              <p className="text-[12px] text-[#495057] mt-1.5">+4.2% gegenüber Vorwoche</p>
+              <div className="w-full h-1 bg-[#ECFEF9] rounded-full mt-4 overflow-hidden">
+                <div className="w-2/3 h-full bg-[#125455]"></div>
+              </div>
+            </div>
+            <div className="bg-white rounded-[32px] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+              <span className="text-[10px] text-[#868E96] uppercase font-semibold">BDR Ramp time (Avg)</span>
+              <h3 className="text-[28px] font-bold text-[#212529] mt-1">1.8 Monate</h3>
+              <p className="text-[12px] text-[#495057] mt-1.5">Sherloq Ziel: &lt; 2.2 Monate ✓</p>
+              <div className="w-full h-1 bg-[#ECFEF9] rounded-full mt-4 overflow-hidden">
+                <div className="w-[90%] h-full bg-[#125455]"></div>
+              </div>
+            </div>
+          </div>
 
-              {/* Deal cards */}
-              <div className="space-y-2">
-                {stageDeals.map(deal => (
-                  <div key={deal.id} className="rounded-xl p-3 cursor-pointer transition-all hover:-translate-y-0.5"
-                    style={{ backgroundColor: 'var(--sherloq-surface)', boxShadow: 'var(--sherloq-shadow-card)', border: '1px solid var(--sherloq-border)' }}>
-                    <p className="text-sm font-medium leading-tight mb-1" style={{ color: 'var(--sherloq-text)' }}>{deal.title}</p>
-                    <p className="text-xs mb-2" style={{ color: 'var(--sherloq-text-muted)' }}>{deal.company}</p>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-semibold" style={{ color: 'var(--sherloq-primary)' }}>
-                        {deal.mrr > 0 ? `€${deal.mrr.toLocaleString('de')}/Mo` : '—'}
-                      </span>
-                      {!deal.hasOpenTask && (
-                        <span className="flex items-center gap-1 text-[10px]" style={{ color: '#F59E0B' }}>
-                          <AlertCircle size={10} strokeWidth={2.5} />
-                          Keine Task
-                        </span>
-                      )}
-                    </div>
-                    {deal.daysInStage > 10 && (
-                      <p className="text-[10px] mt-1.5" style={{ color: '#E11D48' }}>
-                        {deal.daysInStage}d in dieser Stage
-                      </p>
-                    )}
+          <div className="bg-white rounded-[32px] p-6 text-center shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+            <h3 className="text-[14px] font-semibold text-[#212529]">Aktuelle Pipeline Performance</h3>
+            <p className="text-[11px] text-[#868E96] mt-1">Ereignisse und Reaktionen in Echtzeit</p>
+            <div className="h-[120px] w-full flex items-end justify-between px-8 mt-6">
+              {[25, 45, 30, 60, 48, 70, 85].map((val, idx) => (
+                <div key={idx} className="flex flex-col items-center gap-2 flex-1">
+                  <div 
+                    className="w-8 rounded-t-lg bg-[#125455] hover:opacity-90 max-w-[24px] transition-all"
+                    style={{ height: `${val}px` }}
+                  />
+                  <span className="text-[9px] font-mono text-[#868E96]">Tag {idx + 1}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 2. VIEW LEADS (LIST) */}
+      {subTab === 'leads' && (
+        <div className="flex flex-col gap-4">
+          
+          {/* List Actions / Select All Bar */}
+          <div className={`transition-all duration-300 flex items-center justify-between px-2 ${selectedLeadIds.length > 0 ? 'opacity-100 h-10 mb-2' : 'opacity-0 h-0 overflow-hidden'}`}>
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={selectedLeadIds.length === leads.length ? deselectAll : selectAll}
+                className="flex items-center justify-center w-[22px] h-[22px] rounded-md bg-[#064E3B] border border-[#064E3B]"
+              >
+                <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />
+              </button>
+              <span className="text-[13px] font-bold text-[#212529]">
+                {selectedLeadIds.length} {selectedLeadIds.length === 1 ? 'Lead' : 'Leads'} ausgewählt
+              </span>
+              <button onClick={deselectAll} className="ml-2 text-[12px] text-[#868E96] hover:text-[#495057] font-semibold underline underline-offset-2">Auswahl aufheben</button>
+            </div>
+            <div className="flex items-center gap-2">
+              <button className="bg-white border text-[#495057] border-[#CED4DA] hover:border-[#ADB5BD] hover:bg-[#F8F9FA] px-3 py-1.5 rounded-full text-[12px] font-semibold flex items-center gap-1.5 transition-colors">
+                <Target className="w-3.5 h-3.5" /> Zu Kampagne hinzufügen
+              </button>
+              <button className="bg-white border border-red-200 text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-full text-[12px] font-semibold flex items-center gap-1.5 transition-colors">
+                <Trash className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+
+          {leads.map((lead) => {
+            const heat = getHeatColor(lead.heatStatus);
+            const isExpanded = expandedLeadId === lead.id;
+
+            return (
+              <div
+                key={lead.id}
+                className={`group rounded-[32px] p-5 flex flex-col gap-4 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.06)] transition-all duration-300 cursor-pointer border border-[#F1F3F5] relative ${
+                  selectedLeadIds.includes(lead.id) ? 'bg-[#EDF5F5]' : 'bg-white'
+                }`}
+                onClick={() => setExpandedLeadId(isExpanded ? null : lead.id)}
+              >
+                {/* TOP ROW / COLLAPSED STATE */}
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative transition-transform duration-300">
+                  
+                  {/* Select Checkbox (Hover/Selected state) */}
+                  <div 
+                    onClick={(e) => toggleLeadSelection(lead.id, e)}
+                    className={`absolute -left-3 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center w-[22px] h-[22px] rounded-md z-10 ${
+                      selectedLeadIds.includes(lead.id) ? 'bg-[#064E3B] opacity-100 border-[#064E3B]' : 'bg-white border-2 border-[#CED4DA] hover:border-[#868E96]'
+                    }`}
+                  >
+                    {selectedLeadIds.includes(lead.id) && <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />}
                   </div>
-                ))}
 
-                {/* Empty column placeholder */}
-                {stageDeals.length === 0 && (
-                  <div className="rounded-xl p-4 text-center"
-                    style={{ border: '1px dashed var(--sherloq-border)', color: 'var(--sherloq-text-muted)' }}>
-                    <p className="text-xs">Kein Deal</p>
+                  {/* Avatar & Info */}
+                  <div className="flex items-center gap-4 flex-1 min-w-0 ml-0 group-hover:ml-8 transition-all duration-300">
+                    <div className="relative shrink-0">
+                      {lead.person.avatarUrl ? (
+                        <img src={lead.person.avatarUrl} alt={lead.person.name} className="w-10 h-10 rounded-full object-cover shadow-sm" />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-[#125455] text-white flex items-center justify-center text-[13px] font-bold shadow-sm">
+                          {lead.person.initials}
+                        </div>
+                      )}
+                      <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-[#3B82F6] border-2 border-white rounded-full"></div>
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-[14px] font-bold text-[#212529] font-sans">{lead.person.name}</span>
+                      <span className="text-[12px] text-[#868E96] mt-0.5 max-w-[200px] truncate">
+                        {lead.person.jobTitle}, {lead.person.company}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* ICP donut & Company Area */}
+                  <div className="hidden md:flex items-center gap-4 px-4 border-l border-[#F1F3F5] shrink-0">
+                    <div className="w-[48px] flex items-center justify-center">
+                      <ICPDonut score={lead.icpScore ?? 87} />
+                    </div>
+                    
+                    <div className="flex items-center gap-3 w-[140px] xl:w-[180px]">
+                      <div className="bg-[#121212] text-white text-[14px] w-[40px] h-[40px] flex items-center justify-center rounded-[12px] font-bold shrink-0">
+                        {lead.person.company.charAt(0).toUpperCase()}
+                      </div>
+                      <span className="text-[14px] text-[#495057] font-semibold w-[120px] truncate">{lead.person.company}</span>
+                    </div>
+                  </div>
+
+                  {/* Middle Stats (Simplified) */}
+                  <div className="hidden lg:flex items-center gap-4 px-4 border-l border-[#F1F3F5] shrink-0">
+                    <div className="flex flex-col items-center justify-center w-[80px] relative h-full">
+                      <span className="absolute -top-[14px] text-[10px] font-bold text-[#ADB5BD] tracking-wider uppercase">STAGE</span>
+                      <div className="px-4 py-2 rounded-full bg-[#F8F9FA] text-[#343A40] text-[12px] font-semibold border border-[#E9ECEF]">
+                        {lead.pipelineStage === 'pipeline' ? 'Demo' : 'Lead'}
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-center justify-center w-[120px] relative h-full">
+                      <span className="absolute -top-[14px] text-[10px] font-bold text-[#ADB5BD] tracking-wider uppercase">HEAT</span>
+                      <div className={`px-4 py-2 rounded-full text-[12px] font-semibold border flex items-center gap-1.5 ${getHeatColor(lead.heatStatus).bg} ${getHeatColor(lead.heatStatus).text}`}>
+                        {getHeatColor(lead.heatStatus).emoji}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right Actions */}
+                  <div className="flex items-center gap-4 pl-4 border-l border-[#F1F3F5] shrink-0 justify-between md:justify-end">
+                    <div className="flex flex-col items-end hidden sm:flex w-[130px]">
+                      <span className="text-[14px] font-bold text-[#212529] whitespace-nowrap">vor 5 Tagen</span>
+                      <div className="flex items-center justify-end gap-1.5 mt-0.5 text-[#E03131] font-semibold text-[12px] whitespace-nowrap w-full">
+                        8T in Stage <AlertTriangle className="w-3.5 h-3.5" strokeWidth={2.5} />
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 relative w-[90px] justify-end">
+                      <button className="w-8 h-8 flex items-center justify-center text-[#ADB5BD] hover:text-[#212529] transition-colors rounded-full hover:bg-[#F8F9FA]">
+                        {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                      </button>
+                      <button 
+                        className="w-10 h-10 rounded-full bg-[#ECFEF9] text-[#125455] hover:bg-[#D9FAF1] hover:scale-105 transition-all flex items-center justify-center shadow-sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onSelectLead(lead);
+                        }}
+                      >
+                        <ArrowRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* EXPANDED CONTENT */}
+                {isExpanded && (
+                  <div className="flex flex-col gap-6 border-t border-[#F1F3F5] pt-5 mt-2" onClick={(e) => e.stopPropagation()}>
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
+                      {/* Left Column (KI Kurzakte) */}
+                      <div className="md:col-span-7 bg-white rounded-[24px] p-5 border border-[#E9ECEF]">
+                        <div className="flex items-center gap-2 text-[11px] font-bold font-mono text-[#125455] uppercase tracking-wider mb-4">
+                          <Zap className="w-4 h-4 text-[#125455]" /> KI Kurzakte
+                        </div>
+                        <ul className="flex flex-col gap-3 text-[13px] text-[#495057] leading-relaxed">
+                          <li className="flex items-start gap-2.5">
+                            <span className="w-1.5 h-1.5 bg-[#125455] rounded-full mt-1.5 shrink-0" />
+                            Hat Budget-Freeze bis Q3 bestätigt. Trotzdem starkes Interesse an Feature Y — fragte aktiv nach ROI-Zahlen.
+                          </li>
+                          <li className="flex items-start gap-2.5">
+                            <span className="w-1.5 h-1.5 bg-[#125455] rounded-full mt-1.5 shrink-0" />
+                            Persönlichkeit: Blau — analytisch, entscheidet auf Basis von Daten. Kein Smalltalk, direkt zum Punkt.
+                          </li>
+                          <li className="flex items-start gap-2.5">
+                            <span className="w-1.5 h-1.5 bg-[#125455] rounded-full mt-1.5 shrink-0" />
+                            Objection: Timing wegen Budget-Freeze. Echter Einwand — kein Vorwand. ROI-Argument ist der Schlüssel.
+                          </li>
+                          <li className="flex items-start gap-2.5">
+                            <span className="w-1.5 h-1.5 bg-[#125455] rounded-full mt-1.5 shrink-0" />
+                            Buying Signal: Demo sehr positiv, fragte nach Implementierungs-Zeitplan. Abschluss realistisch ab Q4.
+                          </li>
+                        </ul>
+                      </div>
+                      
+                      {/* Right Column (Deal Details & Aktionen) */}
+                      <div className="md:col-span-5 flex flex-col gap-5">
+                        {/* Deal Details */}
+                        <div className="bg-white rounded-[24px] p-5 border border-[#E9ECEF]">
+                          <div className="flex items-center gap-2 text-[11px] font-bold font-mono text-[#868E96] uppercase tracking-wider mb-4">
+                            <Briefcase className="w-4 h-4" /> Deal Details
+                          </div>
+                          <div className="grid grid-cols-2 gap-4 text-[12px]">
+                            <div className="flex flex-col gap-1">
+                              <span className="text-[#868E96] font-mono text-[10px] uppercase tracking-wider">Volumen</span>
+                              <span className="font-bold text-[#125455] text-[14px]">24.000 € ARR</span>
+                            </div>
+                            <div className="flex flex-col gap-1">
+                              <span className="text-[#868E96] font-mono text-[10px] uppercase tracking-wider">Laufzeit</span>
+                              <span className="font-bold text-[#212529] text-[14px]">12 Monate</span>
+                            </div>
+                            <div className="flex flex-col gap-1">
+                              <span className="text-[#868E96] font-mono text-[10px] uppercase tracking-wider">Stage</span>
+                              <span className="font-bold text-[#D92D20] text-[14px] flex items-center gap-1.5">
+                                Demo <span className="font-semibold text-red-500">⚠️ 8T</span>
+                              </span>
+                            </div>
+                            <div className="flex flex-col gap-1">
+                              <span className="text-[#868E96] font-mono text-[10px] uppercase tracking-wider">Probability</span>
+                              <span className="font-bold text-[#212529] text-[14px]">60%</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Aktionen */}
+                        <div className="bg-white rounded-[24px] p-5 border border-[#E9ECEF]">
+                          <div className="flex items-center gap-2 text-[11px] font-bold font-mono text-[#868E96] uppercase tracking-wider mb-4">
+                            <Target className="w-4 h-4" /> Aktionen
+                          </div>
+                          <div className="flex flex-col gap-3">
+                            <div className="flex items-center gap-2">
+                              <button className="flex-1 bg-white border border-[#E9ECEF] text-[#495057] text-[12px] font-semibold py-2 rounded-[12px] hover:bg-[#F8F9FA] transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
+                                <Mail className="w-3.5 h-3.5" /> Mail
+                              </button>
+                              <button className="flex-1 bg-white border border-[#E9ECEF] text-[#495057] text-[12px] font-semibold py-2 rounded-[12px] hover:bg-[#F8F9FA] transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
+                                <CalendarCheck className="w-3.5 h-3.5" /> Task
+                              </button>
+                              <button className="flex-1 bg-white border border-[#E9ECEF] text-[#495057] text-[12px] font-semibold py-2 rounded-[12px] hover:bg-[#F8F9FA] transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
+                                <ArrowRight className="w-3.5 h-3.5" /> Stage
+                              </button>
+                            </div>
+                            <button className="w-full bg-white border border-[#E9ECEF] hover:bg-[#F8F9FA] text-[#212529] font-bold text-[13px] py-2.5 rounded-[12px] transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm">
+                              <MessageSquare className="w-4 h-4 text-[#125455]" /> AI Chat starten
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Bottom Row - Communication Chain */}
+                    <CommunicationChain 
+                      personId={lead.id} 
+                      onSelectCommunication={onSelectCommunication} 
+                    />
                   </div>
                 )}
               </div>
-            </div>
-          )
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* 3. VIEW PIPELINE (KANBAN BOARD) */}
+      {subTab === 'pipeline' && (
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col md:flex-row gap-4 overflow-x-auto pb-6 items-start min-h-[600px] w-full hide-scrollbar">
+            {[
+              { id: 'lead', title: 'Backlog', prev: null, next: 'pipeline' },
+              { id: 'pipeline', title: 'Demo vereinbart', prev: 'lead', next: 'signal' },
+              { id: 'signal', title: 'Follow-up offen', prev: 'pipeline', next: 'sequence' },
+              { id: 'sequence', title: 'Onboarding offen', prev: 'signal', next: 'trial' },
+              { id: 'trial', title: 'Free Trial', prev: 'sequence', next: null }
+            ].map((col) => {
+              const colLeads = leads.filter(l => l.pipelineStage === col.id).sort((a, b) => (b.icpScore ?? 0) - (a.icpScore ?? 0));
+              const count = colLeads.length;
+              const isExpanded = expandedCols[col.id];
+              const actionsCount = colLeads.filter(l => l.heatStatus === 'HOT' || l.heatStatus === 'WARM').length;
+              const totalValue = colLeads.reduce((sum, l) => sum + (l.dealValue || 0), 0);
+
+              return (
+                <div key={col.id} className="flex-1 min-w-[290px] w-[290px] max-w-[290px] flex flex-col h-fit transition-all duration-300 relative">
+                  {/* Column Header */}
+                  <div className="bg-white rounded-[24px] p-4 shadow-[0_4px_20px_rgb(0,0,0,0.04)] mb-4">
+                    <div className="flex justify-between items-center mb-3">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-bold text-[15px] text-[#111827]">{col.title}</h3>
+                        <div className="min-w-[24px] h-6 px-1.5 rounded-full border border-gray-200 text-gray-500 text-[11px] font-semibold flex items-center justify-center bg-gray-50 shadow-sm">
+                          {count}
+                        </div>
+                      </div>
+                      <button 
+                        onClick={() => setExpandedCols(prev => ({ ...prev, [col.id]: !prev[col.id] }))}
+                        className="w-7 h-7 rounded-full bg-gray-50 hover:bg-gray-100 flex items-center justify-center border border-transparent hover:border-gray-200 transition-colors z-10 cursor-pointer shadow-sm"
+                      >
+                        {isExpanded ? <ChevronDown className="w-4 h-4 text-gray-500" /> : <ChevronLeft className="w-4 h-4 text-gray-500" />}
+                      </button>
+                    </div>
+                    
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-baseline gap-1.5">
+                        <span className="text-[34px] font-extrabold leading-none tracking-tight text-[#111827]">{count}</span>
+                        <span className="text-[12px] text-gray-400 font-medium">Opportunities</span>
+                      </div>
+                      <div className="text-[14px] font-bold text-[#111827] mt-1">
+                        {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(totalValue)}
+                      </div>
+                    </div>
+                    
+                    <div className="mt-4 flex justify-between items-center border-t border-gray-50 pt-3">
+                      <span className="text-[11px] text-gray-400 font-medium">Status</span>
+                      {actionsCount > 0 ? (
+                        <div className="bg-white text-red-600 px-3 py-1 rounded-full text-[11px] font-bold flex items-center gap-1.5 shadow-sm border border-red-100/50">
+                          <div className="w-1.5 h-1.5 rounded-full bg-red-600"></div>
+                          {actionsCount} Action{actionsCount !== 1 ? 's' : ''}
+                        </div>
+                      ) : (
+                        <div className="bg-white text-[#16A34A] px-3 py-1 rounded-full text-[11px] font-bold flex items-center gap-1.5 shadow-sm border border-[#16A34A]/20">
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          Im Flow
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Cards List (Only if expanded) */}
+                  {isExpanded && (
+                    <div className="flex flex-col gap-3">
+                      {colLeads.map(lead => {
+                        let pill: any = null;
+                        if (lead.heatStatus === 'HOT') pill = { label: 'Signal Call', colorClass: 'text-orange-600 bg-orange-50 border border-orange-100/50', icon: <Flame className="w-3 h-3" /> };
+                        else if (lead.heatStatus === 'WARM') pill = { label: 'Demo Call', colorClass: 'text-red-600 bg-red-50 border border-red-100/50', icon: <AlertTriangle className="w-3 h-3" /> };
+                        
+                        return (
+                          <div key={lead.id} className="bg-white rounded-[24px] p-4 shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.08)] transition-all duration-300 relative group">
+                            <div className="flex justify-between items-start mb-4">
+                              <div className="flex items-center gap-3">
+                                {lead.person.avatarUrl ? (
+                                  <img src={lead.person.avatarUrl} alt={lead.person.name} className="w-10 h-10 rounded-full object-cover shadow-sm shrink-0" />
+                                ) : (
+                                  <div className="w-10 h-10 rounded-full bg-[#125455] text-white flex items-center justify-center text-[12px] font-bold shadow-sm shrink-0">
+                                    {lead.person.initials}
+                                  </div>
+                                )}
+                                <div className="flex flex-col min-w-0">
+                                  <span className="font-bold text-[13px] text-[#111827] leading-tight truncate">{lead.person.name}</span>
+                                  <span className="text-[11px] text-gray-500 leading-tight truncate mt-0.5">{lead.person.company}</span>
+                                  {lead.dealValue && (
+                                    <span className="text-[11px] font-bold text-[#111827] mt-1">
+                                      {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(lead.dealValue)}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="w-[38px] flex items-center justify-center shrink-0">
+                                <ICPDonut score={lead.icpScore ?? 75} />
+                              </div>
+                            </div>
+                            
+                            <div className="flex justify-between items-center mt-2 pt-2">
+                              {pill ? (
+                                <div className={`px-2.5 py-1 rounded-full text-[10px] font-bold flex items-center gap-1.5 ${pill.colorClass}`}>
+                                  {pill.icon}
+                                  <span>{pill.label}</span>
+                                </div>
+                              ) : <div />}
+                              
+                              <div className="flex items-center gap-2">
+                                {col.prev && (
+                                  <button 
+                                    onClick={() => onUpdateLeadStage(lead.id, col.prev!)}
+                                    className="w-7 h-7 rounded-full bg-[#F8F9FA] hover:bg-[#E9ECEF] text-[#868E96] flex items-center justify-center transition-colors cursor-pointer shadow-sm"
+                                  >
+                                    <ArrowLeft className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
+                                {col.next && (
+                                  <button 
+                                    onClick={() => onUpdateLeadStage(lead.id, col.next!)}
+                                    className="w-7 h-7 rounded-full bg-[#125455] hover:bg-[#0c3839] text-white flex items-center justify-center transition-colors shadow-sm cursor-pointer"
+                                  >
+                                    <ArrowRight className="w-3 h-3 stroke-[3]" />
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* QUICK ADD MODAL */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black/35 backdrop-blur-xs flex items-center justify-center z-50 animate-fade-in">
+          <div className="w-full max-w-[460px] bg-white rounded-[24px] border border-[#E9ECEF] p-6 shadow-2xl relative">
+            <h2 className="text-[15px] font-bold text-[#212529] mb-4 flex items-center gap-2">
+              <Target className="w-5 h-5 text-[#175253]" />
+              Neuen SDR Lead anlegen
+            </h2>
+            
+            <form onSubmit={handleCreateLead} className="flex flex-col gap-3.5">
+              <div>
+                <label className="text-[11px] text-[#868E96] font-semibold block mb-1">Voller Name *</label>
+                <input 
+                  type="text" 
+                  required
+                  placeholder="z.B. Dr. Michael Schumacher"
+                  value={newLeadName}
+                  onChange={(e) => setNewLeadName(e.target.value)}
+                  className="w-full text-[12px] font-sans px-3.5 py-2.5 bg-[#F8F9FA] border border-[#E9ECEF] focus:border-[#175253] rounded-[12px] focus:outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[11px] text-[#868E96] font-semibold block mb-1">Unternehmen *</label>
+                  <input 
+                    type="text" 
+                    required
+                    placeholder="z.B. Porsche AG"
+                    value={newLeadCompany}
+                    onChange={(e) => setNewLeadCompany(e.target.value)}
+                    className="w-full text-[12px] font-sans px-3.5 py-2.5 bg-[#F8F9FA] border border-[#E9ECEF] focus:border-[#175253] rounded-[12px] focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] text-[#868E96] font-semibold block mb-1">Rolle / Position</label>
+                  <input 
+                    type="text" 
+                    placeholder="z.B. VP of Procurement"
+                    value={newLeadRole}
+                    onChange={(e) => setNewLeadRole(e.target.value)}
+                    className="w-full text-[12px] font-sans px-3.5 py-2.5 bg-[#F8F9FA] border border-[#E9ECEF] focus:border-[#175253] rounded-[12px] focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[11px] text-[#868E96] font-semibold block mb-1">Kontakt E-Mail</label>
+                <input 
+                  type="email" 
+                  placeholder="m.schumacher@porsche.de"
+                  value={newLeadEmail}
+                  onChange={(e) => setNewLeadEmail(e.target.value)}
+                  className="w-full text-[12px] font-sans px-3.5 py-2.5 bg-[#F8F9FA] border border-[#E9ECEF] focus:border-[#175253] rounded-[12px] focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="text-[11px] text-[#868E96] font-semibold block mb-1">SDR Kurzakte (AI-Summary Vorschau)</label>
+                <textarea 
+                  placeholder="Interesse an schnellerer BDR Einarbeitung im EMEA Raum. Erwartet DSGVO Abnahme..."
+                  rows={2}
+                  value={newLeadAka}
+                  onChange={(e) => setNewLeadAka(e.target.value)}
+                  className="w-full text-[11px] font-mono leading-relaxed p-3 bg-[#F8F9FA] border border-[#E9ECEF] focus:border-[#175253] rounded-[12px] focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="text-[11px] text-[#868E96] font-semibold block mb-1">Lead Heat-Level</label>
+                <select
+                  value={newLeadHeat}
+                  onChange={(e) => setNewLeadHeat(e.target.value as HeatStatus)}
+                  className="w-full text-[12px] font-sans px-3.5 py-2.5 bg-[#F8F9FA] border border-[#E9ECEF] focus:border-[#175253] rounded-[12px] focus:outline-none"
+                >
+                  <option value="HOT">🟢 Aktiv</option>
+                  <option value="WARM">🟠 Stabil</option>
+                  <option value="LUKEWARM">🟡 Rückläufig</option>
+                  <option value="COLD">🔵 Ruhend</option>
+                  <option value="DEAD">⚫ Inaktiv</option>
+                </select>
+              </div>
+
+              <div className="flex justify-end gap-2.5 mt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowAddModal(false)}
+                  className="px-4 py-2 bg-[#F8F9FA] hover:bg-[#E9ECEF] text-[#495057] text-[12px] rounded-full cursor-pointer border border-[#E9ECEF]"
+                >
+                  Abbrechen
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-[#125455] hover:bg-[#125455]/95 text-white text-[12px] font-semibold rounded-full cursor-pointer shadow-xs"
+                >
+                  Lead anlegen
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
-  )
+  );
 }

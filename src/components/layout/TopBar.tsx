@@ -1,173 +1,153 @@
-import { Search } from 'lucide-react'
-import { cn } from '@/lib/utils'
+/**
+ * TopBar — primary navigation bar, 56px sticky header.
+ * Follows migration spec: logo left, pill nav center (absolute), search + avatar right.
+ * All values use design tokens — no hardcoded hex.
+ */
 
-type NavId = 'mein-tag' | 'hunting' | 'farming' | 'marketing' | 'sherloq' | 'jira'
-
-interface NavItem { id: NavId; label: string; secondary?: boolean }
-
-// Navigation sections — order matches design spec
-const NAV_ITEMS: NavItem[] = [
-  { id: 'mein-tag',  label: 'Mein Tag'       },
-  { id: 'hunting',   label: 'Hunting'         },
-  { id: 'farming',   label: 'Farming'         },
-  { id: 'marketing', label: 'Marketing'       },
-  { id: 'sherloq',   label: 'Sherloq System' },
-  { id: 'jira',      label: 'Jira', secondary: true },
-]
+import React from "react";
+import {
+  Sun,
+  Target,
+  Sprout,
+} from "lucide-react";
 
 interface TopBarProps {
-  activeSection?: NavId
-  onSectionChange?: (id: NavId) => void
-  userName?: string
-  userInitials?: string
+  activeTab: string;
+  setActiveTab: (tab: string) => void;
+  onOpenCommandPalette: () => void;
 }
 
-export function TopBar({
-  activeSection = 'mein-tag',
-  onSectionChange,
-  userName = 'Oliver Sand',
-  userInitials = 'OS',
+const NAV_ITEMS = [
+  { id: "meintag", label: "Mein Tag", icon: <Sun    className="w-4 h-4" /> },
+  { id: "hunting", label: "Hunting",  icon: <Target className="w-4 h-4" /> },
+  { id: "farming", label: "Farming",  icon: <Sprout className="w-4 h-4" /> },
+];
+
+export default function TopBar({
+  activeTab,
+  setActiveTab,
+  onOpenCommandPalette,
 }: TopBarProps) {
   return (
     <header
-      className="fixed top-0 left-0 right-0 z-50 flex h-[52px] items-center justify-between px-4"
       style={{
-        backgroundColor: 'var(--sherloq-surface)',
-        boxShadow: 'var(--sherloq-shadow-sm)',
+        height: "56px",
+        background: "transparent",
+        position: "sticky",
+        top: 0,
+        zIndex: 30,
       }}
+      className="px-6 flex items-center justify-between select-none relative"
     >
-      {/* ── Left: Logo + nav pills ─────────────────────────────────── */}
-      <div className="flex items-center gap-0 flex-1 min-w-0 overflow-hidden">
-
-        {/* Logo lockup */}
-        <div className="flex items-center gap-2 mr-5 flex-shrink-0">
-          {/* Teal circle with "S" */}
-          <div
-            className="flex h-7 w-7 items-center justify-center rounded-full text-white text-xs font-bold flex-shrink-0"
-            style={{ background: 'linear-gradient(135deg, #125455, #3f8383)' }}
-          >
-            S
-          </div>
-          {/* Wordmark */}
-          <div className="flex flex-col leading-none">
-            <span
-              className="text-[10px] font-medium tracking-wide"
-              style={{ color: 'var(--sherloq-text-muted)' }}
-            >
-              Sherloq
-            </span>
-            <span
-              className="text-[13px] font-700 tracking-tight"
-              style={{ color: 'var(--sherloq-text)', fontWeight: 700 }}
-            >
-              Sales OS
-            </span>
-          </div>
+      {/* ── LOGO ─────────────────────────────────────────────── */}
+      <div className="flex items-center gap-2 shrink-0">
+        <div
+          style={{
+            width: 32,
+            height: 32,
+            background: "var(--sherloq-primary)",
+            borderRadius: "var(--radius-pill)",
+          }}
+          className="flex items-center justify-center"
+        >
+          <span className="text-white font-semibold text-sm leading-none">S</span>
         </div>
-
-        {/* Primary nav pills — pill-shaped container */}
-        <nav className="flex items-center gap-1 flex-nowrap overflow-hidden">
-          {NAV_ITEMS.filter(i => !i.secondary).map(item => (
-            <NavPill
-              key={item.id}
-              id={item.id}
-              label={item.label}
-              active={activeSection === item.id}
-              onSelect={onSectionChange}
-            />
-          ))}
-
-          {/* Jira — secondary, separated by extra gap */}
-          <div className="ml-2 flex items-center gap-1">
-            {NAV_ITEMS.filter(i => i.secondary).map(item => (
-              <NavPill
-                key={item.id}
-                id={item.id}
-                label={item.label}
-                active={activeSection === item.id}
-                onSelect={onSectionChange}
-                secondary
-              />
-            ))}
-          </div>
-        </nav>
+        <div className="flex flex-col leading-none gap-[3px]">
+          <span
+            style={{ color: "var(--text-primary)", fontSize: 14 }}
+            className="font-semibold tracking-tight"
+          >
+            Sherloq
+          </span>
+          <span
+            style={{ color: "var(--text-muted)", fontSize: 10 }}
+            className="uppercase tracking-wider font-mono"
+          >
+            SALES OS
+          </span>
+        </div>
       </div>
 
-      {/* ── Right: Search trigger + avatar ─────────────────────────── */}
-      <div className="flex items-center gap-2 flex-shrink-0 ml-4">
+      {/* ── NAV PILLS (absolutely centered) ──────────────────── */}
+      <nav
+        style={{
+          background: "var(--surface)",
+          borderRadius: "var(--radius-pill)",
+          boxShadow: "var(--shadow-nav)",
+          padding: "4px",
+        }}
+        className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1"
+      >
+        {NAV_ITEMS.map((item) => {
+          const isActive = activeTab === item.id;
+          return (
+            <button
+              key={item.id}
+              onClick={() => setActiveTab(item.id)}
+              style={
+                isActive
+                  ? {
+                      background: "var(--sherloq-primary)",
+                      color: "white",
+                      borderRadius: "var(--radius-pill)",
+                    }
+                  : {
+                      color: "var(--text-body)",
+                      borderRadius: "var(--radius-pill)",
+                    }
+              }
+              className={`flex items-center gap-2 px-5 py-2 text-[13px] font-medium transition-all duration-200 cursor-pointer${
+                !isActive ? " hover:bg-[var(--app-bg)]" : ""
+              }`}
+            >
+              {item.icon}
+              <span>{item.label}</span>
+            </button>
+          );
+        })}
+      </nav>
 
-        {/* Cmd+K search trigger — pill shape */}
+      {/* ── RIGHT: Cmd+K + Avatar ────────────────────────────── */}
+      <div className="flex items-center gap-2 shrink-0">
         <button
-          className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs transition-all"
+          onClick={onOpenCommandPalette}
           style={{
-            backgroundColor: 'var(--sherloq-bg)',
-            border: '1px solid var(--sherloq-border)',
-            color: 'var(--sherloq-text-muted)',
-            minWidth: '148px',
-            boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+            width: 180,
+            border: "0.5px solid var(--border)",
+            borderRadius: "var(--radius-pill)",
+            color: "var(--text-muted)",
+            fontSize: 12,
+            padding: "6px 12px",
+            background: "var(--surface)",
           }}
-          onClick={() => console.log('Cmd+K — spotlight coming soon')}
-          type="button"
+          className="flex items-center justify-between cursor-pointer transition-colors hover:bg-[var(--app-bg)]"
         >
-          <Search size={12} strokeWidth={2} />
-          <span className="flex-1 text-left">Suchen...</span>
-          <kbd
-            className="inline-flex items-center rounded px-1 font-mono"
+          <span>Suchen...</span>
+          <span
             style={{
-              fontSize: '10px',
-              backgroundColor: 'var(--sherloq-border)',
-              color: 'var(--sherloq-text-muted)',
+              background: "var(--app-bg)",
+              borderRadius: 4,
+              padding: "1px 5px",
+              fontSize: 10,
+              color: "var(--text-muted)",
             }}
           >
             ⌘K
-          </kbd>
+          </span>
         </button>
 
-        {/* User avatar */}
-        <div
-          className="flex h-7 w-7 items-center justify-center rounded-full text-white text-[11px] font-semibold cursor-pointer flex-shrink-0"
-          style={{ background: 'linear-gradient(135deg, #125455, #3f8383)' }}
-          title={userName}
+        <button
+          style={{
+            width: 32,
+            height: 32,
+            background: "var(--sherloq-primary)",
+            borderRadius: "var(--radius-pill)",
+          }}
+          className="flex items-center justify-center text-white text-[12px] font-semibold cursor-pointer"
         >
-          {userInitials}
-        </div>
-
+          OS
+        </button>
       </div>
     </header>
-  )
-}
-
-/* ── NavPill ────────────────────────────────────────────────────────────── */
-
-interface NavPillProps {
-  id: NavId
-  label: string
-  active: boolean
-  secondary?: boolean
-  onSelect?: (id: NavId) => void
-}
-
-function NavPill({ id, label, active, secondary = false, onSelect }: NavPillProps) {
-  return (
-    <button
-      type="button"
-      onClick={() => onSelect?.(id)}
-      className={cn(
-        'whitespace-nowrap rounded-full font-medium transition-all duration-150',
-        secondary
-          ? 'px-3 py-1 text-[11px]'
-          : 'px-3.5 py-1.5 text-[13px]',
-        active
-          ? 'text-white'
-          : 'hover:bg-[#F1F3F5]',
-      )}
-      style={
-        active
-          ? { background: 'linear-gradient(135deg, #125455, #3f8383)', color: '#fff' }
-          : { color: secondary ? 'var(--sherloq-text-muted)' : '#495057' }
-      }
-    >
-      {label}
-    </button>
-  )
+  );
 }

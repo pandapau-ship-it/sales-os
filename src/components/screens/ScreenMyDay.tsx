@@ -1,140 +1,478 @@
-import { AlertCircle, TrendingUp, Calendar, CheckCircle2, Clock, ChevronRight } from 'lucide-react'
-import { mockTasks, mockCalendar, mockSignals } from '@/data'
-import { HeatDot } from '@/components/shared/HeatDot'
-import { ChannelIcon } from '@/components/shared/ChannelIcon'
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
-export function ScreenMyDay() {
-  const urgentTasks = mockTasks.filter(t => t.priority === 'high' && t.status === 'open')
-  const urgentSignals = mockSignals.filter(s => s.urgent)
-  const todayEvents = mockCalendar
+import React, { useState, useEffect } from 'react';
+import { 
+  Sparkles, 
+  ChevronDown, 
+  ChevronUp, 
+  Mail, 
+  Link2, 
+  Hash, 
+  Phone, 
+  ArrowRight, 
+  Calendar, 
+  Clock, 
+  CheckCircle, 
+  AlertTriangle,
+  RotateCw,
+  X,
+  MessageSquare
+} from 'lucide-react';
+import type { PriorityItemType, AppointmentItemType, TaskItemType, AlertBannerType, Lead } from '@/types';
+
+interface ScreenMyDayProps {
+  priorities: PriorityItemType[];
+  appointments: AppointmentItemType[];
+  tasks: TaskItemType[];
+  alerts: AlertBannerType[];
+  onPersonSelect: (personId: string) => void;
+  onToggleTask: (taskId: string) => void;
+  onResolveAlert: (alertId: string) => void;
+  leads: Lead[];
+  customers: any[];
+}
+
+export default function ScreenMyDay({
+  priorities,
+  appointments,
+  tasks,
+  alerts,
+  onPersonSelect,
+  onToggleTask,
+  onResolveAlert,
+  leads,
+  customers
+}: ScreenMyDayProps) {
+  const [aiBriefing, setAiBriefing] = useState<string>('SDR-Briefing wird geladen...');
+  const [isBriefingLoading, setIsBriefingLoading] = useState(false);
+  const [expandMeetings, setExpandMeetings] = useState(true);
+  const [expandTasks, setExpandTasks] = useState(true);
+  const [activeTaskAiDraft, setActiveTaskAiDraft] = useState<string | null>(null);
+  const [aiDraftMessage, setAiDraftMessage] = useState<string>('');
+  const [draftCustomizer, setDraftCustomizer] = useState<string>('');
+  const [isGeneratingDraft, setIsGeneratingDraft] = useState(false);
+
+  // Load dynamic AI briefing from the express server using the actual data state count
+  const fetchAiBriefing = async () => {
+    setIsBriefingLoading(true);
+    try {
+      const response = await fetch('/api/gemini/briefing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          leadsCount: leads.length,
+          churnCount: customers.filter(c => c.sherloqStatus === 'CHURN_RISK').length,
+          openTasks: tasks.filter(t => !t.completed).length
+        })
+      });
+      const data = await response.json();
+      setAiBriefing(data.briefing);
+    } catch (e) {
+      setAiBriefing("SDR-Tagesbericht: Heißer Tag voraus! Christian Brand hat das SLA geöffnet. Vorsicht bei Laura Becker (Logistify) - starker Usage-Einbruch droht.");
+    } finally {
+      setIsBriefingLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAiBriefing();
+  }, [leads.length, customers.length, tasks.length]);
+
+  // Generate customized message via server-side Gemini
+  const handleGenerateCustomDraft = async (task: TaskItemType) => {
+    setIsGeneratingDraft(true);
+    try {
+      const response = await fetch('/api/gemini/sequence', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          personName: task.person.name,
+          companyName: task.person.company,
+          notes: task.title,
+          channel: task.recommendedChannel,
+          promptExtra: draftCustomizer
+        })
+      });
+      const data = await response.json();
+      setAiDraftMessage(data.message || 'Entwurf fehlgeschlagen.');
+    } catch (e) {
+      setAiDraftMessage(`Hallo ${task.person.name},\nich habe Ihren Fall im System bezüglich "${task.title}" analysiert. Sollen wir morgen kurz telefonieren?\n\nBeste Grüße,\nAlexander`);
+    } finally {
+      setIsGeneratingDraft(false);
+    }
+  };
+
+  const handleOpenAutoreply = (task: TaskItemType) => {
+    if (activeTaskAiDraft === task.id) {
+      setActiveTaskAiDraft(null);
+    } else {
+      setActiveTaskAiDraft(task.id);
+      setAiDraftMessage(task.suggestedMessage);
+      setDraftCustomizer('');
+    }
+  };
+
+  const getChannelIcon = (channel: string) => {
+    switch (channel) {
+      case 'EMAIL': return <Mail className="w-3.5 h-3.5" />;
+      case 'LINKEDIN': return <Link2 className="w-3.5 h-3.5" />;
+      case 'SLACK': return <Hash className="w-3.5 h-3.5" />;
+      case 'PHONE': return <Phone className="w-3.5 h-3.5" />;
+      default: return <MessageSquare className="w-3.5 h-3.5" />;
+    }
+  };
+
+  const getPriorityColor = (type: string) => {
+    switch (type) {
+      case 'urgent': return 'bg-[#FEF4E9] text-[#E8590C] border-[#FEF4E9]';
+      case 'warning': return 'bg-[#FFF9DB] text-[#F59E0B] border-[#FFF9DB]';
+      case 'info': return 'bg-[#DBEAFE] text-[#2563EB] border-[#DBEAFE]';
+      default: return 'bg-[#EBFBEE] text-[#2B8A3E] border-[#EBFBEE]';
+    }
+  };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-5 p-6">
-
-      {/* ── Greeting header ────────────────────────────────────────────── */}
-      <div>
-        <h1 className="text-xl font-semibold tracking-tight" style={{ color: 'var(--sherloq-text)' }}>
-          Guten Morgen, Oliver
-        </h1>
-        <p className="text-sm mt-0.5" style={{ color: 'var(--sherloq-text-muted)' }}>
-          Dienstag, 27. Mai 2026 · {urgentTasks.length} offene Prioritäten · {todayEvents.length} Termine heute
-        </p>
+    <div className="flex flex-col gap-6 w-full animate-fade-in font-sans pb-12">
+      {/* 1. Header with Title & Refresh button */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-[20px] font-semibold text-[#212529] tracking-tight">Guten Morgen, Alexander</h1>
+          <p className="text-[12px] text-[#868E96] mt-0.5">Hier ist dein proaktiver Vertriebs-Hub für heute.</p>
+        </div>
+        <div className="text-[11px] font-mono text-[#868E96] bg-white rounded-full px-4 py-1.5 shadow-[0_4px_20px_rgb(0,0,0,0.04)] flex items-center gap-1.5">
+          <Clock className="w-3.5 h-3.5 text-[#175253]" />
+          <span>Heute: {new Date().toLocaleDateString('de-DE', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+        </div>
       </div>
 
-      {/* ── Signal alerts ──────────────────────────────────────────────── */}
-      {urgentSignals.length > 0 && (
-        <div className="rounded-2xl p-4 space-y-2" style={{ backgroundColor: '#FFF4F4', border: '1px solid #FFE4E4' }}>
-          <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: '#E11D48' }}>
-            ⚠ Sofortiger Handlungsbedarf
-          </p>
-          {urgentSignals.map(signal => (
-            <div key={signal.id} className="flex items-start gap-3">
-              <AlertCircle size={15} strokeWidth={2} className="mt-0.5 flex-shrink-0" style={{ color: '#E11D48' }} />
-              <div>
-                <span className="text-sm font-medium" style={{ color: 'var(--sherloq-text)' }}>
-                  {signal.contactName} · {signal.company}
-                </span>
-                <p className="text-sm" style={{ color: 'var(--sherloq-text-muted)' }}>{signal.message}</p>
+      {/* 2. CHURN RISK ALERT BANNERS (Section 7.7) */}
+      {alerts.length > 0 && (
+        <div className="flex flex-col gap-2.5">
+          {alerts.map((alert) => (
+            <div 
+              key={alert.id}
+              className="bg-[#FEF4E9] border-l-3 border-[#E8590C] rounded-[16px] px-5 py-4 flex items-center justify-between shadow-[0_8px_20px_-6px_rgba(232,89,12,0.06)] animate-pulse-soft"
+            >
+              <div className="flex items-center gap-3">
+                <AlertTriangle className="w-5 h-5 text-[#E8590C] flex-shrink-0" />
+                <div className="flex flex-col">
+                  <span className="text-[13px] font-semibold text-[#212529]">{alert.title}</span>
+                  <span className="text-[12px] text-[#495057] mt-0.5">{alert.description}</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => onPersonSelect('cust-2')} // Laura Becker ID
+                  className="bg-white hover:bg-[#F8F9FA] text-[#E8590C] border border-[#E9ECEF] text-[12px] font-semibold rounded-full px-4 py-1.5 transition-all shadow-[0_1px_3px_rgba(0,0,0,0.02)] cursor-pointer"
+                >
+                  Jetzt handeln →
+                </button>
+                <button 
+                  onClick={() => onResolveAlert(alert.id)}
+                  className="w-8 h-8 rounded-full hover:bg-black/5 flex items-center justify-center text-[#868E96] transition-colors cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               </div>
             </div>
           ))}
         </div>
       )}
 
-      <div className="grid grid-cols-3 gap-4">
-
-        {/* ── Today's calendar ────────────────────────────────────────── */}
-        <div className="col-span-1 rounded-2xl p-4 space-y-2"
-          style={{ backgroundColor: 'var(--sherloq-surface)', boxShadow: 'var(--sherloq-shadow-card)' }}>
-          <div className="flex items-center gap-2 mb-3">
-            <Calendar size={14} strokeWidth={2} style={{ color: 'var(--sherloq-primary)' }} />
-            <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--sherloq-text-muted)' }}>
-              Heute
-            </span>
+      {/* 3. AI-BRIEFING SENTENCE (Section 12) */}
+      <div className="bg-white rounded-[32px] px-5 py-4 flex items-center justify-between shadow-[0_8px_30px_rgb(0,0,0,0.04)] group/brief">
+        <div className="flex items-center gap-3.5 flex-1 min-w-0 pr-4">
+          <div className="w-10 h-10 rounded-[14px] bg-[#ECFEF9] flex items-center justify-center flex-shrink-0 shadow-sm">
+            <Sparkles className="w-5 h-5 text-[#125455]" />
           </div>
-          {todayEvents.map(event => (
-            <div key={event.id} className="flex items-start gap-2.5 py-2 border-b last:border-0" style={{ borderColor: 'var(--sherloq-border)' }}>
-              <div className="flex-shrink-0 text-right w-10">
-                <p className="text-xs font-semibold" style={{ color: 'var(--sherloq-text)' }}>{event.startTime}</p>
-                <p className="text-[10px]" style={{ color: 'var(--sherloq-text-muted)' }}>{event.endTime}</p>
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium leading-tight truncate" style={{ color: 'var(--sherloq-text)' }}>
-                  {event.title}
+          <div className="flex flex-col flex-1 min-w-0">
+            <span className="text-[10px] font-mono text-[#175253] font-semibold uppercase tracking-wider">Morgenanalyse · Sherloq AI</span>
+            <p className="text-[13px] italic font-medium text-[#495057] mt-0.5 leading-snug truncate">
+              "{aiBriefing}"
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={fetchAiBriefing}
+          disabled={isBriefingLoading}
+          className="w-10 h-10 rounded-full hover:bg-[#F8F9FA] flex items-center justify-center text-[#868E96] hover:text-[#175253] border border-transparent hover:border-[#E9ECEF] transition-all cursor-pointer disabled:opacity-50"
+          title="AI-Briefing neu generieren"
+        >
+          <RotateCw className={`w-4 h-4 ${isBriefingLoading ? 'animate-spin text-[#125455]' : ''}`} />
+        </button>
+      </div>
+
+      {/* 4. PRIORITIES LIST (Section 7.4) */}
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center justify-between px-1">
+          <h2 className="text-[14px] font-semibold text-[#212529] tracking-tight uppercase tracking-wider font-sans">
+            🔥 Top Prioritäten für heute (Max 5)
+          </h2>
+          <span className="text-[11px] font-mono text-[#868E96] bg-amber-50 text-amber-700 px-2.5 py-0.5 rounded-full border border-amber-100 font-semibold">
+            Urgent Dispatcher
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {priorities.slice(0, 5).map((prio, idx) => (
+            <div 
+              key={prio.id}
+              className="bg-white rounded-[32px] p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_16px_40px_rgb(0,0,0,0.08)] hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex items-center justify-between mb-3.5">
+                  <div className="flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-full bg-[#175253] text-white flex items-center justify-center font-mono text-[11px] font-semibold">
+                      {idx + 1}
+                    </span>
+                    <span className={`text-[10px] font-mono px-2.5 py-0.5 rounded-full border ${getPriorityColor(prio.signalType)}`}>
+                      {prio.signalType.toUpperCase()}
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-mono text-[#868E96]">Priority Dispatch</span>
+                </div>
+
+                <p className="text-[13px] font-semibold text-[#212529] leading-snug tracking-tight">
+                  {prio.description}
                 </p>
-                {event.contactName && (
-                  <p className="text-xs truncate" style={{ color: 'var(--sherloq-text-muted)' }}>{event.contactName}</p>
-                )}
+                <p className="text-[11px] text-[#868E96] mt-2 bg-[#F8F9FA] rounded-[12px] p-3 border border-[#E9ECEF]/60 select-all font-mono leading-relaxed">
+                  <span className="font-semibold text-[#175253]">Sherloq Why:</span> {prio.whyNow}
+                </p>
               </div>
-              {event.meetingPrepReady && (
-                <CheckCircle2 size={13} className="flex-shrink-0 mt-0.5" style={{ color: 'var(--sherloq-primary)' }} />
-              )}
+
+              <div className="flex items-center justify-end mt-4 pt-3.5 border-t border-[#F8F9FA]">
+                <button
+                  onClick={() => {
+                    const target = prio.actionPayload?.targetId;
+                    if (target) onPersonSelect(target);
+                  }}
+                  className="bg-[#125455] hover:bg-[#125455]/90 text-white font-sans text-[12px] font-semibold rounded-full px-4 py-1.5 shadow-sm hover:shadow-md transition-all duration-150 flex items-center gap-1.5 cursor-pointer"
+                >
+                  <span>Jetzt handeln</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
           ))}
         </div>
+      </div>
 
-        {/* ── Priority tasks ───────────────────────────────────────────── */}
-        <div className="col-span-2 rounded-2xl p-4"
-          style={{ backgroundColor: 'var(--sherloq-surface)', boxShadow: 'var(--sherloq-shadow-card)' }}>
-          <div className="flex items-center gap-2 mb-3">
-            <Clock size={14} strokeWidth={2} style={{ color: 'var(--sherloq-primary)' }} />
-            <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--sherloq-text-muted)' }}>
-              Prioritäten
-            </span>
+      {/* 5. MEETINGS & APPOINTMENTS (Section 7.5 - Expandable) */}
+      <div className="flex flex-col gap-3">
+        <button 
+          onClick={() => setExpandMeetings(!expandMeetings)}
+          className="w-full px-6 py-4 flex items-center justify-between bg-white rounded-[24px] shadow-[0_4px_20px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all cursor-pointer select-none"
+        >
+          <div className="flex items-center gap-2">
+            <Calendar className="w-4.5 h-4.5 text-[#175253]" />
+            <span className="text-[14px] font-semibold text-[#212529] tracking-tight">Heutige Termine ({appointments.length})</span>
           </div>
-          <div className="space-y-2">
-            {urgentTasks.map(task => (
-              <div key={task.id}
-                className="flex items-center gap-3 rounded-xl px-3 py-2.5 cursor-pointer transition-colors hover:bg-[#F8F9FA] group">
-                <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: '#E11D48' }} />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate" style={{ color: 'var(--sherloq-text)' }}>{task.title}</p>
-                  {task.company && (
-                    <p className="text-xs truncate" style={{ color: 'var(--sherloq-text-muted)' }}>
-                      {task.contactName} · {task.company}
-                    </p>
-                  )}
-                </div>
-                {task.suggestedChannel && (
-                  <div className="flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs flex-shrink-0"
-                    style={{ backgroundColor: 'var(--sherloq-primary-light)', color: 'var(--sherloq-primary)' }}>
-                    <ChannelIcon channel={task.suggestedChannel} size={11} />
-                    <span className="capitalize">{task.suggestedChannel}</span>
+          {expandMeetings ? <ChevronUp className="w-4.5 h-4.5 text-[#868E96]" /> : <ChevronDown className="w-4.5 h-4.5 text-[#868E96]" />}
+        </button>
+
+        {expandMeetings && (
+          <div className="flex flex-col gap-3">
+            {appointments.map((app) => (
+              <div 
+                key={app.id}
+                className="bg-white rounded-[24px] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="bg-[#ECFEF9] text-[#125455] px-3 py-1.5 rounded-[12px] font-mono text-[13px] font-bold h-fit mt-0.5 flex items-center justify-center border border-[#125455]/10">
+                    {app.time}
                   </div>
-                )}
-                <ChevronRight size={13} className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                  style={{ color: 'var(--sherloq-text-muted)' }} />
+                  <div className="flex flex-col text-left">
+                    <div className="flex items-center gap-2">
+                      {app.person.avatarUrl ? (
+                        <img src={app.person.avatarUrl} alt={app.person.name} className="w-6 h-6 rounded-full object-cover" />
+                      ) : (
+                        <div className="w-6 h-6 rounded-full bg-[#125455] text-white flex items-center justify-center text-[10px] font-semibold font-sans">
+                          {app.person.initials}
+                        </div>
+                      )}
+                      <span className="text-[13px] font-semibold text-[#212529]">{app.person.name}</span>
+                      <span className="text-[11px] text-[#868E96]">· {app.person.company}</span>
+                    </div>
+                    <span className="text-[12px] text-[#495057] mt-1.5 font-medium">{app.purpose}</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between sm:justify-end gap-3 border-t sm:border-0 pt-2 sm:pt-0">
+                  {/* Channels chain */}
+                  <div className="flex items-center gap-1">
+                    {app.channels.map((chan, i) => (
+                      <div 
+                        key={i} 
+                        className="w-6 h-6 rounded-full bg-[#F8F9FA] text-[#868E96] flex items-center justify-center hover:bg-[#ECFEF9] hover:text-[#175253] transition-all"
+                        title={chan}
+                      >
+                        {getChannelIcon(chan)}
+                      </div>
+                    ))}
+                  </div>
+
+                  <button
+                    onClick={() => onPersonSelect(app.id === 'app-1' ? 'cust-1' : app.id === 'app-2' ? 'lead-1' : 'lead-2')}
+                    className="bg-[#125455] hover:bg-[#125455]/95 text-white text-[12px] font-medium rounded-full px-4 py-1.5 shadow-sm cursor-pointer"
+                  >
+                    Vorbereiten
+                  </button>
+                </div>
               </div>
             ))}
           </div>
-        </div>
+        )}
       </div>
 
-      {/* ── Upsell signals ──────────────────────────────────────────────── */}
-      <div className="rounded-2xl p-4"
-        style={{ backgroundColor: 'var(--sherloq-surface)', boxShadow: 'var(--sherloq-shadow-card)' }}>
-        <div className="flex items-center gap-2 mb-3">
-          <TrendingUp size={14} strokeWidth={2} style={{ color: '#10B961' }} />
-          <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--sherloq-text-muted)' }}>
-            Signale & Chancen
-          </span>
-        </div>
-        <div className="grid grid-cols-3 gap-3">
-          {mockSignals.filter(s => !s.urgent).map(signal => (
-            <div key={signal.id} className="rounded-xl p-3 cursor-pointer transition-colors hover:bg-[#F8F9FA]"
-              style={{ border: '1px solid var(--sherloq-border)' }}>
-              <div className="flex items-center gap-2 mb-1">
-                <HeatDot status="warm" />
-                <span className="text-xs font-medium truncate" style={{ color: 'var(--sherloq-text)' }}>
-                  {signal.contactName}
-                </span>
+      {/* 6. PENDING TASKS (Section 7.3 - Expandable) */}
+      <div className="flex flex-col gap-3">
+        <button 
+          onClick={() => setExpandTasks(!expandTasks)}
+          className="w-full px-6 py-4 flex items-center justify-between bg-white rounded-[24px] shadow-[0_4px_20px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all cursor-pointer select-none"
+        >
+          <div className="flex items-center gap-2">
+            <CheckCircle className="w-4.5 h-4.5 text-[#175253]" />
+            <span className="text-[14px] font-semibold text-[#212529] tracking-tight">Fällige Tasks ({tasks.filter(t => !t.completed).length})</span>
+          </div>
+          {expandTasks ? <ChevronUp className="w-4.5 h-4.5 text-[#868E96]" /> : <ChevronDown className="w-4.5 h-4.5 text-[#868E96]" />}
+        </button>
+
+        {expandTasks && (
+          <div className="flex flex-col gap-3">
+            {tasks.map((task) => (
+              <div 
+                key={task.id}
+                className={`bg-white rounded-[24px] p-4 flex flex-col justify-between transition-all shadow-[0_8px_30px_rgb(0,0,0,0.04)] ${
+                  task.isOverdue && !task.completed ? 'border-l-4 border-l-[#E8590C]' : ''
+                } ${task.completed ? 'opacity-50' : ''}`}
+              >
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                  <div className="flex items-start gap-3">
+                    {task.person.avatarUrl ? (
+                      <img src={task.person.avatarUrl} alt={task.person.name} className="w-8 h-8 rounded-full object-cover flex-shrink-0 mt-0.5" />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-[#125455] text-white flex items-center justify-center font-sans font-medium text-[11px] flex-shrink-0 mt-0.5">
+                        {task.person.initials}
+                      </div>
+                    )}
+                    <div className="flex flex-col text-left">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-[13px] font-semibold text-[#212529]">{task.person.name}</span>
+                        <span className="text-[11px] text-[#868E96]">· {task.person.company} ({task.person.jobTitle})</span>
+                        {task.isOverdue && !task.completed && (
+                          <span className="text-[9px] font-mono bg-red-50 text-red-600 border border-red-100 px-2 py-0.5 rounded-full font-bold">
+                            FÄLLIG
+                          </span>
+                        )}
+                      </div>
+                      <span className={`text-[12px] mt-1.5 font-medium ${task.isOverdue && !task.completed ? 'text-[#E8590C] font-semibold' : 'text-[#212529]'}`}>
+                        {task.title}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 border-t sm:border-0 pt-2 sm:pt-0 shrink-0 self-end sm:self-auto">
+                    {/* Channel recommendation */}
+                    <span className="text-[10px] font-mono text-[#868E96] bg-[#F8F9FA] px-2.5 py-1 rounded-full border border-[#E9ECEF] flex items-center gap-1.5 shrink-0">
+                      Weichkanal: {getChannelIcon(task.recommendedChannel)} {task.recommendedChannel}
+                    </span>
+
+                    {/* Inline Actions (Section 7.3) */}
+                    <button
+                      onClick={() => onToggleTask(task.id)}
+                      className={`text-[11px] font-medium font-sans px-3 py-1 rounded-full border transition-all cursor-pointer ${
+                        task.completed 
+                          ? 'bg-[#EBFBEE] border-[#2B8A3E]/20 text-[#2B8A3E]' 
+                          : 'bg-white border-[#E9ECEF] hover:bg-[#F8F9FA] text-[#495057]'
+                      }`}
+                    >
+                      {task.completed ? '✓ Erledigt' : 'Erledigen'}
+                    </button>
+
+                    <button
+                      disabled={task.completed}
+                      onClick={() => handleOpenAutoreply(task)}
+                      className={`w-8 h-8 rounded-full border flex items-center justify-center transition-all cursor-pointer disabled:opacity-30 ${
+                        activeTaskAiDraft === task.id
+                          ? 'bg-[#ECFEF9] border-[#125455]/20 text-[#125455]'
+                          : 'bg-white border-[#E9ECEF] hover:bg-[#F8F9FA] text-[#868E96]'
+                      }`}
+                      title="AI-Nachricht generieren"
+                    >
+                      <Sparkles className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* AUTOREPLY GENERATOR POPUP (Ebene 2, Section 13 inline context) */}
+                {activeTaskAiDraft === task.id && (
+                  <div className="mt-4 pt-4 border-t border-[#F8F9FA] bg-[#ECFEF9]/40 rounded-[16px] p-4 flex flex-col gap-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 text-[#125455]">
+                        <Sparkles className="w-4 h-4" />
+                        <span className="text-[12px] font-semibold">Gemini AI-Outreach Generator</span>
+                      </div>
+                      <span className="text-[10px] font-mono text-cyan-800">Ready to Dispatch</span>
+                    </div>
+
+                    <textarea
+                      value={aiDraftMessage}
+                      onChange={(e) => setAiDraftMessage(e.target.value)}
+                      className="w-full text-[12px] font-mono p-3 bg-white border border-[#125455]/10 rounded-[12px] focus:outline-none focus:border-[#125455]/40 text-[#495057] leading-relaxed"
+                      rows={6}
+                    />
+
+                    {/* AI Prompt override customized */}
+                    <div className="flex items-center gap-2">
+                      <input 
+                        type="text"
+                        placeholder="Zusatzwunsch? (z.B. lockerer formulieren, auf Englisch, kürzer)..."
+                        value={draftCustomizer}
+                        onChange={(e) => setDraftCustomizer(e.target.value)}
+                        className="flex-1 text-[11px] font-sans px-3 py-1.5 bg-white border border-[#E9ECEF] rounded-[8px] focus:outline-none"
+                      />
+                      <button
+                        onClick={() => handleGenerateCustomDraft(task)}
+                        disabled={isGeneratingDraft}
+                        className="bg-[#125455] hover:bg-[#125455]/90 text-white font-sans text-[11px] font-medium rounded-full px-3 py-1.5 transition-all shadow-xs cursor-pointer flex-shrink-0 disabled:opacity-50"
+                      >
+                        {isGeneratingDraft ? 'Schreibt...' : 'Dran feilen ✨'}
+                      </button>
+                    </div>
+
+                    <div className="flex justify-between items-center mt-1">
+                      <span className="text-[10px] text-[#868E96]">Weiches Outreach mit optimalem Sentiment</span>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(aiDraftMessage);
+                            alert("Kopiert!");
+                          }}
+                          className="bg-white border border-[#E9ECEF] text-[#495057] text-[11px] rounded-full px-3 py-1 transition-all hover:bg-gray-50 cursor-pointer"
+                        >
+                          Kopieren
+                        </button>
+                        <button
+                          onClick={() => {
+                            onToggleTask(task.id);
+                            setActiveTaskAiDraft(null);
+                          }}
+                          className="bg-[#125455] text-white text-[11px] rounded-full px-4.5 py-1.5 shadow-sm hover:shadow-md transition-all cursor-pointer font-semibold"
+                        >
+                          Senden (Simulation)
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
-              <p className="text-xs leading-snug" style={{ color: 'var(--sherloq-text-muted)' }}>{signal.message}</p>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
-
     </div>
-  )
+  );
 }
