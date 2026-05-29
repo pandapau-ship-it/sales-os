@@ -127,10 +127,10 @@ export default function ScreenMyDay({
 
   const getPriorityColor = (type: string) => {
     switch (type) {
-      case 'urgent': return 'bg-[#FEF4E9] text-[#E8590C] border-[#FEF4E9]';
-      case 'warning': return 'bg-[#FFF9DB] text-[#F59E0B] border-[#FFF9DB]';
-      case 'info': return 'bg-[#DBEAFE] text-[#2563EB] border-[#DBEAFE]';
-      default: return 'bg-[#EBFBEE] text-[#2B8A3E] border-[#EBFBEE]';
+      case 'urgent': return 'bg-[var(--signal-urgent-bg)] text-signal-urgent border-[#FEF4E9]';
+      case 'warning': return 'bg-[var(--signal-warn-bg)] text-[#F59E0B] border-[#FFF9DB]';
+      case 'info': return 'bg-[var(--signal-info-bg)] text-signal-info border-[#DBEAFE]';
+      default: return 'bg-[var(--signal-success-bg)] text-signal-success border-[#EBFBEE]';
     }
   };
 
@@ -139,11 +139,11 @@ export default function ScreenMyDay({
       {/* 1. Header with Title & Refresh button */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-[20px] font-semibold text-[#212529] tracking-tight">Guten Morgen, Alexander</h1>
-          <p className="text-[12px] text-[#868E96] mt-0.5">Hier ist dein proaktiver Vertriebs-Hub für heute.</p>
+          <h1 className="text-[20px] font-semibold text-text-primary tracking-tight">Guten Morgen, Alexander</h1>
+          <p className="text-[12px] text-text-muted mt-0.5">Hier ist dein proaktiver Vertriebs-Hub für heute.</p>
         </div>
-        <div className="text-[11px] font-mono text-[#868E96] bg-white rounded-full px-4 py-1.5 shadow-[0_4px_20px_rgb(0,0,0,0.04)] flex items-center gap-1.5">
-          <Clock className="w-3.5 h-3.5 text-[#175253]" />
+        <div className="text-[11px] font-mono text-text-muted bg-app-surface rounded-pill px-4 py-1.5 shadow-[0_4px_20px_rgb(0,0,0,0.04)] flex items-center gap-1.5">
+          <Clock className="w-3.5 h-3.5 text-sherloq-primary" />
           <span>Heute: {new Date().toLocaleDateString('de-DE', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
         </div>
       </div>
@@ -154,25 +154,25 @@ export default function ScreenMyDay({
           {alerts.map((alert) => (
             <div 
               key={alert.id}
-              className="bg-[#FEF4E9] border-l-3 border-[#E8590C] rounded-[16px] px-5 py-4 flex items-center justify-between shadow-[0_8px_20px_-6px_rgba(232,89,12,0.06)] animate-pulse-soft"
+              className="bg-[var(--signal-urgent-bg)] border-l-3 border-[#E8590C] rounded-[16px] px-5 py-4 flex items-center justify-between shadow-[0_8px_20px_-6px_rgba(232,89,12,0.06)] animate-pulse-soft"
             >
               <div className="flex items-center gap-3">
-                <AlertTriangle className="w-5 h-5 text-[#E8590C] flex-shrink-0" />
+                <AlertTriangle className="w-5 h-5 text-signal-urgent flex-shrink-0" />
                 <div className="flex flex-col">
-                  <span className="text-[13px] font-semibold text-[#212529]">{alert.title}</span>
-                  <span className="text-[12px] text-[#495057] mt-0.5">{alert.description}</span>
+                  <span className="text-[13px] font-semibold text-text-primary">{alert.title}</span>
+                  <span className="text-[12px] text-text-body mt-0.5">{alert.description}</span>
                 </div>
               </div>
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => onPersonSelect('cust-2')} // Laura Becker ID
-                  className="bg-white hover:bg-[#F8F9FA] text-[#E8590C] border border-[#E9ECEF] text-[12px] font-semibold rounded-full px-4 py-1.5 transition-all shadow-[0_1px_3px_rgba(0,0,0,0.02)] cursor-pointer"
+                  className="bg-app-surface hover:bg-app-bg text-signal-urgent border border-border text-[12px] font-semibold rounded-pill px-4 py-1.5 transition-all shadow-[0_1px_3px_rgba(0,0,0,0.02)] cursor-pointer"
                 >
                   Jetzt handeln →
                 </button>
                 <button 
                   onClick={() => onResolveAlert(alert.id)}
-                  className="w-8 h-8 rounded-full hover:bg-black/5 flex items-center justify-center text-[#868E96] transition-colors cursor-pointer"
+                  className="w-8 h-8 rounded-pill hover:bg-black/5 flex items-center justify-center text-text-muted transition-colors cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -183,14 +183,14 @@ export default function ScreenMyDay({
       )}
 
       {/* 3. AI-BRIEFING SENTENCE (Section 12) */}
-      <div className="bg-white rounded-[32px] px-5 py-4 flex items-center justify-between shadow-[0_8px_30px_rgb(0,0,0,0.04)] group/brief">
+      <div className="bg-app-surface rounded-[32px] px-5 py-4 flex items-center justify-between shadow-[0_8px_30px_rgb(0,0,0,0.04)] group/brief">
         <div className="flex items-center gap-3.5 flex-1 min-w-0 pr-4">
-          <div className="w-10 h-10 rounded-[14px] bg-[#ECFEF9] flex items-center justify-center flex-shrink-0 shadow-sm">
-            <Sparkles className="w-5 h-5 text-[#125455]" />
+          <div className="w-10 h-10 rounded-[14px] bg-[var(--sherloq-light)] flex items-center justify-center flex-shrink-0 shadow-sm">
+            <Sparkles className="w-5 h-5 text-sherloq-primary" />
           </div>
           <div className="flex flex-col flex-1 min-w-0">
-            <span className="text-[10px] font-mono text-[#175253] font-semibold uppercase tracking-wider">Morgenanalyse · Sherloq AI</span>
-            <p className="text-[13px] italic font-medium text-[#495057] mt-0.5 leading-snug truncate">
+            <span className="text-[10px] font-mono text-sherloq-primary font-semibold uppercase tracking-wider">Morgenanalyse · Sherloq AI</span>
+            <p className="text-[13px] italic font-medium text-text-body mt-0.5 leading-snug truncate">
               "{aiBriefing}"
             </p>
           </div>
@@ -198,20 +198,20 @@ export default function ScreenMyDay({
         <button
           onClick={fetchAiBriefing}
           disabled={isBriefingLoading}
-          className="w-10 h-10 rounded-full hover:bg-[#F8F9FA] flex items-center justify-center text-[#868E96] hover:text-[#175253] border border-transparent hover:border-[#E9ECEF] transition-all cursor-pointer disabled:opacity-50"
+          className="w-10 h-10 rounded-pill hover:bg-app-bg flex items-center justify-center text-text-muted hover:text-sherloq-primary border border-transparent hover:border-border transition-all cursor-pointer disabled:opacity-50"
           title="AI-Briefing neu generieren"
         >
-          <RotateCw className={`w-4 h-4 ${isBriefingLoading ? 'animate-spin text-[#125455]' : ''}`} />
+          <RotateCw className={`w-4 h-4 ${isBriefingLoading ? 'animate-spin text-sherloq-primary' : ''}`} />
         </button>
       </div>
 
       {/* 4. PRIORITIES LIST (Section 7.4) */}
       <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between px-1">
-          <h2 className="text-[14px] font-semibold text-[#212529] tracking-tight uppercase tracking-wider font-sans">
+          <h2 className="text-[14px] font-semibold text-text-primary tracking-tight uppercase tracking-wider font-sans">
             🔥 Top Prioritäten für heute (Max 5)
           </h2>
-          <span className="text-[11px] font-mono text-[#868E96] bg-amber-50 text-amber-700 px-2.5 py-0.5 rounded-full border border-amber-100 font-semibold">
+          <span className="text-[11px] font-mono text-text-muted bg-amber-50 text-amber-700 px-2.5 py-0.5 rounded-pill border border-amber-100 font-semibold">
             Urgent Dispatcher
           </span>
         </div>
@@ -220,36 +220,36 @@ export default function ScreenMyDay({
           {priorities.slice(0, 5).map((prio, idx) => (
             <div 
               key={prio.id}
-              className="bg-white rounded-[32px] p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_16px_40px_rgb(0,0,0,0.08)] hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between"
+              className="bg-app-surface rounded-[32px] p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_16px_40px_rgb(0,0,0,0.08)] hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between"
             >
               <div>
                 <div className="flex items-center justify-between mb-3.5">
                   <div className="flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-full bg-[#175253] text-white flex items-center justify-center font-mono text-[11px] font-semibold">
+                    <span className="w-6 h-6 rounded-pill bg-sherloq-primary text-white flex items-center justify-center font-mono text-[11px] font-semibold">
                       {idx + 1}
                     </span>
-                    <span className={`text-[10px] font-mono px-2.5 py-0.5 rounded-full border ${getPriorityColor(prio.signalType)}`}>
+                    <span className={`text-[10px] font-mono px-2.5 py-0.5 rounded-pill border ${getPriorityColor(prio.signalType)}`}>
                       {prio.signalType.toUpperCase()}
                     </span>
                   </div>
-                  <span className="text-[10px] font-mono text-[#868E96]">Priority Dispatch</span>
+                  <span className="text-[10px] font-mono text-text-muted">Priority Dispatch</span>
                 </div>
 
-                <p className="text-[13px] font-semibold text-[#212529] leading-snug tracking-tight">
+                <p className="text-[13px] font-semibold text-text-primary leading-snug tracking-tight">
                   {prio.description}
                 </p>
-                <p className="text-[11px] text-[#868E96] mt-2 bg-[#F8F9FA] rounded-[12px] p-3 border border-[#E9ECEF]/60 select-all font-mono leading-relaxed">
-                  <span className="font-semibold text-[#175253]">Sherloq Why:</span> {prio.whyNow}
+                <p className="text-[11px] text-text-muted mt-2 bg-app-bg rounded-[12px] p-3 border border-border/60 select-all font-mono leading-relaxed">
+                  <span className="font-semibold text-sherloq-primary">Sherloq Why:</span> {prio.whyNow}
                 </p>
               </div>
 
-              <div className="flex items-center justify-end mt-4 pt-3.5 border-t border-[#F8F9FA]">
+              <div className="flex items-center justify-end mt-4 pt-3.5 border-t border-[var(--app-bg)]">
                 <button
                   onClick={() => {
                     const target = prio.actionPayload?.targetId;
                     if (target) onPersonSelect(target);
                   }}
-                  className="bg-[#125455] hover:bg-[#125455]/90 text-white font-sans text-[12px] font-semibold rounded-full px-4 py-1.5 shadow-sm hover:shadow-md transition-all duration-150 flex items-center gap-1.5 cursor-pointer"
+                  className="bg-sherloq-primary hover:bg-sherloq-primary/90 text-white font-sans text-[12px] font-semibold rounded-pill px-4 py-1.5 shadow-sm hover:shadow-card transition-all duration-150 flex items-center gap-1.5 cursor-pointer"
                 >
                   <span>Jetzt handeln</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -264,13 +264,13 @@ export default function ScreenMyDay({
       <div className="flex flex-col gap-3">
         <button 
           onClick={() => setExpandMeetings(!expandMeetings)}
-          className="w-full px-6 py-4 flex items-center justify-between bg-white rounded-[24px] shadow-[0_4px_20px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all cursor-pointer select-none"
+          className="w-full px-6 py-4 flex items-center justify-between bg-app-surface rounded-[24px] shadow-[0_4px_20px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all cursor-pointer select-none"
         >
           <div className="flex items-center gap-2">
-            <Calendar className="w-4.5 h-4.5 text-[#175253]" />
-            <span className="text-[14px] font-semibold text-[#212529] tracking-tight">Heutige Termine ({appointments.length})</span>
+            <Calendar className="w-4.5 h-4.5 text-sherloq-primary" />
+            <span className="text-[14px] font-semibold text-text-primary tracking-tight">Heutige Termine ({appointments.length})</span>
           </div>
-          {expandMeetings ? <ChevronUp className="w-4.5 h-4.5 text-[#868E96]" /> : <ChevronDown className="w-4.5 h-4.5 text-[#868E96]" />}
+          {expandMeetings ? <ChevronUp className="w-4.5 h-4.5 text-text-muted" /> : <ChevronDown className="w-4.5 h-4.5 text-text-muted" />}
         </button>
 
         {expandMeetings && (
@@ -278,25 +278,25 @@ export default function ScreenMyDay({
             {appointments.map((app) => (
               <div 
                 key={app.id}
-                className="bg-white rounded-[24px] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all"
+                className="bg-app-surface rounded-[24px] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all"
               >
                 <div className="flex items-start gap-3">
-                  <div className="bg-[#ECFEF9] text-[#125455] px-3 py-1.5 rounded-[12px] font-mono text-[13px] font-bold h-fit mt-0.5 flex items-center justify-center border border-[#125455]/10">
+                  <div className="bg-[var(--sherloq-light)] text-sherloq-primary px-3 py-1.5 rounded-[12px] font-mono text-[13px] font-bold h-fit mt-0.5 flex items-center justify-center border border-sherloq-primary/10">
                     {app.time}
                   </div>
                   <div className="flex flex-col text-left">
                     <div className="flex items-center gap-2">
                       {app.person.avatarUrl ? (
-                        <img src={app.person.avatarUrl} alt={app.person.name} className="w-6 h-6 rounded-full object-cover" />
+                        <img src={app.person.avatarUrl} alt={app.person.name} className="w-6 h-6 rounded-pill object-cover" />
                       ) : (
-                        <div className="w-6 h-6 rounded-full bg-[#125455] text-white flex items-center justify-center text-[10px] font-semibold font-sans">
+                        <div className="w-6 h-6 rounded-pill bg-sherloq-primary text-white flex items-center justify-center text-[10px] font-semibold font-sans">
                           {app.person.initials}
                         </div>
                       )}
-                      <span className="text-[13px] font-semibold text-[#212529]">{app.person.name}</span>
-                      <span className="text-[11px] text-[#868E96]">· {app.person.company}</span>
+                      <span className="text-[13px] font-semibold text-text-primary">{app.person.name}</span>
+                      <span className="text-[11px] text-text-muted">· {app.person.company}</span>
                     </div>
-                    <span className="text-[12px] text-[#495057] mt-1.5 font-medium">{app.purpose}</span>
+                    <span className="text-[12px] text-text-body mt-1.5 font-medium">{app.purpose}</span>
                   </div>
                 </div>
 
@@ -306,7 +306,7 @@ export default function ScreenMyDay({
                     {app.channels.map((chan, i) => (
                       <div 
                         key={i} 
-                        className="w-6 h-6 rounded-full bg-[#F8F9FA] text-[#868E96] flex items-center justify-center hover:bg-[#ECFEF9] hover:text-[#175253] transition-all"
+                        className="w-6 h-6 rounded-pill bg-app-bg text-text-muted flex items-center justify-center hover:bg-[var(--sherloq-light)] hover:text-sherloq-primary transition-all"
                         title={chan}
                       >
                         {getChannelIcon(chan)}
@@ -316,7 +316,7 @@ export default function ScreenMyDay({
 
                   <button
                     onClick={() => onPersonSelect(app.id === 'app-1' ? 'cust-1' : app.id === 'app-2' ? 'lead-1' : 'lead-2')}
-                    className="bg-[#125455] hover:bg-[#125455]/95 text-white text-[12px] font-medium rounded-full px-4 py-1.5 shadow-sm cursor-pointer"
+                    className="bg-sherloq-primary hover:bg-sherloq-primary/95 text-white text-[12px] font-medium rounded-pill px-4 py-1.5 shadow-sm cursor-pointer"
                   >
                     Vorbereiten
                   </button>
@@ -331,13 +331,13 @@ export default function ScreenMyDay({
       <div className="flex flex-col gap-3">
         <button 
           onClick={() => setExpandTasks(!expandTasks)}
-          className="w-full px-6 py-4 flex items-center justify-between bg-white rounded-[24px] shadow-[0_4px_20px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all cursor-pointer select-none"
+          className="w-full px-6 py-4 flex items-center justify-between bg-app-surface rounded-[24px] shadow-[0_4px_20px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all cursor-pointer select-none"
         >
           <div className="flex items-center gap-2">
-            <CheckCircle className="w-4.5 h-4.5 text-[#175253]" />
-            <span className="text-[14px] font-semibold text-[#212529] tracking-tight">Fällige Tasks ({tasks.filter(t => !t.completed).length})</span>
+            <CheckCircle className="w-4.5 h-4.5 text-sherloq-primary" />
+            <span className="text-[14px] font-semibold text-text-primary tracking-tight">Fällige Tasks ({tasks.filter(t => !t.completed).length})</span>
           </div>
-          {expandTasks ? <ChevronUp className="w-4.5 h-4.5 text-[#868E96]" /> : <ChevronDown className="w-4.5 h-4.5 text-[#868E96]" />}
+          {expandTasks ? <ChevronUp className="w-4.5 h-4.5 text-text-muted" /> : <ChevronDown className="w-4.5 h-4.5 text-text-muted" />}
         </button>
 
         {expandTasks && (
@@ -345,30 +345,30 @@ export default function ScreenMyDay({
             {tasks.map((task) => (
               <div 
                 key={task.id}
-                className={`bg-white rounded-[24px] p-4 flex flex-col justify-between transition-all shadow-[0_8px_30px_rgb(0,0,0,0.04)] ${
+                className={`bg-app-surface rounded-[24px] p-4 flex flex-col justify-between transition-all shadow-[0_8px_30px_rgb(0,0,0,0.04)] ${
                   task.isOverdue && !task.completed ? 'border-l-4 border-l-[#E8590C]' : ''
                 } ${task.completed ? 'opacity-50' : ''}`}
               >
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                   <div className="flex items-start gap-3">
                     {task.person.avatarUrl ? (
-                      <img src={task.person.avatarUrl} alt={task.person.name} className="w-8 h-8 rounded-full object-cover flex-shrink-0 mt-0.5" />
+                      <img src={task.person.avatarUrl} alt={task.person.name} className="w-8 h-8 rounded-pill object-cover flex-shrink-0 mt-0.5" />
                     ) : (
-                      <div className="w-8 h-8 rounded-full bg-[#125455] text-white flex items-center justify-center font-sans font-medium text-[11px] flex-shrink-0 mt-0.5">
+                      <div className="w-8 h-8 rounded-pill bg-sherloq-primary text-white flex items-center justify-center font-sans font-medium text-[11px] flex-shrink-0 mt-0.5">
                         {task.person.initials}
                       </div>
                     )}
                     <div className="flex flex-col text-left">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-[13px] font-semibold text-[#212529]">{task.person.name}</span>
-                        <span className="text-[11px] text-[#868E96]">· {task.person.company} ({task.person.jobTitle})</span>
+                        <span className="text-[13px] font-semibold text-text-primary">{task.person.name}</span>
+                        <span className="text-[11px] text-text-muted">· {task.person.company} ({task.person.jobTitle})</span>
                         {task.isOverdue && !task.completed && (
-                          <span className="text-[9px] font-mono bg-red-50 text-red-600 border border-red-100 px-2 py-0.5 rounded-full font-bold">
+                          <span className="text-[9px] font-mono bg-red-50 text-red-600 border border-red-100 px-2 py-0.5 rounded-pill font-bold">
                             FÄLLIG
                           </span>
                         )}
                       </div>
-                      <span className={`text-[12px] mt-1.5 font-medium ${task.isOverdue && !task.completed ? 'text-[#E8590C] font-semibold' : 'text-[#212529]'}`}>
+                      <span className={`text-[12px] mt-1.5 font-medium ${task.isOverdue && !task.completed ? 'text-signal-urgent font-semibold' : 'text-text-primary'}`}>
                         {task.title}
                       </span>
                     </div>
@@ -376,17 +376,17 @@ export default function ScreenMyDay({
 
                   <div className="flex items-center gap-2 border-t sm:border-0 pt-2 sm:pt-0 shrink-0 self-end sm:self-auto">
                     {/* Channel recommendation */}
-                    <span className="text-[10px] font-mono text-[#868E96] bg-[#F8F9FA] px-2.5 py-1 rounded-full border border-[#E9ECEF] flex items-center gap-1.5 shrink-0">
+                    <span className="text-[10px] font-mono text-text-muted bg-app-bg px-2.5 py-1 rounded-pill border border-border flex items-center gap-1.5 shrink-0">
                       Weichkanal: {getChannelIcon(task.recommendedChannel)} {task.recommendedChannel}
                     </span>
 
                     {/* Inline Actions (Section 7.3) */}
                     <button
                       onClick={() => onToggleTask(task.id)}
-                      className={`text-[11px] font-medium font-sans px-3 py-1 rounded-full border transition-all cursor-pointer ${
+                      className={`text-[11px] font-medium font-sans px-3 py-1 rounded-pill border transition-all cursor-pointer ${
                         task.completed 
-                          ? 'bg-[#EBFBEE] border-[#2B8A3E]/20 text-[#2B8A3E]' 
-                          : 'bg-white border-[#E9ECEF] hover:bg-[#F8F9FA] text-[#495057]'
+                          ? 'bg-[var(--signal-success-bg)] border-[var(--signal-success-text)]/20 text-signal-success' 
+                          : 'bg-app-surface border-border hover:bg-app-bg text-text-body'
                       }`}
                     >
                       {task.completed ? '✓ Erledigt' : 'Erledigen'}
@@ -395,10 +395,10 @@ export default function ScreenMyDay({
                     <button
                       disabled={task.completed}
                       onClick={() => handleOpenAutoreply(task)}
-                      className={`w-8 h-8 rounded-full border flex items-center justify-center transition-all cursor-pointer disabled:opacity-30 ${
+                      className={`w-8 h-8 rounded-pill border flex items-center justify-center transition-all cursor-pointer disabled:opacity-30 ${
                         activeTaskAiDraft === task.id
-                          ? 'bg-[#ECFEF9] border-[#125455]/20 text-[#125455]'
-                          : 'bg-white border-[#E9ECEF] hover:bg-[#F8F9FA] text-[#868E96]'
+                          ? 'bg-[var(--sherloq-light)] border-sherloq-primary/20 text-sherloq-primary'
+                          : 'bg-app-surface border-border hover:bg-app-bg text-text-muted'
                       }`}
                       title="AI-Nachricht generieren"
                     >
@@ -409,9 +409,9 @@ export default function ScreenMyDay({
 
                 {/* AUTOREPLY GENERATOR POPUP (Ebene 2, Section 13 inline context) */}
                 {activeTaskAiDraft === task.id && (
-                  <div className="mt-4 pt-4 border-t border-[#F8F9FA] bg-[#ECFEF9]/40 rounded-[16px] p-4 flex flex-col gap-3">
+                  <div className="mt-4 pt-4 border-t border-[var(--app-bg)] bg-[var(--sherloq-light)]/40 rounded-[16px] p-4 flex flex-col gap-3">
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1.5 text-[#125455]">
+                      <div className="flex items-center gap-1.5 text-sherloq-primary">
                         <Sparkles className="w-4 h-4" />
                         <span className="text-[12px] font-semibold">Gemini AI-Outreach Generator</span>
                       </div>
@@ -421,7 +421,7 @@ export default function ScreenMyDay({
                     <textarea
                       value={aiDraftMessage}
                       onChange={(e) => setAiDraftMessage(e.target.value)}
-                      className="w-full text-[12px] font-mono p-3 bg-white border border-[#125455]/10 rounded-[12px] focus:outline-none focus:border-[#125455]/40 text-[#495057] leading-relaxed"
+                      className="w-full text-[12px] font-mono p-3 bg-app-surface border border-sherloq-primary/10 rounded-[12px] focus:outline-none focus:border-sherloq-primary/40 text-text-body leading-relaxed"
                       rows={6}
                     />
 
@@ -432,26 +432,26 @@ export default function ScreenMyDay({
                         placeholder="Zusatzwunsch? (z.B. lockerer formulieren, auf Englisch, kürzer)..."
                         value={draftCustomizer}
                         onChange={(e) => setDraftCustomizer(e.target.value)}
-                        className="flex-1 text-[11px] font-sans px-3 py-1.5 bg-white border border-[#E9ECEF] rounded-[8px] focus:outline-none"
+                        className="flex-1 text-[11px] font-sans px-3 py-1.5 bg-app-surface border border-border rounded-[8px] focus:outline-none"
                       />
                       <button
                         onClick={() => handleGenerateCustomDraft(task)}
                         disabled={isGeneratingDraft}
-                        className="bg-[#125455] hover:bg-[#125455]/90 text-white font-sans text-[11px] font-medium rounded-full px-3 py-1.5 transition-all shadow-xs cursor-pointer flex-shrink-0 disabled:opacity-50"
+                        className="bg-sherloq-primary hover:bg-sherloq-primary/90 text-white font-sans text-[11px] font-medium rounded-pill px-3 py-1.5 transition-all shadow-xs cursor-pointer flex-shrink-0 disabled:opacity-50"
                       >
                         {isGeneratingDraft ? 'Schreibt...' : 'Dran feilen ✨'}
                       </button>
                     </div>
 
                     <div className="flex justify-between items-center mt-1">
-                      <span className="text-[10px] text-[#868E96]">Weiches Outreach mit optimalem Sentiment</span>
+                      <span className="text-[10px] text-text-muted">Weiches Outreach mit optimalem Sentiment</span>
                       <div className="flex gap-2">
                         <button
                           onClick={() => {
                             navigator.clipboard.writeText(aiDraftMessage);
                             alert("Kopiert!");
                           }}
-                          className="bg-white border border-[#E9ECEF] text-[#495057] text-[11px] rounded-full px-3 py-1 transition-all hover:bg-gray-50 cursor-pointer"
+                          className="bg-app-surface border border-border text-text-body text-[11px] rounded-pill px-3 py-1 transition-all hover:bg-gray-50 cursor-pointer"
                         >
                           Kopieren
                         </button>
@@ -460,7 +460,7 @@ export default function ScreenMyDay({
                             onToggleTask(task.id);
                             setActiveTaskAiDraft(null);
                           }}
-                          className="bg-[#125455] text-white text-[11px] rounded-full px-4.5 py-1.5 shadow-sm hover:shadow-md transition-all cursor-pointer font-semibold"
+                          className="bg-sherloq-primary text-white text-[11px] rounded-pill px-4.5 py-1.5 shadow-sm hover:shadow-card transition-all cursor-pointer font-semibold"
                         >
                           Senden (Simulation)
                         </button>

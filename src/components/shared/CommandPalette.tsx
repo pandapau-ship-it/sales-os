@@ -90,21 +90,21 @@ export default function CommandPalette({
       onClick={() => setShowModal(false)}
     >
       <div
-        className="w-full max-w-[600px] bg-white rounded-[24px] shadow-2xl overflow-hidden p-0 transform transition-all border border-[#E9ECEF]"
+        className="w-full max-w-[600px] bg-app-surface rounded-[24px] shadow-2xl overflow-hidden p-0 transform transition-all border border-border"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Input Bar */}
-        <div className="flex items-center gap-3 px-6 py-4 border-b border-[#E9ECEF]">
-          <Search className="w-5 h-5 text-[#868E96]" />
+        <div className="flex items-center gap-3 px-6 py-4 border-b border-border">
+          <Search className="w-5 h-5 text-text-muted" />
           <input
             ref={inputRef}
             type="text"
             placeholder="Suchen nach Entitäten, Navigation oder Aktionen..."
-            className="w-full font-sans text-[16px] text-[#212529] bg-transparent focus:outline-none placeholder-[#868E96] font-medium"
+            className="w-full font-sans text-[16px] text-text-primary bg-transparent focus:outline-none placeholder-text-muted font-medium"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
-          <kbd className="text-[10px] font-mono bg-[#F8F9FA] border border-[#E9ECEF] text-[#868E96] px-1.5 py-0.5 rounded shadow-sm">
+          <kbd className="text-[10px] font-mono bg-app-bg border border-border text-text-muted px-1.5 py-0.5 rounded shadow-sm">
             ESC
           </kbd>
         </div>
@@ -114,7 +114,7 @@ export default function CommandPalette({
           {/* Quick Nav */}
           {quickNav.length > 0 && (
             <div className="flex flex-col">
-              <div className="px-4 py-2 text-[10px] font-bold font-mono text-[#868E96] uppercase tracking-wider">
+              <div className="px-4 py-2 text-[10px] font-bold font-mono text-text-muted uppercase tracking-wider">
                 Navigation
               </div>
               {quickNav.map((nav) => (
@@ -124,12 +124,12 @@ export default function CommandPalette({
                     setActiveTab(nav.id);
                     setShowModal(false);
                   }}
-                  className="flex items-center gap-3 px-4 py-3 mx-2 rounded-[12px] hover:bg-[#F8F9FA] transition-all cursor-pointer text-left"
+                  className="flex items-center gap-3 px-4 py-3 mx-2 rounded-[12px] hover:bg-app-bg transition-all cursor-pointer text-left"
                 >
-                  <div className="w-8 h-8 rounded-full bg-[#ECFEF9] text-[#125455] flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-pill bg-[var(--sherloq-light)] text-sherloq-primary flex items-center justify-center">
                     {nav.icon}
                   </div>
-                  <span className="text-[14px] font-medium text-[#212529] font-sans">
+                  <span className="text-[14px] font-medium text-text-primary font-sans">
                     {nav.label}
                   </span>
                   <ArrowRight className="w-4 h-4 text-[#C1C9D0] ml-auto" />
@@ -151,15 +151,15 @@ export default function CommandPalette({
                     // Quick Action placeholder
                     setShowModal(false);
                   }}
-                  className={`group flex items-center gap-4 px-4 py-3 pb-3 mx-2 rounded-[16px] transition-all cursor-pointer text-left focus:bg-[#F8F9FA] ${
-                    index === 0 ? "bg-[#F8F9FA]" : "hover:bg-[#F8F9FA]"
+                  className={`group flex items-center gap-4 px-4 py-3 pb-3 mx-2 rounded-[16px] transition-all cursor-pointer text-left focus:bg-app-bg ${
+                    index === 0 ? "bg-app-bg" : "hover:bg-app-bg"
                   }`}
                 >
                   <div
                     className={`w-10 h-10 rounded-[10px] flex items-center justify-center transition-colors ${
                       index === 0
                         ? "bg-[#064E3B] text-white"
-                        : "bg-[#ADB5BD] text-[#495057] group-hover:bg-[#064E3B] group-hover:text-white"
+                        : "bg-[#ADB5BD] text-text-body group-hover:bg-[#064E3B] group-hover:text-white"
                     }`}
                   >
                     {action.icon}
@@ -175,7 +175,7 @@ export default function CommandPalette({
           {/* Entities (People/Companies) */}
           {searchTerm.trim() !== "" && (
             <div className="flex flex-col">
-              <div className="px-4 py-2 text-[10px] font-bold font-mono text-[#868E96] uppercase tracking-wider">
+              <div className="px-4 py-2 text-[10px] font-bold font-mono text-text-muted uppercase tracking-wider">
                 Kontakte & Firmen
               </div>
               {filteredPeople.length > 0 ? (
@@ -186,30 +186,30 @@ export default function CommandPalette({
                       onSearchSelect(person);
                       setShowModal(false);
                     }}
-                    className="flex items-center justify-between px-4 py-3 mx-2 rounded-[12px] hover:bg-[#F8F9FA] transition-all cursor-pointer text-left"
+                    className="flex items-center justify-between px-4 py-3 mx-2 rounded-[12px] hover:bg-app-bg transition-all cursor-pointer text-left"
                   >
                     <div className="flex items-center gap-3">
                       {person.person.avatarUrl ? (
-                        <img src={person.person.avatarUrl} alt={person.person.name} className="w-10 h-10 rounded-full object-cover shadow-sm" />
+                        <img src={person.person.avatarUrl} alt={person.person.name} className="w-10 h-10 rounded-pill object-cover shadow-sm" />
                       ) : (
-                        <div className="w-10 h-10 rounded-full bg-[#125455] text-white flex items-center justify-center font-sans font-medium text-[13px] shadow-sm">
+                        <div className="w-10 h-10 rounded-pill bg-sherloq-primary text-white flex items-center justify-center font-sans font-medium text-[13px] shadow-sm">
                           {person.person.initials}
                         </div>
                       )}
                       <div className="flex flex-col text-left">
-                        <span className="text-[14px] font-medium text-[#212529]">
+                        <span className="text-[14px] font-medium text-text-primary">
                           {person.person.name}
                         </span>
-                        <span className="text-[12px] text-[#868E96]">
+                        <span className="text-[12px] text-text-muted">
                           {person.person.company} · {person.person.jobTitle}
                         </span>
                       </div>
                     </div>
                     <span
-                      className={`text-[10px] font-mono px-3 py-1 rounded-full font-bold uppercase ${
+                      className={`text-[10px] font-mono px-3 py-1 rounded-pill font-bold uppercase ${
                         person.sherloqStatus
-                          ? "bg-[#ECFEF9] text-[#125455]"
-                          : "bg-[#F1F3F5] text-[#495057]"
+                          ? "bg-[var(--sherloq-light)] text-sherloq-primary"
+                          : "bg-[#F1F3F5] text-text-body"
                       }`}
                     >
                       {person.sherloqStatus ? "Farmer" : "Hunter"}
@@ -217,7 +217,7 @@ export default function CommandPalette({
                   </button>
                 ))
               ) : (
-                <div className="px-6 py-4 text-[#868E96] text-[13px] font-sans">
+                <div className="px-6 py-4 text-text-muted text-[13px] font-sans">
                   Keine Kontakte für "{searchTerm}" gefunden.
                 </div>
               )}
@@ -226,18 +226,18 @@ export default function CommandPalette({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-center px-6 py-3 border-t border-[#E9ECEF] bg-[#F8F9FA] text-[#868E96] text-[11px] font-mono gap-4">
+        <div className="flex items-center justify-center px-6 py-3 border-t border-border bg-app-bg text-text-muted text-[11px] font-mono gap-4">
           <div className="flex items-center gap-1">
-            <kbd className="bg-white border border-[#E9ECEF] rounded px-1 min-w-[18px] text-center shadow-sm">
+            <kbd className="bg-app-surface border border-border rounded px-1 min-w-[18px] text-center shadow-sm">
               ↑
             </kbd>
-            <kbd className="bg-white border border-[#E9ECEF] rounded px-1 min-w-[18px] text-center shadow-sm">
+            <kbd className="bg-app-surface border border-border rounded px-1 min-w-[18px] text-center shadow-sm">
               ↓
             </kbd>
             <span>Navigieren</span>
           </div>
           <div className="flex items-center gap-1">
-            <kbd className="bg-white border border-[#E9ECEF] rounded px-1 min-w-[18px] text-center shadow-sm">
+            <kbd className="bg-app-surface border border-border rounded px-1 min-w-[18px] text-center shadow-sm">
               ↵
             </kbd>
             <span>Auswählen</span>

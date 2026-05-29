@@ -17,13 +17,14 @@
 
 ---
 
-## Tech Stack
+## Tech Stack (aktuell)
 
 | Layer | Technology | Notes |
 |---|---|---|
-| Frontend | React 19 + TypeScript | Vite as bundler |
-| UI Framework | **Mantine v8** | Docs: mantine.dev — read before building any component |
-| Styling | Mantine v8 only | No Tailwind. No custom CSS unless unavoidable. |
+| Frontend | React 19 + TypeScript | Vite als Bundler |
+| UI Framework | **shadcn/ui** | Primitives in `src/components/ui/` — niemals direkt editieren |
+| Styling | **Tailwind CSS v4** | `@tailwindcss/vite` Plugin, kein `tailwind.config.ts` |
+| Design Tokens | CSS Variables in `src/index.css` | Einzige Quelle aller visuellen Werte |
 | Database | Supabase (PostgreSQL) | Auth built-in, RLS enabled, Realtime support |
 | Hosting | Vercel | Auto-deploy on push to main |
 | Version Control | GitHub | `pandapau-ship-it/sales-os` |
@@ -32,9 +33,61 @@
 
 ---
 
-## Design Rules (Non-Negotiable)
+## Design System Regeln (Non-Negotiable)
 
-**Single source of truth for all visual decisions: `src/theme.ts`**
+**Einzige Quelle aller visuellen Werte: `src/index.css` `:root` Block**
+- Niemals Hex-Werte direkt im Code — immer CSS Variables oder Tailwind-Tokens
+- Eine Farbe ändern = in `index.css :root` ändern = überall geändert
+
+### Globale CSS-Klassen (immer bevorzugen)
+```
+.sherloq-card         — alle Cards und Kacheln
+.sherloq-pill         — alle Status-Badges
+.sherloq-btn-primary  — alle primären CTAs (gradient)
+.sherloq-btn-secondary — alle sekundären Buttons
+.pill-urgent / .pill-warn / .pill-success / .pill-info / .pill-cold / .pill-teal / .pill-muted
+```
+
+### Tailwind Token-Klassen (via @theme inline)
+```
+bg-sherloq-primary    text-sherloq-primary
+bg-app-bg             bg-app-surface
+text-text-primary     text-text-body     text-text-muted
+border-border         border-border-strong
+rounded-card (16px)   rounded-pill (9999px)   rounded-input (10px)
+shadow-card           shadow-hover       shadow-brand      shadow-nav
+text-signal-urgent    text-signal-warn   text-signal-success  text-signal-info
+```
+
+### Utility
+- `cn()` aus `src/lib/utils.ts` für alle Klassen-Kombinationen
+- shadcn Primitives in `src/components/ui/` — niemals direkt editieren
+
+---
+
+## Ordnerstruktur (aktuell)
+
+```
+src/
+  components/
+    ui/           ← shadcn Primitives (nicht anfassen)
+    screens/      ← ScreenMyDay, ScreenHunting, ScreenFarming, ScreenMarketing, ScreenSherloqSystem, Jira
+    layout/       ← TopBar, Sidebar
+    shared/       ← CustomerDrawer, CommandPalette, CommunicationChain, ICPDonut
+  lib/
+    utils.ts      ← cn() Helper
+  types.ts        ← NICHT anfassen (Referenz-Typen)
+  data.ts         ← NICHT anfassen (Mock-Daten)
+  App.tsx         ← Root, State-Verwaltung, Routing
+  index.css       ← Design Tokens (einzige Quelle)
+  main.tsx        ← NICHT anfassen
+```
+
+---
+
+## Design Rules (Legacy — für Referenz)
+
+**Single source of truth for all visual decisions: `src/index.css`** (ersetzt `src/theme.ts`)
 - All colors, font sizes, spacing, radius values live there — never inline
 - `theme.ts` extends Mantine's `createTheme()` — never override Mantine components with raw CSS
 - Full docs: `docs/design-system.md`

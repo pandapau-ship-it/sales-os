@@ -4,7 +4,7 @@
 
 ---
 
-## Current Status: Phase 4 — Design Token Migration ✅ → Schritt 6 (Component Token Migration) next
+## Current Status: Design Token System vollständig ✅ → Phase 5 (Supabase + echte Daten) next
 
 ---
 
@@ -77,29 +77,39 @@
 
 ---
 
-## Nächste Schritte
+#### Schritt 6 — Token-Migration aller Komponenten ✅
+- [x] Alle hardcodierten Hex-Werte in `screens/` und `shared/` durch Design Tokens ersetzt:
+  - Brand: `bg-sherloq-primary`, `text-sherloq-primary`, `var(--sherloq-gradient)`
+  - Surface: `bg-app-bg`, `bg-app-surface`
+  - Text: `text-text-primary`, `text-text-body`, `text-text-muted`
+  - Border: `border-border`, `border-sherloq-primary`
+  - Signal: `text-signal-urgent/success/info/cold`, `bg-[var(--signal-*-bg)]`
+  - Radius: `rounded-pill` (war `rounded-full`), `rounded-card` (war `rounded-xl/2xl`)
+  - Shadow: `shadow-card` (war `shadow-lg/md`)
+- [x] `CLAUDE.md` aktualisiert mit neuem Tech Stack, Design System Regeln, Ordnerstruktur
+- [x] TypeScript: 0 Errors ✓
 
-### Schritt 6 — Alle Komponenten auf Design Tokens migrieren
-> Alle hardcodierten Hex-Werte in `screens/` und `shared/` durch CSS-Tokens ersetzen
+---
 
-| Hex-Wert | → Token |
-|---|---|
-| `#125455` / `#175253` / `#3f8383` | `var(--sherloq-primary)` |
-| `#F8F9FA` | `var(--app-bg)` |
-| `#FFFFFF` | `var(--surface)` |
-| `#212529` | `var(--text-primary)` |
-| `#495057` | `var(--text-body)` |
-| `#868E96` | `var(--text-muted)` |
-| `#E9ECEF` | `var(--border)` |
-| Signal-Farben | `var(--signal-urgent-text)` etc. |
-| `rounded-2xl` / `rounded-xl` | `rounded-card` |
-| `rounded-full` | `rounded-pill` |
-| `shadow-lg` / `shadow-md` | `shadow-card` |
+## Nächste Schritte — Phase 5
 
-### Danach
-- [ ] `CLAUDE.md` mit finalem Tech Stack + Design System Regeln aktualisieren
-- [ ] Commit: `"setup: shadcn/ui + Design Token System + Ordnerstruktur"`
-- [ ] Vercel Deployment verbinden
+### Supabase Setup
+- [ ] Supabase Projekt erstellen
+- [ ] Schema SQL ausführen (alle Tabellen aus Briefing)
+- [ ] RLS Policies einrichten
+- [ ] Supabase Auth konfigurieren (Email + Passwort)
+- [ ] `system_config` Seed-Daten
+- [ ] TypeScript Types generieren: `supabase gen types typescript`
+
+### Vercel Deployment
+- [ ] vercel.com/new → Import von GitHub `pandapau-ship-it/sales-os`
+- [ ] Environment Variables setzen (Supabase URL + Key)
+- [ ] Auto-Deploy testen
+
+### Realtime & Webhooks (bereits in CLAUDE.md dokumentiert)
+- [ ] 8 Webhook-Endpunkte als Vercel API Routes implementieren
+- [ ] Supabase Realtime aktivieren für alle relevanten Tabellen
+- [ ] Frontend Subscriptions in betroffenen Komponenten
 
 ---
 

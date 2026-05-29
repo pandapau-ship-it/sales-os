@@ -74,8 +74,8 @@ export default function CustomerDrawer({
     switch (status) {
       case "HOT":
         return {
-          bg: "bg-[#EBFBEE]",
-          text: "text-[#2B8A3E] border-[#EBFBEE]",
+          bg: "bg-[var(--signal-success-bg)]",
+          text: "text-signal-success border-[#EBFBEE]",
           emoji: "🟢 Aktiv",
         };
       case "WARM":
@@ -86,14 +86,14 @@ export default function CustomerDrawer({
         };
       case "LUKEWARM":
         return {
-          bg: "bg-[#FFF9DB]",
+          bg: "bg-[var(--signal-warn-bg)]",
           text: "text-[#F59E0B] border-[#FFF9DB]",
           emoji: "🟡 Rückläufig",
         };
       case "COLD":
         return {
-          bg: "bg-[#EBF8FF]",
-          text: "text-[#3182CE] border-[#EBF8FF]",
+          bg: "bg-[var(--signal-cold-bg)]",
+          text: "text-signal-cold border-[#EBF8FF]",
           emoji: "🔵 Ruhend",
         };
       default:
@@ -117,7 +117,7 @@ export default function CustomerDrawer({
         {/* Close Button floating top right */}
         <button
           onClick={onClose}
-          className="absolute top-6 right-6 w-9 h-9 bg-white border border-[#E9ECEF] rounded-full hover:bg-gray-50 flex items-center justify-center text-[#868E96] hover:text-[#212529] cursor-pointer transition-all z-20 shadow-sm"
+          className="absolute top-6 right-6 w-9 h-9 bg-app-surface border border-border rounded-pill hover:bg-gray-50 flex items-center justify-center text-text-muted hover:text-text-primary cursor-pointer transition-all z-20 shadow-sm"
         >
           <X className="w-4 h-4" />
         </button>
@@ -135,29 +135,29 @@ export default function CustomerDrawer({
                       className="w-16 h-16 rounded-[20px] object-cover shadow-sm"
                     />
                   ) : (
-                    <div className="w-16 h-16 rounded-[20px] bg-[#125455] text-white flex items-center justify-center font-sans font-bold text-[22px] shadow-sm">
+                    <div className="w-16 h-16 rounded-[20px] bg-sherloq-primary text-white flex items-center justify-center font-sans font-bold text-[22px] shadow-sm">
                       {person.person.initials}
                     </div>
                   )}
-                  <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-[#3B82F6] border-2 border-[#F4F5F7] rounded-full" />
+                  <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-[#3B82F6] border-2 border-[#F4F5F7] rounded-pill" />
                 </div>
 
                 <div className="flex flex-col justify-center">
                   <div className="flex items-center gap-3">
-                    <h2 className="text-[18px] font-extrabold text-[#212529] font-sans tracking-tight leading-none">
+                    <h2 className="text-[18px] font-extrabold text-text-primary font-sans tracking-tight leading-none">
                       {person.person.name}
                     </h2>
-                    <div className="bg-[#EBFBEE] text-[#2B8A3E] border border-[#2B8A3E]/20 px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wide">
+                    <div className="bg-[var(--signal-success-bg)] text-signal-success border border-[var(--signal-success-text)]/20 px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wide">
                       ICP: 87
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 text-[#495057] text-[12px] mt-2">
+                  <div className="flex items-center gap-2 text-text-body text-[12px] mt-2">
                     <span className="font-medium">
                       {person.person.jobTitle}
                     </span>
                     <span className="text-[#ADB5BD]">•</span>
                     <div className="flex items-center gap-1.5">
-                      <div className="bg-[#212529] text-white text-[9px] w-4 h-4 flex items-center justify-center rounded-[4px] font-bold">
+                      <div className="bg-[var(--text-primary)] text-white text-[9px] w-4 h-4 flex items-center justify-center rounded-[4px] font-bold">
                         {person.person.company.charAt(0).toUpperCase()}
                       </div>
                       <span className="font-semibold text-[#343A40]">
@@ -174,8 +174,8 @@ export default function CustomerDrawer({
                   <span className="text-[9px] font-bold text-[#ADB5BD] uppercase tracking-wider font-mono">
                     STATUS
                   </span>
-                  <div className="bg-[#EBFBEE] text-[#2B8A3E] pl-2 pr-3 py-1.5 rounded-full text-[12px] font-semibold flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-[#2B8A3E]"></span>
+                  <div className="bg-[var(--signal-success-bg)] text-signal-success pl-2 pr-3 py-1.5 rounded-pill text-[12px] font-semibold flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-pill bg-[var(--signal-success-text)]"></span>
                     Aktiv
                   </div>
                 </div>
@@ -184,7 +184,7 @@ export default function CustomerDrawer({
                     HEAT
                   </span>
                   <div
-                    className={`${heatSettings.bg} ${heatSettings.text.split(" ")[0]} ${heatSettings.text.split(" ")[1] || ""} px-3 py-1.5 rounded-full text-[12px] font-semibold flex items-center gap-1.5 border`}
+                    className={`${heatSettings.bg} ${heatSettings.text.split(" ")[0]} ${heatSettings.text.split(" ")[1] || ""} px-3 py-1.5 rounded-pill text-[12px] font-semibold flex items-center gap-1.5 border`}
                   >
                     {heatSettings.emoji}
                   </div>
@@ -193,7 +193,7 @@ export default function CustomerDrawer({
                   <span className="text-[9px] font-bold text-[#ADB5BD] uppercase tracking-wider font-mono">
                     STAGE
                   </span>
-                  <div className="bg-[#F8F9FA] border border-[#E9ECEF] text-[#495057] px-4 py-1.5 rounded-full text-[12px] font-semibold shadow-sm">
+                  <div className="bg-app-bg border border-border text-text-body px-4 py-1.5 rounded-pill text-[12px] font-semibold shadow-sm">
                     {lead.pipelineStage === "pipeline" ? "Demo" : "Lead"}
                   </div>
                 </div>
@@ -201,20 +201,20 @@ export default function CustomerDrawer({
             </div>
 
             {/* Contact Details Bar (White Pill) */}
-            <div className="bg-white border border-[#E9ECEF] rounded-[24px] px-8 py-5 flex items-center justify-between text-[12px] text-[#495057] font-medium shadow-[0_4px_20px_rgb(0,0,0,0.02)] w-full">
-              <div className="flex items-center gap-2.5 hover:text-[#212529] cursor-pointer transition-colors flex-1 justify-center border-r border-[#F1F3F5] last:border-0 pl-0">
+            <div className="bg-app-surface border border-border rounded-[24px] px-8 py-5 flex items-center justify-between text-[12px] text-text-body font-medium shadow-[0_4px_20px_rgb(0,0,0,0.02)] w-full">
+              <div className="flex items-center gap-2.5 hover:text-text-primary cursor-pointer transition-colors flex-1 justify-center border-r border-[#F1F3F5] last:border-0 pl-0">
                 <Mail className="w-4 h-4 text-[#ADB5BD]" />
                 {person.contactEmail || "max@firma.com"}
               </div>
-              <div className="flex items-center gap-2.5 hover:text-[#212529] cursor-pointer transition-colors flex-1 justify-center border-r border-[#F1F3F5] last:border-0">
+              <div className="flex items-center gap-2.5 hover:text-text-primary cursor-pointer transition-colors flex-1 justify-center border-r border-[#F1F3F5] last:border-0">
                 <Phone className="w-4 h-4 text-[#ADB5BD]" />
                 +49 123 456789
               </div>
-              <div className="flex items-center gap-2.5 hover:text-[#212529] cursor-pointer transition-colors flex-1 justify-center border-r border-[#F1F3F5] last:border-0">
+              <div className="flex items-center gap-2.5 hover:text-text-primary cursor-pointer transition-colors flex-1 justify-center border-r border-[#F1F3F5] last:border-0">
                 <Link2 className="w-4 h-4 text-[#ADB5BD]" />
                 in/max
               </div>
-              <div className="flex items-center gap-2.5 hover:text-[#212529] cursor-pointer transition-colors flex-1 justify-center border-r border-[#F1F3F5] last:border-0">
+              <div className="flex items-center gap-2.5 hover:text-text-primary cursor-pointer transition-colors flex-1 justify-center border-r border-[#F1F3F5] last:border-0">
                 <Globe className="w-4 h-4 text-[#ADB5BD]" />
                 firma.com
               </div>
@@ -227,7 +227,7 @@ export default function CustomerDrawer({
                   {/* LEFT COLUMN */}
                   <div className="flex flex-col gap-6">
                     {/* Kurzakte */}
-                    <div className="bg-white border border-[#E9ECEF] rounded-[20px] p-6 shadow-[0_4px_20px_rgb(0,0,0,0.02)]">
+                    <div className="bg-app-surface border border-border rounded-[20px] p-6 shadow-[0_4px_20px_rgb(0,0,0,0.02)]">
                       <h3 className="text-[10px] font-bold text-[#ADB5BD] uppercase tracking-wider font-mono mb-4">
                         KURZAKTE
                       </h3>
@@ -238,7 +238,7 @@ export default function CustomerDrawer({
                     </div>
 
                     {/* Deal Setup */}
-                    <div className="bg-white border border-[#E9ECEF] rounded-[20px] p-6 shadow-[0_4px_20px_rgb(0,0,0,0.02)]">
+                    <div className="bg-app-surface border border-border rounded-[20px] p-6 shadow-[0_4px_20px_rgb(0,0,0,0.02)]">
                       <h3 className="text-[10px] font-bold text-[#ADB5BD] uppercase tracking-wider font-mono mb-6">
                         DEAL SETUP
                       </h3>
@@ -248,7 +248,7 @@ export default function CustomerDrawer({
                           <span className="text-[10px] uppercase font-bold text-[#ADB5BD] font-mono tracking-wider">
                             STAGE
                           </span>
-                          <span className="text-[13px] font-bold text-[#212529]">
+                          <span className="text-[13px] font-bold text-text-primary">
                             Demo vereinbart
                           </span>
                         </div>
@@ -256,7 +256,7 @@ export default function CustomerDrawer({
                           <span className="text-[10px] uppercase font-bold text-[#ADB5BD] font-mono tracking-wider">
                             PROBABILITY
                           </span>
-                          <span className="text-[13px] font-bold text-[#212529]">
+                          <span className="text-[13px] font-bold text-text-primary">
                             {lead.pipelineProgress || 60}%
                           </span>
                         </div>
@@ -272,7 +272,7 @@ export default function CustomerDrawer({
                           <span className="text-[10px] uppercase font-bold text-[#ADB5BD] font-mono tracking-wider">
                             MRR
                           </span>
-                          <span className="text-[13px] font-bold text-[#212529]">
+                          <span className="text-[13px] font-bold text-text-primary">
                             {lead.dealValue ? `${(lead.dealValue / 12).toLocaleString("de-DE")} EUR` : '2.000 EUR'}
                           </span>
                         </div>
@@ -280,7 +280,7 @@ export default function CustomerDrawer({
                           <span className="text-[10px] uppercase font-bold text-[#ADB5BD] font-mono tracking-wider">
                             LAUFZEIT
                           </span>
-                          <span className="text-[13px] font-bold text-[#212529]">
+                          <span className="text-[13px] font-bold text-text-primary">
                             12 Monate
                           </span>
                         </div>
@@ -300,7 +300,7 @@ export default function CustomerDrawer({
                   {/* RIGHT COLUMN */}
                   <div className="flex flex-col gap-6">
                     {/* Offene Tasks */}
-                    <div className="bg-white border border-[#E9ECEF] rounded-[20px] p-6 shadow-[0_4px_20px_rgb(0,0,0,0.02)]">
+                    <div className="bg-app-surface border border-border rounded-[20px] p-6 shadow-[0_4px_20px_rgb(0,0,0,0.02)]">
                       <h3 className="text-[10px] font-bold text-[#ADB5BD] uppercase tracking-wider font-mono mb-4">
                         OFFENE TASKS
                       </h3>
@@ -308,7 +308,7 @@ export default function CustomerDrawer({
                       <div className="flex flex-col gap-3">
                         {/* Task 1 - Overdue/Urgent */}
                         <div className="bg-[#FFF5F5] border border-[#FFE3E3] rounded-[16px] p-4 flex items-start gap-4 cursor-pointer hover:shadow-xs transition-shadow">
-                          <div className="w-7 h-7 rounded-full bg-white border border-[#FF8787] flex items-center justify-center mt-0.5 shrink-0 text-[#E03131]">
+                          <div className="w-7 h-7 rounded-pill bg-app-surface border border-[#FF8787] flex items-center justify-center mt-0.5 shrink-0 text-[#E03131]">
                             <AlertTriangle className="w-3.5 h-3.5 stroke-[2.5px]" />
                           </div>
                           <div className="flex flex-col">
@@ -317,7 +317,7 @@ export default function CustomerDrawer({
                             </span>
                             <div className="flex items-center gap-1.5 text-[11px] font-semibold text-[#E03131] mt-0.5">
                               Heute fällig <span className="text-[#FFA8A8]">·</span>{" "}
-                              <span className="flex items-center gap-1 text-[#868E96] font-medium">
+                              <span className="flex items-center gap-1 text-text-muted font-medium">
                                 <Mail className="w-3 h-3 text-[#ADB5BD]" /> Email
                               </span>
                             </div>
@@ -325,13 +325,13 @@ export default function CustomerDrawer({
                         </div>
 
                         {/* Task 2 - Normal */}
-                        <div className="bg-[#F8F9FA] border border-[#E9ECEF] rounded-[16px] p-4 flex items-start gap-4 cursor-pointer hover:shadow-xs transition-shadow">
-                          <div className="w-7 h-7 rounded-full bg-white border-2 border-[#DEE2E6] flex items-center justify-center mt-0.5 shrink-0" />
+                        <div className="bg-app-bg border border-border rounded-[16px] p-4 flex items-start gap-4 cursor-pointer hover:shadow-xs transition-shadow">
+                          <div className="w-7 h-7 rounded-pill bg-app-surface border-2 border-[#DEE2E6] flex items-center justify-center mt-0.5 shrink-0" />
                           <div className="flex flex-col">
                             <span className="text-[13px] font-bold text-[#343A40]">
                               Follow-up Call buchen
                             </span>
-                            <span className="text-[11px] font-medium text-[#868E96] mt-0.5">
+                            <span className="text-[11px] font-medium text-text-muted mt-0.5">
                               In 3 Tagen
                             </span>
                           </div>
@@ -340,12 +340,12 @@ export default function CustomerDrawer({
                     </div>
 
                     {/* Active Sequence */}
-                    <div className="bg-white border border-[#E9ECEF] rounded-[20px] p-6 shadow-[0_4px_20px_rgb(0,0,0,0.02)]">
+                    <div className="bg-app-surface border border-border rounded-[20px] p-6 shadow-[0_4px_20px_rgb(0,0,0,0.02)]">
                       <div className="flex items-center justify-between mb-8">
                         <h3 className="text-[10px] font-bold text-[#ADB5BD] uppercase tracking-wider font-mono">
                           ACTIVE SEQUENCE
                         </h3>
-                        <div className="bg-[#ECFEF9] text-[#10B981] font-bold text-[10px] px-2.5 py-1 rounded-md">
+                        <div className="bg-[var(--sherloq-light)] text-[#10B981] font-bold text-[10px] px-2.5 py-1 rounded-md">
                           Schritt 3 von 5
                         </div>
                       </div>
@@ -353,19 +353,19 @@ export default function CustomerDrawer({
                       {/* Visual Stepper */}
                       <div className="relative flex items-center justify-between px-2 mt-4 pb-2">
                         {/* Background Line */}
-                        <div className="absolute left-[8%] right-[8%] top-1/2 -translate-y-1/2 h-[2px] bg-[#E9ECEF] z-0" />
+                        <div className="absolute left-[8%] right-[8%] top-1/2 -translate-y-1/2 h-[2px] bg-[var(--border)] z-0" />
                         {/* Active Line (up to step 3) */}
                         <div className="absolute left-[8%] right-[50%] top-1/2 -translate-y-1/2 h-[2px] bg-[#10B981] z-0" />
 
-                        <div className="relative z-10 w-9 h-9 rounded-full bg-[#10B981] flex items-center justify-center text-white border-2 border-white shadow-sm cursor-pointer">
+                        <div className="relative z-10 w-9 h-9 rounded-pill bg-[#10B981] flex items-center justify-center text-white border-2 border-white shadow-sm cursor-pointer">
                           <Mail className="w-4 h-4" />
                         </div>
-                        <div className="relative z-10 w-9 h-9 rounded-full bg-[#10B981] flex items-center justify-center text-white border-2 border-white shadow-sm cursor-pointer"></div>
-                        <div className="relative z-10 w-10 h-10 rounded-full bg-white border-[2.5px] border-[#10B981] flex items-center justify-center text-[#10B981] shadow-sm cursor-pointer">
+                        <div className="relative z-10 w-9 h-9 rounded-pill bg-[#10B981] flex items-center justify-center text-white border-2 border-white shadow-sm cursor-pointer"></div>
+                        <div className="relative z-10 w-10 h-10 rounded-pill bg-app-surface border-[2.5px] border-[#10B981] flex items-center justify-center text-[#10B981] shadow-sm cursor-pointer">
                           <Mail className="w-4 h-4" />
                         </div>
-                        <div className="relative z-10 w-4 h-4 rounded-full border-[3.5px] border-white bg-[#DEE2E6] shadow-sm cursor-pointer"></div>
-                        <div className="relative z-10 w-9 h-9 rounded-full bg-[#F1F3F5] border-2 border-white flex items-center justify-center text-[#ADB5BD] cursor-pointer">
+                        <div className="relative z-10 w-4 h-4 rounded-pill border-[3.5px] border-white bg-[#DEE2E6] shadow-sm cursor-pointer"></div>
+                        <div className="relative z-10 w-9 h-9 rounded-pill bg-[#F1F3F5] border-2 border-white flex items-center justify-center text-[#ADB5BD] cursor-pointer">
                           <Phone className="w-4 h-4" />
                         </div>
                       </div>
@@ -376,55 +376,55 @@ export default function CustomerDrawer({
                 // --- FARMING LAYOUT (Single Column Flow) ---
                 <div className="flex flex-col gap-6 mt-2">
                   {/* Kurzakte */}
-                  <div className="bg-white border border-[#E9ECEF] rounded-[20px] p-6 shadow-[0_4px_20px_rgb(0,0,0,0.02)]">
+                  <div className="bg-app-surface border border-border rounded-[20px] p-6 shadow-[0_4px_20px_rgb(0,0,0,0.02)]">
                     <h3 className="text-[10px] font-bold text-[#ADB5BD] uppercase tracking-wider font-mono mb-4">
                       KURZAKTE
                     </h3>
-                    <ul className="flex flex-col gap-3 text-[13px] text-[#495057] leading-relaxed">
+                    <ul className="flex flex-col gap-3 text-[13px] text-text-body leading-relaxed">
                       <li className="flex items-start gap-2.5">
-                        <span className="w-1.5 h-1.5 bg-[#125455] rounded-full mt-1.5 shrink-0" />
+                        <span className="w-1.5 h-1.5 bg-sherloq-primary rounded-pill mt-1.5 shrink-0" />
                         Gute Nutzung der Core-Features, aber noch kein Setup der neuen Analytics-Dashboards.
                       </li>
                       <li className="flex items-start gap-2.5">
-                        <span className="w-1.5 h-1.5 bg-[#125455] rounded-full mt-1.5 shrink-0" />
+                        <span className="w-1.5 h-1.5 bg-sherloq-primary rounded-pill mt-1.5 shrink-0" />
                         NPS Score ist bei 8 - zufrieden, aber noch kein aktiver Promoter.
                       </li>
                       <li className="flex items-start gap-2.5">
-                        <span className="w-1.5 h-1.5 bg-[#125455] rounded-full mt-1.5 shrink-0" />
+                        <span className="w-1.5 h-1.5 bg-sherloq-primary rounded-pill mt-1.5 shrink-0" />
                         Zusätzliches Potenzial für 5 weitere Seats im Bereich Marketing vorhanden.
                       </li>
                       <li className="flex items-start gap-2.5">
-                        <span className="w-1.5 h-1.5 bg-[#125455] rounded-full mt-1.5 shrink-0" />
+                        <span className="w-1.5 h-1.5 bg-sherloq-primary rounded-pill mt-1.5 shrink-0" />
                         Next Step: Quarterly Review einstellen und Expansions-Optionen besprechen.
                       </li>
                     </ul>
                   </div>
 
                   {/* Sherloq Usage */}
-                  <div className="bg-white border border-[#E9ECEF] rounded-[20px] p-6 shadow-[0_4px_20px_rgb(0,0,0,0.02)]">
+                  <div className="bg-app-surface border border-border rounded-[20px] p-6 shadow-[0_4px_20px_rgb(0,0,0,0.02)]">
                     <h3 className="text-[10px] font-bold text-[#ADB5BD] uppercase tracking-wider font-mono mb-4">
                       SHERLOQ USAGE
                     </h3>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-y-6 gap-x-4">
                       <div className="flex flex-col gap-1.5">
                         <span className="text-[10px] uppercase font-bold text-[#ADB5BD] font-mono tracking-wider">Last Login</span>
-                        <span className="text-[13px] font-bold text-[#212529]">{castedCustomer.lastLogin || 'vor 2 Tagen'}</span>
+                        <span className="text-[13px] font-bold text-text-primary">{castedCustomer.lastLogin || 'vor 2 Tagen'}</span>
                       </div>
                       <div className="flex flex-col gap-1.5">
                         <span className="text-[10px] uppercase font-bold text-[#ADB5BD] font-mono tracking-wider">Last Usage</span>
-                        <span className="text-[13px] font-bold text-[#212529]">Heute</span>
+                        <span className="text-[13px] font-bold text-text-primary">Heute</span>
                       </div>
                       <div className="flex flex-col gap-1.5">
                         <span className="text-[10px] uppercase font-bold text-[#ADB5BD] font-mono tracking-wider">Profiles added</span>
                         <div className="flex items-center">
-                          <span className="text-[13px] font-bold text-[#212529]">{castedCustomer.profilesAdded || 142}</span>
-                          <span className="text-[#2B8A3E] text-[10px] font-semibold ml-1.5">+12%</span>
+                          <span className="text-[13px] font-bold text-text-primary">{castedCustomer.profilesAdded || 142}</span>
+                          <span className="text-signal-success text-[10px] font-semibold ml-1.5">+12%</span>
                         </div>
                       </div>
                       <div className="flex flex-col gap-1.5">
                         <span className="text-[10px] uppercase font-bold text-[#ADB5BD] font-mono tracking-wider">Messages generiert</span>
                         <div className="flex items-center">
-                          <span className="text-[13px] font-bold text-[#212529]">89</span>
+                          <span className="text-[13px] font-bold text-text-primary">89</span>
                           <span className="text-[#D92D20] text-[10px] font-semibold ml-1.5">-4%</span>
                         </div>
                       </div>
@@ -432,19 +432,19 @@ export default function CustomerDrawer({
                         <span className="text-[10px] uppercase font-bold text-[#ADB5BD] font-mono tracking-wider">Enrichments</span>
                         <div className="flex items-center">
                           <span className="text-[13px] font-bold text-[#D92D20]">8.500 / 10k (85%) ⚠️</span>
-                          <span className="text-[#2B8A3E] text-[10px] font-semibold ml-1.5">+7%</span>
+                          <span className="text-signal-success text-[10px] font-semibold ml-1.5">+7%</span>
                         </div>
                       </div>
                       <div className="flex flex-col gap-1.5">
                         <span className="text-[10px] uppercase font-bold text-[#ADB5BD] font-mono tracking-wider">Posts generiert</span>
                         <div className="flex items-center">
-                          <span className="text-[13px] font-bold text-[#212529]">12</span>
-                          <span className="text-[#2B8A3E] text-[10px] font-semibold ml-1.5">+24%</span>
+                          <span className="text-[13px] font-bold text-text-primary">12</span>
+                          <span className="text-signal-success text-[10px] font-semibold ml-1.5">+24%</span>
                         </div>
                       </div>
                       <div className="flex flex-col gap-1.5">
                         <span className="text-[10px] uppercase font-bold text-[#ADB5BD] font-mono tracking-wider">Onboarding</span>
-                        <span className="text-[13px] font-bold text-[#2B8A3E] flex items-center gap-1.5">
+                        <span className="text-[13px] font-bold text-signal-success flex items-center gap-1.5">
                           <CheckCircle2 className="w-3.5 h-3.5" /> Abgeschlossen
                         </span>
                       </div>
@@ -452,42 +452,42 @@ export default function CustomerDrawer({
                   </div>
 
                   {/* Subscription */}
-                  <div className="bg-white border border-[#E9ECEF] rounded-[20px] p-6 shadow-[0_4px_20px_rgb(0,0,0,0.02)]">
+                  <div className="bg-app-surface border border-border rounded-[20px] p-6 shadow-[0_4px_20px_rgb(0,0,0,0.02)]">
                     <h3 className="text-[10px] font-bold text-[#ADB5BD] uppercase tracking-wider font-mono mb-4">
                       SUBSCRIPTION
                     </h3>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-y-6 gap-x-4">
                       <div className="flex flex-col gap-1.5">
                         <span className="text-[10px] uppercase font-bold text-[#ADB5BD] font-mono tracking-wider">Plan</span>
-                        <span className="text-[13px] font-bold text-[#212529]">{castedCustomer.subscriptionPlan}</span>
+                        <span className="text-[13px] font-bold text-text-primary">{castedCustomer.subscriptionPlan}</span>
                       </div>
                       <div className="flex flex-col gap-1.5">
                         <span className="text-[10px] uppercase font-bold text-[#ADB5BD] font-mono tracking-wider">Status</span>
-                        <span className="text-[13px] font-bold text-[#2B8A3E]">Aktiv ✅</span>
+                        <span className="text-[13px] font-bold text-signal-success">Aktiv ✅</span>
                       </div>
                       <div className="flex flex-col gap-1.5">
                         <span className="text-[10px] uppercase font-bold text-[#ADB5BD] font-mono tracking-wider">Aktiv seit</span>
-                        <span className="text-[13px] font-bold text-[#212529]">01.10.2025</span>
+                        <span className="text-[13px] font-bold text-text-primary">01.10.2025</span>
                       </div>
                       <div className="flex flex-col gap-1.5">
                         <span className="text-[10px] uppercase font-bold text-[#ADB5BD] font-mono tracking-wider">Nächste Zahlung</span>
-                        <span className="text-[13px] font-bold text-[#212529]">01.10.2026</span>
+                        <span className="text-[13px] font-bold text-text-primary">01.10.2026</span>
                       </div>
                     </div>
                   </div>
 
                   {/* Churn Risk */}
-                  <div className="bg-white border border-[#E9ECEF] rounded-[20px] p-6 shadow-[0_4px_20px_rgb(0,0,0,0.02)] bg-gradient-to-r from-white to-[#F8F9FA]">
+                  <div className="bg-app-surface border border-border rounded-[20px] p-6 shadow-[0_4px_20px_rgb(0,0,0,0.02)] bg-gradient-to-r from-white to-app-bg">
                     <h3 className="text-[10px] font-bold text-[#ADB5BD] uppercase tracking-wider font-mono mb-4">
                       CHURN RISK
                     </h3>
                     <div className="flex flex-col gap-3">
                       <div className="flex items-center gap-3">
-                        <div className="bg-[#EBFBEE] text-[#2B8A3E] font-bold text-[13px] px-3 py-1.5 rounded-md flex items-center gap-1.5">
+                        <div className="bg-[var(--signal-success-bg)] text-signal-success font-bold text-[13px] px-3 py-1.5 rounded-md flex items-center gap-1.5">
                           Low ✅
                         </div>
                       </div>
-                      <p className="text-[13px] text-[#495057] leading-relaxed">
+                      <p className="text-[13px] text-text-body leading-relaxed">
                         Kunde nutzt die Plattform täglich und hat das Onboarding erfolgreich abgeschlossen. Alle Core-Features werden regelmäßig von den aktiven Usern eingesetzt. Kein Anzeichen für Abwanderung.
                       </p>
                     </div>
@@ -495,20 +495,20 @@ export default function CustomerDrawer({
 
                   {/* Upsell Potential */}
                   {castedCustomer.upsellOpportunity && (
-                    <div className="bg-white border border-[#E9ECEF] rounded-[20px] p-6 shadow-[0_4px_20px_rgb(0,0,0,0.02)] border-l-4 border-l-[#10B981]">
+                    <div className="bg-app-surface border border-border rounded-[20px] p-6 shadow-[0_4px_20px_rgb(0,0,0,0.02)] border-l-4 border-l-[#10B981]">
                       <h3 className="text-[10px] font-bold text-[#10B981] uppercase tracking-wider font-mono mb-4 flex items-center gap-2">
                         UPSELL POTENTIAL
                       </h3>
                       <div className="flex flex-col gap-4">
                         <div className="flex items-center gap-3">
-                          <div className="bg-[#EBFBEE] text-[#2B8A3E] font-bold text-[13px] px-3 py-1.5 rounded-md flex items-center gap-1.5">
+                          <div className="bg-[var(--signal-success-bg)] text-signal-success font-bold text-[13px] px-3 py-1.5 rounded-md flex items-center gap-1.5">
                             ⬆️ {castedCustomer.upsellOpportunity.potential}
                           </div>
                         </div>
-                        <p className="text-[13px] text-[#495057] leading-relaxed">
+                        <p className="text-[13px] text-text-body leading-relaxed">
                           <strong>Warum Upsell erkannt:</strong> {castedCustomer.upsellOpportunity.description}
                         </p>
-                        <div className="bg-[#F8F9FA] border border-[#E9ECEF] rounded-[12px] p-4 text-[13px] font-medium text-[#212529]">
+                        <div className="bg-app-bg border border-border rounded-[12px] p-4 text-[13px] font-medium text-text-primary">
                           <strong>Konkreter Vorschlag:</strong> {castedCustomer.upsellOpportunity.value}
                         </div>
                       </div>
@@ -516,18 +516,18 @@ export default function CustomerDrawer({
                   )}
 
                   {/* Offene Tasks */}
-                  <div className="bg-white border border-[#E9ECEF] rounded-[20px] p-6 shadow-[0_4px_20px_rgb(0,0,0,0.02)]">
+                  <div className="bg-app-surface border border-border rounded-[20px] p-6 shadow-[0_4px_20px_rgb(0,0,0,0.02)]">
                     <h3 className="text-[10px] font-bold text-[#ADB5BD] uppercase tracking-wider font-mono mb-4">
                       OFFENE TASKS
                     </h3>
                     <div className="flex flex-col gap-3">
-                      <div className="bg-[#F8F9FA] border border-[#E9ECEF] rounded-[16px] p-4 flex items-start gap-4 cursor-pointer hover:shadow-xs transition-shadow">
-                        <div className="w-7 h-7 rounded-full bg-white border-2 border-[#DEE2E6] flex items-center justify-center mt-0.5 shrink-0" />
+                      <div className="bg-app-bg border border-border rounded-[16px] p-4 flex items-start gap-4 cursor-pointer hover:shadow-xs transition-shadow">
+                        <div className="w-7 h-7 rounded-pill bg-app-surface border-2 border-[#DEE2E6] flex items-center justify-center mt-0.5 shrink-0" />
                         <div className="flex flex-col">
                           <span className="text-[13px] font-bold text-[#343A40]">
                             Quarterly Review vorbereiten
                           </span>
-                          <span className="text-[11px] font-medium text-[#868E96] mt-0.5">
+                          <span className="text-[11px] font-medium text-text-muted mt-0.5">
                             In 5 Tagen
                           </span>
                         </div>
@@ -536,24 +536,24 @@ export default function CustomerDrawer({
                   </div>
 
                   {/* Actions / Aktionen */}
-                  <div className="bg-white border border-[#E9ECEF] rounded-[20px] p-6 shadow-[0_4px_20px_rgb(0,0,0,0.02)]">
+                  <div className="bg-app-surface border border-border rounded-[20px] p-6 shadow-[0_4px_20px_rgb(0,0,0,0.02)]">
                     <h3 className="text-[10px] font-bold text-[#ADB5BD] uppercase tracking-wider font-mono mb-4">
                       AKTIONEN
                     </h3>
                     <div className="flex flex-wrap gap-3">
-                      <button className="bg-white border border-[#E9ECEF] text-[#495057] text-[12px] font-semibold px-4 py-2 rounded-[12px] hover:bg-[#F8F9FA] transition-colors flex items-center gap-2 shadow-sm">
+                      <button className="bg-app-surface border border-border text-text-body text-[12px] font-semibold px-4 py-2 rounded-[12px] hover:bg-app-bg transition-colors flex items-center gap-2 shadow-sm">
                         <Plus className="w-3.5 h-3.5" /> Task
                       </button>
-                      <button className="bg-white border border-[#E9ECEF] text-[#495057] text-[12px] font-semibold px-4 py-2 rounded-[12px] hover:bg-[#F8F9FA] transition-colors flex items-center gap-2 shadow-sm">
+                      <button className="bg-app-surface border border-border text-text-body text-[12px] font-semibold px-4 py-2 rounded-[12px] hover:bg-app-bg transition-colors flex items-center gap-2 shadow-sm">
                         <Mail className="w-3.5 h-3.5" /> Mail
                       </button>
-                      <button className="bg-white border border-[#E9ECEF] text-[#495057] text-[12px] font-semibold px-4 py-2 rounded-[12px] hover:bg-[#F8F9FA] transition-colors flex items-center gap-2 shadow-sm">
+                      <button className="bg-app-surface border border-border text-text-body text-[12px] font-semibold px-4 py-2 rounded-[12px] hover:bg-app-bg transition-colors flex items-center gap-2 shadow-sm">
                         <Link2 className="w-3.5 h-3.5" /> LinkedIn
                       </button>
-                      <button className="bg-white border border-[#E9ECEF] text-[#495057] text-[12px] font-semibold px-4 py-2 rounded-[12px] hover:bg-[#F8F9FA] transition-colors flex items-center gap-2 shadow-sm">
+                      <button className="bg-app-surface border border-border text-text-body text-[12px] font-semibold px-4 py-2 rounded-[12px] hover:bg-app-bg transition-colors flex items-center gap-2 shadow-sm">
                         <Bookmark className="w-3.5 h-3.5" /> Notiz
                       </button>
-                      <button className="bg-white border border-[#E9ECEF] text-[#495057] text-[12px] font-semibold px-4 py-2 rounded-[12px] hover:bg-[#F8F9FA] transition-colors flex items-center gap-2 shadow-sm">
+                      <button className="bg-app-surface border border-border text-text-body text-[12px] font-semibold px-4 py-2 rounded-[12px] hover:bg-app-bg transition-colors flex items-center gap-2 shadow-sm">
                         <Activity className="w-3.5 h-3.5" /> Usage ansehen
                       </button>
                     </div>
@@ -563,12 +563,12 @@ export default function CustomerDrawer({
 
 
             {/* Kommunikation - FULL WIDTH */}
-            <div ref={commSectionRef} className="bg-white border border-[#E9ECEF] rounded-[24px] p-6 shadow-[0_4px_20px_rgb(0,0,0,0.02)] w-full mt-2">
+            <div ref={commSectionRef} className="bg-app-surface border border-border rounded-[24px] p-6 shadow-[0_4px_20px_rgb(0,0,0,0.02)] w-full mt-2">
               <div className="flex items-center gap-3 mb-6">
-                <h3 className="text-[12px] font-bold text-[#868E96] uppercase tracking-wider font-mono">
+                <h3 className="text-[12px] font-bold text-text-muted uppercase tracking-wider font-mono">
                   KOMMUNIKATION
                 </h3>
-                <div className="bg-[#EBF8FF] text-[#3182CE] rounded-full px-2.5 py-0.5 text-[10px] font-bold tracking-wide">
+                <div className="bg-[var(--signal-cold-bg)] text-signal-cold rounded-pill px-2.5 py-0.5 text-[10px] font-bold tracking-wide">
                   KLICKBAR
                 </div>
               </div>
@@ -582,7 +582,7 @@ export default function CustomerDrawer({
                       setExpandedComm((prev) => ({ ...prev, 1: !prev[1] }))
                     }
                   >
-                    <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 shadow-sm border border-[#E9ECEF]">
+                    <div className="w-12 h-12 rounded-card overflow-hidden shrink-0 shadow-sm border border-border">
                       <img
                         src="/teams.jpeg"
                         alt="Teams"
@@ -591,7 +591,7 @@ export default function CustomerDrawer({
                     </div>
                     <div className="flex flex-col flex-1 pr-2">
                       <div className="flex justify-between items-center w-full">
-                        <span className="text-[14px] font-bold text-[#212529]">
+                        <span className="text-[14px] font-bold text-text-primary">
                           Discovery Call & Demo
                         </span>
                         <span className="text-[11px] text-[#ADB5BD] font-medium">
@@ -599,7 +599,7 @@ export default function CustomerDrawer({
                         </span>
                       </div>
                       <p
-                        className={`text-[13px] text-[#868E96] mt-1 ${!expandedComm[1] ? "line-clamp-2" : ""}`}
+                        className={`text-[13px] text-text-muted mt-1 ${!expandedComm[1] ? "line-clamp-2" : ""}`}
                       >
                         Kunde zeigte starkes Interesse an Feature Y,
                         Budget-Freeze bis Q3 angesprochen...
@@ -616,11 +616,11 @@ export default function CustomerDrawer({
                   </div>
 
                   {expandedComm[1] && (
-                    <div className="ml-16 mt-4 bg-[#F8F9FA] rounded-[16px] p-5">
+                    <div className="ml-16 mt-4 bg-app-bg rounded-[16px] p-5">
                       <h4 className="text-[10px] font-bold text-[#ADB5BD] uppercase tracking-wider font-mono mb-4">
                         VOLLSTÄNDIGES TRANSCRIPT
                       </h4>
-                      <div className="text-[13px] text-[#212529] leading-relaxed space-y-4">
+                      <div className="text-[13px] text-text-primary leading-relaxed space-y-4">
                         <p>
                           <strong>Max (Kunde):</strong> Ja, also das Feature Y
                           sieht wirklich sehr gut aus, das würde uns bei der
@@ -650,7 +650,7 @@ export default function CustomerDrawer({
                       setExpandedComm((prev) => ({ ...prev, 2: !prev[2] }))
                     }
                   >
-                    <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 shadow-sm border border-[#E9ECEF]">
+                    <div className="w-12 h-12 rounded-card overflow-hidden shrink-0 shadow-sm border border-border">
                       <img
                         src="/microsoft-outlook-2025.jpg"
                         alt="Outlook"
@@ -659,7 +659,7 @@ export default function CustomerDrawer({
                     </div>
                     <div className="flex flex-col flex-1 pr-2">
                       <div className="flex justify-between items-center w-full">
-                        <span className="text-[14px] font-bold text-[#212529]">
+                        <span className="text-[14px] font-bold text-text-primary">
                           Angebot gesendet: ROI-Dokument
                         </span>
                         <span className="text-[11px] text-[#ADB5BD] font-medium">
@@ -667,7 +667,7 @@ export default function CustomerDrawer({
                         </span>
                       </div>
                       <p
-                        className={`text-[13px] text-[#868E96] mt-1 ${!expandedComm[2] ? "line-clamp-2" : ""}`}
+                        className={`text-[13px] text-text-muted mt-1 ${!expandedComm[2] ? "line-clamp-2" : ""}`}
                       >
                         Hallo Max, anbei wie besprochen das ROI-Dokument für
                         Sherloq Enterprise...
@@ -684,11 +684,11 @@ export default function CustomerDrawer({
                   </div>
 
                   {expandedComm[2] && (
-                    <div className="ml-16 mt-4 bg-[#F8F9FA] rounded-[16px] p-5">
+                    <div className="ml-16 mt-4 bg-app-bg rounded-[16px] p-5">
                       <h4 className="text-[10px] font-bold text-[#ADB5BD] uppercase tracking-wider font-mono mb-4">
                         VOLLSTÄNDIGE EMAIL
                       </h4>
-                      <div className="text-[13px] text-[#212529] leading-relaxed space-y-4">
+                      <div className="text-[13px] text-text-primary leading-relaxed space-y-4">
                         <p>Hallo Max,</p>
                         <p>
                           anbei wie besprochen das ROI-Dokument für Sherloq
@@ -700,13 +700,13 @@ export default function CustomerDrawer({
                       </div>
 
                       <div className="flex items-center gap-2 mt-6">
-                        <div className="bg-[#FFF4E6] text-[#DD6B20] px-3 py-1 rounded-full text-[11px] font-bold flex items-center gap-1.5">
+                        <div className="bg-[#FFF4E6] text-[#DD6B20] px-3 py-1 rounded-pill text-[11px] font-bold flex items-center gap-1.5">
                           <AlertTriangle className="w-3.5 h-3.5" />
                           Keine Antwort
                         </div>
                       </div>
-                      <button className="mt-4 bg-white border border-[#E9ECEF] text-[#212529] font-bold text-[13px] px-5 py-2.5 rounded-xl shadow-sm hover:bg-gray-50 flex items-center gap-2">
-                        <Mail className="w-4 h-4 text-[#868E96]" />
+                      <button className="mt-4 bg-app-surface border border-border text-text-primary font-bold text-[13px] px-5 py-2.5 rounded-card shadow-sm hover:bg-gray-50 flex items-center gap-2">
+                        <Mail className="w-4 h-4 text-text-muted" />
                         Email öffnen
                       </button>
                     </div>
@@ -721,7 +721,7 @@ export default function CustomerDrawer({
                       setExpandedComm((prev) => ({ ...prev, 3: !prev[3] }))
                     }
                   >
-                    <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 shadow-sm border border-[#E9ECEF] p-1.5">
+                    <div className="w-12 h-12 rounded-card overflow-hidden shrink-0 shadow-sm border border-border p-1.5">
                       <img
                         src="/Link2.avif"
                         alt="LinkedIn"
@@ -730,7 +730,7 @@ export default function CustomerDrawer({
                     </div>
                     <div className="flex flex-col flex-1 pr-2">
                       <div className="flex justify-between items-center w-full">
-                        <span className="text-[14px] font-bold text-[#212529]">
+                        <span className="text-[14px] font-bold text-text-primary">
                           LinkedIn Nachricht
                         </span>
                         <span className="text-[11px] text-[#ADB5BD] font-medium">
@@ -738,7 +738,7 @@ export default function CustomerDrawer({
                         </span>
                       </div>
                       <p
-                        className={`text-[13px] text-[#868E96] mt-1 ${!expandedComm[3] ? "line-clamp-2" : ""}`}
+                        className={`text-[13px] text-text-muted mt-1 ${!expandedComm[3] ? "line-clamp-2" : ""}`}
                       >
                         Danke für die Vernetzung, Max. Klasse was ihr bei
                         PayGuard aufbaut...
@@ -755,11 +755,11 @@ export default function CustomerDrawer({
                   </div>
 
                   {expandedComm[3] && (
-                    <div className="ml-16 mt-4 bg-[#F8F9FA] rounded-[16px] p-5">
+                    <div className="ml-16 mt-4 bg-app-bg rounded-[16px] p-5">
                       <h4 className="text-[10px] font-bold text-[#ADB5BD] uppercase tracking-wider font-mono mb-4">
                         VOLLSTÄNDIGE NACHRICHT
                       </h4>
-                      <div className="text-[13px] text-[#212529] leading-relaxed space-y-4">
+                      <div className="text-[13px] text-text-primary leading-relaxed space-y-4">
                         <p>Danke für die Vernetzung, Max.</p>
                         <p>
                           Klasse, was ihr bei PayGuard aufbaut. Euer neues
