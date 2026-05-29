@@ -333,6 +333,17 @@ await checkPermission(userId, resource, action); // throws if unauthorized
 
 ---
 
+## Neue Design ZIPs — immer so vorgehen
+
+1. Erst analysieren: welche Komponenten sind neu, welche existieren bereits?
+2. Bestehende Komponenten nie neu bauen — nur neue umsetzen
+3. Neue Komponenten immer mit unseren Tokens aus index.css umsetzen
+4. Fremde Hex-Werte → nächstliegender Token aus unserem System
+5. Nie neue CSS-Klassen außerhalb von globals.css anlegen
+6. Immer Bestätigung einholen bevor gebaut wird
+
+---
+
 ## Realtime Events & Webhooks — PFLICHT bei Datenbankbau
 
 **NIEMALS Supabase verbinden ohne diese fünf Punkte vollständig implementiert.**
