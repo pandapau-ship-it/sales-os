@@ -473,3 +473,127 @@ Doc files:
 ---
 
 *Owner: Oliver (Prossi) | Created: Mai 2026 | Briefing status: Final*
+
+---
+
+## 9. AI Chat Architektur — Kernprinzip (NIEMALS abweichen)
+
+### Grundprinzip: AI interpretiert — Browser rendert
+
+Der AI-Chat-Call hat EINE einzige Aufgabe: die Nutzeranfrage interpretieren und einen strukturierten
+JSON-Befehl zurückgeben. Er baut KEINE UI, er generiert KEINEN HTML-Code, er entscheidet NUR was
+angezeigt wird.
+
+Alle UI-Komponenten sind bereits fertig im Code — vorgebaut, unsichtbar. Der AI-Call kostet
+~50-100 Token. Er gibt zurück:
+
+```json
+{ "render": "cold_leads", "filters": { "days": 14 } }
+```
+
+Der Browser liest das JSON und macht die richtige Komponente sichtbar. Kein Neu-Bauen,
+kein zweiter AI-Call. Daten kommen live aus Supabase — kostet keine Token.
+
+### Component Registry — Pflicht für jede neue Komponente
+
+Jede neue Komponente die gebaut wird, wird SOFORT in der zentralen Registry registriert.
+Die Registry liegt in: src/lib/componentRegistry.ts
+
+```typescript
+// Every component that the AI Chat can show must be registered here.
+// The AI returns a render key — the registry maps it to the component.
+export const COMPONENT_REGISTRY = {
+  leads_today:    { component: 'LeadList',      filter: 'today' },
+  cold_leads:     { component: 'LeadList',      filter: 'cold' },
+  stagnating:     { component: 'LeadList',      filter: 'stagnating' },
+  churn_risks:    { component: 'CustomerList',  filter: 'churn' },
+  upsell:         { component: 'CustomerList',  filter: 'upsell' },
+  pipeline:       { component: 'PipelineChart', filter: null },
+  contact_detail: { component: 'ContactDrawer', filter: null },
+  mail_drafts:    { component: 'MailDraftList', filter: null },
+  // Neue Komponenten immer hier eintragen — nie vergessen.
+}
+```
+
+Wenn eine neue Seite oder Komponente gebaut wird: Registry-Eintrag ist Pflicht.
+Claude Code darf KEINE Komponente bauen die nicht in der Registry steht.
+
+### Drei Antwort-Typen des AI-Chats
+
+**Typ 1 — Text** (keine Daten nötig)
+Trigger: Erklärungen, Definitionen, allgemeine Fragen
+Token-Kosten: ~50-100
+Beispiele: "Was ist Churn Rate?", "Erkläre mir Heat Status", "Wie funktioniert die Pipeline?"
+Verhalten: Antwort erscheint nur im Chat. Kein Panel, keine Komponente.
+
+**Typ 2 — Daten anzeigen** (Komponente + Supabase-Query)
+Trigger: Konkrete Datenanfragen mit oder ohne Filter
+Token-Kosten: ~50-100 (nur Interpretation)
+Beispiele: "Zeig kalte Leads", "Wer stagniert seit 10 Tagen?", "Meine Pipeline diese Woche"
+Verhalten: AI gibt render-key + filter zurück. Browser holt Daten aus Supabase.
+Komponente wird sichtbar. Daten werden live geladen.
+
+**Typ 3 — Workflow** (mehrstufig, höhere Token-Kosten)
+Trigger: Aktionen auf einer angezeigten Liste, Bulk-Operationen
+Token-Kosten: ~200-400 pro Kontakt (akzeptabel, einmalig)
+Beispiele: "Schreib allen eine personalisierte Mail", "Erstelle für jeden eine Task"
+Verhalten: AI liest Kurzakte + Kommunikationshistorie aus Supabase pro Kontakt.
+Generiert individuellen Inhalt. Zeigt Ergebnisse als editierbare Liste.
+User reviewed, bestätigt, sendet — alles auf einer Seite ohne Seitenwechsel.
+
+### Workflow-Beispiel: Kalt-Liste → personalisierte Mails → versenden
+
+```
+Schritt 1: "Zeig mir alle kalten Leads älter als 14 Tage"
+  → AI: { render: "cold_leads", filters: { min_days: 14 } }
+  → Supabase Query läuft, Liste erscheint oben
+  → Token-Kosten: ~80
+
+Schritt 2: "Schreib jedem eine personalisierte Mail"
+  → AI liest pro Kontakt: Kurzakte, letzter Touchpoint, Persönlichkeitstyp
+  → Generiert individuelle Mail basierend auf Kontext
+  → Mails erscheinen als editierbare Kacheln oben
+  → Token-Kosten: ~300 pro Kontakt (bei 5 Kontakten: ~1.500 Token)
+
+Schritt 3: User reviewed, bearbeitet einzelne Mails inline
+
+Schritt 4: "Sende alle" oder einzeln bestätigen
+  → Versand via Unipile API (LinkedIn DM) oder SMTP (Email)
+  → Kommunikation wird automatisch in communications-Tabelle geschrieben
+  → Token-Kosten: 0 (kein AI-Call nötig)
+```
+
+### Wo der AI-Chat sitzt — UI-Platzierung
+
+Der Chat ist KEIN vollständiger Screen — er ist eine Schicht über der App.
+
+Optionen (Entscheidung noch offen, Infrastruktur für alle vorbereiten):
+- Floating Button unten rechts → öffnet Chat-Panel
+- Feste Leiste unten → immer sichtbar, minimierbar
+- Cmd+K → öffnet Chat-Modus (getrennt von Navigation/Suche)
+
+WICHTIG: Cmd+K und AI-Chat sind STRIKT getrennt.
+- Cmd+K = Navigation + Schnellaktionen (kein AI, direkte Ausführung)
+- AI-Chat = Interpretation + Workflows + Analyse (kein direktes Navigieren)
+
+### Token-Kosten Übersicht (Orientierung für Entscheidungen)
+
+| Aktion | Token-Kosten | Wann |
+|---|---|---|
+| Frage interpretieren | ~50-100 | Jede Anfrage |
+| Daten anzeigen | ~50-100 | Typ 2 Anfragen |
+| 1 Mail generieren | ~200-400 | Typ 3 Workflow |
+| 10 Mails generieren | ~2.000-4.000 | Typ 3 Bulk |
+| Kurzakte fortschreiben | ~300-500 | Via Routine, nicht Chat |
+| Supabase Query | 0 | Immer kostenlos |
+| UI rendern | 0 | Immer kostenlos |
+
+Bulk-Aktionen (>10 Kontakte gleichzeitig) immer mit Bestätigung:
+"Du bist dabei X Mails zu generieren — das kostet ca. Y Token. Fortfahren?"
+
+### Sicherheitsregeln für den AI-Chat
+
+- Destruktive Aktionen (Löschen, Massenupdates) immer mit Bestätigung — auch im Chat
+- Versand von Nachrichten immer mit Preview + expliziter Bestätigung pro Kontakt ODER Bulk-Bestätigung
+- AI schreibt NIE direkt in die Datenbank — immer via definierte Supabase Functions
+- Jede AI-Chat-Aktion wird im audit_log gespeichert (source: 'ai_chat')
