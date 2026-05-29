@@ -15,6 +15,11 @@
 1. Update `PROGRESS.md` — what was completed, what's next, any blockers
 2. `git add` + `git commit` + `git push`
 
+**Session-Ende Checkliste (Pflicht — nach jeder Session abarbeiten):**
+1. PROGRESS.md aktualisieren
+2. Alle heute neu gebauten Komponenten in `src/lib/componentRegistry.ts` eintragen
+3. Commit + Push zu GitHub
+
 ---
 
 ## Tech Stack (aktuell)
@@ -517,6 +522,7 @@ export const COMPONENT_REGISTRY = {
 
 Wenn eine neue Seite oder Komponente gebaut wird: Registry-Eintrag ist Pflicht.
 Claude Code darf KEINE Komponente bauen die nicht in der Registry steht.
+Claude Code erinnert den User am Session-Ende aktiv daran: welche Komponenten heute gebaut wurden und ob sie bereits in der Registry stehen.
 
 ### Drei Antwort-Typen des AI-Chats
 
