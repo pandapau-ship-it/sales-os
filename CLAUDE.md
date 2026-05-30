@@ -616,6 +616,13 @@ Bulk-Aktionen (>10 Kontakte gleichzeitig) immer mit Bestätigung:
 - AI-Kosten werden pro Workspace getrackt — jeder API-Call schreibt `tokens_used + workspace_id` in eine `ai_usage` Tabelle.
 - Plan-Limits werden in `workspaces.plan` gespeichert — alle Features prüfen vor Ausführung ob das Limit erreicht ist.
 - Kein Feature wird gebaut ohne diese Prüfung: funktioniert das auch wenn `workspace_id` eines anderen Kunden drin steht?
+- **Felder-Editierbarkeit:** Kein Feld wird im Code als "nicht editierbar" fest verdrahtet. Welche Felder der User bearbeiten kann wird ausschließlich über die `permissions` Tabelle gesteuert. Neue Edit-Funktionen sind jederzeit ohne Datenbankumbau ergänzbar.
+- **Rollen & Ownership:** Jeder Datensatz in jeder Tabelle bekommt von Anfang an drei Felder:
+  - `created_by UUID REFERENCES users(id)` — wer hat es angelegt
+  - `assigned_to UUID REFERENCES users(id)` — wer ist verantwortlich
+  - `workspace_id UUID REFERENCES workspaces(id)` — welcher Workspace
+
+  Die konkreten Rollen und ihre Rechte werden später in der `permissions` Tabelle definiert — die Infrastruktur ist aber von Tag 1 vorhanden. Kein Feature wird gebaut ohne diese drei Felder. Keine Ausnahme.
 
 ---
 
