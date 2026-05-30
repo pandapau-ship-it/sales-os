@@ -616,3 +616,27 @@ Bulk-Aktionen (>10 Kontakte gleichzeitig) immer mit Bestätigung:
 - AI-Kosten werden pro Workspace getrackt — jeder API-Call schreibt `tokens_used + workspace_id` in eine `ai_usage` Tabelle.
 - Plan-Limits werden in `workspaces.plan` gespeichert — alle Features prüfen vor Ausführung ob das Limit erreicht ist.
 - Kein Feature wird gebaut ohne diese Prüfung: funktioniert das auch wenn `workspace_id` eines anderen Kunden drin steht?
+
+---
+
+## 11. Kommunikations-Infrastruktur — Webhook & Parser
+
+**Grundprinzip:** Die Kommunikations-Infrastruktur ist kanalagnostisch gebaut. Egal ob die Daten von Unipile, Gmail API, Microsoft Graph oder einem anderen Kanal kommen — sie landen immer gleich in der `communications` Tabelle. Der Rest des Systems weiß nicht woher die Daten kommen.
+
+**Webhook-Endpunkt:** Eine zentrale Vercel Function `/api/webhooks/communications` empfängt alle eingehenden Events — egal von welcher Quelle. Jede Quelle bekommt ihren eigenen Parser, aber denselben Endpunkt.
+
+**Parser-Struktur:** Für jeden Kanal gibt es einen eigenen Parser unter `src/lib/parsers/`. Jeder Parser gibt dasselbe Format zurück:
+```ts
+{ contact_id, company_id, channel, direction, subject, summary, sentiment, occurred_at, raw_content }
+```
+
+**Neue Kanäle ergänzen:** Neuen Parser unter `src/lib/parsers/[kanal].ts` anlegen, im zentralen Webhook-Router registrieren. Kein anderer Code muss angefasst werden.
+
+**Supabase Trigger:** Nach jedem neuen Eintrag in `communications` feuert automatisch ein Trigger — dieser stößt die Kurzakte-Fortschreibung an und prüft ob ein Follow-up Timer gestartet werden muss.
+
+**Aktuell geplante Quellen:**
+- Unipile (LinkedIn, WhatsApp, Email, Slack in einem)
+- Gmail API direkt (Fallback falls kein Unipile)
+- Microsoft Graph direkt (Fallback falls kein Unipile)
+
+**LinkedIn-Hinweis:** LinkedIn-Nachrichten sind ohne Unipile oder offizielle LinkedIn-Partnerschaft nicht zugänglich. Die Infrastruktur ist so gebaut dass Unipile jederzeit ergänzt werden kann — aber nie vorausgesetzt wird.
