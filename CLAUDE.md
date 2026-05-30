@@ -603,3 +603,16 @@ Bulk-Aktionen (>10 Kontakte gleichzeitig) immer mit Bestätigung:
 - Versand von Nachrichten immer mit Preview + expliziter Bestätigung pro Kontakt ODER Bulk-Bestätigung
 - AI schreibt NIE direkt in die Datenbank — immer via definierte Supabase Functions
 - Jede AI-Chat-Aktion wird im audit_log gespeichert (source: 'ai_chat')
+
+---
+
+## 10. SaaS-Readiness — Technische Grundregeln
+
+- Jede Tabelle bekommt von Anfang an eine `workspace_id UUID NOT NULL REFERENCES workspaces(id)`. Keine Ausnahme.
+- Jede RLS-Policy prüft immer zwei Bedingungen: `assigned_to = auth.uid()` UND `workspace_id = current_workspace_id()`. Nie nur eine.
+- Jede Supabase-Query im Frontend filtert immer zusätzlich auf `workspace_id` — nie weglassen.
+- Eine Tabelle `workspaces` wird als erstes angelegt — vor allen anderen Tabellen.
+- Eine Tabelle `workspace_members` verknüpft User mit Workspaces und deren Rolle darin.
+- AI-Kosten werden pro Workspace getrackt — jeder API-Call schreibt `tokens_used + workspace_id` in eine `ai_usage` Tabelle.
+- Plan-Limits werden in `workspaces.plan` gespeichert — alle Features prüfen vor Ausführung ob das Limit erreicht ist.
+- Kein Feature wird gebaut ohne diese Prüfung: funktioniert das auch wenn `workspace_id` eines anderen Kunden drin steht?
