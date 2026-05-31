@@ -161,6 +161,20 @@ export const COMPONENT_REGISTRY = {
     filter: null,
     description: 'Visueller Pipeline-Funnel mit Deal-Werten und Stage-Verteilung',
   },
+
+  smart_list: {
+    component: 'SmartList',           // not yet built
+    path: 'components/screens/SmartList',
+    filter: null,
+    description: 'KI-erstellte dynamische Kontakt-/Deal-Liste basierend auf JSONB-Filterregeln — erstellt, benennt und speichert die Liste automatisch',
+  },
+
+  smart_list_result: {
+    component: 'SmartListResult',     // not yet built
+    path: 'components/screens/SmartListResult',
+    filter: null,
+    description: 'Ergebnis-Ansicht einer gespeicherten Smart List — zeigt gecachte Mitglieder mit letztem Stand und Re-Run Option',
+  },
 } as const satisfies Record<string, RegistryEntry>;
 
 /**

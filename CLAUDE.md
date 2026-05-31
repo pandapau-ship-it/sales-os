@@ -650,6 +650,65 @@ Bulk-Aktionen (>10 Kontakte gleichzeitig) immer mit Bestätigung:
 
 ---
 
+## 12. Smart Lists — KI-gesteuerte dynamische Listen
+
+Der User kann per AI Chat dynamische Listen erstellen: *"Erstelle mir eine Liste aller Kunden die Analytics noch nicht genutzt haben."* Die AI schreibt die Filter als JSONB, Supabase führt die Query aus, das Ergebnis erscheint sofort in der App.
+
+### Schema
+
+```sql
+-- Die Liste selbst (Regel-Definition)
+smart_lists (
+  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name         TEXT NOT NULL,
+  description  TEXT,
+  filters      JSONB NOT NULL,   -- Filterregeln als JSON (kein SQL)
+  entity_type  TEXT NOT NULL,    -- 'contacts' | 'companies' | 'deals'
+  created_by   UUID REFERENCES users(id),
+  workspace_id UUID NOT NULL REFERENCES workspaces(id),
+  is_shared    BOOLEAN DEFAULT false,
+  last_run_at  TIMESTAMPTZ,
+  created_at   TIMESTAMPTZ DEFAULT now()
+)
+
+-- Gecachte Ergebnisse der Liste
+smart_list_members (
+  list_id    UUID REFERENCES smart_lists(id) ON DELETE CASCADE,
+  entity_id  UUID NOT NULL,
+  added_at   TIMESTAMPTZ DEFAULT now(),
+  PRIMARY KEY (list_id, entity_id)
+)
+```
+
+### JSONB Filter-Format
+
+```json
+{
+  "entity_type": "contacts",
+  "rules": [
+    { "field": "feature_usage.analytics", "operator": "never" },
+    { "field": "status",                  "operator": "eq", "value": "aktiv" }
+  ],
+  "logic": "AND"
+}
+```
+
+### Render Keys
+
+| Key | Beschreibung |
+|-----|-------------|
+| `smart_list` | AI erstellt neue Liste, zeigt Ergebnis sofort |
+| `smart_list_result` | Bestehende Liste öffnen + Re-Run Option |
+
+### Regeln
+
+- AI schreibt JSONB-Filter — kein SQL, kein direkter DB-Zugriff
+- Listen gehören immer zu einem `workspace_id` — nie global
+- `last_run_at` wird bei jedem Re-Run aktualisiert
+- `smart_list_members` wird bei Re-Run vollständig neu befüllt (TRUNCATE + INSERT)
+
+---
+
 ## AI Automation Architecture — Pflichtregeln (nie weglassen)
 
 Das System wird schrittweise zu einem vollautomatischen AI-Agenten ausgebaut.
