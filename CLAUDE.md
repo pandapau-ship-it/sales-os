@@ -652,7 +652,12 @@ Bulk-Aktionen (>10 Kontakte gleichzeitig) immer mit Bestätigung:
 
 ## 12. Smart Lists — KI-gesteuerte dynamische Listen
 
-Der User kann per AI Chat dynamische Listen erstellen: *"Erstelle mir eine Liste aller Kunden die Analytics noch nicht genutzt haben."* Die AI schreibt die Filter als JSONB, Supabase führt die Query aus, das Ergebnis erscheint sofort in der App.
+Smart Lists können auf zwei Wegen erstellt werden — beide schreiben in dieselbe Tabelle:
+
+1. **Per AI Chat** — *"Erstelle mir eine Liste aller Kunden die Analytics noch nicht genutzt haben."* Die AI schreibt die Filter als JSONB, Supabase führt die Query aus.
+2. **Per UI (kommt noch)** — User baut die Liste manuell über einen Filter-Builder. Ergebnis: dasselbe JSONB-Format in derselben Tabelle.
+
+Kein Unterschied im Datenmodell — nur der Erstellungsweg ist anders.
 
 ### Schema
 
