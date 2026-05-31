@@ -647,3 +647,65 @@ Bulk-Aktionen (>10 Kontakte gleichzeitig) immer mit Bestätigung:
 - Microsoft Graph direkt (Fallback falls kein Unipile)
 
 **LinkedIn-Hinweis:** LinkedIn-Nachrichten sind ohne Unipile oder offizielle LinkedIn-Partnerschaft nicht zugänglich. Die Infrastruktur ist so gebaut dass Unipile jederzeit ergänzt werden kann — aber nie vorausgesetzt wird.
+
+---
+
+## AI Automation Architecture — Pflichtregeln (nie weglassen)
+
+Das System wird schrittweise zu einem vollautomatischen AI-Agenten ausgebaut.
+Jede Funktion die heute gebaut wird, muss diese Zukunft ermöglichen — ohne Umbau.
+
+### Pflichtfelder für JEDE Aktion (Task, Outreach, Sequenz-Step, Follow-up)
+
+Jede Tabelle die Aktionen speichert (`tasks`, `contact_sequences`, `communications`) muss enthalten:
+
+```
+source          TEXT    -- manual | ai_suggested | ai_automated
+execution_mode  TEXT    -- manual | semi_auto | full_auto
+executed_by     UUID    -- user_id ODER 'ai' als Marker
+approved_by     UUID    -- user_id wenn bestätigt, null wenn nicht nötig
+approved_at     TIMESTAMPTZ -- wann bestätigt, null wenn full_auto oder manual
+```
+
+Kein Task, keine Outreach, kein Sequenz-Step darf ohne diese 5 Felder gebaut werden.
+
+### Automation Modes — was sie bedeuten
+
+| Mode | Bedeutung |
+|------|-----------|
+| `manual` | AI schlägt vor, User entscheidet und führt aus |
+| `semi_auto` | AI bereitet vollständig vor, User sieht es und bestätigt mit einem Klick |
+| `full_auto` | AI führt direkt aus, kein User-Eingriff, wird nur geloggt |
+
+### User-Settings — in system_config von Anfang an anlegen
+
+Diese Keys müssen beim DB-Setup in `system_config` eingefügt werden:
+
+| Key | Standard |
+|-----|----------|
+| `automation_sequenz_execution` | `manual` |
+| `automation_outreach_linkedin` | `manual` |
+| `automation_outreach_email` | `manual` |
+| `automation_follow_up` | `semi_auto` |
+| `automation_task_creation` | `semi_auto` |
+
+Der User kann diese Werte später per AI Chat ändern:
+- "Stelle LinkedIn Outreach auf semi_auto"
+- "Aktiviere vollautomatische Follow-ups"
+
+### Was JETZT gebaut wird — was SPÄTER kommt
+
+**JETZT (Infrastruktur):**
+- Felder in allen relevanten Tabellen
+- `system_config` Keys anlegen
+- Jede Funktion prüft `execution_mode` bevor sie ausführt
+
+**SPÄTER (wenn bereit):**
+- Tatsächliches Senden via LinkedIn/Email API
+- Approval-Flow UI (Bestätigungs-Inbox)
+- Full-Auto Engine in Claude Routines
+
+### Prüffrage vor jeder neuen Funktion
+
+Bevor du eine neue Aktion baust: *"Könnte die AI das eines Tages automatisch ausführen?"*
+Wenn ja → `execution_mode`, `source`, `approved_by`, `executed_by` müssen in die Tabelle.
