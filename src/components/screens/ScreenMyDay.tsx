@@ -142,7 +142,7 @@ export default function ScreenMyDay({
           <h1 className="text-[20px] font-semibold text-text-primary tracking-tight">Guten Morgen, Alexander</h1>
           <p className="text-[12px] text-text-muted mt-0.5">Hier ist dein proaktiver Vertriebs-Hub für heute.</p>
         </div>
-        <div className="text-[11px] font-mono text-text-muted bg-app-surface rounded-pill px-4 py-1.5 shadow-[0_4px_20px_rgb(0,0,0,0.04)] flex items-center gap-1.5">
+        <div className="text-[11px] font-mono text-text-muted bg-app-surface rounded-pill px-4 py-1.5 shadow-card flex items-center gap-1.5">
           <Clock className="w-3.5 h-3.5 text-sherloq-primary" />
           <span>Heute: {new Date().toLocaleDateString('de-DE', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
         </div>
@@ -183,7 +183,7 @@ export default function ScreenMyDay({
       )}
 
       {/* 3. AI-BRIEFING SENTENCE (Section 12) */}
-      <div className="bg-app-surface rounded-[32px] px-5 py-4 flex items-center justify-between shadow-[0_8px_30px_rgb(0,0,0,0.04)] group/brief">
+      <div className="bg-app-surface rounded-[16px] px-5 py-4 flex items-center justify-between shadow-card group/brief">
         <div className="flex items-center gap-3.5 flex-1 min-w-0 pr-4">
           <div className="w-10 h-10 rounded-[14px] bg-[var(--sherloq-light)] flex items-center justify-center flex-shrink-0 shadow-sm">
             <Sparkles className="w-5 h-5 text-sherloq-primary" />
@@ -220,7 +220,7 @@ export default function ScreenMyDay({
           {priorities.slice(0, 5).map((prio, idx) => (
             <div 
               key={prio.id}
-              className="bg-app-surface rounded-[32px] p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_16px_40px_rgb(0,0,0,0.08)] hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between"
+              className="bg-app-surface rounded-[16px] p-5 shadow-card hover:shadow-[0_16px_40px_rgb(0,0,0,0.08)] hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between"
             >
               <div>
                 <div className="flex items-center justify-between mb-3.5">
@@ -264,7 +264,7 @@ export default function ScreenMyDay({
       <div className="flex flex-col gap-3">
         <button 
           onClick={() => setExpandMeetings(!expandMeetings)}
-          className="w-full px-6 py-4 flex items-center justify-between bg-app-surface rounded-[24px] shadow-[0_4px_20px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all cursor-pointer select-none"
+          className="w-full px-6 py-4 flex items-center justify-between bg-app-surface rounded-[14px] shadow-card hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all cursor-pointer select-none"
         >
           <div className="flex items-center gap-2">
             <Calendar className="w-4.5 h-4.5 text-sherloq-primary" />
@@ -278,7 +278,7 @@ export default function ScreenMyDay({
             {appointments.map((app) => (
               <div 
                 key={app.id}
-                className="bg-app-surface rounded-[24px] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all"
+                className="bg-app-surface rounded-[14px] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-card transition-all"
               >
                 <div className="flex items-start gap-3">
                   <div className="bg-[var(--sherloq-light)] text-sherloq-primary px-3 py-1.5 rounded-[12px] font-mono text-[13px] font-bold h-fit mt-0.5 flex items-center justify-center border border-sherloq-primary/10">
@@ -331,7 +331,7 @@ export default function ScreenMyDay({
       <div className="flex flex-col gap-3">
         <button 
           onClick={() => setExpandTasks(!expandTasks)}
-          className="w-full px-6 py-4 flex items-center justify-between bg-app-surface rounded-[24px] shadow-[0_4px_20px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all cursor-pointer select-none"
+          className="w-full px-6 py-4 flex items-center justify-between bg-app-surface rounded-[14px] shadow-card hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all cursor-pointer select-none"
         >
           <div className="flex items-center gap-2">
             <CheckCircle className="w-4.5 h-4.5 text-sherloq-primary" />
@@ -345,7 +345,7 @@ export default function ScreenMyDay({
             {tasks.map((task) => (
               <div 
                 key={task.id}
-                className={`bg-app-surface rounded-[24px] p-4 flex flex-col justify-between transition-all shadow-[0_8px_30px_rgb(0,0,0,0.04)] ${
+                className={`bg-app-surface rounded-[14px] p-4 flex flex-col justify-between transition-all shadow-card ${
                   task.isOverdue && !task.completed ? 'border-l-4 border-l-[#E8590C]' : ''
                 } ${task.completed ? 'opacity-50' : ''}`}
               >

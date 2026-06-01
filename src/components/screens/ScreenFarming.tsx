@@ -109,7 +109,7 @@ export default function ScreenFarming({
       </div>
 
       {/* Sub-Navigation (Section 12) */}
-      <div className="flex gap-2 p-1.5 bg-app-surface rounded-pill shadow-[0_4px_20px_rgb(0,0,0,0.04)] w-fit items-center">
+      <div className="flex gap-2 p-1.5 bg-app-surface rounded-pill shadow-card w-fit items-center">
         {menuItems.map((item) => {
           const isActive = subTab === item.id;
           return (
@@ -137,24 +137,24 @@ export default function ScreenFarming({
       {subTab === 'overview' && (
         <div className="flex flex-col gap-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-app-surface rounded-[32px] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+            <div className="bg-app-surface rounded-[16px] p-6 shadow-card">
               <span className="text-[10px] text-text-muted uppercase font-semibold">Active Customers (AM)</span>
               <h3 className="text-[28px] font-bold text-text-primary mt-1">14 Companies</h3>
               <p className="text-[12px] text-signal-success mt-1.5">✓ 92% Annual Retention rate</p>
             </div>
-            <div className="bg-app-surface rounded-[32px] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+            <div className="bg-app-surface rounded-[16px] p-6 shadow-card">
               <span className="text-[10px] text-text-muted uppercase font-semibold">Upsell Pipeline</span>
               <h3 className="text-[28px] font-bold text-text-primary mt-1">4.250€ MRR</h3>
               <p className="text-[12px] text-text-body mt-1.5">Soll-Abschluss für Q2</p>
             </div>
-            <div className="bg-app-surface rounded-[32px] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-red-100">
+            <div className="bg-app-surface rounded-[16px] p-6 shadow-card ring-1 ring-red-100">
               <span className="text-[10px] text-red-600 uppercase font-semibold">Churn Risk At Risk</span>
               <h3 className="text-[28px] font-bold text-text-primary mt-1">1 Account</h3>
               <p className="text-[12px] text-red-700 font-medium mt-1.5">Logistify DE (CS-Support benötigt)</p>
             </div>
           </div>
 
-          <div className="bg-app-surface rounded-[32px] p-6 text-center shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+          <div className="bg-app-surface rounded-[16px] p-6 text-center shadow-card">
             <h3 className="text-[14px] font-semibold text-text-primary">AM Login Frequency</h3>
             <p className="text-[11px] text-text-muted mt-1">Nutzung aller eingerichteten Seats per Account</p>
             <div className="mt-6 flex flex-col gap-3">
@@ -219,7 +219,7 @@ export default function ScreenFarming({
             return (
               <div
                 key={cust.id}
-                className={`group rounded-[32px] p-5 flex flex-col gap-4 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.06)] transition-all duration-300 cursor-pointer border border-[#F1F3F5] relative ${
+                className={`group rounded-[16px] p-5 flex flex-col gap-4 shadow-card hover:shadow-[0_12px_40px_rgb(0,0,0,0.06)] transition-all duration-300 cursor-pointer border border-[#F1F3F5] relative ${
                   selectedCustomerIds.includes(cust.id) ? 'bg-[#EDF5F5]' : 'bg-app-surface'
                 }`}
                 onClick={() => setExpandedCustomerId(isExpanded ? null : cust.id)}
@@ -317,7 +317,7 @@ export default function ScreenFarming({
                   <div className="flex flex-col gap-6 border-t border-[#F1F3F5] pt-5 mt-2" onClick={(e) => e.stopPropagation()}>
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
                       {/* Left Column (KI Kurzakte) */}
-                      <div className="md:col-span-7 bg-app-surface rounded-[24px] p-5 border border-border">
+                      <div className="md:col-span-7 bg-app-surface rounded-[14px] p-5 border border-border">
                         <div className="flex items-center gap-2 text-[11px] font-bold font-mono text-sherloq-primary uppercase tracking-wider mb-4">
                           <Zap className="w-4 h-4 text-sherloq-primary" /> KI Kurzakte
                         </div>
@@ -344,7 +344,7 @@ export default function ScreenFarming({
                       {/* Right Column (Deal Details & Aktionen) */}
                       <div className="md:col-span-5 flex flex-col gap-5">
                         {/* SHERLOQ USAGE */}
-                        <div className="bg-app-surface rounded-[24px] p-5 border border-border">
+                        <div className="bg-app-surface rounded-[14px] p-5 border border-border">
                           <div className="flex items-center gap-2 text-[11px] font-bold font-mono text-text-muted uppercase tracking-wider mb-4">
                             <Activity className="w-4 h-4" /> SHERLOQ USAGE
                           </div>
@@ -397,7 +397,7 @@ export default function ScreenFarming({
                         </div>
 
                         {/* Aktionen */}
-                        <div className="bg-app-surface rounded-[24px] p-5 border border-border">
+                        <div className="bg-app-surface rounded-[14px] p-5 border border-border">
                           <div className="flex items-center gap-2 text-[11px] font-bold font-mono text-text-muted uppercase tracking-wider mb-4">
                             <Target className="w-4 h-4" /> Aktionen
                           </div>
@@ -437,7 +437,7 @@ export default function ScreenFarming({
       {/* 3. VIEW HEALTH & CHURN INDEX */}
       {subTab === 'health' && (
         <div className="flex flex-col gap-4 text-left">
-          <div className="bg-app-surface rounded-[32px] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+          <div className="bg-app-surface rounded-[16px] p-6 shadow-card">
             <h3 className="text-[14px] font-semibold text-text-primary mb-4">Risiko-Ranking der Accounts (Churn Prevention Mode)</h3>
             
             <div className="flex flex-col gap-3">
@@ -447,7 +447,7 @@ export default function ScreenFarming({
                 return (
                   <div 
                     key={cust.id}
-                    className={`flex items-center justify-between p-4 rounded-[20px] border transition-all ${
+                    className={`flex items-center justify-between p-4 rounded-[14px] border transition-all ${
                       isCritical ? 'bg-[var(--signal-urgent-bg)]/30 border-red-100' : 'bg-app-surface border-border'
                     }`}
                   >

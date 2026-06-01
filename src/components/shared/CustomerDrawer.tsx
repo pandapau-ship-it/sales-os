@@ -111,7 +111,7 @@ export default function CustomerDrawer({
   return (
     <div className="fixed inset-0 bg-[#495057]/20 backdrop-blur-sm z-50 flex justify-end font-sans transition-opacity animate-fade-in pr-2 py-2">
       <div
-        className="w-full max-w-[850px] h-full bg-[#F4F5F7] shadow-2xl flex flex-col relative overflow-hidden animate-slide-left rounded-3xl"
+        className="w-full max-w-[850px] h-full bg-[#F4F5F7] shadow-2xl flex flex-col relative overflow-hidden animate-slide-left rounded-[16px]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button floating top right */}
@@ -132,10 +132,10 @@ export default function CustomerDrawer({
                     <img
                       src={person.person.avatarUrl}
                       alt={person.person.name}
-                      className="w-16 h-16 rounded-[20px] object-cover shadow-sm"
+                      className="w-16 h-16 rounded-[14px] object-cover shadow-sm"
                     />
                   ) : (
-                    <div className="w-16 h-16 rounded-[20px] bg-sherloq-primary text-white flex items-center justify-center font-sans font-bold text-[22px] shadow-sm">
+                    <div className="w-16 h-16 rounded-[14px] bg-sherloq-primary text-white flex items-center justify-center font-sans font-bold text-[22px] shadow-sm">
                       {person.person.initials}
                     </div>
                   )}
@@ -201,7 +201,7 @@ export default function CustomerDrawer({
             </div>
 
             {/* Contact Details Bar (White Pill) */}
-            <div className="bg-app-surface border border-border rounded-[24px] px-8 py-5 flex items-center justify-between text-[12px] text-text-body font-medium shadow-[0_4px_20px_rgb(0,0,0,0.02)] w-full">
+            <div className="bg-app-surface border border-border rounded-[14px] px-8 py-5 flex items-center justify-between text-[12px] text-text-body font-medium shadow-card w-full">
               <div className="flex items-center gap-2.5 hover:text-text-primary cursor-pointer transition-colors flex-1 justify-center border-r border-[#F1F3F5] last:border-0 pl-0">
                 <Mail className="w-4 h-4 text-[#ADB5BD]" />
                 {person.contactEmail || "max@firma.com"}
@@ -222,152 +222,141 @@ export default function CustomerDrawer({
 
               {/* Layout varies based on Hunting vs Farming */}
               {!isCustomer ? (
-                // --- DEFAULT / HUNTING LAYOUT (2 Columns) ---
-                <div className="grid grid-cols-2 gap-6 mt-2">
-                  {/* LEFT COLUMN */}
-                  <div className="flex flex-col gap-6">
-                    {/* Kurzakte */}
-                    <div className="bg-app-surface border border-border rounded-[20px] p-6 shadow-[0_4px_20px_rgb(0,0,0,0.02)]">
-                      <h3 className="text-[10px] font-bold text-[#ADB5BD] uppercase tracking-wider font-mono mb-4">
-                        KURZAKTE
-                      </h3>
-                      <p className="text-[12px] text-[#343A40] leading-[1.6]">
-                        {person.kurzakte ||
-                          "Hat Budget-Freeze bis Q3 bestätigt. Trotzdem starkes Interesse an Feature Y. Persönlichkeit: Blau — analytisch, braucht Zahlen. Buying Signal: hat nach Pricing gefragt. Objection: Timing. Next Step: ROI-Dokument schicken."}
-                      </p>
+                // --- HUNTING LAYOUT (Single Column, full width) ---
+                <div className="flex flex-col gap-6 mt-2">
+                  {/* Kurzakte */}
+                  <div className="bg-app-surface border border-border rounded-[14px] p-6 shadow-card">
+                    <h3 className="text-[10px] font-bold text-[#ADB5BD] uppercase tracking-wider font-mono mb-4">
+                      KURZAKTE
+                    </h3>
+                    <p className="text-[12px] text-[#343A40] leading-[1.6]">
+                      {person.kurzakte ||
+                        "Hat Budget-Freeze bis Q3 bestätigt. Trotzdem starkes Interesse an Feature Y. Persönlichkeit: Blau — analytisch, braucht Zahlen. Buying Signal: hat nach Pricing gefragt. Objection: Timing. Next Step: ROI-Dokument schicken."}
+                    </p>
+                  </div>
+
+                  {/* Deal Setup */}
+                  <div className="bg-app-surface border border-border rounded-[14px] p-6 shadow-card">
+                    <h3 className="text-[10px] font-bold text-[#ADB5BD] uppercase tracking-wider font-mono mb-6">
+                      DEAL SETUP
+                    </h3>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-y-7 gap-x-4">
+                      <div className="flex flex-col gap-1.5">
+                        <span className="text-[10px] uppercase font-bold text-[#ADB5BD] font-mono tracking-wider">
+                          STAGE
+                        </span>
+                        <span className="text-[13px] font-bold text-text-primary">
+                          Demo vereinbart
+                        </span>
+                      </div>
+                      <div className="flex flex-col gap-1.5">
+                        <span className="text-[10px] uppercase font-bold text-[#ADB5BD] font-mono tracking-wider">
+                          PROBABILITY
+                        </span>
+                        <span className="text-[13px] font-bold text-text-primary">
+                          {lead.pipelineProgress || 60}%
+                        </span>
+                      </div>
+                      <div className="flex flex-col gap-1.5">
+                        <span className="text-[10px] uppercase font-bold text-[#ADB5BD] font-mono tracking-wider">
+                          ARR
+                        </span>
+                        <span className="text-[13px] font-bold text-[#10B981]">
+                          {lead.dealValue ? `${lead.dealValue.toLocaleString("de-DE")} EUR` : '24.000 EUR'}
+                        </span>
+                      </div>
+                      <div className="flex flex-col gap-1.5">
+                        <span className="text-[10px] uppercase font-bold text-[#ADB5BD] font-mono tracking-wider">
+                          MRR
+                        </span>
+                        <span className="text-[13px] font-bold text-text-primary">
+                          {lead.dealValue ? `${(lead.dealValue / 12).toLocaleString("de-DE")} EUR` : '2.000 EUR'}
+                        </span>
+                      </div>
+                      <div className="flex flex-col gap-1.5">
+                        <span className="text-[10px] uppercase font-bold text-[#ADB5BD] font-mono tracking-wider">
+                          LAUFZEIT
+                        </span>
+                        <span className="text-[13px] font-bold text-text-primary">
+                          12 Monate
+                        </span>
+                      </div>
+                      <div className="flex flex-col gap-1.5">
+                        <span className="text-[10px] uppercase font-bold text-[#ADB5BD] font-mono tracking-wider">
+                          IN STAGE SEIT
+                        </span>
+                        <span className="text-[13px] font-bold text-[#E53E3E] flex items-center gap-1.5 bg-[#FFF5F5] px-2 py-0.5 rounded-md -ml-2">
+                          8 Tagen{" "}
+                          <AlertTriangle className="w-3.5 h-3.5 stroke-[2.5px]" />
+                        </span>
+                      </div>
                     </div>
+                  </div>
 
-                    {/* Deal Setup */}
-                    <div className="bg-app-surface border border-border rounded-[20px] p-6 shadow-[0_4px_20px_rgb(0,0,0,0.02)]">
-                      <h3 className="text-[10px] font-bold text-[#ADB5BD] uppercase tracking-wider font-mono mb-6">
-                        DEAL SETUP
-                      </h3>
-
-                      <div className="grid grid-cols-2 gap-y-7 gap-x-4">
-                        <div className="flex flex-col gap-1.5">
-                          <span className="text-[10px] uppercase font-bold text-[#ADB5BD] font-mono tracking-wider">
-                            STAGE
-                          </span>
-                          <span className="text-[13px] font-bold text-text-primary">
-                            Demo vereinbart
-                          </span>
+                  {/* Offene Tasks */}
+                  <div className="bg-app-surface border border-border rounded-[14px] p-6 shadow-card">
+                    <h3 className="text-[10px] font-bold text-[#ADB5BD] uppercase tracking-wider font-mono mb-4">
+                      OFFENE TASKS
+                    </h3>
+                    <div className="flex flex-col gap-3">
+                      {/* Task 1 - Overdue/Urgent */}
+                      <div className="bg-[#FFF5F5] border border-[#FFE3E3] rounded-[12px] p-4 flex items-start gap-4 cursor-pointer hover:shadow-xs transition-shadow">
+                        <div className="w-7 h-7 rounded-pill bg-app-surface border border-[#FF8787] flex items-center justify-center mt-0.5 shrink-0 text-[#E03131]">
+                          <AlertTriangle className="w-3.5 h-3.5 stroke-[2.5px]" />
                         </div>
-                        <div className="flex flex-col gap-1.5">
-                          <span className="text-[10px] uppercase font-bold text-[#ADB5BD] font-mono tracking-wider">
-                            PROBABILITY
+                        <div className="flex flex-col">
+                          <span className="text-[13px] font-bold text-[#C92A2A]">
+                            ROI-Dokument senden
                           </span>
-                          <span className="text-[13px] font-bold text-text-primary">
-                            {lead.pipelineProgress || 60}%
-                          </span>
+                          <div className="flex items-center gap-1.5 text-[11px] font-semibold text-[#E03131] mt-0.5">
+                            Heute fällig <span className="text-[#FFA8A8]">·</span>{" "}
+                            <span className="flex items-center gap-1 text-text-muted font-medium">
+                              <Mail className="w-3 h-3 text-[#ADB5BD]" /> Email
+                            </span>
+                          </div>
                         </div>
-                        <div className="flex flex-col gap-1.5">
-                          <span className="text-[10px] uppercase font-bold text-[#ADB5BD] font-mono tracking-wider">
-                            ARR
+                      </div>
+                      {/* Task 2 - Normal */}
+                      <div className="bg-app-bg border border-border rounded-[12px] p-4 flex items-start gap-4 cursor-pointer hover:shadow-xs transition-shadow">
+                        <div className="w-7 h-7 rounded-pill bg-app-surface border-2 border-[#DEE2E6] flex items-center justify-center mt-0.5 shrink-0" />
+                        <div className="flex flex-col">
+                          <span className="text-[13px] font-bold text-[#343A40]">
+                            Follow-up Call buchen
                           </span>
-                          <span className="text-[13px] font-bold text-[#10B981]">
-                            {lead.dealValue ? `${lead.dealValue.toLocaleString("de-DE")} EUR` : '24.000 EUR'}
-                          </span>
-                        </div>
-                        <div className="flex flex-col gap-1.5">
-                          <span className="text-[10px] uppercase font-bold text-[#ADB5BD] font-mono tracking-wider">
-                            MRR
-                          </span>
-                          <span className="text-[13px] font-bold text-text-primary">
-                            {lead.dealValue ? `${(lead.dealValue / 12).toLocaleString("de-DE")} EUR` : '2.000 EUR'}
-                          </span>
-                        </div>
-                        <div className="flex flex-col gap-1.5">
-                          <span className="text-[10px] uppercase font-bold text-[#ADB5BD] font-mono tracking-wider">
-                            LAUFZEIT
-                          </span>
-                          <span className="text-[13px] font-bold text-text-primary">
-                            12 Monate
-                          </span>
-                        </div>
-                        <div className="flex flex-col gap-1.5">
-                          <span className="text-[10px] uppercase font-bold text-[#ADB5BD] font-mono tracking-wider">
-                            IN STAGE SEIT
-                          </span>
-                          <span className="text-[13px] font-bold text-[#E53E3E] flex items-center gap-1.5 bg-[#FFF5F5] px-2 py-0.5 rounded-md -ml-2">
-                            8 Tagen{" "}
-                            <AlertTriangle className="w-3.5 h-3.5 stroke-[2.5px]" />
+                          <span className="text-[11px] font-medium text-text-muted mt-0.5">
+                            In 3 Tagen
                           </span>
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* RIGHT COLUMN */}
-                  <div className="flex flex-col gap-6">
-                    {/* Offene Tasks */}
-                    <div className="bg-app-surface border border-border rounded-[20px] p-6 shadow-[0_4px_20px_rgb(0,0,0,0.02)]">
-                      <h3 className="text-[10px] font-bold text-[#ADB5BD] uppercase tracking-wider font-mono mb-4">
-                        OFFENE TASKS
+                  {/* Active Sequence */}
+                  <div className="bg-app-surface border border-border rounded-[14px] p-6 shadow-card">
+                    <div className="flex items-center justify-between mb-8">
+                      <h3 className="text-[10px] font-bold text-[#ADB5BD] uppercase tracking-wider font-mono">
+                        ACTIVE SEQUENCE
                       </h3>
-
-                      <div className="flex flex-col gap-3">
-                        {/* Task 1 - Overdue/Urgent */}
-                        <div className="bg-[#FFF5F5] border border-[#FFE3E3] rounded-[16px] p-4 flex items-start gap-4 cursor-pointer hover:shadow-xs transition-shadow">
-                          <div className="w-7 h-7 rounded-pill bg-app-surface border border-[#FF8787] flex items-center justify-center mt-0.5 shrink-0 text-[#E03131]">
-                            <AlertTriangle className="w-3.5 h-3.5 stroke-[2.5px]" />
-                          </div>
-                          <div className="flex flex-col">
-                            <span className="text-[13px] font-bold text-[#C92A2A]">
-                              ROI-Dokument senden
-                            </span>
-                            <div className="flex items-center gap-1.5 text-[11px] font-semibold text-[#E03131] mt-0.5">
-                              Heute fällig <span className="text-[#FFA8A8]">·</span>{" "}
-                              <span className="flex items-center gap-1 text-text-muted font-medium">
-                                <Mail className="w-3 h-3 text-[#ADB5BD]" /> Email
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Task 2 - Normal */}
-                        <div className="bg-app-bg border border-border rounded-[16px] p-4 flex items-start gap-4 cursor-pointer hover:shadow-xs transition-shadow">
-                          <div className="w-7 h-7 rounded-pill bg-app-surface border-2 border-[#DEE2E6] flex items-center justify-center mt-0.5 shrink-0" />
-                          <div className="flex flex-col">
-                            <span className="text-[13px] font-bold text-[#343A40]">
-                              Follow-up Call buchen
-                            </span>
-                            <span className="text-[11px] font-medium text-text-muted mt-0.5">
-                              In 3 Tagen
-                            </span>
-                          </div>
-                        </div>
+                      <div className="bg-[var(--sherloq-light)] text-[#10B981] font-bold text-[10px] px-2.5 py-1 rounded-md">
+                        Schritt 3 von 5
                       </div>
                     </div>
-
-                    {/* Active Sequence */}
-                    <div className="bg-app-surface border border-border rounded-[20px] p-6 shadow-[0_4px_20px_rgb(0,0,0,0.02)]">
-                      <div className="flex items-center justify-between mb-8">
-                        <h3 className="text-[10px] font-bold text-[#ADB5BD] uppercase tracking-wider font-mono">
-                          ACTIVE SEQUENCE
-                        </h3>
-                        <div className="bg-[var(--sherloq-light)] text-[#10B981] font-bold text-[10px] px-2.5 py-1 rounded-md">
-                          Schritt 3 von 5
-                        </div>
+                    {/* Visual Stepper */}
+                    <div className="relative flex items-center justify-between px-2 mt-4 pb-2">
+                      {/* Background Line */}
+                      <div className="absolute left-[8%] right-[8%] top-1/2 -translate-y-1/2 h-[2px] bg-[var(--border)] z-0" />
+                      {/* Active Line (up to step 3) */}
+                      <div className="absolute left-[8%] right-[50%] top-1/2 -translate-y-1/2 h-[2px] bg-[#10B981] z-0" />
+                      <div className="relative z-10 w-9 h-9 rounded-pill bg-[#10B981] flex items-center justify-center text-white border-2 border-white shadow-sm cursor-pointer">
+                        <Mail className="w-4 h-4" />
                       </div>
-
-                      {/* Visual Stepper */}
-                      <div className="relative flex items-center justify-between px-2 mt-4 pb-2">
-                        {/* Background Line */}
-                        <div className="absolute left-[8%] right-[8%] top-1/2 -translate-y-1/2 h-[2px] bg-[var(--border)] z-0" />
-                        {/* Active Line (up to step 3) */}
-                        <div className="absolute left-[8%] right-[50%] top-1/2 -translate-y-1/2 h-[2px] bg-[#10B981] z-0" />
-
-                        <div className="relative z-10 w-9 h-9 rounded-pill bg-[#10B981] flex items-center justify-center text-white border-2 border-white shadow-sm cursor-pointer">
-                          <Mail className="w-4 h-4" />
-                        </div>
-                        <div className="relative z-10 w-9 h-9 rounded-pill bg-[#10B981] flex items-center justify-center text-white border-2 border-white shadow-sm cursor-pointer"></div>
-                        <div className="relative z-10 w-10 h-10 rounded-pill bg-app-surface border-[2.5px] border-[#10B981] flex items-center justify-center text-[#10B981] shadow-sm cursor-pointer">
-                          <Mail className="w-4 h-4" />
-                        </div>
-                        <div className="relative z-10 w-4 h-4 rounded-pill border-[3.5px] border-white bg-[#DEE2E6] shadow-sm cursor-pointer"></div>
-                        <div className="relative z-10 w-9 h-9 rounded-pill bg-[#F1F3F5] border-2 border-white flex items-center justify-center text-[#ADB5BD] cursor-pointer">
-                          <Phone className="w-4 h-4" />
-                        </div>
+                      <div className="relative z-10 w-9 h-9 rounded-pill bg-[#10B981] flex items-center justify-center text-white border-2 border-white shadow-sm cursor-pointer"></div>
+                      <div className="relative z-10 w-10 h-10 rounded-pill bg-app-surface border-[2.5px] border-[#10B981] flex items-center justify-center text-[#10B981] shadow-sm cursor-pointer">
+                        <Mail className="w-4 h-4" />
+                      </div>
+                      <div className="relative z-10 w-4 h-4 rounded-pill border-[3.5px] border-white bg-[#DEE2E6] shadow-sm cursor-pointer"></div>
+                      <div className="relative z-10 w-9 h-9 rounded-pill bg-[#F1F3F5] border-2 border-white flex items-center justify-center text-[#ADB5BD] cursor-pointer">
+                        <Phone className="w-4 h-4" />
                       </div>
                     </div>
                   </div>
@@ -376,7 +365,7 @@ export default function CustomerDrawer({
                 // --- FARMING LAYOUT (Single Column Flow) ---
                 <div className="flex flex-col gap-6 mt-2">
                   {/* Kurzakte */}
-                  <div className="bg-app-surface border border-border rounded-[20px] p-6 shadow-[0_4px_20px_rgb(0,0,0,0.02)]">
+                  <div className="bg-app-surface border border-border rounded-[14px] p-6 shadow-card">
                     <h3 className="text-[10px] font-bold text-[#ADB5BD] uppercase tracking-wider font-mono mb-4">
                       KURZAKTE
                     </h3>
@@ -401,7 +390,7 @@ export default function CustomerDrawer({
                   </div>
 
                   {/* Sherloq Usage */}
-                  <div className="bg-app-surface border border-border rounded-[20px] p-6 shadow-[0_4px_20px_rgb(0,0,0,0.02)]">
+                  <div className="bg-app-surface border border-border rounded-[14px] p-6 shadow-card">
                     <h3 className="text-[10px] font-bold text-[#ADB5BD] uppercase tracking-wider font-mono mb-4">
                       SHERLOQ USAGE
                     </h3>
@@ -452,7 +441,7 @@ export default function CustomerDrawer({
                   </div>
 
                   {/* Subscription */}
-                  <div className="bg-app-surface border border-border rounded-[20px] p-6 shadow-[0_4px_20px_rgb(0,0,0,0.02)]">
+                  <div className="bg-app-surface border border-border rounded-[14px] p-6 shadow-card">
                     <h3 className="text-[10px] font-bold text-[#ADB5BD] uppercase tracking-wider font-mono mb-4">
                       SUBSCRIPTION
                     </h3>
@@ -477,7 +466,7 @@ export default function CustomerDrawer({
                   </div>
 
                   {/* Churn Risk */}
-                  <div className="bg-app-surface border border-border rounded-[20px] p-6 shadow-[0_4px_20px_rgb(0,0,0,0.02)] bg-gradient-to-r from-white to-app-bg">
+                  <div className="bg-app-surface border border-border rounded-[14px] p-6 shadow-card bg-gradient-to-r from-white to-app-bg">
                     <h3 className="text-[10px] font-bold text-[#ADB5BD] uppercase tracking-wider font-mono mb-4">
                       CHURN RISK
                     </h3>
@@ -495,7 +484,7 @@ export default function CustomerDrawer({
 
                   {/* Upsell Potential */}
                   {castedCustomer.upsellOpportunity && (
-                    <div className="bg-app-surface border border-border rounded-[20px] p-6 shadow-[0_4px_20px_rgb(0,0,0,0.02)] border-l-4 border-l-[#10B981]">
+                    <div className="bg-app-surface border border-border rounded-[14px] p-6 shadow-card border-l-4 border-l-[#10B981]">
                       <h3 className="text-[10px] font-bold text-[#10B981] uppercase tracking-wider font-mono mb-4 flex items-center gap-2">
                         UPSELL POTENTIAL
                       </h3>
@@ -516,12 +505,12 @@ export default function CustomerDrawer({
                   )}
 
                   {/* Offene Tasks */}
-                  <div className="bg-app-surface border border-border rounded-[20px] p-6 shadow-[0_4px_20px_rgb(0,0,0,0.02)]">
+                  <div className="bg-app-surface border border-border rounded-[14px] p-6 shadow-card">
                     <h3 className="text-[10px] font-bold text-[#ADB5BD] uppercase tracking-wider font-mono mb-4">
                       OFFENE TASKS
                     </h3>
                     <div className="flex flex-col gap-3">
-                      <div className="bg-app-bg border border-border rounded-[16px] p-4 flex items-start gap-4 cursor-pointer hover:shadow-xs transition-shadow">
+                      <div className="bg-app-bg border border-border rounded-[12px] p-4 flex items-start gap-4 cursor-pointer hover:shadow-xs transition-shadow">
                         <div className="w-7 h-7 rounded-pill bg-app-surface border-2 border-[#DEE2E6] flex items-center justify-center mt-0.5 shrink-0" />
                         <div className="flex flex-col">
                           <span className="text-[13px] font-bold text-[#343A40]">
@@ -536,7 +525,7 @@ export default function CustomerDrawer({
                   </div>
 
                   {/* Actions / Aktionen */}
-                  <div className="bg-app-surface border border-border rounded-[20px] p-6 shadow-[0_4px_20px_rgb(0,0,0,0.02)]">
+                  <div className="bg-app-surface border border-border rounded-[14px] p-6 shadow-card">
                     <h3 className="text-[10px] font-bold text-[#ADB5BD] uppercase tracking-wider font-mono mb-4">
                       AKTIONEN
                     </h3>
@@ -563,7 +552,7 @@ export default function CustomerDrawer({
 
 
             {/* Kommunikation - FULL WIDTH */}
-            <div ref={commSectionRef} className="bg-app-surface border border-border rounded-[24px] p-6 shadow-[0_4px_20px_rgb(0,0,0,0.02)] w-full mt-2">
+            <div ref={commSectionRef} className="bg-app-surface border border-border rounded-[14px] p-6 shadow-card w-full mt-2">
               <div className="flex items-center gap-3 mb-6">
                 <h3 className="text-[12px] font-bold text-text-muted uppercase tracking-wider font-mono">
                   KOMMUNIKATION

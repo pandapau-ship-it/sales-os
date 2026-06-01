@@ -3,53 +3,64 @@
 /* ─── Design Tokens — einzige Quelle aller visuellen Werte ─────────────────
  * Niemals Hex-Werte direkt im Code — immer Token verwenden.
  * Eine Farbe ändern = hier ändern = überall geändert.
+ *
+ * Design Direction: 80% clean SaaS clarity, 20% soft depth.
+ * Borders + subtle elevation — not heavy shadows.
+ * Quiet Premium SaaS / Soft Operations UI.
  * ─────────────────────────────────────────────────────────────────────────── */
 :root {
-  /* Sherloq Brand */
-  --sherloq-primary:       #125455;
-  --sherloq-primary-hover: #0f4344;
-  --sherloq-gradient:      linear-gradient(135deg, #175253 0%, #3f8383 100%);
-  --sherloq-light:         #ECFEF9;
+  /* Sherloq Brand — deeper, calmer */
+  --sherloq-primary:       #155E5C;
+  --sherloq-primary-hover: #124d4b;
+  --sherloq-gradient:      linear-gradient(135deg, #155E5C 0%, #2d7a7a 100%);
+  --sherloq-light:         #F0FAFA;
 
-  /* Backgrounds */
-  --app-bg:           #F8F9FA;
+  /* Backgrounds — clean, slightly cool */
+  --app-bg:           #F8FAFC;
   --surface:          #FFFFFF;
-  --surface-secondary:#F8F9FA;
+  --surface-secondary:#F8FAFC;
 
   /* Text */
-  --text-primary:     #212529;
-  --text-body:        #495057;
-  --text-muted:       #868E96;
+  --text-primary:     #0F172A;
+  --text-body:        #475569;
+  --text-muted:       #94A3B8;
 
   /* Borders */
-  --border:           #E9ECEF;
-  --border-strong:    #DEE2E6;
+  --border:           #E2E8F0;
+  --border-strong:    #CBD5E1;
+  --border-card:      rgba(15, 23, 42, 0.07);
 
   /* Border Radius */
   --radius-card:      16px;
   --radius-pill:      9999px;
   --radius-input:     10px;
   --radius-sm:        8px;
+  --radius-btn:       12px;
 
-  /* Shadows */
-  --shadow-card:      0 10px 40px -10px rgba(0,0,0,0.05);
-  --shadow-hover:     0 16px 48px -12px rgba(0,0,0,0.08);
-  --shadow-brand:     0 8px 24px -8px rgba(23,82,83,0.15);
-  --shadow-nav:       0 8px 30px rgba(0,0,0,0.04);
+  /* Shadows — subtle elevation, not floating */
+  --shadow-card:      0 1px 2px rgba(15, 23, 42, 0.04),
+                      0 8px 24px rgba(15, 23, 42, 0.05);
+  --shadow-hover:     0 1px 3px rgba(15, 23, 42, 0.05),
+                      0 12px 32px rgba(15, 23, 42, 0.08);
+  --shadow-brand:     0 4px 16px -4px rgba(21, 94, 92, 0.18);
+  --shadow-nav:       0 1px 3px rgba(15, 23, 42, 0.04),
+                      0 4px 16px rgba(15, 23, 42, 0.04);
+  --shadow-dropdown:  0 4px 6px rgba(15, 23, 42, 0.05),
+                      0 16px 40px rgba(15, 23, 42, 0.10);
 
   /* Signal Colors */
   --signal-urgent-bg:   #FEF4E9;
-  --signal-urgent-text: #E8590C;
-  --signal-warn-bg:     #FFF9DB;
-  --signal-warn-text:   #E67700;
-  --signal-success-bg:  #EBFBEE;
-  --signal-success-text:#2B8A3E;
-  --signal-info-bg:     #DBEAFE;
-  --signal-info-text:   #2563EB;
-  --signal-cold-bg:     #EBF8FF;
-  --signal-cold-text:   #3182CE;
-  --signal-teal-bg:     #ECFEF9;
-  --signal-teal-text:   #175253;
+  --signal-urgent-text: #C2410C;
+  --signal-warn-bg:     #FFFBEB;
+  --signal-warn-text:   #B45309;
+  --signal-success-bg:  #F0FDF4;
+  --signal-success-text:#15803D;
+  --signal-info-bg:     #EFF6FF;
+  --signal-info-text:   #1D4ED8;
+  --signal-cold-bg:     #F0F9FF;
+  --signal-cold-text:   #0369A1;
+  --signal-teal-bg:     #F0FAFA;
+  --signal-teal-text:   #155E5C;
 
   /* shadcn/ui compatibility (HSL format for shadcn primitives) */
   --background:       0 0% 100%;
@@ -62,7 +73,6 @@
 
 /* ─── Tailwind v4 @theme — mapped for utility classes ────────────────────────
  * Makes bg-sherloq-primary, text-text-muted, shadow-card etc. available.
- * (Replaces tailwind.config.ts in Tailwind v4 — same outcome, CSS-native)
  * ─────────────────────────────────────────────────────────────────────────── */
 @theme inline {
   /* Brand */
@@ -97,12 +107,14 @@
   --radius-pill:                 var(--radius-pill);
   --radius-input:                var(--radius-input);
   --radius-sm:                   var(--radius-sm);
+  --radius-btn:                  var(--radius-btn);
 
   /* Shadows */
   --shadow-card:                 var(--shadow-card);
   --shadow-hover:                var(--shadow-hover);
   --shadow-brand:                var(--shadow-brand);
   --shadow-nav:                  var(--shadow-nav);
+  --shadow-dropdown:             var(--shadow-dropdown);
 }
 
 /* ─── Base reset ─────────────────────────────────────────────────────────── */
@@ -126,10 +138,10 @@ body {
  * Keine Wiederholung in Komponenten — immer diese Klassen verwenden.
  * ─────────────────────────────────────────────────────────────────────────── */
 
-/* Cards & Panels */
+/* Cards — border + subtle elevation, not floating */
 .sherloq-card {
   background: var(--surface);
-  border: 0.5px solid var(--border);
+  border: 1px solid var(--border-card);
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-card);
 }
@@ -149,12 +161,12 @@ body {
   gap: 4px;
 }
 
-/* Primary CTA button */
+/* Primary CTA button — calm, solid, no heavy gradient */
 .sherloq-btn-primary {
-  background: var(--sherloq-gradient);
+  background: var(--sherloq-primary);
   color: white;
   border: none;
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-btn);
   padding: 7px 16px;
   font-size: 12px;
   font-weight: 500;
@@ -162,18 +174,21 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+  transition: background 150ms ease, box-shadow 150ms ease;
 }
 
 .sherloq-btn-primary:hover {
-  opacity: 0.9;
+  background: var(--sherloq-primary-hover);
+  box-shadow: 0 2px 4px rgba(15, 23, 42, 0.12);
 }
 
 /* Secondary button */
 .sherloq-btn-secondary {
   background: var(--surface);
   color: var(--text-body);
-  border: 0.5px solid var(--border);
-  border-radius: var(--radius-pill);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-btn);
   padding: 6px 14px;
   font-size: 12px;
   font-weight: 400;
@@ -181,22 +196,52 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  transition: background 150ms ease, border-color 150ms ease;
 }
 
 .sherloq-btn-secondary:hover {
   background: var(--app-bg);
+  border-color: var(--border-strong);
 }
 
-/* Signal Pills — for heat status, urgency, warnings */
-.pill-urgent  { background: var(--signal-urgent-bg);  color: var(--signal-urgent-text);  }
-.pill-warn    { background: var(--signal-warn-bg);    color: var(--signal-warn-text);    }
-.pill-success { background: var(--signal-success-bg); color: var(--signal-success-text); }
-.pill-info    { background: var(--signal-info-bg);    color: var(--signal-info-text);    }
-.pill-cold    { background: var(--signal-cold-bg);    color: var(--signal-cold-text);    }
-.pill-teal    { background: var(--signal-teal-bg);    color: var(--signal-teal-text);    }
-.pill-muted   { background: var(--app-bg); color: var(--text-muted); border: 0.5px solid var(--border); }
+/* Signal Pills — borders instead of heavy fills, less candy */
+.pill-urgent  {
+  background: var(--signal-urgent-bg);
+  color: var(--signal-urgent-text);
+  border: 1px solid rgba(194, 65, 12, 0.12);
+}
+.pill-warn    {
+  background: var(--signal-warn-bg);
+  color: var(--signal-warn-text);
+  border: 1px solid rgba(180, 83, 9, 0.12);
+}
+.pill-success {
+  background: var(--signal-success-bg);
+  color: var(--signal-success-text);
+  border: 1px solid rgba(21, 128, 61, 0.12);
+}
+.pill-info    {
+  background: var(--signal-info-bg);
+  color: var(--signal-info-text);
+  border: 1px solid rgba(29, 78, 216, 0.12);
+}
+.pill-cold    {
+  background: var(--signal-cold-bg);
+  color: var(--signal-cold-text);
+  border: 1px solid rgba(3, 105, 161, 0.12);
+}
+.pill-teal    {
+  background: var(--signal-teal-bg);
+  color: var(--signal-teal-text);
+  border: 1px solid rgba(21, 94, 92, 0.12);
+}
+.pill-muted   {
+  background: var(--app-bg);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
 
 /* Custom scrollbar */
 .custom-scrollbar::-webkit-scrollbar        { width: 6px; }
 .custom-scrollbar::-webkit-scrollbar-track  { background: transparent; }
-.custom-scrollbar::-webkit-scrollbar-thumb  { background-color: #DEE2E6; border-radius: 10px; }
+.custom-scrollbar::-webkit-scrollbar-thumb  { background-color: #CBD5E1; border-radius: 10px; }

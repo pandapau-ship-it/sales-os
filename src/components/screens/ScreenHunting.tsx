@@ -161,7 +161,7 @@ export default function ScreenHunting({
       </div>
 
       {/* Sub-Navigation (Section 12) */}
-      <div className="flex gap-2 p-1.5 bg-app-surface rounded-pill shadow-[0_4px_20px_rgb(0,0,0,0.04)] w-fit items-center">
+      <div className="flex gap-2 p-1.5 bg-app-surface rounded-pill shadow-card w-fit items-center">
         {menuItems.map((item) => {
           const isActive = subTab === item.id;
           return (
@@ -189,7 +189,7 @@ export default function ScreenHunting({
       {subTab === 'overview' && (
         <div className="flex flex-col gap-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-app-surface rounded-[32px] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+            <div className="bg-app-surface rounded-[16px] p-6 shadow-card">
               <span className="text-[10px] text-text-muted uppercase font-semibold">Conversations</span>
               <h3 className="text-[28px] font-bold text-text-primary mt-1">48 Mails</h3>
               <p className="text-[12px] text-text-body mt-1.5">Letzte 7 Tage geschickt</p>
@@ -197,7 +197,7 @@ export default function ScreenHunting({
                 <div className="w-4/5 h-full bg-sherloq-primary"></div>
               </div>
             </div>
-            <div className="bg-app-surface rounded-[32px] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+            <div className="bg-app-surface rounded-[16px] p-6 shadow-card">
               <span className="text-[10px] text-text-muted uppercase font-semibold">LinkedIn Connector Rate</span>
               <h3 className="text-[28px] font-bold text-text-primary mt-1">68.4%</h3>
               <p className="text-[12px] text-text-body mt-1.5">+4.2% gegenüber Vorwoche</p>
@@ -205,7 +205,7 @@ export default function ScreenHunting({
                 <div className="w-2/3 h-full bg-sherloq-primary"></div>
               </div>
             </div>
-            <div className="bg-app-surface rounded-[32px] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+            <div className="bg-app-surface rounded-[16px] p-6 shadow-card">
               <span className="text-[10px] text-text-muted uppercase font-semibold">BDR Ramp time (Avg)</span>
               <h3 className="text-[28px] font-bold text-text-primary mt-1">1.8 Monate</h3>
               <p className="text-[12px] text-text-body mt-1.5">Sherloq Ziel: &lt; 2.2 Monate ✓</p>
@@ -215,7 +215,7 @@ export default function ScreenHunting({
             </div>
           </div>
 
-          <div className="bg-app-surface rounded-[32px] p-6 text-center shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+          <div className="bg-app-surface rounded-[16px] p-6 text-center shadow-card">
             <h3 className="text-[14px] font-semibold text-text-primary">Aktuelle Pipeline Performance</h3>
             <p className="text-[11px] text-text-muted mt-1">Ereignisse und Reaktionen in Echtzeit</p>
             <div className="h-[120px] w-full flex items-end justify-between px-8 mt-6">
@@ -268,7 +268,7 @@ export default function ScreenHunting({
             return (
               <div
                 key={lead.id}
-                className={`group rounded-[32px] p-5 flex flex-col gap-4 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.06)] transition-all duration-300 cursor-pointer border border-[#F1F3F5] relative ${
+                className={`group rounded-[16px] p-5 flex flex-col gap-4 shadow-card hover:shadow-hover transition-all duration-300 cursor-pointer border border-[#F1F3F5] relative ${
                   selectedLeadIds.includes(lead.id) ? 'bg-[#EDF5F5]' : 'bg-app-surface'
                 }`}
                 onClick={() => setExpandedLeadId(isExpanded ? null : lead.id)}
@@ -348,14 +348,14 @@ export default function ScreenHunting({
                       <button className="w-8 h-8 flex items-center justify-center text-[#ADB5BD] hover:text-text-primary transition-colors rounded-pill hover:bg-app-bg">
                         {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                       </button>
-                      <button 
-                        className="w-10 h-10 rounded-pill bg-[var(--sherloq-light)] text-sherloq-primary hover:bg-[#D9FAF1] hover:scale-105 transition-all flex items-center justify-center shadow-sm"
+                      <button
+                        className="w-8 h-8 rounded-[10px] bg-[var(--sherloq-light)] text-sherloq-primary border border-sherloq-primary/10 hover:border-sherloq-primary/20 hover:bg-[var(--sherloq-light)] transition-all flex items-center justify-center"
                         onClick={(e) => {
                           e.stopPropagation();
                           onSelectLead(lead);
                         }}
                       >
-                        <ArrowRight className="w-4 h-4" />
+                        <ArrowRight className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </div>
@@ -477,7 +477,7 @@ export default function ScreenHunting({
               return (
                 <div key={col.id} className="flex-1 min-w-[290px] w-[290px] max-w-[290px] flex flex-col h-fit transition-all duration-300 relative">
                   {/* Column Header */}
-                  <div className="bg-app-surface rounded-[24px] p-4 shadow-[0_4px_20px_rgb(0,0,0,0.04)] mb-4">
+                  <div className="bg-app-surface rounded-[24px] p-4 shadow-card mb-4">
                     <div className="flex justify-between items-center mb-3">
                       <div className="flex items-center gap-2">
                         <h3 className="font-bold text-[15px] text-[#111827]">{col.title}</h3>
@@ -528,7 +528,7 @@ export default function ScreenHunting({
                         else if (lead.heatStatus === 'WARM') pill = { label: 'Demo Call', colorClass: 'text-red-600 bg-red-50 border border-red-100/50', icon: <AlertTriangle className="w-3 h-3" /> };
                         
                         return (
-                          <div key={lead.id} className="bg-app-surface rounded-[24px] p-4 shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.08)] transition-all duration-300 relative group">
+                          <div key={lead.id} className="bg-app-surface rounded-[24px] p-4 shadow-card hover:shadow-hover transition-all duration-300 relative group">
                             <div className="flex justify-between items-start mb-4">
                               <div className="flex items-center gap-3">
                                 {lead.person.avatarUrl ? (
@@ -573,7 +573,7 @@ export default function ScreenHunting({
                                 {col.next && (
                                   <button 
                                     onClick={() => onUpdateLeadStage(lead.id, col.next!)}
-                                    className="w-7 h-7 rounded-pill bg-sherloq-primary hover:bg-[#0c3839] text-white flex items-center justify-center transition-colors shadow-sm cursor-pointer"
+                                    className="w-6 h-6 rounded-[7px] bg-sherloq-primary hover:bg-sherloq-hover text-white flex items-center justify-center transition-colors cursor-pointer"
                                   >
                                     <ArrowRight className="w-3 h-3 stroke-[3]" />
                                   </button>
