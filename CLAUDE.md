@@ -44,6 +44,68 @@
 - Niemals Hex-Werte direkt im Code — immer CSS Variables oder Tailwind-Tokens
 - Eine Farbe ändern = in `index.css :root` ändern = überall geändert
 
+---
+
+### Design Invariants — Niemals abweichen (auch nicht bei neuen Design-Uploads)
+
+Diese Regeln gelten absolut. Wenn ein hochgeladenes Design-File davon abweicht,
+wird das Design in unser System übersetzt — nicht umgekehrt.
+
+**Radius-Hierarchie (von groß nach klein):**
+| Element | Wert | Tailwind |
+|---|---|---|
+| Drawer, Modals | 16px | `rounded-[16px]` |
+| Cards, Panels | 12px | `rounded-[12px]` |
+| Nav-Container (Top-Nav & Sub-Nav) | 12px | `rounded-[12px]` |
+| Nav-Tabs (aktiv/inaktiv) | 9px | `rounded-[9px]` |
+| Buttons (primär/sekundär) | 10px | `rounded-[10px]` |
+| Badges, Pills | 7px | `rounded-[7px]` |
+| Count-Labels in Tabs | 5px | `rounded-[5px]` |
+| Avatar-Quadrate | 10px | `rounded-[10px]` |
+| Status-Punkte | 9999px | `rounded-pill` |
+
+**Niemals:** `rounded-pill` für Nav-Container oder Nav-Tabs. `rounded-pill` nur für Status-Punkte, Checkboxen, Linien.
+
+**Border-Hierarchie — was einen Rand bekommt, was nicht:**
+| Element | Border | Warum |
+|---|---|---|
+| Cards / Lead-Kacheln | ✅ Ja — `border border-[var(--border-card)]` | Brauchen Abgrenzung auf weißem Grund |
+| Top-Nav Container | ✅ Ja — `border border-[var(--border)]` | Schwebt in transparentem Header |
+| Sub-Nav Container | ❌ Nein | Sitzt auf App-Background, Hintergrundfarbe reicht |
+| Heat / Status Badges | ✅ Ja — `border` mit jeweiliger Signal-Farbe | Klein, brauchen Kontur |
+| Buttons (sekundär) | ✅ Ja | Abgrenzung ohne Fill |
+| Buttons (primär) | ❌ Nein | Fill reicht |
+| Expanded-Content-Bereiche | ✅ Ja — `border-t border-[#F1F3F5]` | Trenner, kein Kasten |
+
+**Heat-Badge Muster (verbindlich für alle Screens):**
+```tsx
+// getHeatColor() gibt immer zurück: { bg, text, border, dot, label }
+// NIEMALS emoji — immer CSS dot:
+<div className={`px-2.5 py-1 rounded-[7px] text-[11px] font-medium border flex items-center gap-1.5 w-fit ${heat.bg} ${heat.text} ${heat.border}`}>
+  <span style={{ color: heat.dot, fontSize: 8, lineHeight: 1 }}>●</span>
+  {heat.label}
+</div>
+```
+
+**Nav-Muster (verbindlich für Top-Nav UND alle Sub-Navs):**
+```tsx
+// Container: immer rounded-[12px], kein rounded-pill
+<div className="flex gap-1 p-1 bg-app-surface rounded-[12px] w-fit items-center">
+  // Tab: immer rounded-[9px], aktiv = bg-sherloq-primary text-white
+  <button className={`px-3.5 py-1.5 text-[12px] font-medium rounded-[9px] ${isActive ? 'bg-sherloq-primary text-white' : 'text-text-body hover:bg-app-bg'}`}>
+```
+
+**Design-Uploads — Übersetzungsregel:**
+Wenn ein Figma/Screenshot-Design hochgeladen wird:
+1. Fremde Radius-Werte → nächstliegender Wert aus Radius-Hierarchie oben
+2. Fremde Hex-Farben → nächstliegender Token aus `index.css :root`
+3. Volle Pills für Navs → immer zu `rounded-[12px]` übersetzen
+4. Borders überall → Border-Hierarchie oben anwenden
+5. Emoji-Icons in Badges → immer CSS-Dot-Muster verwenden
+6. Neue Komponente → sofort in `componentRegistry.ts` eintragen
+
+---
+
 ### Globale CSS-Klassen (immer bevorzugen)
 ```
 .sherloq-card         — alle Cards und Kacheln

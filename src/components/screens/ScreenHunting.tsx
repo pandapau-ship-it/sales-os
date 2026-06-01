@@ -161,7 +161,7 @@ export default function ScreenHunting({
       </div>
 
       {/* Sub-Navigation (Section 12) */}
-      <div className="flex gap-1 p-1 bg-app-surface rounded-[12px] border border-border w-fit items-center">
+      <div className="flex gap-1 p-1 bg-app-surface rounded-[12px] w-fit items-center">
         {menuItems.map((item) => {
           const isActive = subTab === item.id;
           return (

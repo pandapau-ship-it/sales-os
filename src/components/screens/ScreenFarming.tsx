@@ -109,22 +109,22 @@ export default function ScreenFarming({
       </div>
 
       {/* Sub-Navigation (Section 12) */}
-      <div className="flex gap-2 p-1.5 bg-app-surface rounded-pill shadow-card w-fit items-center">
+      <div className="flex gap-1 p-1 bg-app-surface rounded-[12px] w-fit items-center">
         {menuItems.map((item) => {
           const isActive = subTab === item.id;
           return (
             <button
               key={item.id}
               onClick={() => setSubTab(item.id as any)}
-              className={`px-4.5 py-1.5 text-[12px] font-medium transition-all rounded-pill cursor-pointer flex items-center gap-1.5 ${
+              className={`px-3.5 py-1.5 text-[12px] font-medium transition-all rounded-[9px] cursor-pointer flex items-center gap-1.5 ${
                 isActive
-                  ? 'bg-sherloq-primary text-white shadow-sm'
+                  ? 'bg-sherloq-primary text-white'
                   : 'text-text-body hover:bg-app-bg hover:text-text-primary'
               }`}
             >
               <span>{item.label}</span>
               {item.count !== undefined && (
-                <span className={`text-[9px] font-semibold px-2 py-0.5 rounded-pill ${isActive ? 'bg-app-surface text-sherloq-primary' : 'bg-[var(--border)] text-text-body'}`}>
+                <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-[5px] ${isActive ? 'bg-white/20 text-white' : 'bg-border text-text-muted'}`}>
                   {item.count}
                 </span>
               )}

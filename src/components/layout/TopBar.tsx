@@ -72,7 +72,7 @@ export default function TopBar({
       <nav
         style={{
           background: "var(--surface)",
-          borderRadius: 14,
+          borderRadius: 12,
           border: "1px solid var(--border)",
           padding: "3px",
         }}
