@@ -153,7 +153,7 @@ export default function ScreenHunting({
         </div>
         <button
           onClick={() => setShowAddModal(true)}
-          className="bg-sherloq-primary hover:bg-sherloq-primary/95 text-white text-[12px] font-semibold px-4 py-2 rounded-pill cursor-pointer shadow-sm flex items-center gap-1.5"
+          className="bg-sherloq-primary hover:bg-sherloq-hover text-white text-[12px] font-semibold px-4 py-2 rounded-[10px] cursor-pointer flex items-center gap-1.5 transition-colors"
         >
           <Plus className="w-4 h-4" />
           <span>SDR Lead hinzufügen</span>
@@ -161,22 +161,22 @@ export default function ScreenHunting({
       </div>
 
       {/* Sub-Navigation (Section 12) */}
-      <div className="flex gap-2 p-1.5 bg-app-surface rounded-pill shadow-card w-fit items-center">
+      <div className="flex gap-1 p-1 bg-app-surface rounded-[12px] border border-border w-fit items-center">
         {menuItems.map((item) => {
           const isActive = subTab === item.id;
           return (
             <button
               key={item.id}
               onClick={() => setSubTab(item.id as any)}
-              className={`px-4.5 py-1.5 text-[12px] font-medium transition-all rounded-pill cursor-pointer flex items-center gap-1.5 ${
+              className={`px-3.5 py-1.5 text-[12px] font-medium transition-all rounded-[9px] cursor-pointer flex items-center gap-1.5 ${
                 isActive
-                  ? 'bg-sherloq-primary text-white shadow-sm'
+                  ? 'bg-sherloq-primary text-white'
                   : 'text-text-body hover:bg-app-bg hover:text-text-primary'
               }`}
             >
               <span>{item.label}</span>
               {item.count !== null && (
-                <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-pill ${isActive ? 'bg-app-surface text-sherloq-primary' : 'bg-[var(--border)] text-text-body'}`}>
+                <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-[5px] ${isActive ? 'bg-white/20 text-white' : 'bg-border text-text-muted'}`}>
                   {item.count}
                 </span>
               )}
@@ -189,7 +189,7 @@ export default function ScreenHunting({
       {subTab === 'overview' && (
         <div className="flex flex-col gap-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-app-surface rounded-[16px] p-6 shadow-card">
+            <div className="bg-app-surface rounded-[12px] p-5 shadow-card">
               <span className="text-[10px] text-text-muted uppercase font-semibold">Conversations</span>
               <h3 className="text-[28px] font-bold text-text-primary mt-1">48 Mails</h3>
               <p className="text-[12px] text-text-body mt-1.5">Letzte 7 Tage geschickt</p>
@@ -197,7 +197,7 @@ export default function ScreenHunting({
                 <div className="w-4/5 h-full bg-sherloq-primary"></div>
               </div>
             </div>
-            <div className="bg-app-surface rounded-[16px] p-6 shadow-card">
+            <div className="bg-app-surface rounded-[12px] p-5 shadow-card">
               <span className="text-[10px] text-text-muted uppercase font-semibold">LinkedIn Connector Rate</span>
               <h3 className="text-[28px] font-bold text-text-primary mt-1">68.4%</h3>
               <p className="text-[12px] text-text-body mt-1.5">+4.2% gegenüber Vorwoche</p>
@@ -205,7 +205,7 @@ export default function ScreenHunting({
                 <div className="w-2/3 h-full bg-sherloq-primary"></div>
               </div>
             </div>
-            <div className="bg-app-surface rounded-[16px] p-6 shadow-card">
+            <div className="bg-app-surface rounded-[12px] p-5 shadow-card">
               <span className="text-[10px] text-text-muted uppercase font-semibold">BDR Ramp time (Avg)</span>
               <h3 className="text-[28px] font-bold text-text-primary mt-1">1.8 Monate</h3>
               <p className="text-[12px] text-text-body mt-1.5">Sherloq Ziel: &lt; 2.2 Monate ✓</p>
@@ -215,7 +215,7 @@ export default function ScreenHunting({
             </div>
           </div>
 
-          <div className="bg-app-surface rounded-[16px] p-6 text-center shadow-card">
+          <div className="bg-app-surface rounded-[12px] p-5 text-center shadow-card">
             <h3 className="text-[14px] font-semibold text-text-primary">Aktuelle Pipeline Performance</h3>
             <p className="text-[11px] text-text-muted mt-1">Ereignisse und Reaktionen in Echtzeit</p>
             <div className="h-[120px] w-full flex items-end justify-between px-8 mt-6">
@@ -289,14 +289,9 @@ export default function ScreenHunting({
                   {/* Avatar & Info */}
                   <div className="flex items-center gap-4 flex-1 min-w-0 ml-0 group-hover:ml-8 transition-all duration-300">
                     <div className="relative shrink-0">
-                      {lead.person.avatarUrl ? (
-                        <img src={lead.person.avatarUrl} alt={lead.person.name} className="w-10 h-10 rounded-pill object-cover shadow-sm" />
-                      ) : (
-                        <div className="w-10 h-10 rounded-pill bg-sherloq-primary text-white flex items-center justify-center text-[13px] font-bold shadow-sm">
-                          {lead.person.initials}
-                        </div>
-                      )}
-                      <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-[#3B82F6] border-2 border-white rounded-pill"></div>
+                      <div className="w-9 h-9 rounded-[10px] bg-sherloq-primary text-white flex items-center justify-center text-[12px] font-bold">
+                        {lead.person.initials}
+                      </div>
                     </div>
                     <div className="flex flex-col min-w-0">
                       <span className="text-[14px] font-bold text-text-primary font-sans">{lead.person.name}</span>
@@ -313,24 +308,24 @@ export default function ScreenHunting({
                     </div>
                     
                     <div className="flex items-center gap-3 w-[140px] xl:w-[180px]">
-                      <div className="bg-[#121212] text-white text-[14px] w-[40px] h-[40px] flex items-center justify-center rounded-[12px] font-bold shrink-0">
+                      <div className="bg-app-bg border border-border text-text-body text-[13px] w-[34px] h-[34px] flex items-center justify-center rounded-[9px] font-semibold shrink-0">
                         {lead.person.company.charAt(0).toUpperCase()}
                       </div>
-                      <span className="text-[14px] text-text-body font-semibold w-[120px] truncate">{lead.person.company}</span>
+                      <span className="text-[13px] text-text-body font-medium w-[120px] truncate">{lead.person.company}</span>
                     </div>
                   </div>
 
                   {/* Middle Stats (Simplified) */}
-                  <div className="hidden lg:flex items-center gap-4 px-4 border-l border-[#F1F3F5] shrink-0">
-                    <div className="flex flex-col items-center justify-center w-[80px] relative h-full">
-                      <span className="absolute -top-[14px] text-[10px] font-bold text-[#ADB5BD] tracking-wider uppercase">STAGE</span>
-                      <div className="px-4 py-2 rounded-pill bg-app-bg text-[#343A40] text-[12px] font-semibold border border-border">
+                  <div className="hidden lg:flex items-center gap-5 px-4 border-l border-[#F1F3F5] shrink-0">
+                    <div className="flex flex-col gap-1.5 w-[72px]">
+                      <span className="text-[9px] font-semibold text-text-muted tracking-wider uppercase">STAGE</span>
+                      <div className="px-2.5 py-1 rounded-[7px] bg-app-bg text-text-body text-[11px] font-medium border border-border w-fit">
                         {lead.pipelineStage === 'pipeline' ? 'Demo' : 'Lead'}
                       </div>
                     </div>
-                    <div className="flex flex-col items-center justify-center w-[120px] relative h-full">
-                      <span className="absolute -top-[14px] text-[10px] font-bold text-[#ADB5BD] tracking-wider uppercase">HEAT</span>
-                      <div className={`px-4 py-2 rounded-pill text-[12px] font-semibold border flex items-center gap-1.5 ${getHeatColor(lead.heatStatus).bg} ${getHeatColor(lead.heatStatus).text}`}>
+                    <div className="flex flex-col gap-1.5 w-[100px]">
+                      <span className="text-[9px] font-semibold text-text-muted tracking-wider uppercase">HEAT</span>
+                      <div className={`px-2.5 py-1 rounded-[7px] text-[11px] font-medium border flex items-center gap-1.5 w-fit ${getHeatColor(lead.heatStatus).bg} ${getHeatColor(lead.heatStatus).text}`}>
                         {getHeatColor(lead.heatStatus).emoji}
                       </div>
                     </div>
@@ -506,13 +501,13 @@ export default function ScreenHunting({
                     <div className="mt-4 flex justify-between items-center border-t border-gray-50 pt-3">
                       <span className="text-[11px] text-gray-400 font-medium">Status</span>
                       {actionsCount > 0 ? (
-                        <div className="bg-app-surface text-red-600 px-3 py-1 rounded-pill text-[11px] font-bold flex items-center gap-1.5 shadow-sm border border-red-100/50">
-                          <div className="w-1.5 h-1.5 rounded-pill bg-red-600"></div>
+                        <div className="text-[#C2410C] bg-[#FEF4E9] px-2 py-0.5 rounded-[6px] text-[10px] font-semibold flex items-center gap-1 border border-[#C2410C]/10">
+                          <div className="w-1.5 h-1.5 rounded-full bg-[#C2410C]"></div>
                           {actionsCount} Action{actionsCount !== 1 ? 's' : ''}
                         </div>
                       ) : (
-                        <div className="bg-app-surface text-[#16A34A] px-3 py-1 rounded-pill text-[11px] font-bold flex items-center gap-1.5 shadow-sm border border-[#16A34A]/20">
-                          <CheckCircle2 className="w-3.5 h-3.5" />
+                        <div className="text-[#15803D] bg-[#F0FDF4] px-2 py-0.5 rounded-[6px] text-[10px] font-semibold flex items-center gap-1 border border-[#15803D]/10">
+                          <CheckCircle2 className="w-3 h-3" />
                           Im Flow
                         </div>
                       )}
@@ -528,54 +523,51 @@ export default function ScreenHunting({
                         else if (lead.heatStatus === 'WARM') pill = { label: 'Demo Call', colorClass: 'text-red-600 bg-red-50 border border-red-100/50', icon: <AlertTriangle className="w-3 h-3" /> };
                         
                         return (
-                          <div key={lead.id} className="bg-app-surface rounded-[24px] p-4 shadow-card hover:shadow-hover transition-all duration-300 relative group">
-                            <div className="flex justify-between items-start mb-4">
-                              <div className="flex items-center gap-3">
-                                {lead.person.avatarUrl ? (
-                                  <img src={lead.person.avatarUrl} alt={lead.person.name} className="w-10 h-10 rounded-pill object-cover shadow-sm shrink-0" />
-                                ) : (
-                                  <div className="w-10 h-10 rounded-pill bg-sherloq-primary text-white flex items-center justify-center text-[12px] font-bold shadow-sm shrink-0">
-                                    {lead.person.initials}
-                                  </div>
-                                )}
+                          <div key={lead.id} className="bg-app-surface rounded-[12px] p-3.5 border border-[var(--border-card)] shadow-card hover:shadow-hover transition-all duration-200 relative group">
+                            <div className="flex justify-between items-start gap-2">
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                <div className="w-8 h-8 rounded-[8px] bg-sherloq-primary text-white flex items-center justify-center text-[11px] font-bold shrink-0">
+                                  {lead.person.initials}
+                                </div>
                                 <div className="flex flex-col min-w-0">
-                                  <span className="font-bold text-[13px] text-[#111827] leading-tight truncate">{lead.person.name}</span>
-                                  <span className="text-[11px] text-gray-500 leading-tight truncate mt-0.5">{lead.person.company}</span>
-                                  {lead.dealValue && (
-                                    <span className="text-[11px] font-bold text-[#111827] mt-1">
-                                      {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(lead.dealValue)}
-                                    </span>
-                                  )}
+                                  <span className="font-semibold text-[12px] text-text-primary leading-tight truncate">{lead.person.name}</span>
+                                  <span className="text-[11px] text-text-muted leading-tight truncate">{lead.person.company}</span>
                                 </div>
                               </div>
-                              <div className="w-[38px] flex items-center justify-center shrink-0">
+                              <div className="w-[34px] flex items-center justify-center shrink-0">
                                 <ICPDonut score={lead.icpScore ?? 75} />
                               </div>
                             </div>
-                            
-                            <div className="flex justify-between items-center mt-2 pt-2">
+
+                            {lead.dealValue && (
+                              <div className="text-[12px] font-semibold text-text-primary mt-2.5">
+                                {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(lead.dealValue)}
+                              </div>
+                            )}
+
+                            <div className="flex justify-between items-center mt-2.5 pt-2.5 border-t border-[var(--border-card)]">
                               {pill ? (
-                                <div className={`px-2.5 py-1 rounded-pill text-[10px] font-bold flex items-center gap-1.5 ${pill.colorClass}`}>
+                                <div className={`px-2 py-0.5 rounded-[6px] text-[10px] font-medium flex items-center gap-1 ${pill.colorClass}`}>
                                   {pill.icon}
                                   <span>{pill.label}</span>
                                 </div>
                               ) : <div />}
-                              
-                              <div className="flex items-center gap-2">
+
+                              <div className="flex items-center gap-1.5">
                                 {col.prev && (
-                                  <button 
+                                  <button
                                     onClick={() => onUpdateLeadStage(lead.id, col.prev!)}
-                                    className="w-7 h-7 rounded-pill bg-app-bg hover:bg-[var(--border)] text-text-muted flex items-center justify-center transition-colors cursor-pointer shadow-sm"
+                                    className="w-6 h-6 rounded-[6px] bg-app-bg hover:bg-border text-text-muted flex items-center justify-center transition-colors cursor-pointer border border-border"
                                   >
-                                    <ArrowLeft className="w-3.5 h-3.5" />
+                                    <ArrowLeft className="w-3 h-3" />
                                   </button>
                                 )}
                                 {col.next && (
-                                  <button 
+                                  <button
                                     onClick={() => onUpdateLeadStage(lead.id, col.next!)}
-                                    className="w-6 h-6 rounded-[7px] bg-sherloq-primary hover:bg-sherloq-hover text-white flex items-center justify-center transition-colors cursor-pointer"
+                                    className="w-6 h-6 rounded-[6px] bg-sherloq-primary hover:bg-sherloq-hover text-white flex items-center justify-center transition-colors cursor-pointer"
                                   >
-                                    <ArrowRight className="w-3 h-3 stroke-[3]" />
+                                    <ArrowRight className="w-3 h-3" />
                                   </button>
                                 )}
                               </div>
