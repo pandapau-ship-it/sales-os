@@ -287,7 +287,7 @@ Full schema in `docs/database.md`. Key points:
 
 - **`users`** — role field: `solo | hunter | farmer | admin`
 - **`companies`** — `cluster TEXT[]` (array, multi-value), `kurzakte TEXT` (AI-maintained), `heat_status`, `churn_risk_level`
-- **`contacts`** — `personality_type TEXT` (rot/gelb/gruen/blau, AI-derived), `kurzakte TEXT`, Sherloq usage fields
+- **`contacts`** — `personality_type TEXT` (rot/gelb/gruen/blau, AI-derived), Sherloq usage fields — Kurzakte lebt in eigener Tabelle `kurzakte_entries` (Append-Only)
 - **`communications`** — basis for engagement chain, heat status calc, Kurzakte updates
 - **`pipeline_deals`** — `deal_volume` is a PostgreSQL generated column: `(mrr × contract_duration_months) + one_off`
 - **`pipeline_stages`** — stages stored in DB, not hardcoded. `pipeline_deals.stage` stores the stage `id`, not the name
@@ -402,11 +402,40 @@ Ohne Subscriptions sieht der User veraltete Daten bis er die Seite neu lädt.
 Runs daily (Claude Routine). Compares `communications.occurred_at` (most recent per contact) against `heat_status_config` thresholds. When contact transitions from warm → kalt: auto-create task. When → tot: task + Churn Warning in Mein Tag.
 
 ### Kurzakte — How It Works
-Living AI-maintained file per contact and per company. After every new communication:
-1. Claude reads existing Kurzakte
-2. Claude reads new communication (email, transcript, etc.)
-3. Claude extends — never overwrites. New insights added, outdated assessments corrected.
-Content: relationship quality, objections, buying signals, personality type, open TODOs, recommended next step.
+
+Living AI-maintained log per contact. After every new communication the AI adds a new entry — it never overwrites existing ones.
+
+**Datenmodell:** Nicht `kurzakte TEXT` auf dem Kontakt, sondern eine eigene Tabelle:
+```sql
+kurzakte_entries (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  contact_id  UUID NOT NULL REFERENCES contacts(id),
+  content     TEXT NOT NULL,
+  source      TEXT NOT NULL,  -- 'ai' | 'manual'
+  created_at  TIMESTAMPTZ DEFAULT now(),
+  created_by  UUID REFERENCES users(id)  -- null wenn source = 'ai'
+)
+```
+
+**Warum Append-Only (nie überschreiben):**
+- Löst das "Stille Post"-Problem: Fehler der AI akkumulieren sich nicht
+- Die Tabelle IS die Versionshistorie — kein separates System nötig
+- User kann jederzeit manuelle Einträge ergänzen
+- Anzeige: letzte 3–5 Einträge, ältere per "Mehr anzeigen" erreichbar
+
+**AI-Update-Ablauf:**
+1. AI liest letzte 5 Einträge der Kurzakte als Kontext
+2. AI liest neue Kommunikation
+3. AI schreibt **einen neuen Eintrag** — kompakt, 1–3 Sätze
+4. Niemals bestehende Einträge ändern oder löschen
+
+**Content eines Eintrags:** Beziehungsqualität, Objections, Buying Signals, Persönlichkeitstyp, offene TODOs, empfohlener Next Step.
+
+**Kosten mit claude-haiku** (empfohlen für Kurzakte-Updates):
+- ~700 Token Input + ~300 Token Output = $0.00055 pro Update
+- 100 Kontakte × täglich = ~**1.65 €/Monat pro User**
+- 500 Kontakte × täglich = ~**8 €/Monat pro User**
+- Haiku ist ~20× günstiger als Sonnet für diesen Task — Zusammenfassen braucht kein Sonnet
 
 ### Pipeline Deal — No Task Warning
 Every active deal without an open task gets flagged: "⚠️ Keine Aufgabe hinterlegt". Appears on pipeline card, lead list, and in Mein Tag. Not a hard block — disappears only when a task is created.
