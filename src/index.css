@@ -37,14 +37,14 @@
   --radius-sm:        8px;
   --radius-btn:       12px;
 
-  /* Shadows — almost flat, functional only */
-  --shadow-card:      0 1px 2px rgba(15, 23, 42, 0.04),
-                      0 2px 8px rgba(15, 23, 42, 0.03);
-  --shadow-hover:     0 1px 3px rgba(15, 23, 42, 0.05),
-                      0 6px 16px rgba(15, 23, 42, 0.06);
-  --shadow-brand:     0 2px 8px -2px rgba(21, 94, 92, 0.15);
+  /* Shadows — minimal, border-first approach */
+  --shadow-card:      0 1px 2px rgba(15, 23, 42, 0.03),
+                      0 2px 6px rgba(15, 23, 42, 0.025);
+  --shadow-hover:     0 1px 3px rgba(15, 23, 42, 0.04),
+                      0 4px 12px rgba(15, 23, 42, 0.05);
+  --shadow-brand:     0 2px 6px -2px rgba(21, 94, 92, 0.12);
   --shadow-nav:       0 1px 2px rgba(15, 23, 42, 0.04),
-                      0 2px 8px rgba(15, 23, 42, 0.03);
+                      0 2px 6px rgba(15, 23, 42, 0.025);
   --shadow-dropdown:  0 4px 6px rgba(15, 23, 42, 0.06),
                       0 12px 32px rgba(15, 23, 42, 0.10);
 

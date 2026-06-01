@@ -68,15 +68,15 @@ export default function TopBar({
         </div>
       </div>
 
-      {/* ── NAV PILLS (absolutely centered) ──────────────────── */}
+      {/* ── NAV (absolutely centered) ─────────────────────────── */}
       <nav
         style={{
           background: "var(--surface)",
-          borderRadius: "var(--radius-pill)",
-          boxShadow: "var(--shadow-nav)",
-          padding: "4px",
+          borderRadius: 14,
+          border: "1px solid var(--border)",
+          padding: "3px",
         }}
-        className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1"
+        className="absolute left-1/2 -translate-x-1/2 flex items-center gap-0.5"
       >
         {NAV_ITEMS.map((item) => {
           const isActive = activeTab === item.id;
@@ -86,17 +86,10 @@ export default function TopBar({
               onClick={() => setActiveTab(item.id)}
               style={
                 isActive
-                  ? {
-                      background: "var(--sherloq-primary)",
-                      color: "white",
-                      borderRadius: "var(--radius-pill)",
-                    }
-                  : {
-                      color: "var(--text-body)",
-                      borderRadius: "var(--radius-pill)",
-                    }
+                  ? { background: "var(--sherloq-primary)", color: "white", borderRadius: 10 }
+                  : { color: "var(--text-body)", borderRadius: 10 }
               }
-              className={`flex items-center gap-2 px-5 py-2 text-[13px] font-medium transition-all duration-200 cursor-pointer${
+              className={`flex items-center gap-2 px-4 py-1.5 text-[12px] font-medium transition-all duration-150 cursor-pointer${
                 !isActive ? " hover:bg-[var(--app-bg)]" : ""
               }`}
             >
@@ -107,17 +100,17 @@ export default function TopBar({
         })}
       </nav>
 
-      {/* ── RIGHT: Cmd+K + Avatar ────────────────────────────── */}
+      {/* ── RIGHT: Cmd+K + Avatar ─────────────────────────────── */}
       <div className="flex items-center gap-2 shrink-0">
         <button
           onClick={onOpenCommandPalette}
           style={{
-            width: 180,
-            border: "0.5px solid var(--border)",
-            borderRadius: "var(--radius-pill)",
+            width: 176,
+            border: "1px solid var(--border-strong)",
+            borderRadius: 10,
             color: "var(--text-muted)",
             fontSize: 12,
-            padding: "6px 12px",
+            padding: "5px 10px",
             background: "var(--surface)",
           }}
           className="flex items-center justify-between cursor-pointer transition-colors hover:bg-[var(--app-bg)]"
@@ -126,6 +119,7 @@ export default function TopBar({
           <span
             style={{
               background: "var(--app-bg)",
+              border: "1px solid var(--border)",
               borderRadius: 4,
               padding: "1px 5px",
               fontSize: 10,
@@ -138,12 +132,12 @@ export default function TopBar({
 
         <button
           style={{
-            width: 32,
-            height: 32,
+            width: 30,
+            height: 30,
             background: "var(--sherloq-primary)",
-            borderRadius: "var(--radius-pill)",
+            borderRadius: 9,
           }}
-          className="flex items-center justify-center text-white text-[12px] font-semibold cursor-pointer"
+          className="flex items-center justify-center text-white text-[11px] font-semibold cursor-pointer hover:opacity-90 transition-opacity"
         >
           OS
         </button>

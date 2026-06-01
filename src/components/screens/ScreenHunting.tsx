@@ -144,7 +144,7 @@ export default function ScreenHunting({
   };
 
   return (
-    <div className="flex flex-col gap-6 w-full animate-fade-in font-sans pb-12">
+    <div className="flex flex-col gap-4 w-full animate-fade-in font-sans pb-12">
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -268,7 +268,7 @@ export default function ScreenHunting({
             return (
               <div
                 key={lead.id}
-                className={`group rounded-[16px] p-5 flex flex-col gap-4 shadow-card hover:shadow-hover transition-all duration-300 cursor-pointer border border-[#F1F3F5] relative ${
+                className={`group rounded-[12px] p-4 flex flex-col gap-3 shadow-card hover:shadow-hover transition-all duration-200 cursor-pointer border border-[var(--border-card)] relative ${
                   selectedLeadIds.includes(lead.id) ? 'bg-[#EDF5F5]' : 'bg-app-surface'
                 }`}
                 onClick={() => setExpandedLeadId(isExpanded ? null : lead.id)}
@@ -335,8 +335,8 @@ export default function ScreenHunting({
                   <div className="flex items-center gap-4 pl-4 border-l border-[#F1F3F5] shrink-0 justify-between md:justify-end">
                     <div className="flex flex-col items-end hidden sm:flex w-[130px]">
                       <span className="text-[14px] font-bold text-text-primary whitespace-nowrap">vor 5 Tagen</span>
-                      <div className="flex items-center justify-end gap-1.5 mt-0.5 text-[#E03131] font-semibold text-[12px] whitespace-nowrap w-full">
-                        8T in Stage <AlertTriangle className="w-3.5 h-3.5" strokeWidth={2.5} />
+                      <div className="flex items-center justify-end gap-1 mt-0.5 text-[#B03020] font-medium text-[11px] whitespace-nowrap w-full">
+                        8T in Stage <AlertTriangle className="w-3 h-3" strokeWidth={2} />
                       </div>
                     </div>
                     <div className="flex items-center gap-3 relative w-[90px] justify-end">
