@@ -92,11 +92,11 @@ export default function ScreenFarming({
 
   const getHeatColor = (status: HeatStatus) => {
     switch (status) {
-      case 'HOT': return { bg: 'bg-[var(--signal-success-bg)]', text: 'text-signal-success border-[#EBFBEE]', emoji: '🟢 Aktiv' };
-      case 'WARM': return { bg: 'bg-[#FFF4E6]', text: 'text-[#DD6B20] border-[#FFF4E6]', emoji: '🟠 Stabil' };
-      case 'LUKEWARM': return { bg: 'bg-[var(--signal-warn-bg)]', text: 'text-[#F59E0B] border-[#FFF9DB]', emoji: '🟡 Rückläufig' };
-      case 'COLD': return { bg: 'bg-[var(--signal-cold-bg)]', text: 'text-signal-cold border-[#EBF8FF]', emoji: '🔵 Ruhend' };
-      default: return { bg: 'bg-[#F7FAFC]', text: 'text-[#718096] border-[#F7FAFC]', emoji: '⚫ Inaktiv' };
+      case 'HOT':      return { bg: 'bg-[var(--signal-success-bg)]', text: 'text-signal-success',  border: 'border-[var(--signal-success-text)]/15', dot: '#15803D', label: 'Aktiv' };
+      case 'WARM':     return { bg: 'bg-[#FFF7ED]',                  text: 'text-[#C2610C]',        border: 'border-orange-200/60',                  dot: '#C2610C', label: 'Stabil' };
+      case 'LUKEWARM': return { bg: 'bg-[var(--signal-warn-bg)]',    text: 'text-signal-warn',      border: 'border-[var(--signal-warn-text)]/15',   dot: '#B45309', label: 'Rückläufig' };
+      case 'COLD':     return { bg: 'bg-[var(--signal-cold-bg)]',    text: 'text-signal-cold',      border: 'border-[var(--signal-cold-text)]/15',   dot: '#0369A1', label: 'Ruhend' };
+      default:         return { bg: 'bg-app-bg',                     text: 'text-text-muted',       border: 'border-border',                         dot: '#94A3B8', label: 'Inaktiv' };
     }
   };
 
@@ -276,8 +276,9 @@ export default function ScreenFarming({
                     </div>
                     <div className="flex flex-col gap-1.5 w-[100px]">
                       <span className="text-[9px] font-semibold text-text-muted tracking-wider uppercase">HEAT</span>
-                      <div className={`px-2.5 py-1 rounded-[7px] text-[11px] font-medium border flex items-center gap-1.5 w-fit ${getHeatColor(cust.heatStatus).bg} ${getHeatColor(cust.heatStatus).text} whitespace-nowrap`}>
-                        {getHeatColor(cust.heatStatus).emoji}
+                      <div className={`px-2.5 py-1 rounded-[7px] text-[11px] font-medium border flex items-center gap-1.5 w-fit whitespace-nowrap ${heat.bg} ${heat.text} ${heat.border}`}>
+                        <span style={{ color: heat.dot, fontSize: 8, lineHeight: 1 }}>●</span>
+                        {heat.label}
                       </div>
                     </div>
                   </div>

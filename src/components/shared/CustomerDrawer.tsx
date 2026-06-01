@@ -72,36 +72,11 @@ export default function CustomerDrawer({
 
   const getHeatColor = (status: string) => {
     switch (status) {
-      case "HOT":
-        return {
-          bg: "bg-[var(--signal-success-bg)]",
-          text: "text-signal-success border-[#EBFBEE]",
-          emoji: "🟢 Aktiv",
-        };
-      case "WARM":
-        return {
-          bg: "bg-[#FFF4E6]",
-          text: "text-[#DD6B20] border-[#FFF4E6]",
-          emoji: "🟠 Stabil",
-        };
-      case "LUKEWARM":
-        return {
-          bg: "bg-[var(--signal-warn-bg)]",
-          text: "text-[#F59E0B] border-[#FFF9DB]",
-          emoji: "🟡 Rückläufig",
-        };
-      case "COLD":
-        return {
-          bg: "bg-[var(--signal-cold-bg)]",
-          text: "text-signal-cold border-[#EBF8FF]",
-          emoji: "🔵 Ruhend",
-        };
-      default:
-        return {
-          bg: "bg-[#F7FAFC]",
-          text: "text-[#718096] border-[#F7FAFC]",
-          emoji: "⚫ Inaktiv",
-        };
+      case "HOT":      return { bg: "bg-[var(--signal-success-bg)]", text: "text-signal-success",  border: "border-[var(--signal-success-text)]/15", dot: "#15803D", label: "Aktiv" };
+      case "WARM":     return { bg: "bg-[#FFF7ED]",                  text: "text-[#C2610C]",        border: "border-orange-200/60",                  dot: "#C2610C", label: "Stabil" };
+      case "LUKEWARM": return { bg: "bg-[var(--signal-warn-bg)]",    text: "text-signal-warn",      border: "border-[var(--signal-warn-text)]/15",   dot: "#B45309", label: "Rückläufig" };
+      case "COLD":     return { bg: "bg-[var(--signal-cold-bg)]",    text: "text-signal-cold",      border: "border-[var(--signal-cold-text)]/15",   dot: "#0369A1", label: "Ruhend" };
+      default:         return { bg: "bg-app-bg",                     text: "text-text-muted",       border: "border-border",                         dot: "#94A3B8", label: "Inaktiv" };
     }
   };
 
@@ -175,9 +150,10 @@ export default function CustomerDrawer({
                     HEAT
                   </span>
                   <div
-                    className={`${heatSettings.bg} ${heatSettings.text.split(" ")[0]} ${heatSettings.text.split(" ")[1] || ""} px-3 py-1.5 rounded-pill text-[12px] font-semibold flex items-center gap-1.5 border`}
+                    className={`px-3 py-1.5 rounded-pill text-[12px] font-semibold flex items-center gap-1.5 border ${heatSettings.bg} ${heatSettings.text} ${heatSettings.border}`}
                   >
-                    {heatSettings.emoji}
+                    <span style={{ color: heatSettings.dot, fontSize: 8, lineHeight: 1 }}>●</span>
+                    {heatSettings.label}
                   </div>
                 </div>
                 <div className="flex flex-col items-center gap-1.5">
