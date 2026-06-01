@@ -125,8 +125,8 @@ export default function CommunicationChain({ personId, onSelectCommunication }: 
         {/* Continuous horizontal line */}
         <div className="absolute left-[43px] md:left-[75px] right-[43px] md:right-[75px] top-[24px] z-0">
           <div className="w-full h-[2px] bg-[var(--border)]" />
-          <div 
-            className="absolute left-0 top-0 h-[2px] bg-[#36D1A1] transition-all" 
+          <div
+            className="absolute left-0 top-0 h-[2px] bg-[var(--accent-teal)] transition-all"
             style={{ width: `${(chain.filter(c => c.isPast).length - 1) / (chain.length - 1) * 100}%` }}
           />
         </div>
@@ -142,22 +142,22 @@ export default function CommunicationChain({ personId, onSelectCommunication }: 
             >
               {/* Icon container with white circle taking precedence and a fake gap via shadow */}
               <div className="relative group/icon mb-2 w-full flex justify-center">
-                <div className={`w-[46px] h-[46px] bg-app-surface rounded-pill flex items-center justify-center transition-transform group-hover:scale-110 z-10 shadow-[0_0_0_6px_#F8F9FA] relative
-                 ${hoveredId === tp.id ? 'ring-2 ring-[#36D1A1]/30' : ''}`}
+                <div className={`w-[46px] h-[46px] bg-app-surface rounded-pill flex items-center justify-center transition-transform group-hover:scale-110 z-10 shadow-[0_0_0_6px_var(--app-bg)] relative
+                 ${hoveredId === tp.id ? 'ring-2 ring-[var(--accent-teal)]/30' : ''}`}
                 >
                   {getIconImage(tp.type, tp.isPast)}
                 </div>
                 
                 {/* Status dot for the most recent past event */}
                 {tp.isPast && idx === chain.filter(c => c.isPast).length - 1 && (
-                  <div className="absolute top-0 right-[4px] w-3 h-3 bg-[#36D1A1] border-2 border-white rounded-pill z-20 group-hover:scale-110 transition-transform" />
+                  <div className="absolute top-0 right-[4px] w-3 h-3 bg-[var(--accent-teal)] border-2 border-white rounded-pill z-20 group-hover:scale-110 transition-transform" />
                 )}
               </div>
               
-              <span className={`text-[12px] mt-1 font-bold ${tp.isPast ? 'text-[#343A40]' : 'text-[#ADB5BD]'} text-center leading-tight`}>
+              <span className={`text-[12px] mt-1 font-bold ${tp.isPast ? 'text-text-primary' : 'text-icon-muted'} text-center leading-tight`}>
                 {tp.label}
               </span>
-              <span className="text-[11px] text-[#ADB5BD] mt-0.5">
+              <span className="text-[11px] text-icon-muted mt-0.5">
                 {tp.dateStr}
               </span>
 

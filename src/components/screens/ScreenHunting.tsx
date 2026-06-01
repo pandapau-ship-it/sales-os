@@ -39,6 +39,7 @@ import {
   X
 } from 'lucide-react';
 import type { Lead, HeatStatus, CommunicationChannel } from '@/types';
+import { getHeatColor } from '@/lib/heatUtils';
 import { ICPDonut } from '@/components/shared/ICPDonut';
 import CommunicationChain from '@/components/shared/CommunicationChain';
 
@@ -122,15 +123,7 @@ export default function ScreenHunting({
     { id: 'pipeline', label: 'Pipeline (Kanban)', count: null },
   ];
 
-  const getHeatColor = (status: HeatStatus) => {
-    switch (status) {
-      case 'HOT':      return { bg: 'bg-[var(--signal-success-bg)]', text: 'text-signal-success',  border: 'border-[var(--signal-success-text)]/15', dot: '#15803D', label: 'Aktiv' };
-      case 'WARM':     return { bg: 'bg-[#FFF7ED]',                  text: 'text-[#C2610C]',        border: 'border-orange-200/60',                  dot: '#C2610C', label: 'Stabil' };
-      case 'LUKEWARM': return { bg: 'bg-[var(--signal-warn-bg)]',    text: 'text-signal-warn',      border: 'border-[var(--signal-warn-text)]/15',   dot: '#B45309', label: 'Rückläufig' };
-      case 'COLD':     return { bg: 'bg-[var(--signal-cold-bg)]',    text: 'text-signal-cold',      border: 'border-[var(--signal-cold-text)]/15',   dot: '#0369A1', label: 'Ruhend' };
-      default:         return { bg: 'bg-app-bg',                     text: 'text-text-muted',       border: 'border-border',                         dot: '#94A3B8', label: 'Inaktiv' };
-    }
-  };
+  // getHeatColor imported from @/lib/heatUtils — single source of truth
 
   const getChannelIcon = (chan: CommunicationChannel) => {
     switch (chan) {
@@ -242,7 +235,7 @@ export default function ScreenHunting({
             <div className="flex items-center gap-3">
               <button 
                 onClick={selectedLeadIds.length === leads.length ? deselectAll : selectAll}
-                className="flex items-center justify-center w-[22px] h-[22px] rounded-md bg-[#064E3B] border border-[#064E3B]"
+                className="flex items-center justify-center w-[22px] h-[22px] rounded-md bg-sherloq-dark border border-sherloq-dark"
               >
                 <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />
               </button>
@@ -252,7 +245,7 @@ export default function ScreenHunting({
               <button onClick={deselectAll} className="ml-2 text-[12px] text-text-muted hover:text-text-body font-semibold underline underline-offset-2">Auswahl aufheben</button>
             </div>
             <div className="flex items-center gap-2">
-              <button className="bg-app-surface border text-text-body border-[#CED4DA] hover:border-[#ADB5BD] hover:bg-app-bg px-3 py-1.5 rounded-pill text-[12px] font-semibold flex items-center gap-1.5 transition-colors">
+              <button className="bg-app-surface border text-text-body border-border hover:border-border-strong hover:bg-app-bg px-3 py-1.5 rounded-pill text-[12px] font-semibold flex items-center gap-1.5 transition-colors">
                 <Target className="w-3.5 h-3.5" /> Zu Kampagne hinzufügen
               </button>
               <button className="bg-app-surface border border-red-200 text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-pill text-[12px] font-semibold flex items-center gap-1.5 transition-colors">
@@ -269,7 +262,7 @@ export default function ScreenHunting({
               <div
                 key={lead.id}
                 className={`group rounded-[12px] p-4 flex flex-col gap-3 shadow-card hover:shadow-hover transition-all duration-200 cursor-pointer border border-[var(--border-card)] relative ${
-                  selectedLeadIds.includes(lead.id) ? 'bg-[#EDF5F5]' : 'bg-app-surface'
+                  selectedLeadIds.includes(lead.id) ? 'bg-selection-bg' : 'bg-app-surface'
                 }`}
                 onClick={() => setExpandedLeadId(isExpanded ? null : lead.id)}
               >
@@ -280,7 +273,7 @@ export default function ScreenHunting({
                   <div 
                     onClick={(e) => toggleLeadSelection(lead.id, e)}
                     className={`absolute -left-3 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center w-[22px] h-[22px] rounded-md z-10 ${
-                      selectedLeadIds.includes(lead.id) ? 'bg-[#064E3B] opacity-100 border-[#064E3B]' : 'bg-app-surface border-2 border-[#CED4DA] hover:border-text-muted'
+                      selectedLeadIds.includes(lead.id) ? 'bg-sherloq-dark opacity-100 border-sherloq-dark' : 'bg-app-surface border-2 border-border hover:border-text-muted'
                     }`}
                   >
                     {selectedLeadIds.includes(lead.id) && <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />}
@@ -302,7 +295,7 @@ export default function ScreenHunting({
                   </div>
 
                   {/* ICP donut & Company Area */}
-                  <div className="hidden md:flex items-center gap-4 px-4 border-l border-[#F1F3F5] shrink-0">
+                  <div className="hidden md:flex items-center gap-4 px-4 border-l border-border-subtle shrink-0">
                     <div className="w-[48px] flex items-center justify-center">
                       <ICPDonut score={lead.icpScore ?? 87} />
                     </div>
@@ -316,7 +309,7 @@ export default function ScreenHunting({
                   </div>
 
                   {/* Middle Stats (Simplified) */}
-                  <div className="hidden lg:flex items-center gap-5 px-4 border-l border-[#F1F3F5] shrink-0">
+                  <div className="hidden lg:flex items-center gap-5 px-4 border-l border-border-subtle shrink-0">
                     <div className="flex flex-col gap-1.5 w-[72px]">
                       <span className="text-[9px] font-semibold text-text-muted tracking-wider uppercase">STAGE</span>
                       <div className="px-2.5 py-1 rounded-[7px] bg-app-bg text-text-body text-[11px] font-medium border border-border w-fit">
@@ -333,7 +326,7 @@ export default function ScreenHunting({
                   </div>
 
                   {/* Right Actions */}
-                  <div className="flex items-center gap-4 pl-4 border-l border-[#F1F3F5] shrink-0 justify-between md:justify-end">
+                  <div className="flex items-center gap-4 pl-4 border-l border-border-subtle shrink-0 justify-between md:justify-end">
                     <div className="flex flex-col items-end hidden sm:flex w-[130px]">
                       <span className="text-[14px] font-bold text-text-primary whitespace-nowrap">vor 5 Tagen</span>
                       <div className="flex items-center justify-end gap-1 mt-0.5 text-[#B03020] font-medium text-[11px] whitespace-nowrap w-full">
@@ -341,7 +334,7 @@ export default function ScreenHunting({
                       </div>
                     </div>
                     <div className="flex items-center gap-3 relative w-[90px] justify-end">
-                      <button className="w-8 h-8 flex items-center justify-center text-[#ADB5BD] hover:text-text-primary transition-colors rounded-pill hover:bg-app-bg">
+                      <button className="w-8 h-8 flex items-center justify-center text-icon-muted hover:text-text-primary transition-colors rounded-pill hover:bg-app-bg">
                         {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                       </button>
                       <button
@@ -359,7 +352,7 @@ export default function ScreenHunting({
 
                 {/* EXPANDED CONTENT */}
                 {isExpanded && (
-                  <div className="flex flex-col gap-6 border-t border-[#F1F3F5] pt-5 mt-2" onClick={(e) => e.stopPropagation()}>
+                  <div className="flex flex-col gap-6 border-t border-border-subtle pt-5 mt-2" onClick={(e) => e.stopPropagation()}>
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
                       {/* Left Column (KI Kurzakte) */}
                       <div className="md:col-span-7 bg-app-surface rounded-[24px] p-5 border border-border">
@@ -404,7 +397,7 @@ export default function ScreenHunting({
                             </div>
                             <div className="flex flex-col gap-1">
                               <span className="text-text-muted font-mono text-[10px] uppercase tracking-wider">Stage</span>
-                              <span className="font-bold text-[#D92D20] text-[14px] flex items-center gap-1.5">
+                              <span className="font-bold text-signal-urgent text-[14px] flex items-center gap-1.5">
                                 Demo <span className="font-semibold text-red-500">⚠️ 8T</span>
                               </span>
                             </div>
@@ -476,7 +469,7 @@ export default function ScreenHunting({
                   <div className="bg-app-surface rounded-[24px] p-4 shadow-card mb-4">
                     <div className="flex justify-between items-center mb-3">
                       <div className="flex items-center gap-2">
-                        <h3 className="font-bold text-[15px] text-[#111827]">{col.title}</h3>
+                        <h3 className="font-bold text-[15px] text-text-primary">{col.title}</h3>
                         <div className="min-w-[24px] h-6 px-1.5 rounded-pill border border-gray-200 text-gray-500 text-[11px] font-semibold flex items-center justify-center bg-gray-50 shadow-sm">
                           {count}
                         </div>
@@ -491,10 +484,10 @@ export default function ScreenHunting({
                     
                     <div className="flex flex-col gap-1">
                       <div className="flex items-baseline gap-1.5">
-                        <span className="text-[34px] font-extrabold leading-none tracking-tight text-[#111827]">{count}</span>
+                        <span className="text-[34px] font-extrabold leading-none tracking-tight text-text-primary">{count}</span>
                         <span className="text-[12px] text-gray-400 font-medium">Opportunities</span>
                       </div>
-                      <div className="text-[14px] font-bold text-[#111827] mt-1">
+                      <div className="text-[14px] font-bold text-text-primary mt-1">
                         {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(totalValue)}
                       </div>
                     </div>
@@ -502,8 +495,8 @@ export default function ScreenHunting({
                     <div className="mt-4 flex justify-between items-center border-t border-gray-50 pt-3">
                       <span className="text-[11px] text-gray-400 font-medium">Status</span>
                       {actionsCount > 0 ? (
-                        <div className="text-[#C2410C] bg-[#FEF4E9] px-2 py-0.5 rounded-[6px] text-[10px] font-semibold flex items-center gap-1 border border-[#C2410C]/10">
-                          <div className="w-1.5 h-1.5 rounded-full bg-[#C2410C]"></div>
+                        <div className="text-signal-urgent bg-[var(--signal-urgent-bg)] px-2 py-0.5 rounded-[6px] text-[10px] font-semibold flex items-center gap-1 border border-[#C2410C]/10">
+                          <div className="w-1.5 h-1.5 rounded-full bg-[var(--signal-urgent-text)]"></div>
                           {actionsCount} Action{actionsCount !== 1 ? 's' : ''}
                         </div>
                       ) : (

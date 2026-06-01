@@ -34,6 +34,7 @@ import {
   MessageSquare
 } from 'lucide-react';
 import type { Customer, SherloqStatus, CommunicationChannel, HeatStatus } from '@/types';
+import { getHeatColor } from '@/lib/heatUtils';
 import { ICPDonut } from '@/components/shared/ICPDonut';
 import CommunicationChain from '@/components/shared/CommunicationChain';
 
@@ -90,15 +91,7 @@ export default function ScreenFarming({
     }
   };
 
-  const getHeatColor = (status: HeatStatus) => {
-    switch (status) {
-      case 'HOT':      return { bg: 'bg-[var(--signal-success-bg)]', text: 'text-signal-success',  border: 'border-[var(--signal-success-text)]/15', dot: '#15803D', label: 'Aktiv' };
-      case 'WARM':     return { bg: 'bg-[#FFF7ED]',                  text: 'text-[#C2610C]',        border: 'border-orange-200/60',                  dot: '#C2610C', label: 'Stabil' };
-      case 'LUKEWARM': return { bg: 'bg-[var(--signal-warn-bg)]',    text: 'text-signal-warn',      border: 'border-[var(--signal-warn-text)]/15',   dot: '#B45309', label: 'Rückläufig' };
-      case 'COLD':     return { bg: 'bg-[var(--signal-cold-bg)]',    text: 'text-signal-cold',      border: 'border-[var(--signal-cold-text)]/15',   dot: '#0369A1', label: 'Ruhend' };
-      default:         return { bg: 'bg-app-bg',                     text: 'text-text-muted',       border: 'border-border',                         dot: '#94A3B8', label: 'Inaktiv' };
-    }
-  };
+  // getHeatColor imported from @/lib/heatUtils — single source of truth
 
   return (
     <div className="flex flex-col gap-6 w-full animate-fade-in font-sans pb-12">
@@ -193,7 +186,7 @@ export default function ScreenFarming({
             <div className="flex items-center gap-3">
               <button 
                 onClick={selectedCustomerIds.length === customers.length ? deselectAll : selectAll}
-                className="flex items-center justify-center w-[22px] h-[22px] rounded-md bg-[#064E3B] border border-[#064E3B]"
+                className="flex items-center justify-center w-[22px] h-[22px] rounded-md bg-sherloq-dark border border-sherloq-dark"
               >
                 <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />
               </button>
@@ -203,7 +196,7 @@ export default function ScreenFarming({
               <button onClick={deselectAll} className="ml-2 text-[12px] text-text-muted hover:text-text-body font-semibold underline underline-offset-2">Auswahl aufheben</button>
             </div>
             <div className="flex items-center gap-2">
-              <button className="bg-app-surface border text-text-body border-[#CED4DA] hover:border-[#ADB5BD] hover:bg-app-bg px-3 py-1.5 rounded-pill text-[12px] font-semibold flex items-center gap-1.5 transition-colors">
+              <button className="bg-app-surface border text-text-body border-border hover:border-border-strong hover:bg-app-bg px-3 py-1.5 rounded-pill text-[12px] font-semibold flex items-center gap-1.5 transition-colors">
                 <Target className="w-3.5 h-3.5" /> Zu Kampagne hinzufügen
               </button>
               <button className="bg-app-surface border border-red-200 text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-pill text-[12px] font-semibold flex items-center gap-1.5 transition-colors">
@@ -220,7 +213,7 @@ export default function ScreenFarming({
               <div
                 key={cust.id}
                 className={`group rounded-[12px] p-4 flex flex-col gap-3 shadow-card hover:shadow-hover transition-all duration-200 cursor-pointer border border-[var(--border-card)] relative ${
-                  selectedCustomerIds.includes(cust.id) ? 'bg-[#EDF5F5]' : 'bg-app-surface'
+                  selectedCustomerIds.includes(cust.id) ? 'bg-selection-bg' : 'bg-app-surface'
                 }`}
                 onClick={() => setExpandedCustomerId(isExpanded ? null : cust.id)}
               >
@@ -231,7 +224,7 @@ export default function ScreenFarming({
                   <div 
                     onClick={(e) => toggleCustomerSelection(cust.id, e)}
                     className={`absolute -left-3 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center w-[22px] h-[22px] rounded-md z-10 ${
-                      selectedCustomerIds.includes(cust.id) ? 'bg-[#064E3B] opacity-100 border-[#064E3B]' : 'bg-app-surface border-2 border-[#CED4DA] hover:border-text-muted'
+                      selectedCustomerIds.includes(cust.id) ? 'bg-sherloq-dark opacity-100 border-sherloq-dark' : 'bg-app-surface border-2 border-border hover:border-text-muted'
                     }`}
                   >
                     {selectedCustomerIds.includes(cust.id) && <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />}
@@ -253,7 +246,7 @@ export default function ScreenFarming({
                   </div>
 
                   {/* ICP donut & Company Area */}
-                  <div className="hidden md:flex items-center gap-4 px-4 border-l border-[#F1F3F5] shrink-0">
+                  <div className="hidden md:flex items-center gap-4 px-4 border-l border-border-subtle shrink-0">
                     <div className="w-[48px] flex items-center justify-center">
                       <ICPDonut score={cust.icpScore ?? 87} />
                     </div>
@@ -267,7 +260,7 @@ export default function ScreenFarming({
                   </div>
 
                   {/* Middle Stats (Simplified) */}
-                  <div className="hidden lg:flex items-center gap-5 px-4 border-l border-[#F1F3F5] shrink-0">
+                  <div className="hidden lg:flex items-center gap-5 px-4 border-l border-border-subtle shrink-0">
                     <div className="flex flex-col gap-1.5 w-[90px]">
                       <span className="text-[9px] font-semibold text-text-muted tracking-wider uppercase">STATUS</span>
                       <div className={`px-2.5 py-1 rounded-[7px] text-[11px] font-medium border flex items-center gap-1.5 w-fit ${getStatusColor(cust.sherloqStatus).bg} ${getStatusColor(cust.sherloqStatus).text} whitespace-nowrap`}>
@@ -284,7 +277,7 @@ export default function ScreenFarming({
                   </div>
 
                   {/* Right Actions */}
-                  <div className="flex items-center gap-4 pl-4 border-l border-[#F1F3F5] shrink-0 justify-between md:justify-end">
+                  <div className="flex items-center gap-4 pl-4 border-l border-border-subtle shrink-0 justify-between md:justify-end">
                     <div className="flex flex-col items-end hidden sm:flex w-[130px]">
                       <span className="text-[14px] font-bold text-text-primary whitespace-nowrap">vor 5 Tagen</span>
                       <div className="flex items-center justify-end gap-1 mt-0.5 text-[#B03020] font-medium text-[11px] whitespace-nowrap w-full">
@@ -310,7 +303,7 @@ export default function ScreenFarming({
 
                 {/* EXPANDED CONTENT */}
                 {isExpanded && (
-                  <div className="flex flex-col gap-6 border-t border-[#F1F3F5] pt-5 mt-2" onClick={(e) => e.stopPropagation()}>
+                  <div className="flex flex-col gap-6 border-t border-border-subtle pt-5 mt-2" onClick={(e) => e.stopPropagation()}>
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
                       {/* Left Column (KI Kurzakte) */}
                       <div className="md:col-span-7 bg-app-surface rounded-[14px] p-5 border border-border">
@@ -364,13 +357,13 @@ export default function ScreenFarming({
                               <span className="text-text-muted font-mono text-[10px] uppercase tracking-wider">Messages generiert</span>
                               <div className="flex items-center">
                                 <span className="font-bold text-text-primary text-[14px]">89</span>
-                                <span className="text-[#D92D20] text-[11px] font-semibold ml-2">-4%</span>
+                                <span className="text-signal-urgent text-[11px] font-semibold ml-2">-4%</span>
                               </div>
                             </div>
                             <div className="flex flex-col gap-1">
                               <span className="text-text-muted font-mono text-[10px] uppercase tracking-wider">Enrichments</span>
                               <div className="flex items-center">
-                                <span className="font-bold text-[#D92D20] text-[14px]">85% <span className="text-[12px]">⚠️</span></span>
+                                <span className="font-bold text-signal-urgent text-[14px]">85% <span className="text-[12px]">⚠️</span></span>
                                 <span className="text-signal-success text-[11px] font-semibold ml-2">+7%</span>
                               </div>
                             </div>

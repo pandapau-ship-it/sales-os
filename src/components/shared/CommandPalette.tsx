@@ -132,7 +132,7 @@ export default function CommandPalette({
                   <span className="text-[14px] font-medium text-text-primary font-sans">
                     {nav.label}
                   </span>
-                  <ArrowRight className="w-4 h-4 text-[#C1C9D0] ml-auto" />
+                  <ArrowRight className="w-4 h-4 text-icon-muted ml-auto" />
                 </button>
               ))}
             </div>
@@ -141,7 +141,7 @@ export default function CommandPalette({
           {/* Quick Actions */}
           {quickActions.length > 0 && (
             <div className="flex flex-col mt-2">
-              <div className="px-5 py-2 text-[12px] font-bold font-sans text-[#A1A1AA] uppercase tracking-wider">
+              <div className="px-5 py-2 text-[12px] font-bold font-sans text-text-muted uppercase tracking-wider">
                 Schnellaktionen
               </div>
               {quickActions.map((action, index) => (
@@ -158,13 +158,13 @@ export default function CommandPalette({
                   <div
                     className={`w-10 h-10 rounded-[10px] flex items-center justify-center transition-colors ${
                       index === 0
-                        ? "bg-[#064E3B] text-white"
-                        : "bg-[#ADB5BD] text-text-body group-hover:bg-[#064E3B] group-hover:text-white"
+                        ? "bg-sherloq-dark text-white"
+                        : "bg-border-strong text-text-body group-hover:bg-sherloq-dark group-hover:text-white"
                     }`}
                   >
                     {action.icon}
                   </div>
-                  <span className="text-[15px] font-semibold tracking-tight text-[#343A40] font-sans">
+                  <span className="text-[15px] font-semibold tracking-tight text-text-primary font-sans">
                     {action.label}
                   </span>
                 </button>
@@ -209,7 +209,7 @@ export default function CommandPalette({
                       className={`text-[10px] font-mono px-3 py-1 rounded-pill font-bold uppercase ${
                         person.sherloqStatus
                           ? "bg-[var(--sherloq-light)] text-sherloq-primary"
-                          : "bg-[#F1F3F5] text-text-body"
+                          : "bg-border-subtle text-text-body"
                       }`}
                     >
                       {person.sherloqStatus ? "Farmer" : "Hunter"}

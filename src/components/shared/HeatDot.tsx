@@ -1,11 +1,14 @@
 import type { HeatStatus } from '@/types'
 
+// Colors reference CSS tokens from index.css :root — never hardcode here.
+// Note: HeatDot uses legacy keys (heiss/warm/lauwarm/kalt/tot).
+// For HOT/WARM/LUKEWARM/COLD badges use getHeatColor() from @/lib/heatUtils instead.
 const HEAT_CONFIG: Record<HeatStatus, { color: string; bg: string; label: string }> = {
-  heiss:   { color: '#E11D48', bg: '#FEF4E9', label: 'Heiß'     },
-  warm:    { color: '#F59E0B', bg: '#FEF3C7', label: 'Warm'     },
-  lauwarm: { color: '#2563EB', bg: '#DBEAFE', label: 'Lauwarm'  },
-  kalt:    { color: '#8B5CF6', bg: '#EDE9FE', label: 'Kalt'     },
-  tot:     { color: '#9CA3AF', bg: '#F3F4F6', label: 'Tot'      },
+  heiss:   { color: 'var(--signal-urgent-text)', bg: 'var(--signal-urgent-bg)', label: 'Heiß'     },
+  warm:    { color: 'var(--signal-warn-text)',    bg: 'var(--signal-warn-bg)',   label: 'Warm'     },
+  lauwarm: { color: 'var(--signal-info-text)',    bg: 'var(--signal-info-bg)',   label: 'Lauwarm'  },
+  kalt:    { color: 'var(--signal-cold-text)',    bg: 'var(--signal-cold-bg)',   label: 'Kalt'     },
+  tot:     { color: 'var(--text-muted)',          bg: 'var(--app-bg)',           label: 'Tot'      },
 }
 
 interface HeatDotProps {
@@ -20,11 +23,11 @@ export function HeatDot({ status, showLabel = false, size = 8 }: HeatDotProps) {
   if (showLabel) {
     return (
       <span
-        className="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium"
+        className="inline-flex items-center gap-1.5 rounded-[7px] px-2 py-0.5 text-[11px] font-medium"
         style={{ backgroundColor: config.bg, color: config.color }}
       >
         <span
-          className="rounded-full flex-shrink-0"
+          className="rounded-pill flex-shrink-0"
           style={{ width: size, height: size, backgroundColor: config.color }}
         />
         {config.label}
@@ -35,7 +38,7 @@ export function HeatDot({ status, showLabel = false, size = 8 }: HeatDotProps) {
   return (
     <span
       title={config.label}
-      className="rounded-full flex-shrink-0 block"
+      className="rounded-pill flex-shrink-0 block"
       style={{ width: size, height: size, backgroundColor: config.color }}
     />
   )
