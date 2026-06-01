@@ -11,6 +11,14 @@
 2. Read `CLAUDE.md` (this file)
 3. Read `PROGRESS.md` — understand what's done and what's next
 
+**Pflicht-Prüffrage VOR jeder neuen Komponente:**
+> "Ist das eine interaktive Komponente?" — Modal, Dropdown, Tooltip, Select, Tabs, Popover, Sheet
+> → JA: **STOP. Shadcn-Primitiv aus `src/components/ui/` verwenden. Niemals selbst bauen.**
+> → Nicht installiert: `npx shadcn add [component]` ausführen, dann verwenden.
+> → NEIN: Tailwind + CSS-Tokens wie gewohnt.
+
+Diese Regel gilt absolut. Kein Ausnahme für "schneller selbst gebaut".
+
 **At the end of every session:**
 1. Update `PROGRESS.md` — what was completed, what's next, any blockers
 2. `git add` + `git commit` + `git push`

@@ -40,6 +40,12 @@ import {
 } from 'lucide-react';
 import type { Lead, HeatStatus, CommunicationChannel } from '@/types';
 import { getHeatColor } from '@/lib/heatUtils';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { ICPDonut } from '@/components/shared/ICPDonut';
 import CommunicationChain from '@/components/shared/CommunicationChain';
 
@@ -578,108 +584,108 @@ export default function ScreenHunting({
         </div>
       )}
 
-      {/* QUICK ADD MODAL */}
-      {showAddModal && (
-        <div className="fixed inset-0 bg-black/35 backdrop-blur-xs flex items-center justify-center z-50 animate-fade-in">
-          <div className="w-full max-w-[460px] bg-app-surface rounded-[24px] border border-border p-6 shadow-2xl relative">
-            <h2 className="text-[15px] font-bold text-text-primary mb-4 flex items-center gap-2">
+      {/* QUICK ADD MODAL — shadcn Dialog (focus-trap, keyboard, a11y built-in) */}
+      <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
+        <DialogContent className="max-w-[460px]">
+          <DialogHeader>
+            <DialogTitle className="text-[15px] font-bold text-text-primary flex items-center gap-2">
               <Target className="w-5 h-5 text-sherloq-primary" />
               Neuen SDR Lead anlegen
-            </h2>
-            
-            <form onSubmit={handleCreateLead} className="flex flex-col gap-3.5">
+            </DialogTitle>
+          </DialogHeader>
+
+          <form onSubmit={handleCreateLead} className="flex flex-col gap-3.5 mt-2">
+            <div>
+              <label className="text-[11px] text-text-muted font-semibold block mb-1">Voller Name *</label>
+              <input
+                type="text"
+                required
+                placeholder="z.B. Dr. Michael Schumacher"
+                value={newLeadName}
+                onChange={(e) => setNewLeadName(e.target.value)}
+                className="w-full text-[12px] font-sans px-3.5 py-2.5 bg-app-bg border border-border focus:border-sherloq-primary rounded-[10px] focus:outline-none"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-[11px] text-text-muted font-semibold block mb-1">Voller Name *</label>
-                <input 
-                  type="text" 
+                <label className="text-[11px] text-text-muted font-semibold block mb-1">Unternehmen *</label>
+                <input
+                  type="text"
                   required
-                  placeholder="z.B. Dr. Michael Schumacher"
-                  value={newLeadName}
-                  onChange={(e) => setNewLeadName(e.target.value)}
-                  className="w-full text-[12px] font-sans px-3.5 py-2.5 bg-app-bg border border-border focus:border-sherloq-primary rounded-[12px] focus:outline-none"
+                  placeholder="z.B. Porsche AG"
+                  value={newLeadCompany}
+                  onChange={(e) => setNewLeadCompany(e.target.value)}
+                  className="w-full text-[12px] font-sans px-3.5 py-2.5 bg-app-bg border border-border focus:border-sherloq-primary rounded-[10px] focus:outline-none"
                 />
               </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-[11px] text-text-muted font-semibold block mb-1">Unternehmen *</label>
-                  <input 
-                    type="text" 
-                    required
-                    placeholder="z.B. Porsche AG"
-                    value={newLeadCompany}
-                    onChange={(e) => setNewLeadCompany(e.target.value)}
-                    className="w-full text-[12px] font-sans px-3.5 py-2.5 bg-app-bg border border-border focus:border-sherloq-primary rounded-[12px] focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="text-[11px] text-text-muted font-semibold block mb-1">Rolle / Position</label>
-                  <input 
-                    type="text" 
-                    placeholder="z.B. VP of Procurement"
-                    value={newLeadRole}
-                    onChange={(e) => setNewLeadRole(e.target.value)}
-                    className="w-full text-[12px] font-sans px-3.5 py-2.5 bg-app-bg border border-border focus:border-sherloq-primary rounded-[12px] focus:outline-none"
-                  />
-                </div>
-              </div>
-
               <div>
-                <label className="text-[11px] text-text-muted font-semibold block mb-1">Kontakt E-Mail</label>
-                <input 
-                  type="email" 
-                  placeholder="m.schumacher@porsche.de"
-                  value={newLeadEmail}
-                  onChange={(e) => setNewLeadEmail(e.target.value)}
-                  className="w-full text-[12px] font-sans px-3.5 py-2.5 bg-app-bg border border-border focus:border-sherloq-primary rounded-[12px] focus:outline-none"
+                <label className="text-[11px] text-text-muted font-semibold block mb-1">Rolle / Position</label>
+                <input
+                  type="text"
+                  placeholder="z.B. VP of Procurement"
+                  value={newLeadRole}
+                  onChange={(e) => setNewLeadRole(e.target.value)}
+                  className="w-full text-[12px] font-sans px-3.5 py-2.5 bg-app-bg border border-border focus:border-sherloq-primary rounded-[10px] focus:outline-none"
                 />
               </div>
+            </div>
 
-              <div>
-                <label className="text-[11px] text-text-muted font-semibold block mb-1">SDR Kurzakte (AI-Summary Vorschau)</label>
-                <textarea 
-                  placeholder="Interesse an schnellerer BDR Einarbeitung im EMEA Raum. Erwartet DSGVO Abnahme..."
-                  rows={2}
-                  value={newLeadAka}
-                  onChange={(e) => setNewLeadAka(e.target.value)}
-                  className="w-full text-[11px] font-mono leading-relaxed p-3 bg-app-bg border border-border focus:border-sherloq-primary rounded-[12px] focus:outline-none"
-                />
-              </div>
+            <div>
+              <label className="text-[11px] text-text-muted font-semibold block mb-1">Kontakt E-Mail</label>
+              <input
+                type="email"
+                placeholder="m.schumacher@porsche.de"
+                value={newLeadEmail}
+                onChange={(e) => setNewLeadEmail(e.target.value)}
+                className="w-full text-[12px] font-sans px-3.5 py-2.5 bg-app-bg border border-border focus:border-sherloq-primary rounded-[10px] focus:outline-none"
+              />
+            </div>
 
-              <div>
-                <label className="text-[11px] text-text-muted font-semibold block mb-1">Lead Heat-Level</label>
-                <select
-                  value={newLeadHeat}
-                  onChange={(e) => setNewLeadHeat(e.target.value as HeatStatus)}
-                  className="w-full text-[12px] font-sans px-3.5 py-2.5 bg-app-bg border border-border focus:border-sherloq-primary rounded-[12px] focus:outline-none"
-                >
-                  <option value="HOT">🟢 Aktiv</option>
-                  <option value="WARM">🟠 Stabil</option>
-                  <option value="LUKEWARM">🟡 Rückläufig</option>
-                  <option value="COLD">🔵 Ruhend</option>
-                  <option value="DEAD">⚫ Inaktiv</option>
-                </select>
-              </div>
+            <div>
+              <label className="text-[11px] text-text-muted font-semibold block mb-1">SDR Kurzakte (AI-Summary Vorschau)</label>
+              <textarea
+                placeholder="Interesse an schnellerer BDR Einarbeitung im EMEA Raum. Erwartet DSGVO Abnahme..."
+                rows={2}
+                value={newLeadAka}
+                onChange={(e) => setNewLeadAka(e.target.value)}
+                className="w-full text-[11px] font-mono leading-relaxed p-3 bg-app-bg border border-border focus:border-sherloq-primary rounded-[10px] focus:outline-none"
+              />
+            </div>
 
-              <div className="flex justify-end gap-2.5 mt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 bg-app-bg hover:bg-[var(--border)] text-text-body text-[12px] rounded-pill cursor-pointer border border-border"
-                >
-                  Abbrechen
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 bg-sherloq-primary hover:bg-sherloq-primary/95 text-white text-[12px] font-semibold rounded-pill cursor-pointer shadow-xs"
-                >
-                  Lead anlegen
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+            <div>
+              <label className="text-[11px] text-text-muted font-semibold block mb-1">Lead Heat-Level</label>
+              <select
+                value={newLeadHeat}
+                onChange={(e) => setNewLeadHeat(e.target.value as HeatStatus)}
+                className="w-full text-[12px] font-sans px-3.5 py-2.5 bg-app-bg border border-border focus:border-sherloq-primary rounded-[10px] focus:outline-none"
+              >
+                <option value="HOT">● Aktiv</option>
+                <option value="WARM">● Stabil</option>
+                <option value="LUKEWARM">● Rückläufig</option>
+                <option value="COLD">● Ruhend</option>
+                <option value="DEAD">● Inaktiv</option>
+              </select>
+            </div>
+
+            <div className="flex justify-end gap-2.5 mt-2">
+              <button
+                type="button"
+                onClick={() => setShowAddModal(false)}
+                className="px-4 py-2 bg-app-bg hover:bg-[var(--border)] text-text-body text-[12px] rounded-[10px] cursor-pointer border border-border"
+              >
+                Abbrechen
+              </button>
+              <button
+                type="submit"
+                className="px-5 py-2 bg-sherloq-primary hover:bg-sherloq-hover text-white text-[12px] font-semibold rounded-[10px] cursor-pointer"
+              >
+                Lead anlegen
+              </button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
