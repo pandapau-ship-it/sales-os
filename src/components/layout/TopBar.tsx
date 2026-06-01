@@ -73,7 +73,6 @@ export default function TopBar({
         style={{
           background: "var(--surface)",
           borderRadius: 12,
-          border: "1px solid var(--border)",
           padding: "3px",
         }}
         className="absolute left-1/2 -translate-x-1/2 flex items-center gap-0.5"

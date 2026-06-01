@@ -70,7 +70,7 @@ wird das Design in unser System übersetzt — nicht umgekehrt.
 | Element | Border | Warum |
 |---|---|---|
 | Cards / Lead-Kacheln | ✅ Ja — `border border-[var(--border-card)]` | Brauchen Abgrenzung auf weißem Grund |
-| Top-Nav Container | ✅ Ja — `border border-[var(--border)]` | Schwebt in transparentem Header |
+| Top-Nav Container | ❌ Nein | Weißer Hintergrund auf #F8FAFC reicht als Kontrast |
 | Sub-Nav Container | ❌ Nein | Sitzt auf App-Background, Hintergrundfarbe reicht |
 | Heat / Status Badges | ✅ Ja — `border` mit jeweiliger Signal-Farbe | Klein, brauchen Kontur |
 | Buttons (sekundär) | ✅ Ja | Abgrenzung ohne Fill |
