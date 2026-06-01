@@ -802,3 +802,64 @@ Der User kann diese Werte später per AI Chat ändern:
 
 Bevor du eine neue Aktion baust: *"Könnte die AI das eines Tages automatisch ausführen?"*
 Wenn ja → `execution_mode`, `source`, `approved_by`, `executed_by` müssen in die Tabelle.
+
+---
+
+## MCP & Externe Schnittstellen — Pflichtregeln
+
+Das System wird später als MCP Server betrieben und eine direkte
+Schnittstelle zu Sherloq via MCP erhalten. Jede Funktion die heute
+gebaut wird muss das ermöglichen — ohne Umbau.
+
+### Grundregel — kein Business-Logic im Frontend
+
+Kein berechneter Wert darf direkt im React-Code entstehen.
+Alles was berechnet, aggregiert oder transformiert wird läuft in:
+- Supabase Database Functions
+- Supabase Edge Functions
+
+Beispiele die **NICHT** im Frontend passieren dürfen:
+- Heat-Status Berechnung
+- Churn-Score Berechnung
+- ICP-Score Berechnung
+- Sequenz-Step Logik
+- Signal-Erkennung
+
+### Edge Functions — von Anfang an als API-Endpunkte bauen
+
+Jede Edge Function wird so gebaut als würde sie auch extern aufgerufen:
+- Klare Input/Output Parameter (JSON)
+- Authentifizierung via Bearer Token (Supabase Auth)
+- Fehlerbehandlung mit klaren HTTP Status Codes
+- Kein hardcodierter State
+
+Diese Edge Functions sind später automatisch der MCP Server —
+die Endpunkte existieren bereits, nur der MCP-Wrapper kommt dazu.
+
+### Supabase Edge Functions die von Anfang an so gebaut werden
+
+| Function | Output |
+|----------|--------|
+| `get_contact_summary(contact_id)` | Kurzakte + Status + Signale |
+| `get_pipeline_summary(user_id)` | Pipeline-Übersicht + Werte |
+| `get_churn_risks(user_id)` | Alle Kunden mit Churn-Signal |
+| `get_signals_today(user_id)` | Alle Signale des Tages |
+| `get_smart_list(list_id)` | Dynamische Listen-Ergebnisse |
+| `execute_action(action_type, payload)` | Universelle Aktions-Funktion |
+
+### Was JETZT gebaut wird — was SPÄTER kommt
+
+**JETZT:**
+- Alle Business-Logic in Supabase Functions, nie im Frontend
+- Edge Functions mit sauberen JSON Ein-/Ausgaben
+- Auth via Supabase Bearer Token auf allen Functions
+
+**SPÄTER:**
+- MCP Server Wrapper über bestehende Edge Functions
+- Sherloq Schnittstelle via MCP (Signale, Usage-Daten, Enrichments)
+- Externe Tool-Integration (andere AI Agents, n8n, Zapier)
+
+### Prüffrage vor jeder neuen Funktion
+
+*"Könnte ein externer MCP Client diese Funktion aufrufen?"*
+Wenn ja → muss als Edge Function gebaut werden, nicht als Frontend-Logik.
