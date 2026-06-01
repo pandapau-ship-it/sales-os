@@ -128,18 +128,9 @@ export default function CustomerDrawer({
             <div className="flex items-center justify-between mb-2 mt-4 pr-12">
               <div className="flex items-center gap-4">
                 <div className="relative">
-                  {person.person.avatarUrl ? (
-                    <img
-                      src={person.person.avatarUrl}
-                      alt={person.person.name}
-                      className="w-16 h-16 rounded-[14px] object-cover shadow-sm"
-                    />
-                  ) : (
-                    <div className="w-16 h-16 rounded-[14px] bg-sherloq-primary text-white flex items-center justify-center font-sans font-bold text-[22px] shadow-sm">
-                      {person.person.initials}
-                    </div>
-                  )}
-                  <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-[#3B82F6] border-2 border-[#F4F5F7] rounded-pill" />
+                  <div className="w-14 h-14 rounded-[14px] bg-sherloq-primary text-white flex items-center justify-center font-sans font-bold text-[20px]">
+                    {person.person.initials}
+                  </div>
                 </div>
 
                 <div className="flex flex-col justify-center">

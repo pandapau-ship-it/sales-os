@@ -219,7 +219,7 @@ export default function ScreenFarming({
             return (
               <div
                 key={cust.id}
-                className={`group rounded-[16px] p-5 flex flex-col gap-4 shadow-card hover:shadow-[0_12px_40px_rgb(0,0,0,0.06)] transition-all duration-300 cursor-pointer border border-[#F1F3F5] relative ${
+                className={`group rounded-[16px] p-5 flex flex-col gap-4 shadow-card hover:shadow-hover transition-all duration-300 cursor-pointer border border-[#F1F3F5] relative ${
                   selectedCustomerIds.includes(cust.id) ? 'bg-[#EDF5F5]' : 'bg-app-surface'
                 }`}
                 onClick={() => setExpandedCustomerId(isExpanded ? null : cust.id)}
@@ -240,14 +240,9 @@ export default function ScreenFarming({
                   {/* Avatar & Info */}
                   <div className="flex items-center gap-4 flex-1 min-w-0 ml-0 group-hover:ml-8 transition-all duration-300">
                     <div className="relative shrink-0">
-                      {cust.person.avatarUrl ? (
-                        <img src={cust.person.avatarUrl} alt={cust.person.name} className="w-10 h-10 rounded-pill object-cover shadow-sm" />
-                      ) : (
-                        <div className="w-10 h-10 rounded-pill bg-sherloq-primary text-white flex items-center justify-center text-[13px] font-bold shadow-sm">
-                          {cust.person.initials}
-                        </div>
-                      )}
-                      <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-[#3B82F6] border-2 border-white rounded-pill"></div>
+                      <div className="w-9 h-9 rounded-[10px] bg-sherloq-primary text-white flex items-center justify-center text-[12px] font-bold">
+                        {cust.person.initials}
+                      </div>
                     </div>
                     <div className="flex flex-col min-w-0">
                       <span className="text-[14px] font-bold text-text-primary font-sans">{cust.person.name}</span>
@@ -264,7 +259,7 @@ export default function ScreenFarming({
                     </div>
                     
                     <div className="flex items-center gap-3 w-[140px] xl:w-[180px]">
-                      <div className="bg-[#121212] text-white text-[14px] w-[40px] h-[40px] flex items-center justify-center rounded-[12px] font-bold shrink-0">
+                      <div className="bg-app-bg border border-border text-text-body text-[13px] w-[34px] h-[34px] flex items-center justify-center rounded-[9px] font-medium shrink-0">
                         {cust.person.company.charAt(0).toUpperCase()}
                       </div>
                       <span className="text-[14px] text-text-body font-semibold w-[120px] truncate">{cust.person.company}</span>
@@ -272,16 +267,16 @@ export default function ScreenFarming({
                   </div>
 
                   {/* Middle Stats (Simplified) */}
-                  <div className="hidden lg:flex items-center gap-4 px-4 border-l border-[#F1F3F5] shrink-0">
-                    <div className="flex flex-col items-center justify-center w-[120px] relative h-full">
-                      <span className="absolute -top-[14px] text-[10px] font-bold text-[#ADB5BD] tracking-wider uppercase">STATUS</span>
-                      <div className={`px-4 py-2 rounded-pill text-[12px] font-semibold border flex items-center gap-1.5 ${getStatusColor(cust.sherloqStatus).bg} ${getStatusColor(cust.sherloqStatus).text} whitespace-nowrap`}>
+                  <div className="hidden lg:flex items-center gap-5 px-4 border-l border-[#F1F3F5] shrink-0">
+                    <div className="flex flex-col gap-1.5 w-[90px]">
+                      <span className="text-[9px] font-semibold text-text-muted tracking-wider uppercase">STATUS</span>
+                      <div className={`px-2.5 py-1 rounded-[7px] text-[11px] font-medium border flex items-center gap-1.5 w-fit ${getStatusColor(cust.sherloqStatus).bg} ${getStatusColor(cust.sherloqStatus).text} whitespace-nowrap`}>
                         {getStatusColor(cust.sherloqStatus).title}
                       </div>
                     </div>
-                    <div className="flex flex-col items-center justify-center w-[120px] relative h-full">
-                      <span className="absolute -top-[14px] text-[10px] font-bold text-[#ADB5BD] tracking-wider uppercase">HEAT</span>
-                      <div className={`px-4 py-2 rounded-pill text-[12px] font-semibold border flex items-center gap-1.5 ${getHeatColor(cust.heatStatus).bg} ${getHeatColor(cust.heatStatus).text} whitespace-nowrap`}>
+                    <div className="flex flex-col gap-1.5 w-[100px]">
+                      <span className="text-[9px] font-semibold text-text-muted tracking-wider uppercase">HEAT</span>
+                      <div className={`px-2.5 py-1 rounded-[7px] text-[11px] font-medium border flex items-center gap-1.5 w-fit ${getHeatColor(cust.heatStatus).bg} ${getHeatColor(cust.heatStatus).text} whitespace-nowrap`}>
                         {getHeatColor(cust.heatStatus).emoji}
                       </div>
                     </div>
@@ -299,14 +294,14 @@ export default function ScreenFarming({
                       <button className="w-8 h-8 flex items-center justify-center text-[#ADB5BD] hover:text-text-primary transition-colors rounded-pill hover:bg-app-bg">
                         {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                       </button>
-                      <button 
-                        className="w-10 h-10 rounded-pill bg-[var(--sherloq-light)] text-sherloq-primary hover:bg-[#D9FAF1] hover:scale-105 transition-all flex items-center justify-center shadow-sm"
+                      <button
+                        className="w-8 h-8 rounded-[10px] bg-[var(--sherloq-light)] text-sherloq-primary border border-sherloq-primary/10 hover:border-sherloq-primary/20 transition-all flex items-center justify-center"
                         onClick={(e) => {
                           e.stopPropagation();
                           onSelectCustomer(cust);
                         }}
                       >
-                        <ArrowRight className="w-4 h-4" />
+                        <ArrowRight className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </div>

@@ -154,7 +154,7 @@ export default function ScreenMyDay({
           {alerts.map((alert) => (
             <div 
               key={alert.id}
-              className="bg-[var(--signal-urgent-bg)] border-l-3 border-[#E8590C] rounded-[16px] px-5 py-4 flex items-center justify-between shadow-[0_8px_20px_-6px_rgba(232,89,12,0.06)] animate-pulse-soft"
+              className="bg-[var(--signal-urgent-bg)] border-l-3 border-[#E8590C] rounded-[16px] px-5 py-4 flex items-center justify-between shadow-card animate-pulse-soft"
             >
               <div className="flex items-center gap-3">
                 <AlertTriangle className="w-5 h-5 text-signal-urgent flex-shrink-0" />
@@ -220,7 +220,7 @@ export default function ScreenMyDay({
           {priorities.slice(0, 5).map((prio, idx) => (
             <div 
               key={prio.id}
-              className="bg-app-surface rounded-[16px] p-5 shadow-card hover:shadow-[0_16px_40px_rgb(0,0,0,0.08)] hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between"
+              className="bg-app-surface rounded-[16px] p-5 shadow-card hover:shadow-hover transition-all duration-300 flex flex-col justify-between"
             >
               <div>
                 <div className="flex items-center justify-between mb-3.5">
@@ -264,7 +264,7 @@ export default function ScreenMyDay({
       <div className="flex flex-col gap-3">
         <button 
           onClick={() => setExpandMeetings(!expandMeetings)}
-          className="w-full px-6 py-4 flex items-center justify-between bg-app-surface rounded-[14px] shadow-card hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all cursor-pointer select-none"
+          className="w-full px-6 py-4 flex items-center justify-between bg-app-surface rounded-[14px] shadow-card hover:shadow-hover transition-all cursor-pointer select-none"
         >
           <div className="flex items-center gap-2">
             <Calendar className="w-4.5 h-4.5 text-sherloq-primary" />
@@ -286,13 +286,9 @@ export default function ScreenMyDay({
                   </div>
                   <div className="flex flex-col text-left">
                     <div className="flex items-center gap-2">
-                      {app.person.avatarUrl ? (
-                        <img src={app.person.avatarUrl} alt={app.person.name} className="w-6 h-6 rounded-pill object-cover" />
-                      ) : (
-                        <div className="w-6 h-6 rounded-pill bg-sherloq-primary text-white flex items-center justify-center text-[10px] font-semibold font-sans">
-                          {app.person.initials}
-                        </div>
-                      )}
+                      <div className="w-6 h-6 rounded-[6px] bg-sherloq-primary text-white flex items-center justify-center text-[10px] font-semibold font-sans">
+                        {app.person.initials}
+                      </div>
                       <span className="text-[13px] font-semibold text-text-primary">{app.person.name}</span>
                       <span className="text-[11px] text-text-muted">· {app.person.company}</span>
                     </div>
@@ -331,7 +327,7 @@ export default function ScreenMyDay({
       <div className="flex flex-col gap-3">
         <button 
           onClick={() => setExpandTasks(!expandTasks)}
-          className="w-full px-6 py-4 flex items-center justify-between bg-app-surface rounded-[14px] shadow-card hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all cursor-pointer select-none"
+          className="w-full px-6 py-4 flex items-center justify-between bg-app-surface rounded-[14px] shadow-card hover:shadow-hover transition-all cursor-pointer select-none"
         >
           <div className="flex items-center gap-2">
             <CheckCircle className="w-4.5 h-4.5 text-sherloq-primary" />
@@ -351,13 +347,9 @@ export default function ScreenMyDay({
               >
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                   <div className="flex items-start gap-3">
-                    {task.person.avatarUrl ? (
-                      <img src={task.person.avatarUrl} alt={task.person.name} className="w-8 h-8 rounded-pill object-cover flex-shrink-0 mt-0.5" />
-                    ) : (
-                      <div className="w-8 h-8 rounded-pill bg-sherloq-primary text-white flex items-center justify-center font-sans font-medium text-[11px] flex-shrink-0 mt-0.5">
-                        {task.person.initials}
-                      </div>
-                    )}
+                    <div className="w-8 h-8 rounded-[9px] bg-sherloq-primary text-white flex items-center justify-center font-sans font-medium text-[11px] flex-shrink-0 mt-0.5">
+                      {task.person.initials}
+                    </div>
                     <div className="flex flex-col text-left">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-[13px] font-semibold text-text-primary">{task.person.name}</span>
