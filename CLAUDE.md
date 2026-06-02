@@ -933,3 +933,95 @@ die Endpunkte existieren bereits, nur der MCP-Wrapper kommt dazu.
 
 *"Könnte ein externer MCP Client diese Funktion aufrufen?"*
 Wenn ja → muss als Edge Function gebaut werden, nicht als Frontend-Logik.
+
+---
+
+## AI SDR Automation — Vollautomatischer Outreach (Pflichtregeln)
+
+Das System wird schrittweise zu einem vollautomatischen AI SDR ausgebaut.
+Ziel: AI findet Leads, schreibt sie an, verarbeitet Antworten, bucht Termine.
+Jede Funktion die heute gebaut wird muss diese Zukunft ermöglichen.
+
+### Sending Layer — provider-agnostisch bauen
+
+Welcher externe Provider für LinkedIn, Email oder Kalender verwendet wird
+ist noch nicht entschieden. Der Code darf NIEMALS an einen spezifischen
+Provider gekoppelt sein. Alles läuft über eine abstrakte Sending-Schicht.
+
+Jede ausgehende Nachricht speichert:
+
+```
+sending_channel     TEXT  -- linkedin_dm | linkedin_connection | email | whatsapp | sms
+sending_provider    TEXT  -- unipile | gmail_api | outlook_api | calendly | tbd
+external_message_id TEXT  -- ID beim Provider für Status-Tracking
+delivery_status     TEXT  -- queued | sent | delivered | read | failed | bounced
+sent_at             TIMESTAMPTZ
+delivered_at        TIMESTAMPTZ
+read_at             TIMESTAMPTZ
+```
+
+Neuen Provider einbinden = nur eine neue Provider-Klasse schreiben.
+Keine Änderung an Datenbank oder Business-Logic nötig.
+
+### Antwort-Verarbeitung — Intent Detection
+
+Jede eingehende Nachricht wird von AI klassifiziert.
+Folgende Felder müssen in der communications Tabelle vorhanden sein:
+
+```
+intent_detected     TEXT  -- interested | not_interested | question |
+                          --  meeting_request | objection | out_of_office | unclear
+intent_confidence   NUMERIC  -- 0-100, wie sicher ist die AI
+auto_reply_sent     BOOLEAN DEFAULT false
+auto_reply_content  TEXT
+requires_human      BOOLEAN DEFAULT false  -- AI unsicher → Mensch muss eingreifen
+human_reviewed_at   TIMESTAMPTZ
+human_reviewed_by   UUID REFERENCES users(id)
+```
+
+Regel: Wenn intent_confidence < 70 → requires_human = true
+→ erscheint sofort in Mein Tag Zone 2 als Priorität
+→ User entscheidet → AI lernt aus der Entscheidung
+
+### AI SDR Flow — vollständige Pipeline
+
+Der Flow läuft vollständig durch die bestehende Sequenz-Infrastruktur.
+Keine separate SDR-Tabelle nötig — alles über sequences + communications.
+
+```
+Signal erkannt → Lead angelegt (source = ai_automated)
+→ Sequenz startet automatisch (execution_mode = full_auto wenn eingestellt)
+→ Nachricht gesendet → delivery_status getrackt
+→ Antwort eingehend → intent_detected
+→ interested → nächster Sequenz-Schritt oder Kalender-Link
+→ meeting_request → Kalender-Integration schickt Buchungslink
+→ not_interested → Sequenz pausiert, Lead archiviert
+→ unclear → requires_human = true → Mein Tag Priorität
+```
+
+### Kalender-Integration — provider-agnostisch
+
+Welches Kalender-Tool verwendet wird ist offen (Calendly, Cal.com, Google Calendar direkt).
+Abstrakt speichern:
+
+```
+booking_provider    TEXT  -- calendly | cal_com | google_calendar | tbd
+booking_link        TEXT  -- der Link der verschickt wird
+booking_status      TEXT  -- link_sent | booked | cancelled | rescheduled
+booked_at           TIMESTAMPTZ
+meeting_id          UUID REFERENCES pipeline_deals(id)
+```
+
+### Eskalation zum Menschen — immer möglich
+
+Auch bei full_auto gibt es immer einen Weg zum Menschen:
+- requires_human = true → sofort in Mein Tag
+- User kann jede automatische Konversation jederzeit übernehmen
+- Übernahme wird geloggt: human_takeover_at, human_takeover_by
+- Nach Übernahme läuft Sequenz nicht mehr automatisch weiter
+
+### Prüffrage vor jeder neuen Sending-Funktion
+
+*"Würde das auch funktionieren wenn wir morgen den Provider wechseln?"*
+Wenn nein → Abstraktion fehlt. Provider-spezifischen Code in eigene
+Klasse/Funktion auslagern, nie direkt in Business-Logic.
