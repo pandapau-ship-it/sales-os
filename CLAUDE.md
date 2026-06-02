@@ -875,7 +875,7 @@ Diese Keys müssen beim DB-Setup in `system_config` eingefügt werden:
 **Allgemein:**
 | Key | Standard | Bedeutung |
 |-----|----------|-----------|
-| `automation_sequenz_execution` | `manual` | Sequenz-Steps ausführen |
+| `automation_sequenz_execution` | `manual` | Globaler Fallback für Sequenz-Steps — wird pro Regel von `sequence_rules.execution_mode` überschrieben |
 | `automation_outreach_linkedin` | `manual` | LinkedIn-Nachrichten senden |
 | `automation_outreach_email` | `manual` | Emails senden |
 
@@ -939,6 +939,7 @@ die Endpunkte existieren bereits, nur der MCP-Wrapper kommt dazu.
 
 ### Supabase Edge Functions die von Anfang an so gebaut werden
 
+**Read / Query:**
 | Function | Output |
 |----------|--------|
 | `get_contact_summary(contact_id)` | Kurzakte + Status + Signale |
@@ -947,6 +948,19 @@ die Endpunkte existieren bereits, nur der MCP-Wrapper kommt dazu.
 | `get_signals_today(user_id)` | Alle Signale des Tages |
 | `get_smart_list(list_id)` | Dynamische Listen-Ergebnisse |
 | `execute_action(action_type, payload)` | Universelle Aktions-Funktion |
+
+**Sequenz Engine (→ siehe Sequenz Engine Sektion):**
+| Function | Output |
+|----------|--------|
+| `process_new_lead(contact_id)` | Sequenz-Zuweisung + erster Task + AI-Entwurf |
+| `classify_intent(communication_id)` | intent_detected + Folge-Aktion |
+| `process_sequence_step(contact_sequence_id, step)` | Ausführung je nach execution_mode |
+
+**Integrationen:**
+| Function | Output |
+|----------|--------|
+| `webhook-booking` | Normalisiert Calendly/Cal.com → bookings Tabelle |
+| `webhook-crm-sync` | Normalisiert HubSpot/Salesforce → lokale Tabellen |
 
 ### Was JETZT gebaut wird — was SPÄTER kommt
 
@@ -1315,3 +1329,156 @@ export async function aiCall(options: AICallOptions): Promise<AICallResult> {
 
 *"Rufe ich den Anthropic SDK direkt auf?"*
 Wenn ja → Stopp. Durch `aiCall()` ersetzen.
+
+---
+
+## Sequenz Engine — Pflichtregeln
+
+Das System führt Outreach-Sequenzen vollautomatisch durch.
+Kein manueller Trigger nötig — alles läuft über DB Triggers,
+Edge Functions und Cron Jobs.
+
+### Was Algorithmus ist — was AI ist
+
+**ALGORITHMUS** (kein AI nötig — pure Logik):
+- Neuen Lead erkennen → DB Trigger
+- Sequenz-Regel prüfen → If-Then auf `sequence_rules` Tabelle
+- Schritt fällig prüfen → Datum-Vergleich im Cron Job
+- Delivery Status tracken → Webhook vom Provider
+- Timer starten → Cron Job
+
+**AI** (Claude via `aiCall()`):
+- Nachricht schreiben → basierend auf Kurzakte + Persönlichkeitstyp + Signal
+- Intent Detection → eingehende Antwort klassifizieren
+- Antwort generieren → bei `full_auto` + `question` / `unclear`
+- Sequenz-Vorschlag → wenn kein Regelwerk greift
+- Kurzakte fortschreiben → nach jedem Touchpoint
+
+**Faustregel:** Entscheidung braucht → AI. Datum/Regel prüft → Algorithmus.
+
+### Sequenz-Regelwerk — sequence_rules Tabelle
+
+```sql
+sequence_rules (
+  id              UUID PRIMARY KEY,
+  trigger_type    TEXT,  -- linkedin_signal | trial_expired | cold_contact |
+                         --  inbound | job_change | company_growing
+  icp_min         INTEGER,  -- Mindest-ICP Score (z.B. 50)
+  sequence_id     UUID REFERENCES sequences(id),
+  execution_mode  TEXT,  -- manual | semi_auto | full_auto
+                         -- überschreibt globalen system_config Key pro Regel
+  priority        INTEGER,  -- welche Regel gewinnt bei mehreren Matches
+  is_active       BOOLEAN DEFAULT true,
+  created_by      UUID REFERENCES users(id)
+)
+```
+
+Standard-Regeln (konfigurierbar in Settings UI):
+
+| Trigger | Sequenz | execution_mode |
+|---------|---------|----------------|
+| `linkedin_signal` + ICP ≥ 60 | Cold LinkedIn | `semi_auto` |
+| `trial_expired` | Trial Conversion | `full_auto` |
+| `cold_contact` (>60 Tage) | Reaktivierung | `semi_auto` |
+| `inbound` | Demo Follow-up | `semi_auto` |
+| ICP < 50 | KEINE Sequenz | manuell entscheiden |
+| kein Regel greift | Cold LinkedIn | `manual` |
+
+### Edge Functions — Pflicht
+
+Alle Sequenz-Logik läuft in Supabase Edge Functions.
+Kein Business-Logic im Frontend. (→ vollständige Liste in MCP-Sektion)
+
+**`process_new_lead(contact_id)`**
+→ Prüft `sequence_rules`
+→ Weist Sequenz zu (oder flaggt für manuell)
+→ Erstellt ersten Schritt als Task
+→ Ruft `aiCall()` für Nachricht-Entwurf auf
+→ Speichert in `tasks.suggested_message`
+
+**`classify_intent(communication_id)`**
+→ Liest eingehende Antwort
+→ Ruft `aiCall()` auf: `intent_detected` + `intent_confidence`
+→ Bei confidence < 70: `requires_human = true`
+→ Bei `meeting_request`: erstellt Task "Termin senden"
+→ Bei `not_interested`: pausiert Sequenz
+→ Schreibt Kurzakte fort
+
+**`process_sequence_step(contact_sequence_id, step_number)`**
+→ Prüft `execution_mode`
+→ `full_auto`: sendet direkt via Sending Layer
+→ `semi_auto`: flaggt als "wartet auf Bestätigung"
+→ `manual`: erstellt Task für User
+
+### Cron Job — täglich 07:00 Uhr
+
+Läuft zusätzlich zur bestehenden Claude Routine.
+Prüft für jeden aktiven `contact_sequence` Eintrag:
+
+1. Ist nächster Schritt heute fällig?
+   → Ja: ruft `process_sequence_step()` auf
+2. Keine Antwort seit X Tagen?
+   → X aus `system_config: followup_auto_days`
+   → Status → `follow_up_needed`
+3. Sequenz abgeschlossen ohne Response?
+   → `status = 'completed_no_response'`
+   → User-Notification in Mein Tag
+
+### Kontext für AI Calls — immer vollständig
+
+Jeder `aiCall()` für Outreach bekommt diesen Kontext:
+
+```typescript
+const context = {
+  // Kontakt
+  kurzakte:             contact.kurzakte,
+  persoenlichkeitstyp:  contact.personality_type,
+  letzteKommunikationen: last3Communications,
+  bevorzugterKanal:     preferredChannel,
+
+  // Signal
+  ausloesesSignal:      lead.source_signal,  // z.B. "Hat auf LinkedIn Post kommentiert"
+
+  // Sequenz
+  sequenzSchritt:       currentStep,
+  vorherigeNachrichten: previousMessages,
+
+  // Company
+  unternehmensanalyse:  company.unternehmensanalyse,
+  branche:              company.industry,
+  icpScore:             contact.icp_score,
+}
+```
+
+Ohne vollständigen Kontext KEIN AI Call ausführen.
+Fehlende Felder → Fallback-Text verwenden, nicht halluzinieren.
+
+### Was im AI SDR Screen erscheint
+
+AI SDR Screen zeigt NUR:
+- `full_auto` Leads (AI arbeitet selbst)
+- `semi_auto` Leads (AI hat vorbereitet, wartet auf Bestätigung)
+- `requires_human` Leads (temporär, bis User entschieden hat)
+
+`manual` Leads → Hunting Follow-ups Tab (nicht AI SDR Screen)
+Ausnahme: Manual Leads erscheinen in "Alle"-Filter wenn Aktion fällig.
+
+### Wo landen nicht zugeordnete Leads
+
+Leads ohne Sequenz-Zuweisung landen in:
+**Hunting → New Leads Tab → Filter "Ohne Sequenz"**
+
+Dort: AI schlägt Sequenz vor (basierend auf `sequence_rules`)
+User bestätigt oder weist manuell zu.
+Kein Lead darf im AI SDR Screen erscheinen ohne aktive Sequenz.
+
+### Durchgelaufene Sequenzen ohne Response
+
+```
+status = 'completed_no_response'
+→ Lead wandert in Reaktivierungs-Pool
+→ User-Notification in Mein Tag:
+   "X Leads haben nicht reagiert — reaktivieren oder archivieren?"
+→ Nie löschen — immer in DB behalten
+→ Bei neuem Sherloq-Signal → taucht automatisch wieder auf
+```
