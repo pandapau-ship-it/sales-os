@@ -4,7 +4,7 @@
 
 ---
 
-## Current Status: Design Token System vollständig ✅ → Phase 5 (Supabase + echte Daten) next
+## Current Status: Design Phase abgeschlossen ✅ → Phase 5 (Supabase + echte Daten) next
 
 ---
 
@@ -48,84 +48,117 @@
 
 #### Schritt 4 — Ordnerstruktur + Datenmigration ✅
 - [x] `src/types.ts` → Referenz-Version (HeatStatus: HOT/WARM/LUKEWARM/COLD/DEAD, vollständige Interfaces)
-- [x] `src/data.ts` → Referenz-Version (INITIAL_LEADS, INITIAL_CUSTOMERS, INITIAL_TASKS, alle 8 Exports, 518 Zeilen)
-- [x] Neue Ordnerstruktur:
-  ```
-  src/components/
-    ui/        ← shadcn Primitives
-    screens/   ← ScreenMyDay, ScreenHunting, ScreenFarming, ScreenMarketing, ScreenSherloqSystem, Jira
-    layout/    ← TopBar, Sidebar
-    shared/    ← CustomerDrawer, CommandPalette, CommunicationChain, ICPDonut
-  ```
-- [x] Alle Import-Pfade angepasst (`@/types`, `@/data`, `@/components/shared/...`)
-- [x] `import type` für alle Type-Only-Imports (verbatimModuleSyntax)
-- [x] Fehlende Lucide-Icons ersetzt: `Linkedin` → `Link2`, `Slack` → `Hash`
+- [x] `src/data.ts` → Referenz-Version (INITIAL_LEADS, INITIAL_CUSTOMERS, INITIAL_TASKS, alle 8 Exports)
+- [x] Neue Ordnerstruktur: `ui/`, `screens/`, `layout/`, `shared/`
+- [x] Alle Import-Pfade angepasst, `import type` für alle Type-Only-Imports
 
-#### Schritt 5 — TopBar neu gebaut ✅
-- [x] 56px sticky, transparent (kein weißer Hintergrund), z-30
-- [x] Links: Teal-Kreis "S" + "Sherloq" semibold 14px + "SALES OS" 10px uppercase mono
-- [x] Mitte (absolut zentriert): Pill-Container mit shadow-nav, 3 Tabs — Mein Tag (Sun) · Hunting (Target) · Farming (Sprout)
-- [x] Rechts: "Suchen..." ⌘K Pill (180px) + Avatar "OS" (32px, teal rund)
-- [x] Aktiver Tab: `var(--sherloq-primary)` + weiß · Inaktiv: `var(--text-body)` + hover
-- [x] TypeScript: 0 Errors ✓
-
-#### App.tsx ✅
-- [x] Vollständige State-Verwaltung: leads, customers, tasks, priorities, alerts, appointments, marketingIdeas
-- [x] Progressive Disclosure Drawer (Level 3): CustomerDrawer
-- [x] CommandPalette via `onOpenCommandPalette` Prop
-- [x] Settings Modal
-
----
+#### Schritt 5 — TopBar + App.tsx ✅
+- [x] 56px sticky TopBar, absolut zentrierte Nav, ⌘K Pill, Avatar
+- [x] App.tsx: vollständige State-Verwaltung, CustomerDrawer, CommandPalette
 
 #### Schritt 6 — Token-Migration aller Komponenten ✅
-- [x] Alle hardcodierten Hex-Werte in `screens/` und `shared/` durch Design Tokens ersetzt:
-  - Brand: `bg-sherloq-primary`, `text-sherloq-primary`, `var(--sherloq-gradient)`
-  - Surface: `bg-app-bg`, `bg-app-surface`
-  - Text: `text-text-primary`, `text-text-body`, `text-text-muted`
-  - Border: `border-border`, `border-sherloq-primary`
-  - Signal: `text-signal-urgent/success/info/cold`, `bg-[var(--signal-*-bg)]`
-  - Radius: `rounded-pill` (war `rounded-full`), `rounded-card` (war `rounded-xl/2xl`)
-  - Shadow: `shadow-card` (war `shadow-lg/md`)
-- [x] `CLAUDE.md` aktualisiert mit neuem Tech Stack, Design System Regeln, Ordnerstruktur
+- [x] Alle hardcodierten Hex-Werte → Design Tokens
 - [x] TypeScript: 0 Errors ✓
 
 ---
 
-## Nächste Schritte — Phase 5
+### Session 5 — 2026-06 — Design Cleanup, shadcn/ui Migration, Architecture Docs
 
-### Supabase Setup
+#### Design Konsistenz ✅
+- [x] Nav-Radius-Inkonsistenz behoben: TopBar 14px + Sub-Nav pill → überall `rounded-[12px]`/`rounded-[9px]`
+- [x] Alle Borders normiert (Top-Nav kein Border, Cards ja — in CLAUDE.md als Invariant)
+- [x] Sidebar bereinigt: `rounded-[16px]`, `shadow-card`, kein duplizierter Search/Avatar
+- [x] Sliding Pill Animation in TopNav (`useRef`-basiertes Slider-Element)
+
+#### Vollständige Farb-Zentralisierung ✅
+- [x] `src/lib/heatUtils.ts` — neue Shared-Utility, `getHeatColor()` einmalig definiert
+- [x] Alle 48× hardcodierten `#ADB5BD` → `var(--icon-muted)` Token
+- [x] Neue Tokens in `index.css`: `--signal-warm-bg/text`, `--sherloq-dark`, `--border-subtle`,
+  `--icon-muted`, `--selection-bg`, `--accent-teal`, Personality Colors, Channel Colors, ICP Colors
+- [x] `ChannelIcon.tsx`, `EngagementChain.tsx` — channel keys uppercase (EMAIL/PHONE/MEETING etc.)
+- [x] `HeatDot.tsx` — keys auf HOT/WARM/LUKEWARM/COLD/DEAD korrigiert
+- [x] `PersonalityBadge.tsx` — `PersonalityType` lokal definiert (nicht in types.ts)
+- [x] Heat-Badge Pattern: CSS `●` Dot statt Emoji, `getHeatColor()` überall
+- [x] Status-Badges in ScreenFarming: Emoji-Icons (✅✖️🆕⌛) → Lucide (`CheckCircle2`, `XCircle`, `Zap`, `Clock`)
+
+#### shadcn/ui Migration ✅
+- [x] `@radix-ui/react-select` + `@radix-ui/react-dropdown-menu` installiert
+- [x] `src/components/ui/select.tsx` — neues shadcn Select (Design Tokens angepasst)
+- [x] `src/components/ui/dropdown-menu.tsx` — neues shadcn DropdownMenu
+- [x] `src/components/ui/sheet.tsx` — Overlay angepasst, `drawer`-Variante hinzugefügt
+- [x] `src/components/ui/dialog.tsx` — Overlay + Content auf Design Tokens
+- [x] `src/components/ui/tooltip.tsx` — auf Design Tokens angepasst
+- [x] `CustomerDrawer` → `<Sheet side="drawer">` migriert (Radix: Overlay, Escape, Focus-Trap)
+- [x] Quick Lead Modal in ScreenHunting → `<Dialog>` migriert
+- [x] Sidebar Tooltips → shadcn `<Tooltip>` migriert
+- [x] Heat-Level `<select>` → shadcn `<Select>` mit farbigen CSS-Dots
+
+#### Build-Fixes (Vercel) ✅
+- [x] Alle TS6133/TS6196/TS2305/TS2339/TS2561 Fehler behoben
+- [x] Alle ungenutzten `import React` entfernt (React 19 JSX Transform)
+- [x] Alle ungenutzten Icon-Imports entfernt
+- [x] Tote `getChannelIcon()` Funktionen in ScreenHunting + ScreenFarming entfernt
+- [x] Build: 0 Fehler, 1833 Module ✓
+
+#### CLAUDE.md Architecture Docs ✅
+- [x] Session Protocol + Pflicht-Prüffrage (shadcn vor jeder interaktiven Komponente)
+- [x] Design Invariants: Radius-Hierarchie, Border-Hierarchie, Heat-Badge Muster, Nav-Muster, Badge/Icon-Regel (nie Emoji)
+- [x] AI SDR Automation: Sending Layer, Intent Detection, Eskalation
+- [x] Modularer Aufbau: `user_modules` Tabelle, `useModules()` Hook, Modul-Abhängigkeiten
+- [x] CRM Sync & Kalender-Integration: provider-agnostisch, Booking-Flow, Webhooks
+- [x] Granulare Automation-Settings: 15 `system_config` Keys pro Funktion (AI SDR / Hunting / Farming)
+- [x] AI Call Abstraktion: `aiCall()` Wrapper, Langfuse-Vorbereitung, Modell-Wahl-Tabelle
+- [x] Sequenz Engine: Algorithmus vs AI Trennung, `sequence_rules` Schema, 3 Edge Functions, Cron Job
+
+---
+
+## Nächste Schritte — Phase 5: Supabase Setup
+
+### Priorität 1 — Datenbank
 - [ ] Supabase Projekt erstellen
-- [ ] Schema SQL ausführen (alle Tabellen aus Briefing)
-- [ ] RLS Policies einrichten
+- [ ] Schema SQL ausführen (alle Tabellen: workspaces, users, contacts, companies, pipeline_deals, communications, tasks, sequences, sequence_rules, kurzakte_entries, user_modules, ai_usage, system_config, audit_log)
+- [ ] RLS Policies einrichten (`assigned_to = auth.uid()` + `workspace_id`)
 - [ ] Supabase Auth konfigurieren (Email + Passwort)
-- [ ] `system_config` Seed-Daten
+- [ ] `system_config` Seed-Daten (alle automation_* Keys, heat_status_config, followup_auto_days)
 - [ ] TypeScript Types generieren: `supabase gen types typescript`
 
-### Vercel Deployment
-- [ ] vercel.com/new → Import von GitHub `pandapau-ship-it/sales-os`
-- [ ] Environment Variables setzen (Supabase URL + Key)
-- [ ] Auto-Deploy testen
+### Priorität 2 — Frontend verbinden
+- [ ] Supabase Client (`src/lib/supabase.ts`)
+- [ ] `src/lib/ai.ts` — `aiCall()` Wrapper implementieren
+- [ ] Mock-Daten (`data.ts`) durch echte Supabase-Queries ersetzen
+- [ ] `useModules()` Hook implementieren
 
-### Realtime & Webhooks (bereits in CLAUDE.md dokumentiert)
-- [ ] 8 Webhook-Endpunkte als Vercel API Routes implementieren
-- [ ] Supabase Realtime aktivieren für alle relevanten Tabellen
-- [ ] Frontend Subscriptions in betroffenen Komponenten
+### Priorität 3 — Realtime & Webhooks
+- [ ] 8 Webhook-Endpunkte als Vercel API Routes
+- [ ] Supabase Realtime für alle relevanten Tabellen aktivieren
+- [ ] Frontend Subscriptions in Kacheln, Drawer, Mein Tag
+
+### Später
+- [ ] Sequenz Engine: `process_new_lead`, `classify_intent`, `process_sequence_step` Edge Functions
+- [ ] Langfuse Integration (in `aiCall()` — ein-Datei-Change)
+- [ ] CRM Sync (HubSpot / Salesforce)
+- [ ] Kalender-Integration (Calendly / Cal.com)
+- [ ] `/docs/` Ordner — nach Design-Finalisierung
 
 ---
 
 ## Tech Stack (aktuell)
-- React 19 + Vite + TypeScript
-- Tailwind CSS v4 (`@tailwindcss/vite`)
-- shadcn/ui (Primitives in `src/components/ui/`)
+- React 19 + Vite + TypeScript (strict)
+- Tailwind CSS v4 (`@tailwindcss/vite`, kein `tailwind.config.ts`)
+- shadcn/ui — alle interaktiven Komponenten (Dialog, Sheet, Select, Tooltip, DropdownMenu)
 - Design Tokens: `src/index.css` CSS Variables + `@theme inline`
 - `@` Alias → `src/`
+- Vercel: Auto-Deploy auf Push zu `main`
 
-## Design System Regeln (aktiv)
+## Design System — aktive Regeln
 - **Niemals Hex-Werte direkt** — immer CSS Variables oder Tailwind-Tokens
-- Globale Klassen: `.sherloq-card`, `.sherloq-pill`, `.sherloq-btn-primary`, `.sherloq-btn-secondary`, `.pill-urgent` etc.
+- **Niemals Emoji in Badges** — immer Lucide-Icons
+- **Niemals interaktive Komponente selbst bauen** — shadcn Primitiv aus `src/components/ui/`
+- Radius-Hierarchie: Drawer 16px · Cards 12px · Buttons 10px · Badges 7px
+- `getHeatColor()` aus `src/lib/heatUtils.ts` — nie duplizieren
 - `cn()` aus `src/lib/utils.ts` für alle Klassen-Kombinationen
-- Eine Farbe ändern = in `index.css :root` ändern = überall geändert
 
 ## GitHub
 - Repo: `pandapau-ship-it/sales-os`
 - Branch: `main`
+- Vercel: Auto-Deploy aktiv
