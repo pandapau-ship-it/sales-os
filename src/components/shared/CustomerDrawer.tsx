@@ -5,6 +5,11 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import {
+  Sheet,
+  SheetContent,
+  SheetClose,
+} from "@/components/ui/sheet";
+import {
   X,
   Mail,
   Link2,
@@ -65,31 +70,31 @@ export default function CustomerDrawer({
     }
   }, [initialExpandedCommId]);
 
-  if (!person) return null;
-
-  const isCustomer = "sherloqStatus" in person;
+  // Sheet is always mounted; open state derived from person prop
+  const isOpen = person !== null;
+  const isCustomer = person ? "sherloqStatus" in person : false;
   const castedCustomer = person as Customer;
   const lead = person as Lead;
 
   // getHeatColor imported from @/lib/heatUtils — single source of truth
-
-  const heatStatusStr = person.heatStatus || "COLD";
+  const heatStatusStr = person?.heatStatus || "COLD";
   const heatSettings = getHeatColor(heatStatusStr);
 
   return (
-    <div className="fixed inset-0 bg-[#495057]/20 backdrop-blur-sm z-50 flex justify-end font-sans transition-opacity animate-fade-in pr-2 py-2">
-      <div
-        className="w-full max-w-[850px] h-full bg-[#F4F5F7] shadow-2xl flex flex-col relative overflow-hidden animate-slide-left rounded-[16px]"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Close Button floating top right */}
-        <button
-          onClick={onClose}
-          className="absolute top-6 right-6 w-9 h-9 bg-app-surface border border-border rounded-pill hover:bg-gray-50 flex items-center justify-center text-text-muted hover:text-text-primary cursor-pointer transition-all z-20 shadow-sm"
-        >
-          <X className="w-4 h-4" />
-        </button>
+    // Sheet handles overlay, backdrop-blur, animation, Escape key, and focus-trap
+    <Sheet open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
+      <SheetContent side="drawer" className="flex flex-col font-sans overflow-hidden p-0">
+        {/* Close Button — SheetClose wires Radix dismiss logic to our styled button */}
+        <SheetClose asChild>
+          <button
+            className="absolute top-6 right-6 w-9 h-9 bg-app-surface border border-border rounded-pill hover:bg-gray-50 flex items-center justify-center text-text-muted hover:text-text-primary cursor-pointer transition-all z-20 shadow-sm"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </SheetClose>
 
+        {/* Guard: only render content when person data is available */}
+        {person && (
         <div className="flex-1 overflow-y-auto w-full custom-scrollbar">
           <div className="p-8 pb-12 w-full mx-auto flex flex-col gap-6">
             {/* Header Area */}
@@ -724,7 +729,8 @@ export default function CustomerDrawer({
             </div>
           </div>
         </div>
-      </div>
-    </div>
+        )}
+      </SheetContent>
+    </Sheet>
   );
 }

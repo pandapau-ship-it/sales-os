@@ -46,6 +46,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { ICPDonut } from '@/components/shared/ICPDonut';
 import CommunicationChain from '@/components/shared/CommunicationChain';
 
@@ -655,17 +662,44 @@ export default function ScreenHunting({
 
             <div>
               <label className="text-[11px] text-text-muted font-semibold block mb-1">Lead Heat-Level</label>
-              <select
-                value={newLeadHeat}
-                onChange={(e) => setNewLeadHeat(e.target.value as HeatStatus)}
-                className="w-full text-[12px] font-sans px-3.5 py-2.5 bg-app-bg border border-border focus:border-sherloq-primary rounded-[10px] focus:outline-none"
-              >
-                <option value="HOT">● Aktiv</option>
-                <option value="WARM">● Stabil</option>
-                <option value="LUKEWARM">● Rückläufig</option>
-                <option value="COLD">● Ruhend</option>
-                <option value="DEAD">● Inaktiv</option>
-              </select>
+              {/* shadcn Select — keyboard, a11y, and focus-trap built in */}
+              <Select value={newLeadHeat} onValueChange={(v) => setNewLeadHeat(v as HeatStatus)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="HOT">
+                    <span className="flex items-center gap-2">
+                      <span style={{ color: 'var(--signal-success-text)', fontSize: 8, lineHeight: 1 }}>●</span>
+                      Aktiv
+                    </span>
+                  </SelectItem>
+                  <SelectItem value="WARM">
+                    <span className="flex items-center gap-2">
+                      <span style={{ color: 'var(--signal-warm-text)', fontSize: 8, lineHeight: 1 }}>●</span>
+                      Stabil
+                    </span>
+                  </SelectItem>
+                  <SelectItem value="LUKEWARM">
+                    <span className="flex items-center gap-2">
+                      <span style={{ color: 'var(--signal-warn-text)', fontSize: 8, lineHeight: 1 }}>●</span>
+                      Rückläufig
+                    </span>
+                  </SelectItem>
+                  <SelectItem value="COLD">
+                    <span className="flex items-center gap-2">
+                      <span style={{ color: 'var(--signal-cold-text)', fontSize: 8, lineHeight: 1 }}>●</span>
+                      Ruhend
+                    </span>
+                  </SelectItem>
+                  <SelectItem value="DEAD">
+                    <span className="flex items-center gap-2">
+                      <span style={{ color: 'var(--text-muted)', fontSize: 8, lineHeight: 1 }}>●</span>
+                      Inaktiv
+                    </span>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="flex justify-end gap-2.5 mt-2">
