@@ -2,8 +2,10 @@
  * TopBar — primary navigation bar, 56px sticky header.
  * Follows migration spec: logo left, pill nav center (absolute), search + avatar right.
  * All values use design tokens — no hardcoded hex.
+ * Sliding pill: single absolutely-positioned div that glides between tabs via offsetLeft measurement.
  */
 
+import { useRef, useEffect, useState } from "react";
 import {
   Sun,
   Target,
@@ -27,6 +29,18 @@ export default function TopBar({
   setActiveTab,
   onOpenCommandPalette,
 }: TopBarProps) {
+  // Track button DOM nodes so we can read offsetLeft + offsetWidth for the slider
+  const buttonRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const [slider, setSlider] = useState({ left: 0, width: 0, ready: false });
+
+  useEffect(() => {
+    const activeIndex = NAV_ITEMS.findIndex((item) => item.id === activeTab);
+    const btn = buttonRefs.current[activeIndex];
+    if (btn) {
+      setSlider({ left: btn.offsetLeft, width: btn.offsetWidth, ready: true });
+    }
+  }, [activeTab]);
+
   return (
     <header
       style={{
@@ -73,21 +87,41 @@ export default function TopBar({
           background: "var(--surface)",
           borderRadius: 12,
           padding: "3px",
+          position: "relative",
         }}
         className="absolute left-1/2 -translate-x-1/2 flex items-center gap-0.5"
       >
-        {NAV_ITEMS.map((item) => {
+        {/* Sliding background pill — moves to the active tab */}
+        {slider.ready && (
+          <div
+            style={{
+              position: "absolute",
+              top: 3,
+              bottom: 3,
+              left: slider.left,
+              width: slider.width,
+              background: "var(--sherloq-primary)",
+              borderRadius: 9,
+              transition: "left 220ms cubic-bezier(0.4, 0, 0.2, 1), width 220ms cubic-bezier(0.4, 0, 0.2, 1)",
+              pointerEvents: "none",
+            }}
+          />
+        )}
+
+        {NAV_ITEMS.map((item, index) => {
           const isActive = activeTab === item.id;
           return (
             <button
               key={item.id}
+              ref={(el) => { buttonRefs.current[index] = el; }}
               onClick={() => setActiveTab(item.id)}
-              style={
-                isActive
-                  ? { background: "var(--sherloq-primary)", color: "white", borderRadius: 10 }
-                  : { color: "var(--text-body)", borderRadius: 10 }
-              }
-              className={`flex items-center gap-2 px-4 py-1.5 text-[12px] font-medium transition-all duration-150 cursor-pointer${
+              style={{
+                color: isActive ? "white" : "var(--text-body)",
+                borderRadius: 9,
+                position: "relative", // sits above the slider
+                zIndex: 1,
+              }}
+              className={`flex items-center gap-2 px-4 py-1.5 text-[12px] font-medium cursor-pointer transition-colors duration-150${
                 !isActive ? " hover:bg-[var(--app-bg)]" : ""
               }`}
             >
