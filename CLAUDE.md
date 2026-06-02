@@ -840,21 +840,52 @@ Kein Task, keine Outreach, kein Sequenz-Step darf ohne diese 5 Felder gebaut wer
 | `semi_auto` | AI bereitet vollständig vor, User sieht es und bestätigt mit einem Klick |
 | `full_auto` | AI führt direkt aus, kein User-Eingriff, wird nur geloggt |
 
-### User-Settings — in system_config von Anfang an anlegen
+### User-Settings — granular pro Funktion, immer vom User steuerbar
+
+**Kernprinzip: Der User entscheidet pro Funktion ob Human-in-the-Loop oder vollautomatisch.**
+Das gilt für jede einzelne Outreach-Funktion — kein globaler An/Aus-Schalter.
+Einstellbar über die Settings-UI (nicht nur per AI Chat).
 
 Diese Keys müssen beim DB-Setup in `system_config` eingefügt werden:
 
-| Key | Standard |
-|-----|----------|
-| `automation_sequenz_execution` | `manual` |
-| `automation_outreach_linkedin` | `manual` |
-| `automation_outreach_email` | `manual` |
-| `automation_follow_up` | `semi_auto` |
-| `automation_task_creation` | `semi_auto` |
+**AI SDR (automatische Lead-Akquise):**
+| Key | Standard | Bedeutung |
+|-----|----------|-----------|
+| `automation_ai_sdr_lead_creation` | `semi_auto` | AI findet Lead → User bestätigt |
+| `automation_ai_sdr_first_contact` | `manual` | Erstkontakt immer vom User freigegeben |
+| `automation_ai_sdr_followup` | `semi_auto` | Follow-up vorbereitet, User bestätigt |
+| `automation_ai_sdr_booking_link` | `semi_auto` | Buchungslink senden nach meeting_request |
 
-Der User kann diese Werte später per AI Chat ändern:
-- "Stelle LinkedIn Outreach auf semi_auto"
-- "Aktiviere vollautomatische Follow-ups"
+**Hunting (Pipeline & Outreach):**
+| Key | Standard | Bedeutung |
+|-----|----------|-----------|
+| `automation_hunting_cold_outreach` | `manual` | Kaltakquise immer manuell freigeben |
+| `automation_hunting_followup` | `semi_auto` | Follow-up zu bestehenden Leads |
+| `automation_hunting_stage_push` | `manual` | Stage-Änderung immer manuell |
+| `automation_hunting_task_creation` | `semi_auto` | Tasks werden vorbereitet, User bestätigt |
+
+**Farming (Kundenpflege & Expansion):**
+| Key | Standard | Bedeutung |
+|-----|----------|-----------|
+| `automation_farming_next_stage` | `manual` | "Next Stage bringen" immer manuell |
+| `automation_farming_upsell_outreach` | `semi_auto` | Upsell-Nachricht vorbereiten, User bestätigt |
+| `automation_farming_churn_alert` | `semi_auto` | Churn-Warnung + empfohlene Aktion |
+| `automation_farming_renewal` | `manual` | Renewal-Outreach immer manuell |
+
+**Allgemein:**
+| Key | Standard | Bedeutung |
+|-----|----------|-----------|
+| `automation_sequenz_execution` | `manual` | Sequenz-Steps ausführen |
+| `automation_outreach_linkedin` | `manual` | LinkedIn-Nachrichten senden |
+| `automation_outreach_email` | `manual` | Emails senden |
+
+Default ist immer `manual` — User muss aktiv auf `semi_auto` oder `full_auto` hochstufen.
+Kein Feature startet automatisch ohne dass der User das explizit eingestellt hat.
+
+Der User kann Werte über die Settings-UI oder per AI Chat ändern:
+- "Stelle AI SDR Follow-ups auf vollautomatisch"
+- "Hunting: Kaltakquise soll ich immer selbst freigeben"
+- "Farming: Next Stage Vorschläge sollen automatisch kommen aber ich bestätige"
 
 ### Was JETZT gebaut wird — was SPÄTER kommt
 
