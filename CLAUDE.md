@@ -1200,3 +1200,118 @@ POST /functions/v1/webhook-crm-sync
 *"Würde das auch funktionieren wenn wir HubSpot durch Salesforce ersetzen — oder Calendly durch Cal.com?"*
 Wenn nein → Abstraktion fehlt. Provider-Logik in eigene
 Klasse auslagern, nie direkt in Business-Logic.
+
+---
+
+## AI Call Abstraktion — Pflichtregeln (nie weglassen)
+
+### Grundregel — kein direkter API-Aufruf außerhalb von lib/ai.ts
+
+Kein Code im gesamten Projekt darf den Anthropic SDK oder andere AI Provider
+direkt aufrufen. Ausnahmslos.
+
+Alle AI-Calls laufen über eine zentrale Funktion:
+
+```
+src/lib/ai.ts          → aiCall()   (Frontend: Chat-Interpretation)
+supabase/functions/    → aiCall()   (Edge Functions: Routinen, Kurzakte, Intent Detection)
+```
+
+Jede Komponente, jede Route, jede Claude Routine ruft
+ausschließlich `aiCall()` auf — nie den Provider direkt.
+
+### Warum
+
+Langfuse wird später als Observability-Layer eingebaut.
+Langfuse trackt: welche Prompts, welche Antworten, Kosten pro Call,
+Latenz, Fehler, User-Sessions.
+
+Wenn alle Calls über `aiCall()` laufen, ist die Langfuse-Integration
+eine Änderung an **einer einzigen Datei**.
+Kein Umbau, kein Suchen im Code, kein Risiko.
+
+Zusätzlich: `aiCall()` schreibt automatisch in die `ai_usage` Tabelle
+(`workspace_id + tokens_used`) — siehe **SaaS-Readiness** weiter oben.
+Eine Zeile an einer Stelle statt in jedem einzelnen Call-Kontext.
+
+### Aufbau lib/ai.ts
+
+```typescript
+// All AI provider calls go through here — never call Anthropic SDK directly.
+// Single choke-point: add Langfuse / cost tracking / retry logic once, everywhere.
+
+import Anthropic from '@anthropic-ai/sdk'
+
+export interface AICallOptions {
+  model?:     'claude-haiku-4-5' | 'claude-sonnet-4-5' | 'claude-opus-4-5'
+  system?:    string
+  messages:   Array<{ role: 'user' | 'assistant'; content: string }>
+  maxTokens?: number
+  // Langfuse tracing metadata — prepared, not yet active
+  trace?: {
+    name:         string   // e.g. 'chat-interpret' | 'kurzakte-update' | 'intent-detect'
+    userId?:      string
+    workspaceId?: string
+    sessionId?:   string
+    metadata?:    Record<string, unknown>
+  }
+}
+
+export interface AICallResult {
+  content:      string
+  inputTokens:  number
+  outputTokens: number
+  model:        string
+  durationMs:   number
+}
+
+export async function aiCall(options: AICallOptions): Promise<AICallResult> {
+  const start  = Date.now()
+  const client = new Anthropic()
+
+  const response = await client.messages.create({
+    model:      options.model     ?? 'claude-haiku-4-5',
+    max_tokens: options.maxTokens ?? 1024,
+    system:     options.system,
+    messages:   options.messages,
+  })
+
+  const durationMs = Date.now() - start
+  const content    = response.content[0].type === 'text' ? response.content[0].text : ''
+
+  // ── Langfuse trace (one-line change when ready) ────────────────────────
+  // await langfuse.generation({ ...options.trace, input, output, usage, durationMs })
+
+  // ── ai_usage tracking (workspace cost control — see SaaS-Readiness) ───
+  // await supabase.from('ai_usage').insert({
+  //   workspace_id: options.trace?.workspaceId,
+  //   tokens_used:  response.usage.input_tokens + response.usage.output_tokens,
+  //   model:        response.model,
+  //   call_name:    options.trace?.name,
+  // })
+
+  return {
+    content,
+    inputTokens:  response.usage.input_tokens,
+    outputTokens: response.usage.output_tokens,
+    model:        response.model,
+    durationMs,
+  }
+}
+```
+
+### Modell-Wahl — Regel
+
+| Aufgabe | Modell | Warum |
+|---------|--------|-------|
+| Chat-Interpretation (was will der User?) | `claude-haiku-4-5` | ~50-100 Token, Speed wichtiger als Tiefe |
+| Kurzakte fortschreiben | `claude-haiku-4-5` | Günstiger, ausreichend für Zusammenfassung |
+| Intent Detection (Antwort klassifizieren) | `claude-haiku-4-5` | Schnell, günstig, hohe Treffsicherheit |
+| Personalisierte Mail generieren | `claude-sonnet-4-5` | Qualität sichtbar für den User |
+| Komplexe Analyse / Forecast | `claude-sonnet-4-5` | Wenn Qualität wichtiger als Kosten |
+| Niemals für Routine-Calls | `claude-opus-4-5` | Zu teuer für automatisierte Tasks |
+
+### Prüffrage vor jedem neuen AI-Feature
+
+*"Rufe ich den Anthropic SDK direkt auf?"*
+Wenn ja → Stopp. Durch `aiCall()` ersetzen.
