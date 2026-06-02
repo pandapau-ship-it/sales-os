@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
-import { Megaphone, Sparkles, Send, Link2, FileText, CheckCircle, ArrowRight, RefreshCw } from 'lucide-react';
+import { useState } from 'react';
+import { Megaphone, Sparkles, Link2, FileText, ArrowRight } from 'lucide-react';
 import type { LinkedInPostIdea } from '@/types';
 
 interface ScreenMarketingProps {
@@ -14,7 +14,7 @@ interface ScreenMarketingProps {
 
 export default function ScreenMarketing({
   ideas,
-  onPublishPost
+  onPublishPost: _onPublishPost
 }: ScreenMarketingProps) {
   const [subTab, setSubTab] = useState<'posts' | 'campaigns'>('posts');
   const [activeIdeaId, setActiveIdeaId] = useState<string | null>('idea-1');

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 interface TooltipData {
   channel: string;
@@ -80,8 +80,7 @@ function generateChainForPerson(id: string): Touchpoint[] {
     const type = channelTypes[typeIdx];
     
     // allow repeats
-    const nextTypeIdx = Math.floor(random() * channelTypes.length);
-    const finalType = (random() > 0.8 && i > 0) ? chain[i-1].type : type; 
+    const finalType = (random() > 0.8 && i > 0) ? chain[i-1].type : type;
 
     // Time logic
     if (isPast) {

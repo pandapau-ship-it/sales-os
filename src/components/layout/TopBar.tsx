@@ -4,7 +4,6 @@
  * All values use design tokens — no hardcoded hex.
  */
 
-import React from "react";
 import {
   Sun,
   Target,

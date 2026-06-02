@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Search,
   Compass,
@@ -7,12 +7,9 @@ import {
   Sprout,
   Megaphone,
   Terminal,
-  FileText,
   CheckCircle,
-  Briefcase,
   Plus,
   ArrowRight,
-  User,
 } from "lucide-react";
 
 interface CommandPaletteProps {
@@ -25,7 +22,7 @@ interface CommandPaletteProps {
 }
 
 export default function CommandPalette({
-  activeTab,
+  activeTab: _activeTab,
   setActiveTab,
   allPeople,
   onSearchSelect,

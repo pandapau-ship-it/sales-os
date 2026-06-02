@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Sheet,
   SheetContent,
@@ -17,20 +17,13 @@ import {
   Globe,
   AlertTriangle,
   CheckCircle2,
-  Video,
-  ChevronRight,
   ChevronDown,
   ChevronUp,
   Plus,
   Activity,
   Bookmark,
 } from "lucide-react";
-import type {
-  Lead,
-  Customer,
-  CommunicationChannel,
-  EngagementTouchpoint,
-} from "@/types";
+import type { Lead, Customer } from "@/types";
 import { getHeatColor } from "@/lib/heatUtils";
 
 interface CustomerDrawerProps {
@@ -219,7 +212,7 @@ export default function CustomerDrawer({
                           PROBABILITY
                         </span>
                         <span className="text-[13px] font-bold text-text-primary">
-                          {lead.pipelineProgress || 60}%
+                          60%
                         </span>
                       </div>
                       <div className="flex flex-col gap-1.5">

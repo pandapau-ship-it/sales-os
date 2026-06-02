@@ -3,8 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React from 'react';
-import { Compass, Users, Activity, CreditCard, Shield, Settings, Server } from 'lucide-react';
+import { Shield, Server } from 'lucide-react';
 
 export default function ScreenSherloqSystem() {
   const stats = [

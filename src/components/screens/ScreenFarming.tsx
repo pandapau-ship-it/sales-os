@@ -3,24 +3,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
-import { 
-  Sprout, 
-  Sparkles, 
-  Mail, 
-  Link2, 
-  Hash, 
-  Phone, 
-  ArrowRight, 
-  TrendingUp, 
-  Users, 
-  AlertOctagon, 
-  CheckCircle, 
-  X,
-  Lock,
+import { useState } from 'react';
+import {
+  Mail,
+  ArrowRight,
   Bookmark,
   Activity,
-  Award,
   Target,
   Trash,
   Check,
@@ -28,12 +16,10 @@ import {
   ChevronDown,
   ChevronUp,
   Zap,
-  Briefcase,
-  Video,
   CalendarCheck,
   MessageSquare
 } from 'lucide-react';
-import type { Customer, SherloqStatus, CommunicationChannel, HeatStatus } from '@/types';
+import type { Customer, SherloqStatus } from '@/types';
 import { getHeatColor } from '@/lib/heatUtils';
 import { ICPDonut } from '@/components/shared/ICPDonut';
 import CommunicationChain from '@/components/shared/CommunicationChain';
@@ -48,7 +34,7 @@ interface ScreenFarmingProps {
 export default function ScreenFarming({
   customers,
   onSelectCustomer,
-  onUpgradeSubscription,
+  onUpgradeSubscription: _onUpgradeSubscription,
   onSelectCommunication
 }: ScreenFarmingProps) {
   const [subTab, setSubTab] = useState<'overview' | 'kunden' | 'health' | 'upsell'>('kunden');
@@ -78,16 +64,6 @@ export default function ScreenFarming({
       case 'TRIAL_EXPIRED': return { bg: 'bg-[#F7FAFC]', text: 'text-[#718096] border-[#F7FAFC]', title: '⌛ Trial abgelaufen' };
       case 'CANCELLED': return { bg: 'bg-[#FFF5F5]', text: 'text-[#E53E3E] border-[#FFF5F5]', title: '✖️ Cancelled' };
       default: return { bg: 'bg-[#F7FAFC]', text: 'text-[#718096] border-[#F7FAFC]', title: 'Status' };
-    }
-  };
-
-  const getChannelIcon = (chan: CommunicationChannel) => {
-    switch (chan) {
-      case 'EMAIL': return <Mail className="w-3.5 h-3.5 text-blue-600" />;
-      case 'LINKEDIN': return <Link2 className="w-3.5 h-3.5 text-cyan-600" />;
-      case 'SLACK': return <Hash className="w-3.5 h-3.5 text-purple-600" />;
-      case 'PHONE': return <Phone className="w-3.5 h-3.5 text-emerald-600" />;
-      default: return <Award className="w-3.5 h-3.5 text-gray-500" />;
     }
   };
 

@@ -3,7 +3,7 @@
  * State lives here; screens receive only what they need via props.
  */
 
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   INITIAL_LEADS,
   INITIAL_CUSTOMERS,
@@ -61,7 +61,7 @@ export default function App() {
   const [alerts, setAlerts] = useState<AlertBannerType[]>(
     INITIAL_ALERT_BANNERS,
   );
-  const [appointments, setAppointments] =
+  const [appointments, _setAppointments] =
     useState<AppointmentItemType[]>(INITIAL_APPOINTMENTS);
   const [marketingIdeas, setMarketingIdeas] = useState<LinkedInPostIdea[]>(
     INITIAL_MARKETING_IDEAS,

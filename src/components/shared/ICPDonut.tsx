@@ -1,4 +1,3 @@
-import React from 'react';
 
 // Colors reference CSS tokens from index.css :root — never hardcode here.
 export const ICPDonut = ({ score }: { score: number }) => {

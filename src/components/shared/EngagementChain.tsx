@@ -1,23 +1,26 @@
 import { Mail, Phone, Video, MessageSquare, Link2 } from 'lucide-react'
+import type { ComponentType } from 'react'
 import type { CommunicationChannel } from '@/types'
 
-const CHANNEL_ICONS: Record<CommunicationChannel, React.ComponentType<{ size?: number; strokeWidth?: number }>> = {
-  email:    Mail,
-  call:     Phone,
-  meeting:  Video,
-  slack:    MessageSquare,
-  teams:    MessageSquare,
-  linkedin: Link2,
+const CHANNEL_ICONS: Record<CommunicationChannel, ComponentType<{ size?: number; strokeWidth?: number }>> = {
+  EMAIL:    Mail,
+  PHONE:    Phone,
+  MEETING:  Video,
+  SLACK:    MessageSquare,
+  TEAMS:    MessageSquare,
+  LINKEDIN: Link2,
+  WHATSAPP: MessageSquare,
 }
 
 // Colors reference CSS tokens from index.css :root — never hardcode here.
 const CHANNEL_COLORS: Record<CommunicationChannel, string> = {
-  email:    'var(--channel-email)',
-  call:     'var(--channel-call)',
-  meeting:  'var(--channel-meeting)',
-  slack:    'var(--channel-slack)',
-  teams:    'var(--channel-teams)',
-  linkedin: 'var(--channel-linkedin)',
+  EMAIL:    'var(--channel-email)',
+  PHONE:    'var(--channel-call)',
+  MEETING:  'var(--channel-meeting)',
+  SLACK:    'var(--channel-slack)',
+  TEAMS:    'var(--channel-teams)',
+  LINKEDIN: 'var(--channel-linkedin)',
+  WHATSAPP: 'var(--channel-slack)',
 }
 
 interface EngagementChainProps {

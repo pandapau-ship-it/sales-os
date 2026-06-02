@@ -3,42 +3,27 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
-import { 
-  Target, 
-  Sparkles, 
-  Mail, 
-  Link2, 
-  Hash, 
-  Phone, 
-  ArrowRight, 
-  MessageSquare, 
-  Compass, 
-  Flame, 
-  Cpu, 
-  Layers, 
-  CheckCircle, 
-  Activity, 
-  Lock,
+import { useState } from 'react';
+import {
+  Target,
+  Mail,
+  ArrowRight,
+  MessageSquare,
+  Flame,
   ChevronLeft,
-  ChevronRight,
-  RefreshCw,
   Plus,
-  Video,
   Briefcase,
   Zap,
   ChevronDown,
   ChevronUp,
   ArrowLeft,
   CheckCircle2,
-  GitBranch,
   AlertTriangle,
   CalendarCheck,
   Check,
   Trash,
-  X
 } from 'lucide-react';
-import type { Lead, HeatStatus, CommunicationChannel } from '@/types';
+import type { Lead, HeatStatus } from '@/types';
 import { getHeatColor } from '@/lib/heatUtils';
 import {
   Dialog,
@@ -137,17 +122,6 @@ export default function ScreenHunting({
   ];
 
   // getHeatColor imported from @/lib/heatUtils — single source of truth
-
-  const getChannelIcon = (chan: CommunicationChannel) => {
-    switch (chan) {
-      case 'EMAIL': return <Mail className="w-3.5 h-3.5 text-blue-600" />;
-      case 'LINKEDIN': return <Link2 className="w-3.5 h-3.5 text-cyan-600" />;
-      case 'SLACK': return <Hash className="w-3.5 h-3.5 text-amber-600" />;
-      case 'TEAMS': return <span className="text-[11px] font-bold text-indigo-700">T</span>;
-      case 'PHONE': return <Phone className="w-3.5 h-3.5 text-emerald-600" />;
-      default: return <MessageSquare className="w-3.5 h-3.5" />;
-    }
-  };
 
   return (
     <div className="flex flex-col gap-4 w-full animate-fade-in font-sans pb-12">

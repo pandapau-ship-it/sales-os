@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
-import { Terminal, Shield, ArrowUpRight, CheckCircle2, AlertOctagon, HelpCircle } from 'lucide-react';
+import { useState } from 'react';
+import { Terminal } from 'lucide-react';
 
 interface JiraTicket {
   id: string;

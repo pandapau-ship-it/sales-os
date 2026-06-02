@@ -1,14 +1,13 @@
 import type { HeatStatus } from '@/types'
 
 // Colors reference CSS tokens from index.css :root — never hardcode here.
-// Note: HeatDot uses legacy keys (heiss/warm/lauwarm/kalt/tot).
-// For HOT/WARM/LUKEWARM/COLD badges use getHeatColor() from @/lib/heatUtils instead.
+// Keys match the HeatStatus type: HOT | WARM | LUKEWARM | COLD | DEAD
 const HEAT_CONFIG: Record<HeatStatus, { color: string; bg: string; label: string }> = {
-  heiss:   { color: 'var(--signal-urgent-text)', bg: 'var(--signal-urgent-bg)', label: 'Heiß'     },
-  warm:    { color: 'var(--signal-warn-text)',    bg: 'var(--signal-warn-bg)',   label: 'Warm'     },
-  lauwarm: { color: 'var(--signal-info-text)',    bg: 'var(--signal-info-bg)',   label: 'Lauwarm'  },
-  kalt:    { color: 'var(--signal-cold-text)',    bg: 'var(--signal-cold-bg)',   label: 'Kalt'     },
-  tot:     { color: 'var(--text-muted)',          bg: 'var(--app-bg)',           label: 'Tot'      },
+  HOT:      { color: 'var(--signal-success-text)', bg: 'var(--signal-success-bg)', label: 'Aktiv'      },
+  WARM:     { color: 'var(--signal-warm-text)',     bg: 'var(--signal-warm-bg)',    label: 'Stabil'     },
+  LUKEWARM: { color: 'var(--signal-warn-text)',     bg: 'var(--signal-warn-bg)',    label: 'Rückläufig' },
+  COLD:     { color: 'var(--signal-cold-text)',     bg: 'var(--signal-cold-bg)',    label: 'Ruhend'     },
+  DEAD:     { color: 'var(--text-muted)',            bg: 'var(--app-bg)',            label: 'Inaktiv'    },
 }
 
 interface HeatDotProps {

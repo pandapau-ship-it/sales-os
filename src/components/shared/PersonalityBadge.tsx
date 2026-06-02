@@ -1,4 +1,5 @@
-import type { PersonalityType } from '@/types'
+// Defined locally — not in types.ts (domain-specific, frontend-only)
+type PersonalityType = 'rot' | 'gelb' | 'gruen' | 'blau'
 
 // Colors reference CSS tokens from index.css :root — never hardcode here.
 const CONFIG: Record<PersonalityType, { label: string; color: string; bg: string }> = {
