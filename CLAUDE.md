@@ -85,15 +85,36 @@ wird das Design in unser System übersetzt — nicht umgekehrt.
 | Buttons (primär) | ❌ Nein | Fill reicht |
 | Expanded-Content-Bereiche | ✅ Ja — `border-t border-[#F1F3F5]` | Trenner, kein Kasten |
 
-**Heat-Badge Muster (verbindlich für alle Screens):**
+**Badge / Status-Pill Muster (verbindlich für ALLE Screens):**
+
+NIEMALS Emojis in Badges (✅ ✖️ 🆕 ⌛ etc.) — immer Lucide-Icons.
+
 ```tsx
-// getHeatColor() gibt immer zurück: { bg, text, border, dot, label }
-// NIEMALS emoji — immer CSS dot:
-<div className={`px-2.5 py-1 rounded-[7px] text-[11px] font-medium border flex items-center gap-1.5 w-fit ${heat.bg} ${heat.text} ${heat.border}`}>
+// Jede Badge-Config gibt zurück: { bg, text, border, icon, label }
+// icon = Lucide-Komponente, nie Emoji-String
+<div className={`px-2.5 py-1 rounded-[7px] text-[11px] font-medium border flex items-center gap-1.5 w-fit ${cfg.bg} ${cfg.text} ${cfg.border}`}>
+  {cfg.icon}   {/* z.B. <CheckCircle2 className="w-3 h-3" /> */}
+  {cfg.label}
+</div>
+```
+
+Heat-Badges (HOT/WARM/LUKEWARM/COLD) verwenden `●` CSS-Dot statt Icon:
+```tsx
+<div className={`... ${heat.bg} ${heat.text} ${heat.border}`}>
   <span style={{ color: heat.dot, fontSize: 8, lineHeight: 1 }}>●</span>
   {heat.label}
 </div>
 ```
+
+**Icon-Auswahl für Status-Badges:**
+| Status | Icon | Farbe |
+|--------|------|-------|
+| Aktiv / Erfolg | `CheckCircle2` | `text-signal-success` |
+| Trial / Neu | `Zap` | `text-signal-info` |
+| Abgelaufen / Warten | `Clock` | `text-text-muted` |
+| Cancelled / Fehler | `XCircle` | `text-signal-urgent` |
+| Warnung | `AlertTriangle` | `text-signal-warn` |
+| Signal / Hot | `Flame` | orange |
 
 **Nav-Muster (verbindlich für Top-Nav UND alle Sub-Navs):**
 ```tsx

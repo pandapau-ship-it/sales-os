@@ -12,6 +12,9 @@ import {
   Target,
   Trash,
   Check,
+  CheckCircle2,
+  XCircle,
+  Clock,
   AlertTriangle,
   ChevronDown,
   ChevronUp,
@@ -57,13 +60,19 @@ export default function ScreenFarming({
     { id: 'health', label: 'Health & Churn Escalation' }
   ];
 
-  const getStatusColor = (status: SherloqStatus) => {
+  // Status badge config — Lucide icons only, never emoji. Matches Heat-Badge pattern from Design Invariants.
+  const getStatusConfig = (status: SherloqStatus) => {
     switch (status) {
-      case 'ACTIVE': return { bg: 'bg-[var(--signal-success-bg)]', text: 'text-signal-success border-[#EBFBEE]', title: '✅ Aktiv' };
-      case 'TRIAL': return { bg: 'bg-[var(--signal-info-bg)]', text: 'text-signal-info border-[#DBEAFE]', title: '🆕 Free Trial' };
-      case 'TRIAL_EXPIRED': return { bg: 'bg-[#F7FAFC]', text: 'text-[#718096] border-[#F7FAFC]', title: '⌛ Trial abgelaufen' };
-      case 'CANCELLED': return { bg: 'bg-[#FFF5F5]', text: 'text-[#E53E3E] border-[#FFF5F5]', title: '✖️ Cancelled' };
-      default: return { bg: 'bg-[#F7FAFC]', text: 'text-[#718096] border-[#F7FAFC]', title: 'Status' };
+      case 'ACTIVE':
+        return { bg: 'bg-[var(--signal-success-bg)]', text: 'text-signal-success', border: 'border-[var(--signal-success-text)]/15', icon: <CheckCircle2 className="w-3 h-3" />, label: 'Aktiv' };
+      case 'TRIAL':
+        return { bg: 'bg-[var(--signal-info-bg)]',    text: 'text-signal-info',    border: 'border-[var(--signal-info-text)]/15',    icon: <Zap className="w-3 h-3" />,          label: 'Free Trial' };
+      case 'TRIAL_EXPIRED':
+        return { bg: 'bg-app-bg',                     text: 'text-text-muted',      border: 'border-border',                          icon: <Clock className="w-3 h-3" />,        label: 'Trial abgelaufen' };
+      case 'CANCELLED':
+        return { bg: 'bg-[var(--signal-urgent-bg)]',  text: 'text-signal-urgent',  border: 'border-[var(--signal-urgent-text)]/15', icon: <XCircle className="w-3 h-3" />,      label: 'Cancelled' };
+      default:
+        return { bg: 'bg-app-bg', text: 'text-text-muted', border: 'border-border', icon: <Clock className="w-3 h-3" />, label: 'Unbekannt' };
     }
   };
 
@@ -239,8 +248,9 @@ export default function ScreenFarming({
                   <div className="hidden lg:flex items-center gap-5 px-4 border-l border-border-subtle shrink-0">
                     <div className="flex flex-col gap-1.5 w-[90px]">
                       <span className="text-[9px] font-semibold text-text-muted tracking-wider uppercase">STATUS</span>
-                      <div className={`px-2.5 py-1 rounded-[7px] text-[11px] font-medium border flex items-center gap-1.5 w-fit ${getStatusColor(cust.sherloqStatus).bg} ${getStatusColor(cust.sherloqStatus).text} whitespace-nowrap`}>
-                        {getStatusColor(cust.sherloqStatus).title}
+                      <div className={`px-2.5 py-1 rounded-[7px] text-[11px] font-medium border flex items-center gap-1.5 w-fit whitespace-nowrap ${getStatusConfig(cust.sherloqStatus).bg} ${getStatusConfig(cust.sherloqStatus).text} ${getStatusConfig(cust.sherloqStatus).border}`}>
+                        {getStatusConfig(cust.sherloqStatus).icon}
+                        {getStatusConfig(cust.sherloqStatus).label}
                       </div>
                     </div>
                     <div className="flex flex-col gap-1.5 w-[100px]">
