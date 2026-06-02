@@ -87,7 +87,6 @@ export default function TopBar({
           background: "var(--surface)",
           borderRadius: 12,
           padding: "3px",
-          position: "relative",
         }}
         className="absolute left-1/2 -translate-x-1/2 flex items-center gap-0.5"
       >
