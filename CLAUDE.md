@@ -939,18 +939,17 @@ Wenn ja → muss als Edge Function gebaut werden, nicht als Frontend-Logik.
 ## AI SDR Automation — Vollautomatischer Outreach (Pflichtregeln)
 
 Das System wird schrittweise zu einem vollautomatischen AI SDR ausgebaut.
-Ziel: AI findet Leads, schreibt sie an, verarbeitet Antworten, bucht Termine.
+Ziel: Leads finden → anschreiben → Antworten verarbeiten → Termine buchen.
 Jede Funktion die heute gebaut wird muss diese Zukunft ermöglichen.
 
-### Sending Layer — provider-agnostisch bauen
+### Sending Layer — provider-agnostisch
 
-Welcher externe Provider für LinkedIn, Email oder Kalender verwendet wird
-ist noch nicht entschieden. Der Code darf NIEMALS an einen spezifischen
-Provider gekoppelt sein. Alles läuft über eine abstrakte Sending-Schicht.
+Welcher Provider für LinkedIn, Email oder Kalender verwendet wird
+ist noch nicht entschieden. Code darf NIEMALS an einen Provider gekoppelt sein.
 
 Jede ausgehende Nachricht speichert:
 
-```
+```sql
 sending_channel     TEXT  -- linkedin_dm | linkedin_connection | email | whatsapp | sms
 sending_provider    TEXT  -- unipile | gmail_api | outlook_api | calendly | tbd
 external_message_id TEXT  -- ID beim Provider für Status-Tracking
@@ -961,56 +960,47 @@ read_at             TIMESTAMPTZ
 ```
 
 Neuen Provider einbinden = nur eine neue Provider-Klasse schreiben.
-Keine Änderung an Datenbank oder Business-Logic nötig.
+Keine Änderung an DB oder Business-Logic nötig.
 
 ### Antwort-Verarbeitung — Intent Detection
 
 Jede eingehende Nachricht wird von AI klassifiziert.
-Folgende Felder müssen in der communications Tabelle vorhanden sein:
+Folgende Felder müssen in der `communications` Tabelle vorhanden sein:
 
-```
-intent_detected     TEXT  -- interested | not_interested | question |
-                          --  meeting_request | objection | out_of_office | unclear
-intent_confidence   NUMERIC  -- 0-100, wie sicher ist die AI
+```sql
+intent_detected     TEXT     -- interested | not_interested | question |
+                             --  meeting_request | objection | out_of_office | unclear
+intent_confidence   NUMERIC  -- 0-100
 auto_reply_sent     BOOLEAN DEFAULT false
 auto_reply_content  TEXT
-requires_human      BOOLEAN DEFAULT false  -- AI unsicher → Mensch muss eingreifen
+requires_human      BOOLEAN DEFAULT false
 human_reviewed_at   TIMESTAMPTZ
 human_reviewed_by   UUID REFERENCES users(id)
 ```
 
-Regel: Wenn intent_confidence < 70 → requires_human = true
+Regel: intent_confidence < 70 → requires_human = true
 → erscheint sofort in Mein Tag Zone 2 als Priorität
 → User entscheidet → AI lernt aus der Entscheidung
 
-### AI SDR Flow — vollständige Pipeline
+### AI SDR Flow
 
 Der Flow läuft vollständig durch die bestehende Sequenz-Infrastruktur.
 Keine separate SDR-Tabelle nötig — alles über sequences + communications.
 
 ```
-Signal erkannt → Lead angelegt (source = ai_automated)
-→ Sequenz startet automatisch (execution_mode = full_auto wenn eingestellt)
+Signal erkannt (via Sherloq oder andere Lead-Quelle)
+→ Lead angelegt (source = ai_automated)
+→ Sequenz startet (execution_mode = full_auto wenn eingestellt)
 → Nachricht gesendet → delivery_status getrackt
 → Antwort eingehend → intent_detected
-→ interested → nächster Sequenz-Schritt oder Kalender-Link
-→ meeting_request → Kalender-Integration schickt Buchungslink
-→ not_interested → Sequenz pausiert, Lead archiviert
-→ unclear → requires_human = true → Mein Tag Priorität
+→ interested        → nächster Schritt oder Buchungslink
+→ meeting_request   → Kalender-Link automatisch gesendet (→ siehe CRM Sync & Kalender)
+→ not_interested    → Sequenz pausiert, Lead archiviert
+→ unclear           → requires_human = true → Mein Tag Priorität
 ```
 
-### Kalender-Integration — provider-agnostisch
-
-Welches Kalender-Tool verwendet wird ist offen (Calendly, Cal.com, Google Calendar direkt).
-Abstrakt speichern:
-
-```
-booking_provider    TEXT  -- calendly | cal_com | google_calendar | tbd
-booking_link        TEXT  -- der Link der verschickt wird
-booking_status      TEXT  -- link_sent | booked | cancelled | rescheduled
-booked_at           TIMESTAMPTZ
-meeting_id          UUID REFERENCES pipeline_deals(id)
-```
+Automation Modes (manual / semi_auto / full_auto) und execution_mode-Felder:
+→ siehe **AI Automation Architecture** weiter oben — dort vollständig definiert.
 
 ### Eskalation zum Menschen — immer möglich
 
@@ -1025,3 +1015,157 @@ Auch bei full_auto gibt es immer einen Weg zum Menschen:
 *"Würde das auch funktionieren wenn wir morgen den Provider wechseln?"*
 Wenn nein → Abstraktion fehlt. Provider-spezifischen Code in eigene
 Klasse/Funktion auslagern, nie direkt in Business-Logic.
+
+---
+
+## Modularer Aufbau — Pflichtregeln (nie weglassen)
+
+Das System ist modular aufgebaut. Jedes Modul kann eigenständig
+aktiviert und verkauft werden. Kein Modul darf hart von einem
+anderen abhängen — Abhängigkeiten laufen immer über die DB,
+nie über direkten Code-Import.
+
+### Modul-Tabelle — in DB von Anfang an anlegen
+
+```sql
+user_modules (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id       UUID REFERENCES users(id),
+  module        TEXT NOT NULL,
+  active        BOOLEAN DEFAULT false,
+  activated_at  TIMESTAMPTZ,
+  expires_at    TIMESTAMPTZ
+)
+```
+
+Gültige Werte für `module`:
+- `core`           — Pflicht, immer aktiv
+- `ai_sdr`         — Lead-Quellen, Sequenzen, Outreach, Inbox, Kalender
+- `hunting`        — Pipeline, Kanban, Signal-Kacheln, Follow-ups
+- `farming`        — Churn Risk, Upsell, Trial Management
+- `mein_tag`       — Morning Briefing, Prioritäten, Tasks
+- `smart_lists`    — Dynamische Listen
+- `reporting`      — KPIs, Analytics, Forecast
+- `settings_admin` — Admin-Bereich für alle Regeln und Einstellungen
+- `crm_sync`       — HubSpot / Salesforce Sync
+
+### Modul-Prüfung — vor jedem Component-Render
+
+Jede Komponente die zu einem Modul gehört prüft beim Laden:
+
+```typescript
+const { hasModule } = useModules()
+
+if (!hasModule('hunting')) {
+  return <UpgradePrompt module="hunting" />
+}
+```
+
+`useModules()` liest aus `user_modules` Tabelle — gecacht,
+kein API-Call bei jedem Render.
+
+Kein Modul-Check = Fehler. Jede neue Komponente muss
+ihrem Modul zugeordnet sein.
+
+### Modul-Abhängigkeiten (Reihenfolge)
+
+```
+core
+  └── ai_sdr          (Lead-Quellen → Sequenzen → Inbox → Kalender)
+        └── hunting   (Pipeline, Signal-Kacheln, Follow-ups)
+        └── farming   (Churn, Upsell, Trial)
+        └── mein_tag  (Morning Briefing, Prioritäten)
+              └── smart_lists   (dynamische Listen)
+              └── reporting     (KPIs, Analytics)
+              └── settings_admin
+              └── crm_sync
+```
+
+`core` ist immer aktiv — kein Check nötig.
+Alle anderen Module prüfen ob aktiv bevor sie rendern.
+
+### Prüffrage vor jeder neuen Komponente
+
+*"Zu welchem Modul gehört diese Komponente?"*
+Wenn unklar → in `core` bis geklärt.
+Kein Code ohne Modul-Zuordnung.
+
+---
+
+## CRM Sync & Kalender-Integration — Pflichtregeln
+
+### CRM Sync — provider-agnostisch
+
+Unterstützte Systeme (erweiterbar): HubSpot, Salesforce.
+Welches aktiv ist steht in `system_config`:
+
+```
+crm_provider          TEXT     -- hubspot | salesforce | none
+crm_sync_enabled      BOOLEAN  DEFAULT false
+crm_sync_direction    TEXT     -- inbound | outbound | bidirectional
+crm_last_synced_at    TIMESTAMPTZ
+```
+
+### Sync-Felder in allen relevanten Tabellen
+
+```sql
+crm_provider        TEXT       -- hubspot | salesforce
+crm_external_id     TEXT       -- ID im externen System
+crm_last_synced_at  TIMESTAMPTZ
+crm_sync_status     TEXT       -- synced | pending | error | conflict
+crm_sync_error      TEXT       -- Fehlermeldung wenn error
+```
+
+Konflikt-Regel: Sales OS gewinnt bei Konflikten (local-first).
+Ausnahme konfigurierbar per Feld in `system_config`.
+
+### Was synchronisiert wird
+
+- **Kontakte:** Name, Email, Telefon, Jobtitel, Company, Deal Stage, letzte Aktivität
+- **Companies:** Name, Website, Branche, Größe, Subscription Status (als Custom Field im CRM)
+- **Deals:** Stage, ARR, MRR, Laufzeit, Probability, Lost Reason
+- **Aktivitäten:** Outreach, Meetings, Tasks → CRM Activity Log
+
+### Kalender-Integration — provider-agnostisch
+
+Unterstützte Systeme (erweiterbar): Calendly, Cal.com, Google Calendar.
+
+```sql
+booking_provider      TEXT         -- calendly | cal_com | google_calendar | tbd
+booking_link          TEXT         -- Link der automatisch verschickt wird
+booking_status        TEXT         -- link_sent | booked | cancelled | rescheduled
+booked_at             TIMESTAMPTZ
+meeting_confirmed_at  TIMESTAMPTZ
+```
+
+### Automatischer Buchungs-Flow
+
+```
+intent_detected = meeting_request
+→ booking_link aus system_config holen
+→ Link in Antwort einfügen (execution_mode beachten)
+→ Lead bucht → Webhook → booked_at gesetzt
+→ Meeting in Mein Tag Zone 1
+→ Meeting-Prep durch Claude Routine
+→ Termin in CRM als Activity geloggt
+```
+
+### Webhook-Endpunkte als Supabase Edge Functions
+
+```
+POST /functions/v1/webhook-booking
+  → normalisiert Calendly / Cal.com / Google Payload
+  → schreibt in bookings Tabelle
+  → triggert Meeting-Prep Routine
+
+POST /functions/v1/webhook-crm-sync
+  → empfängt Updates von HubSpot / Salesforce
+  → normalisiert und schreibt in lokale Tabellen
+  → Konflikt-Erkennung + Logging
+```
+
+### Prüffrage vor jeder Integration
+
+*"Würde das auch funktionieren wenn wir HubSpot durch Salesforce ersetzen — oder Calendly durch Cal.com?"*
+Wenn nein → Abstraktion fehlt. Provider-Logik in eigene
+Klasse auslagern, nie direkt in Business-Logic.
