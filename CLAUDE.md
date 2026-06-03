@@ -728,21 +728,165 @@ Bulk-Aktionen (>10 Kontakte gleichzeitig) immer mit Bestätigung:
 
 ## 10. SaaS-Readiness — Technische Grundregeln
 
-- Jede Tabelle bekommt von Anfang an eine `workspace_id UUID NOT NULL REFERENCES workspaces(id)`. Keine Ausnahme.
-- Jede RLS-Policy prüft immer zwei Bedingungen: `assigned_to = auth.uid()` UND `workspace_id = current_workspace_id()`. Nie nur eine.
-- Jede Supabase-Query im Frontend filtert immer zusätzlich auf `workspace_id` — nie weglassen.
-- Eine Tabelle `workspaces` wird als erstes angelegt — vor allen anderen Tabellen.
-- Eine Tabelle `workspace_members` verknüpft User mit Workspaces und deren Rolle darin.
-- AI-Kosten werden pro Workspace getrackt — jeder API-Call schreibt `tokens_used + workspace_id` in eine `ai_usage` Tabelle.
-- Plan-Limits werden in `workspaces.plan` gespeichert — alle Features prüfen vor Ausführung ob das Limit erreicht ist.
-- Kein Feature wird gebaut ohne diese Prüfung: funktioniert das auch wenn `workspace_id` eines anderen Kunden drin steht?
-- **Felder-Editierbarkeit:** Kein Feld wird im Code als "nicht editierbar" fest verdrahtet. Welche Felder der User bearbeiten kann wird ausschließlich über die `permissions` Tabelle gesteuert. Neue Edit-Funktionen sind jederzeit ohne Datenbankumbau ergänzbar.
-- **Rollen & Ownership:** Jeder Datensatz in jeder Tabelle bekommt von Anfang an drei Felder:
-  - `created_by UUID REFERENCES users(id)` — wer hat es angelegt
-  - `assigned_to UUID REFERENCES users(id)` — wer ist verantwortlich
-  - `workspace_id UUID REFERENCES workspaces(id)` — welcher Workspace
+> **Terminologie:** Das System verwendet `organization_id` / `organizations` als Standard.
+> Ältere Abschnitte (Smart Lists, aiCall) wurden entsprechend aktualisiert.
+> Niemals `workspace_id` neu einführen — immer `organization_id`.
 
-  Die konkreten Rollen und ihre Rechte werden später in der `permissions` Tabelle definiert — die Infrastruktur ist aber von Tag 1 vorhanden. Kein Feature wird gebaut ohne diese drei Felder. Keine Ausnahme.
+Das System wird als vollständiges SaaS-Produkt betrieben.
+Mehrere Kunden (Organisationen) teilen dieselbe Infrastruktur.
+Kein Kunde darf Daten eines anderen Kunden sehen oder beeinflussen.
+
+### 1. Multi-Tenancy — organization_id Pflichtfeld
+
+JEDE Tabelle bekommt dieses Feld — keine Ausnahme:
+```sql
+organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE
+```
+
+Jeder Datensatz bekommt zusätzlich drei Ownership-Felder:
+- `created_by UUID REFERENCES users(id)` — wer hat es angelegt
+- `assigned_to UUID REFERENCES users(id)` — wer ist verantwortlich
+- `organization_id UUID REFERENCES organizations(id)` — welche Organisation
+
+```sql
+organizations (
+  id                      UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name                    TEXT NOT NULL,
+  slug                    TEXT UNIQUE NOT NULL,        -- für Subdomain später
+  plan                    TEXT DEFAULT 'starter',      -- free | starter | pro | enterprise
+  plan_expires_at         TIMESTAMPTZ,
+  stripe_customer_id      TEXT,
+  stripe_subscription_id  TEXT,
+  max_users               INTEGER DEFAULT 5,
+  max_leads_per_month     INTEGER DEFAULT 500,
+  max_ai_calls_per_month  INTEGER DEFAULT 1000,
+  onboarding_completed    BOOLEAN DEFAULT false,
+  onboarding_step         INTEGER DEFAULT 0,
+  brand_name              TEXT,                        -- White-Label vorbereitet
+  brand_logo_url          TEXT,
+  brand_primary_color     TEXT,
+  is_active               BOOLEAN DEFAULT true,
+  created_at              TIMESTAMPTZ DEFAULT now()
+)
+```
+
+### 2. Row Level Security — auf jeder Tabelle
+
+RLS muss auf JEDER Tabelle aktiviert sein. Kein direkter DB-Zugriff ohne Policy.
+
+```sql
+ALTER TABLE [tabelle] ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "org_isolation" ON [tabelle]
+  USING (
+    organization_id = (
+      SELECT organization_id FROM users WHERE id = auth.uid()
+    )
+  );
+```
+
+Jede Supabase-Query im Frontend filtert zusätzlich auf `organization_id` — nie weglassen.
+JWT enthält `organization_id` als Custom Claim.
+Service Role Key nur in Edge Functions — nie im Client.
+
+### 3. Benutzer & Einladungen
+
+```sql
+invitations (
+  id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id  UUID NOT NULL REFERENCES organizations(id),
+  email            TEXT NOT NULL,
+  role             TEXT NOT NULL,      -- admin | member | viewer
+  token            TEXT UNIQUE NOT NULL,
+  invited_by       UUID REFERENCES users(id),
+  accepted_at      TIMESTAMPTZ,
+  expires_at       TIMESTAMPTZ DEFAULT now() + interval '7 days',
+  created_at       TIMESTAMPTZ DEFAULT now()
+)
+```
+
+Flow: Admin lädt ein → Email → User klickt Link → Registrierung → landet automatisch
+in richtiger Organisation → Rolle wird aus Einladung übernommen.
+
+### 4. Billing & Plan-Limits
+
+```sql
+-- Monatliche Nutzungs-Zähler für Plan-Limit-Enforcement:
+api_usage (
+  id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id  UUID NOT NULL REFERENCES organizations(id),
+  action_type      TEXT NOT NULL,  -- ai_call | sequence_step | lead_created | email_sent | linkedin_dm
+  count            INTEGER DEFAULT 0,
+  month            TEXT NOT NULL,  -- Format: '2025-06'
+  UNIQUE(organization_id, action_type, month)
+)
+```
+
+Vor jedem AI Call / Sequenz-Step: `api_usage` prüfen ob Monatslimit erreicht.
+Bei Limit: User informieren — kein harter Fehler, kein Silent-Fail.
+
+Stripe-Webhook (SPÄTER): `/functions/v1/webhook-stripe`
+- `checkout.completed` → plan updaten + Module freischalten
+- `subscription.cancelled` → plan auf 'free' setzen
+
+### 5. DSGVO & Datenschutz
+
+```sql
+data_deletion_requests (
+  id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id  UUID NOT NULL REFERENCES organizations(id),
+  requested_by     UUID REFERENCES users(id),
+  requested_at     TIMESTAMPTZ DEFAULT now(),
+  completed_at     TIMESTAMPTZ,
+  status           TEXT DEFAULT 'pending'  -- pending | processing | completed
+)
+```
+
+- Cascade Delete: Organization gelöscht → ALLE Daten dieser Org werden gelöscht
+- Audit Log Retention: max. 24 Monate, dann automatisch gelöscht (Cron Job)
+- Data Export DSGVO Art. 20 (SPÄTER): `export_organization_data(org_id)` Edge Function
+
+### 6. Transactional Emails (SPÄTER)
+
+Alle Emails über `sendEmail()` in `lib/email.ts` — kein direkter Provider-Aufruf.
+Provider: Resend.com oder Postmark (provider-agnostisch wie alle anderen Integrationen).
+
+Pflicht-Emails: Einladung, Passwort-Reset, Willkommen, requires_human Notification,
+Termin-Bestätigung, Sequenz-Abschluss, Plan-Ablauf-Warnung (7 Tage vorher).
+
+### 7. Security Grundregeln
+
+- Kein API Key im Frontend-Code — ausnahmslos
+- Alle sensitiven Calls über Supabase Edge Functions
+- Alle Webhooks validieren Signature vor Verarbeitung
+- Rate Limiting auf allen öffentlichen Endpunkten
+- Felder-Editierbarkeit wird über `permissions` Tabelle gesteuert — nie hardcoden
+
+### Was JETZT gebaut wird — was SPÄTER kommt
+
+**JETZT (vor erstem DB-Commit — nicht verhandelbar):**
+- `organizations` Tabelle anlegen (erste Tabelle überhaupt)
+- `organization_id` in jede Tabelle
+- RLS auf jeder Tabelle aktivieren
+- `invitations` Tabelle anlegen
+- `api_usage` Tabelle anlegen (leer)
+- Cascade Delete auf allen Tabellen
+- `organization_id` in JWT Custom Claim
+
+**SPÄTER (vor Launch):**
+- Stripe Integration + Webhooks
+- Onboarding Wizard (5 Schritte)
+- DSGVO Export/Löschungs-Flow
+- Transactional Emails (`lib/email.ts`)
+- Subdomain Support (`slug` bereits vorbereitet)
+- White-Label Theming (`brand_*` bereits vorbereitet)
+
+### Prüffrage vor jeder neuen Tabelle
+
+1. Hat sie `organization_id`? → Wenn nein: hinzufügen
+2. Ist RLS aktiviert + `org_isolation` Policy gesetzt? → Wenn nein: aktivieren
+3. Hat sie `ON DELETE CASCADE`? → Wenn nein: hinzufügen
+4. Ist sie im Data-Export enthalten? → Wenn nein: dokumentieren
 
 ---
 
@@ -789,9 +933,9 @@ smart_lists (
   description  TEXT,
   filters      JSONB NOT NULL,   -- Filterregeln als JSON (kein SQL)
   entity_type  TEXT NOT NULL,    -- 'contacts' | 'companies' | 'deals'
-  created_by   UUID REFERENCES users(id),
-  workspace_id UUID NOT NULL REFERENCES workspaces(id),
-  is_shared    BOOLEAN DEFAULT false,
+  created_by      UUID REFERENCES users(id),
+  organization_id UUID NOT NULL REFERENCES organizations(id),
+  is_shared       BOOLEAN DEFAULT false,
   last_run_at  TIMESTAMPTZ,
   created_at   TIMESTAMPTZ DEFAULT now()
 )
@@ -828,7 +972,7 @@ smart_list_members (
 ### Regeln
 
 - AI schreibt JSONB-Filter — kein SQL, kein direkter DB-Zugriff
-- Listen gehören immer zu einem `workspace_id` — nie global
+- Listen gehören immer zu einer `organization_id` — nie global
 - `last_run_at` wird bei jedem Re-Run aktualisiert
 - `smart_list_members` wird bei Re-Run vollständig neu befüllt (TRUNCATE + INSERT)
 
@@ -1265,9 +1409,9 @@ Wenn alle Calls über `aiCall()` laufen, ist die Langfuse-Integration
 eine Änderung an **einer einzigen Datei**.
 Kein Umbau, kein Suchen im Code, kein Risiko.
 
-Zusätzlich: `aiCall()` schreibt automatisch in die `ai_usage` Tabelle
-(`workspace_id + tokens_used`) — siehe **SaaS-Readiness** weiter oben.
-Eine Zeile an einer Stelle statt in jedem einzelnen Call-Kontext.
+Zusätzlich: `aiCall()` schreibt automatisch in zwei Tabellen — siehe **SaaS-Readiness**:
+- `ai_usage` (`organization_id + tokens_used + model`) — detailliertes per-Call Logging zur Kostenanalyse
+- `api_usage` (`organization_id + action_type='ai_call' + count`) — monatliche Aggregation für Plan-Limit-Enforcement
 
 ### Aufbau lib/ai.ts
 
@@ -1284,11 +1428,11 @@ export interface AICallOptions {
   maxTokens?: number
   // Langfuse tracing metadata — prepared, not yet active
   trace?: {
-    name:         string   // e.g. 'chat-interpret' | 'kurzakte-update' | 'intent-detect'
-    userId?:      string
-    workspaceId?: string
-    sessionId?:   string
-    metadata?:    Record<string, unknown>
+    name:            string   // e.g. 'chat-interpret' | 'kurzakte-update' | 'intent-detect'
+    userId?:         string
+    organizationId?: string
+    sessionId?:      string
+    metadata?:       Record<string, unknown>
   }
 }
 
@@ -1317,13 +1461,15 @@ export async function aiCall(options: AICallOptions): Promise<AICallResult> {
   // ── Langfuse trace (one-line change when ready) ────────────────────────
   // await langfuse.generation({ ...options.trace, input, output, usage, durationMs })
 
-  // ── ai_usage tracking (workspace cost control — see SaaS-Readiness) ───
+  // ── ai_usage: per-call logging for cost analysis (see SaaS-Readiness) ──
   // await supabase.from('ai_usage').insert({
-  //   workspace_id: options.trace?.workspaceId,
-  //   tokens_used:  response.usage.input_tokens + response.usage.output_tokens,
-  //   model:        response.model,
-  //   call_name:    options.trace?.name,
+  //   organization_id: options.trace?.organizationId,
+  //   tokens_used:     response.usage.input_tokens + response.usage.output_tokens,
+  //   model:           response.model,
+  //   call_name:       options.trace?.name,
   // })
+  // ── api_usage: monthly counter for plan-limit enforcement ─────────────
+  // await incrementApiUsage(options.trace?.organizationId, 'ai_call')
 
   return {
     content,
