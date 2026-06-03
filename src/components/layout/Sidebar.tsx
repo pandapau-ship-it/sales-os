@@ -46,7 +46,9 @@ export default function Sidebar({
       id: "notifications",
       icon: <Bell className="w-[18px] h-[18px]" strokeWidth={1.5} />,
       tooltip: "Benachrichtigungen",
-      action: () => {}, // placeholder — kommt mit Realtime
+      // Badge-Count = notifications WHERE read=false (live via Realtime).
+      // Quelle + Event-Modell: siehe CLAUDE.md → "Notifications".
+      action: () => {},
     },
   ];
 

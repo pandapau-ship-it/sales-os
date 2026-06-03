@@ -2025,3 +2025,118 @@ Fehlerbehandlung). Rollback in `onError`. Nur bei reversiblen Aktionen.
 
 *"Funktioniert das noch flüssig bei 10.000 Zeilen?"*
 Wenn die Antwort "alle laden und rendern" ist → Pagination + Virtualisierung fehlen.
+
+---
+
+## Notifications — Pflichtregeln (Infrastruktur jetzt, Regeln später)
+
+> **Kernprinzip:** Die Verkabelung (Tabellen, abstrakte Kanäle, Event-Typen) steht
+> von Tag 1. Die konkreten Versand-Regeln (wann, wo, wie oft) sind reine Config —
+> jederzeit änderbar ohne Code-Umbau. Wie `aiCall()` und `sendEmail()`:
+> ein zentraler Choke-Point, Provider/Kanäle als Adapter dahinter.
+
+### Grundregel — kein direkter Notification-Versand außerhalb von lib/notify.ts
+
+Kein Code feuert direkt eine Email/Push/Slack-Nachricht. Ausnahmslos.
+Alles läuft über `notify()`. Neuer Kanal = neuer Adapter, kein Umbau am Rest.
+
+```typescript
+// lib/notify.ts — einziger Eintrittspunkt für jede Benachrichtigung.
+// Schreibt IMMER zuerst in die notifications Tabelle, fächert dann nach
+// notification_preferences auf die aktiven Kanäle auf.
+notify({
+  organizationId,
+  userId,
+  event: 'requires_human',     // aus dem Event-Katalog
+  payload: { contactId, sequenceId },
+})
+```
+
+### notifications Tabelle — Single Source (jedes Event landet hier zuerst)
+
+```sql
+notifications (
+  id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id  UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  user_id          UUID REFERENCES users(id),       -- Empfänger
+  event            TEXT NOT NULL,                    -- Event-Katalog (siehe unten)
+  payload          JSONB NOT NULL,                   -- contactId, sequenceId, etc.
+  title            TEXT NOT NULL,                    -- vorformuliert (User-Sicht-Regeln)
+  body             TEXT,
+  priority         TEXT DEFAULT 'normal',            -- low | normal | high | urgent
+  read             BOOLEAN DEFAULT false,            -- In-App gelesen
+  read_at          TIMESTAMPTZ,
+  channels_sent    TEXT[],                           -- ['in_app','email'] — was tatsächlich raus ging
+  created_at       TIMESTAMPTZ DEFAULT now()
+)
+```
+
+Die Glocke in der Sidebar liest aus dieser Tabelle (`read = false` → Badge-Count).
+
+### notification_preferences — die Regeln (später frei konfigurierbar)
+
+```sql
+notification_preferences (
+  id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id  UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  user_id          UUID REFERENCES users(id),
+  event            TEXT NOT NULL,                    -- welcher Event-Typ
+  channel          TEXT NOT NULL,                    -- in_app | email | push | slack | teams
+  enabled          BOOLEAN DEFAULT true,
+  frequency        TEXT DEFAULT 'instant',           -- instant | hourly_batch | daily_digest | off
+  only_when_offline BOOLEAN DEFAULT false,           -- z.B. Email nur wenn nicht in-App aktiv
+  UNIQUE(user_id, event, channel)
+)
+```
+
+**Diese Tabelle entscheidet alles Spätere** — welches Event auf welchem Kanal,
+sofort vs. gebündelt vs. Digest, nur-wenn-offline. Drehen = Zeile ändern, kein Deploy.
+
+### Event-Katalog — die Auslöser (erweiterbar, ein Eintrag = neues Event)
+
+| Event | Wann | Default-Priorität |
+|-------|------|-------------------|
+| `requires_human` | AI unsicher (`intent_confidence < 70`) | high |
+| `meeting_booked` | Lead bucht Termin (Booking-Webhook) | high |
+| `reply_received` | Antwort auf Outreach eingegangen | normal |
+| `churn_alert` | Heat → kalt/tot, Churn-Signal | high |
+| `sequence_completed` | Sequenz durch, kein Response | low |
+| `sequence_paused` | Dynamische Regel pausiert (kein Engagement) | normal |
+| `daily_briefing` | Morning Briefing fertig (07:00 Routine) | low |
+| `plan_limit_reached` | Monatslimit erreicht | high |
+| `plan_expiring` | Plan läuft in 7 Tagen ab | normal |
+| `task_overdue` | Task überfällig | normal |
+
+Jedes `→ Notification in Mein Tag` im restlichen Dokument feuert über genau diese
+Events — kein separater Mechanismus pro Feature.
+
+### Kanäle — abstrakte Adapter hinter notify()
+
+| Kanal | Phase | Adapter |
+|-------|-------|---------|
+| `in_app` | JETZT | Glocke in Sidebar + Mein Tag — liest `notifications` Tabelle live (Realtime) |
+| `email` | SPÄTER | über `lib/email.ts` (Resend/Postmark) |
+| `push` | SPÄTER | Web Push / Mobile (provider-agnostisch) |
+| `slack` / `teams` | SPÄTER | als **ausgehender** Notification-Kanal an den User — nicht zu verwechseln mit `communications` (eingehende Prospect-Nachrichten) |
+
+### Was JETZT gebaut wird — was SPÄTER kommt
+
+**JETZT (Infrastruktur):**
+- `notifications` + `notification_preferences` Tabellen
+- `lib/notify.ts` mit `notify()` — schreibt in `notifications`, In-App funktioniert
+- Glocke in Sidebar zeigt echten Badge-Count (`read = false`), live via Realtime
+- Event-Katalog als TypeScript-Enum
+- Alle bestehenden "→ Mein Tag" Stellen feuern über `notify()`
+
+**SPÄTER (reine Config + Adapter):**
+- Email/Push/Slack/Teams Adapter
+- Versand-Regeln pro Event/Kanal/Häufigkeit in `notification_preferences`
+- Quiet Hours, Rate-Limiting (z.B. max 1 `churn_alert` pro Kunde/Tag)
+- Bündelung (`hourly_batch`, `daily_digest`) via Cron Job
+- User-Settings-UI zum Einstellen der Preferences
+
+### Prüffrage vor jedem neuen Notification-Auslöser
+
+*"Feuere ich über `notify()` mit einem Event aus dem Katalog?"*
+Wenn nein → Stopp. Niemals direkt Email/Push/In-App schreiben.
+Neuer Auslöser → Event in den Katalog, nicht in den Code hardcoden.
