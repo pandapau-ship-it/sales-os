@@ -38,6 +38,8 @@ Diese Regel gilt absolut. Kein Ausnahme für "schneller selbst gebaut".
 | UI Framework | **shadcn/ui** | Primitives in `src/components/ui/` — niemals direkt editieren |
 | Styling | **Tailwind CSS v4** | `@tailwindcss/vite` Plugin, kein `tailwind.config.ts` |
 | Design Tokens | CSS Variables in `src/index.css` | Einzige Quelle aller visuellen Werte |
+| Server-State | **TanStack Query** | Einzige Quelle für Server-Daten — kein `useEffect`+`fetch` (→ Performance & Data Loading) |
+| Listen-Virtualisierung | **@tanstack/react-virtual** | Pflicht für Listen > 50 Zeilen |
 | Database | Supabase (PostgreSQL) | Auth built-in, RLS enabled, Realtime support |
 | Hosting | Vercel | Auto-deploy on push to main |
 | Version Control | GitHub | `pandapau-ship-it/sales-os` |
@@ -478,6 +480,9 @@ Jede Komponente die Live-Daten zeigt **muss** einen Supabase Channel haben. Patt
 Betroffene Bereiche: Kacheln, Drawer, Mein Tag, Pipeline Kanban, Signale-Feed.
 
 Ohne Subscriptions sieht der User veraltete Daten bis er die Seite neu lädt.
+
+> Subscription-Limits, Cache-Invalidierung und wie Realtime mit TanStack Query
+> zusammenspielt → siehe **Performance & Data Loading** am Ende dieser Datei.
 
 ### 5. Offline Handling
 - Toast wenn Verbindung verloren
@@ -1907,3 +1912,116 @@ lieber 2 Sekunden warten als eine falsch gesendete Nachricht zurücknehmen müss
 
 *"Was sieht der User wenn das 8 Sekunden hängt oder dauerhaft scheitert?"*
 Wenn die Antwort "Spinner" oder "Fehlermeldung mit Grund" ist → nicht fertig.
+
+---
+
+## Performance & Data Loading — Pflichtregeln (nie weglassen)
+
+> So bauen es die besten Teams (Linear, Vercel, Superhuman). Nicht Premature
+> Optimization — sondern die richtigen Default-Entscheidungen von Tag 1, damit
+> das System bei 10 Leads gleich gebaut ist wie bei 50.000.
+
+### Server-State — immer TanStack Query (React Query)
+
+Kein `useEffect` + `useState` + `fetch` für Server-Daten. Ausnahmslos.
+TanStack Query ist die einzige Quelle für Server-State — es liefert Caching,
+Dedup, Background-Refetch, und exakt das Timeout/Retry/stale-while-error Verhalten
+aus **Fehlerbehandlung aus User-Sicht** kostenlos.
+
+```typescript
+// Pflicht-Pattern. organization_id IMMER im Query-Key (Multi-Tenant Cache-Isolation):
+useQuery({
+  queryKey: ['leads', orgId, filters],
+  queryFn: ({ signal }) => fetchLeads(orgId, filters, signal), // signal = 8s Timeout
+  staleTime: 30_000,
+})
+```
+
+**Warum `organization_id` im Key Pflicht ist:** Ohne ihn zeigt der Cache beim
+Org-Wechsel die Daten des falschen Kunden. Multi-Tenancy gilt auch im Cache.
+
+### Caching — staleTime nach Daten-Volatilität
+
+| Daten | staleTime | Begründung |
+|-------|-----------|------------|
+| Referenzdaten (`system_config`, `pipeline_stages`, `user_modules`) | `5 min` | Ändern sich fast nie |
+| Listen (Leads, Kunden, Inbox) | `30 s` | Realtime invalidiert ohnehin sofort |
+| Detail (Kurzakte, Contact Drawer) | `60 s` | Beim Öffnen frisch genug |
+| KPIs / Dashboards | `2 min` | Aggregation, nicht sekundenkritisch |
+| `gcTime` (alle) | `5 min` | Cache-Speicher nach Unmount |
+
+**Realtime ist die primäre Invalidierung — nicht der Timer.** Ein Realtime-Event
+schreibt direkt in den Query-Cache (`setQueryData`) oder invalidiert den Key.
+staleTime ist nur das Fallback wenn kein Event kommt.
+
+### Pagination — Cursor/Keyset, niemals OFFSET
+
+`OFFSET` wird bei großen Tabellen linear langsamer (DB muss alle übersprungenen
+Zeilen lesen). Keyset-Pagination bleibt konstant schnell.
+
+```typescript
+// RICHTIG — Keyset auf (created_at, id), stabil sortiert:
+.order('created_at', { ascending: false }).order('id').gt('id', lastCursor).limit(50)
+// FALSCH — .range(offset, offset+50) bei wachsenden Tabellen
+```
+
+`useInfiniteQuery` + Infinite-Scroll (kein klassisches Seiten-Blättern).
+
+| Liste | Seitengröße |
+|-------|-------------|
+| Lead-Liste / Kunden-Liste | `50` |
+| Inbox | `25` |
+| Signal-Kacheln / Feed | `30` |
+| Pipeline-Kanban (pro Spalte) | `20`, Rest per "mehr laden" |
+
+### Virtualisierung — Listen > 50 sichtbare Zeilen
+
+Lange Listen rendern nur den sichtbaren Bereich (`@tanstack/react-virtual`).
+500 Leads im DOM = ruckelndes Scrollen und Memory-Last. Virtualisiert = konstant.
+
+Pflicht für: Lead-Liste, Kunden-Liste, Signal-Kacheln-Feed, Inbox.
+Nicht nötig für: kurze Listen (Tasks in Mein Tag, Pipeline-Spalten < 20).
+
+### Realtime — bounded, nicht pro Zeile
+
+- **Eine** Subscription pro aktiver Listen-Ansicht, gefiltert auf `organization_id`
+  (+ relevanter Filter), nie eine pro Lead-Zeile.
+- Max. ~5 gleichzeitige Channels offen. Channel bei Component-Unmount **immer**
+  schließen (`removeChannel`) — sonst WebSocket-Leak.
+- Realtime-Payload aktualisiert den React-Query-Cache direkt — löst KEINEN
+  zusätzlichen Refetch aus (Payload enthält die neue Row schon).
+- Realtime nur für die 7 Tabellen aus **Realtime Events** (`contacts`, `companies`,
+  `tasks`, `pipeline_deals`, `communications`, `kpis_daily`, `jira_tasks`).
+  Alles andere: normaler Query + staleTime, kein Channel.
+
+### Code-Splitting — pro Modul lazy laden
+
+Jedes Modul (`ai_sdr`, `hunting`, `farming`, `reporting` …) wird per `React.lazy()`
+geladen. Der User lädt nie Code für Module die er nicht hat (→ **Modularer Aufbau**).
+Route-Level Splitting + `<Suspense>` mit Skeleton (nicht Spinner).
+
+### Datenbank — Indizes & N+1
+
+- **Index auf `organization_id` in JEDER Tabelle** — steht in jeder RLS-Policy und
+  jeder Query, ohne Index ist jede Query ein Full-Scan.
+- Composite-Indizes für häufige Filter: `(organization_id, heat_status)`,
+  `(organization_id, created_at DESC)`, `(organization_id, assigned_to)`.
+- Cursor-Spalten indizieren: `(created_at, id)`.
+- **Nie N+1:** Supabase nested-select (`select('*, company:companies(*)')`) statt
+  Schleife mit Einzel-Queries. Eine Query, nicht 50.
+
+### Bilder & Layout-Shift
+
+- Avatare/Bilder: `loading="lazy"` + feste `width`/`height` (kein Layout-Shift).
+- Skeleton-Loader statt Spinner für initiales Laden (gefühlte Performance).
+
+### Optimistic Updates — sofort reagieren
+
+Mutationen (Task abhaken, Stage ändern, Lead anlegen) aktualisieren den Cache
+optimistisch via `onMutate` → die UI reagiert in 0 ms (→ Stufe 0 in der
+Fehlerbehandlung). Rollback in `onError`. Nur bei reversiblen Aktionen.
+
+### Prüffrage vor jeder Liste / jedem Daten-Screen
+
+*"Funktioniert das noch flüssig bei 10.000 Zeilen?"*
+Wenn die Antwort "alle laden und rendern" ist → Pagination + Virtualisierung fehlen.
