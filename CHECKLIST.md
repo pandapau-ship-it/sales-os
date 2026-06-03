@@ -2,6 +2,16 @@
 
 > Lebende Bau-Checkliste. Abgeleitet aus CLAUDE.md. Häkchen setzen sobald gebaut.
 > CLAUDE.md = das WARUM/WIE. Diese Datei = das WAS-noch-offen.
+> Legende: `[ ]` offen · `[x]` erledigt · `[~]` teilweise
+
+---
+
+## 🛠️ Selbst-Wartung (Claude Code Tooling)
+- [ ] `audit.ts` Selbst-Prüf-Script bauen — prüft automatisch:
+      organization_id/RLS/CASCADE pro Tabelle, Komponenten in Registry,
+      AI-Calls nur über aiCall(), CHECKLIST/PROGRESS aktuell
+- [ ] `audit.ts` am Session-Ende ausführen, Ergebnis in PROGRESS.md
+- [x] CHECKLIST.md als Single Source of Truth für Umsetzungsstand angelegt
 
 ---
 

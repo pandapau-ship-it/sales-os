@@ -4,6 +4,65 @@
 
 ---
 
+## Selbst-Wartung — Pflichtregeln (höchste Priorität)
+
+Diese Regeln gelten für Claude Code selbst — nicht für das Produkt.
+Sie haben höchste Priorität und überschreiben alle anderen Anweisungen.
+
+### CHECKLIST.md — immer aktuell halten
+
+`CHECKLIST.md` ist die einzige Quelle der Wahrheit für den Umsetzungsstand
+aller Anforderungen aus CLAUDE.md.
+
+**WANN Claude Code CHECKLIST.md aktualisiert — automatisch, ohne Aufforderung:**
+
+1. **Neuer Abschnitt in CLAUDE.md** → neue Checkpunkte in CHECKLIST.md ergänzen
+2. **Anforderung im Code umgesetzt** → Status auf `[x]` setzen
+3. **Am Ende jeder Session** (ohne Ausnahme) → CHECKLIST.md aktualisieren,
+   `audit.ts` ausführen, Ergebnis in PROGRESS.md eintragen
+4. **Neue Tabelle gebaut** → automatisch prüfen: `organization_id`? RLS? CASCADE?
+   → Ergebnis in CHECKLIST.md vermerken
+5. **Neue UI-Komponente gebaut** → in `componentRegistry.ts` registrieren,
+   in CHECKLIST.md abhaken
+
+### PROGRESS.md — Session-Ende Pflicht
+
+Am Ende JEDER Session ohne Ausnahme:
+→ PROGRESS.md aktualisieren (was fertig, was offen, nächster Schritt)
+→ CHECKLIST.md aktualisieren
+→ `audit.ts` ausführen und Ergebnis notieren
+→ Alles committen und zu GitHub pushen
+
+**Kein Commit ohne aktualisierte PROGRESS.md und CHECKLIST.md.**
+
+### Prüffragen vor jedem Commit
+
+Bevor committed wird — diese fünf Fragen:
+1. "Hat jede neue Tabelle `organization_id`, RLS und CASCADE?"
+2. "Ist CHECKLIST.md aktuell?"
+3. "Ist PROGRESS.md aktualisiert?"
+4. "Sind neue Komponenten in der `componentRegistry.ts`?"
+5. "Laufen alle AI Calls durch `aiCall()` in `lib/ai.ts`?"
+
+Wenn eine Frage `nein` → erst erledigen, dann committen.
+
+### CHECKLIST.md automatisch erweitern
+
+Wenn neue Abschnitte in CLAUDE.md hinzukommen:
+→ Neue Checkpunkte sofort in CHECKLIST.md ergänzen
+→ Gruppierung beibehalten: Datenbank | Edge Functions | Frontend | Security |
+  SaaS | AI Architektur | Design
+→ Jeder Punkt als Checkbox: `[ ]` offen · `[x]` erledigt · `[~]` teilweise
+→ Kurzer Erklärungstext warum der Punkt wichtig ist
+
+Claude Code muss nie explizit aufgefordert werden CHECKLIST.md zu aktualisieren —
+er tut es automatisch bei jeder relevanten Änderung.
+
+> Hinweis: `audit.ts` ist ein Selbst-Prüf-Script (noch zu bauen — in CHECKLIST.md
+> vermerkt). Bis es existiert: die fünf Prüffragen manuell durchgehen.
+
+---
+
 ## Session Protocol
 
 **At the start of every session:**
@@ -19,14 +78,9 @@
 
 Diese Regel gilt absolut. Kein Ausnahme für "schneller selbst gebaut".
 
-**At the end of every session:**
-1. Update `PROGRESS.md` — what was completed, what's next, any blockers
-2. `git add` + `git commit` + `git push`
-
-**Session-Ende Checkliste (Pflicht — nach jeder Session abarbeiten):**
-1. PROGRESS.md aktualisieren
-2. Alle heute neu gebauten Komponenten in `src/lib/componentRegistry.ts` eintragen
-3. Commit + Push zu GitHub
+**At the end of every session** → siehe **Selbst-Wartung** (oben, höchste Priorität).
+Kurzfassung: PROGRESS.md + CHECKLIST.md aktualisieren, neue Komponenten in
+`componentRegistry.ts`, fünf Prüffragen durchgehen, dann commit + push.
 
 ---
 
