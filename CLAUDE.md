@@ -481,9 +481,12 @@ Ohne Subscriptions sieht der User veraltete Daten bis er die Seite neu lädt.
 
 ### 5. Offline Handling
 - Toast wenn Verbindung verloren
-- 3× Retry für Webhooks mit exponential backoff: `1s → 5s → 30s`
+- 3× Retry für Webhooks mit exponential backoff: `1s → 5s → 30s` (serverseitig)
 - Vollständiger Refresh nach Reconnect
 - `error_log` Tabelle für fehlgeschlagene Events
+
+> Wie der User Fehler erlebt (Timeouts, Eskalation, Formulierung) → siehe
+> **Fehlerbehandlung aus User-Sicht** am Ende dieser Datei.
 
 ---
 
@@ -1815,3 +1818,92 @@ inbox_processed_by  UUID REFERENCES users(id)
 *"Könnte dieser eingehende Kanal später auch im Posteingang erscheinen?"*
 Wenn ja → `communications` Tabelle nutzen + `inbox_read` Feld setzen.
 Kein separater Inbox-Mechanismus pro Feature.
+
+---
+
+## Fehlerbehandlung aus User-Sicht — Pflichtregeln (nie weglassen)
+
+> Viele Produkte machen das schlecht. Hier nicht. Der User sieht nie einen
+> technischen Grund — er sieht immer **was er tun kann**.
+
+### Grundprinzip
+
+1. **Die App friert nie ein.** Jede Operation endet garantiert — harter Timeout.
+2. **Fehlgeschlagenes wird ein sichtbarer Status, kein Spinner.**
+3. **Der User sieht immer: was ist passiert + genau eine Handlung.**
+4. **Das Wort "Fehler" / "Error" kommt in der UI NIE vor.** Zu negativ.
+
+### Timeout — Spinner hat IMMER ein Ende
+
+Jede asynchrone Operation hat einen harten Timeout (Standard: **8 Sekunden**)
+via `AbortController`. Niemals ein Spinner ohne Timeout.
+
+```typescript
+// Pflicht-Muster für jeden fetch / Supabase-Call mit Ladeanzeige:
+const controller = new AbortController()
+const timeout = setTimeout(() => controller.abort(), 8000)
+// ... call mit { signal: controller.signal }
+// finally: clearTimeout(timeout)
+```
+
+Nach 8 Sekunden ohne Antwort → Spinner stoppt zwingend, Meldung mit Aktion erscheint.
+Ein hängender Request darf nie React-State blockieren oder Memory leaken.
+
+### Der Eskalations-Ablauf (4 Stufen)
+
+| Stufe | Wann | Was der User sieht |
+|-------|------|--------------------|
+| 0 — Optimistisch | Sofort bei Aktion | Ergebnis erscheint direkt (z.B. "wird gesendet") — App bleibt bedienbar |
+| 1 — Auto-Retry | 1× automatisch, unsichtbar, im Hintergrund | nichts — läuft mit eigenem Timeout |
+| 2 — Manuell | Auto-Retry fehlgeschlagen | "Hat gerade nicht geklappt" + Button **"Nochmal versuchen"** |
+| 3 — Eskalation | Auch manuell fehlgeschlagen | Aktion wird sichtbar als **offen** markiert (gelbes Badge, persistenter Status) + konkrete Lösung |
+
+**Genau EIN automatischer Retry im Frontend.** Mehr = Retry-Storm bei echtem Ausfall.
+Ernsthaftes Retry-mit-Backoff gehört serverseitig (Edge Function / Cron Job —
+siehe Offline Handling: `3× Retry 1s→5s→30s`).
+
+### Fehlgeschlagenes wird ein DB-Status — kein Hintergrundprozess
+
+Persistenter Zustand überlebt Reload und Tab-Schließen.
+Niemals nur im Browser-Speicher "auf Erfolg warten".
+
+- Sending Layer scheitert → `delivery_status = 'failed'` in DB + gelbes Badge in der Zeile
+- Edge Function scheitert dauerhaft → Eintrag in `error_log`, Cron Job räumt später auf
+- So kann das System die offene Aktion später automatisch nachholen oder der User sieht sie jederzeit wieder
+
+### Formulierung — konkret pro Fehlertyp
+
+Nie der Grund. Immer die Handlung. Nie das Wort "Fehler".
+
+| Situation | NICHT | SONDERN |
+|-----------|-------|---------|
+| Daten laden gescheitert | "Error 503 / Fehler beim Laden" | "Konnte gerade nicht geladen werden" + **Nochmal laden** |
+| Verbindung weg | "Network Error" | "Verbindung unterbrochen — Seite neu laden" |
+| Senden gescheitert (Stufe 2) | "Senden fehlgeschlagen" | "Hat gerade nicht geklappt" + **Nochmal senden** |
+| Dauerhaft gescheitert (Stufe 3) | "Fehler — bitte später" | "Wir konnten das noch nicht abschließen — du kannst weitermachen, die Aktion bleibt gespeichert" |
+| Unlösbar / System down | "Internal Server Error" | "Das müssen wir uns ansehen — bitte kurz deinem Admin Bescheid geben" (+ Admin-Kontakt direkt) |
+| Plan-Limit erreicht | "Quota exceeded" | "Du hast dein Monatslimit erreicht — Plan upgraden oder bis [Datum] warten" |
+
+Verbotene Wörter in der UI: `Error`, `Fehler`, `Exception`, `Failed`, `null`,
+Statuscodes (`404`, `500`, `503`), Stacktraces, Provider-Namen ("Anthropic API …").
+
+### Pro Fehler-Quelle — was passiert
+
+| Quelle | Verhalten |
+|--------|-----------|
+| **API / Supabase Query** | Timeout 8s → Stufe 2 Meldung + Nochmal-laden. Daten bleiben optimistisch sichtbar wenn vorhanden (stale-while-error). |
+| **Edge Function** | 1× Frontend-Retry → bei Fehlschlag `error_log` + Stufe 3. Server-Backoff übernimmt das Nachholen. |
+| **AI Call (`aiCall()`)** | Niemals roher Fehler an den User. Fehlt Kontext → Fallback-Text. API down → bei Outreach: Schritt bleibt `draft`/offen, kein halluzinierter Text. Bei Chat: "Konnte das gerade nicht verarbeiten — nochmal fragen". |
+| **Sending Layer** | `delivery_status = 'failed'` + gelbes Badge in der Lead-Zeile. Inbox/Mein Tag zeigt "1 Nachricht konnte nicht raus — nochmal senden?". Nie still verschlucken. |
+
+### Ausnahme — Optimistic UI nur bei reversiblen Aktionen
+
+Optimistisch (Stufe 0) nur wo ein sauberer Rollback möglich ist (Lead anlegen,
+Task abhaken, Notiz). Bei unwiderruflichen / sensiblen Aktionen (Massenversand,
+Plan-Wechsel, Löschen) bewusst ein kurzer Blocking-State **mit Bestätigung** —
+lieber 2 Sekunden warten als eine falsch gesendete Nachricht zurücknehmen müssen.
+
+### Prüffrage vor jeder neuen async-Funktion
+
+*"Was sieht der User wenn das 8 Sekunden hängt oder dauerhaft scheitert?"*
+Wenn die Antwort "Spinner" oder "Fehlermeldung mit Grund" ist → nicht fertig.
