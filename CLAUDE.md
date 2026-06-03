@@ -170,6 +170,8 @@ src/
   components/
     ui/           ← shadcn Primitives (nicht anfassen)
     screens/      ← ScreenMyDay, ScreenHunting, ScreenFarming, ScreenMarketing, ScreenSherloqSystem, Jira
+                     ⚠️ Nav-Mapping: ScreenHunting = "Hunter", ScreenFarming = "Farmer".
+                     AI SDR Screen ist neu zu bauen. (Dateinamen ggf. später angleichen.)
     layout/       ← TopBar, Sidebar
     shared/       ← CustomerDrawer, CommandPalette, CommunicationChain, ICPDonut
   lib/
@@ -249,26 +251,43 @@ import { heatStatusColors, dealStageColors, churnRiskColors, personalityColors }
 
 **AppShell `layout="default"`** — header full-width at top, navbar below it on the left.
 
-### Top bar — `TopNav.tsx` (primary section navigation)
-Horizontal pill navigation spanning the full header width.
-- **5 primary sections as pills**: Mein Tag · Hunting · Farming · Marketing · Sherloq System
-- **Jira** as secondary pill (smaller, `topNavPillSecondary` class, separated by gap)
-- **Right side**: Cmd+K pill button + user avatar
-- Active pill: gradient `linear-gradient(135deg, #175253, #3f8383)` + white text
-- Inactive: transparent background, gray text — zero borders, zero dividers
+### Primäre Navigation — exakt VIER Punkte
 
-### Left sidebar — `SubSidebar.tsx` (context-sensitive sub-nav)
-Icon-only sidebar (68px wide) that changes content based on the active section.
-- Shows sub-nav icons for the active section (e.g. Hunting → Lead-Liste, Pipeline, Sequenzen, Outreach)
-- Active icon: gradient background + white icon
-- Inactive: transparent, gray icon
-- Utility buttons (Settings, Theme toggle) pinned to bottom
-- Mein Tag has no sub-items → sidebar shows only utility buttons
+```
+Mein Tag  |  AI SDR  |  Hunter  |  Farmer
+```
+
+Produktsatz dahinter:
+> "AI SDR erzeugt Pipeline. Hunter gewinnt Deals.
+>  Farmer entwickelt Kunden. Mein Tag sagt dir was heute zählt."
+
+NICHT mehr: ~~Mein Tag | Hunting | Farming~~ (alte 3er-Struktur).
+NICHT mehr primär: Marketing, Sherloq System → als **sekundäre** Bereiche
+behandeln. Jira bleibt sekundär (eigener Pill, abgesetzt).
+
+> ⚠️ Code-Stand: `TopBar.tsx` hat aktuell noch `Mein Tag | Hunting | Farming`.
+> Muss bei der Umsetzung auf die 4 primären Punkte gebracht werden
+> (AI SDR ist ein neuer Screen, Hunting→Hunter, Farming→Farmer).
+
+### Top bar — `TopBar.tsx` (primary section navigation)
+Horizontal pill navigation, absolut zentriert, Sliding-Pill-Animation.
+- **4 primäre Sektionen als Pills**: Mein Tag · AI SDR · Hunter · Farmer
+- **Jira / Marketing / Sherloq System** als sekundäre Pills (abgesetzt)
+- **Right side**: Cmd+K pill button + user avatar
+- Active pill: `var(--sherloq-primary)` + white text (Sliding-Pill)
+- Inactive: transparent, gray text — zero borders
+
+### Left sidebar — `Sidebar.tsx` (context-sensitive sub-nav)
+Icon-only sidebar, ändert Inhalt je nach aktiver Sektion.
+- Sub-nav je Sektion (z.B. Hunter → Signale · Stagnierende Deals · Follow-ups · Pipeline)
+- Inbox-Icon zwischen AI SDR und Kalender (→ Inbox-Sektion)
+- Utility-Buttons (Settings, Theme) unten gepinnt
+- Mein Tag hat keine Sub-Items → nur Utility-Buttons
 
 ### Role-based access (`navConfig.tsx → roleAccess`)
-- `solo` / `admin` → all 5 sections + Jira
-- `hunter` → Mein Tag · Hunting · Jira
-- `farmer` → Mein Tag · Farming · Jira
+- `solo` / `admin` → alle 4 primären Sektionen + sekundäre
+- `hunter` → Mein Tag · AI SDR · Hunter · Jira
+- `farmer` → Mein Tag · Farmer · Jira
 
 ---
 
@@ -358,11 +377,17 @@ Color + icon + text together = always an action recommendation.
 ### 4. Cmd+K — Universal Navigation & Action Layer
 
 From anywhere in the app. Cmd+K is **not** the AI chat — it's fast, predictable, direct.
-- Navigation: "Mein Tag", "Hunter", "Farmer", "Jira"
+- Navigation: "Mein Tag", "AI SDR", "Hunter", "Farmer", "Jira"
 - Search: contact name, company, deal title (results appear while typing)
 - Quick actions: "Neuer Kontakt", "Neue Task", "Deal gewonnen"
 
 The AI Chat handles complex, context-dependent actions. Cmd+K handles speed.
+
+**Cmd+K ist für Zugriff — nicht für Awareness.**
+- Über Cmd+K erreichbar: alle Leads/Kunden/Kontakte/Companies/Deals, alle Signale,
+  alle Automationen, Suche.
+- Awareness entsteht NICHT über Cmd+K. Relevante Signale zeigt das System
+  proaktiv in: **Mein Tag · AI SDR · Hunter · Farmer**.
 
 ### 5. AI in Background — Human in Foreground
 
@@ -1029,21 +1054,29 @@ Diese Keys müssen beim DB-Setup in `system_config` eingefügt werden:
 | `automation_ai_sdr_followup` | `semi_auto` | Follow-up vorbereitet, User bestätigt |
 | `automation_ai_sdr_booking_link` | `semi_auto` | Buchungslink senden nach meeting_request |
 
-**Hunting (Pipeline & Outreach):**
+**Hunter — Recommendation Agent für Deals/Pipeline (führt NICHTS automatisch aus):**
 | Key | Standard | Bedeutung |
 |-----|----------|-----------|
-| `automation_hunting_cold_outreach` | `manual` | Kaltakquise immer manuell freigeben |
-| `automation_hunting_followup` | `semi_auto` | Follow-up zu bestehenden Leads |
-| `automation_hunting_stage_push` | `manual` | Stage-Änderung immer manuell |
-| `automation_hunting_task_creation` | `semi_auto` | Tasks werden vorbereitet, User bestätigt |
+| `automation_hunter_stagnation_alert` | `semi_auto` | Stagnierender Deal → Empfehlung vorbereiten |
+| `automation_hunter_followup_reco` | `semi_auto` | Fehlendes Follow-up → Empfehlung, User entscheidet |
+| `automation_hunter_signal_reco` | `semi_auto` | Neues Signal zu Pipeline-Kontakt → Interpretation + Empfehlung |
+| `automation_hunter_task_creation` | `semi_auto` | Task aus Empfehlung — User bestätigt |
 
-**Farming (Kundenpflege & Expansion):**
+Hunter sendet nie eigenständig Outreach. `full_auto` ist hier nicht zulässig —
+maximal `semi_auto` (AI empfiehlt, Mensch führt aus).
+
+**Farmer — Recommendation Agent für Bestandskunden (führt NICHTS automatisch aus):**
 | Key | Standard | Bedeutung |
 |-----|----------|-----------|
-| `automation_farming_next_stage` | `manual` | "Next Stage bringen" immer manuell |
-| `automation_farming_upsell_outreach` | `semi_auto` | Upsell-Nachricht vorbereiten, User bestätigt |
-| `automation_farming_churn_alert` | `semi_auto` | Churn-Warnung + empfohlene Aktion |
-| `automation_farming_renewal` | `manual` | Renewal-Outreach immer manuell |
+| `automation_farmer_churn_alert` | `semi_auto` | Churn-Risiko → Warnung + empfohlene Aktion |
+| `automation_farmer_upsell_reco` | `semi_auto` | Upsell-Potenzial → Empfehlung vorbereiten |
+| `automation_farmer_renewal_reco` | `semi_auto` | Renewal fällig → Empfehlung, User entscheidet |
+| `automation_farmer_trial_reco` | `semi_auto` | Trial-Management → Empfehlung |
+
+Farmer sendet nie eigenständig Outreach. `full_auto` nicht zulässig — maximal `semi_auto`.
+
+**AI SDR ist der einzige Execution Agent** — nur hier ist `full_auto` für tatsächlichen
+Outreach überhaupt zulässig (LinkedIn/Email senden). Hunter + Farmer empfehlen nur.
 
 **Allgemein:**
 | Key | Standard | Bedeutung |
@@ -1057,8 +1090,8 @@ Kein Feature startet automatisch ohne dass der User das explizit eingestellt hat
 
 Der User kann Werte über die Settings-UI oder per AI Chat ändern:
 - "Stelle AI SDR Follow-ups auf vollautomatisch"
-- "Hunting: Kaltakquise soll ich immer selbst freigeben"
-- "Farming: Next Stage Vorschläge sollen automatisch kommen aber ich bestätige"
+- "Hunter: Stagnations-Empfehlungen sollen automatisch vorbereitet werden, ich bestätige"
+- "Farmer: Churn-Warnungen sofort, aber mit meiner Freigabe"
 
 ### Was JETZT gebaut wird — was SPÄTER kommt
 
@@ -1634,22 +1667,25 @@ Fehlende Felder → Fallback-Text verwenden, nicht halluzinieren.
 
 ### Was im AI SDR Screen erscheint
 
-AI SDR Screen zeigt NUR:
+AI SDR Screen (Execution Agent) zeigt: **Sequenzen · Outreach aktiv · Posteingang · Termine gebucht.**
+Inhalt:
 - `full_auto` Leads (AI arbeitet selbst)
 - `semi_auto` Leads (AI hat vorbereitet, wartet auf Bestätigung)
 - `requires_human` Leads (temporär, bis User entschieden hat)
+- `manual` Leads bleiben im AI SDR Screen (Filter "Manuell" / "Alle"), erscheinen
+  hervorgehoben wenn Aktion fällig — **nicht** in Hunter.
 
-`manual` Leads → Hunting Follow-ups Tab (nicht AI SDR Screen)
-Ausnahme: Manual Leads erscheinen in "Alle"-Filter wenn Aktion fällig.
+**Wichtig (Agent-Trennung):** Hunter ist KEIN Ort für neue Leads oder Sequenzen.
+Hunter behandelt nur bestehende Deals/Opportunities (Recommendation Feed).
+Sobald ein Lead zum Deal wird → Übergabe AI SDR → Hunter (siehe Signal Routing).
 
 ### Wo landen nicht zugeordnete Leads
 
-Leads ohne Sequenz-Zuweisung landen in:
-**Hunting → New Leads Tab → Filter "Ohne Sequenz"**
+Leads ohne Sequenz-Zuweisung bleiben **im AI SDR Screen → Filter "Ohne Sequenz"**.
 
 Dort: AI schlägt Sequenz vor (basierend auf `sequence_rules`)
 User bestätigt oder weist manuell zu.
-Kein Lead darf im AI SDR Screen erscheinen ohne aktive Sequenz.
+Kein Lead startet Outreach ohne aktive Sequenz.
 
 ### Durchgelaufene Sequenzen ohne Response
 
@@ -2252,3 +2288,158 @@ Verfeinerung der Regel "Sales OS gewinnt" (war zu pauschal):
 Schreibweise)?"*
 Wenn ja und unsicher → `merge_candidates` + `notify()`, niemals still anlegen
 und niemals automatisch eine Sequenz darauf starten.
+
+---
+
+## Agent-Architektur — drei klar getrennte Rollen (fundamental)
+
+Das System hat drei AI-Agenten mit **unterschiedlichem Verhalten**. Die Trennung
+ist absolut: Execution vs. Recommendation. Verwechslung = Architektur-Fehler.
+
+```
+AI SDR   = Execution Agent      → führt Outreach SELBST aus (autonom/bestätigt)
+Hunter   = Recommendation Agent → erkennt · interpretiert · empfiehlt (Deals)
+Farmer   = Recommendation Agent → erkennt · interpretiert · empfiehlt (Bestandskunden)
+```
+
+### AI SDR = Execution Agent (Anfang des Funnels)
+
+Führt Outreach selbst aus — autonom oder mit Bestätigung. Einziger Agent
+bei dem `full_auto` für echten Versand zulässig ist.
+
+Zuständig für:
+- Neue Leads via Sherloq Signals
+- Outreach-Sequenzen (LinkedIn, Email)
+- Follow-ups in aktiven Sequenzen
+- Reply Handling + Intent Detection
+- Terminbuchung
+- Leads die noch keinen Deal haben
+
+Screen: **Sequenzen · Outreach aktiv · Posteingang · Termine gebucht.**
+
+### Hunter = Recommendation Agent (Deals & Pipeline)
+
+Arbeitet an bestehenden Opportunities/Deals. Führt **NICHTS** automatisch aus —
+erkennt, interpretiert, empfiehlt. Mensch entscheidet.
+
+Zuständig für:
+- Stagnierende Deals
+- Fehlende Follow-ups bei Opportunities
+- Neue Signals zu Pipeline-Kontakten
+- AI-Empfehlungen für nächste Schritte
+- Individuelle Aktionen die kein Standard-Outreach sind
+
+**Hunter ist KEIN Ort für Sequenzen oder Cold Outreach.**
+Recommendation Feed: `Signal → AI Interpretation → Empfehlung → Mensch entscheidet`
+
+Beispiele:
+- "Deal Acme stagniert seit 8 Tagen — persönliches LinkedIn Follow-up empfohlen"
+- "Lead hat mit Competitor interagiert — individuelle Reaktion, keine Sequenz"
+- "Demo vor 5 Tagen, kein Next Step — konkrete Agenda senden"
+
+### Farmer = Recommendation Agent (Bestandskunden)
+
+Wie Hunter, aber für Bestandskunden. Führt **NICHTS** automatisch aus.
+
+Zuständig für:
+- Churn Risk (kein Login, Usage Drop, Downgrade)
+- Upsell-Potential (Feature-Nutzung, Seat-Gaps)
+- Trial Management · Renewal · Retention
+
+Gleiche Logik: `Signal → AI Interpretation → Empfehlung → Mensch entscheidet`
+
+Beispiele:
+- "Kunde 14 Tage kein Login — kein generischer Check-in, Hinweis auf Feature X"
+- "Downgrade erkannt — Retention-Mail vorbereiten, nicht automatisch senden"
+- "Mehr Sales-Mitarbeiter als Seats — Upsell-Potenzial erkannt"
+
+---
+
+## Signal Routing — Pflicht-Entscheidungsbaum
+
+Jedes Signal wird nach Kontext geroutet. **Kein Signal erscheint an zwei Orten
+gleichzeitig.**
+
+```
+Signal zu neuem Lead (noch kein Deal)        → AI SDR
+Signal zu Lead bereits in Sequenz            → AI SDR (im Sequenzkontext)
+Signal zu Pipeline-Opportunity / Deal        → Hunter
+Signal zu Bestandskunde                      → Farmer
+Bestehender Lead wird jetzt Deal             → Übergabe AI SDR → Hunter
+```
+
+Routing-Logik muss in `process_new_lead()` und `classify_intent()` Edge Functions
+implementiert sein (→ Sequenz Engine).
+
+`signals` Tabelle braucht:
+```sql
+routed_to       TEXT          -- ai_sdr | hunter | farmer
+routed_at       TIMESTAMPTZ
+routing_reason  TEXT          -- warum dieses Routing
+```
+
+---
+
+## Automation Risk-Level — Vorbereitung (Schwellen noch zu definieren)
+
+> ⚠️ Die genauen Risk-Schwellenwerte sind **noch nicht definiert** — werden vom
+> User später festgelegt (Entscheidungsliste `entscheidungen_v2.md` Punkt 20).
+> **Bis dahin: alle Aktionen `semi_auto` als Default — nie `full_auto` ohne
+> explizite User-Freigabe.**
+
+Architektonisch jetzt vorbereiten, in `system_config`:
+```sql
+automation_risk_low_actions    TEXT  -- komma-getrennte Liste (noch zu definieren)
+automation_risk_medium_actions TEXT  -- komma-getrennte Liste (noch zu definieren)
+automation_risk_high_actions   TEXT  -- komma-getrennte Liste (noch zu definieren)
+```
+
+Grundprinzip (Details offen):
+- **Low Risk** → darf später automatisch laufen (z.B. Task erstellen)
+- **Medium Risk** → Semi-Auto (AI draftet, Mensch bestätigt)
+- **High Risk** → immer Approval (z.B. Downgrade, Key Accounts)
+
+Gilt für AI SDR UND Hunter UND Farmer.
+Bei Hunter/Farmer ist `full_auto` ohnehin nie zulässig (Recommendation only).
+
+---
+
+## Hunter Screen — UI-Struktur (Recommendation Feed)
+
+Hunter ist **kein Sequenz-Screen**. Hunter ist ein Recommendation Feed.
+
+Aufbau:
+- Nav-Kacheln (Sub-Nav): **[Signale] [Stagnierende Deals] [Follow-ups] [Pipeline]**
+- Hauptinhalt: Empfehlungs-Kacheln — `Signal → Interpretation → Empfehlung`
+- Jede Kachel: AI-Empfehlung inline · Mensch **bestätigt oder verwirft**
+- Side Panel: Kontakt-Detail + Kurzakte + History + "Empfehlung ausführen"
+
+Kein Sequenz-Feed, keine Automation-Toggles für Outreach.
+Nur: **erkennen → empfehlen → Mensch entscheidet.**
+
+---
+
+## Farmer Screen — UI-Struktur (Recommendation Feed, Bestandskunden)
+
+Wie Hunter, explizit als Recommendation Agent.
+
+Aufbau:
+- Nav-Kacheln (Sub-Nav): **[Signale] [Churn & Trials] [Upsell]**
+- Hauptinhalt: Signal-Kacheln mit AI-Empfehlung inline
+- Gleiche Logik wie Hunter, aber für Bestandskunden
+
+---
+
+## Mein Tag — Klarstellung (aggregierter Tages-Feed)
+
+Mein Tag ist **kein eigener Sales-Bereich** und **keine eigene Datenquelle**.
+Es ist der priorisierte Tages-Feed **über alle Bereiche**.
+
+Zeigt nur was heute menschliche Aufmerksamkeit braucht — aggregiert aus:
+- **AI SDR:** `requires_human` Eskalationen
+- **Hunter:** stagnierende Deals + fehlende Follow-ups
+- **Farmer:** Churn Risk + Upsell
+- **Termine + Meeting-Prep**
+
+Keine eigene Datenquelle — alles aus AI SDR, Hunter, Farmer aggregiert
+(→ Notifications-Events feuern hierher).
