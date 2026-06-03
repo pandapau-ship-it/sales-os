@@ -114,8 +114,8 @@
 - [ ] Fehlgeschlagenes = sichtbarer DB-Status (gelbes Badge), kein Spinner
 
 ### Design-Invarianten (laufend)
-- [ ] **Emoji in UI entfernen** — *ScreenFarming/Hunting/CustomerDrawer (audit WARN)*
-- [ ] `ScreenPlaceholder` in `componentRegistry.ts` registrieren *(audit WARN)*
+- [x] **Emoji in UI entfernt** — *ScreenFarming/Hunting/MyDay/Marketing/CustomerDrawer → Lucide-Icons (audit PASS)*
+- [x] `ScreenPlaceholder` korrekt als Helper eingestuft (kein Render-Key → nicht in Registry; audit-Ausnahme)
 - [ ] Jede neue interaktive Komponente → shadcn-Primitiv aus `ui/`
 - [ ] Jede neue Komponente → sofort in `componentRegistry.ts`
 
@@ -160,9 +160,9 @@
 - [x] Design-Token-System in `index.css` (single source)
 - [x] shadcn/ui Migration (Dialog, Sheet, Select, Tooltip, DropdownMenu)
 - [x] `getHeatColor()` zentral in `heatUtils.ts`
-- [x] Heat-/Status-Badges als Lucide-Icons (kein Emoji) — *ScreenFarming Status erledigt*
-- [ ] Restliche Emoji-Strings entfernen (siehe Frontend/Design-Invarianten)
-- [ ] Inbox-Sortierung mit Lucide-Icons (kein Emoji)
+- [x] Heat-/Status-Badges als Lucide-Icons (kein Emoji)
+- [x] Restliche Emoji-Strings entfernt (🔥✨🚀⚠️✅⬆️ → Lucide) — *audit PASS*
+- [ ] Inbox-Sortierung mit Lucide-Icons (kein Emoji) — *beim Inbox-Bau*
 
 ---
 

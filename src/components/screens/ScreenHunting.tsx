@@ -385,7 +385,7 @@ export default function ScreenHunting({
                             <div className="flex flex-col gap-1">
                               <span className="text-text-muted font-mono text-[10px] uppercase tracking-wider">Stage</span>
                               <span className="font-bold text-signal-urgent text-[14px] flex items-center gap-1.5">
-                                Demo <span className="font-semibold text-red-500">⚠️ 8T</span>
+                                Demo <span className="font-semibold text-red-500 inline-flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> 8T</span>
                               </span>
                             </div>
                             <div className="flex flex-col gap-1">

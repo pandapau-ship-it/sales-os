@@ -40,7 +40,7 @@ export default function ScreenMarketing({
       const data = await response.json();
       setAiDraftOutput(data.post || 'Konnte keinen Entwurf erstellen.');
     } catch (e) {
-      setAiDraftOutput(`🚀 LinkedIn Post Entwurf:\n\nInteressantes Thema: ${customTopic}!\n\nIn der heutigen weichen SaaS-Landschaft ist besonders ${customKeywords} entscheidend. Was denken eure AMs?\n\n#B2BSales #CustomerSuccess`);
+      setAiDraftOutput(`LinkedIn Post Entwurf:\n\nInteressantes Thema: ${customTopic}!\n\nIn der heutigen weichen SaaS-Landschaft ist besonders ${customKeywords} entscheidend. Was denken eure AMs?\n\n#B2BSales #CustomerSuccess`);
     } finally {
       setIsGenerating(false);
     }
@@ -173,7 +173,7 @@ export default function ScreenMarketing({
                   disabled={isGenerating || !customTopic}
                   className="mt-4 bg-sherloq-primary hover:bg-sherloq-primary/95 text-white font-sans text-[12px] font-semibold px-4.5 py-2 rounded-pill cursor-pointer shadow-xs disabled:opacity-50"
                 >
-                  {isGenerating ? 'Wird entworfen...' : 'Entwurf mit Gemini generieren ✨'}
+                  {isGenerating ? 'Wird entworfen...' : 'Entwurf generieren'}
                 </button>
               </div>
             )}

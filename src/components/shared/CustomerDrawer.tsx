@@ -22,6 +22,7 @@ import {
   Plus,
   Activity,
   Bookmark,
+  TrendingUp,
 } from "lucide-react";
 import type { Lead, Customer } from "@/types";
 import { getHeatColor } from "@/lib/heatUtils";
@@ -378,7 +379,7 @@ export default function CustomerDrawer({
                       <div className="flex flex-col gap-1.5">
                         <span className="text-[10px] uppercase font-bold text-icon-muted font-mono tracking-wider">Enrichments</span>
                         <div className="flex items-center">
-                          <span className="text-[13px] font-bold text-signal-urgent">8.500 / 10k (85%) ⚠️</span>
+                          <span className="text-[13px] font-bold text-signal-urgent inline-flex items-center gap-1">8.500 / 10k (85%) <AlertTriangle className="w-3.5 h-3.5" /></span>
                           <span className="text-signal-success text-[10px] font-semibold ml-1.5">+7%</span>
                         </div>
                       </div>
@@ -410,7 +411,7 @@ export default function CustomerDrawer({
                       </div>
                       <div className="flex flex-col gap-1.5">
                         <span className="text-[10px] uppercase font-bold text-icon-muted font-mono tracking-wider">Status</span>
-                        <span className="text-[13px] font-bold text-signal-success">Aktiv ✅</span>
+                        <span className="text-[13px] font-bold text-signal-success inline-flex items-center gap-1">Aktiv <CheckCircle2 className="w-3.5 h-3.5" /></span>
                       </div>
                       <div className="flex flex-col gap-1.5">
                         <span className="text-[10px] uppercase font-bold text-icon-muted font-mono tracking-wider">Aktiv seit</span>
@@ -431,7 +432,7 @@ export default function CustomerDrawer({
                     <div className="flex flex-col gap-3">
                       <div className="flex items-center gap-3">
                         <div className="bg-[var(--signal-success-bg)] text-signal-success font-bold text-[13px] px-3 py-1.5 rounded-md flex items-center gap-1.5">
-                          Low ✅
+                          Low <CheckCircle2 className="w-3.5 h-3.5" />
                         </div>
                       </div>
                       <p className="text-[13px] text-text-body leading-relaxed">
@@ -449,7 +450,7 @@ export default function CustomerDrawer({
                       <div className="flex flex-col gap-4">
                         <div className="flex items-center gap-3">
                           <div className="bg-[var(--signal-success-bg)] text-signal-success font-bold text-[13px] px-3 py-1.5 rounded-md flex items-center gap-1.5">
-                            ⬆️ {castedCustomer.upsellOpportunity.potential}
+                            <TrendingUp className="w-3.5 h-3.5" /> {castedCustomer.upsellOpportunity.potential}
                           </div>
                         </div>
                         <p className="text-[13px] text-text-body leading-relaxed">

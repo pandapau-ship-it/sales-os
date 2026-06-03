@@ -155,7 +155,7 @@ export default function ScreenFarming({
                 <div className="flex-1 bg-gray-100 h-2.5 rounded-pill overflow-hidden mx-4">
                   <div className="bg-red-500 h-full" style={{ width: '8%' }} />
                 </div>
-                <span className="font-mono text-red-500 w-12 text-right">8% ⚠️</span>
+                <span className="font-mono text-red-500 w-12 text-right inline-flex items-center justify-end gap-1">8% <AlertTriangle className="w-3 h-3" /></span>
               </div>
             </div>
           </div>
@@ -349,7 +349,7 @@ export default function ScreenFarming({
                             <div className="flex flex-col gap-1">
                               <span className="text-text-muted font-mono text-[10px] uppercase tracking-wider">Enrichments</span>
                               <div className="flex items-center">
-                                <span className="font-bold text-signal-urgent text-[14px]">85% <span className="text-[12px]">⚠️</span></span>
+                                <span className="font-bold text-signal-urgent text-[14px] inline-flex items-center gap-1">85% <AlertTriangle className="w-3.5 h-3.5" /></span>
                                 <span className="text-signal-success text-[11px] font-semibold ml-2">+7%</span>
                               </div>
                             </div>
@@ -469,7 +469,7 @@ export default function ScreenFarming({
                             : 'bg-app-surface border-border hover:bg-app-bg text-text-body'
                         }`}
                       >
-                        {isCritical ? '⚠️ CS-Ticket erstellen' : 'Nutzung auslesen'}
+                        {isCritical ? <span className="inline-flex items-center gap-1.5"><AlertTriangle className="w-3.5 h-3.5" /> CS-Ticket erstellen</span> : 'Nutzung auslesen'}
                       </button>
                     </div>
                   </div>

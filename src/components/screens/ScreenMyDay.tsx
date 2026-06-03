@@ -4,9 +4,10 @@
  */
 
 import { useState, useEffect } from 'react';
-import { 
-  Sparkles, 
-  ChevronDown, 
+import {
+  Sparkles,
+  Flame,
+  ChevronDown,
   ChevronUp, 
   Mail, 
   Link2, 
@@ -208,8 +209,8 @@ export default function ScreenMyDay({
       {/* 4. PRIORITIES LIST (Section 7.4) */}
       <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between px-1">
-          <h2 className="text-[14px] font-semibold text-text-primary tracking-tight uppercase tracking-wider font-sans">
-            🔥 Top Prioritäten für heute (Max 5)
+          <h2 className="text-[14px] font-semibold text-text-primary tracking-tight uppercase tracking-wider font-sans inline-flex items-center gap-2">
+            <Flame className="w-4 h-4 text-signal-urgent" /> Top Prioritäten für heute (Max 5)
           </h2>
           <span className="text-[11px] font-mono text-text-muted bg-amber-50 text-amber-700 px-2.5 py-0.5 rounded-pill border border-amber-100 font-semibold">
             Urgent Dispatcher
@@ -431,7 +432,7 @@ export default function ScreenMyDay({
                         disabled={isGeneratingDraft}
                         className="bg-sherloq-primary hover:bg-sherloq-primary/90 text-white font-sans text-[11px] font-medium rounded-pill px-3 py-1.5 transition-all shadow-xs cursor-pointer flex-shrink-0 disabled:opacity-50"
                       >
-                        {isGeneratingDraft ? 'Schreibt...' : 'Dran feilen ✨'}
+                        {isGeneratingDraft ? 'Schreibt...' : 'Dran feilen'}
                       </button>
                     </div>
 

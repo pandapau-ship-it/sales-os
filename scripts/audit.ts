@@ -117,7 +117,11 @@ function checkComponentRegistry(): void {
     return
   }
   const registry = read(registryPath)
-  const screens = walk(screensDir, ['.tsx']).map((p) => basename(p, '.tsx'))
+  // Generische Hilfskomponenten haben keinen Render-Key → gehören nicht in die Registry.
+  const helpers = ['ScreenPlaceholder']
+  const screens = walk(screensDir, ['.tsx'])
+    .map((p) => basename(p, '.tsx'))
+    .filter((s) => !helpers.includes(s))
   const missing = screens.filter((s) => !registry.includes(s))
 
   if (missing.length) add('Component Registry', 'WARN', `Nicht registriert: ${missing.join(', ')}`)
@@ -167,7 +171,9 @@ function checkAbstraction(libFile: string, label: string, patterns: RegExp): voi
 
 function checkNoEmojiBadges(): void {
   const files = walk(SRC, ['.tsx'])
-  const emoji = /[✅❌⚠️\u{1F195}⏳\u{1F7E2}\u{1F7E0}\u{1F534}]/u
+  // Echte Piktogramm-Emoji (1F000–1FAFF), FE0F-Emoji-Sequenzen, und bekannte
+  // Emoji-Symbole. Monochrome Text-Glyphen (✓ ✔ ✦ → Pfeile) sind ERLAUBT.
+  const emoji = /[\u{1F000}-\u{1FAFF}]|\u{FE0F}|[\u{2728}\u{2705}\u{274C}\u{2B50}\u{26A0}]/u
   const offenders = files.filter((f) => emoji.test(read(f))).map(rel)
   add('Design: keine Emoji in UI', offenders.length ? 'WARN' : 'PASS',
     offenders.length ? `Emoji gefunden in: ${offenders.join(', ')}` : 'Keine Status-Emoji in .tsx.')
