@@ -1334,8 +1334,9 @@ crm_sync_status     TEXT       -- synced | pending | error | conflict
 crm_sync_error      TEXT       -- Fehlermeldung wenn error
 ```
 
-Konflikt-Regel: Sales OS gewinnt bei Konflikten (local-first).
-Ausnahme konfigurierbar per Feld in `system_config`.
+Konflikt-Regel: Sales OS gewinnt bei Konflikten (local-first) — bei wichtigen
+Feldern (Deal-Stage, ARR, Email) entscheidet aber der User.
+Vollständige Logik → siehe **Datenqualität & Duplikate** am Ende dieser Datei.
 
 ### Was synchronisiert wird
 
@@ -2106,6 +2107,9 @@ sofort vs. gebündelt vs. Digest, nur-wenn-offline. Drehen = Zeile ändern, kein
 | `plan_limit_reached` | Monatslimit erreicht | high |
 | `plan_expiring` | Plan läuft in 7 Tagen ab | normal |
 | `task_overdue` | Task überfällig | normal |
+| `duplicate_review` | Möglicher Duplikat-Datensatz (→ Datenqualität) | high |
+| `crm_conflict` | CRM-Sync Konflikt bei wichtigem Feld | high |
+| `data_ingest_failed` | Eingehende Daten unvollständig/kaputt | normal |
 
 Jedes `→ Notification in Mein Tag` im restlichen Dokument feuert über genau diese
 Events — kein separater Mechanismus pro Feature.
@@ -2140,3 +2144,111 @@ Events — kein separater Mechanismus pro Feature.
 *"Feuere ich über `notify()` mit einem Event aus dem Katalog?"*
 Wenn nein → Stopp. Niemals direkt Email/Push/In-App schreiben.
 Neuer Auslöser → Event in den Katalog, nicht in den Code hardcoden.
+
+---
+
+## Datenqualität & Duplikate — Pflichtregeln (nie weglassen)
+
+> **Kernprinzip:** Bei Unschärfe entscheidet IMMER der User. Das System löst
+> Duplikate oder Konflikte niemals still im Hintergrund auf — es erkennt sie,
+> meldet sie (via `notify()`), und legt sie dem User zur Entscheidung vor.
+> Ein doppelt angeschriebener Prospect ist ein Reputations-Killer — lieber einmal
+> nachfragen als zweimal senden.
+
+### 1. Ingestion-Validierung — bevor irgendwas geschrieben wird
+
+Jeder eingehende Datensatz (Sherloq-Webhook, CRM-Sync, Import) wird VOR dem
+Schreiben validiert. Kaputte Daten landen nie in der DB.
+
+- Pflichtfelder vorhanden? (Name, mind. ein Kanal: Email ODER LinkedIn)
+- Email valides Format? Telefon plausibel?
+- Unbekannte/fehlende Felder → `null`, nie raten, nie halluzinieren
+- Validierung fehlgeschlagen → Eintrag in `error_log` + `notify()` Event
+  `data_ingest_failed`, **nicht** in die produktiven Tabellen
+
+### 2. Duplikat-Erkennung — Email primär, Company fuzzy
+
+Reihenfolge der Matching-Stärke:
+
+1. **Email exakt** (normalisiert: lowercase, trim) → stärkstes Signal, sehr wahrscheinlich Duplikat
+2. **LinkedIn-URL exakt** → ebenso stark
+3. **Name + Company (normalisiert)** → Verdacht, dem User vorlegen
+
+**Company-Normalisierung VOR dem Vergleich — Pflicht:**
+Rechtsformen und Schreibvarianten entfernen, dann vergleichen. So fällt auf dass
+"Acme GmbH" und "Acme" derselbe Kunde sind.
+
+```
+Normalisierung (Company):
+- lowercase, trim, Mehrfach-Leerzeichen weg
+- Rechtsform-Suffixe entfernen: GmbH, AG, UG, GmbH & Co. KG, e.K.,
+  Inc, Inc., LLC, Ltd, Ltd., Corp, Co., S.A., B.V., S.r.l., Pty, …
+- Satzzeichen entfernen (. , & -)
+- "Acme GmbH" → "acme"   |   "Acme, Inc." → "acme"   →  MATCH-Verdacht
+```
+
+Gleiches Prinzip für Personen-Namen (Titel weg: Dr., Prof.; Umlaute normalisieren).
+
+Ergebnis ist nie binär "Duplikat ja/nein", sondern ein **Confidence-Wert**:
+- Email/LinkedIn exakt → high → Standard: zusammenführen, aber Hinweis
+- Name + normalisierte Company gleich → medium → **User entscheidet**
+- nur Name gleich, Company unklar → low → als Verdacht markieren, nicht blocken
+
+### 3. Auflösung — der User entscheidet (nie Auto-Merge im Zweifel)
+
+Bei medium/low Confidence: kein Schreiben, kein zweiter Lead, kein zweiter
+Sequenz-Start. Stattdessen Eintrag in `merge_candidates` + Hinweis an den User.
+
+```sql
+merge_candidates (
+  id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id  UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  new_payload      JSONB NOT NULL,        -- der eingehende Datensatz
+  existing_id      UUID,                  -- der mutmaßliche Bestandskontakt
+  match_reason     TEXT,                  -- z.B. "Name + Company (normalisiert) gleich"
+  confidence       TEXT NOT NULL,         -- high | medium | low
+  status           TEXT DEFAULT 'pending',-- pending | merged | kept_separate | dismissed
+  resolved_by      UUID REFERENCES users(id),
+  resolved_at      TIMESTAMPTZ,
+  created_at       TIMESTAMPTZ DEFAULT now()
+)
+```
+
+Der User sieht (wo/wie ist später egal — Review-Bereich, Pop-up, Inbox-Eintrag):
+> "Möglicherweise schon vorhanden: **Acme GmbH** ↔ **Acme**.
+>  Zusammenführen oder getrennt behalten?"
+
+Entscheidung: **Zusammenführen** · **Getrennt behalten** · **Ignorieren**.
+Ausgelöst über `notify()` Event `duplicate_review`. Bis zur Entscheidung startet
+**keine Sequenz** für den neuen Datensatz (kein Doppel-Outreach).
+
+### 4. Merge-Logik — wenn als gleich bestätigt
+
+Bei Bestätigung "Zusammenführen": kein zweiter Datensatz, sondern Anreicherung
+des bestehenden.
+
+- Neues Signal/Communication an bestehenden Kontakt anhängen (nie überschreiben)
+- Fehlende Felder am Bestand auffüllen, vorhandene **nicht** überschreiben
+  (Bestand gewinnt — der User hat ihn bewusst gepflegt)
+- Kurzakte-Eintrag: "Aus weiterer Quelle ergänzt am …"
+- Läuft bereits eine Sequenz → weiterlaufen lassen, **keine zweite** starten
+- `audit_log`: `source = 'merge'`, beide IDs festhalten
+
+### 5. CRM-Sync Konflikte — Feld-Ebene, local-first mit Hinweis
+
+Verfeinerung der Regel "Sales OS gewinnt" (war zu pauschal):
+
+- **Kein Konflikt** (nur eine Seite geändert) → still übernehmen
+- **Echter Konflikt** (beide Seiten dasselbe Feld seit letztem Sync geändert):
+  → Default: local (Sales OS) gewinnt, `crm_sync_status = 'conflict'` setzen
+  → **aber** bei wichtigen Feldern (Deal-Stage, ARR, Email) → `notify()` Event
+    `crm_conflict` → User entscheidet welcher Wert gilt
+  → Welche Felder "wichtig" sind: konfigurierbar in `system_config`
+- Jeder Konflikt wird geloggt (`crm_sync_error` / `audit_log`), nie still verworfen
+
+### Prüffrage vor jedem Daten-Schreibvorgang aus externer Quelle
+
+*"Könnte dieser Datensatz schon existieren — exakt ODER unscharf (Rechtsform,
+Schreibweise)?"*
+Wenn ja und unsicher → `merge_candidates` + `notify()`, niemals still anlegen
+und niemals automatisch eine Sequenz darauf starten.
