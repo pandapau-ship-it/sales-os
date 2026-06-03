@@ -1444,6 +1444,9 @@ Prüft für jeden aktiven `contact_sequence` Eintrag:
 3. Sequenz abgeschlossen ohne Response?
    → `status = 'completed_no_response'`
    → User-Notification in Mein Tag
+4. Dynamische Regelprüfung (→ siehe Dynamische Sequenzen):
+   → REGEL 1/2/3 prüfen, `next_step_date` + `sending_channel` anpassen
+   → `dynamic_adjustment = true`, `adjustment_reason` setzen
 
 ### Kontext für AI Calls — immer vollständig
 
@@ -1503,3 +1506,166 @@ status = 'completed_no_response'
 → Nie löschen — immer in DB behalten
 → Bei neuem Sherloq-Signal → taucht automatisch wieder auf
 ```
+
+---
+
+## Dynamische Sequenzen — Pflichtregeln
+
+Sequenzen sind nicht statisch. Das System passt Timing und Kanal
+automatisch an basierend auf Prospect-Verhalten.
+Kein ML nötig — pure Algorithmus-Logik via Cron Job (→ Punkt 4 im Sequenz-Cron).
+
+### Drei Basis-Regeln (konfigurierbar in system_config)
+
+**REGEL 1 — Mehrfach gelesen, keine Antwort:**
+```
+WENN delivery_status = 'read'
+UND  read_count >= system_config.sequence_dynamic_read_threshold (Default: 2)
+UND  keine Antwort seit 2 Tagen
+DANN Kanal wechseln (email → linkedin_dm oder umgekehrt)
+     Nachricht-Kontext: "Hat Nachricht mehrfach gelesen aber nicht geantwortet"
+     Flag im AI SDR Screen: "Kanal angepasst — Email → LinkedIn"
+```
+
+**REGEL 2 — Connection angenommen, DM nicht geöffnet:**
+```
+WENN linkedin_connected = true
+UND  dm_opened = false
+UND  Tage seit Connection >= system_config.sequence_dynamic_early_followup (Default: 3)
+DANN next_step_date auf heute setzen (früher als geplant)
+     Kürzere direktere Nachricht generieren
+```
+
+**REGEL 3 — Kein Engagement auf keinem Kanal:**
+```
+WENN email_opened = false
+UND  dm_read = false
+UND  Tage seit letztem Schritt >= system_config.sequence_dynamic_no_engage_days (Default: 5)
+DANN contact_sequence.status = 'paused_no_engagement'
+     Notification in Mein Tag: "Lead reagiert nicht — pausieren oder weiterführen?"
+     User entscheidet — nie automatisch archivieren
+```
+
+### system_config Keys für dynamische Sequenzen
+
+```
+sequence_dynamic_read_threshold     INTEGER  DEFAULT 2
+sequence_dynamic_early_followup     INTEGER  DEFAULT 3
+sequence_dynamic_no_engage_days     INTEGER  DEFAULT 5
+sequence_dynamic_enabled            BOOLEAN  DEFAULT true
+```
+
+### Wo die Anpassung sichtbar wird
+
+Wenn Schritt automatisch angepasst wurde:
+- Lead-Zeile zeigt Info-Badge: "Angepasst" (`Clock` Icon, grau, klein)
+- Side Panel zeigt: "Kanal gewechselt weil: [Grund]"
+- Audit Log: `source = 'dynamic_rule'`, `rule_triggered = 'REGEL_1'`
+
+---
+
+## Tages-Fortschritt — Pflichtregeln
+
+Der User muss jederzeit wissen ob er mit seinen Tages-Aktionen fertig ist.
+
+### Was zählt als "Tages-Aktion"
+
+**Zählt:**
+- `requires_human = true` → User hat entschieden (`approved_by IS NOT NULL`)
+- `execution_mode = 'semi_auto'` → User hat bestätigt und gesendet
+- `follow_up_needed` → User hat abgearbeitet ODER übersprungen
+
+**Zählt NICHT:**
+- `full_auto` Aktionen (AI macht selbst — kein User-Input nötig)
+- Passive Status (gesendet, gelesen, wartet)
+
+### Berechnung — Supabase View, nie im Frontend
+
+```sql
+-- Tages-Aktionen gesamt (für diesen User heute)
+daily_actions_total = COUNT(tasks)
+  WHERE assignee_id = current_user
+  AND   due_date = TODAY
+  AND   (requires_human = true OR execution_mode = 'semi_auto')
+
+-- Tages-Aktionen erledigt
+daily_actions_completed = COUNT(tasks)
+  WHERE assignee_id = current_user
+  AND   due_date = TODAY
+  AND   completed_at IS NOT NULL
+  AND   DATE(completed_at) = TODAY
+```
+
+Reset täglich um 00:00 Uhr via Cron Job.
+**Berechnung als Supabase View — kein Frontend-Calc.**
+
+### Wo der Fortschritt angezeigt wird
+
+1. **AI SDR Screen** (rechts vom Live-Summary): "1 von 3 heute erledigt"
+2. **Sequenz-Filter-Leiste** (dezent, rechts): Progressbar teal, füllt sich bei Erledigung
+3. **Mein Tag Zone 2** (AI SDR Bereich): gleiche Logik, gleiche Daten
+
+---
+
+## Inbox (Posteingang) — Pflichtregeln
+
+### Grundregel — ein universaler Posteingang
+
+Es gibt NUR EINEN Posteingang im gesamten System.
+Kein separater "AI SDR Inbox" und "manueller Inbox".
+Alles läuft in eine Inbox — sortiert nach Intent und Dringlichkeit.
+
+### Platzierung
+
+Eigenes Icon in der linken Sidebar.
+Position: zwischen AI SDR Icon und Kalender Icon.
+Badge mit Zahl wenn ungelesene Antworten vorhanden (rot, `rounded-pill`).
+Badge verschwindet wenn alle Antworten verarbeitet sind.
+
+### Was im Posteingang erscheint
+
+**Phase 2 (jetzt):**
+- Alle Antworten auf AI SDR Outreach (alle Sequenzen)
+- `requires_human` Eskalationen
+
+**Phase 3 (später — kein Umbau nötig):**
+- Alle eingehenden LinkedIn Nachrichten
+- Alle eingehenden Emails
+- Manuelle Kontakt-Antworten
+
+### Sortierung (immer diese Reihenfolge)
+
+| Priorität | Intent | Icon | Farbe |
+|-----------|--------|------|-------|
+| 1 | `requires_human = true` — du bist dran | `AlertTriangle` | rot |
+| 2 | `meeting_request` — Termin-Anfrage | `CalendarCheck` | teal |
+| 3 | `interested` — Interessiert | `CheckCircle2` | grün |
+| 4 | `question` — Frage | `HelpCircle` | blau |
+| 5 | `not_interested` — Nicht interessiert | `XCircle` | grau |
+
+Niemals Emoji in der Sortieranzeige — Lucide-Icons gemäß Badge/Icon-Regel.
+
+### DB-Felder — Ergänzung zur communications Tabelle
+
+Die folgenden Felder ergänzen die bestehenden Intent-Felder
+(`intent_detected`, `intent_confidence`, `requires_human` etc. — siehe AI SDR Automation):
+
+```sql
+-- Ergänzung in communications Tabelle:
+inbox_read          BOOLEAN DEFAULT false
+inbox_processed     BOOLEAN DEFAULT false
+inbox_processed_at  TIMESTAMPTZ
+inbox_processed_by  UUID REFERENCES users(id)
+```
+
+### Verknüpfung mit Sequenz
+
+- Antwort in Inbox → zeigt welche Sequenz + welcher Schritt
+- Klick "Antworten" → Side Panel öffnet Sequenz-Kontext
+- Nach Verarbeitung: verschwindet aus Inbox + Sequenz-Status updated
+
+### Prüffrage
+
+*"Könnte dieser eingehende Kanal später auch im Posteingang erscheinen?"*
+Wenn ja → `communications` Tabelle nutzen + `inbox_read` Feld setzen.
+Kein separater Inbox-Mechanismus pro Feature.
