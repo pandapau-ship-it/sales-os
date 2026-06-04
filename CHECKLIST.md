@@ -154,6 +154,17 @@
 - [ ] Dynamische Sequenzen (REGEL 1/2/3) im Cron Job
 - [ ] AI-Chat: nur registrierte Render-Keys aktivierbar (Component Registry)
 
+### Token-Optimierung (von Tag 1, in aiCall() verankern)
+- [ ] Kontext-Minimierung — *nur letzte 3 Touchpoints (summary), nie volle Historie*
+- [ ] Token-Budget pro Call-Typ aus `system_config` (`ai_token_budget_*`) — *nie hardcodiert*
+- [ ] Über Budget → summarize statt abschneiden — *Qualität erhalten*
+- [ ] AI-Cache: kurzakte/company/icp/sequences (`ai_cache_ttl_*`), invalidieren via DB-Trigger
+- [ ] Batching (`ai_batch_*`) für Intent Detection · ICP · Kurzakte — *1 Call statt 10*
+- [ ] Fallbacks ohne AI — *Datum/Regel/Query: kein AI* (deckt sich mit Sequenz Engine)
+- [ ] Prompt-Optimierung: Variablen in User-Prompt, stabiler System-Prompt — *Prompt-Caching*
+- [ ] `api_usage` Logging: input/output_tokens, cost_usd, duration_ms pro Call
+- [ ] `system_config` Seed: alle `ai_token_budget_*`, `ai_cache_ttl_*`, `ai_batch_*` Keys
+
 ---
 
 ## 🎨 Design

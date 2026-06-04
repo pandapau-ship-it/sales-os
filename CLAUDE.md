@@ -1640,6 +1640,137 @@ Wenn ja → Stopp. Durch `aiCall()` ersetzen.
 
 ---
 
+## Token-Optimierung — Pflichtregeln
+
+Jeder AI Call kostet Geld. Bei Skalierung (100+ Kunden, 1000+ Leads) entstehen
+ohne Optimierung hohe Kosten. Token-Effizienz ist von Tag 1 Pflicht — nicht nachträglich.
+
+### Grundregeln
+
+**REGEL 1 — Kontext so kurz wie möglich.**
+Jeder `aiCall()` bekommt nur den Kontext der wirklich nötig ist.
+Nie die gesamte Kommunikationshistorie übergeben.
+
+- Statt: alle 50 Kommunikationseinträge → **letzte 3 Touchpoints (summary, nicht full text)**
+- Statt: gesamte Kurzakte als Fließtext → **strukturiertes JSON mit nur relevanten Feldern**
+
+### Kontext-Budget pro Call-Typ
+
+Alle Werte kommen aus `system_config` — nie hardcodiert:
+
+```typescript
+const budget = await getConfig('ai_token_budget_outreach_draft') // Default: 800
+```
+
+Wenn Kontext das Budget überschreitet:
+→ Ältere Einträge **zusammenfassen (summarize)** statt weglassen
+→ Nie einfach abschneiden — Kontext verloren = schlechte Qualität
+
+### Caching — was gecacht wird
+
+Folgende Daten ändern sich selten und werden gecacht. Cache-Zeiten aus `system_config`:
+
+```
+contact_kurzakte     → ai_cache_ttl_kurzakte_hours   (Default: 24h)
+company_info         → ai_cache_ttl_company_days      (Default: 7 Tage)
+icp_score            → ai_cache_ttl_icp_hours         (Default: 24h)
+sequence_templates   → ai_cache_ttl_sequences_hours   (Default: 1h)
+system_config        → 15 Minuten (fix)
+```
+
+Kein AI Call wenn gecachte Version noch gültig ist.
+Cache invalidieren wenn Datensatz updated wird (DB Trigger).
+
+### Batching — mehrere Calls zusammenfassen
+
+- Statt: 10 separate Calls für 10 Leads → **1 Call mit bis zu `ai_batch_max_size` Leads (Default: 10)**
+- Gilt für: Intent Detection · ICP Scoring · Kurzakte-Updates
+- Ob Batching aktiv ist steht in `system_config`: `ai_batch_intent_detection = true/false`
+
+### Fallbacks ohne AI
+
+Nicht jede Aufgabe braucht AI. Algorithmus reicht wenn:
+
+```
+Delivery Status tracken          → kein AI, Webhook-Daten
+Sequenz-Schritt fällig?          → kein AI, Datum-Vergleich
+Dynamische Sequenz-Regel prüfen  → kein AI, If-Then Logik
+Lead ohne Sequenz finden         → kein AI, DB Query
+Pipeline-Stagnation erkennen     → kein AI, Datum-Vergleich
+```
+
+Faustregel: Erst ohne AI versuchen. AI nur wenn Entscheidung oder Textgenerierung
+wirklich nötig ist. (Deckt sich mit **Sequenz Engine** → "Algorithmus vs AI".)
+
+### Prompt-Optimierung
+
+Variablen gehören in den User-Prompt — nicht in den System-Prompt
+(stabiler System-Prompt = besseres Prompt-Caching):
+
+```typescript
+// Schlecht (System-Prompt ändert sich je Lead):
+system: `Du bist Sales Assistant für ${contactName}...`
+
+// Gut (System-Prompt bleibt gleich):
+system: `Du bist Sales Assistant. Schreibe präzise Outreach-Nachrichten.`
+user:   `Kontakt: ${contactName}, ${company}. Kurzakte: ${kurzakte}...`
+```
+
+### Usage Tracking
+
+Jeder `aiCall()` loggt automatisch in `api_usage` (→ AI Call Abstraktion):
+
+```sql
+action_type     TEXT
+input_tokens    INTEGER
+output_tokens   INTEGER
+cost_usd        NUMERIC(10,6)
+duration_ms     INTEGER
+organization_id UUID
+month           TEXT
+```
+
+Bei Überschreitung von `plan.max_ai_calls_per_month`:
+→ User informieren · **nicht hart blocken** (→ Fehlerbehandlung)
+→ Option: Upgrade oder manuelle Bearbeitung
+
+### Flexibilität — alle Werte sind konfigurierbar
+
+ALLE Token-Budgets, Cache-Zeiten und Limits stehen ausschließlich in
+`system_config` — nie hardcodiert im Code.
+
+```sql
+ai_token_budget_outreach_draft     INTEGER  DEFAULT 800
+ai_token_budget_intent_detection   INTEGER  DEFAULT 400
+ai_token_budget_kurzakte_update    INTEGER  DEFAULT 600
+ai_token_budget_meeting_prep       INTEGER  DEFAULT 1000
+ai_token_budget_sequence_suggest   INTEGER  DEFAULT 500
+ai_cache_ttl_kurzakte_hours        INTEGER  DEFAULT 24
+ai_cache_ttl_company_days          INTEGER  DEFAULT 7
+ai_cache_ttl_icp_hours             INTEGER  DEFAULT 24
+ai_batch_intent_detection          BOOLEAN  DEFAULT true
+ai_batch_max_size                  INTEGER  DEFAULT 10
+```
+
+Änderbar via Settings-UI (Admin), via AI Chat ("Erhöhe das Token-Budget für
+Meeting-Prep auf 1500"), oder via Claude Code bei Architektur-Änderung.
+
+Wenn sich die Produkt-Architektur ändert:
+→ Erst `system_config` anpassen → dann Code anpassen → **nie umgekehrt**
+
+Kein Token-Budget, keine Cache-Zeit, kein Limit darf jemals direkt im Code stehen —
+auch wenn Werte "offensichtlich fix" wirken.
+
+### Prüffrage vor jedem neuen AI Call
+
+1. "Brauche ich wirklich AI oder reicht ein Algorithmus?"
+2. "Ist der Kontext auf das Minimum reduziert?"
+3. "Kann ich diesen Call mit anderen batchen?"
+4. "Ist das Ergebnis cachebar?"
+5. "Steht der Token-Budget-Wert in `system_config`?"
+
+---
+
 ## Sequenz Engine — Pflichtregeln
 
 Das System führt Outreach-Sequenzen vollautomatisch durch.
