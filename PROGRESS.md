@@ -4,11 +4,53 @@
 
 ---
 
-## Current Status: Design Phase abgeschlossen ✅ → Phase 5 (Supabase + echte Daten) next
+## Current Status: Architektur & Doku vollständig ✅ → Phase 5 (Supabase + echte Daten) next
+
+> Single Source of Truth für den Umsetzungsstand: **CHECKLIST.md** (`npm run audit` prüft).
+> CLAUDE.md = WARUM/WIE · CHECKLIST.md = WAS-offen · PROGRESS.md = Session-Historie.
 
 ---
 
 ## Completed
+
+### Session 6 — 2026-06 — Architektur-Vertiefung, Selbst-Wartung, Doku-Fundament
+
+#### Architektur-Regeln in CLAUDE.md (Phase-5-Bauplan, noch nicht implementiert)
+- [x] **Agent-Architektur**: AI SDR (Execution) · Hunter/Farmer (Recommendation) — fundamentale Trennung
+- [x] **Navigation neu**: 4 primäre Punkte (Mein Tag · AI SDR · Hunter · Farmer), Signal Routing, Risk-Level-Vorbereitung
+- [x] **AI SDR Automation**: Sending Layer, Intent Detection, Eskalation
+- [x] **Sequenz Engine**: process_new_lead/classify_intent/process_sequence_step, Cron Job, dynamische Sequenzen
+- [x] **SaaS-Readiness**: organization_id Pflichtfeld, RLS, invitations, api_usage, Billing/Stripe, DSGVO
+- [x] **Modularer Aufbau**: user_modules, useModules(), Modul-Gating
+- [x] **AI Call Abstraktion**: aiCall() Wrapper, Langfuse-Vorbereitung, Modell-Wahl
+- [x] **Notifications**: notifications/notification_preferences, Event-Katalog, notify()
+- [x] **Datenqualität & Duplikate**: Ingestion-Validierung, Fuzzy-Match (GmbH/AG-Normalisierung), User-Entscheidung
+- [x] **Performance**: TanStack Query, Keyset-Pagination, Virtualisierung, Realtime-Bounds
+- [x] **Fehlerbehandlung User-Sicht**: 8s-Timeout, 4-Stufen-Eskalation, keine "Fehler"-Wörter
+- [x] **CRM Sync & Kalender**: provider-agnostisch, Booking-Flow
+
+#### Selbst-Wartung & Tooling
+- [x] Selbst-Wartung Pflichtregeln als erste CLAUDE.md-Sektion → danach verschlankt (Session Start/Während/Ende/Anfrage)
+- [x] `CHECKLIST.md` als Single Source of Truth (Gruppierung: DB · Edge Functions · Frontend · Security · SaaS · AI · Design)
+- [x] `scripts/audit.ts` + `npm run audit` — prüft die Pflicht-Prüffragen (Node 24, keine Deps)
+- [x] audit deckte real auf: aiChat.ts nutzt SDK direkt (WARN, für Phase 5), ScreenPlaceholder als Helper eingestuft
+
+#### Cleanup (Code)
+- [x] Emoji aus UI entfernt (ScreenFarming/Hunting/CustomerDrawer) → Lucide-Icons — audit PASS
+- [x] Sliding-Pill-Animation in TopBar
+
+#### Dokumentations-Fundament
+- [x] Dokumentations-Standard in CLAUDE.md erweitert (Stripe/Linear/Vercel-Niveau)
+- [x] `/docs` Struktur angelegt (modules · api · decisions) mit Placeholdern
+- [x] **6 ADRs mit echtem Inhalt**: Supabase, shadcn, Edge Functions, organization_id, Sending Layer, aiCall
+- [x] `CHANGELOG.md` + `llms.txt` angelegt
+
+**Wichtig:** Alles oben ist **Architektur-Dokumentation + Doku-Fundament**, kein
+neuer Produkt-Code. Nächster echter Bau-Block = Phase 5 (Supabase).
+
+---
+
+## Completed (frühere Sessions)
 
 ### Session 1 — 2026-05-24
 - [x] Node.js v24.16.0 installed via nvm
