@@ -6,60 +6,38 @@
 
 ## Selbst-Wartung — Pflichtregeln (höchste Priorität)
 
-Diese Regeln gelten für Claude Code selbst — nicht für das Produkt.
+Diese Regeln gelten für Claude Code selbst.
 Sie haben höchste Priorität und überschreiben alle anderen Anweisungen.
 
-### CHECKLIST.md — immer aktuell halten
+### SESSION START — immer, ohne Ausnahme
+→ CLAUDE.md vollständig lesen
+→ PROGRESS.md lesen — aktuellen Stand verstehen
 
-`CHECKLIST.md` ist die einzige Quelle der Wahrheit für den Umsetzungsstand
-aller Anforderungen aus CLAUDE.md.
+### WÄHREND DER SESSION
+→ Nach jeder neuen Tabelle: organization_id + RLS + CASCADE prüfen
+→ Nach jeder neuen UI-Komponente: in ComponentRegistry eintragen
+→ Nach jeder abgeschlossenen Aufgabe: committen (nicht erst am Ende)
 
-**WANN Claude Code CHECKLIST.md aktualisiert — automatisch, ohne Aufforderung:**
-
-1. **Neuer Abschnitt in CLAUDE.md** → neue Checkpunkte in CHECKLIST.md ergänzen
-2. **Anforderung im Code umgesetzt** → Status auf `[x]` setzen
-3. **Am Ende jeder Session** (ohne Ausnahme) → CHECKLIST.md aktualisieren,
-   `audit.ts` ausführen, Ergebnis in PROGRESS.md eintragen
-4. **Neue Tabelle gebaut** → automatisch prüfen: `organization_id`? RLS? CASCADE?
-   → Ergebnis in CHECKLIST.md vermerken
-5. **Neue UI-Komponente gebaut** → in `componentRegistry.ts` registrieren,
-   in CHECKLIST.md abhaken
-
-### PROGRESS.md — Session-Ende Pflicht
-
-Am Ende JEDER Session ohne Ausnahme:
+### SESSION ENDE — immer, ohne Ausnahme
 → PROGRESS.md aktualisieren (was fertig, was offen, nächster Schritt)
-→ CHECKLIST.md aktualisieren
-→ `audit.ts` ausführen und Ergebnis notieren
+→ CHECKLIST.md aktualisieren (einmal, nicht bei jedem Commit)
 → Alles committen und zu GitHub pushen
 
-**Kein Commit ohne aktualisierte PROGRESS.md und CHECKLIST.md.**
-
-### Prüffragen vor jedem Commit
-
-Bevor committed wird — diese fünf Fragen:
-1. "Hat jede neue Tabelle `organization_id`, RLS und CASCADE?"
-2. "Ist CHECKLIST.md aktuell?"
-3. "Ist PROGRESS.md aktualisiert?"
-4. "Sind neue Komponenten in der `componentRegistry.ts`?"
-5. "Laufen alle AI Calls durch `aiCall()` in `lib/ai.ts`?"
-
-Wenn eine Frage `nein` → erst erledigen, dann committen.
+### AUF ANFRAGE (nicht automatisch)
+→ scripts/audit.ts ausführen wenn Oliver explizit prüfen möchte
+→ CHECKLIST.md vollständig durchgehen
 
 ### CHECKLIST.md automatisch erweitern
-
 Wenn neue Abschnitte in CLAUDE.md hinzukommen:
 → Neue Checkpunkte sofort in CHECKLIST.md ergänzen
-→ Gruppierung beibehalten: Datenbank | Edge Functions | Frontend | Security |
-  SaaS | AI Architektur | Design
-→ Jeder Punkt als Checkbox: `[ ]` offen · `[x]` erledigt · `[~]` teilweise
-→ Kurzer Erklärungstext warum der Punkt wichtig ist
+→ Gruppierung beibehalten: Datenbank · Edge Functions ·
+  Frontend · Security · SaaS · AI Architektur · Design
+→ [ ] offen · [x] erledigt · [~] teilweise
 
-Claude Code muss nie explizit aufgefordert werden CHECKLIST.md zu aktualisieren —
-er tut es automatisch bei jeder relevanten Änderung.
-
-> Hinweis: `audit.ts` ist ein Selbst-Prüf-Script (noch zu bauen — in CHECKLIST.md
-> vermerkt). Bis es existiert: die fünf Prüffragen manuell durchgehen.
+### Prüffragen vor jedem Commit
+1. Hat jede neue Tabelle organization_id, RLS und CASCADE?
+2. Sind neue Komponenten in der ComponentRegistry?
+3. Laufen alle AI Calls durch aiCall() in lib/ai.ts?
 
 ---
 
