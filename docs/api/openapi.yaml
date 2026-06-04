@@ -1,0 +1,8 @@
+# OpenAPI Spec — Sales OS Edge Functions
+# Wird nach Phase 2 (AI SDR) generiert. Standard: OpenAPI 3.0
+# Siehe CLAUDE.md -> Dokumentations-Standard.
+openapi: "3.0.0"
+info:
+  title: Sales OS Edge Functions
+  version: 0.0.0
+paths: {}

@@ -1,0 +1,19 @@
+# Sales OS — Sherloq
+
+> AI-Sales-Plattform: AI SDR erzeugt Pipeline, Hunter gewinnt Deals,
+> Farmer entwickelt Kunden, Mein Tag sagt was heute zählt.
+> Hinweis: wird nach Fertigstellung des Systems finalisiert.
+
+## Key Documents
+- /docs/architecture.md — Gesamtarchitektur
+- /docs/database.md — Datenbankschema
+- /docs/api/edge-functions.md — API Referenz
+- /docs/modules/ — Alle Module
+- /docs/decisions/ — Architecture Decision Records (ADRs)
+
+## Key Rules
+- CLAUDE.md — Pflichtregeln für alle Änderungen (Single Source of Truth)
+- CHECKLIST.md — Umsetzungsstand
+
+## Quick Start
+- /docs/setup.md — Local Development

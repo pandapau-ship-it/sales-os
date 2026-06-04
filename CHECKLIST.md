@@ -166,7 +166,18 @@
 
 ---
 
-## 📚 Docs (nach Design-Finalisierung)
-- [ ] `/docs/` Struktur — *architecture, database, function-reference*
-- [ ] Modul-Docs: mein-tag, ai-sdr, hunter, farmer, cmd-k, routines, ai-chat
-- [ ] `llms.txt`
+## 📚 Docs
+
+### Struktur & Standard (erledigt)
+- [x] `/docs` Grundstruktur angelegt (modules, api, decisions) — *Placeholder bereit*
+- [x] Dokumentations-Standard in CLAUDE.md erweitert — *wann/was/Format, ADR, Setup, Runbook, OpenAPI, CONTRIBUTING*
+- [x] 6 ADRs geschrieben (001 Supabase · 002 shadcn · 003 Edge Functions · 004 organization_id · 005 Sending Layer · 006 aiCall)
+- [x] `CHANGELOG.md` angelegt — *Eintrag nach jedem Commit*
+- [x] `llms.txt` Placeholder im Root
+
+### Inhalt befüllen (nach den jeweiligen Phasen)
+- [ ] Nach Phase 1: `setup.md`, `database.md`, `architecture.md` ausfüllen
+- [ ] Nach Phase 2: `api/edge-functions.md`, `api/openapi.yaml`, `runbook.md`
+- [ ] Pro fertigem Modul: `modules/[modul].md` (mein-tag, ai-sdr, hunter, farmer, sequenzen, inbox, cmd-k)
+- [ ] Vor Launch: `CONTRIBUTING.md`, `README.md` finalisieren, `llms.txt` finalisieren
+- [ ] Neue ADR bei jeder weiteren Architektur-Entscheidung (fortlaufend 007+)

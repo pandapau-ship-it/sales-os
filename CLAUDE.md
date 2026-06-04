@@ -663,6 +663,73 @@ Doc files:
 
 ---
 
+### Dokumentations-Standard — vollständige Erweiterung
+
+Referenz: **Stripe, Linear, Vercel.** Ziel: Ein unbeteiligter Developer versteht
+das Projekt in 30 Minuten vollständig und ist in 15 Minuten produktiv.
+
+**Wann wird was dokumentiert:**
+
+| Zeitpunkt | Was |
+|-----------|-----|
+| **Während des Bauens** (automatisch) | Code-Kommentare (EN, WARUM nicht WAS) · `CHANGELOG.md` Eintrag nach jedem Commit |
+| **Nach jedem Modul** | `/docs/modules/[modul].md` · ADR unter `/docs/decisions/` wenn wichtige Entscheidung |
+| **Nach Phase 1** (Fundament) | `/docs/setup.md` · `/docs/database.md` · `/docs/architecture.md` |
+| **Nach Phase 2** (AI SDR) | `/docs/api/edge-functions.md` · `/docs/api/openapi.yaml` · `/docs/runbook.md` |
+| **Vor Launch** | `/docs/CONTRIBUTING.md` · `/llms.txt` · `/docs/README.md` finalisieren |
+
+**Architecture Decision Records (ADRs):**
+Jede wichtige Entscheidung → eigenes Dokument unter `/docs/decisions/[nr]-[titel].md`.
+Erstellen wenn: Technologie gewählt · Architektur-Entscheidung · etwas bewusst NICHT gemacht.
+
+ADR-Format:
+```markdown
+# ADR [Nr]: [Titel]
+## Status            Accepted | Deprecated | Superseded by ADR-XXX
+## Kontext           Was war das Problem / die Situation?
+## Entscheidung      Was haben wir gewählt?
+## Konsequenzen      Langfristige Folgen — positiv UND negativ
+## Verworfene Alternativen   Was nicht gewählt und warum?
+```
+
+**Setup Guide** (`/docs/setup.md`): Voraussetzungen, Klonen, `.env.local`,
+Supabase lokal, Migrations, Seed, `npm run dev`, Test-Account. Ziel: 15 Min produktiv.
+
+**Runbook** (`/docs/runbook.md`): Edge Function fehlt · Cron Job läuft nicht ·
+RLS blockiert · AI Call fehlt · Stripe Webhook · Migration-Rollback · Vercel-Deploy.
+
+**OpenAPI Spec** (`/docs/api/openapi.yaml`): alle Edge Functions, OpenAPI 3.0,
+maschinenlesbar (Endpoint, Method, Params, Body, Response, Errors).
+
+**CONTRIBUTING** (`/docs/CONTRIBUTING.md`): Branch-Strategie (`feature/` `fix/` `chore/`),
+Commit-Konventionen (`add:` `update:` `fix:` `refactor:` `docs:`), PR-Prozess,
+neue Komponente/Tabelle/Edge Function bauen (inkl. org_id/RLS/CASCADE-Checkliste),
+Component Registry, CHECKLIST.md pflegen.
+
+**llms.txt** (Root, nach Fertigstellung): AI-ready Einstiegspunkte (Key Documents,
+Key Rules, Quick Start).
+
+**Vollständige `/docs` Struktur:**
+```
+/docs
+  README.md · architecture.md · database.md · setup.md · runbook.md · CONTRIBUTING.md
+  /modules    mein-tag · ai-sdr · hunter · farmer · sequenzen · inbox · cmd-k
+  /api        edge-functions.md · openapi.yaml
+  /decisions  001-supabase · 002-shadcn · 003-edge-functions · 004-organization-id
+              · 005-sending-layer · 006-aicall  (+ fortlaufend)
+/llms.txt
+/CHANGELOG.md
+```
+
+Placeholder-Dateien enthalten immer:
+```markdown
+# [Titel]
+> Dokumentation wird nach Fertigstellung des Moduls erstellt.
+> Siehe CLAUDE.md → Dokumentations-Standard.
+```
+
+---
+
 ## Build Order (from Briefing Section 22)
 
 1. **Design First** — clickable prototype with dummy data, all screens, all states
