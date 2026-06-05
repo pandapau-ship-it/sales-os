@@ -173,6 +173,14 @@
 - [ ] AI-Chat: nur registrierte Render-Keys aktivierbar (Component Registry)
 - [ ] `smart_list` / `smart_list_result` Render-Keys in `componentRegistry.ts` — *für Multi-Filter-Anfragen*
 
+### Adaptives Lernen (Feedback & Präferenzen)
+- [ ] Tabellen: `ai_feedback` (append-only) + `ai_preferences` (1 Zeile pro user×scope)
+- [ ] CAPTURE: Accept/Reject/Edit → DB-Insert, **0 Token, kein AI-Call**
+- [ ] CONSOLIDATE: tägliche Haiku-Routine verdichtet Feedback → Profil (summarize, nicht append)
+- [ ] INJECT: nur verdichtetes Profil in `aiCall()`, im cachebaren Prompt-Teil, gedeckelt
+- [ ] `system_config`: `ai_learning_enabled`, `ai_preference_cap_tokens`, `ai_preference_consolidate_hours`, `ai_feedback_min_for_profile`
+- [ ] Kein Fine-Tuning, keine Kundendaten ins Modell — DSGVO-löschbar via `data_deletion_requests`
+
 ### Message Templates (Platzhalter-System)
 - [ ] Step-Felder: `message_type`, `message_template`, `fallback_values`
 - [ ] **Platzhalter-Katalog als Registry** (key → Datenpfad + Fallback) — *erweiterbar, nicht hardcoded*

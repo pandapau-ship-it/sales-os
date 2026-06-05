@@ -1330,7 +1330,7 @@ human_reviewed_by   UUID REFERENCES users(id)
 
 Regel: intent_confidence < 70 → requires_human = true
 → erscheint sofort in Mein Tag Zone 2 als Priorität
-→ User entscheidet → AI lernt aus der Entscheidung
+→ User entscheidet → AI lernt aus der Entscheidung (→ Adaptives Lernen)
 
 ### AI SDR Flow
 
@@ -1939,6 +1939,92 @@ auch wenn Werte "offensichtlich fix" wirken.
 3. "Kann ich diesen Call mit anderen batchen?"
 4. "Ist das Ergebnis cachebar?"
 5. "Steht der Token-Budget-Wert in `system_config`?"
+
+---
+
+## Adaptives Lernen — Feedback & Präferenzen (Pflichtregeln)
+
+Die AI wird mit jeder Entscheidung besser — **pro User UND pro Bereich**.
+Konkretisiert „User entscheidet → AI lernt aus der Entscheidung" (Intent Detection).
+
+### Grundprinzip — KEIN Modelltraining
+
+**Niemals Fine-Tuning, niemals Kundendaten ins Modell.** „Lernen" heißt hier:
+Entscheidungen in der DB festhalten → zu einem **kompakten Präferenz-Profil**
+verdichten → als Kontext in zukünftige `aiCall()` geben.
+
+Drei Schritte, klar getrennt nach Kosten:
+
+```
+1. CAPTURE   (0 Token)  → jede Accept/Reject/Edit-Entscheidung als DB-Insert
+2. CONSOLIDATE (1×/Tag) → Routine verdichtet Feedback zu kurzem Profil (Haiku)
+3. INJECT    (~50-150 Token) → Profil als Kontext im aiCall(), gecacht
+```
+
+### Zwei Achsen — User × Bereich
+
+`scope` trennt die Bereiche, `user_id` den User. So lernt das System
+„dieser User im AI-SDR-Outreach" getrennt von „derselbe User im Hunter".
+
+```
+scope: ai_sdr_outreach | reply_handling | hunter_reco | farmer_reco |
+       intent_detection | meeting_prep | global
+```
+
+### Datenmodell
+
+```sql
+-- Roh-Signale, append-only (wie Kurzakte — löst "Stille Post")
+ai_feedback (
+  id, organization_id, user_id, scope,
+  action_type     TEXT,    -- z.B. 'outreach_draft' | 'reply_suggestion'
+  ai_suggestion   TEXT,
+  user_decision   TEXT,    -- accepted | rejected | edited
+  final_text      TEXT,    -- bei edited: was der User draus machte
+  signal          JSONB,   -- strukturierte Hinweise (Kanal, Tonalität, …)
+  created_at      TIMESTAMPTZ
+)
+
+-- Verdichtetes Profil, EINE Zeile pro (user, scope)
+ai_preferences (
+  id, organization_id, user_id, scope,
+  profile_summary TEXT,    -- kompakt, auf ai_preference_cap_tokens gedeckelt
+  source_count    INT,     -- wie viele Feedback-Einträge eingeflossen
+  updated_at      TIMESTAMPTZ,
+  UNIQUE(user_id, scope)
+)
+```
+
+### Kostenkontrolle — Pflicht (nicht optional)
+
+1. **CAPTURE kostet nie Tokens** — reiner DB-Insert beim Accept/Reject/Edit.
+   Kein AI-Call zum Mitschreiben.
+2. **CONSOLIDATE läuft gebündelt** — 1× pro Tag pro aktivem (user, scope), mit
+   `claude-haiku`, **summarize statt append**. Der einzige AI-Call hier.
+3. **INJECT nur das verdichtete Profil** — niemals `ai_feedback`-Rohhistorie an
+   einen Live-Call hängen (verstößt sonst gegen Token-Optimierung REGEL 1).
+4. **Profil in den stabilen Prompt-Teil** → Prompt-Caching greift → Folge-Calls
+   zahlen fast nichts.
+5. **Gedeckelt** auf `ai_preference_cap_tokens` — kann eine Nachricht nie sprengen.
+
+### system_config Keys
+
+```sql
+ai_learning_enabled            BOOLEAN DEFAULT true
+ai_preference_cap_tokens       INTEGER DEFAULT 150   -- max Profil-Länge im Prompt
+ai_preference_consolidate_hours INTEGER DEFAULT 24   -- Verdichtungs-Intervall
+ai_feedback_min_for_profile    INTEGER DEFAULT 5     -- ab wann ein Profil entsteht
+```
+
+### DSGVO & Isolation
+- Profile hängen an `organization_id` + `user_id`, RLS-isoliert
+- Löschbar via `data_deletion_requests` (→ SaaS-Readiness)
+- Da kein Fine-Tuning: nichts wandert unwiderruflich ins Modell — Löschung ist vollständig
+
+### Prüffrage vor jedem neuen Lern-Feature
+1. "Schreibe ich nur in die DB (capture) — ohne AI-Call?"
+2. "Geht ins `aiCall()` nur das verdichtete Profil, nie Rohhistorie?"
+3. "Ist das Profil auf `ai_preference_cap_tokens` gedeckelt und cachebar?"
 
 ---
 
