@@ -309,12 +309,11 @@ Horizontal pill navigation, absolut zentriert, Sliding-Pill-Animation.
 - Active pill: `var(--sherloq-primary)` + white text (Sliding-Pill)
 - Inactive: transparent, gray text — zero borders
 
-### Left sidebar — `Sidebar.tsx` (context-sensitive sub-nav)
-Icon-only sidebar, ändert Inhalt je nach aktiver Sektion.
-- Sub-nav je Sektion (z.B. Hunter → Signale · Stagnierende Deals · Follow-ups · Pipeline)
-- Inbox-Icon zwischen AI SDR und Kalender (→ Inbox-Sektion)
-- Utility-Buttons (Settings, Theme) unten gepinnt
-- Mein Tag hat keine Sub-Items → nur Utility-Buttons
+### Left sidebar — `Sidebar.tsx`
+Icon-only Rail. **Verbindliche finale Struktur → siehe "Sidebar — finale Struktur"
+am Ende dieser Datei** (Screens · Kontakte · Tools · Settings/Profil, max 9 Icons).
+- Sub-nav je aktiver Sektion (z.B. Hunter → Signale · Stagnierende Deals · Follow-ups · Pipeline)
+- Mein Tag hat keine Sub-Items
 
 ### Role-based access (`navConfig.tsx → roleAccess`)
 - `solo` / `admin` → alle 4 primären Sektionen + sekundäre
@@ -435,7 +434,8 @@ Claude works invisibly. The rep sees only results.
 
 Full schema in `docs/database.md`. Key points:
 
-- **`users`** — role field: `solo | hunter | farmer | admin`
+- **`users`** — `role` = Permission-Rolle: `owner | admin | member | viewer` (→ Admin-Regeln).
+  Hunter/Farmer sind **keine** Rollen mehr, sondern Nav-Fokus (welche Screens jemand nutzt)
 - **`companies`** — `cluster TEXT[]` (array, multi-value), `kurzakte TEXT` (AI-maintained), `heat_status`, `churn_risk_level`
 - **`contacts`** — `personality_type TEXT` (rot/gelb/gruen/blau, AI-derived), Sherloq usage fields — Kurzakte lebt in eigener Tabelle `kurzakte_entries` (Append-Only)
 - **`communications`** — basis for engagement chain, heat status calc, Kurzakte updates
@@ -928,7 +928,7 @@ invitations (
   id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   organization_id  UUID NOT NULL REFERENCES organizations(id),
   email            TEXT NOT NULL,
-  role             TEXT NOT NULL,      -- admin | member | viewer
+  role             TEXT NOT NULL,      -- owner | admin | member | viewer
   token            TEXT UNIQUE NOT NULL,
   invited_by       UUID REFERENCES users(id),
   accepted_at      TIMESTAMPTZ,
@@ -1802,7 +1802,7 @@ sequence_rules (
   id              UUID PRIMARY KEY,
   trigger_type    TEXT,  -- linkedin_signal | trial_expired | cold_contact |
                          --  inbound | job_change | company_growing
-  icp_min         INTEGER,  -- Mindest-ICP Score (z.B. 50)
+  icp_boost       INTEGER,  -- OPTIONAL: ICP hebt Priorität an, ist KEIN Gate (→ Kontakte/ICP)
   sequence_id     UUID REFERENCES sequences(id),
   execution_mode  TEXT,  -- manual | semi_auto | full_auto
                          -- überschreibt globalen system_config Key pro Regel
@@ -1812,16 +1812,22 @@ sequence_rules (
 )
 ```
 
+**ICP ist KEIN Automation-Gate** (→ Kontakte → ICP Score). Ob eine Sequenz läuft,
+entscheidet allein das Campaign/Automation-Level (`execution_mode`). ICP ist ein
+optionaler Verstärker: hebt `priority` an wenn vorhanden, wird ignoriert wenn nicht.
+
 Standard-Regeln (konfigurierbar in Settings UI):
 
 | Trigger | Sequenz | execution_mode |
 |---------|---------|----------------|
-| `linkedin_signal` + ICP ≥ 60 | Cold LinkedIn | `semi_auto` |
+| `linkedin_signal` | Cold LinkedIn | `semi_auto` |
 | `trial_expired` | Trial Conversion | `full_auto` |
 | `cold_contact` (>60 Tage) | Reaktivierung | `semi_auto` |
 | `inbound` | Demo Follow-up | `semi_auto` |
-| ICP < 50 | KEINE Sequenz | manuell entscheiden |
 | kein Regel greift | Cold LinkedIn | `manual` |
+
+ICP beeinflusst nur die Reihenfolge/Priorität innerhalb dieser Regeln — nie ob
+überhaupt eine Sequenz startet.
 
 ### Edge Functions — Pflicht
 
@@ -2038,8 +2044,7 @@ Alles läuft in eine Inbox — sortiert nach Intent und Dringlichkeit.
 
 ### Platzierung
 
-Eigenes Icon in der linken Sidebar.
-Position: zwischen AI SDR Icon und Kalender Icon.
+Eigenes Icon in der linken Sidebar im **Tools-Bereich** (→ "Sidebar — finale Struktur").
 Badge mit Zahl wenn ungelesene Antworten vorhanden (rot, `rounded-pill`).
 Badge verschwindet wenn alle Antworten verarbeitet sind.
 
@@ -2673,3 +2678,164 @@ Zeigt nur was heute menschliche Aufmerksamkeit braucht — aggregiert aus:
 
 Keine eigene Datenquelle — alles aus AI SDR, Hunter, Farmer aggregiert
 (→ Notifications-Events feuern hierher).
+
+---
+
+## Kontakte — Zentrales Datenobjekt
+
+### Grundprinzip
+**Kontakte** ist ein eigenständiger Screen mit eigenem Sidebar-Icon — die einzige
+Datenbank für alle Personen im System, unabhängig vom Status. Kein separater Screen
+für Companies, Leads oder Kunden — alles sind Kontakte mit einem Status-Feld.
+
+### Lead-Status — ein Feld, kein separates Objekt
+```
+contact_status:
+  ohne_campaign  → neu, noch nicht im AI SDR Flow
+  in_campaign    → aktiv im AI SDR Outreach
+  pipeline       → aktiver Deal im Hunter
+  kunde          → Bestandskunde im Farmer
+  archiviert     → inaktiv, nicht gelöscht
+```
+Status-Änderung immer via Edge Function — nie direkt im Frontend.
+Jeder Status-Wechsel schreibt nach `audit_log` (`contact.status_changed`).
+
+Dieses Feld ist die kanonische Lebenszyklus-Quelle. Es ersetzt verstreute
+Status-Logik (heat/sherloq/pipelineStage steuern Anzeige, nicht den Lebenszyklus).
+
+### Lead-Quellen — Pflichtfeld, immer befüllt
+```
+lead_source:
+  sherloq      → via Webhook sherloq-signal
+  csv_upload   → manueller Bulk-Import
+  crm_sync     → HubSpot / Salesforce Import
+  manual       → einzeln manuell angelegt
+  webhook_api  → externe Systeme
+```
+
+### ICP Score — optional, KEIN Pflichtfeld, KEIN Gate
+ICP Score ist **kein** Pflichtfeld und **kein** Automation-Gate. Die
+Automation-Entscheidung liegt allein beim Campaign-Automation-Level
+(`execution_mode`). ICP ist ein optionaler Verstärker: anzeigen + Priorität anheben
+wenn vorhanden, ignorieren wenn nicht. (→ Sequenz Engine: `icp_boost`.)
+
+### Listen
+```sql
+lists (
+  id, name, type,              -- static | dynamic
+  owner_id, team_visible,
+  filter_config JSONB,         -- nur bei dynamic
+  organization_id, created_at, updated_at
+)
+list_contacts (
+  list_id, contact_id, organization_id
+  -- static: manuell befüllt · dynamic: Edge Function täglich neu berechnet
+)
+```
+Listen sind **kein** Nav-Punkt — erreichbar via Pill-Dropdown im Kontakte-Screen
+und via Cmd+K. (Verwandt mit Smart Lists — gleiches Prinzip, JSONB-Filter.)
+
+### Companies
+Verknüpftes Objekt — **kein** eigenständiger Nav-Punkt.
+- Sichtbar im Kontakt-Drawer als verknüpfte Company
+- Vollständige Company-Verwaltung nur in Settings (Admin only)
+- Via Cmd+K: "Alle Companies anzeigen"
+
+---
+
+## Admin-Regeln (Rollen & Rechte)
+
+### Rollen-System (kanonisch — gilt projektweit)
+```
+owner   → alle Rechte, Billing, Team verwalten
+admin   → alle Rechte außer Billing
+member  → Standard-User, eigene Daten + geteilte Daten
+viewer  → nur lesen, keine Aktionen
+```
+Jede neue Tabelle: `organization_id` + RLS-Policy die zusätzlich auf `role` prüft.
+Jede Edge Function prüft zuerst: hat dieser User das Recht für diese Aktion?
+
+### Was nur Admin/Owner sieht — in Settings (nicht in der Haupt-Navigation)
+- Company-Verwaltung (alle Companies, Duplikate zusammenführen)
+- Import-Verlauf / Audit Log (wer hat was wann importiert)
+- Listen-Rechte (wer darf Team-Listen erstellen)
+- Duplicate-Detection Regeln (→ Datenqualität & Duplikate)
+- Automation Rules (globale Defaults für alle Campaigns)
+- Mailbox & Limits (verfügbare Mailboxen, globale Limits)
+- Team-Mitglieder verwalten (einladen, Rollen ändern, entfernen)
+- Webhook-Konfiguration (Sherloq, CRM, externe Systeme)
+- Billing & Plan (nur Owner)
+
+**Members sehen NICHT:** fremde private Listen · Import-Verlauf anderer · Audit Log ·
+Billing · Webhook-Konfiguration.
+
+### Destruktive Aktionen — immer Bestätigung
+```
+Kontakt löschen        → Bestätigungs-Dialog (nicht rückgängig)
+Liste löschen          → Bestätigungs-Dialog
+Campaign löschen       → nur wenn keine aktiven Leads drin
+Opt-out setzen         → sofort + irreversibel + audit_log
+CRM Sync überschreiben → Warnung: "X Kontakte werden überschrieben"
+```
+(Formulierung nach **Fehlerbehandlung aus User-Sicht** — Lösung statt Fehlergrund.)
+
+### Audit Log — Pflicht für alle kritischen Aktionen
+```sql
+audit_log (
+  id, organization_id, user_id,
+  action      TEXT,   -- 'contact.created' | 'contact.status_changed' |
+                      --  'opt_out.set' | 'campaign.started' | 'list.deleted' …
+  object_type TEXT,   -- 'contact' | 'campaign' | 'list' | 'deal'
+  object_id   UUID,
+  old_value   JSONB,
+  new_value   JSONB,
+  created_at  TIMESTAMPTZ
+)
+```
+Read-only — kein Update, kein Delete. Nur Admin/Owner einsehbar (Settings → Audit Log).
+Befüllung via DB-Trigger (→ Coding Standards: "Every Write Function Gets an Audit Log Entry").
+
+### Opt-out Handling — höchste Priorität
+```
+Opt-out gesetzt:
+→ contact.opt_out = true
+→ audit_log Eintrag
+→ alle aktiven Sequences für diesen Kontakt sofort stoppen
+→ erscheint nie wieder im Campaign-Matching
+→ von keinem User überschreibbar (auch nicht Owner)
+→ DSGVO-konform: Löschung auf Anfrage via Admin (→ data_deletion_requests)
+```
+
+---
+
+## Sidebar — finale Struktur (verbindlich)
+
+Die linke Icon-Rail. Maximal **9 sichtbare Icons** — nie mehr.
+Icons in der Implementierung sind **Lucide-Komponenten, niemals Emoji**
+(→ Design Invariants). Die Emoji hier dienen nur der Lesbarkeit.
+
+```
+Oben (Screens):
+  ☀  mein-tag        → Sun
+  🤖 ai-sdr          → Bot
+  🎯 hunter          → Target
+  🌱 farmer          → Sprout
+
+Mitte (Datenbank):
+  👥 kontakte        → Users   ← eigenständiger Screen
+
+Unten (Tools):
+  📥 posteingang     → Inbox
+  ─────────────
+  ☑  tasks           → CheckSquare   (optional, via useModules)
+  🔔 notifications   → Bell
+  ─────────────
+  ⚙  settings        → Settings
+  👤 profil/avatar
+```
+
+- Integrationen (Jira etc.) erscheinen NUR wenn das Modul aktiviert ist (`useModules`)
+- Modul-Gating gilt auch für `tasks` (optional)
+- Verhältnis zur Top-Nav: die vier Screens sind die primäre Navigation; ob sie
+  zusätzlich als Top-Pills erscheinen oder primär über die Rail laufen, ist eine
+  Umsetzungsfrage — diese Rail-Struktur ist verbindlich.

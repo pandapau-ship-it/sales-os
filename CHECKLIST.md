@@ -35,6 +35,10 @@
 - [ ] merge_candidates — *Duplikat-Entscheidung durch User*
 - [ ] invitations, api_usage, data_deletion_requests — *SaaS/DSGVO*
 - [ ] pipeline_stages *(in DB, nicht hardcoded)*, heat_status_config
+- [ ] lists, list_contacts — *Listen (static|dynamic), JSONB-Filter*
+- [ ] contacts: `contact_status`, `lead_source` (Pflicht), `opt_out`, `icp_score` (optional) — *Kontakte-Datenobjekt*
+- [ ] users.role = `owner|admin|member|viewer` — *kanonisches Permission-Modell*
+- [ ] audit_log Schema: action/object_type/object_id/old_value/new_value (read-only)
 
 ### Pflichtfelder pro Tabellentyp
 - [ ] Aktionen: `source`, `execution_mode`, `executed_by`, `approved_by`, `approved_at` — *AI-Automation*
@@ -84,7 +88,13 @@
 - [ ] **Hunter Screen** umbauen → Recommendation Feed (keine Sequenzen)
 - [ ] **Farmer Screen** → Recommendation Feed (Bestandskunden)
 - [ ] **Mein Tag** → aggregierter Feed (keine eigene Datenquelle)
-- [ ] **Inbox** Screen + Sidebar-Icon (zwischen AI SDR und Kalender) + Badge
+- [ ] **Kontakte Screen** (NEU) — *zentrales Datenobjekt, eigener Sidebar-Icon*
+- [ ] **Inbox** Screen + Sidebar-Icon (Tools-Bereich) + Badge
+- [ ] **Sidebar finale Struktur** (max 9 Icons, Lucide): Screens · Kontakte · Tools · Settings/Profil
+- [ ] Listen via Pill-Dropdown im Kontakte-Screen + Cmd+K (kein Nav-Punkt)
+- [ ] Companies: nur im Drawer + Settings (Admin) + Cmd+K — kein Nav-Punkt
+- [ ] Settings (Admin/Owner): Company-Verwaltung, Audit Log, Team, Webhooks, Automation Rules, Billing
+- [ ] Destruktive Aktionen → Bestätigungs-Dialog (Kontakt/Liste/Campaign löschen, Opt-out, CRM-Overwrite)
 - [x] Sliding-Pill-Animation in TopBar
 
 ### Daten-Layer
@@ -126,8 +136,10 @@
 - [ ] Service Role Key nur in Edge Functions
 - [ ] Alle Webhooks: `x-webhook-secret` / Signature-Validierung vor Verarbeitung
 - [ ] Rate Limiting auf öffentlichen Endpunkten
-- [ ] Audit Log: jeder Write schreibt nach `audit_log` (DB-Trigger)
-- [ ] Permission-Check vor jedem Write — *Felder-Editierbarkeit über `permissions`*
+- [ ] Audit Log: jeder Write schreibt nach `audit_log` (DB-Trigger, read-only)
+- [ ] Permission-Check vor jedem Write — *RLS + Edge Function prüfen `role`*
+- [ ] Opt-out: stoppt alle Sequences sofort, irreversibel, von niemandem überschreibbar — *höchste Priorität*
+- [ ] Audit Log nur für Admin/Owner einsehbar (Settings)
 
 ---
 
