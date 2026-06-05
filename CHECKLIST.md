@@ -165,6 +165,16 @@
 - [ ] Agent-Trennung erzwingen: `full_auto`-Outreach NUR in AI SDR, nie Hunter/Farmer
 - [ ] Dynamische Sequenzen (REGEL 1/2/3) im Cron Job
 - [ ] AI-Chat: nur registrierte Render-Keys aktivierbar (Component Registry)
+- [ ] `smart_list` / `smart_list_result` Render-Keys in `componentRegistry.ts` — *für Multi-Filter-Anfragen*
+
+### Message Templates (Platzhalter-System)
+- [ ] Step-Felder: `message_type`, `message_template`, `fallback_values`
+- [ ] **Platzhalter-Katalog als Registry** (key → Datenpfad + Fallback) — *erweiterbar, nicht hardcoded*
+- [ ] Edge Function `resolve_placeholders()` — *nie im Frontend auflösen*
+- [ ] `preview-template` Endpoint (300ms Debounce, nie senden)
+- [ ] Builder-Validierung (unbekannte Platzhalter → Warning, nicht blockierend)
+- [ ] Escaping + Limits aus `system_config` (`template_max_length`, `message_max_length`, `placeholder_value_cap`)
+- [ ] `fixed_template` vs `ai_generated` Logik (sich gegenseitig ausschließend)
 
 ### Token-Optimierung (von Tag 1, in aiCall() verankern)
 - [ ] Kontext-Minimierung — *nur letzte 3 Touchpoints (summary), nie volle Historie*

@@ -1368,6 +1368,91 @@ Klasse/Funktion auslagern, nie direkt in Business-Logic.
 
 ---
 
+## Message Templates — Platzhalter-System
+
+### Grundprinzip
+
+Jeder Sequenz-/Campaign-Step hat einen Nachrichtentyp:
+```
+message_type:
+  ai_generated    → AI schreibt individuell pro Lead (Standard)
+  fixed_template  → User-Text mit Platzhaltern, System füllt auf
+```
+(„Campaign" = unser Sequenz-Modell; die Felder unten liegen auf dem Step in
+`contact_sequences` / `sequences`.)
+
+### Datenmodell (pro Step)
+```sql
+message_type      TEXT DEFAULT 'ai_generated'   -- ai_generated | fixed_template
+message_template  TEXT NULL                     -- Roh-Text mit {{platzhalter}} (nur fixed_template)
+fallback_values   JSONB NULL                    -- {"vorname":"dort","signal":""} — Fallback wenn leer
+```
+
+### Platzhalter-Format
+
+Doppelte geschweifte Klammern: `{{schlüssel}}`.
+
+**Wichtig — der Platzhalter-Katalog ist ein erweiterbares Registry, kein
+hartcodiertes Enum.** `resolve_placeholders()` schlägt jeden `{{key}}` in einer
+zentralen Definition nach (Schlüssel → Datenpfad + Fallback). Neuer Platzhalter =
+ein Registry-Eintrag, kein Eingriff in den Resolver. (Konsistent mit „No Hardcoded
+Values" und dem Provider-/Event-agnostischen Muster.)
+
+Start-Katalog (Phase 1 — wächst über das Registry):
+```
+KONTAKT   {{vorname}} {{nachname}} {{vollname}} {{jobtitel}} {{linkedin_url}}
+COMPANY   {{company}} {{branche}} {{company_größe}} {{company_stadt}} {{company_website}}
+SIGNAL    {{signal}} (signal.ai_summary) {{signal_typ}} {{letzter_post}}
+ABSENDER  {{sender_vorname}} {{sender_company}} {{kalender_link}}
+DATUM     {{aktueller_monat}} {{aktuelles_quartal}}
+```
+
+### Edge Function: resolve_placeholders()
+
+**Platzhalter werden NIE im Frontend aufgelöst — immer in der Edge Function**
+(Konsistenz, Sicherheit, → „kein Business-Logic im Frontend").
+
+```typescript
+resolve_placeholders(template: string, lead_id: string, campaign_id: string): Promise<string>
+// 1. Lead-Daten laden (contact + company + signal)
+// 2. Sender-Daten laden (user + organization)
+// 3. Alle {{key}} via Registry mit echten Werten ersetzen
+// 4. Nicht auflösbar → fallback_values prüfen
+// 5. Fallback leer → Platzhalter ENTFERNEN (nie "{{xyz}}" im Output)
+// 6. Fertige Nachricht zurückgeben
+// Fehlerquellen: unbekannter Platzhalter → loggen + fallback/leer;
+//                fehlende Lead-Daten → campaign.fallback_values; sonst leerer String
+```
+
+### Validierung im Campaign Builder (beim Speichern)
+1. Alle `{{platzhalter}}` extrahieren
+2. Gegen Registry prüfen
+3. Unbekannte → Warning (nicht blockierend)
+4. Fehlende Fallbacks für kritische Felder → Warning
+5. Template wird auch mit Warnings gespeichert
+
+### Live-Vorschau (Builder)
+```typescript
+POST /functions/v1/preview-template
+{ template, lead_id: string | null /* null = Beispiel-Lead */, campaign_id }
+→ { resolved, unresolved: string[], warnings: string[] }
+```
+Beim Tippen mit 300ms Debounce. Niemals echtes Senden — nur Preview.
+
+### Sicherheit & Limits (Werte in system_config, nicht hartcodiert)
+- Alle Werte werden **escaped** bevor sie eingefügt werden (keine Script-Injection)
+- `template_max_length` (Default: 2000), `message_max_length` (Default: 2000)
+- `placeholder_value_cap` (Default: 200) — verhindert dass `signal.ai_summary`
+  die ganze Nachricht sprengt
+
+### Kombination mit AI
+- **`fixed_template`** → AI generiert KEINEN Nachrichtentext; AI weiterhin für
+  Intent-Klassifizierung bei Antworten. Messaging-Brief (Tonalität/Länge) ignoriert.
+- **`ai_generated`** → `message_template` ignoriert; AI nutzt pitch +
+  messaging_brief + lead_data (→ Token-Optimierung: nur nötiger Kontext).
+
+---
+
 ## Modularer Aufbau — Pflichtregeln (nie weglassen)
 
 Das System ist modular aufgebaut. Jedes Modul kann eigenständig
