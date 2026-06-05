@@ -39,6 +39,7 @@
 - [ ] contacts: `contact_status`, `lead_source` (Pflicht), `opt_out`, `icp_score` (optional) — *Kontakte-Datenobjekt*
 - [ ] users.role = `owner|admin|member|viewer` — *kanonisches Permission-Modell*
 - [ ] audit_log Schema: action/object_type/object_id/old_value/new_value (read-only)
+- [ ] automation_rules — *globaler Risk-Override pro Org (low/medium_risk_auto, medium_confidence)*
 
 ### Pflichtfelder pro Tabellentyp
 - [ ] Aktionen: `source`, `execution_mode`, `executed_by`, `approved_by`, `approved_at` — *AI-Automation*
@@ -161,7 +162,12 @@
 - [ ] Langfuse-Integration (ein-Datei-Change in `aiCall()`)
 - [ ] `src/lib/notify.ts` — `notify()` + Event-Katalog — *einziger Notification-Eintrittspunkt*
 - [ ] Signal Routing in `process_new_lead`/`classify_intent` — *kein Signal an zwei Orten*
-- [ ] Automation Risk-Level: `system_config` Keys anlegen, Default `semi_auto` — *Schwellen ⏳ vom User*
+- [ ] **Automation Risk-Level** (final): globaler Override Low/Medium/High über allen Campaigns
+  - [ ] High Risk = immer `requires_human` (hardcoded false) — *Opt-out, Termin-Bestätigung, Löschen, CRM-Overwrite*
+  - [ ] Medium Risk Auto nur bei Confidence ≥ `medium_confidence` UND Campaign=Auto
+  - [ ] Sonderregel „Termin gebucht" → Lead→Deal Übergabe immer automatisch
+  - [ ] Reply Handling: 8 Varianten, Priorität absteigend, Lucide-Icons
+  - [ ] Settings → AI SDR → Automation Rules (nur Admin/Owner) + Campaign-Builder Hinweis-Box
 - [ ] Agent-Trennung erzwingen: `full_auto`-Outreach NUR in AI SDR, nie Hunter/Farmer
 - [ ] Dynamische Sequenzen (REGEL 1/2/3) im Cron Job
 - [ ] AI-Chat: nur registrierte Render-Keys aktivierbar (Component Registry)

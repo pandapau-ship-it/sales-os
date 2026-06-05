@@ -1368,6 +1368,92 @@ Klasse/Funktion auslagern, nie direkt in Business-Logic.
 
 ---
 
+## Automation Risk-Level — Global Setting (final entschieden)
+
+### Grundprinzip
+Risk-Level ist ein **globaler Sicherheits-Override** — gilt für ALLE Campaigns.
+Nicht pro Campaign konfigurierbar — nur in **Settings → AI SDR → Automation Rules**.
+Pro Campaign wählt der User nur das Automation-Level (Manual/Semi/Auto).
+**High Risk bleibt IMMER beim Menschen** — unabhängig von der Campaign-Einstellung.
+
+> Verhältnis zu **AI Automation Architecture**: `execution_mode` (manual/semi_auto/
+> full_auto) ist die Campaign-Einstellung pro Aktion. Das Risk-Level ist die
+> übergeordnete Schranke darüber: selbst `full_auto` darf eine High-Risk-Aktion nie
+> automatisch ausführen. Risk-Level gewinnt immer.
+
+### Drei Levels
+
+**LOW RISK — Auto immer erlaubt** (reversibel, Standard-Outreach, geringer Schaden):
+- LinkedIn Connection Request senden · LinkedIn Erstansprache · Email Erstansprache
+- Follow-up senden (kein Reply, nächster Schritt)
+- Lead in Reaktivierungs-Pool verschieben · Tag setzen/entfernen
+
+**MEDIUM RISK — Auto nur bei Confidence ≥ Schwelle UND Campaign = Auto**
+(direkte Auswirkung auf Beziehung — AI nur wenn sicher):
+- Antwort auf Lead-Reply senden · InMail senden (kostet Credits)
+- Follow-up nach positivem Signal · Termin-Link senden
+- Lead → Deal übergeben (Ausnahme „Termin gebucht" → siehe Sonderregel)
+
+**HIGH RISK — niemals Auto, immer `requires_human`**
+(irreversibel oder rechtlich relevant/DSGVO):
+- Termin bestätigen/absagen im Namen des Users · CRM-Daten überschreiben (Sync-Konflikt)
+- Opt-out setzen · Deal-Stage manuell wechseln · Lead archivieren/löschen
+- Eskalation nach außen (Manager CC etc.)
+
+### Sonderregel — Termin gebucht
+```
+Termin gebucht via Kalender-Bestätigung
+→ Lead → Deal Übergabe ist AUTOMATISCH (Medium-Risk Override)
+→ Sequence pausiert · contact_status: in_campaign → pipeline
+→ Deal in Hunter angelegt (Stage: "Termin vereinbart")
+→ Meeting-Prep wird automatisch generiert
+```
+Einziger Medium-Risk-Fall der immer automatisch läuft. Begründung: Kalender-
+Bestätigung ist ein eindeutiger Trigger — kein AI-Urteil nötig.
+
+### Reply Handling — alle Varianten (Priorität absteigend)
+UI-Status mit **Lucide-Icons, nie Emoji** (→ Design Invariants):
+
+| # | Status | Risk | Verhalten |
+|---|--------|------|-----------|
+| 1 | Opt-out erkannt | HIGH | sofort `requires_human` |
+| 2 | Fehler/Senden blockiert | — | `requires_human` |
+| 3 | Antworten | MEDIUM | `requires_human` wenn Confidence < Schwelle |
+| 4 | In Pipeline? | MEDIUM | AI schlägt vor, User bestätigt |
+| 5 | Termin senden | MEDIUM | Auto wenn Confidence ≥ Schwelle + Campaign Auto |
+| 6 | Bestätigen | MEDIUM | AI-Entwurf wartet auf Freigabe |
+| 7 | Pausiert | — | User entscheidet |
+| 8 | Sequenz abgelaufen | LOW | Reaktivierungs-Pool, User entscheidet |
+
+In der Lead-Kachel sichtbar: Status-Wort + Antwort-Preview (max 40 Zeichen, nur bei „Antworten").
+
+### DB — automation_rules Tabelle
+```sql
+automation_rules (
+  id                UUID PRIMARY KEY,
+  organization_id   UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  low_risk_auto     BOOLEAN DEFAULT true,
+  medium_risk_auto  BOOLEAN DEFAULT false,
+  medium_confidence INT DEFAULT 70,   -- Schwellenwert in % (per-Org Config)
+  -- High Risk hat KEIN Feld — immer false, bewusst nicht überschreibbar
+  created_at TIMESTAMPTZ, updated_at TIMESTAMPTZ
+)
+-- Eine Zeile pro Organization · RLS: nur eigene Org · nur Admin/Owner darf ändern
+```
+Die Schwelle lebt in `automation_rules` (per-Org Config-Tabelle) — kein hardcodierter
+Wert im Code. High Risk = `false` ist die einzige bewusste Hardcoding-Ausnahme (Sicherheit).
+
+### Settings-Screen: AI SDR → Automation Rules
+- **Low Risk** — Toggle „AI darf automatisch senden" (Connection/Erstansprachen/Follow-ups)
+- **Medium Risk** — Toggle „AI darf automatisch handeln" + Confidence-Slider (Default 70%)
+- **High Risk** — fix deaktiviert, nicht änderbar („Nicht änderbar — schützt dich immer")
+
+### Campaign Builder — Hinweis-Box
+Zeigt die geltenden globalen Rules an (read-only) + Link „Rules anpassen →" (öffnet Settings):
+`Low Risk: Auto · Medium Risk: Semi · High Risk: Immer du`
+
+---
+
 ## Message Templates — Platzhalter-System
 
 ### Grundprinzip
@@ -2700,27 +2786,13 @@ routing_reason  TEXT          -- warum dieses Routing
 
 ---
 
-## Automation Risk-Level — Vorbereitung (Schwellen noch zu definieren)
+## Automation Risk-Level
 
-> ⚠️ Die genauen Risk-Schwellenwerte sind **noch nicht definiert** — werden vom
-> User später festgelegt (Entscheidungsliste `entscheidungen_v2.md` Punkt 20).
-> **Bis dahin: alle Aktionen `semi_auto` als Default — nie `full_auto` ohne
-> explizite User-Freigabe.**
-
-Architektonisch jetzt vorbereiten, in `system_config`:
-```sql
-automation_risk_low_actions    TEXT  -- komma-getrennte Liste (noch zu definieren)
-automation_risk_medium_actions TEXT  -- komma-getrennte Liste (noch zu definieren)
-automation_risk_high_actions   TEXT  -- komma-getrennte Liste (noch zu definieren)
-```
-
-Grundprinzip (Details offen):
-- **Low Risk** → darf später automatisch laufen (z.B. Task erstellen)
-- **Medium Risk** → Semi-Auto (AI draftet, Mensch bestätigt)
-- **High Risk** → immer Approval (z.B. Downgrade, Key Accounts)
-
-Gilt für AI SDR UND Hunter UND Farmer.
-Bei Hunter/Farmer ist `full_auto` ohnehin nie zulässig (Recommendation only).
+**Final entschieden → siehe „Automation Risk-Level — Global Setting" unter AI SDR.**
+Kurzfassung: globaler Sicherheits-Override (Low/Medium/High) über allen Campaigns;
+High Risk immer `requires_human`; Schwelle in `automation_rules` (per Org).
+Gilt für AI SDR UND Hunter UND Farmer — bei Hunter/Farmer ist `full_auto` ohnehin
+nie zulässig (Recommendation only).
 
 ---
 
