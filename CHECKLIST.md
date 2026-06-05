@@ -69,6 +69,17 @@
 - [ ] Cron Job 07:00 — *fällige Schritte, Follow-ups, dynamische Regeln REGEL 1/2/3*
 - [ ] Tages-Fortschritt als Supabase View — *kein Frontend-Calc*
 
+### Lead Routing & Campaign-Matching (regelbasiert, kein AI)
+- [ ] `route_sherloq_signal()` — *Sherloq-Lead anlegen → Matching anstoßen*
+- [ ] `classify_sherloq_lead()` — *Einzel-Matching, Score-basiert*
+- [ ] `classify_leads_batch()` — *Batch-Matching für CSV/CRM-Import*
+- [ ] `isExcluded()` — *VOR jedem Match: opt_out/kunde/pipeline/archiviert/Domain-Block*
+- [ ] Match-Score-Regeln + `campaign_match_min_score` (system_config, Default 3) — *nicht hardcoded*
+- [ ] `campaigns.targeting` JSONB (job_titles/industries/company_sizes/regions/min_icp_score)
+- [ ] contacts: `campaign_id`, `sherloq_signal_id`, `imported_at` — *Routing-Felder*
+- [ ] Import-Flow: 3 Optionen, Default „Nur speichern" (kein Auto-Outreach)
+- [ ] Sherloq-Fallback-Einstellung (Settings → AI SDR → Sherloq)
+
 ### Integrationen
 - [ ] `webhook-booking` (Calendly/Cal.com normalisieren)
 - [ ] `webhook-crm-sync` (HubSpot/Salesforce normalisieren + Konflikt-Logging)

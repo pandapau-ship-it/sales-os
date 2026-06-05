@@ -1454,6 +1454,99 @@ Zeigt die geltenden globalen Rules an (read-only) + Link „Rules anpassen →" 
 
 ---
 
+## Lead Routing & Campaign-Matching
+
+### Grundprinzip
+Matching ist **regelbasiert (SQL) — kein LLM-Call, keine Token-Kosten.**
+AI kommt erst beim Schreiben der Nachricht ins Spiel, nie beim Matching.
+User hat immer die Kontrolle — kein Auto-Outreach ohne Bestätigung
+(Ausnahme: Campaign = Auto + Low Risk, → Automation Risk-Level).
+
+### Lead-Quellen & Routing
+
+**1. Sherloq Signals (automatisch via Webhook)**
+```
+Signal → route_sherloq_signal()
+→ Kontakt anlegen/aktualisieren (lead_source = 'sherloq')
+→ Campaign-Matching: classify_sherloq_lead()
+  Match     → contact_status = 'in_campaign', Automation je nach Campaign-Level,
+              AI-SDR-Banner "X neue Sherloq-Leads → [Campaign] zugewiesen"
+  Kein Match → Kontakte-Filter "Neu ohne Campaign", Verhalten je Sherloq-Fallback (unten)
+```
+Sherloq liefert immer ein Signal → Personalisierung sofort möglich.
+(Routing eines Signals zu bereits bestehendem Pipeline-/Kunde-Kontakt → eigenes
+Thema, separat von dieser Neu-Lead-Logik.)
+
+**2. CSV Upload / CRM Import (User-initiiert)** — Schritt 3 im Import-Flow, User wählt:
+- **A „Automatisch zuordnen"** → `classify_leads_batch()` → Vorschläge → **User bestätigt** (nie auto)
+- **B „Ich ordne selbst zu"** → alle Leads `ohne_campaign`, manuelle Zuweisung
+- **C „Nur speichern" (DEFAULT)** → alle `ohne_campaign`, kein Outreach, kein Zeitdruck
+
+**Default ist immer Option C** — kein versehentlicher Outreach.
+
+**3. Manuell hinzugefügt** → `ohne_campaign`, User weist manuell zu, kein Auto-Matching.
+
+**4. Webhook / API** → wie CSV, `lead_source = 'webhook_api'`, Default `ohne_campaign`.
+
+### Matching-Logik (classify_sherloq_lead / classify_leads_batch)
+Regelbasiert, kein AI. Pro aktiver Campaign einen Score:
+
+| Kriterium | Punkte |
+|-----------|--------|
+| Jobtitel-Match (enthält definierten Titel) | +3 |
+| Branche-Match | +2 |
+| Company-Größe-Match | +2 |
+| ICP ≥ `min_icp_score` (wenn vorhanden — optionaler **Verstärker**, kein Gate) | +2 |
+| Region-Match | +1 |
+
+- **Mindest-Score für Match: in `system_config` (`campaign_match_min_score`, Default 3)** — nicht hardcodiert
+- Gleichstand → ältere Campaign gewinnt (zuerst erstellt)
+- Mehrere gute Matches → alle vorschlagen, User entscheidet
+
+### Ausschluss-Prüfung — `isExcluded()` VOR jedem Match
+Lead wird nie zugewiesen wenn:
+`opt_out = true` · `contact_status ∈ {kunde, pipeline, archiviert}` ·
+gesperrte Email-Domain · gesperrte Company-Domain.
+Ausgeschlossene Leads → in Kontakte gespeichert mit aktuellem Status, kein Outreach, kein Vorschlag.
+
+### Sherloq Fallback (Settings → AI SDR → Sherloq)
+Bei keinem Match: **„Ohne Campaign" ablegen (DEFAULT)** · ODER Standard-Campaign zuweisen
+(User wählt) · ODER ignorieren (nicht importieren).
+
+### UI — Lucide-Icons, nie Emoji (→ Design Invariants)
+- Sherloq-Match → AI-SDR-Banner „3 neue Sherloq-Leads → Cold LinkedIn zugewiesen, Start morgen 08:00 [Ansehen →]"
+- Kein Match → Kontakte Filter-Pill „Neu ohne Campaign 3"
+- CSV Option A → Modal mit Vorschlägen „[Zuweisung bestätigen] [Einzeln prüfen]"
+- CSV Option C → „47 neue Leads in Ohne Campaign", keine weitere Benachrichtigung
+
+### DB-Felder
+```sql
+-- contacts:
+lead_source        TEXT     -- sherloq | csv_upload | crm_sync | manual | webhook_api
+contact_status     TEXT     -- ohne_campaign | in_campaign | pipeline | kunde | archiviert
+campaign_id        UUID     -- NULL wenn ohne_campaign
+sherloq_signal_id  UUID     -- NULL wenn nicht via Sherloq
+icp_score          INT      -- NULL erlaubt (optional, kein Pflichtfeld, kein Gate)
+opt_out            BOOLEAN  DEFAULT false
+imported_at        TIMESTAMPTZ
+
+-- campaigns.targeting JSONB:
+{ job_titles:string[], industries:string[],
+  company_sizes:string[] /* 1-50|51-200|201-500|500+ */,
+  regions:string[], min_icp_score:number|null /* null = kein ICP-Filter */ }
+```
+
+### Regeln die immer gelten
+1. Opt-out → niemals Campaign, niemals Outreach
+2. Bestandskunde / aktiver Deal → niemals in AI-SDR-Campaign
+3. Default Import → immer „Nur speichern"
+4. Matching ist SQL → kein AI, keine Token-Kosten
+5. User bestätigt vor Outreach (außer Campaign = Auto + Low Risk)
+6. ICP optional → kein Pflichtfeld, kein Gate
+7. Business-Logic nur in Edge Functions, nie im Frontend
+
+---
+
 ## Message Templates — Platzhalter-System
 
 ### Grundprinzip
