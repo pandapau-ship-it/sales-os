@@ -4,7 +4,7 @@
 
 ---
 
-## Current Status: Architektur & Doku vollständig ✅ → Phase 5 (Supabase + echte Daten) next
+## Current Status: Dark Mode + Service-Layer + Git-Workflow ✅ → Phase 5 (Supabase) next
 
 > Single Source of Truth für den Umsetzungsstand: **CHECKLIST.md** (`npm run audit` prüft).
 > CLAUDE.md = WARUM/WIE · CHECKLIST.md = WAS-offen · PROGRESS.md = Session-Historie.
@@ -12,6 +12,32 @@
 ---
 
 ## Completed
+
+### Session 8 — 2026-06 — Erster echter Code seit Phase-Design: Dark Mode, Service-Layer, Git-Workflow
+
+Erstmals wieder **Produkt-Code** statt nur Architektur-Doku:
+
+- [x] **Dark Mode Basis-Architektur** — Dark-Tokens in `[data-theme="dark"]` (index.css),
+  `useTheme()` Hook (localStorage + modul-weiter Store), FOUC-Guard in index.html,
+  Sonne/Mond-Toggle im Sidebar-Profilbereich. `@theme inline` folgt automatisch.
+  Alten `.dark-theme`-!important-Hack aus App.tsx entfernt.
+- [x] **CustomerDrawer** — echter Slide-In/Out (rechts, eigene CSS-Keyframes ohne Plugin),
+  Schließ-Animation gefixt (immer gemountet + gehaltene Inhaltskopie), Dark-Mode-Farben
+  (CHURN-RISK-Gradient, Settings-Modal, ~13 hardcodierte Farben → Tokens).
+- [x] **Service-Abstraktion** `lib/db.ts · auth.ts · storage.ts · realtime.ts` —
+  einzige Supabase-Swap-Stelle, einziger Client-Init in db.ts, klar benannte Exports;
+  App lädt Daten jetzt über `lib/db` statt direkt aus `@/data`. audit.ts erzwingt die Regel.
+- [x] **Git-Workflow (hart)** — nie direkt auf `main`, Feature-Branch-Pflicht,
+  PR + Squash-Merge, grün-gated (build + audit). In CLAUDE.md verankert, PR #1 gemergt.
+
+**Offen / getrackt:** ~144 Akzent-Hex in Screens (Status-Badges, brechen Dark Mode
+optisch nicht strukturell) · tote Dateien `theme.ts`/`shell/TopNav.tsx` löschen ·
+`aiChat.ts` → `aiCall()` migrieren (Phase 5).
+
+**Nächster echter Bau-Block:** Phase 5 — Supabase (Client in `lib/db.ts` aktivieren,
+Schema, RLS, Auth). Die Service-Abstraktion ist bereit; nur Funktionskörper tauschen.
+
+---
 
 ### Session 7 — 2026-06 — AI-SDR-Tiefe: Kontakte, Risk, Lernen, Routing
 
