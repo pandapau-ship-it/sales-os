@@ -295,24 +295,24 @@ export default function App() {
       {/* SETTINGS MODAL */}
       {showSettings && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-50 animate-fade-in">
-          <div className="bg-white rounded-[32px] p-6 w-full max-w-[440px] shadow-[0_24px_60px_-15px_rgba(0,0,0,0.15)] relative">
+          <div className="bg-app-surface rounded-[32px] p-6 w-full max-w-[440px] shadow-dropdown relative">
             <button
               onClick={() => setShowSettings(false)}
-              className="absolute top-4 right-4 text-[#868E96] hover:text-[#212529] cursor-pointer"
+              className="absolute top-4 right-4 text-text-muted hover:text-text-primary cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
-            <h3 className="text-[14px] font-bold text-[#212529] uppercase tracking-wider font-mono flex items-center gap-2">
-              <SettingsIcon className="w-4 h-4 text-[#175253]" />
+            <h3 className="text-[14px] font-bold text-text-primary uppercase tracking-wider font-mono flex items-center gap-2">
+              <SettingsIcon className="w-4 h-4 text-sherloq-primary" />
               Sales OS Systemkonfiguration
             </h3>
             <div className="mt-4 flex flex-col gap-3.5">
-              <div className="bg-[#ECFEF9] border border-[#125455]/10 p-4 rounded-[16px]">
-                <div className="flex items-center gap-2 text-[#125455] font-semibold text-[12px]">
+              <div className="bg-[var(--signal-teal-bg)] border border-[var(--signal-teal-text)]/10 p-4 rounded-[16px]">
+                <div className="flex items-center gap-2 text-signal-teal font-semibold text-[12px]">
                   <Brain className="w-4 h-4" />
                   <span>Design Token System</span>
                 </div>
-                <p className="text-[11px] text-[#495057] mt-1.5 leading-relaxed">
+                <p className="text-[11px] text-text-body mt-1.5 leading-relaxed">
                   shadcn/ui + Tailwind CSS v4 + CSS Variables. Alle Tokens in src/index.css.
                 </p>
               </div>

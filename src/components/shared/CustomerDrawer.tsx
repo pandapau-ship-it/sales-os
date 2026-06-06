@@ -433,7 +433,7 @@ export default function CustomerDrawer({
                   </div>
 
                   {/* Churn Risk */}
-                  <div className="bg-app-surface border border-border rounded-[14px] p-6 shadow-card bg-gradient-to-r from-white to-app-bg">
+                  <div className="border border-border rounded-[14px] p-6 shadow-card bg-gradient-to-r from-app-surface to-app-bg">
                     <h3 className="text-[10px] font-bold text-icon-muted uppercase tracking-wider font-mono mb-4">
                       CHURN RISK
                     </h3>
