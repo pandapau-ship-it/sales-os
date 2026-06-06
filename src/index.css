@@ -363,3 +363,22 @@ body {
 .custom-scrollbar::-webkit-scrollbar        { width: 6px; }
 .custom-scrollbar::-webkit-scrollbar-track  { background: transparent; }
 .custom-scrollbar::-webkit-scrollbar-thumb  { background-color: var(--scrollbar-thumb); border-radius: 10px; }
+
+/* ─── Sheet / Drawer Slide — von rechts rein/raus (kein Plugin nötig) ─────────
+ * Radix setzt data-state="open|closed". Die CSS-Animation auf "closed" sorgt
+ * dafür, dass Radix das Panel bis zum Ende der Ausfahr-Animation mountet hält.
+ * ─────────────────────────────────────────────────────────────────────────── */
+@keyframes drawer-in  { from { transform: translateX(calc(100% + 16px)); } to { transform: translateX(0); } }
+@keyframes drawer-out { from { transform: translateX(0); } to { transform: translateX(calc(100% + 16px)); } }
+.sheet-drawer[data-state="open"]   { animation: drawer-in  340ms cubic-bezier(0.32, 0.72, 0, 1); }
+.sheet-drawer[data-state="closed"] { animation: drawer-out 260ms cubic-bezier(0.32, 0.72, 0, 1); }
+
+@keyframes overlay-fade-in  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes overlay-fade-out { from { opacity: 1; } to { opacity: 0; } }
+.sheet-overlay[data-state="open"]   { animation: overlay-fade-in  300ms ease; }
+.sheet-overlay[data-state="closed"] { animation: overlay-fade-out 260ms ease; }
+
+@media (prefers-reduced-motion: reduce) {
+  .sheet-drawer[data-state="open"], .sheet-drawer[data-state="closed"],
+  .sheet-overlay[data-state="open"], .sheet-overlay[data-state="closed"] { animation: none; }
+}

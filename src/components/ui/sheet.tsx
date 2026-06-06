@@ -18,8 +18,8 @@ const SheetOverlay = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <SheetPrimitive.Overlay
     className={cn(
-      // Matches dialog overlay — soft blur, not harsh black
-      "fixed inset-0 z-50 bg-[#495057]/25 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      // Matches dialog overlay — soft blur. sheet-overlay → Fade-Animation (index.css)
+      "fixed inset-0 z-50 bg-[#0B1120]/40 backdrop-blur-sm sheet-overlay",
       className
     )}
     {...props}
@@ -40,8 +40,9 @@ const sheetVariants = cva(
         right:
           "inset-y-0 right-0 h-full w-3/4 border-l border-border data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right sm:max-w-sm",
         // Floating drawer variant — rounded panel with margin (used by CustomerDrawer)
+        // bg-app-bg → folgt Dark Mode · sheet-drawer → Slide-Animation (index.css)
         drawer:
-          "top-2 bottom-2 right-2 w-full max-w-[850px] rounded-[16px] bg-[#F4F5F7] data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right",
+          "top-2 bottom-2 right-2 w-full max-w-[850px] rounded-[16px] bg-app-bg border border-border sheet-drawer",
       },
     },
     defaultVariants: {

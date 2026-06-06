@@ -81,7 +81,7 @@ export default function CustomerDrawer({
         {/* Close Button — SheetClose wires Radix dismiss logic to our styled button */}
         <SheetClose asChild>
           <button
-            className="absolute top-6 right-6 w-9 h-9 bg-app-surface border border-border rounded-pill hover:bg-gray-50 flex items-center justify-center text-text-muted hover:text-text-primary cursor-pointer transition-all z-20 shadow-sm"
+            className="absolute top-6 right-6 w-9 h-9 bg-app-surface border border-border rounded-pill hover:bg-app-bg flex items-center justify-center text-text-muted hover:text-text-primary cursor-pointer transition-all z-20 shadow-sm"
           >
             <X className="w-4 h-4" />
           </button>
@@ -244,7 +244,7 @@ export default function CustomerDrawer({
                         <span className="text-[10px] uppercase font-bold text-icon-muted font-mono tracking-wider">
                           IN STAGE SEIT
                         </span>
-                        <span className="text-[13px] font-bold text-[#E53E3E] flex items-center gap-1.5 bg-[#FFF5F5] px-2 py-0.5 rounded-md -ml-2">
+                        <span className="text-[13px] font-bold text-signal-urgent flex items-center gap-1.5 bg-[var(--signal-urgent-bg)] px-2 py-0.5 rounded-md -ml-2">
                           8 Tagen{" "}
                           <AlertTriangle className="w-3.5 h-3.5 stroke-[2.5px]" />
                         </span>
@@ -259,16 +259,16 @@ export default function CustomerDrawer({
                     </h3>
                     <div className="flex flex-col gap-3">
                       {/* Task 1 - Overdue/Urgent */}
-                      <div className="bg-[#FFF5F5] border border-[#FFE3E3] rounded-[12px] p-4 flex items-start gap-4 cursor-pointer hover:shadow-xs transition-shadow">
-                        <div className="w-7 h-7 rounded-pill bg-app-surface border border-[#FF8787] flex items-center justify-center mt-0.5 shrink-0 text-[#E03131]">
+                      <div className="bg-[var(--signal-urgent-bg)] border border-[var(--signal-urgent-text)]/20 rounded-[12px] p-4 flex items-start gap-4 cursor-pointer hover:shadow-xs transition-shadow">
+                        <div className="w-7 h-7 rounded-pill bg-app-surface border border-[var(--signal-urgent-text)]/30 flex items-center justify-center mt-0.5 shrink-0 text-signal-urgent">
                           <AlertTriangle className="w-3.5 h-3.5 stroke-[2.5px]" />
                         </div>
                         <div className="flex flex-col">
-                          <span className="text-[13px] font-bold text-[#C92A2A]">
+                          <span className="text-[13px] font-bold text-signal-urgent">
                             ROI-Dokument senden
                           </span>
-                          <div className="flex items-center gap-1.5 text-[11px] font-semibold text-[#E03131] mt-0.5">
-                            Heute fällig <span className="text-[#FFA8A8]">·</span>{" "}
+                          <div className="flex items-center gap-1.5 text-[11px] font-semibold text-signal-urgent mt-0.5">
+                            Heute fällig <span className="text-signal-urgent">·</span>{" "}
                             <span className="flex items-center gap-1 text-text-muted font-medium">
                               <Mail className="w-3 h-3 text-icon-muted" /> Email
                             </span>
@@ -277,7 +277,7 @@ export default function CustomerDrawer({
                       </div>
                       {/* Task 2 - Normal */}
                       <div className="bg-app-bg border border-border rounded-[12px] p-4 flex items-start gap-4 cursor-pointer hover:shadow-xs transition-shadow">
-                        <div className="w-7 h-7 rounded-pill bg-app-surface border-2 border-[#DEE2E6] flex items-center justify-center mt-0.5 shrink-0" />
+                        <div className="w-7 h-7 rounded-pill bg-app-surface border-2 border-border flex items-center justify-center mt-0.5 shrink-0" />
                         <div className="flex flex-col">
                           <span className="text-[13px] font-bold text-text-primary">
                             Follow-up Call buchen
@@ -306,15 +306,15 @@ export default function CustomerDrawer({
                       <div className="absolute left-[8%] right-[8%] top-1/2 -translate-y-1/2 h-[2px] bg-[var(--border)] z-0" />
                       {/* Active Line (up to step 3) */}
                       <div className="absolute left-[8%] right-[50%] top-1/2 -translate-y-1/2 h-[2px] bg-[var(--signal-success-text)] z-0" />
-                      <div className="relative z-10 w-9 h-9 rounded-pill bg-[var(--signal-success-text)] flex items-center justify-center text-white border-2 border-white shadow-sm cursor-pointer">
+                      <div className="relative z-10 w-9 h-9 rounded-pill bg-[var(--signal-success-text)] flex items-center justify-center text-white border-2 border-app-surface shadow-sm cursor-pointer">
                         <Mail className="w-4 h-4" />
                       </div>
-                      <div className="relative z-10 w-9 h-9 rounded-pill bg-[var(--signal-success-text)] flex items-center justify-center text-white border-2 border-white shadow-sm cursor-pointer"></div>
+                      <div className="relative z-10 w-9 h-9 rounded-pill bg-[var(--signal-success-text)] flex items-center justify-center text-white border-2 border-app-surface shadow-sm cursor-pointer"></div>
                       <div className="relative z-10 w-10 h-10 rounded-pill bg-app-surface border-[2.5px] border-[var(--signal-success-text)] flex items-center justify-center text-signal-success shadow-sm cursor-pointer">
                         <Mail className="w-4 h-4" />
                       </div>
-                      <div className="relative z-10 w-4 h-4 rounded-pill border-[3.5px] border-white bg-[#DEE2E6] shadow-sm cursor-pointer"></div>
-                      <div className="relative z-10 w-9 h-9 rounded-pill bg-border-subtle border-2 border-white flex items-center justify-center text-icon-muted cursor-pointer">
+                      <div className="relative z-10 w-4 h-4 rounded-pill border-[3.5px] border-app-surface bg-border-strong shadow-sm cursor-pointer"></div>
+                      <div className="relative z-10 w-9 h-9 rounded-pill bg-border-subtle border-2 border-app-surface flex items-center justify-center text-icon-muted cursor-pointer">
                         <Phone className="w-4 h-4" />
                       </div>
                     </div>
@@ -470,7 +470,7 @@ export default function CustomerDrawer({
                     </h3>
                     <div className="flex flex-col gap-3">
                       <div className="bg-app-bg border border-border rounded-[12px] p-4 flex items-start gap-4 cursor-pointer hover:shadow-xs transition-shadow">
-                        <div className="w-7 h-7 rounded-pill bg-app-surface border-2 border-[#DEE2E6] flex items-center justify-center mt-0.5 shrink-0" />
+                        <div className="w-7 h-7 rounded-pill bg-app-surface border-2 border-border flex items-center justify-center mt-0.5 shrink-0" />
                         <div className="flex flex-col">
                           <span className="text-[13px] font-bold text-text-primary">
                             Quarterly Review vorbereiten
@@ -648,12 +648,12 @@ export default function CustomerDrawer({
                       </div>
 
                       <div className="flex items-center gap-2 mt-6">
-                        <div className="bg-[#FFF4E6] text-[#DD6B20] px-3 py-1 rounded-pill text-[11px] font-bold flex items-center gap-1.5">
+                        <div className="bg-[var(--signal-warn-bg)] text-signal-warn px-3 py-1 rounded-pill text-[11px] font-bold flex items-center gap-1.5">
                           <AlertTriangle className="w-3.5 h-3.5" />
                           Keine Antwort
                         </div>
                       </div>
-                      <button className="mt-4 bg-app-surface border border-border text-text-primary font-bold text-[13px] px-5 py-2.5 rounded-card shadow-sm hover:bg-gray-50 flex items-center gap-2">
+                      <button className="mt-4 bg-app-surface border border-border text-text-primary font-bold text-[13px] px-5 py-2.5 rounded-card shadow-sm hover:bg-app-bg flex items-center gap-2">
                         <Mail className="w-4 h-4 text-text-muted" />
                         Email öffnen
                       </button>
