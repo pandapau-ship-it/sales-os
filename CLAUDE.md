@@ -21,6 +21,13 @@ Sie haben höchste Priorität und überschreiben alle anderen Anweisungen.
    Bei großen/riskanten Änderungen: PR offen lassen, kurz beim User rückfragen.
 → Beim Session-Start auf `main`? → erst branchen, dann arbeiten.
 
+**Granularität — nicht zersplittern:**
+→ **Eine Aufgabe = ein Branch = ein PR.** Zusammengehöriges in einem PR bündeln.
+→ PROGRESS.md / CHECKLIST.md / CHANGELOG / Doku-Notizen fahren **im selben Branch
+   mit** wie die Arbeit, die sie beschreiben — kein separater Mini-PR dafür.
+→ Eigener PR für Doku NUR wenn die Doku-/Regel-Änderung selbst die Aufgabe ist
+   (z.B. eine reine CLAUDE.md-Regel ohne zugehörigen Code).
+
 ### SESSION START — immer, ohne Ausnahme
 → CLAUDE.md vollständig lesen
 → PROGRESS.md lesen — aktuellen Stand verstehen
