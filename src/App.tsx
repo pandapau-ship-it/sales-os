@@ -3,16 +3,23 @@
  * State lives here; screens receive only what they need via props.
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+// Daten kommen ausschließlich über die Abstraktionsschicht (lib/db), nie direkt
+// aus @/data oder @supabase. Phase 5 tauscht nur lib/db — App bleibt unverändert.
 import {
-  INITIAL_LEADS,
-  INITIAL_CUSTOMERS,
-  INITIAL_PRIORITIES,
-  INITIAL_APPOINTMENTS,
-  INITIAL_TASKS,
-  INITIAL_ALERT_BANNERS,
-  INITIAL_MARKETING_IDEAS,
-} from "@/data";
+  getLeads,
+  getCustomers,
+  getTasks,
+  getPriorities,
+  getAppointments,
+  getAlerts,
+  getMarketingIdeas,
+  updateLeadStage as dbUpdateLeadStage,
+  setTaskCompleted as dbSetTaskCompleted,
+  createLead as dbCreateLead,
+  upgradeSubscription as dbUpgradeSubscription,
+  publishMarketingPost as dbPublishMarketingPost,
+} from "@/lib/db";
 import type {
   Lead,
   Customer,
@@ -51,20 +58,40 @@ export default function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [showCommandPalette, setShowCommandPalette] = useState(false);
 
-  // Domain states
-  const [leads, setLeads] = useState<Lead[]>(INITIAL_LEADS);
-  const [customers, setCustomers] = useState<Customer[]>(INITIAL_CUSTOMERS);
-  const [tasks, setTasks] = useState<TaskItemType[]>(INITIAL_TASKS);
-  const [priorities, setPriorities] =
-    useState<PriorityItemType[]>(INITIAL_PRIORITIES);
-  const [alerts, setAlerts] = useState<AlertBannerType[]>(
-    INITIAL_ALERT_BANNERS,
-  );
-  const [appointments, _setAppointments] =
-    useState<AppointmentItemType[]>(INITIAL_APPOINTMENTS);
-  const [marketingIdeas, setMarketingIdeas] = useState<LinkedInPostIdea[]>(
-    INITIAL_MARKETING_IDEAS,
-  );
+  // Domain states — initial leer, dann via lib/db geladen.
+  // Bridge-useEffect für die Mock-Phase; Phase 5 → TanStack Query (CLAUDE.md).
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [tasks, setTasks] = useState<TaskItemType[]>([]);
+  const [priorities, setPriorities] = useState<PriorityItemType[]>([]);
+  const [alerts, setAlerts] = useState<AlertBannerType[]>([]);
+  const [appointments, _setAppointments] = useState<AppointmentItemType[]>([]);
+  const [marketingIdeas, setMarketingIdeas] = useState<LinkedInPostIdea[]>([]);
+
+  useEffect(() => {
+    let active = true;
+    Promise.all([
+      getLeads(),
+      getCustomers(),
+      getTasks(),
+      getPriorities(),
+      getAlerts(),
+      getAppointments(),
+      getMarketingIdeas(),
+    ]).then(([l, c, t, p, a, ap, m]) => {
+      if (!active) return;
+      setLeads(l);
+      setCustomers(c);
+      setTasks(t);
+      setPriorities(p);
+      setAlerts(a);
+      _setAppointments(ap);
+      setMarketingIdeas(m);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   // Progressive disclosure drawer (Level 3)
   const [selectedPerson, setSelectedPerson] = useState<Lead | Customer | null>(
@@ -101,17 +128,20 @@ export default function App() {
     setSelectedCommId(null);
   };
 
-  // State mutations
+  // State mutations — optimistisches lokales Update + Persistenz via lib/db.
+  // (Mock-Phase: db-Writes sind No-ops; Phase 5 schreibt nach Supabase.)
   const handleToggleTask = (taskId: string) => {
+    const task = tasks.find((t) => t.id === taskId);
+    const nextCompleted = task ? !task.completed : true;
     setTasks((prev) =>
       prev.map((t) =>
         t.id === taskId ? { ...t, completed: !t.completed } : t,
       ),
     );
-    const task = tasks.find((t) => t.id === taskId);
     if (task && !task.completed) {
       setPriorities((prev) => prev.filter((p) => p.id !== "prio-1"));
     }
+    void dbSetTaskCompleted(taskId, nextCompleted);
   };
 
   const handleResolveAlert = (alertId: string) => {
@@ -119,15 +149,18 @@ export default function App() {
   };
 
   const handleUpdateLeadStage = (leadId: string, newStage: string) => {
+    const stage = newStage as Lead["pipelineStage"];
     setLeads((prev) =>
       prev.map((l) =>
-        l.id === leadId ? { ...l, pipelineStage: newStage as Lead["pipelineStage"] } : l,
+        l.id === leadId ? { ...l, pipelineStage: stage } : l,
       ),
     );
+    void dbUpdateLeadStage(leadId, stage);
   };
 
   const handleAddLead = (newLead: Lead) => {
     setLeads((prev) => [newLead, ...prev]);
+    void dbCreateLead(newLead);
     const newTask: TaskItemType = {
       id: `task-gen-${Date.now()}`,
       person: newLead.person,
@@ -149,6 +182,7 @@ export default function App() {
         c.id === custId ? { ...c, subscriptionPlan: newPlan } : c,
       ),
     );
+    void dbUpgradeSubscription(custId, newPlan);
   };
 
   const handlePublishPost = (id: string, text: string) => {
@@ -157,6 +191,7 @@ export default function App() {
         i.id === id ? { ...i, draft: text, status: "published" } : i,
       ),
     );
+    void dbPublishMarketingPost(id, text);
     alert("Post wurde eingeplant!");
   };
 

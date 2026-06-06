@@ -1221,6 +1221,32 @@ Wenn ja → `execution_mode`, `source`, `approved_by`, `executed_by` müssen in 
 
 ---
 
+## Service-Abstraktion — Pflichtregeln (nie weglassen)
+
+Alle externen Service-Aufrufe laufen über eine dünne Abstraktionsschicht in `src/lib/`.
+Wird Supabase ausgetauscht, ändern wir **nur diese vier Dateien** — keine Komponente.
+
+| Datei | Zuständig für | Beispiel-Exports |
+|-------|---------------|------------------|
+| `lib/db.ts` | alle DB-Abfragen **+ einziger Supabase-Init** | `getLeads()`, `getContactById()`, `createLead()` |
+| `lib/auth.ts` | Login, Logout, Session, User | `login()`, `logout()`, `getCurrentUser()` |
+| `lib/storage.ts` | Datei-Uploads & URLs | `uploadLogo()`, `getPublicUrl()` |
+| `lib/realtime.ts` | alle Realtime-Subscriptions | `subscribeToLeads()` (gibt Unsubscribe zurück) |
+
+**Harte Regeln (vom `audit.ts` geprüft):**
+- Komponenten importieren NUR aus `@/lib/*` — **nie** aus `@supabase/supabase-js`
+- Die Supabase-Instanz wird **ausschließlich in `lib/db.ts`** initialisiert
+  (`getSupabaseClient()`); auth/storage/realtime holen den Client von dort
+- Jede Funktion hat einen klar benannten Export (`getLeads()`, `uploadLogo()` …),
+  Promise-basiert (passt zu Supabase und später TanStack Query als queryFn)
+
+**Status:** Phase 5 noch nicht gestartet → die Funktionskörper liefern aktuell
+Mock-Daten aus `@/data`. Beim Supabase-Einbau werden nur die Körper ersetzt,
+die Signaturen bleiben. App lädt Initialdaten über `lib/db` (Bridge-`useEffect`
+in der Mock-Phase → Phase 5 wird daraus TanStack Query).
+
+---
+
 ## MCP & Externe Schnittstellen — Pflichtregeln
 
 Das System wird später als MCP Server betrieben und eine direkte

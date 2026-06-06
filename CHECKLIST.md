@@ -110,10 +110,13 @@
 - [x] Sliding-Pill-Animation in TopBar
 
 ### Daten-Layer
-- [ ] TanStack Query als einziger Server-State — *kein useEffect+fetch*
-- [ ] `src/lib/supabase.ts` Client
+- [x] **Service-Abstraktion** `lib/db.ts · auth.ts · storage.ts · realtime.ts` — *einzige Swap-Stelle für Supabase*
+- [x] App lädt Daten über `lib/db` (nicht direkt aus `@/data`/supabase) — *audit-geprüft*
+- [x] audit-Regel: `@supabase` nur in `lib/`, `createClient` nur in `db.ts`
+- [ ] Supabase-Client in `lib/db.ts` aktivieren (Phase 5) — *nur Funktionskörper tauschen*
+- [ ] TanStack Query als einziger Server-State — *Bridge-useEffect in App ersetzen*
 - [ ] `useModules()` Hook (gecacht) — *Modul-Gating*
-- [ ] Mock-Daten (`data.ts`) durch echte Queries ersetzen
+- [ ] Mock-Daten (`data.ts`) durch echte Queries in `lib/db` ersetzen
 - [ ] Glocke: echter Badge-Count aus `notifications` (read=false), live via Realtime
 
 ### Realtime

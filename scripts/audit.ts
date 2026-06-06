@@ -167,6 +167,29 @@ function checkAbstraction(libFile: string, label: string, patterns: RegExp): voi
     offenders.length ? `Direkter Provider-Aufruf in: ${offenders.join(', ')}` : 'Sauber abstrahiert.')
 }
 
+// ── Service-Abstraktion: @supabase nur in lib/ (Init nur in db.ts) ───────────
+
+function checkSupabaseAbstraction(): void {
+  const files = walk(SRC, ['.ts', '.tsx'])
+  const dbPath = join('lib', 'db.ts')
+
+  // Regel 1: @supabase/supabase-js Import nur innerhalb src/lib/
+  const importOffenders = files.filter((f) => {
+    const r = rel(f)
+    const inLib = r.includes(`${join('src', 'lib')}`) || r.includes('/lib/')
+    return !inLib && /from\s+['"]@supabase\/supabase-js['"]/.test(read(f))
+  }).map(rel)
+
+  // Regel 2: createClient( nur in lib/db.ts
+  const initOffenders = files.filter((f) => !rel(f).endsWith(dbPath) && /\bcreateClient\s*\(/.test(read(f))).map(rel)
+
+  const offenders = [...new Set([...importOffenders, ...initOffenders])]
+  add('Service-Abstraktion (lib/)', offenders.length ? 'FAIL' : 'PASS',
+    offenders.length
+      ? `@supabase/createClient außerhalb lib/: ${offenders.join(', ')}`
+      : 'Supabase nur in lib/ · Init nur in db.ts.')
+}
+
 // ── Bonus: keine Emoji-Badges (Design Invariant) ─────────────────────────────
 
 function checkNoEmojiBadges(): void {
@@ -188,6 +211,7 @@ checkComponentRegistry()
 checkAiAbstraction()
 checkAbstraction('notify.ts', 'Notifications → notify()', /from\s+['"](resend|postmark|@slack\/web-api)['"]/)
 checkAbstraction('email.ts', 'Emails → sendEmail()', /from\s+['"](resend|postmark|nodemailer)['"]/)
+checkSupabaseAbstraction()
 checkNoEmojiBadges()
 
 // ── Report ───────────────────────────────────────────────────────────────────
