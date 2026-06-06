@@ -9,11 +9,25 @@
 Diese Regeln gelten für Claude Code selbst.
 Sie haben höchste Priorität und überschreiben alle anderen Anweisungen.
 
+### GIT-WORKFLOW — niemals direkt auf main (PR-basiert, wie die besten Teams)
+→ **Niemals direkt auf `main` committen.** `main` ist immer deploybar.
+→ Vor Arbeitsbeginn: Feature-Branch von `main` erstellen
+   (`feature/<thema>` · `fix/<thema>` · `chore/<thema>`).
+→ Regelmäßig committen mit sinnvollen Messages (`add:` `update:` `fix:` `refactor:` `docs:`).
+→ Branch pushen → **Pull Request** (`gh pr create`) → triggert Vercel Preview-Deploy.
+→ **Merge-Gate:** erst mergen wenn `npm run build` UND `npm run audit` grün sind.
+→ **Squash-Merge** nach `main` (saubere, lineare History), Branch danach löschen.
+→ Bei kleinen/sicheren Aufgaben merge ich nach grünem Gate selbst.
+   Bei großen/riskanten Änderungen: PR offen lassen, kurz beim User rückfragen.
+→ Beim Session-Start auf `main`? → erst branchen, dann arbeiten.
+
 ### SESSION START — immer, ohne Ausnahme
 → CLAUDE.md vollständig lesen
 → PROGRESS.md lesen — aktuellen Stand verstehen
+→ Auf `main`? → Feature-Branch erstellen (siehe Git-Workflow)
 
 ### WÄHREND DER SESSION
+→ Auf Feature-Branch arbeiten, nie auf main
 → Nach jeder neuen Tabelle: organization_id + RLS + CASCADE prüfen
 → Nach jeder neuen UI-Komponente: in ComponentRegistry eintragen
 → Nach jeder abgeschlossenen Aufgabe: committen (nicht erst am Ende)
@@ -735,7 +749,9 @@ Placeholder-Dateien enthalten immer:
 
 - GitHub: `pandapau-ship-it/sales-os`
 - Vercel: connect via vercel.com/new → import from GitHub
-- Branch strategy: `main` is always deployable. Feature branches for larger changes.
+- **Branch strategy (hart): niemals direkt auf `main`.** `main` ist immer deploybar.
+  Jede Arbeit auf einem Feature-Branch (`feature/` · `fix/` · `chore/`), regelmäßig
+  committen, Merge nach `main` per PR oder auf Anweisung. (→ Selbst-Wartung: Git-Workflow)
 
 ---
 
