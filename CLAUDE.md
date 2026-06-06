@@ -86,6 +86,16 @@ Kurzfassung: PROGRESS.md + CHECKLIST.md aktualisieren, neue Komponenten in
 - Niemals Hex-Werte direkt im Code — immer CSS Variables oder Tailwind-Tokens
 - Eine Farbe ändern = in `index.css :root` ändern = überall geändert
 
+**Dark Mode — Pflicht-Grundlage (jede neue Komponente):**
+- Light-Tokens in `:root`, Dark-Overrides in `[data-theme="dark"]` (beide in `index.css`)
+- `@theme inline` referenziert die Tokens → Tailwind-Utilities (`bg-app-bg`,
+  `text-text-primary` …) folgen Dark Mode **automatisch**. Keine Komponente kennt Dark Mode.
+- **Jeder hardcodierte Hex-Wert bricht Dark Mode** — er bleibt im Light-Wert hängen.
+  Darum: Strukturelles (bg/text/border) immer über Token-Klassen, Akzente über Signal-Tokens.
+- Umschalten: `useTheme()` (`src/hooks/useTheme.ts`) setzt `data-theme` auf `<html>` +
+  localStorage. FOUC-Guard in `index.html` setzt das Attribut vor dem ersten Paint.
+- Toggle (Sonne/Mond) sitzt im Profil/Avatar-Bereich der Sidebar.
+
 ---
 
 ### Design Invariants — Niemals abweichen (auch nicht bei neuen Design-Uploads)

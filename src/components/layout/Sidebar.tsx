@@ -9,6 +9,8 @@ import {
   Star,
   HelpCircle,
   Settings,
+  Sun,
+  Moon,
 } from "lucide-react";
 import {
   Tooltip,
@@ -16,12 +18,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useTheme } from "@/hooks/useTheme";
 
 interface SidebarProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
-  darkMode: boolean;
-  setDarkMode: (dark: boolean) => void;
   onOpenSettings: () => void;
   onOpenSearch: () => void; // reserved — Search lives in TopBar Cmd+K
 }
@@ -29,11 +30,12 @@ interface SidebarProps {
 export default function Sidebar({
   activeTab: _activeTab,
   setActiveTab,
-  darkMode: _darkMode,
-  setDarkMode: _setDarkMode,
   onOpenSettings,
   onOpenSearch: _onOpenSearch,
 }: SidebarProps) {
+  const { theme, toggleTheme } = useTheme();
+  const isDark = theme === "dark";
+
   // Oberer Bereich — kein Search (bereits in TopBar Cmd+K)
   const topItems = [
     {
@@ -112,6 +114,43 @@ export default function Sidebar({
               <TooltipContent side="right">{item.tooltip}</TooltipContent>
             </Tooltip>
           ))}
+
+          {/* Divider */}
+          <div className="w-[28px] h-px bg-border my-1" />
+
+          {/* Theme Toggle — Sonne/Mond */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={toggleTheme}
+                aria-label={isDark ? "Light Mode" : "Dark Mode"}
+                className="w-[40px] h-[40px] rounded-[10px] text-text-muted hover:bg-app-bg hover:text-text-primary flex items-center justify-center transition-all duration-150 cursor-pointer"
+              >
+                {isDark ? (
+                  <Sun className="w-[18px] h-[18px]" strokeWidth={1.5} />
+                ) : (
+                  <Moon className="w-[18px] h-[18px]" strokeWidth={1.5} />
+                )}
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="right">
+              {isDark ? "Light Mode" : "Dark Mode"}
+            </TooltipContent>
+          </Tooltip>
+
+          {/* Profil / Avatar */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={onOpenSettings}
+                aria-label="Profil"
+                className="w-[34px] h-[34px] mt-1 rounded-[10px] bg-sherloq-primary text-white text-[11px] font-semibold flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity"
+              >
+                OS
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="right">Profil</TooltipContent>
+          </Tooltip>
         </div>
       </aside>
     </TooltipProvider>

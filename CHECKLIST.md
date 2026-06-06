@@ -141,6 +141,17 @@
 - [ ] Jede neue interaktive Komponente → shadcn-Primitiv aus `ui/`
 - [ ] Jede neue Komponente → sofort in `componentRegistry.ts`
 
+### Dark Mode
+- [x] Dark-Tokens in `[data-theme="dark"]` (index.css) — *@theme inline folgt automatisch*
+- [x] `useTheme()` Hook (data-theme auf `<html>` + localStorage, modul-weiter Store)
+- [x] FOUC-Guard in `index.html` (Theme vor erstem Paint)
+- [x] Theme-Toggle (Sonne/Mond) im Profil/Avatar-Bereich der Sidebar
+- [x] Alter `.dark-theme` !important-Hack aus App.tsx entfernt → Token-System
+- [~] Strukturelle Flächen schalten korrekt (laufen über Token-Klassen)
+- [ ] **Akzent-Hex → Signal-Tokens** in Screens (≈144 Vorkommen, meist Status-Akzente):
+      ScreenMyDay/Hunting/Farming/Marketing/Jira/CustomerDrawer — *brechen Dark Mode optisch, nicht strukturell*
+- [ ] Tote Dateien mit Hex entfernen: `src/theme.ts`, `src/components/shell/TopNav.tsx` (nicht importiert)
+
 ---
 
 ## 🔐 Security

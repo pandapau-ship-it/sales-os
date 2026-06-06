@@ -96,6 +96,9 @@
   --icp-medium: #F59E0B;
   --icp-low:    #E53E3E;
 
+  /* Scrollbar */
+  --scrollbar-thumb:  #CBD5E1;
+
   /* shadcn/ui compatibility (HSL format for shadcn primitives) */
   --background:       0 0% 100%;
   --foreground:       215 18% 14%;
@@ -103,6 +106,75 @@
   --primary-foreground: 0 0% 100%;
   --border-shadcn:    214 14% 91%;
   --radius:           0.5rem;
+}
+
+/* ─── Dark Mode — überschreibt NUR die Tokens, @theme inline folgt automatisch ──
+ * Aktiviert über <html data-theme="dark"> (useTheme Hook).
+ * Keine Komponente muss Dark-Mode kennen — alles läuft über diese Variablen.
+ * ─────────────────────────────────────────────────────────────────────────── */
+[data-theme="dark"] {
+  /* Sherloq Brand — leicht heller für Kontrast auf dunklem Grund */
+  --sherloq-primary:       #2A8C8A;
+  --sherloq-primary-hover: #34A3A0;
+  --sherloq-gradient:      linear-gradient(135deg, #2A8C8A 0%, #3DB5B2 100%);
+  --sherloq-light:         #12302F;
+
+  /* Backgrounds — tiefes Slate */
+  --app-bg:           #0B1120;
+  --surface:          #161E2E;
+  --surface-secondary:#1B2435;
+
+  /* Text */
+  --text-primary:     #F1F5F9;
+  --text-body:        #CBD5E1;
+  --text-muted:       #7C8BA1;
+
+  /* Borders */
+  --border:           #2A3548;
+  --border-strong:    #3B4961;
+  --border-card:      rgba(255, 255, 255, 0.06);
+
+  /* Shadows — kräftiger auf dunkel */
+  --shadow-card:      0 1px 2px rgba(0, 0, 0, 0.30), 0 2px 6px rgba(0, 0, 0, 0.25);
+  --shadow-hover:     0 1px 3px rgba(0, 0, 0, 0.35), 0 4px 12px rgba(0, 0, 0, 0.40);
+  --shadow-brand:     0 2px 8px -2px rgba(42, 140, 138, 0.40);
+  --shadow-nav:       0 1px 2px rgba(0, 0, 0, 0.30), 0 2px 6px rgba(0, 0, 0, 0.25);
+  --shadow-dropdown:  0 4px 6px rgba(0, 0, 0, 0.40), 0 12px 32px rgba(0, 0, 0, 0.55);
+
+  /* Signal Colors — dunkel getönter bg, aufgehellter text */
+  --signal-urgent-bg:   #3A2317; --signal-urgent-text: #FB923C;
+  --signal-warm-bg:     #3A2A17; --signal-warm-text:   #FBA94C;
+  --signal-warn-bg:     #3A3417; --signal-warn-text:   #FCD34D;
+  --signal-success-bg:  #14321F; --signal-success-text:#4ADE80;
+  --signal-info-bg:     #17263A; --signal-info-text:   #60A5FA;
+  --signal-cold-bg:     #16283A; --signal-cold-text:   #38BDF8;
+  --signal-teal-bg:     #12302F; --signal-teal-text:   #2DD4BF;
+
+  /* Extended UI Tokens */
+  --sherloq-dark:    #34A3A0;
+  --border-subtle:   #232E40;
+  --icon-muted:      #64748B;
+  --selection-bg:    #14322F;
+  --accent-teal:     #36D1A1;
+
+  /* Personality Colors (DISG) — aufgehellt */
+  --personality-rot-text:   #FB7185; --personality-rot-bg:   #3A1A22;
+  --personality-gelb-text:  #FBBF24; --personality-gelb-bg:  #3A2E15;
+  --personality-gruen-text: #34D399; --personality-gruen-bg: #14321F;
+  --personality-blau-text:  #60A5FA; --personality-blau-bg:  #17263A;
+
+  /* ICP Score Colors */
+  --icp-high:   #4ADE80; --icp-medium: #FBBF24; --icp-low: #F87171;
+
+  /* Scrollbar */
+  --scrollbar-thumb:  #3B4961;
+
+  /* shadcn/ui HSL */
+  --background:       222 39% 8%;
+  --foreground:       210 40% 96%;
+  --primary:          179 53% 36%;
+  --primary-foreground: 0 0% 100%;
+  --border-shadcn:    220 26% 22%;
 }
 
 /* ─── Tailwind v4 @theme — mapped for utility classes ────────────────────────
@@ -173,6 +245,7 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Plus Jakarta Sans', sans-serif;
   -webkit-font-smoothing: antialiased;
   margin: 0;
+  transition: background-color 200ms ease, color 200ms ease;
 }
 
 #root {
@@ -289,4 +362,4 @@ body {
 /* Custom scrollbar */
 .custom-scrollbar::-webkit-scrollbar        { width: 6px; }
 .custom-scrollbar::-webkit-scrollbar-track  { background: transparent; }
-.custom-scrollbar::-webkit-scrollbar-thumb  { background-color: #CBD5E1; border-radius: 10px; }
+.custom-scrollbar::-webkit-scrollbar-thumb  { background-color: var(--scrollbar-thumb); border-radius: 10px; }

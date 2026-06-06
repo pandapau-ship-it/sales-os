@@ -48,7 +48,6 @@ import {
 export default function App() {
   // Navigation
   const [activeTab, setActiveTab] = useState("meintag");
-  const [darkMode, setDarkMode] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showCommandPalette, setShowCommandPalette] = useState(false);
 
@@ -164,13 +163,9 @@ export default function App() {
   return (
     <div
       id="app-root"
-      className={`min-h-screen font-sans flex flex-col transition-colors duration-300 ${
-        darkMode
-          ? "bg-[#1A1D20] text-[#E9ECEF] dark-theme"
-          : "bg-[#F8F9FA] text-[#495057]"
-      }`}
+      className="min-h-screen font-sans flex flex-col bg-app-bg text-text-body transition-colors duration-300"
     >
-      {/* Animations */}
+      {/* Animations — Dark Mode läuft komplett über CSS-Token (index.css), kein Hack hier */}
       <style>{`
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(4px); }
@@ -182,13 +177,6 @@ export default function App() {
         }
         .animate-fade-in { animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         .animate-slide-left { animation: slideLeft 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #DEE2E6; border-radius: 10px; }
-        .dark-theme .bg-white { background-color: #24272A !important; }
-        .dark-theme .bg-[#F8F9FA] { background-color: #1A1D20 !important; }
-        .dark-theme .text-[#212529] { color: #F1F3F5 !important; }
-        .dark-theme .text-[#495057] { color: #CED4DA !important; }
       `}</style>
 
       {/* TOP NAV */}
@@ -214,8 +202,6 @@ export default function App() {
         <Sidebar
           activeTab={activeTab}
           setActiveTab={setActiveTab}
-          darkMode={darkMode}
-          setDarkMode={setDarkMode}
           onOpenSettings={() => setShowSettings(true)}
           onOpenSearch={() => setShowCommandPalette(true)}
         />
