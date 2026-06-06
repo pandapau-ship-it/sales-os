@@ -6,6 +6,11 @@
 
 ## Unreleased
 
+- **docs:** Git-Workflow als harte Regel verankert — niemals direkt auf `main`,
+  immer Feature-Branch (`feature/`·`fix/`·`chore/`), regelmäßige Commits. (CLAUDE.md Selbst-Wartung + Repository)
+- **feat:** Service-Abstraktion `lib/db|auth|storage|realtime` — einzige Supabase-Swap-Stelle; audit-geprüft.
+- **feat:** Dark Mode Basis (Tokens, `useTheme`, Sidebar-Toggle, FOUC-Guard); CustomerDrawer-Slide + Dark-Fixes.
+
 - **docs:** Dokumentations-Standard in CLAUDE.md erweitert (Stripe/Linear/Vercel-Niveau);
   `/docs`-Struktur angelegt (modules, api, decisions); 6 ADRs geschrieben
   (Supabase, shadcn, Edge Functions, organization_id, Sending Layer, aiCall);
