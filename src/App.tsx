@@ -249,14 +249,13 @@ export default function App() {
         </main>
       </div>
 
-      {/* CUSTOMER DRAWER (Level 3) */}
-      {selectedPerson && (
-        <CustomerDrawer
-          person={selectedPerson}
-          initialExpandedCommId={selectedCommId}
-          onClose={handleCloseDrawer}
-        />
-      )}
+      {/* CUSTOMER DRAWER (Level 3) — immer gemountet, damit die Ausfahr-Animation
+          beim Schließen sichtbar bleibt (Open-State steuert person=null) */}
+      <CustomerDrawer
+        person={selectedPerson}
+        initialExpandedCommId={selectedCommId}
+        onClose={handleCloseDrawer}
+      />
 
       {/* SETTINGS MODAL */}
       {showSettings && (

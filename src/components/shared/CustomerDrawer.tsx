@@ -34,12 +34,19 @@ interface CustomerDrawerProps {
 }
 
 export default function CustomerDrawer({
-  person,
+  person: personProp,
   initialExpandedCommId,
   onClose,
 }: CustomerDrawerProps) {
   const [expandedComm, setExpandedComm] = useState<Record<number, boolean>>({});
   const commSectionRef = useRef<HTMLDivElement>(null);
+
+  // Open-State kommt von der Prop; Inhalt rendert aus einer gehaltenen Kopie,
+  // damit das Panel während der Ausfahr-Animation (person→null) nicht leer wird.
+  const [displayPerson, setDisplayPerson] = useState<Lead | Customer | null>(personProp);
+  useEffect(() => {
+    if (personProp) setDisplayPerson(personProp);
+  }, [personProp]);
 
   useEffect(() => {
     if (initialExpandedCommId) {
@@ -64,8 +71,9 @@ export default function CustomerDrawer({
     }
   }, [initialExpandedCommId]);
 
-  // Sheet is always mounted; open state derived from person prop
-  const isOpen = person !== null;
+  // Sheet is always mounted; open state from the live prop, content from the held copy
+  const isOpen = personProp !== null;
+  const person = displayPerson;
   const isCustomer = person ? "sherloqStatus" in person : false;
   const castedCustomer = person as Customer;
   const lead = person as Lead;
