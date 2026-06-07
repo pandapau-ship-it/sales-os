@@ -3234,3 +3234,133 @@ Unten (Tools):
 - Verhältnis zur Top-Nav: die vier Screens sind die primäre Navigation; ob sie
   zusätzlich als Top-Pills erscheinen oder primär über die Rail laufen, ist eine
   Umsetzungsfrage — diese Rail-Struktur ist verbindlich.
+
+---
+
+# Ergänzung — Session Juni 2026
+
+## MULTI-TENANT ISOLATION (KRITISCH)
+
+Jede Konfiguration ist strikt an organization_id gebunden. Keine globalen Zustände.
+
+- Cal.com Branding, Booking-Links → pro Organization
+- Mailbox, LinkedIn-Account → pro Organization
+- Enrichment-API-Key → pro Organization
+- Sending-Limits → pro Organization (aus settings Tabelle)
+
+Branding-Änderung → syncBranding(organization_id) → nur diese Organization betroffen.
+Andere Tenants werden niemals berührt.
+
+Regel: NIEMALS eine Provider-Konfiguration ohne organization_id laden oder speichern.
+NIEMALS globale Variablen für Provider-Konfigurationen nutzen.
+
+---
+
+## KALENDER-PROVIDER: Cal.com
+
+Provider: Cal.com (selbst gehostet auf Vercel)
+OAuth: Nango (Google Calendar + Microsoft 365)
+Interface: lib/calendar.ts — einzige Datei die Cal.com kennt
+
+Flow:
+- generate_booking_link(organization_id, user_id, lead_id) → Cal.com API
+- Cal.com Webhook → validate_booking() → prep_meeting() + Deal anlegen
+- Branding aus organizations.branding → syncBranding(organization_id) → Cal.com
+
+Jede Organization hat eigene Cal.com Konfiguration in settings.calendar_config.
+Event-Types werden pro Organization angelegt — nie geteilt.
+
+---
+
+## ENRICHMENT-ABSTRAKTION
+
+Interface: lib/enrichment.ts — einzige Datei die den Provider kennt
+Aktueller Provider: Surfe
+Austauschbar: Apollo, Clay, Clearbit — nur lib/providers/enrichment-provider.ts ersetzen
+
+Regeln:
+- Enrichment nur wenn Modul aktiv (settings.modules.enrichment)
+- Nie vorhandene Daten überschreiben — nur leere Felder füllen
+- enrichment_sources[] + Timestamp speichern
+- Kein Enrichment für Opt-out Kontakte
+
+---
+
+## PLATZHALTER-FALLBACKS
+
+resolve_placeholders(template, contact_id, campaign_id) — IMMER in Edge Function, nie Frontend.
+
+Fallbacks sind frei konfigurierbar pro Campaign (messaging_brief.placeholder_fallbacks):
+- Pflichtfelder (vorname, company): Fallback aus Campaign-Config, nie leer senden
+- Optionale Felder (signal, jobtitel): wenn leer → Platzhalter komplett entfernen
+- Kein Fallback definiert + Pflichtfeld leer → requires_human (reason: placeholder_unresolvable)
+
+---
+
+## SEQUENCE RUNNER LOGIK
+
+Cron Job: alle 5 Minuten (nicht täglich, nicht stündlich)
+Prinzip: scheduled_at pro Lead — nur fällige Steps werden angefasst, kein Full-Scan
+
+Ablauf pro Lead:
+1. scheduled_at <= now() → verarbeiten
+2. Sending Window prüfen → sonst nächsten erlaubten Slot setzen
+3. Mailbox-Limit prüfen → sonst Queue-Flag + Banner
+4. process_lead(lead_id) aufrufen
+
+Nach jedem Step: scheduled_at = now() + delay_days
+Nach letztem Step ohne Response: scheduled_at = null, status = completed
+Nach 90 Tagen: Reaktivierungs-Tag setzen
+
+---
+
+## NEUE REQUIRES_HUMAN TYPEN
+
+Ergänzung zu bestehenden Reply-Typen:
+
+9. Contact Data Missing
+   - Email oder LinkedIn URL fehlt für fälligen Step
+   - sequence_status = requires_human, reason = contact_data_missing
+   - Side Panel zeigt fehlende Felder + Enrichment-Button (wenn Modul aktiv)
+   - Nach Eintragung: Sequence läuft automatisch weiter
+
+10. Hard Bounce
+    - Email dauerhaft ungültig
+    - Email als ungültig markieren, nie wieder versuchen
+    - requires_human, audit_log Eintrag
+
+11. Soft Bounce
+    - Temporärer Fehler
+    - Automatischer Retry (konfigurierbar, max. 3 Versuche)
+    - Danach requires_human
+
+---
+
+## DYNAMISCHE AI-ANPASSUNG
+
+analyze_engagement(lead_id) wird nach jedem Tracking-Event aufgerufen (Open, Click, Seen).
+
+Regelbasiert via sequence_rules Tabelle (JSONB, editierbar via UI):
+- Mail 2x geöffnet kein Reply → kürzere Mail + anderer CTA
+- Mail 3x geöffnet kein Reply → Kanalwechsel LinkedIn
+- LinkedIn gesehen kein Reply → andere Formulierung
+- Kein Open nach 2 Mails → Betreff variieren
+
+Alle Anpassungen in lead.ai_adjustments[] geloggt mit Begründung.
+Maximum: 3 Anpassungen pro Lead → danach requires_human.
+Sichtbar im UI: Badge "AI angepasst" in Lead-Zeile.
+
+---
+
+## SCHLAFENDE LEADS VIA SHERLOQ-SIGNAL
+
+Leads mit contact_status = ohne_campaign können via Sherloq-Signal reaktiviert werden.
+
+Flow:
+- Sherloq-Signal kommt rein → classify_sherloq_lead()
+- Kontakt hat status ohne_campaign → prüfe Signal-Typ gegen Campaign-Trigger-Config
+- Treffer → Campaign zuweisen → Sequence startet (je Automation-Level)
+- Kein Treffer → Hinweis in Mein Tag ("X Leads mit Signal, noch ohne Campaign")
+
+Konfiguration: Settings → Integrationen → Sherloq → "Welche Signal-Typen aktivieren Outreach"
+Standard: Semi (User bestätigt bevor Sequence startet)
