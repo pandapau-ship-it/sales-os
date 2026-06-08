@@ -40,6 +40,8 @@
 - [ ] users.role = `owner|admin|member|viewer` — *kanonisches Permission-Modell*
 - [ ] audit_log Schema: action/object_type/object_id/old_value/new_value (read-only)
 - [ ] automation_rules — *globaler Risk-Override pro Org (low/medium_risk_auto, medium_confidence)*
+- [ ] pipeline_deals: `company_id` NULL + `contact_id` NULL + CHECK (mind. eines gesetzt) — *Deal von Company ODER Person*
+- [ ] Deals manuell anlegbar (Inline, Cmd+K, Drawer) via Edge Function — *Owner = Company/Person, audit_log*
 
 ### Pflichtfelder pro Tabellentyp
 - [ ] Aktionen: `source`, `execution_mode`, `executed_by`, `approved_by`, `approved_at` — *AI-Automation*

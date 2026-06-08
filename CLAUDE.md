@@ -3136,6 +3136,32 @@ Verknüpftes Objekt — **kein** eigenständiger Nav-Punkt.
 - Vollständige Company-Verwaltung nur in Settings (Admin only)
 - Via Cmd+K: "Alle Companies anzeigen"
 
+### Deals — anlegbar, Company ODER Einzelperson
+Wie Tasks müssen auch **Deals manuell anlegbar** sein (nicht nur automatisch via
+„Termin gebucht"). Ein Deal kann von einer **Company** ODER einer **Einzelperson**
+abgeschlossen werden — das Datenmodell muss beides abbilden.
+
+`pipeline_deals` bekommt daher zwei optionale Verknüpfungen:
+```sql
+-- auf pipeline_deals (zusätzlich zu stage, deal_volume, mrr … und organization_id):
+company_id  UUID NULL REFERENCES companies(id)   -- Deal mit einer Company
+contact_id  UUID NULL REFERENCES contacts(id)    -- Deal mit einer Einzelperson
+-- Pflicht: mindestens eines von beiden gesetzt (CHECK), beide gleichzeitig erlaubt
+-- (Person als Ansprechpartner innerhalb einer Company)
+CONSTRAINT deal_owner_present CHECK (company_id IS NOT NULL OR contact_id IS NOT NULL)
+```
+
+Regeln:
+- **Anlegen:** überall wo Tasks anlegbar sind (Inline-Aktion, Cmd+K „Neuer Deal",
+  aus Kontakt-/Company-Drawer). Anlegen via Edge Function, nie direkt im Frontend.
+- **Zuordnung:** Beim Anlegen wählt der User Company **oder** Person (oder beides:
+  Person als Kontakt innerhalb der Company). Mindestens eines ist Pflicht.
+- **Anzeige:** Deal erscheint im Hunter (Pipeline) und im jeweiligen Drawer der
+  verknüpften Company/Person.
+- **Audit:** Anlegen/Stage-Wechsel/Löschen schreibt nach `audit_log`
+  (`object_type = 'deal'`), Stage-Wechsel ist High Risk (→ Automation Risk-Level).
+- **Kein Deal ohne Owner:** ein Deal ohne Company UND ohne Person ist ungültig.
+
 ---
 
 ## Admin-Regeln (Rollen & Rechte)
