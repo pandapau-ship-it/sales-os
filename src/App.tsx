@@ -4,6 +4,11 @@
  */
 
 import { useState, useEffect } from "react";
+// i18n side-effect import: initialises i18next before the first render.
+// Every UI string goes through t() — never hardcoded (→ CLAUDE.md: Internationalisierung).
+import "@/lib/i18n";
+import { useTranslation } from "react-i18next";
+import { useLanguage } from "@/hooks/useLanguage";
 // Daten kommen ausschließlich über die Abstraktionsschicht (lib/db), nie direkt
 // aus @/data oder @supabase. Phase 5 tauscht nur lib/db — App bleibt unverändert.
 import {
@@ -49,10 +54,14 @@ import ScreenJira from "@/components/screens/Jira";
 import {
   Settings as SettingsIcon,
   Brain,
+  Languages,
   X,
 } from "lucide-react";
 
 export default function App() {
+  const { t } = useTranslation();
+  const { language, setLanguage, languages } = useLanguage();
+
   // Navigation
   const [activeTab, setActiveTab] = useState("meintag");
   const [showSettings, setShowSettings] = useState(false);
@@ -304,23 +313,57 @@ export default function App() {
             </button>
             <h3 className="text-[14px] font-bold text-text-primary uppercase tracking-wider font-mono flex items-center gap-2">
               <SettingsIcon className="w-4 h-4 text-sherloq-primary" />
-              Sales OS Systemkonfiguration
+              {t("settings.systemConfigTitle")}
             </h3>
             <div className="mt-4 flex flex-col gap-3.5">
+              {/* Allgemein — Sprache (Auswahl persistiert in localStorage via useLanguage) */}
+              <div className="flex flex-col gap-2">
+                <span className="text-[11px] font-semibold text-text-primary uppercase tracking-wider">
+                  {t("settings.general.title")}
+                </span>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-[12px] text-text-body">
+                    <Languages className="w-4 h-4 text-text-muted" />
+                    <span>{t("settings.general.language")}</span>
+                  </div>
+                  <div className="flex items-center gap-0.5 p-0.5 bg-app-bg rounded-[10px]">
+                    {languages.map((lng) => {
+                      const isActive = language === lng;
+                      return (
+                        <button
+                          key={lng}
+                          onClick={() => setLanguage(lng)}
+                          className={`px-2.5 py-1 text-[11px] font-medium rounded-[7px] cursor-pointer transition-colors ${
+                            isActive
+                              ? "bg-sherloq-primary text-white"
+                              : "text-text-body hover:bg-app-surface"
+                          }`}
+                        >
+                          {t(`language.${lng}`)}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                <p className="text-[10px] text-text-muted leading-relaxed">
+                  {t("settings.general.languageHint")}
+                </p>
+              </div>
+
               <div className="bg-[var(--signal-teal-bg)] border border-[var(--signal-teal-text)]/10 p-4 rounded-[16px]">
                 <div className="flex items-center gap-2 text-signal-teal font-semibold text-[12px]">
                   <Brain className="w-4 h-4" />
-                  <span>Design Token System</span>
+                  <span>{t("settings.designToken.title")}</span>
                 </div>
                 <p className="text-[11px] text-text-body mt-1.5 leading-relaxed">
-                  shadcn/ui + Tailwind CSS v4 + CSS Variables. Alle Tokens in src/index.css.
+                  {t("settings.designToken.body")}
                 </p>
               </div>
               <button
                 onClick={() => setShowSettings(false)}
                 className="sherloq-btn-primary w-full justify-center"
               >
-                Schließen
+                {t("common.close")}
               </button>
             </div>
           </div>

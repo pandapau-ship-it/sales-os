@@ -6,6 +6,7 @@
  */
 
 import { useRef, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Sun,
   Target,
@@ -18,10 +19,11 @@ interface TopBarProps {
   onOpenCommandPalette: () => void;
 }
 
+// Labels via i18n key — resolved with t() at render time, never hardcoded.
 const NAV_ITEMS = [
-  { id: "meintag", label: "Mein Tag", icon: <Sun    className="w-4 h-4" /> },
-  { id: "hunting", label: "Hunting",  icon: <Target className="w-4 h-4" /> },
-  { id: "farming", label: "Farming",  icon: <Sprout className="w-4 h-4" /> },
+  { id: "meintag", labelKey: "nav.meintag", icon: <Sun    className="w-4 h-4" /> },
+  { id: "hunting", labelKey: "nav.hunting", icon: <Target className="w-4 h-4" /> },
+  { id: "farming", labelKey: "nav.farming", icon: <Sprout className="w-4 h-4" /> },
 ];
 
 export default function TopBar({
@@ -29,6 +31,7 @@ export default function TopBar({
   setActiveTab,
   onOpenCommandPalette,
 }: TopBarProps) {
+  const { t } = useTranslation();
   // Track button DOM nodes so we can read offsetLeft + offsetWidth for the slider
   const buttonRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const [slider, setSlider] = useState({ left: 0, width: 0, ready: false });
@@ -125,7 +128,7 @@ export default function TopBar({
               }`}
             >
               {item.icon}
-              <span>{item.label}</span>
+              <span>{t(item.labelKey)}</span>
             </button>
           );
         })}
@@ -146,7 +149,7 @@ export default function TopBar({
           }}
           className="flex items-center justify-between cursor-pointer transition-colors hover:bg-[var(--app-bg)]"
         >
-          <span>Suchen...</span>
+          <span>{t("common.search")}</span>
           <span
             style={{
               background: "var(--app-bg)",
