@@ -83,6 +83,37 @@ Kurzfassung: PROGRESS.md + CHECKLIST.md aktualisieren, neue Komponenten in
 
 ---
 
+## REFERENZ-DATEIEN
+
+Diese acht Dateien in `/docs` sind **ab jetzt die maßgeblichen Referenzen** und ersetzen
+alle älteren Versionen (ältere Stände liegen in `/docs/archiv`, nicht gelöscht).
+CLAUDE.md = WARUM/WIE (Architektur & Regeln) · diese Dateien = vollständige fachliche
+Spezifikation.
+
+**Konflikt-Regel (verbindlich):** Pro Thema gibt es genau **einen kanonischen Wert**. Bei
+Widerspruch entscheidet **nicht der Dateityp, sondern die neueste getroffene Entscheidung**.
+Danach werden **ALLE** betroffenen Dateien angeglichen, bis kein Widerspruch übrig ist.
+CLAUDE.md und `/docs` werden **im selben Commit** aktualisiert.
+
+| Datei | Zuständigkeit |
+|---|---|
+| `docs/ui_interaktionen_v14_komplett.md` | maßgeblich für alle UI-Regeln, Verhalten, Komponenten, Interaktionen, Panel-Typen (Info 820 / Action 580) und States |
+| `docs/sales_os_db_schema_v3.md` | maßgeblich für DB-Schema: alle Tabellen + Felder, RLS, Multi-Tenant-Regeln (`organization_id` auf jeder Tabelle) |
+| `docs/entscheidungen_komplett.md` | maßgeblich für alle getroffenen Entscheidungen und Schwellenwerte |
+| `docs/sales_os_crm_felder.md` | maßgeblich für alle Kontakt- und Company-Felder |
+| `docs/sherloq_os_pricing_konzept.md` | maßgeblich für Pläne, Credits, Module und Plan-Matrix |
+| `docs/sales_os_edge_functions_v2.md` | maßgeblich für die Edge-Functions-Spezifikation (Supabase/Deno) |
+| `docs/sales_os_sending_layer.md` | maßgeblich für den Sending-Layer (`lib/sending.ts`, `lib/calendar.ts`, `lib/enrichment.ts`), Tracking-Webhooks, Mailbox-Limits, Multi-Tenant Provider-Isolation |
+| `docs/sales_os_ai_chat_spezifikation.md` | maßgeblich für die AI-Chat-Architektur (wird erst nach dem Basis-System gebaut) |
+
+**Regeln:**
+- Diese Inhalte werden **nicht** vollständig in CLAUDE.md kopiert — sie bleiben eigenständig.
+  Übergabe an Claude Code erfolgt screen-/themenspezifisch aus der jeweiligen Referenz.
+- Beim Bauen eines Screens/einer Tabelle: zuerst die passende Referenz lesen, dann CLAUDE.md-Regeln anwenden.
+- Aktualisierung einer Referenz = neue Version hier ablegen, alte nach `/docs/archiv`, diese Tabelle pflegen.
+
+---
+
 ## Tech Stack (aktuell)
 
 | Layer | Technology | Notes |
@@ -98,6 +129,7 @@ Kurzfassung: PROGRESS.md + CHECKLIST.md aktualisieren, neue Komponenten in
 | Version Control | GitHub | `pandapau-ship-it/sales-os` |
 | AI Layer | Claude Routines | Daily sync at 07:00 — runs in Anthropic cloud |
 | Auth | Supabase Auth | Email + password, Row Level Security |
+| i18n | **i18next + react-i18next** | UI-Strings in `src/locales/*.json`, nie hardcodiert · Default `de` |
 
 ---
 
@@ -342,7 +374,7 @@ Horizontal pill navigation, absolut zentriert, Sliding-Pill-Animation.
 
 ### Left sidebar — `Sidebar.tsx`
 Icon-only Rail. **Verbindliche finale Struktur → siehe "Sidebar — finale Struktur"
-am Ende dieser Datei** (Screens · Kontakte · Tools · Settings/Profil, max 9 Icons).
+am Ende dieser Datei** (Screens · Kontakte · Companies · Settings/Profil, max 8 Icons).
 - Sub-nav je aktiver Sektion (z.B. Hunter → Signale · Stagnierende Deals · Follow-ups · Pipeline)
 - Mein Tag hat keine Sub-Items
 
@@ -463,12 +495,15 @@ Claude works invisibly. The rep sees only results.
 
 ## Database — Key Tables
 
+> **Maßgebliche, feldgenaue Vollversion des Schemas:** `docs/sales_os_db_schema_v3.md`
+> (→ REFERENZ-DATEIEN). Die Punkte hier sind nur die Architektur-Highlights.
+
 Full schema in `docs/database.md`. Key points:
 
 - **`users`** — `role` = Permission-Rolle: `owner | admin | member | viewer` (→ Admin-Regeln).
   Hunter/Farmer sind **keine** Rollen mehr, sondern Nav-Fokus (welche Screens jemand nutzt)
 - **`companies`** — `cluster TEXT[]` (array, multi-value), `kurzakte TEXT` (AI-maintained), `heat_status`, `churn_risk_level`
-- **`contacts`** — `personality_type TEXT` (rot/gelb/gruen/blau, AI-derived), Sherloq usage fields — Kurzakte lebt in eigener Tabelle `kurzakte_entries` (Append-Only)
+- **`contacts`** — `personality_profile JSONB` (3 Dimensionen: style/decision/tempo — kein DISG, AI-derived) + `personality_confidence`, Sherloq usage fields — Kurzakte lebt in eigener Tabelle `kurzakte_entries` (Append-Only)
 - **`communications`** — basis for engagement chain, heat status calc, Kurzakte updates
 - **`pipeline_deals`** — `deal_volume` is a PostgreSQL generated column: `(mrr × contract_duration_months) + one_off`
 - **`pipeline_stages`** — stages stored in DB, not hardcoded. `pipeline_deals.stage` stores the stage `id`, not the name
@@ -516,6 +551,51 @@ await checkPermission(userId, resource, action); // throws if unauthorized
 - Strict mode on
 - All Supabase table types generated from schema (`supabase gen types typescript`)
 - No `any` — use proper types or `unknown` with type guards
+
+---
+
+## Internationalisierung (i18n) — Pflichtregeln (nie weglassen)
+
+**Stack:** `i18next` + `react-i18next`. Initialisierung ausschließlich in
+`src/lib/i18n.ts` (einziger Eintrittspunkt, wie `lib/ai.ts` / `lib/notify.ts`).
+
+### Grundregel — kein UI-String hardcodiert im JSX
+Alle UI-Texte (Labels, Buttons, Menüs, Fehlermeldungen, Tooltips, System-Texte)
+liegen in `src/locales/<lng>.json` und werden via `t("key")` aufgelöst — **niemals**
+direkt im JSX. Eine neue Komponente mit hartem deutschen/englischen Text ist ein
+Architektur-Fehler.
+
+```tsx
+// Falsch:
+<span>Schließen</span>
+// Richtig:
+const { t } = useTranslation();
+<span>{t("common.close")}</span>
+```
+
+### User-Eingaben werden NIE übersetzt
+Nur System-UI wird übersetzt. Vom User eingegebene Inhalte (Kontaktdaten, Notizen,
+Nachrichten, Kurzakte, Deal-Titel, …) laufen **nie** durch `t()` und werden nie
+übersetzt — sie werden 1:1 angezeigt.
+
+### Sprachen & Default
+- Drei Dateien: `src/locales/de.json` · `en.json` · `es.json`
+- **Standardsprache: Deutsch (`de`)** — auch `fallbackLng`
+- EN/ES sind zunächst DE-Kopien (Übersetzung folgt) → fehlende Keys fallen auf DE zurück
+- Umschalten: **Settings → Allgemein**, Auswahl in `localStorage` (`language`)
+- Zugriff in Komponenten nur über `useLanguage()` / `useTranslation()` —
+  nie i18next direkt importieren. Sprachwechsel nur über `setLanguage()` (lib/i18n.ts)
+
+### Keys — Struktur & Konventionen
+- Verschachtelt nach Bereich: `common.*`, `nav.*`, `settings.*`, `errors.*`,
+  `tooltips.*`, später pro Screen (`hunter.*`, `farmer.*`, `kontakte.*` …)
+- Eigennamen/Marken (`Sherloq`, `Sales OS`, `Jira`) werden **nicht** übersetzt
+- Neue Komponente → benötigte Keys sofort in **allen drei** JSON-Dateien anlegen
+  (EN/ES notfalls als DE-Kopie), nie nur in einer
+
+### Prüffrage vor jeder neuen Komponente
+*"Ist hier ein sichtbarer System-Text hartcodiert?"* → wenn ja: Key anlegen + `t()`.
+*"Zeige ich User-Eingaben an?"* → wenn ja: **nicht** durch `t()` leiten.
 
 ---
 
@@ -588,6 +668,30 @@ Ohne Subscriptions sieht der User veraltete Daten bis er die Seite neu lädt.
 ### Heat Status Calculation
 Runs daily (Claude Routine). Compares `communications.occurred_at` (most recent per contact) against `heat_status_config` thresholds. When contact transitions from warm → kalt: auto-create task. When → tot: task + Churn Warning in Mein Tag.
 
+**Grundlage (Juni 2026):** Heat basiert auf `contacts.last_contacted_at` — dem letzten
+**echten Kommunikations-Event**. Berechnet via Edge Function `score_heat_status()`
+(täglich Cron), Ergebnis in `contacts.heat_status`.
+
+**Zählt als Kontakt** (setzt `last_contacted_at`):
+- Email gesendet ODER empfangen (aus `messages`/`communications`)
+- LinkedIn-Nachricht gesendet ODER empfangen
+- Meeting hat stattgefunden (Cal.com-Webhook)
+- Anruf geloggt (manuell erfasst)
+
+**Zählt NICHT als Kontakt:** Task erstellt/verschoben · Notiz geschrieben ·
+Deal-Stage geändert · Kontakt nur angesehen.
+
+**Tasks pausieren Heat NICHT** — Heat läuft immer unabhängig:
+- Kalt + offene Task → **beide** Infos in der Kachel (Heat-Badge + Task-Hinweis)
+- Kalt + überfällige Task → doppelte Warnung in Mein Tag Zone 2
+
+**Task-Hinweis neben dem Heat-Badge (Hunter-Kacheln · Follow-ups-Tab · Mein Tag Zone 2):**
+- Task vorhanden, nicht fällig → grau: „Task geplant für [Datum]"
+- Task überfällig → rot: „Task überfällig seit [X]T ⚠"
+- keine Task → grau: „Kein Follow-up geplant · Task anlegen →"
+
+> Datenquelle: `last_contacted_at` = `MAX(occurred_at) WHERE direction IN ('inbound','outbound')`.
+
 ### Kurzakte — How It Works
 
 Living AI-maintained log per contact. After every new communication the AI adds a new entry — it never overwrites existing ones.
@@ -627,14 +731,144 @@ kurzakte_entries (
 ### Pipeline Deal — No Task Warning
 Every active deal without an open task gets flagged: "⚠️ Keine Aufgabe hinterlegt". Appears on pipeline card, lead list, and in Mein Tag. Not a hard block — disappears only when a task is created.
 
+### Pipeline-Stagnation (Juni 2026)
+
+**Kanonische Default-Stages** (frei konfigurierbar pro Organization — Name · Reihenfolge ·
+Schwellenwert; nie hardcodiert, immer aus `settings`/`pipeline_stages` laden):
+
+```
+Backlog → Demo vereinbart → Follow-up offen → Onboarding offen → Free Trial → Gewonnen
+```
+
+> **Verbindlich (entschieden):** Diese deutsche Liste ist der **kanonische Default** und
+> **setzt abweichende Benennungen außer Kraft** — insbesondere das englische Enum
+> (`discovery/qualification/proposal/negotiation/closed_won/closed_lost`) und die
+> Funnel-Benennung (`Lead → Demo → Proposal → …`) aus älteren Doc-Ständen. Die Referenz-Docs
+> wurden entsprechend angeglichen.
+> **Gewonnen** und **Verloren** sind terminale Status (kein Stagnations-Timer). „Verloren"
+> erfordert einen Lost-Reason (→ UI-Referenz: Deal-Lost-Modal).
+> **Pflicht:** Stages am Ende **frei konfigurierbar** (anlegen/umbenennen/sortieren/löschen,
+> Schwellenwert pro Stage) in Settings → Pipeline Stages. Der Default oben ist nur die
+> Startbelegung, nie hartcodiert.
+
+**Stage-Schema in `settings.pipeline_stages`** — jede Stage trägt zusätzlich eine
+**Wahrscheinlichkeit % (Win-Probability):**
+
+```json
+settings.pipeline_stages = [
+  { "slug": "backlog",         "name": "Backlog",          "order": 1, "stagnation_days": 7,  "probability": 10 },
+  { "slug": "demo_vereinbart", "name": "Demo vereinbart",  "order": 2, "stagnation_days": 5,  "probability": 30 },
+  ...
+]
+```
+
+- **`deals.stage` speichert den Slug** (lowercase_underscore): `backlog`, `demo_vereinbart`,
+  `followup_offen`, `onboarding_offen`, `free_trial`, `gewonnen` (+ terminal `verloren`).
+  Der **Anzeigename** kommt aus `settings.pipeline_stages[].name` — nie den Anzeigenamen speichern.
+- **`deals.probability`** erbt beim Stage-Wechsel den **Stage-Default**, kann aber
+  **pro Deal überschrieben** werden (manueller Wert gewinnt, bis Stage erneut wechselt).
+- **Gewichteter Pipeline-Wert = `deals.value × deals.probability`** — Grundlage für
+  forecast-/gewichtete Pipeline-Auswertungen (Hunter KPI, Reporting).
+- Werte frei konfigurierbar pro Organization in Settings → Pipeline Stages (zusätzlich zu
+  Name · Reihenfolge · Stagnations-Schwellenwert). Nie hardcodiert.
+
+**Stagnations-Schwellenwerte** (`settings.pipeline_stages[].stagnation_days`, pro Org änderbar):
+
+| Stage | Tage bis Warnung | Wahrscheinlichkeit % (Default) |
+|---|---|---|
+| Backlog | 7 | 10 |
+| Demo vereinbart | 5 | 30 |
+| Follow-up offen | 3 | 50 |
+| Onboarding offen | 14 | 70 |
+| Free Trial | 14 | 85 |
+| Gewonnen | kein Timer | 100 |
+
+> Wahrscheinlichkeits-Defaults oben sind Startwerte (frei änderbar). „Verloren" = 0 %.
+
+**Berechnung:** `stagnation_days = DATEDIFF(now(), deals.stage_updated_at)`. Überschreitet
+sie den Schwellenwert → `deals.heat_status = 'stagniert'`. Edge Function
+`score_deal_health()` — täglich Cron **und** bei jeder Stage-Änderung.
+DB-Felder: `deals.stage_updated_at` (bei jedem Wechsel gesetzt) · `deals.stagnation_days`
+(berechnet) · `tasks.due_at` · `tasks.completed_at` · `tasks.deal_id`.
+
+**Anzeige in der Kachel** (Hunter Pipeline Kanban · Follow-ups-Tab · Mein Tag Zone 2):
+- Stagniert, keine Task → „12T in Stage ⚠" (rot) + „Kein Follow-up geplant · Task anlegen →" (grau)
+- Stagniert, Task geplant (noch nicht fällig) → „12T in Stage ⚠" + „Task geplant für [Datum]" (grau)
+- Stagniert, Task überfällig → „12T in Stage ⚠" + „Task überfällig seit [X]T ⚠" (rot)
+
+**Mein-Tag-Priorität:** stagniert + Task überfällig → Zone 2 Prio 2 · stagniert + keine
+Task → Zone 2 Prio 3 · stagniert + Task geplant → **nur** in Kachel, nicht in Zone 2.
+
 ### Cluster Cascade
 When a Company's cluster changes to include "Customer", all linked Contacts automatically get "Customer" added to their cluster too. Implemented via Supabase trigger or Claude Routine.
+
+**Detail-Regeln (Juni 2026):**
+- Company wird Kunde → alle verknüpften Kontakte automatisch `contact_status = 'kunde'`
+- Bestätigung **einmalig** (nicht pro Kontakt): „X Kontakte werden zu Kunden — bestätigen?"
+- **Subscription liegt auf Company-Ebene**, nicht auf Kontakt-Ebene. Ein Kontakt hat
+  keine eigene Subscription — er erbt von der **primären** Company (`contacts.primary_company_id`).
+- Bei mehreren Companies bestimmt die primäre Company den Status.
+- **UI Info Panel:** Badge „Kunde" (grün) + Company-Zeile „PayGuard AG · Growth Plan · Aktiv".
+- **DB:** `companies.subscription_plan` · `subscription_status` · `subscription_since` ·
+  `contacts.contact_status = 'kunde'` (vererbt) · `contacts.primary_company_id` (FK → companies).
 
 ### Personality Types (DISG-inspired, AI-derived)
 - **Rot**: dominant, direct, results-oriented, minimal small talk
 - **Gelb**: enthusiastic, creative, relationship-oriented, needs validation
 - **Grün**: harmony-seeking, patient, needs time for decisions
 - **Blau**: analytical, detail-oriented, needs facts and proof
+
+### Persönlichkeitsprofil — finales Modell (Juni 2026, NEU)
+
+> ⚠️ **Abweichung vom DISG-Block oben:** Die Juni-Session hat „**Kein DISG**" entschieden
+> und durch **3 actionable Dimensionen** ersetzt. Der DISG-Block bleibt als Referenz
+> stehen; verbindlich für den Bau ist dieses Modell. (→ siehe „Offene Widersprüche")
+
+**Drei Dimensionen (statt DISG-Farben):**
+
+| Dimension | Pole |
+|---|---|
+| Kommunikationsstil | Direkt ↔ Diplomatisch |
+| Entscheidungstyp | Daten-getrieben ↔ Bauchgefühl |
+| Tempo | Schnell entscheidend ↔ Braucht Zeit |
+
+**Automatische Erstellung (`analyze_personality(contact_id)`):**
+- **Ebene 1 — nur Sales OS:** ab **MIN. 3** gesendeten + empfangenen Nachrichten.
+  AI analysiert Schreibstil, Satzlänge, Formalität, Reaktionszeit, Ton. Läuft
+  automatisch nach jedem Reply, sobald `message_count >= 3`.
+- **Ebene 2 — mit Sherloq:** LinkedIn-Posts (Themen/Ton/Häufigkeit), Kommentare,
+  Netzwerkgröße/Aktivität — nur wenn `settings.modules.sherloq_signals` aktiv.
+
+**Confidence-Score:**
+- < 60 % → **kein** Badge (nie leeren Platzhalter zeigen)
+- 60–80 % → Badge mit „~"-Prefix (unsicher)
+- > 80 % → Badge ohne Prefix (sicher)
+
+**DB-Felder (`contacts`):**
+```sql
+personality_profile     jsonb        -- {style:'direkt', decision:'daten', tempo:'schnell'}
+personality_confidence  int          -- 0-100
+personality_sources     text[]       -- ['messages','sherloq']
+personality_updated_at  timestamptz
+```
+
+**Nutzung in `generate_message()`** (nur ab Confidence ≥ 60 %): Direkt + Daten → kurze
+Mail, konkrete Zahlen, kein Small Talk · Diplomatisch + Bauchgefühl → wärmerer
+Einstieg, Story, Referenzen · Braucht Zeit → mehr Vorlauf, kein Druck-CTA.
+
+**UI-Platzierung der Persönlichkeit (nur sichtbar ab Confidence ≥ 60 %):**
+- **Info Panel → Kontaktdetails:** Zeile „PERSÖNLICHKEIT" (10px uppercase) + 3 Pills
+  („Direkt" · „Daten-getrieben" · „Schnell"). Hover: „basiert auf: 5 Nachrichten ·
+  LinkedIn · Confidence: 82 %". < 60 % → Zeile komplett ausgeblendet.
+- **AI SDR Side Panel Header:** 1 kompakte Zeile, grau/kursiv (z.B. „Direkt ansprechen ·
+  Zahlen nutzen"), klickbar → scrollt zum Persönlichkeits-Block.
+- **Action Panels (Stagniert/Kalt/Signals/Upsell):** im AI-Empfehlung-Block unten
+  „Ton angepasst an: Direkt · Daten-getrieben" (10px grau).
+- **Composer (jeder AI-Entwurf):** unter der Textarea „Ton angepasst an
+  Persönlichkeitsprofil" (10px grau). Kein Profil → Zeile ausgeblendet.
+
+> UI-Hinweis: „💡"/„✓"-Glyphen aus den Notizen beim Bau als Lucide-Icons umsetzen
+> (→ Design Invariants: keine Emojis in der UI).
 
 ---
 
@@ -768,6 +1002,9 @@ Placeholder-Dateien enthalten immer:
 
 ## 9. AI Chat Architektur — Kernprinzip (NIEMALS abweichen)
 
+> **Maßgebliche Vollspezifikation:** `docs/sales_os_ai_chat_spezifikation.md` (→ REFERENZ-DATEIEN).
+> Die folgenden Regeln sind die verbindliche Architektur-Kurzfassung dazu.
+
 ### Grundprinzip: AI interpretiert — Browser rendert
 
 Der AI-Chat-Call hat EINE einzige Aufgabe: die Nutzeranfrage interpretieren und einen strukturierten
@@ -881,6 +1118,52 @@ WICHTIG: Cmd+K und AI-Chat sind STRIKT getrennt.
 
 Bulk-Aktionen (>10 Kontakte gleichzeitig) immer mit Bestätigung:
 "Du bist dabei X Mails zu generieren — das kostet ca. Y Token. Fortfahren?"
+
+### Komponenten-Blöcke — AI gibt JSON zurück, Frontend rendert (Juni 2026)
+
+Der Chat antwortet nicht mit langem Text, sondern mit strukturierten JSON-Blöcken, die
+das Frontend als **vorgebaute** Komponenten rendert (spart Token, schnell, konsistent).
+Block-Typen die der Chat zurückgeben darf:
+
+```
+{type:"email_draft", to, subject, body, actions:["senden","anpassen"]}   → Email-Card
+{type:"linkedin_draft", to, message, actions}                            → Senden bzw. „In LinkedIn öffnen"
+{type:"contact_list", contacts:[...], count, filter}                     → ≤10 inline Mini-Kacheln · >10 „X gefunden" + „In [Screen] öffnen →"
+{type:"single_contact", contact_id}                                      → öffnet Info Panel
+{type:"text", content}                                                   → normale Textantwort
+{type:"confirmation", message, action}                                   → „Follow-up auf 10 Tage geändert ✓"
+```
+
+AI darf **mehrere Blöcke** als Array kombinieren (z.B. `contact_card` + `text`) — Frontend
+rendert sie untereinander.
+
+**Listen-Regel:** 1–10 Treffer → inline Mini-Kacheln · >10 oder Arbeits-Kontext → echten
+Screen mit gesetztem Filter öffnen · Einzeltreffer → direkt Info Panel. (Chat baut das
+System nicht nach — Listen/Filter/Sortierung kann der Hauptscreen besser; Chat ist
+schneller Einstieg, übergibt für echte Arbeit.)
+
+**Was der Chat können muss:** Infos zu Kunden · nächste Schritte empfehlen · To-dos
+abrufen · Regeln ändern · jedes Feld ändern (`update_field()` Fallback) · Email/LinkedIn
+generieren mit Action-Buttons · Listen abrufen · Kontakt öffnen · Analysen.
+
+**Wo der Chat gecodet wird (3 Stellen):**
+1. Edge Function `ai_chat()` — interpretiert, holt Daten, gibt JSON-Blöcke zurück
+2. Komponenten-Registry (Frontend) — kennt alle Block-Typen + Rendering
+3. Langfuse-Prompt — definiert welche Block-Typen erlaubt sind + wann
+
+**Erweiterbar:** neuer Block-Typ = Komponente bauen + in Registry registrieren + im
+Langfuse-Prompt erwähnen. Kein Umbau des Chats nötig.
+
+### Langfuse-Integration (AI Chat)
+- Alle Chat-Prompts laufen über Langfuse (Prompt-Management + Tracing); jeder Block-Typ
+  hat eigene Prompt-ID. Token-Verbrauch getrackt → fließt ins Credit-System.
+- **Prompts leben in der Langfuse-UI, nicht im Code** → Änderung ohne Code-Deploy;
+  App lädt automatisch die `production`-Version. Deployment via Labels
+  (`production`/`staging`/pro Mandant) → Multi-Tenant-Varianten möglich.
+- Setup: offizielle Langfuse Agent Skill (`github.com/langfuse/skills`) · MCP-Server
+  `claude mcp add --transport http langfuse https://cloud.langfuse.com/api/public/mcp`
+- ENV: `LANGFUSE_SECRET_KEY` · `LANGFUSE_PUBLIC_KEY` · `LANGFUSE_BASE_URL`.
+  **EU-Region** (`https://cloud.langfuse.com`) wegen DSGVO.
 
 ### Sicherheitsregeln für den AI-Chat
 
@@ -1010,6 +1293,17 @@ data_deletion_requests (
 - Cascade Delete: Organization gelöscht → ALLE Daten dieser Org werden gelöscht
 - Audit Log Retention: max. 24 Monate, dann automatisch gelöscht (Cron Job)
 - Data Export DSGVO Art. 20 (SPÄTER): `export_organization_data(org_id)` Edge Function
+
+**Datenlöschung — Best Practice (Juni 2026 entschieden):**
+- **Opt-out-Kontakte:** sperren (Suppression List), 90 Tage für Audit aufbewahren,
+  danach **anonymisieren** (nicht hart löschen — Suppression muss erhalten bleiben)
+- **Account-Kündigung:** 30 Tage Löschfrist, dann **komplett** gelöscht
+- **Export vor Löschung:** JA (immer ermöglichen)
+
+**Fehler-Eskalation — Best Practice (Juni 2026 entschieden):**
+- AI schlägt 3× fehl → **Owner + Admin** benachrichtigen
+- Mailbox gesperrt → **Owner + Admin** benachrichtigen
+- Kanal: **Email + In-App** (→ Notifications / `notify()`)
 
 ### 6. Transactional Emails (SPÄTER)
 
@@ -1427,6 +1721,123 @@ Klasse/Funktion auslagern, nie direkt in Business-Logic.
 
 ---
 
+## Mailbox-Limits, Warmup & Sending-Window (Pflichtregeln)
+
+### Mailbox Warmup — automatisches Ramp-up
+Neue Mailbox wird automatisch erkannt (`mailbox.created_at`). Tageslimit steigt
+automatisch (Cron, täglich) bis zum Maximum:
+
+| Tag | Limit/Tag |
+|---|---|
+| 1–7 | 10 (nur Warmup, kein Outreach) |
+| 8–14 | 20 |
+| 15–21 | 30 |
+| 22–28 | 40 |
+| 29+ | 50 (Maximum — nie überschreiten) |
+
+Gespeichert: `mailboxes.warmup_phase` + `mailboxes.current_daily_limit`.
+- Bounce Rate > 3 % → Limit automatisch auf vorherige Stufe zurücksetzen
+- Bounce Rate > 5 % → Mailbox pausieren + `requires_human`
+- **Mehr Volumen = mehr Mailboxen (Inbox Rotation), nie höheres Limit pro Mailbox.**
+
+### Globales Limit & Prioritäten-Reihenfolge
+**Ein Limit pro Mailbox** (ein Slider, kein getrennter Followup/Outreach-Topf).
+`sequence_runner`-Reihenfolge:
+1. Zuerst **alle fälligen Follow-ups** (sequence_step > 1) abarbeiten
+2. Danach verbleibende Kapazität für neuen Outreach (sequence_step = 1)
+3. Limit erreicht → neuer Outreach auf morgen verschieben
+4. **Follow-ups werden NIE wegen Limit verzögert**
+
+> ⚠️ Widerspruch in den Notizen: an anderer Stelle stehen „getrennte Kontingente"
+> (separates Limit für Outreach vs. Follow-up). Verbindlich ist das **globale Einzel-Limit
+> mit Prioritäts-Reihenfolge** oben (so auch die Settings-UI: „ein Slider"). (→ „Offene Widersprüche")
+
+**Inbox Rotation:** mehrere Mailboxen → Volumen automatisch verteilen (Round Robin),
+konfigurierbar gleichmäßig / gewichtet (z.B. A 60 % · B 40 %). Empfohlenes Limit
+40–50 Mails/Tag pro Mailbox (Deliverability-sicher); User kann überschreiben, Warnung ab 70/Tag.
+
+**Settings → AI SDR → Mailbox & Limits zeigt:** globales Tages-Limit (Slider) · Hinweis
+„Follow-ups werden immer zuerst versendet" · Inbox Rotation · Tagesverbrauch
+(„32 / 50 heute · 18 Follow-ups · 14 neuer Outreach") · Mailbox Health (Bounce/Spam/Status).
+
+### Timezone-basiertes Sending
+- Zeitzone aus `contact.city` oder `company.country` ableiten (Timezone-Mapping)
+- Bekannt → Sendezeit in Empfänger-Timezone berechnen; unbekannt → Sender-Timezone
+- `leads.scheduled_at` immer in **UTC** speichern, Anzeige in User-Timezone
+
+### Smart Sending Window (datenbasiert, Default AN)
+Bevorzugte Slots (Studien HubSpot/Lemlist/Sopro 2024/2025), Empfänger-Timezone:
+
+| Priorität | Tage | Zeit |
+|---|---|---|
+| Optimal | Di · Mi · Do | 07:00–09:00 |
+| Gut | Di · Mi · Do | 10:30–12:00 |
+| Fallback | Mo · Fr | 09:00–11:00 |
+| Niemals | Mo | vor 09:00 |
+| Niemals | Fr | nach 15:00 |
+| Niemals | Sa · So | ganztags |
+
+Überschreibbar in Settings → Mailbox & Limits. `scheduled_at` berechnet `sequence_runner`:
+Wunschzeit (delay_days) → liegt sie im Smart Window? → sonst auf nächsten optimalen Slot →
+Timezone → UTC. Kontingent-Prüfung: `COUNT(messages) WHERE DATE=today AND type='new_outreach'` vs. Limit.
+
+---
+
+## Email-Verifizierung — Pflichtregeln (Juni 2026)
+
+**Abstraktion:** `lib/verification.ts` ist die **einzige** Datei die den Verifizierungs-
+Provider kennt (gleiches Muster wie `lib/sending.ts`). Provider austauschbar — nur
+`lib/providers/zerobounce.ts` ersetzen. Modul: `settings.modules.email_verification`.
+
+**Ebene A — immer aktiv, kostenlos (Claude Code direkt):**
+- Syntax-Check (RFC 5322) · MX-Record-Lookup (DNS) · Blacklist-Check (Wegwerf-/Spam-Domains,
+  Liste in `blacklisted_domains`) · Catch-All-Check
+- Ergebnis: `valid` (alle Checks ok) · `invalid` (Syntax/MX/Blacklist) · `unknown` (Catch-All)
+
+**Ebene B — API-Verifikation (optional, wenn Modul aktiv):**
+Provider ZeroBounce (Standard) / NeverBounce / Millionverifier (~0,001–0,003 €/Verifikation).
+Status-Mapping:
+```
+valid                         → email_verified = true
+invalid                       → email_verified = false → requires_human (contact_data_missing)
+catch-all                     → email_verified = null  → trotzdem senden, Risiko + UI-Warnung
+spamtrap / abuse / do_not_mail→ email_verified = false → Lead archivieren
+free_email                    → nur Flag (Gmail/Hotmail) — kein Block
+did_you_mean                  → User im Side Panel nach Korrektur fragen
+```
+
+**Wann läuft Verifikation:** CSV-Import (Batch, vor Outreach) · neuer Sherloq-Lead (sofort) ·
+manuell hinzugefügt (beim ersten Sequence-Step) · „Erneut verifizieren" im Side Panel.
+Batch-Limit: max. 100 Req/s (ZeroBounce).
+
+**DB-Felder (`contacts` ergänzen):**
+```sql
+email_verified            boolean DEFAULT null
+email_verification_date   timestamptz
+email_verification_source text  -- 'syntax' | 'zerobounce' | 'manual'
+email_verification_status text  -- 'valid'|'invalid'|'catch-all'|'unknown'|'spamtrap'
+email_suggestion          text  -- bei did_you_mean
+```
+```sql
+blacklisted_domains ( id uuid PK, domain text UNIQUE NOT NULL,
+  reason text,  -- 'disposable'|'spam'|'catch-all'|'manual'
+  created_at timestamptz )
+```
+
+**Edge Function `verify_contact_email(contact_id)`:** Ebene A → bei valid + Modul aktiv
+Ebene B → Ergebnis speichern → bei `invalid` `sequence_status = requires_human` → bei
+`did_you_mean` Realtime-Event mit Korrektur-Vorschlag.
+
+**Harte Regel:** Nie an Adressen mit `email_verified = false` senden (außer User
+überschreibt manuell). Catch-All (`null`) = senden erlaubt, aber mit UI-Warnung.
+
+**UI:** Onboarding fragt aktiv (nicht überspringbar) ob Verifizierung aktiviert werden soll ·
+Listen/Side Panel zeigen Icon (verifiziert/unbekannt/invalid/catch-all) · Integrationen-Screen
+Kachel „Email-Verifikation" mit Provider-Auswahl + Credits. Icon-Glyphen aus den Notizen
+als Lucide-Icons umsetzen (→ Design Invariants).
+
+---
+
 ## Automation Risk-Level — Global Setting (final entschieden)
 
 ### Grundprinzip
@@ -1458,6 +1869,24 @@ Pro Campaign wählt der User nur das Automation-Level (Manual/Semi/Auto).
 - Termin bestätigen/absagen im Namen des Users · CRM-Daten überschreiben (Sync-Konflikt)
 - Opt-out setzen · Deal-Stage manuell wechseln · Lead archivieren/löschen
 - Eskalation nach außen (Manager CC etc.)
+
+### Automation-Level — Default & Per-Kontakt-Override (Juni 2026)
+
+Über dem Risk-Level (das nur hart begrenzt) liegt ein vom User steuerbarer
+**Automation-Level** pro Bereich. Settings → Allgemein → Automation (bzw. Settings →
+AI SDR → Automation Rules), Default **Semi**:
+
+- **Hunter-Empfehlungen / Farmer-Empfehlungen / Mein-Tag-Aktionen:** Manual / Semi / Auto
+- **Manual** = AI generiert nichts, User macht alles · **Semi** = AI schlägt vor, User
+  bestätigt aktiv vor dem Senden · **Auto** = AI führt ohne Bestätigung aus (nur Low-Risk)
+
+**Pro Kontakt/Deal überschreibbar:** Toggle „Automation für diesen Kontakt" im Info Panel
+(Hunter + Farmer) → `contacts.automation_override` (`manual`/`semi`/`auto`/`null` = globaler Default).
+
+**Reihenfolge der Auswertung vor jeder Recommendation-Action:**
+1. `contacts.automation_override` (wenn gesetzt → gewinnt)
+2. `settings.automation.hunter|farmer|mein_tag` (globaler Default, JSONB)
+3. **Automation Risk-Level** (hardcoded: High Risk = niemals Auto — überschreibt alles)
 
 ### Sonderregel — Termin gebucht
 ```
@@ -1762,6 +2191,50 @@ Alle anderen Module prüfen ob aktiv bevor sie rendern.
 *"Zu welchem Modul gehört diese Komponente?"*
 Wenn unklar → in `core` bis geklärt.
 Kein Code ohne Modul-Zuordnung.
+
+---
+
+## MODUL-SYSTEM — useModules Hook
+
+### Grundprinzip
+Nicht aktive Module = **komplett ausgeblendet**, kein Hinweis dass es existiert.
+Ausnahme: Upgrade-Prompt wenn User direkt auf eine gesperrte URL zugreift.
+
+### ModuleKey Typen
+`core_crm | hunter | ai_sdr | farmer | enrichment | email_verification | sherloq_signals | whitelabel | ai_chat | crm_sync`
+
+### Plan-Matrix
+| Modul | Trial | Starter | Growth | Scale |
+|---|---|---|---|---|
+| core_crm | ✅ | ✅ | ✅ | ✅ |
+| hunter | ✅ | ✅ | ✅ | ✅ |
+| ai_sdr | ✅ (begrenzt) | ✅ | ✅ | ✅ |
+| farmer | ❌ | ❌ | ✅ | ✅ |
+| enrichment | ❌ | Add-on | Add-on | ✅ |
+| email_verification | ❌ | ✅ | ✅ | ✅ |
+| sherloq_signals | ❌ | Add-on | Add-on | ✅ |
+| whitelabel | ❌ | ❌ | ❌ | ✅ |
+| ai_chat | ❌ | ❌ | ✅ | ✅ |
+| crm_sync | ❌ | ❌ | Add-on | ✅ |
+
+### Hook
+```ts
+const { hasModule } = useModules()
+if (!hasModule('farmer')) return null
+```
+
+### Was ausgeblendet wird
+- `farmer = false` → Sidebar-Icon, Farmer-Tab, Churn/Upsell-Score, Farmer-Signale, Farmer Side Panels
+- `ai_sdr = false` → Sidebar-Icon, Campaigns, Sequences, Automation Rules, requires_human
+- `sherloq_signals = false` → LinkedIn-Signale, erweiterte Scores nur Basis-Schicht
+- `email_verification = false` → alle Verifizierungs-Icons + Buttons — System läuft normal, nur UI unsichtbar
+- `enrichment = false` → Enrichment-Button, Auto-Enrichment bei Import
+- `whitelabel = false` → nur Sherloq-Standard-Branding, Custom Domain gesperrt
+
+### Technisch
+- `active_modules: string[]` aus `organization_subscription` + `addons`
+- Edge Function `get_organization_modules(org_id)`: `plan_limits` + aktive `addons` → merge → Redis Cache 5 min
+- Upgrade-Prompt wenn gesperrter Bereich: freundliches Gate + „Plan upgraden →" → Billing Settings
 
 ---
 
@@ -2289,7 +2762,7 @@ Jeder `aiCall()` für Outreach bekommt diesen Kontext:
 const context = {
   // Kontakt
   kurzakte:             contact.kurzakte,
-  persoenlichkeitstyp:  contact.personality_type,
+  persoenlichkeitsprofil: contact.personality_profile,  // 3 Dimensionen (kein DISG)
   letzteKommunikationen: last3Communications,
   bevorzugterKanal:     preferredChannel,
 
@@ -2391,6 +2864,47 @@ sequence_dynamic_no_engage_days     INTEGER  DEFAULT 5
 sequence_dynamic_enabled            BOOLEAN  DEFAULT true
 ```
 
+### Follow-up Timer (Hunting & AI SDR) — Juni 2026
+
+- **Erster Follow-up:** 3 Werktage nach der **ersten Mail**
+- **Zweiter Follow-up:** 7 Werktage nach der **ersten Mail** (nicht nach dem ersten Follow-up)
+- Wochenenden werden automatisch übersprungen
+- Max. automatische Follow-ups: **2**
+- „Antwort erwartet" Standard: **AN**
+- Alle Werte konfigurierbar in `settings.thresholds` / `system_config`.
+
+### Erweiterte sequence_rules — zwei Schichten
+
+Gleiche Philosophie wie Health/Churn Score. `analyze_engagement()` prüft vor jeder
+Anpassung welche Daten vorhanden sind.
+
+**Basis-Schicht (immer, nur aus `messages`):**
+
+| Signal | Trigger | AI-Aktion |
+|---|---|---|
+| Mail 2× geöffnet, kein Reply | nach 3 Werktagen | kürzere Mail + anderer CTA |
+| Mail 3× geöffnet, kein Reply | nach 5 Werktagen | Kanalwechsel LinkedIn |
+| Kein Open nach 2 Mails | — | Betreff variieren (A/B) |
+| Immer abends geöffnet | — | Sendezeit auf Abend anpassen |
+| Nur Mo/Di geöffnet (Muster) | — | nur Mo/Di senden |
+| Email nie geöffnet nach 3 Mails | — | Wechsel zu LinkedIn |
+| Positives Sentiment im Reply | — | wärmerer Ton im nächsten Step |
+| Kurze Betreffe öfter geöffnet | — | Betreff-Länge variieren |
+
+**Erweiterte Schicht (nur wenn `settings.modules.sherloq_signals`):**
+
+| Signal | Trigger | AI-Aktion |
+|---|---|---|
+| LinkedIn-Post kommentiert | sofort | Bezug auf Post in nächster Mail |
+| Job-Wechsel erkannt | — | Reaktivierung mit neuem Kontext |
+| Profil besucht | — | personalisierter Aufhänger |
+| Company wächst | — | Timing-Anpassung + neuer Pitch |
+
+Basis-Schicht braucht keine externe Quelle. Erweiterte Schicht aktiviert sich
+**automatisch**, sobald Sherloq verbunden wird — kein Code-Change, nur Modul aktivieren.
+Datenquellen: `opened_at`/`open_count` aus `messages`, Tageszeit/Wochentag via
+`EXTRACT(HOUR/DOW FROM opened_at)`, Sentiment aus `classify_intent()`.
+
 ### Wo die Anpassung sichtbar wird
 
 Wenn Schritt automatisch angepasst wurde:
@@ -2453,9 +2967,11 @@ Alles läuft in eine Inbox — sortiert nach Intent und Dringlichkeit.
 
 ### Platzierung
 
-Eigenes Icon in der linken Sidebar im **Tools-Bereich** (→ "Sidebar — finale Struktur").
-Badge mit Zahl wenn ungelesene Antworten vorhanden (rot, `rounded-pill`).
-Badge verschwindet wenn alle Antworten verarbeitet sind.
+**Kein eigener Screen und kein Sidebar-Icon** (kanonisch, UI-Referenz §20). Der eine
+universale Posteingang lebt **inline im AI SDR** als „Inbox Intelligence" im Outreach-Tab
+(UI-Referenz §10.6); `requires_human` erscheint zusätzlich direkt in der Sequenz-Kachel.
+Badge mit Zahl ungelesener Antworten (rot, `rounded-pill`) im AI-SDR-Kontext; verschwindet
+wenn alle Antworten verarbeitet sind.
 
 ### Was im Posteingang erscheint
 
@@ -2926,6 +3442,32 @@ Verfeinerung der Regel "Sales OS gewinnt" (war zu pauschal):
   → Welche Felder "wichtig" sind: konfigurierbar in `system_config`
 - Jeder Konflikt wird geloggt (`crm_sync_error` / `audit_log`), nie still verworfen
 
+### 6. Duplikat-Erkennung im UI — Hard/Soft Match & wo sie läuft
+
+Die Backend-Confidence-Logik (oben) übersetzt sich im UI in zwei klare Zustände:
+
+**Hard Match (blockiert automatisch — kein Anlegen möglich):**
+- Gleiche Email-Adresse → "Kontakt existiert bereits" + Link zum bestehenden Kontakt
+- Gleiche LinkedIn URL → "Kontakt existiert bereits" + Link zum bestehenden Kontakt
+
+**Soft Match (Warnung — User entscheidet):**
+- Gleicher Vor- + Nachname + gleiche Company → gelber Banner
+  "Mögliches Duplikat gefunden — [Name] bei [Company]. Anzeigen oder trotzdem anlegen?"
+  Zwei Buttons: "Bestehenden anzeigen" | "Trotzdem anlegen"
+
+**Wo Duplikat-Erkennung läuft:**
+1. **Manuelles Anlegen:** inline Prüfung in Echtzeit (onBlur nach Email/LinkedIn-Feld)
+2. **CSV-Import:** Import-Review Screen zeigt eigene Spalte "Duplikat erkannt"
+   — User kann pro Zeile: Überspringen | Zusammenführen | Trotzdem importieren
+3. **Kontakte Screen → Actions → "Duplikate verwalten":** eigene Listenansicht
+   — Zeigt Paare mit Ähnlichkeits-Score, User kann mergen oder ablehnen
+
+**Merge-Logik (UI-Sicht, ergänzt #4):**
+- Primärer Datensatz bleibt (der mit mehr ausgefüllten Feldern)
+- Sekundärer wird zusammengeführt
+- Alle Aktivitäten, Nachrichten, Deals, Tasks bleiben erhalten
+- Merge-Aktion wird in `audit_log` geloggt
+
 ### Prüffrage vor jedem Daten-Schreibvorgang aus externer Quelle
 
 *"Könnte dieser Datensatz schon existieren — exakt ODER unscharf (Rechtsform,
@@ -3036,6 +3578,10 @@ nie zulässig (Recommendation only).
 
 ## Hunter Screen — UI-Struktur (Recommendation Feed)
 
+> **Maßgebliche, vollständige UI-Interaktions-Spezifikation für alle Screens** (Hunter,
+> Farmer, AI SDR, Mein Tag, Kontakte, Side Panels, Task-Modal, …): `docs/ui_interaktionen_v14_komplett.md`
+> (→ REFERENZ-DATEIEN). Die Screen-Abschnitte hier sind die Architektur-Kurzfassung dazu.
+
 Hunter ist **kein Sequenz-Screen**. Hunter ist ein Recommendation Feed.
 
 Aufbau:
@@ -3060,6 +3606,133 @@ Aufbau:
 
 ---
 
+## Churn Risk & Upsell Scoring — Pflichtregeln (Juni 2026)
+
+Beide Scores folgen derselben Drei-Ebenen-Logik: **Basis-Signale (fix)** + **Gewichtung
+anpassbar (v1)** + **eigene Signale via AI (v2, Architektur jetzt vorbereiten)**. Score
+0–100, normalisiert nach verfügbaren Datenpunkten. Jede Score-Funktion gibt
+`main_drivers[] = [{signal, points, source}]` zurück → Frontend rendert Hover-Tooltip
+**ohne extra API-Call** (Daten liegen im Score-Objekt).
+
+### Churn Risk
+**Kanonisch: zweischichtige Progressive-Data-Logic** (aus `score_churn_risk()`,
+→ `docs/sales_os_edge_functions_v2.md`). Nur **verfügbare** Datenpunkte werden addiert,
+Score auf 0–100 normalisiert; fehlende Quellen werden ignoriert (nicht als 0 gewertet).
+
+**Basis-Score (immer verfügbar — aus Sales OS):**
+```
+Letzter Kontakt > 30T        +25   (messages)
+Kein Reply auf letzte Mail   +20   (messages)
+Offene Tasks überfällig      +15   (tasks)
+Tage ohne Aktivität > 14T    +20   (contacts.last_contacted_at)
+Heat Status = Kalt/Tot       +20   (berechnet)
+```
+
+**Erweiterter Score (nur wenn externe Quelle verbunden):**
+```
+Letzter Login > 30T          +30   (Sherloq — wenn aktiv)
+Nutzung -50 % vs. Vormonat   +25   (Sherloq — wenn aktiv)
+Support-Tickets offen        +20   (Zendesk/Intercom — wenn verbunden)
+Vertrag läuft in 60T ab      +15   (Stripe — wenn verbunden)
+Kündigung angedeutet         +30   (classify_intent() — wenn vorhanden)
+```
+
+**Level-Bänder (überall gleich):** 0–30 low · 31–60 medium · 61–85 high · 86+ critical.
+Warnung erscheint ab **high**. Gewichtung pro Org anpassbar in
+`settings.thresholds.churn_weights`; die Signale selbst sind fix.
+
+**v2 — eigene Signale via AI** (`churn_rules` jetzt anlegen, auch wenn v1 sie nicht nutzt):
+```sql
+churn_rules ( id uuid PK, organization_id uuid FK, name text,
+  condition jsonb,  -- {field, operator, value}
+  points int, source text,  -- 'internal'|'sherloq'|'stripe'
+  is_active boolean, created_by uuid FK→users, created_at timestamptz )
+```
+Flow v2: User beschreibt Signal in Freitext → AI erstellt Regel → User bestätigt → in
+`churn_rules` → `score_churn_risk()` liest sie **additiv** zu den Basis-Signalen.
+**Basis-Signale bleiben immer fix.**
+
+### Upsell Score
+**Basis-Score (immer, aus Sales OS):** hohe Antwortrate >60 % (20) · letzter Kontakt <7T
+(15) · Heat heiß/warm (20) · positives Sentiment letzter Reply (25) · letzter
+Upsell-Versuch >90T (15) · aktiver Deal vorhanden (10).
+
+**Erweiterter Score (wenn Sherloq/extern verbunden):** Enrichment-Limit >80 % (30) ·
+Feature-Nutzung stark gestiegen (25) · mehr Mitarbeiter als Seats (30) · NPS ≥9 (20) ·
+häufige Logins (15).
+
+**v1:** Gewichtung in `settings.thresholds.upsell_weights` (gleiche Logik wie churn_weights).
+**v2:** Tabelle `upsell_rules` (Struktur identisch zu `churn_rules`) — jetzt anlegen, Feature später.
+
+### Customer Health Score
+`calculate_health_score(contact_id)` (Edge Function, täglich Cron + nach jedem Signal/Message)
+verdichtet Churn + Upsell zu einem Health Score für den Farmer-Übersicht-Tab:
+`health_score = 100 − churn_score + (upsell_score × 0.2)`, normalisiert 0–100. Status:
+>70 gesund · 40–70 aufmerksamkeit · <40 kritisch. Tag: churn>60 „Churn Risk" · upsell>60
+„Upsell Ready" · sonst „Aktiv". Speichert `contacts.health_score`/`health_status` +
+`data_sources[]`. (→ `docs/sales_os_edge_functions_v2.md`)
+
+### Hover-Tooltip (Churn + Upsell, überall wo der Score erscheint)
+Gilt für: Farmer-Kachel (Badge) · Customer Health Overview (Balken/Zahl) · Farmer Info
+Panel (Badge) · Mein Tag Zone 2 (Prioritäts-Kachel). 280px Card, zeigt: aktive Signale
+mit Punkten (rotes Bullet ●) · fehlende Daten (grauer Bullet ○, kursiv) · Trennlinie +
+Gesamtpunkte · Datenquellen-Hinweis (grau, 10px). UI zeigt „basiert auf: Kommunikation ·
+Aktivität" bzw. „+ Sherloq".
+
+---
+
+## Trial, Onboarding & Meeting-Prep — Timer (Juni 2026)
+
+Alle Werte konfigurierbar in `settings.thresholds` / `settings.meeting_prep` — nie hardcodiert.
+
+**Trial-Ablauf:**
+- Trial-Dauer Standard: **14 Tage**
+- Erste Warnung: **7 Tage** vor Ablauf · Zweite Warnung: **2 Tage** vor Ablauf
+- Nach Ablauf ohne Conversion → Task nach **1 Tag**
+
+**Onboarding-Nudge:**
+- Nach **3 Tagen** ohne Onboarding-Abschluss → automatische Nachricht (Kanal: Email)
+- Nach **7 Tagen** ohne Response → interne Task für AM
+- Automation-Level: **Semi** (AI schlägt Nachricht vor, User bestätigt)
+
+**Meeting-Prep:**
+- Letzte Touchpoints Standard: **5** (`settings.meeting_prep.touchpoints_count`)
+- Änderbar in Settings → AI SDR → Meeting-Prep
+
+---
+
+## Side Panels — zwei Typen
+
+Zwei klar getrennte Panel-Typen (verbindlich für Hunter, Farmer und alle Screens mit Kacheln):
+
+### Info Panel
+- **Öffnet sich:** Klick auf Pfeil-Icon (→) in jeder Kachel
+- **Breite:** 820px
+- **Schließt:** nur wenn User X klickt
+- **Inhalt:** vollständiger Kontext (Kurzakte, Deal/Subscription, Tasks, Sequence, Kommunikation)
+- **Tab-System:** Übersicht · Kommunikation · Aktivität · Tasks · Notizen
+
+### Action Panel
+- **Öffnet sich:** Klick auf CTA in Signal-Zeile (Next Step · Retention sichern · Task anlegen etc.)
+- **Breite:** 580px
+- **Schließt:** automatisch nach erfolgreicher Aktion
+- **Nach Aktion:** Toast unten rechts + Badge in Kachel aktualisiert sich + Realtime-Update ohne Reload
+- **Kein Tab-System** — einspaltiger Fokus auf eine Aktion
+
+**7 Action-Panel-Varianten:** Signals · Stagniert · Churn Risk · Upsell · Trial läuft aus · Kalt · Keine Task
+
+---
+
+## Task Modal
+
+- **Öffnet sich** überall wo „+ Task" oder „Task anlegen" geklickt wird
+- **Breite:** 560px Modal
+- **KI-Vorschlag-Block:** nur sichtbar wenn Kontext vorhanden (aus Action Panel)
+- **Kontakt + Titel:** vorausgefüllt wenn aus Kontext, Kontakt readonly
+- **Nach Speichern:** Modal schließt · Toast „Task gespeichert ✓" · Realtime-Update
+
+---
+
 ## Mein Tag — Klarstellung (aggregierter Tages-Feed)
 
 Mein Tag ist **kein eigener Sales-Bereich** und **keine eigene Datenquelle**.
@@ -3074,6 +3747,80 @@ Zeigt nur was heute menschliche Aufmerksamkeit braucht — aggregiert aus:
 Keine eigene Datenquelle — alles aus AI SDR, Hunter, Farmer aggregiert
 (→ Notifications-Events feuern hierher).
 
+### Top 5 Auswahl-Logik (`morning_briefing()`)
+
+Edge Function `morning_briefing()` — täglich **07:00 Uhr** via Cron, Ergebnis in
+`daily_briefings`. Realtime: neues `requires_human` → sofort in Zone 2 einfügen.
+
+**Schritt 1 — nur aktive Module liefern Signale** (`settings.modules`: `ai_sdr`,
+`hunting`, `farming`).
+
+**Schritt 2 — Signal-Katalog mit Priorität (1 = höchste):**
+
+| Prio | Signal | Modul | Trigger |
+|---|---|---|---|
+| 1 | requires_human (AI SDR) | ai_sdr | `sequence_status = requires_human` |
+| 2 | Churn Risk High/Critical | farming | `churn_score >= 61` |
+| 3 | Trial läuft aus < 2T | farming | `trial_end_date <= now()+2T` |
+| 4 | Deal stagniert | hunting | `stagnation_days > threshold` |
+| 5 | Follow-up überfällig | hunting | `due_at < now()` AND kein Reply |
+| 6 | Termin heute ohne Prep | alle | Meeting heute AND `prep = null` |
+| 7 | Kontakt wird kalt | hunting | `heat_status = 'kalt'` AND kein Task |
+| 8 | Upsell-Potential hoch | farming | `upsell_score >= 70` |
+| 9 | LinkedIn-Signal heiß | alle | `signal_age < 24h` AND `heat = hot` |
+| 10 | Sequenz abgeschlossen ohne Response | ai_sdr | `sequence_status = completed`, kein Reply |
+
+**Schritt 3 — Top 5 selektieren:** nach Priorität sortieren. Tiebreaker bei Gleichstand:
+(1) ARR/MRR höher · (2) Zeitdruck größer · (3) ICP Score höher. Weniger als 5 Signale →
+weniger anzeigen, **nie leere Slots**.
+
+**Schritt 4 — Modul-Logik:** nur Hunting → Hunting + AI SDR (falls aktiv) · nur Farming →
+Farming + AI SDR (falls aktiv) · alle aktiv → alle konkurrieren · kein Modul aktiv →
+nur Termine + Tasks (keine Top-5-Zone 2).
+
+**DB:** `daily_briefings.priorities` JSONB `[{type, contact_id, signal, reason, cta}]` ·
+`generated_at` · `user_id`.
+
+---
+
+## Analytics — kontextuell eingebettet (kein eigener Screen)
+
+**Grundregel:** Es gibt **keinen** separaten Analytics-/Dashboard-Screen in der
+Navigation. Auswertungen erscheinen direkt dort, wo die Daten leben:
+
+- **AI SDR:** Sequenz-Performance Tab (Öffnungsrate, Antwortrate, Conversion pro Campaign)
+- **Hunter:** Pipeline-Übersicht eingebettet (Stagnations-Rate, Ø Tage pro Stage)
+- **Farmer:** Churn-Rate, Upsell-Conversion, NPS-Trend als Cards im Screen
+- **Companies-Detailseite:** Sherloq Usage Block (wie in Design-Bildern)
+- **Mein Tag:** keine Charts — nur Zahlen in Kacheln
+- **Settings → Reporting:** einziger Ort für übergreifende Team-Auswertungen
+  (erst nach Kernfunktionen implementieren)
+
+---
+
+## Custom Dashboards (v2/v3 — Architektur jetzt vorbereiten)
+
+Technisch möglich: JA. **v1: NEIN. v2/v3: starkes Feature.** Gleiche Philosophie wie der
+AI Chat: **AI wählt aus vorgebauten Widget-Komponenten — baut nichts frei.**
+
+**Widget-Bibliothek (fest):** KPI-Kachel (Zahl + Trend) · Chart (Balken/Linie/Donut) ·
+Liste (gefilterte Kontakte/Deals) · Funnel (Pipeline-Stages) · Heat-Map.
+
+**Ablauf:** User beschreibt Dashboard → AI prüft verfügbare Daten → wählt passende Widgets,
+Layout als JSON → bei fehlenden Daten nachfragen/Alternative → User speichert.
+
+**Tabelle `custom_dashboards` (jetzt anlegen, Feature später):**
+```sql
+custom_dashboards ( id uuid PK, organization_id uuid FK, user_id uuid FK, name text,
+  layout jsonb,      -- [{widget_type, data_source, config, position}]
+  is_shared boolean, -- nur Admin kann teilen
+  created_at timestamptz )
+```
+
+**Warum jetzt schon die Architektur:** damit Widget-Komponenten von Anfang an
+wiederverwendbar gebaut werden. Warum nicht v1: zu komplex, lenkt vom Kern ab, KPI-Bedarf
+der User noch unklar.
+
 ---
 
 ## Kontakte — Zentrales Datenobjekt
@@ -3082,6 +3829,13 @@ Keine eigene Datenquelle — alles aus AI SDR, Hunter, Farmer aggregiert
 **Kontakte** ist ein eigenständiger Screen mit eigenem Sidebar-Icon — die einzige
 Datenbank für alle Personen im System, unabhängig vom Status. Kein separater Screen
 für Companies, Leads oder Kunden — alles sind Kontakte mit einem Status-Feld.
+
+### Pflichtfelder beim Anlegen
+**Kontakte** — Minimum: **Vorname + Nachname ODER LinkedIn URL** (eines von beiden
+reicht). Email ist **kein** Pflichtfeld — wird via Enrichment nachgefüllt wenn möglich
+(→ Enrichment-Abstraktion). Vollständige Felddefinition → **CRM Felder**.
+
+**Companies** — Minimum: **Name** (einziges Pflichtfeld). Alles andere optional.
 
 ### Lead-Status — ein Feld, kein separates Objekt
 ```
@@ -3097,6 +3851,26 @@ Jeder Status-Wechsel schreibt nach `audit_log` (`contact.status_changed`).
 
 Dieses Feld ist die kanonische Lebenszyklus-Quelle. Es ersetzt verstreute
 Status-Logik (heat/sherloq/pipelineStage steuern Anzeige, nicht den Lebenszyklus).
+
+### lead_status — Qualifizierungs-Stufe (NEU, zusätzlich zu contact_status)
+
+Eigenes Feld `lead_status` (Dropdown, system-gesteuert **aber auch manuell änderbar**) —
+nicht zu verwechseln mit `contact_status`:
+- **`contact_status`** = WO ist der Kontakt im System (ohne_campaign / in_campaign / pipeline / kunde / archiviert)
+- **`lead_status`** = Qualifizierungs-Stufe aus Marketing-/Sales-Perspektive
+
+```
+lead_status:
+  Lead
+  Qualified Lead
+  Marketing Qualified Lead (MQL)
+  Sales Qualified Lead (SQL)
+  Customer
+  Churned
+```
+
+Muss noch nachgezogen werden in: `sales_os_crm_felder.md` (Feld unter Standard) +
+DB-Schema (`contacts`-Tabelle). (→ unten in „CRM FELDER → KONTAKTE" ebenfalls ergänzen.)
 
 ### Lead-Quellen — Pflichtfeld, immer befüllt
 ```
@@ -3130,11 +3904,36 @@ list_contacts (
 Listen sind **kein** Nav-Punkt — erreichbar via Pill-Dropdown im Kontakte-Screen
 und via Cmd+K. (Verwandt mit Smart Lists — gleiches Prinzip, JSONB-Filter.)
 
+**Listen-Rechte (Juni 2026):** Team-Listen erstellen → **alle** (kein Admin-Gate) ·
+dynamische Listen → **alle** · max. Listen pro Workspace → **unbegrenzt** (sinnvoller
+Wert ggf. später) · Aktualisierung dynamischer Listen → **täglich** (Standard) +
+manuell auslösbar.
+
+### Listenansicht — Spalten
+Spalten der Kontakte-Liste (basierend auf Design-Screenshot):
+- Checkbox (Bulk-Aktionen)
+- Avatar + Name + Jobtitel + Company
+- Lead Source Badge (CRM / Upload / Manuell / Sherloq) — Lucide-Icons, nie Emoji (→ Design Invariants)
+- Status Badge (In Campaign / Pipeline / Kunde / Archiviert) — `contact_status`
+- Letzter Kontakt (vor X Tagen · Kanal) — als Signal formulieren (→ UI Principles: Signal, Not Data)
+- ICP Score Ring + Zahl (optional, kein Gate)
+- Routing-Hinweis (Im AI SDR / In Hunter / In Farmer) + Pfeil
+
+Liste > 50 Zeilen → virtualisieren (→ Performance & Data Loading).
+
 ### Companies
-Verknüpftes Objekt — **kein** eigenständiger Nav-Punkt.
-- Sichtbar im Kontakt-Drawer als verknüpfte Company
-- Vollständige Company-Verwaltung nur in Settings (Admin only)
-- Via Cmd+K: "Alle Companies anzeigen"
+**Eigenes Sidebar-Icon** (entschieden Juni 2026 — `🏢 Companies` in der linken Sidebar,
+→ UI-Referenz §17.2). Eigene Listenansicht (§14), Schnell-Überblick als Side Panel (§15)
+und volle Company-Detailseite.
+- Auch sichtbar im Kontakt-Drawer als verknüpfte Company
+- Via Cmd+K zusätzlich erreichbar: "Alle Companies anzeigen"
+- Admin-spezifische Verwaltung (Duplikate mergen etc.) weiterhin in Settings
+
+**Zuordnungs-Regeln:**
+- Ein Kontakt = **eine primäre Company**
+- Company-Wechsel: alte Zuordnung wird als **"ehemalig" archiviert** (nie gelöscht)
+- Kontakt kann manuell mehreren Companies als "ehemalig" zugeordnet sein
+- Company ohne Kontakte: bleibt erhalten (**kein Auto-Delete**)
 
 ### Deals — anlegbar, Company ODER Einzelperson
 Wie Tasks müssen auch **Deals manuell anlegbar** sein (nicht nur automatisch via
@@ -3175,6 +3974,55 @@ viewer  → nur lesen, keine Aktionen
 ```
 Jede neue Tabelle: `organization_id` + RLS-Policy die zusätzlich auf `role` prüft.
 Jede Edge Function prüft zuerst: hat dieser User das Recht für diese Aktion?
+
+### Vollständige Rechte-Matrix (Juni 2026, verbindlich)
+
+| Aktion | owner | admin | member | viewer |
+|---|---|---|---|---|
+| Kontakte anlegen | ✅ | ✅ | ✅ | ❌ |
+| Kontakte bearbeiten | ✅ | ✅ | ✅ | ❌ |
+| Kontakte löschen | ✅ | ✅ | ❌ | ❌ |
+| Companies anlegen | ✅ | ✅ | ✅ | ❌ |
+| Companies bearbeiten | ✅ | ✅ | ✅ | ❌ |
+| Companies löschen | ✅ | ✅ | ❌ | ❌ |
+| Campaigns erstellen | ✅ | ✅ | ✅ | ❌ |
+| Campaigns starten/pausieren | ✅ | ✅ | ✅ | ❌ |
+| Sequenz manuell eingreifen | ✅ | ✅ | ✅ | ❌ |
+| Automation Rules ändern | ✅ | ✅ | ❌ | ❌ |
+| Opt-out bestätigen | ✅ | ✅ | ✅ | ❌ |
+| Deals bearbeiten | ✅ | ✅ | ✅ | ✅ |
+| Tasks erstellen | ✅ | ✅ | ✅ | ❌ |
+| Tasks löschen | ✅ | ✅ | ✅ | ❌ |
+| Listen erstellen | ✅ | ✅ | ✅ | ❌ |
+| Pipeline Stages konfigurieren | ✅ | ✅ | ❌ | ❌ |
+| Produkte & Pricing bearbeiten | ✅ | ✅ | ❌ | ❌ |
+| Workspace-Settings ändern | ✅ | ✅ | ❌ | ❌ |
+| Benachrichtigungs-Settings | ✅ | ✅ | ✅ (nur eigene) | ✅ (nur eigene) |
+| Team einladen | ✅ | ✅ | ❌ | ❌ |
+| Rollen ändern | ✅ | ❌ | ❌ | ❌ |
+| Individuelle Rechte vergeben | ✅ | ❌ | ❌ | ❌ |
+| Billing ändern | ✅ | ❌ | ❌ | ❌ |
+| Branding ändern | ✅ | ✅ | ❌ | ❌ |
+| Integrationen verbinden | ✅ | ✅ | ❌ | ❌ |
+| Daten exportieren | ✅ | ✅ | ✅ | ❌ |
+| Reports ansehen | ✅ | ✅ | ✅ | ✅ |
+| Audit Log ansehen | ✅ | ✅ | ❌ | ❌ |
+
+**Individuelle Rechte-Überschreibung (nur Owner):** Owner kann pro Mitglied einzelne
+Rechte **additiv** ergänzen (z.B. Member X darf zusätzlich Automation Rules ändern).
+Basisrechte aus der Rolle, Überschreibungen addieren sich **on top** — **nie subtraktiv**
+(können nur erweitern, nie einschränken).
+
+```sql
+user_permissions (
+  id              uuid PK,
+  organization_id uuid FK,
+  user_id         uuid FK → users,
+  permission      text,           -- z.B. 'automation_rules.edit'
+  granted_by      uuid FK → users, -- muss owner sein
+  created_at      timestamptz
+)
+```
 
 ### Was nur Admin/Owner sieht — in Settings (nicht in der Haupt-Navigation)
 - Company-Verwaltung (alle Companies, Duplikate zusammenführen)
@@ -3227,11 +4075,27 @@ Opt-out gesetzt:
 → DSGVO-konform: Löschung auf Anfrage via Admin (→ data_deletion_requests)
 ```
 
+**Drei Wege zum Opt-out (Juni 2026):**
+1. Empfänger antwortet ablehnend → `classify_intent()` erkennt → sofort Opt-out
+2. Unsubscribe-Link in **jeder** Email (DSGVO-Pflicht) → Klick = Opt-out
+3. Manuell durch AM
+
+**Bei Opt-out gesetzt:** `contacts.opted_out = true` + `opted_out_at` + `opted_out_reason`
+· Hard-Block (nie wieder in Sequenz, auch nicht manuell hinzufügbar) · verschwindet aus
+AI SDR · Audit-Log-Eintrag.
+
+**UI:** Kontakt-Profil zeigt roten Badge „Opt-out · [Datum]". Beim Versuch hinzuzufügen:
+Block + Hinweis „Kontakt hat Opt-out".
+
+**Opt-in (rechtlich, NICHT technisch):** B2B-Kalt-Akquise in der EU stützt sich meist auf
+„berechtigtes Interesse" — **muss mit Anwalt geklärt werden**, ist kein Software-Feature.
+Das System stellt nur sicher: Unsubscribe-Link + Opt-out-Handling vorhanden.
+
 ---
 
 ## Sidebar — finale Struktur (verbindlich)
 
-Die linke Icon-Rail. Maximal **9 sichtbare Icons** — nie mehr.
+Die linke Icon-Rail. Maximal **8 sichtbare Icons** — nie mehr (kanonisch, UI-Referenz §17.2).
 Icons in der Implementierung sind **Lucide-Komponenten, niemals Emoji**
 (→ Design Invariants). Die Emoji hier dienen nur der Lesbarkeit.
 
@@ -3241,25 +4105,21 @@ Oben (Screens):
   🤖 ai-sdr          → Bot
   🎯 hunter          → Target
   🌱 farmer          → Sprout
-
+  ─────────────
 Mitte (Datenbank):
-  👥 kontakte        → Users   ← eigenständiger Screen
-
-Unten (Tools):
-  📥 posteingang     → Inbox
+  👥 kontakte        → Users      ← eigenständiger Screen
+  🏢 companies       → Building2   ← eigenständiger Screen
   ─────────────
-  ☑  tasks           → CheckSquare   (optional, via useModules)
-  🔔 notifications   → Bell
-  ─────────────
+Unten:
   ⚙  settings        → Settings
   👤 profil/avatar
 ```
 
-- Integrationen (Jira etc.) erscheinen NUR wenn das Modul aktiviert ist (`useModules`)
-- Modul-Gating gilt auch für `tasks` (optional)
-- Verhältnis zur Top-Nav: die vier Screens sind die primäre Navigation; ob sie
-  zusätzlich als Top-Pills erscheinen oder primär über die Rail laufen, ist eine
-  Umsetzungsfrage — diese Rail-Struktur ist verbindlich.
+- **Kein Posteingang-Icon** — `requires_human` erscheint inline im AI SDR (UI-Referenz §20),
+  kein eigener Inbox-Screen.
+- Notifications (Glocke) sitzt in der **Top-Bar**, nicht in der Rail. Tasks laufen über Cmd+K.
+- Integrationen (Jira etc.) erscheinen **zusätzlich nur** wenn das Modul aktiviert ist (`useModules`).
+- Verhältnis zur Top-Nav: die vier Screens sind die primäre Navigation; diese Rail-Struktur ist verbindlich.
 
 ---
 
@@ -3279,6 +4139,15 @@ Andere Tenants werden niemals berührt.
 
 Regel: NIEMALS eine Provider-Konfiguration ohne organization_id laden oder speichern.
 NIEMALS globale Variablen für Provider-Konfigurationen nutzen.
+
+---
+
+## PROVIDER-ENTSCHEIDUNGEN (aktuell)
+
+- **Sending Email:** Nango + Gmail/Outlook — v1
+- **Sending LinkedIn:** kommt v2, noch nicht final
+- **Video-Provider:** Google Meet als Standard · Teams als Alternative (beide in Cal.com konfigurierbar)
+- **Soft Bounce Retry:** 3 automatische Versuche (1h · 4h · 24h) → danach requires_human
 
 ---
 
@@ -3395,16 +4264,31 @@ Standard: Semi (User bestätigt bevor Sequence startet)
 
 # CRM FELDER
 
-> Referenz-Felddefinition für Kontakte & Companies (Quelle: `sales_os_crm_felder.md`,
-> Juni 2026). Grundlage für: DB-Schema, UI-Dokumentation, AI-Studio-Prompts.
-> **Noch nicht gebaut** — reine Referenz. Der Kontakte-Screen wird später exakt
-> hiernach umgesetzt (schema-getrieben, alle Felder, keine verstecken).
+> **Maßgebliche, vollständige Felddefinition:** `docs/sales_os_crm_felder.md`
+> (→ REFERENZ-DATEIEN). Die Tabelle unten ist die in CLAUDE.md
+> eingebettete Kurzfassung — bei Abweichung gilt die Konflikt-Regel (→ REFERENZ-DATEIEN).
+>
+> Referenz-Felddefinition für Kontakte & Companies. Grundlage für: DB-Schema,
+> UI-Dokumentation, AI-Studio-Prompts. **Noch nicht gebaut** — der Kontakte-Screen wird
+> später exakt hiernach umgesetzt (schema-getrieben, alle Felder, keine verstecken).
 
 ### Legende
 - 🔴 Pflicht — mindestens eines der Pflichtfelder muss gefüllt sein
 - 🟡 Standard — immer sichtbar, leer = "—", jederzeit editierbar
 - ⚪ Erweitert — sichtbar wenn ausgeklappt oder via Scroll
 - 🔒 System — vom System gesetzt, nicht editierbar
+
+**Kurzregel für Claude Code:**
+- 🔴 Pflicht: Mindestens eines muss gefüllt sein beim Anlegen
+- 🟡 Standard: Immer sichtbar, editierbar, leer = "—"
+- ⚪ Erweitert: Sichtbar beim Aufklappen / Scrollen
+- 🔒 System: Vom System gesetzt, readonly, grauer Hintergrund, kein Edit-Icon
+
+**Systemfelder die NIEMALS editierbar sind:**
+`contact_status`, `heat_status`, `lead_source`, `created_at`, `last_contacted_at`,
+`sequence_status`, `sequence_step_current`, `intent_label`, `intent_confidence`,
+`churn_score`, `upsell_score`, `sherloq_contact_id`, `enrichment_sources`,
+`opt_out_at`, `subscription_status`, alle Sherloq-Usage-Felder.
 
 ## KONTAKTE — Alle Felder
 
@@ -3430,6 +4314,8 @@ Standard: Semi (User bestätigt bevor Sequence startet)
 | Notizen | Textarea | 🟡 Standard | Freitext |
 | Lead Source | Dropdown | 🔒 System | sherloq / csv / crm / manual / webhook |
 | Contact Status | Dropdown | 🔒 System | ohne_campaign / in_campaign / pipeline / kunde / archiviert / opt_out |
+| Lead Status | Dropdown | 🟡 Standard | Lead / Qualified Lead / MQL / SQL / Customer / Churned — Qualifizierungs-Stufe, ≠ Contact Status (system-gesetzt, aber manuell änderbar) |
+| Email verifiziert | Bool/Status | 🔒 System | valid / invalid / catch-all / unknown — via lib/verification.ts (→ Email-Verifizierung) |
 | Heat Status | Dropdown | 🔒 System | heiss / warm / lauwarm / kalt / tot |
 | Letzter Kontakt | Datum | 🔒 System | Automatisch aus letzter Nachricht |
 | Letzte Antwort | Datum | 🔒 System | Automatisch |
@@ -3483,7 +4369,7 @@ Standard: Semi (User bestätigt bevor Sequence startet)
 | Feld | Typ | Kategorie | Hinweis |
 |---|---|---|---|
 | Plan / Subscription | Text | 🟡 Standard | Growth / Pro / Enterprise |
-| Subscription Status | Dropdown | 🔒 System | aktiv / pausiert / gekündigt |
+| Subscription Status | Dropdown | 🔒 System | Anzeige: Trial / Aktiv / Gekündigt (Slug: trial/active/churned, kein „pausiert") |
 | Aktiv seit | Datum | 🟡 Standard | |
 | Nächste Zahlung | Datum | 🔒 System | |
 | MRR / ARR | Währung | 🟡 Standard | |
@@ -3512,3 +4398,17 @@ Standard: Semi (User bestätigt bevor Sequence startet)
 5. Sherloq-Felder: nur anzeigen wenn `settings.modules.sherloq_signals = true`
 6. Farmer-Felder: nur anzeigen wenn `contact.contact_status = 'kunde'`
 7. Keine Felder verstecken — alle Kategorien sichtbar
+
+### UI-Verhalten bei fehlenden Daten (verbindlich)
+Gilt für alle Felder in Kontakte, Companies, Side Panels, Listen:
+
+1. **Leere optionale Felder** → "—" in Grau (`#9CA3AF`), bei Hover erscheint Edit-Icon
+2. **Leere Pflichtfelder** → amber Unterstreichung (`#F59E0B`) + Tooltip "Pflichtfeld — bitte ausfüllen"
+3. **Systemfelder** → grauer Hintergrund (`#F3F4F6`), kein Edit-Icon, Tooltip "Vom System vergeben"
+4. **Kein Feld wird versteckt** — immer sichtbar, immer grau wenn leer
+5. **Inline-Editing:** Klick auf Wert → wird sofort zum Input-Feld, kein Modal
+6. **Speichern:** automatisch beim Verlassen des Feldes (onBlur), kein Save-Button nötig
+7. **Fehler beim Speichern:** rotes Inline-Feedback direkt unter dem Feld
+
+> Hinweis: Hex-Werte beim Bau auf nächstliegende Tokens aus `index.css` mappen
+> (→ Design System Regeln) — die Werte hier definieren das Verhalten, nicht die Quelle.

@@ -1,0 +1,55 @@
+{
+  "common": {
+    "search": "Suchen...",
+    "searchPlaceholder": "Suchen...",
+    "close": "Schließen",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "confirm": "Bestätigen",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "back": "Zurück",
+    "loading": "Lädt …",
+    "empty": "—"
+  },
+  "nav": {
+    "meintag": "Mein Tag",
+    "aisdr": "AI SDR",
+    "hunter": "Hunter",
+    "farmer": "Farmer",
+    "hunting": "Hunting",
+    "farming": "Farming",
+    "marketing": "Marketing",
+    "system": "Sherloq System",
+    "jira": "Jira",
+    "kontakte": "Kontakte",
+    "inbox": "Posteingang"
+  },
+  "settings": {
+    "systemConfigTitle": "Sales OS Systemkonfiguration",
+    "general": {
+      "title": "Allgemein",
+      "language": "Sprache",
+      "languageHint": "Sprache der Benutzeroberfläche. Deine eigenen Eingaben (Kontakte, Notizen, Nachrichten) werden nie übersetzt."
+    },
+    "designToken": {
+      "title": "Design Token System",
+      "body": "shadcn/ui + Tailwind CSS v4 + CSS Variables. Alle Tokens in src/index.css."
+    }
+  },
+  "language": {
+    "de": "Deutsch",
+    "en": "English",
+    "es": "Español"
+  },
+  "errors": {
+    "generic": "Etwas hat nicht geklappt. Bitte erneut versuchen.",
+    "saveFailed": "Speichern war nicht möglich.",
+    "loadFailed": "Daten konnten nicht geladen werden.",
+    "offline": "Keine Verbindung. Wir versuchen es automatisch erneut."
+  },
+  "tooltips": {
+    "settings": "Einstellungen",
+    "search": "Suchen (⌘K)"
+  }
+}

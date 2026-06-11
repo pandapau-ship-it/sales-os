@@ -4,7 +4,7 @@
 
 ---
 
-## Current Status: Dark Mode + Service-Layer + Git-Workflow ✅ → Phase 5 (Supabase) next
+## Current Status: Referenz-Dokumente konsolidiert + alle Konflikte aufgelöst ✅ → Phase 5 (Supabase) next
 
 > Single Source of Truth für den Umsetzungsstand: **CHECKLIST.md** (`npm run audit` prüft).
 > CLAUDE.md = WARUM/WIE · CHECKLIST.md = WAS-offen · PROGRESS.md = Session-Historie.
@@ -12,6 +12,64 @@
 ---
 
 ## Completed
+
+### Session 10 — 2026-06-11 — Referenz-Dokumente + Konfliktauflösung (Doku)
+
+Reine Doku/Referenz-Arbeit auf Branch `feature/i18n-architektur` (kein App-Code).
+
+- [x] **8 maßgebliche Referenzen** nach `/docs` gelegt: `ui_interaktionen_v14_komplett.md`,
+  `sales_os_db_schema_v3.md`, `entscheidungen_komplett.md`, `sales_os_crm_felder.md`,
+  `sherloq_os_pricing_konzept.md`, `sales_os_edge_functions_v2.md`,
+  `sales_os_sending_layer.md`, `sales_os_ai_chat_spezifikation.md`.
+  Ältere Stände nach `/docs/archiv` (nicht gelöscht). In CLAUDE.md unter `REFERENZ-DATEIEN` registriert. (Commit `62d2895`)
+- [x] **Neue Konflikt-Regel** in CLAUDE.md: eine kanonische Wahrheit pro Thema, neueste
+  Entscheidung gewinnt, alle Dateien angleichen, gleicher Commit.
+- [x] **Alle 15 Konflikte aufgelöst** (CLAUDE.md + /docs angeglichen, Commit `ed3c7f3`):
+  Pipeline-Stages deutsch+Slug · Follow-up 3/7 Werktage · Churn zweischichtig ·
+  `settings.pipeline_stages` top-level · `subscription_status` ohne „paused" ·
+  Persönlichkeit 3 Dim statt DISG · Companies eigenes Sidebar-Icon · Sidebar max 8,
+  kein Posteingang-Icon · Onboarding/Cluster-Vererbung/Listen-Rechte entschieden ·
+  `ai_chat` in Pricing · `calculate_health_score()` erwähnt · Booking-Stage `demo_vereinbart`.
+- [x] Frühere Doku-Aufgaben dieser Session: Session-Notizen Juni (Heat/Stagnation/
+  Mailbox/Email-Verifizierung/Churn-Upsell/Mein-Tag/Rollen-Matrix/DSGVO/AI-Chat),
+  Side Panels + Task Modal, Provider-Entscheidungen, MODUL-SYSTEM, Win-Probability,
+  CHECKLIST.md nachgezogen.
+- [x] **CLAUDE.md committet + zu GitHub gepusht** (Branch gepusht, trackt `origin`).
+
+**Offen / getrackt:** `personalityColors`-Token in `theme.ts` umbenennen (CHECKLIST) ·
+EN/ES übersetzen · restliche Screens auf `t()` migrieren · noch offene Entscheidungen
+(#1 Heat-Schwellen, #5 Upsell-Trigger, #19 CRM-Sync, #34 Sherloq bidirektional,
+#36b Video-Provider, #35 Hunter/Farmer-Prompts).
+
+**Branch-Hinweis:** `feature/i18n-architektur` trägt inzwischen viel Doku-Arbeit;
+beim finalen Merge ggf. umbenennen oder thematisch aufteilen.
+
+---
+
+### Session 9 — 2026-06-08 — i18n-Architektur + Kontakte/Companies-Doku
+
+**i18n von Anfang an** (i18next + react-i18next), Branch `feature/i18n-architektur`:
+
+- [x] `src/lib/i18n.ts` — einziger Init-Eintrittspunkt, Default+fallback `de`,
+  Sprache persistiert in `localStorage` (`language`), Resources statisch gebündelt
+- [x] `src/locales/de.json · en.json · es.json` — DE als Basis befüllt, EN/ES als DE-Kopie
+- [x] `useLanguage()` Hook (Muster wie `useTheme`) + `setLanguage()` als einzige Wechsel-Stelle
+- [x] Sprachumschalter in **Settings → Allgemein** (DE/EN/ES, segmentierte Buttons)
+- [x] Erste Migration als Referenz-Pattern: TopBar Nav-Labels + Settings-Dialog → `t()`
+- [x] `tsconfig.app.json`: `resolveJsonModule` ergänzt · **build + audit grün**
+- [x] Verankert: CLAUDE.md (Tech Stack + Pflichtregel-Abschnitt), CHECKLIST.md, ADR 007
+
+**Außerdem (vorherige Doku-Session):** CLAUDE.md + CHECKLIST.md um Kontakte/Companies
+ergänzt (Pflichtfelder, Listenansicht-Spalten, UI-Verhalten leere/System-Felder,
+Duplikat-Erkennung UI, Companies-Zuordnung, Analytics kontextuell eingebettet).
+
+**Offen / getrackt:** restliche Screens migrieren (ScreenMyDay/Hunting/Farming/
+Marketing/Jira/Sherloq, CustomerDrawer, CommandPalette, Sidebar → alle Strings `t()`) ·
+EN/ES tatsächlich übersetzen · `audit.ts` um Hardcoded-String-Check erweitern.
+
+**Git:** Branch angelegt, Commit/Push bewusst ans Session-Ende verschoben (auf Wunsch).
+
+---
 
 ### Session 8 — 2026-06 — Erster echter Code seit Phase-Design: Dark Mode, Service-Layer, Git-Workflow
 

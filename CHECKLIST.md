@@ -42,6 +42,27 @@
 - [ ] automation_rules — *globaler Risk-Override pro Org (low/medium_risk_auto, medium_confidence)*
 - [ ] pipeline_deals: `company_id` NULL + `contact_id` NULL + CHECK (mind. eines gesetzt) — *Deal von Company ODER Person*
 - [ ] Deals manuell anlegbar (Inline, Cmd+K, Drawer) via Edge Function — *Owner = Company/Person, audit_log*
+- [ ] contacts CHECK: (`vorname` + `nachname`) ODER `linkedin_url` gesetzt — *Pflichtfeld-Minimum beim Anlegen*
+- [ ] companies CHECK: `name NOT NULL` — *einziges Pflichtfeld*
+- [ ] Company-Zuordnung: eine primäre Company + „ehemalig"-Archiv (nie löschen) — *Verlauf erhalten, kein Auto-Delete*
+
+> Maßgebliche, feldgenaue Schema-Referenz: **`docs/sales_os_db_schema_v3.md`** (→ REFERENZ-DATEIEN).
+
+### Kern-Tabellen — Felder & Tabellen aus Session Juni 2026
+- [ ] contacts Zusatzfelder: `lead_status` (lead/qualified/mql/sql/customer/churned, ≠ contact_status) · `automation_override` · `primary_company_id` (Cluster-Vererbung)
+- [ ] contacts Persönlichkeit: `personality_profile` (jsonb style/decision/tempo) · `personality_confidence` · `personality_sources` · `personality_updated_at`
+- [ ] contacts Email-Verifizierung: `email_verified` · `email_verification_date/source/status` · `email_suggestion`
+- [ ] deals: kanonische Default-Stages (frei konfigurierbar pro Org, nie hardcodiert) · `stage_updated_at` · `stagnation_days` · `end_date` · `lost_reason`
+- [ ] companies: `subscription_plan/status/since` — *Subscription auf Company-Ebene (Cluster-Vererbung)*
+- [ ] `mailboxes` — warmup_phase, current_daily_limit, bounce_rate, spam_rate, status
+- [ ] `blacklisted_domains` — disposable/spam/catch-all/manual (Email-Verifizierung Ebene A)
+- [ ] `churn_rules` + `upsell_rules` (v2 — jetzt anlegen, Feature später, additiv zu Basis-Signalen)
+- [ ] `user_permissions` — individuelle additive Rechte-Überschreibung (nur Owner vergibt)
+- [ ] `daily_briefings` — Mein Tag Top 5 (priorities jsonb, generated_at, user_id)
+- [ ] `custom_dashboards` (v2/v3 — jetzt anlegen, Widget-Layout jsonb)
+- [ ] `chat_sessions` + `chat_messages` (content jsonb = Block-Array, langfuse_trace_id) — *AI Chat*
+- [ ] Billing-Tabellen: `plans`, `plan_limits`, `organization_subscription`, `credit_balance`, `credit_transactions`, `addons`
+- [ ] `settings` JSONB: `modules`, `automation_defaults`, `thresholds` (churn_weights/upsell_weights/stagnation_days_per_stage/heat_status_days/trial/onboarding/meeting_prep), `sending_defaults`
 
 ### Pflichtfelder pro Tabellentyp
 - [ ] Aktionen: `source`, `execution_mode`, `executed_by`, `approved_by`, `approved_at` — *AI-Automation*
@@ -70,6 +91,22 @@
 - [ ] `process_sequence_step()` — *execution_mode-abhängig senden/flaggen*
 - [ ] Cron Job 07:00 — *fällige Schritte, Follow-ups, dynamische Regeln REGEL 1/2/3*
 - [ ] Tages-Fortschritt als Supabase View — *kein Frontend-Calc*
+
+### Scoring, Briefing & Verifizierung (Session Juni 2026)
+- [ ] `score_heat_status()` (täglich) — *aus `last_contacted_at`; Tasks pausieren Heat nicht*
+- [ ] `score_deal_health()` (täglich + bei Stage-Wechsel) — *Stagnation aus `stage_updated_at` vs. Schwellenwert*
+- [ ] `score_churn_risk()` + `score_upsell()` — *Basis-Signale fix + Gewichtung (v1) + `churn_rules`/`upsell_rules` (v2); geben `main_drivers[]` zurück (Hover-Tooltip ohne extra Call)*
+- [ ] `morning_briefing()` (07:00) — *Top-5-Auswahl nach Prio-Tabelle + Tiebreaker, nur aktive Module → `daily_briefings`*
+- [ ] `analyze_personality()` — *ab ≥3 Nachrichten, nach jedem Reply; 3-Dimensionen + Confidence*
+- [ ] `analyze_engagement()` — *erweiterte `sequence_rules`: Basis-Schicht immer, Sherloq-Schicht wenn Modul aktiv*
+- [ ] Mailbox-Warmup-Cron — *Ramp-up 10→50/Tag, Bounce >3% Reset / >5% Pause+requires_human*
+- [ ] `sequence_runner`: Follow-ups zuerst, dann Outreach (globales Einzel-Limit) · Smart Sending Window · Timezone → UTC · Inbox Rotation (Round Robin)
+
+### Email-Verifizierung (lib/verification.ts — provider-agnostisch)
+- [ ] `lib/verification.ts` einzige Datei die Provider (ZeroBounce) kennt — *austauschbar via `lib/providers/`*
+- [ ] Ebene A (Syntax/MX/Blacklist/Catch-All, kostenlos) + Ebene B (ZeroBounce, wenn Modul aktiv)
+- [ ] `verify_contact_email()` + Batch (CSV-Import, max 100 Req/s) — *Status-Mapping, bei invalid → requires_human*
+- [ ] Harte Regel: nie an `email_verified = false` senden (außer manueller Override); Catch-All = senden + Warnung
 
 ### Lead Routing & Campaign-Matching (regelbasiert, kein AI)
 - [ ] `route_sherloq_signal()` — *Sherloq-Lead anlegen → Matching anstoßen*
@@ -103,13 +140,42 @@
 - [ ] **Farmer Screen** → Recommendation Feed (Bestandskunden)
 - [ ] **Mein Tag** → aggregierter Feed (keine eigene Datenquelle)
 - [ ] **Kontakte Screen** (NEU) — *zentrales Datenobjekt, eigener Sidebar-Icon*
+- [ ] Kontakte-Listenansicht — Spalten: Checkbox · Avatar+Name+Jobtitel+Company · Lead-Source-Badge · Status-Badge · Letzter Kontakt · ICP-Ring · Routing-Hinweis (Lucide, kein Emoji)
+- [ ] UI-Verhalten leere/System-Felder: "—" grau + Hover-Edit · Pflicht=amber Unterstreichung · System=grau readonly · inline-Edit, onBlur-Save, rotes Inline-Fehler-Feedback (Hex → index.css-Tokens mappen)
+- [ ] Analytics kontextuell eingebettet — kein eigener Nav-Screen (AI SDR/Hunter/Farmer/Companies/Mein Tag inline · Settings→Reporting später)
 - [ ] **Inbox** Screen + Sidebar-Icon (Tools-Bereich) + Badge
 - [ ] **Sidebar finale Struktur** (max 9 Icons, Lucide): Screens · Kontakte · Tools · Settings/Profil
 - [ ] Listen via Pill-Dropdown im Kontakte-Screen + Cmd+K (kein Nav-Punkt)
 - [ ] Companies: nur im Drawer + Settings (Admin) + Cmd+K — kein Nav-Punkt
+- [ ] Duplikat-Erkennung UI: Hard Match (Email/LinkedIn → blockiert) · Soft Match (Name+Company → Banner) · läuft bei Anlegen (onBlur), CSV-Import-Review, "Duplikate verwalten"-Ansicht
 - [ ] Settings (Admin/Owner): Company-Verwaltung, Audit Log, Team, Webhooks, Automation Rules, Billing
 - [ ] Destruktive Aktionen → Bestätigungs-Dialog (Kontakt/Liste/Campaign löschen, Opt-out, CRM-Overwrite)
 - [x] Sliding-Pill-Animation in TopBar
+
+#### Screens & Komponenten aus UI-Referenz (`docs/ui_interaktionen_v14_komplett.md` = maßgeblich)
+- [ ] **Side Panels — zwei Typen:** Info Panel (820px, Tabs, schließt nur per X) · Action Panel (580px, einspaltig, schließt nach Aktion + Toast + Realtime) · 7 Action-Varianten
+- [ ] **Task Modal** (560px) — KI-Vorschlag-Block nur mit Kontext, Kontakt readonly wenn aus Kontext, „Task gespeichert" Toast + Realtime
+- [ ] Heat-Status Task-Hinweis in Kachel (3 Fälle: geplant/überfällig/keine) — Hunter/Follow-ups/Mein Tag Zone 2
+- [ ] Pipeline-Stagnation Anzeige in Kachel (3 Fälle) + Mein-Tag-Prioritäten
+- [ ] Churn/Upsell Hover-Tooltip (280px) aus `main_drivers[]` — aktive Signale ● + fehlende Daten ○ + Quelle
+- [ ] Persönlichkeitsprofil-Anzeige (3 Pills, nur ab Confidence ≥60%) — Info Panel · AI SDR Header · Action Panel · Composer
+- [ ] Email-Verifizierungs-Icons (verifiziert/unbekannt/invalid/catch-all) — Liste + Side Panel + Import-Summary
+- [ ] Opt-out-Anzeige: roter Badge „Opt-out · [Datum]" + Block beim Hinzufügen
+- [ ] Mein Tag Zonen 1–7 (Morgenanalyse-Banner, Termine, Top 5, Überfällig, Heute, Churn/Upsell/Jira)
+- [ ] **Settings → Pipeline Stages** — Stages anlegen/umbenennen/sortieren/löschen + Schwellenwert pro Stage (Default deutsch, kanonisch)
+- [ ] **Settings → Automation-Level** — global Manual/Semi/Auto pro Bereich (Default Semi) + Per-Kontakt-Override (`automation_override`)
+- [ ] **Settings → AI SDR → Mailbox & Limits** — globaler Slider, „Follow-ups zuerst", Inbox Rotation, Warmup-Status, Tagesverbrauch
+- [ ] **Integrationen → Email-Verifikation** — Provider-Auswahl (ZeroBounce/NeverBounce) + Credits
+
+### Internationalisierung (i18n)
+- [x] `i18next` + `react-i18next` installiert · Init nur in `src/lib/i18n.ts` (Default `de`, fallback `de`)
+- [x] `src/locales/de.json · en.json · es.json` — *EN/ES zunächst DE-Kopie*
+- [x] `useLanguage()` Hook + Sprachwechsel `setLanguage()` (persistiert in `localStorage`)
+- [x] Sprachumschalter in Settings → Allgemein (DE/EN/ES)
+- [x] TopBar Nav-Labels + Settings-Dialog über `t()` migriert
+- [ ] **Alle übrigen Screens migrieren** → ScreenMyDay/Hunting/Farming/Marketing/Jira/Sherloq, CustomerDrawer, CommandPalette, Sidebar — *jeder hardcodierte UI-String → `t()`*
+- [ ] EN/ES tatsächlich übersetzen (aktuell DE-Kopie)
+- [ ] `audit.ts` erweitern: hardcodierte UI-Strings im JSX erkennen — *Regel automatisch prüfen*
 
 ### Daten-Layer
 - [x] **Service-Abstraktion** `lib/db.ts · auth.ts · storage.ts · realtime.ts` — *einzige Swap-Stelle für Supabase*
@@ -156,6 +222,7 @@
 - [ ] **Akzent-Hex → Signal-Tokens** in Screens (≈144 Vorkommen, meist Status-Akzente):
       ScreenMyDay/Hunting/Farming/Marketing/Jira/CustomerDrawer — *brechen Dark Mode optisch, nicht strukturell*
 - [ ] Tote Dateien mit Hex entfernen: `src/theme.ts`, `src/components/shell/TopNav.tsx` (nicht importiert)
+- [ ] personalityColors Token in theme.ts umbenennen (kein DISG: rot/gelb/grün/blau → neutral benennen, passend zu 3-Dimensionen-Modell)
 
 ---
 
@@ -168,6 +235,10 @@
 - [ ] Permission-Check vor jedem Write — *RLS + Edge Function prüfen `role`*
 - [ ] Opt-out: stoppt alle Sequences sofort, irreversibel, von niemandem überschreibbar — *höchste Priorität*
 - [ ] Audit Log nur für Admin/Owner einsehbar (Settings)
+- [ ] Vollständige Rechte-Matrix (owner/admin/member/viewer) durchsetzen — *RLS + Edge Function pro Aktion*
+- [ ] `user_permissions`: additive Überschreibung (nur Owner vergibt, nie subtraktiv)
+- [ ] DSGVO-Löschung: Opt-out → Suppression 90T → anonymisieren · Account-Kündigung 30T → komplett löschen · Export vor Löschung
+- [ ] Fehler-Eskalation: AI 3× fail / Mailbox gesperrt → Owner+Admin via Email+In-App
 
 ---
 
@@ -199,6 +270,14 @@
 - [ ] Dynamische Sequenzen (REGEL 1/2/3) im Cron Job
 - [ ] AI-Chat: nur registrierte Render-Keys aktivierbar (Component Registry)
 - [ ] `smart_list` / `smart_list_result` Render-Keys in `componentRegistry.ts` — *für Multi-Filter-Anfragen*
+
+### AI Chat — Vollspezifikation (`docs/sales_os_ai_chat_spezifikation.md` = maßgeblich)
+- [ ] JSON-Block-Typen: `text` · `contact_card` · `contact_list` · `single_contact` · `email_draft` · `linkedin_draft` · `confirmation` (+ erweiterbar) — Array kombinierbar
+- [ ] Listen-Regel: 1–10 inline · >10 Screen mit Filter öffnen · Einzeltreffer → Info Panel
+- [ ] 3 Code-Stellen: Edge Function `ai_chat()` · Komponenten-Registry · Langfuse-Prompt
+- [ ] `update_field()` Fallback (Permission-Check) · `query_contacts()` · `generate_message()`
+- [ ] Cmd+Enter-Overlay überall · strikt getrennt von Cmd+K · respektiert Rollen/Rechte · audit_log
+- [ ] Langfuse: Prompts in UI (kein Code-Deploy), Tracing, Token→Credits, Labels production/staging/Mandant, EU-Region (DSGVO)
 
 ### Adaptives Lernen (Feedback & Präferenzen)
 - [ ] Tabellen: `ai_feedback` (append-only) + `ai_preferences` (1 Zeile pro user×scope)
@@ -245,13 +324,16 @@
 ### Struktur & Standard (erledigt)
 - [x] `/docs` Grundstruktur angelegt (modules, api, decisions) — *Placeholder bereit*
 - [x] Dokumentations-Standard in CLAUDE.md erweitert — *wann/was/Format, ADR, Setup, Runbook, OpenAPI, CONTRIBUTING*
-- [x] 6 ADRs geschrieben (001 Supabase · 002 shadcn · 003 Edge Functions · 004 organization_id · 005 Sending Layer · 006 aiCall)
+- [x] 7 ADRs geschrieben (001 Supabase · 002 shadcn · 003 Edge Functions · 004 organization_id · 005 Sending Layer · 006 aiCall · 007 i18n)
 - [x] `CHANGELOG.md` angelegt — *Eintrag nach jedem Commit*
 - [x] `llms.txt` Placeholder im Root
+- [x] **8 maßgebliche Referenzen** in `/docs` (UI v14 · DB v3 · Entscheidungen · CRM-Felder · Pricing · Edge Functions v2 · Sending Layer · AI-Chat) — *in CLAUDE.md unter „REFERENZ-DATEIEN" registriert; ältere Stände in `/docs/archiv`*
+- [x] Pipeline-Stages vereinheitlicht: deutsche Liste kanonisch + frei konfigurierbar (CLAUDE.md + beide Referenz-Docs angeglichen)
+- [ ] ADR 008 für Stage-Entscheidung (kanonisch + konfigurierbar) — *optional, Doku-Standard (007 = i18n)*
 
 ### Inhalt befüllen (nach den jeweiligen Phasen)
 - [ ] Nach Phase 1: `setup.md`, `database.md`, `architecture.md` ausfüllen
 - [ ] Nach Phase 2: `api/edge-functions.md`, `api/openapi.yaml`, `runbook.md`
 - [ ] Pro fertigem Modul: `modules/[modul].md` (mein-tag, ai-sdr, hunter, farmer, sequenzen, inbox, cmd-k)
 - [ ] Vor Launch: `CONTRIBUTING.md`, `README.md` finalisieren, `llms.txt` finalisieren
-- [ ] Neue ADR bei jeder weiteren Architektur-Entscheidung (fortlaufend 007+)
+- [ ] Neue ADR bei jeder weiteren Architektur-Entscheidung (fortlaufend 008+)
