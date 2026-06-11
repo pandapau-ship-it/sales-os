@@ -9,6 +9,9 @@
 > Single Source of Truth für den Umsetzungsstand: **CHECKLIST.md** (`npm run audit` prüft).
 > CLAUDE.md = WARUM/WIE · CHECKLIST.md = WAS-offen · PROGRESS.md = Session-Historie.
 
+> **i18n-Gerüst steht, EN/ES-Befüllung in Phase 4.** Bis dahin: alle UI-Texte konsequent
+> über i18n-Keys (`t()`), nichts hardcoden, nur Deutsch pflegen. (Bewusst geplant, kein Bug.)
+
 ---
 
 ## Completed
