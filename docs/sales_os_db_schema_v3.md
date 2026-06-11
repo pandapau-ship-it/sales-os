@@ -109,7 +109,8 @@ crm_id              text                          -- ID im verbundenen CRM
 annual_revenue      bigint
 tech_stack          text[]
 subscription_plan   text                          -- Plan-Name wenn Kunde (z.B. 'growth')
-subscription_status text                          -- active | trial | churned | null
+subscription_status text                          -- Slug: trial | active | churned | null (KEIN 'paused')
+                                                  --   Anzeige DE: Trial / Aktiv / Gekündigt
 subscription_since  timestamptz                   -- seit wann Kunde
 tags                text[]
 notes               text
@@ -282,8 +283,10 @@ company_id          uuid FK → companies
 
 name                text NOT NULL
 stage               text DEFAULT 'backlog'
-                    -- Backlog | Demo vereinbart | Follow-up offen | Onboarding offen | Free Trial | Gewonnen
-                    -- Nie hardcodiert — aus settings.pipeline_stages laden
+                    -- SLUG (lowercase_underscore) = Speicherwert; Anzeigename aus settings.pipeline_stages[].name
+                    -- backlog | demo_vereinbart | followup_offen | onboarding_offen | free_trial | gewonnen
+                    -- Terminal (kein Stagnations-Timer): gewonnen | verloren  (verloren erfordert lost_reason)
+                    -- Nie hardcodiert — Stages aus settings.pipeline_stages laden
 value               bigint                        -- in Cent
 currency            text DEFAULT 'EUR'
 probability         int DEFAULT 10               -- Win-Wahrscheinlichkeit 0–100% (erbt Stage-Default, pro Deal überschreibbar)
@@ -399,8 +402,10 @@ modules             jsonb DEFAULT '{}'
 automation_defaults jsonb DEFAULT '{}'
                     -- {default_automation_level, intent_threshold, reactivation_days, ...}
 thresholds          jsonb DEFAULT '{}'
-                    -- {heat_status_days, churn_risk_weights, stagnation_days_per_stage,
-                    --  pipeline_stages: [{name, order, stagnation_days, probability}], ...}
+                    -- {heat_status_days, churn_weights, upsell_weights, ...}
+pipeline_stages     jsonb DEFAULT '[]'
+                    -- TOP-LEVEL (nicht in thresholds): [{slug, name, order, stagnation_days, probability}]
+                    --   slug = deals.stage Speicherwert · name = Anzeige · probability = Win-% Stage-Default
 sending_defaults    jsonb DEFAULT '{}'
                     -- {daily_email_limit, daily_linkedin_limit, sending_window}
 created_at          timestamptz

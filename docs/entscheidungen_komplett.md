@@ -12,6 +12,22 @@
 
 ---
 
+## ENTSCHEIDUNGS-LOG
+
+**2026-06-11 — Konfliktauflösung (eine kanonische Wahrheit pro Thema):**
+- #2 Pipeline-Stages: kanonisch deutsch (backlog → … → gewonnen), englische Stages abgelöst
+- #3 Follow-up Timer (Hunting): 3 Werktage (1.) / 7 Werktage (2., ab erster Mail), max 2
+- #4 Churn-Gewichtung: zweischichtige Progressive-Data-Logic aus `edge_functions_v2`,
+  flaches Punktesystem abgelöst; Level-Bänder 0–30/31–60/61–85/86+
+- #6 Onboarding-Nudge: 3 Tage anschreiben (Email/Semi), 7 Tage Task
+- #9 Persönlichkeit: 3 Dimensionen, kein DISG
+- #10 Cluster-Vererbung: Auto-„kunde" bei Company-Kundenstatus, einmalige Bestätigung
+- #23 Listen-Rechte: alle dürfen erstellen, unbegrenzt, tägliches + manuelles Refresh
+- Slug-Konvention für `deals.stage` (lowercase_underscore), Anzeigename aus `settings.pipeline_stages`
+- `subscription_status`: Enum `trial|active|churned` (kein „paused")
+
+---
+
 ## BLOCK A — SCHWELLENWERTE & TIMER
 
 ### #1 Heat-Status Schwellenwerte ⚠
@@ -29,29 +45,33 @@ Ab wie vielen Tagen ohne Kontakt wechselt der Status?
 
 ---
 
-### #2 Pipeline Stagnation Schwellenwerte ⚠
-Ab wie vielen Tagen in einer Stage erscheint eine Warnung?
+### #2 Pipeline Stagnation Schwellenwerte ✅
+Kanonische deutsche Stages (Slug = Speicherwert, Name = Anzeige), frei konfigurierbar pro
+Org in `settings.pipeline_stages`. Ab wie vielen Tagen in einer Stage erscheint eine Warnung?
 
-| Stage | Tage bis Warnung |
-|---|---|
-| Lead / Backlog | 7 Tage |
-| Demo vereinbart | 5 Tage |
-| Follow-up offen | 3 Tage |
-| Proposal | 7 Tage |
-| Negotiation | 10 Tage |
-| Onboarding / Trial | 14 Tage |
+| Stage (Slug) | Anzeige | Tage bis Warnung |
+|---|---|---|
+| backlog | Backlog | 7 |
+| demo_vereinbart | Demo vereinbart | 5 |
+| followup_offen | Follow-up offen | 3 |
+| onboarding_offen | Onboarding offen | 14 |
+| free_trial | Free Trial | 14 |
+| gewonnen | Gewonnen | kein Timer |
 
-**Status:** Vorschlag steht — noch nicht final bestätigt. Hinterlegt in `settings.thresholds`.
+Terminal (kein Timer): `gewonnen`, `verloren`. Englische Stages (Proposal/Negotiation/Closed
+Won) sind **abgelöst**.
+
+**Status:** ✅ Entschieden (2026-06-11). Hinterlegt in `settings.pipeline_stages`.
 
 ---
 
-### #3 Follow-up Timer (Hunting) ⚠
-Wenn keine Antwort auf Outreach:
-- Erster Follow-up nach: 5 Tagen (Vorschlag)
-- Zweiter Follow-up nach: 7 Tagen (Vorschlag)
-- Maximale automatische Follow-ups: 2 (Vorschlag)
+### #3 Follow-up Timer (Hunting) ✅
+Wenn keine Antwort auf Outreach (Werktage, Wochenenden übersprungen):
+- Erster Follow-up nach: **3 Werktagen** (ab erster Mail)
+- Zweiter Follow-up nach: **7 Werktagen** (ab erster Mail, nicht ab erstem Follow-up)
+- Maximale automatische Follow-ups: **2**
 
-**Status:** Vorschlag steht — noch nicht bestätigt.
+**Status:** ✅ Entschieden (2026-06-11). Konfigurierbar in `settings.thresholds`.
 
 ---
 
@@ -64,22 +84,33 @@ Wenn keine Antwort auf Outreach:
 
 ## BLOCK B — SCORING & TRIGGERS
 
-### #4 Churn Risk Gewichtung ⚠
+### #4 Churn Risk Gewichtung ✅
+Kanonisch: **zweischichtige Progressive-Data-Logic** (aus `score_churn_risk()`,
+→ `sales_os_edge_functions_v2.md`). Nur verfügbare Datenpunkte werden addiert; fehlende
+Quellen werden ignoriert. Das frühere flache Punktesystem ist **abgelöst**.
 
+**Basis-Score (immer verfügbar — aus Sales OS):**
 | Signal | Punkte |
 |---|---|
-| Kein Login seit >30 Tagen | +30 |
-| Support-Tickets offen | +20 |
+| Letzter Kontakt > 30T | +25 |
+| Kein Reply auf letzte Mail | +20 |
+| Offene Tasks überfällig | +15 |
+| Tage ohne Aktivität > 14T | +20 |
+| Heat Status = Kalt/Tot | +20 |
+
+**Erweiterter Score (nur wenn externe Quelle verbunden):**
+| Signal | Punkte |
+|---|---|
+| Letzter Login > 30T | +30 |
 | Nutzung -50% vs. Vormonat | +25 |
-| Kein Reply auf letzte Mail | +10 |
+| Support-Tickets offen | +20 |
 | Vertrag läuft in 60T ab | +15 |
 | Kündigung angedeutet | +30 |
-| Trial abgelaufen ohne Conversion | +25 |
 
-Risk-Level: 0–30 = low · 31–60 = medium · 61–85 = high · 86+ = critical
-Warnung erscheint ab: high (61 Punkte)
+Risk-Level (überall gleich): 0–30 = low · 31–60 = medium · 61–85 = high · 86+ = critical.
+Warnung ab: high (61 Punkte). Gewichtung pro Org anpassbar in `settings.thresholds.churn_weights`.
 
-**Status:** Punkte-System definiert — Schwellenwerte noch nicht final bestätigt. Hinterlegt in `settings.thresholds`.
+**Status:** ✅ Entschieden (2026-06-11).
 
 ---
 
@@ -172,7 +203,7 @@ Opt-out · Bestandskunde · Aktiver Deal · Gesperrte Domain
 Kalender-Bestätigung eingeht
 → contact_status: in_campaign → pipeline
 → Sequence: pausiert (nicht gelöscht)
-→ Deal: automatisch in Hunter, Stage: "Termin vereinbart"
+→ Deal: automatisch in Hunter, Stage: Demo vereinbart (Slug `demo_vereinbart`)
 → Meeting-Prep: automatisch generiert (prep_meeting())
 → Mein Tag: Zone 1 (heutiger Termin)
 → AI SDR: Lead in "Termine gebucht" Tab
@@ -282,10 +313,11 @@ Unterstützt in v2: CRM Import + Manuell
 
 ---
 
-### #23 Listen-Rechte ⚠
-- Wer darf Team-Listen erstellen? **Noch nicht entschieden**
-- Max. Listen pro Workspace: **Noch nicht entschieden**
-- Dynamische Listen: Filter-basiert, täglich neu berechnet
+### #23 Listen-Rechte ✅
+- Team-Listen erstellen: **alle** (kein Admin-Gate)
+- Dynamische Listen: **alle** · Filter-basiert, täglich neu berechnet + manuell auslösbar
+- Max. Listen pro Workspace: **unbegrenzt** (sinnvoller Wert ggf. später)
+**Status:** ✅ Entschieden (2026-06-11).
 
 ---
 
@@ -363,9 +395,10 @@ Bidirektionalität (Sales OS → Sherloq Watchlist): **noch offen**
 
 ## BLOCK G — SYSTEM & PLATTFORM
 
-### #6 Onboarding Nudge ⚠
-- Nach wie vielen Tagen ohne Abschluss anschreiben? **Noch nicht entschieden**
-- Kanal: E-Mail / Slack / andere? **Noch nicht entschieden**
+### #6 Onboarding Nudge ✅
+- Nach **3 Tagen** ohne Onboarding-Abschluss → automatische Nachricht (Kanal: **Email**, Automation-Level Semi)
+- Nach **7 Tagen** ohne Response → interne Task für AM
+**Status:** ✅ Entschieden (2026-06-11). Werte in `settings.thresholds`.
 
 ---
 
@@ -388,14 +421,19 @@ Enthält (definiert in prep_meeting() Edge Function):
 
 ---
 
-### #9 Persönlichkeitstypen ⚠
-DISG oder eigene Definition — **noch nicht entschieden**
+### #9 Persönlichkeitstypen ✅
+**Kein DISG.** Drei actionable Dimensionen: Kommunikationsstil (Direkt ↔ Diplomatisch) ·
+Entscheidungstyp (Daten-getrieben ↔ Bauchgefühl) · Tempo (Schnell ↔ Braucht Zeit).
+Auto-Erstellung ab ≥3 Nachrichten (`analyze_personality()`), Confidence-Stufen <60/60–80/>80.
+**Status:** ✅ Entschieden (2026-06-11). Details in CLAUDE.md → Persönlichkeitsprofil.
 
 ---
 
-### #10 Cluster-Vererbung ⚠
-- Kontakte automatisch auf "Customer" wenn Company wechselt? **Noch nicht entschieden**
-- Bestätigung vor Vererbung? **Noch nicht entschieden**
+### #10 Cluster-Vererbung ✅
+- Company wird Kunde → alle verknüpften Kontakte automatisch `contact_status = 'kunde'`
+- **Einmalige** Bestätigung („X Kontakte werden zu Kunden — bestätigen?"), nicht pro Kontakt
+- Subscription liegt auf Company-Ebene; Kontakt erbt von primärer Company (`primary_company_id`)
+**Status:** ✅ Entschieden (2026-06-11).
 
 ---
 
@@ -443,11 +481,12 @@ Kein eigener Analytics-Screen. Kontextuell eingebettet:
 
 ## ZUSAMMENFASSUNG — STATUS
 
-### ✅ Entschieden (30 Punkte)
-ICP Score · Intent-Schwellenwert · Automation Default · Risk-Level · Reaktivierungs-Pool · Campaign-Matching · Lead→Deal · Reply Handling · Sherloq Routing · Import-Flow · Contact Data Missing · Error Sending · Schlafende Leads · Dynamische AI-Anpassung · Companies-Zuordnung · Platzhalter-Fallbacks · Pflichtfelder · Duplikat-Erkennung · Cal.com · Enrichment (Surfe) · Lead-Quellen · Meeting-Prep Inhalt · Tagesplan · Prompt-Map · Multi-Tenant Isolation · Analytics-Platzierung · Reaktivierungs-Pool
+### ✅ Entschieden
+ICP Score · Intent-Schwellenwert · Automation Default · Risk-Level · Reaktivierungs-Pool · Campaign-Matching · Lead→Deal · Reply Handling · Sherloq Routing · Import-Flow · Contact Data Missing · Error Sending · Schlafende Leads · Dynamische AI-Anpassung · Companies-Zuordnung · Platzhalter-Fallbacks · Pflichtfelder · Duplikat-Erkennung · Cal.com · Enrichment (Surfe) · Lead-Quellen · Meeting-Prep Inhalt · Tagesplan · Prompt-Map · Multi-Tenant Isolation · Analytics-Platzierung
+**+ neu entschieden 2026-06-11:** Pipeline-Stagnation Stages/Tage (#2) · Follow-up Timer Hunting (#3) · Churn-Gewichtung (#4) · Onboarding-Nudge (#6) · Persönlichkeitstypen (#9) · Cluster-Vererbung (#10) · Listen-Rechte (#23)
 
-### ⚠ Offen (8 Punkte — kein Build-Blocker)
-Heat-Status Schwellenwerte · Pipeline Stagnation Tage · Follow-up Timer · Churn Risk Punkte · Upsell-Trigger Schwellenwerte · Onboarding Nudge Timer · Persönlichkeitstypen · Cluster-Vererbung · Listen-Rechte · CRM Sync · Sherloq Bidirektional · Video-Provider Default · Hunter/Farmer Prompts
+### ⚠ Offen (kein Build-Blocker)
+Heat-Status Schwellenwerte (#1) · Upsell-Trigger Schwellenwerte (#5) · CRM Sync (#19) · Sherloq Bidirektional (#34) · Video-Provider Default (#36b) · Hunter/Farmer Prompts (#35)
 
 ### 🔴 Kritisch — blockiert Build/Live (2 Punkte)
 - **Sending Provider** — Unipile final bestätigen

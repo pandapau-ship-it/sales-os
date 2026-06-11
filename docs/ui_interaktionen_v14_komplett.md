@@ -89,7 +89,8 @@
 ☑ Antwort erwartet — Follow-up nach X Tagen
 ```
 - Standard: AN (aktiv)
-- X Tage = konfigurierbar via settings (Standard: 5 Tage)
+- Timer kanonisch: **1. Follow-up nach 3 Werktagen, 2. nach 7 Werktagen** (ab erster Mail),
+  max. 2 automatische Follow-ups; Wochenenden übersprungen. Konfigurierbar via `settings.thresholds`.
 - AN → Follow-up Timer startet nach Versand
 - AUS → kein Timer, normale Dokumentation
 
@@ -139,11 +140,13 @@ Jede Kachel: weiß · border-radius 16px · weicher Schatten · Zahl 32px bold �
 
 ### 3.2 Pipeline Funnel
 
-Horizontaler Funnel — 5 Stages nebeneinander:
-Lead → Demo → Proposal → Negotiation → Closed Won
+Horizontaler Funnel über die **kanonischen deutschen Stages** (frei konfigurierbar pro Org
+aus `settings.pipeline_stages` — nie hardcodiert; Slug = Speicherwert, Name = Anzeige):
+Backlog → Demo vereinbart → Follow-up offen → Onboarding offen → Free Trial → Gewonnen
 Pro Stage: Anzahl Deals + Wert in €
 Zwischen Stages: Pfeil → (Flow-Richtung)
-Darunter: Conversion-Rates (Lead→Demo · Demo→Proposal · Proposal→Won)
+Darunter: Conversion-Rates je Stage-Übergang (dynamisch aus den konfigurierten Stages)
+„Verloren" ist terminaler Status und erscheint nicht im Funnel-Flow.
 
 ### 3.3 Lead-Kacheln darunter
 
@@ -809,7 +812,7 @@ Kein eigener Analytics-Screen in der Navigation.
 ### 17.1 Top-Navigation
 
 ```
-Mein Tag  ·  Sherloq AI SDR  ·  Hunting  ·  Farming
+Mein Tag  ·  Sherloq AI SDR  ·  Hunter  ·  Farmer
 ```
 
 ### 17.2 Linke Sidebar (56px, max 8 Icons)

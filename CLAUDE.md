@@ -88,8 +88,12 @@ Kurzfassung: PROGRESS.md + CHECKLIST.md aktualisieren, neue Komponenten in
 Diese acht Dateien in `/docs` sind **ab jetzt die maßgeblichen Referenzen** und ersetzen
 alle älteren Versionen (ältere Stände liegen in `/docs/archiv`, nicht gelöscht).
 CLAUDE.md = WARUM/WIE (Architektur & Regeln) · diese Dateien = vollständige fachliche
-Spezifikation. **Bei Widersprüchen zwischen einer in CLAUDE.md eingebetteten Kurzfassung
-und der Referenz gewinnt die Referenz.**
+Spezifikation.
+
+**Konflikt-Regel (verbindlich):** Pro Thema gibt es genau **einen kanonischen Wert**. Bei
+Widerspruch entscheidet **nicht der Dateityp, sondern die neueste getroffene Entscheidung**.
+Danach werden **ALLE** betroffenen Dateien angeglichen, bis kein Widerspruch übrig ist.
+CLAUDE.md und `/docs` werden **im selben Commit** aktualisiert.
 
 | Datei | Zuständigkeit |
 |---|---|
@@ -370,7 +374,7 @@ Horizontal pill navigation, absolut zentriert, Sliding-Pill-Animation.
 
 ### Left sidebar — `Sidebar.tsx`
 Icon-only Rail. **Verbindliche finale Struktur → siehe "Sidebar — finale Struktur"
-am Ende dieser Datei** (Screens · Kontakte · Tools · Settings/Profil, max 9 Icons).
+am Ende dieser Datei** (Screens · Kontakte · Companies · Settings/Profil, max 8 Icons).
 - Sub-nav je aktiver Sektion (z.B. Hunter → Signale · Stagnierende Deals · Follow-ups · Pipeline)
 - Mein Tag hat keine Sub-Items
 
@@ -499,7 +503,7 @@ Full schema in `docs/database.md`. Key points:
 - **`users`** — `role` = Permission-Rolle: `owner | admin | member | viewer` (→ Admin-Regeln).
   Hunter/Farmer sind **keine** Rollen mehr, sondern Nav-Fokus (welche Screens jemand nutzt)
 - **`companies`** — `cluster TEXT[]` (array, multi-value), `kurzakte TEXT` (AI-maintained), `heat_status`, `churn_risk_level`
-- **`contacts`** — `personality_type TEXT` (rot/gelb/gruen/blau, AI-derived), Sherloq usage fields — Kurzakte lebt in eigener Tabelle `kurzakte_entries` (Append-Only)
+- **`contacts`** — `personality_profile JSONB` (3 Dimensionen: style/decision/tempo — kein DISG, AI-derived) + `personality_confidence`, Sherloq usage fields — Kurzakte lebt in eigener Tabelle `kurzakte_entries` (Append-Only)
 - **`communications`** — basis for engagement chain, heat status calc, Kurzakte updates
 - **`pipeline_deals`** — `deal_volume` is a PostgreSQL generated column: `(mrr × contract_duration_months) + one_off`
 - **`pipeline_stages`** — stages stored in DB, not hardcoded. `pipeline_deals.stage` stores the stage `id`, not the name
@@ -752,12 +756,15 @@ Backlog → Demo vereinbart → Follow-up offen → Onboarding offen → Free Tr
 
 ```json
 settings.pipeline_stages = [
-  { "name": "Backlog", "order": 1, "stagnation_days": 7,  "probability": 10 },
-  { "name": "Demo vereinbart", "order": 2, "stagnation_days": 5, "probability": 30 },
+  { "slug": "backlog",         "name": "Backlog",          "order": 1, "stagnation_days": 7,  "probability": 10 },
+  { "slug": "demo_vereinbart", "name": "Demo vereinbart",  "order": 2, "stagnation_days": 5,  "probability": 30 },
   ...
 ]
 ```
 
+- **`deals.stage` speichert den Slug** (lowercase_underscore): `backlog`, `demo_vereinbart`,
+  `followup_offen`, `onboarding_offen`, `free_trial`, `gewonnen` (+ terminal `verloren`).
+  Der **Anzeigename** kommt aus `settings.pipeline_stages[].name` — nie den Anzeigenamen speichern.
 - **`deals.probability`** erbt beim Stage-Wechsel den **Stage-Default**, kann aber
   **pro Deal überschrieben** werden (manueller Wert gewinnt, bis Stage erneut wechselt).
 - **Gewichteter Pipeline-Wert = `deals.value × deals.probability`** — Grundlage für
@@ -2755,7 +2762,7 @@ Jeder `aiCall()` für Outreach bekommt diesen Kontext:
 const context = {
   // Kontakt
   kurzakte:             contact.kurzakte,
-  persoenlichkeitstyp:  contact.personality_type,
+  persoenlichkeitsprofil: contact.personality_profile,  // 3 Dimensionen (kein DISG)
   letzteKommunikationen: last3Communications,
   bevorzugterKanal:     preferredChannel,
 
@@ -2960,9 +2967,11 @@ Alles läuft in eine Inbox — sortiert nach Intent und Dringlichkeit.
 
 ### Platzierung
 
-Eigenes Icon in der linken Sidebar im **Tools-Bereich** (→ "Sidebar — finale Struktur").
-Badge mit Zahl wenn ungelesene Antworten vorhanden (rot, `rounded-pill`).
-Badge verschwindet wenn alle Antworten verarbeitet sind.
+**Kein eigener Screen und kein Sidebar-Icon** (kanonisch, UI-Referenz §20). Der eine
+universale Posteingang lebt **inline im AI SDR** als „Inbox Intelligence" im Outreach-Tab
+(UI-Referenz §10.6); `requires_human` erscheint zusätzlich direkt in der Sequenz-Kachel.
+Badge mit Zahl ungelesener Antworten (rot, `rounded-pill`) im AI-SDR-Kontext; verschwindet
+wenn alle Antworten verarbeitet sind.
 
 ### Was im Posteingang erscheint
 
@@ -3606,15 +3615,31 @@ anpassbar (v1)** + **eigene Signale via AI (v2, Architektur jetzt vorbereiten)**
 **ohne extra API-Call** (Daten liegen im Score-Objekt).
 
 ### Churn Risk
-**Basis-Signale (fix, nicht entfernbar):** letzter Kontakt (Tage) · kein Reply · Heat kalt ·
-Heat tot · überfällige Tasks · negatives Sentiment · Vertrag läuft aus.
+**Kanonisch: zweischichtige Progressive-Data-Logic** (aus `score_churn_risk()`,
+→ `docs/sales_os_edge_functions_v2.md`). Nur **verfügbare** Datenpunkte werden addiert,
+Score auf 0–100 normalisiert; fehlende Quellen werden ignoriert (nicht als 0 gewertet).
 
-**v1 — Gewichtung anpassbar** (Admin, Slider in Settings → Farmer → Churn Risk),
-gespeichert in `settings.thresholds.churn_weights` (JSONB):
-```json
-{ "last_contact_days": 20, "no_reply": 15, "heat_cold": 20, "heat_dead": 35,
-  "overdue_tasks": 15, "negative_sentiment": 20, "contract_expiring": 15 }
+**Basis-Score (immer verfügbar — aus Sales OS):**
 ```
+Letzter Kontakt > 30T        +25   (messages)
+Kein Reply auf letzte Mail   +20   (messages)
+Offene Tasks überfällig      +15   (tasks)
+Tage ohne Aktivität > 14T    +20   (contacts.last_contacted_at)
+Heat Status = Kalt/Tot       +20   (berechnet)
+```
+
+**Erweiterter Score (nur wenn externe Quelle verbunden):**
+```
+Letzter Login > 30T          +30   (Sherloq — wenn aktiv)
+Nutzung -50 % vs. Vormonat   +25   (Sherloq — wenn aktiv)
+Support-Tickets offen        +20   (Zendesk/Intercom — wenn verbunden)
+Vertrag läuft in 60T ab      +15   (Stripe — wenn verbunden)
+Kündigung angedeutet         +30   (classify_intent() — wenn vorhanden)
+```
+
+**Level-Bänder (überall gleich):** 0–30 low · 31–60 medium · 61–85 high · 86+ critical.
+Warnung erscheint ab **high**. Gewichtung pro Org anpassbar in
+`settings.thresholds.churn_weights`; die Signale selbst sind fix.
 
 **v2 — eigene Signale via AI** (`churn_rules` jetzt anlegen, auch wenn v1 sie nicht nutzt):
 ```sql
@@ -3638,6 +3663,14 @@ häufige Logins (15).
 
 **v1:** Gewichtung in `settings.thresholds.upsell_weights` (gleiche Logik wie churn_weights).
 **v2:** Tabelle `upsell_rules` (Struktur identisch zu `churn_rules`) — jetzt anlegen, Feature später.
+
+### Customer Health Score
+`calculate_health_score(contact_id)` (Edge Function, täglich Cron + nach jedem Signal/Message)
+verdichtet Churn + Upsell zu einem Health Score für den Farmer-Übersicht-Tab:
+`health_score = 100 − churn_score + (upsell_score × 0.2)`, normalisiert 0–100. Status:
+>70 gesund · 40–70 aufmerksamkeit · <40 kritisch. Tag: churn>60 „Churn Risk" · upsell>60
+„Upsell Ready" · sonst „Aktiv". Speichert `contacts.health_score`/`health_status` +
+`data_sources[]`. (→ `docs/sales_os_edge_functions_v2.md`)
 
 ### Hover-Tooltip (Churn + Upsell, überall wo der Score erscheint)
 Gilt für: Farmer-Kachel (Badge) · Customer Health Overview (Balken/Zahl) · Farmer Info
@@ -3889,10 +3922,12 @@ Spalten der Kontakte-Liste (basierend auf Design-Screenshot):
 Liste > 50 Zeilen → virtualisieren (→ Performance & Data Loading).
 
 ### Companies
-Verknüpftes Objekt — **kein** eigenständiger Nav-Punkt.
-- Sichtbar im Kontakt-Drawer als verknüpfte Company
-- Vollständige Company-Verwaltung nur in Settings (Admin only)
-- Via Cmd+K: "Alle Companies anzeigen"
+**Eigenes Sidebar-Icon** (entschieden Juni 2026 — `🏢 Companies` in der linken Sidebar,
+→ UI-Referenz §17.2). Eigene Listenansicht (§14), Schnell-Überblick als Side Panel (§15)
+und volle Company-Detailseite.
+- Auch sichtbar im Kontakt-Drawer als verknüpfte Company
+- Via Cmd+K zusätzlich erreichbar: "Alle Companies anzeigen"
+- Admin-spezifische Verwaltung (Duplikate mergen etc.) weiterhin in Settings
 
 **Zuordnungs-Regeln:**
 - Ein Kontakt = **eine primäre Company**
@@ -4060,7 +4095,7 @@ Das System stellt nur sicher: Unsubscribe-Link + Opt-out-Handling vorhanden.
 
 ## Sidebar — finale Struktur (verbindlich)
 
-Die linke Icon-Rail. Maximal **9 sichtbare Icons** — nie mehr.
+Die linke Icon-Rail. Maximal **8 sichtbare Icons** — nie mehr (kanonisch, UI-Referenz §17.2).
 Icons in der Implementierung sind **Lucide-Komponenten, niemals Emoji**
 (→ Design Invariants). Die Emoji hier dienen nur der Lesbarkeit.
 
@@ -4070,25 +4105,21 @@ Oben (Screens):
   🤖 ai-sdr          → Bot
   🎯 hunter          → Target
   🌱 farmer          → Sprout
-
+  ─────────────
 Mitte (Datenbank):
-  👥 kontakte        → Users   ← eigenständiger Screen
-
-Unten (Tools):
-  📥 posteingang     → Inbox
+  👥 kontakte        → Users      ← eigenständiger Screen
+  🏢 companies       → Building2   ← eigenständiger Screen
   ─────────────
-  ☑  tasks           → CheckSquare   (optional, via useModules)
-  🔔 notifications   → Bell
-  ─────────────
+Unten:
   ⚙  settings        → Settings
   👤 profil/avatar
 ```
 
-- Integrationen (Jira etc.) erscheinen NUR wenn das Modul aktiviert ist (`useModules`)
-- Modul-Gating gilt auch für `tasks` (optional)
-- Verhältnis zur Top-Nav: die vier Screens sind die primäre Navigation; ob sie
-  zusätzlich als Top-Pills erscheinen oder primär über die Rail laufen, ist eine
-  Umsetzungsfrage — diese Rail-Struktur ist verbindlich.
+- **Kein Posteingang-Icon** — `requires_human` erscheint inline im AI SDR (UI-Referenz §20),
+  kein eigener Inbox-Screen.
+- Notifications (Glocke) sitzt in der **Top-Bar**, nicht in der Rail. Tasks laufen über Cmd+K.
+- Integrationen (Jira etc.) erscheinen **zusätzlich nur** wenn das Modul aktiviert ist (`useModules`).
+- Verhältnis zur Top-Nav: die vier Screens sind die primäre Navigation; diese Rail-Struktur ist verbindlich.
 
 ---
 
@@ -4235,7 +4266,7 @@ Standard: Semi (User bestätigt bevor Sequence startet)
 
 > **Maßgebliche, vollständige Felddefinition:** `docs/sales_os_crm_felder.md`
 > (→ REFERENZ-DATEIEN). Die Tabelle unten ist die in CLAUDE.md
-> eingebettete Kurzfassung — bei Abweichung gewinnt die Referenz.
+> eingebettete Kurzfassung — bei Abweichung gilt die Konflikt-Regel (→ REFERENZ-DATEIEN).
 >
 > Referenz-Felddefinition für Kontakte & Companies. Grundlage für: DB-Schema,
 > UI-Dokumentation, AI-Studio-Prompts. **Noch nicht gebaut** — der Kontakte-Screen wird
@@ -4338,7 +4369,7 @@ Standard: Semi (User bestätigt bevor Sequence startet)
 | Feld | Typ | Kategorie | Hinweis |
 |---|---|---|---|
 | Plan / Subscription | Text | 🟡 Standard | Growth / Pro / Enterprise |
-| Subscription Status | Dropdown | 🔒 System | aktiv / pausiert / gekündigt |
+| Subscription Status | Dropdown | 🔒 System | Anzeige: Trial / Aktiv / Gekündigt (Slug: trial/active/churned, kein „pausiert") |
 | Aktiv seit | Datum | 🟡 Standard | |
 | Nächste Zahlung | Datum | 🔒 System | |
 | MRR / ARR | Währung | 🟡 Standard | |

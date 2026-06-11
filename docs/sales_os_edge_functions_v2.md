@@ -322,7 +322,7 @@ BOOKING_CREATED:
 1. Finde Lead via booking_link oder contact email
 2. contact_status → pipeline
 3. sequence_status → paused (nicht gelöscht)
-4. Deal automatisch anlegen (stage: 'discovery')
+4. Deal automatisch anlegen (stage: 'demo_vereinbart' — kanonischer Slug, nie 'discovery')
 5. Rufe prep_meeting(lead_id) auf
 6. Realtime-Event an UI (erscheint in Mein Tag Zone 1)
 7. audit_log Eintrag: 'booking_confirmed'

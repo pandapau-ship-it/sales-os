@@ -48,6 +48,7 @@ Sales OS ist modular gebaut. Diese Module können einzeln aktiviert/verkauft wer
 | **AI SDR** | Autonome Outreach-Sequenzen, AI-Nachrichten | Tier-Feature (ab Pro) |
 | **Hunter** | Pipeline-Management, Deal-Tracking, Signals | Tier-Feature |
 | **Farmer** | Customer Success, Churn, Upsell, Health Score | Tier-Feature (ab Pro) |
+| **AI Chat** | Steuerzentrale via natürliche Sprache, JSON-Block-Rendering | Tier-Feature (ab Growth) |
 | **Enrichment** | Surfe-Anreicherung von Kontakten/Companies | Add-on + Credits |
 | **Email-Verifizierung** | ZeroBounce Mailbox-Check | Add-on + Credits |
 | **Sherloq Signals** | LinkedIn-Signale, Intent-Daten | Add-on (Sherloq-Verbindung) |
@@ -77,6 +78,7 @@ Drei Tiers + Trial. "Good-Better-Best" — der bewährteste Aufbau.
 | Hunter (Pipeline) | ✅ | ✅ | ✅ | ✅ |
 | AI SDR (Outreach) | begrenzt | ✅ | ✅ | ✅ |
 | Farmer (Customer Success) | ❌ | ❌ | ✅ | ✅ |
+| AI Chat | ❌ | ❌ | ✅ | ✅ |
 | Kontakte (Limit) | 100 | 5.000 | 25.000 | unbegrenzt |
 | Aktive Campaigns | 1 | 5 | 20 | unbegrenzt |
 | Mailboxen | 1 | 3 | 10 | unbegrenzt |

@@ -93,7 +93,7 @@
 | Feld | Typ | Kategorie | Hinweis |
 |---|---|---|---|
 | Plan / Subscription | Text | 🟡 Standard | Growth / Pro / Enterprise |
-| Subscription Status | Dropdown | 🔒 System | aktiv / pausiert / gekündigt |
+| Subscription Status | Dropdown | 🔒 System | Anzeige: Trial / Aktiv / Gekündigt (Slug: trial/active/churned, kein „pausiert") |
 | Aktiv seit | Datum | 🟡 Standard | |
 | Nächste Zahlung | Datum | 🔒 System | |
 | MRR / ARR | Währung | 🟡 Standard | |
