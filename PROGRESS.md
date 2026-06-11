@@ -38,14 +38,14 @@ Reine Doku/Referenz-Arbeit auf Branch `feature/i18n-architektur` (kein App-Code)
   Side Panels + Task Modal, Provider-Entscheidungen, MODUL-SYSTEM, Win-Probability,
   CHECKLIST.md nachgezogen.
 - [x] **CLAUDE.md committet + zu GitHub gepusht** (Branch gepusht, trackt `origin`).
+- [x] **PR #7 squash-gemergt → `main`** (i18n-Code + alle Referenz-/Doku-Arbeit), Vercel-Preview grün.
+- [x] **PR #8 squash-gemergt → `main`** (i18n-Gerüst-Notiz). Beide Feature-/Chore-Branches gelöscht.
+- [x] **`main` sauber + synchron** (`d19a808`), Build-Gate grün. Nächste Arbeit wieder per Feature-Branch.
 
 **Offen / getrackt:** `personalityColors`-Token in `theme.ts` umbenennen (CHECKLIST) ·
-EN/ES übersetzen · restliche Screens auf `t()` migrieren · noch offene Entscheidungen
+EN/ES übersetzen (Phase 4) · restliche Screens auf `t()` migrieren · noch offene Entscheidungen
 (#1 Heat-Schwellen, #5 Upsell-Trigger, #19 CRM-Sync, #34 Sherloq bidirektional,
 #36b Video-Provider, #35 Hunter/Farmer-Prompts).
-
-**Branch-Hinweis:** `feature/i18n-architektur` trägt inzwischen viel Doku-Arbeit;
-beim finalen Merge ggf. umbenennen oder thematisch aufteilen.
 
 ---
 
