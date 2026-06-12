@@ -154,7 +154,7 @@ export default function ScreenHunting({
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-[20px] font-semibold text-[#212529] tracking-tight">Hunting (Outreach & Pipeline)</h1>
+          <h1 className="text-[20px] font-semibold text-[#212529] tracking-tight">Hunter</h1>
           <p className="text-[12px] text-[#868E96] mt-0.5">Finde Leads, tracke Signale und verwalte Abschlussphasen.</p>
         </div>
         <button
@@ -167,22 +167,23 @@ export default function ScreenHunting({
       </div>
 
       {/* Sub-Navigation (Section 12) */}
-      <div className="flex gap-2 p-1.5 bg-white rounded-full shadow-[0_4px_20px_rgb(0,0,0,0.04)] w-fit items-center">
+      <div className="flex gap-1 p-1 bg-white rounded-[12px] shadow-[0_4px_20px_rgb(0,0,0,0.04)] w-fit items-center">
         {menuItems.map((item) => {
           const isActive = subTab === item.id;
           return (
             <button
               key={item.id}
               onClick={() => setSubTab(item.id as any)}
-              className={`px-4.5 py-1.5 text-[12px] font-medium transition-all rounded-full cursor-pointer flex items-center gap-1.5 ${
+              style={isActive ? { background: "var(--sherloq-gradient)" } : undefined}
+              className={`px-4.5 py-1.5 text-[12px] font-medium transition-all rounded-[9px] cursor-pointer flex items-center gap-1.5 ${
                 isActive
-                  ? 'bg-[#125455] text-white shadow-sm'
+                  ? 'text-white shadow-sm'
                   : 'text-[#495057] hover:bg-[#F8F9FA] hover:text-[#212529]'
               }`}
             >
               <span>{item.label}</span>
               {item.count !== null && (
-                <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full ${isActive ? 'bg-white text-[#175253]' : 'bg-[#E9ECEF] text-[#495057]'}`}>
+                <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-[5px] ${isActive ? 'bg-white text-[#175253]' : 'bg-[#E9ECEF] text-[#495057]'}`}>
                   {item.count}
                 </span>
               )}
