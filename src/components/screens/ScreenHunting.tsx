@@ -43,6 +43,7 @@ import { LinkedinSignalCard } from '@/components/shared/LinkedinSignalCard';
 import SignalActionDrawer from '@/components/shared/SignalActionDrawer';
 import type { SignalActionData } from '@/components/shared/SignalActionDrawer';
 import HunterCard from '@/components/shared/HunterCard';
+import HunterSidepanel from '@/components/shared/HunterSidepanel';
 import { ACTION_ROW } from '@/lib/componentBehavior';
 import PipelineStagnatedDrawer from '@/components/shared/PipelineStagnatedDrawer';
 import ContactColdDrawer from '@/components/shared/ContactColdDrawer';
@@ -89,6 +90,8 @@ export default function ScreenHunting({
   const [selectedStagnatedPerson, setSelectedStagnatedPerson] = useState<any | null>(null);
   const [selectedColdPerson, setSelectedColdPerson] = useState<any | null>(null);
   const [selectedNoTaskPerson, setSelectedNoTaskPerson] = useState<any | null>(null);
+  // Info-Panel (§22.1, 820px) — vorerst NUR im Leads-Tab inline rechts neben der Liste.
+  const [infoPanelLead, setInfoPanelLead] = useState<Lead | null>(null);
 
   const toggleLeadSelection = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -407,8 +410,9 @@ export default function ScreenHunting({
 
       {/* 2. VIEW LEADS (LIST) */}
       {subTab === 'leads' && (
-        <div className="flex flex-col gap-4">
-          
+        <div className="flex gap-5 items-start">
+          <div className={`flex flex-col gap-4 min-w-0 ${infoPanelLead ? 'flex-1' : 'w-full'}`}>
+
           {/* List Actions / Select All Bar */}
           <div className={`transition-all duration-300 flex items-center justify-between px-2 ${selectedLeadIds.length > 0 ? 'opacity-100 h-10 mb-2' : 'opacity-0 h-0 overflow-hidden'}`}>
             <div className="flex items-center gap-3">
@@ -513,11 +517,11 @@ export default function ScreenHunting({
                       <button className="w-8 h-8 flex items-center justify-center text-[var(--icon-muted)] hover:text-[var(--text-primary)] transition-colors rounded-full hover:bg-[var(--app-bg)]">
                         {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                       </button>
-                      <button 
+                      <button
                         className="w-10 h-10 rounded-full bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)] hover:bg-[var(--signal-teal-bg)] hover:scale-105 transition-all flex items-center justify-center shadow-sm"
                         onClick={(e) => {
                           e.stopPropagation();
-                          onSelectLead(lead);
+                          setInfoPanelLead(lead);
                         }}
                       >
                         <ArrowRight className="w-4 h-4" />
@@ -619,6 +623,17 @@ export default function ScreenHunting({
               </div>
             );
           })}
+          </div>
+
+          {/* Info Panel (§22.1) — rechts neben der Liste, schließt nur via X */}
+          {infoPanelLead && (
+            <div className="shrink-0 sticky top-4 self-start h-[calc(100vh-7rem)] hidden xl:block">
+              <HunterSidepanel
+                person={infoPanelLead.person}
+                onClose={() => setInfoPanelLead(null)}
+              />
+            </div>
+          )}
         </div>
       )}
 
