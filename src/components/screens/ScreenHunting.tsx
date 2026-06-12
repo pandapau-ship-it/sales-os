@@ -35,6 +35,7 @@ import { PipelineStagniertCard } from '@/components/shared/PipelineStagniertCard
 import { PipelineKeineTaskCard } from '@/components/shared/PipelineKeineTaskCard';
 import FunnelAnalysis from '@/components/shared/FunnelAnalysis';
 
+import Avatar from '@/components/shared/Avatar';
 import TaskDrawer from '@/components/shared/TaskDrawer';
 import { LinkedinSignalCard } from '@/components/shared/LinkedinSignalCard';
 import SignalActionDrawer from '@/components/shared/SignalActionDrawer';
@@ -167,7 +168,7 @@ export default function ScreenHunting({
       </div>
 
       {/* Sub-Navigation (Section 12) */}
-      <div className="flex gap-1 p-1 bg-white rounded-[12px] shadow-[0_4px_20px_rgb(0,0,0,0.04)] w-fit items-center">
+      <div className="flex gap-1 p-1 bg-white rounded-[12px] shadow-[var(--shadow-card)] w-fit items-center">
         {menuItems.map((item) => {
           const isActive = subTab === item.id;
           return (
@@ -199,7 +200,7 @@ export default function ScreenHunting({
           <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
             
             {/* KPI Card 1: Pipeline-Wert */}
-            <div className="bg-white rounded-[24px] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col justify-between h-[160px] hover:shadow-md transition-shadow relative">
+            <div className="bg-white rounded-[12px] p-6 shadow-[var(--shadow-card)] flex flex-col justify-between h-[160px] hover:shadow-md transition-shadow relative">
               <div className="flex justify-between items-start">
                 <span className="text-[12px] font-bold text-gray-400 uppercase tracking-widest">
                   Pipeline Wert
@@ -220,7 +221,7 @@ export default function ScreenHunting({
             </div>
 
             {/* KPI Card 2: Deals in Gefahr */}
-            <div className="bg-white rounded-[24px] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col justify-between h-[160px] hover:shadow-md transition-shadow relative">
+            <div className="bg-white rounded-[12px] p-6 shadow-[var(--shadow-card)] flex flex-col justify-between h-[160px] hover:shadow-md transition-shadow relative">
               <div className="flex justify-between items-start">
                 <span className="text-[12px] font-bold text-gray-400 uppercase tracking-widest">
                   Deals in Gefahr
@@ -241,7 +242,7 @@ export default function ScreenHunting({
             </div>
 
             {/* KPI Card 3: Heisse Signale */}
-            <div className="bg-white rounded-[24px] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col justify-between h-[160px] hover:shadow-md transition-shadow relative">
+            <div className="bg-white rounded-[12px] p-6 shadow-[var(--shadow-card)] flex flex-col justify-between h-[160px] hover:shadow-md transition-shadow relative">
               <div className="flex justify-between items-start">
                 <span className="text-[12px] font-bold text-gray-400 uppercase tracking-widest">
                   Heisse Signale
@@ -262,7 +263,7 @@ export default function ScreenHunting({
             </div>
 
             {/* KPI Card 4: Follow-ups heute */}
-            <div className="bg-white rounded-[24px] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col justify-between h-[160px] hover:shadow-md transition-shadow relative">
+            <div className="bg-white rounded-[12px] p-6 shadow-[var(--shadow-card)] flex flex-col justify-between h-[160px] hover:shadow-md transition-shadow relative">
               <div className="flex justify-between items-start">
                 <span className="text-[12px] font-bold text-gray-400 uppercase tracking-widest">
                   Follow-ups heute
@@ -311,7 +312,7 @@ export default function ScreenHunting({
 
 
             {/* Card 1: Sarah Jenkins */}
-            <div className="group rounded-[32px] overflow-hidden flex flex-col shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.06)] border border-[var(--border-subtle)] bg-white cursor-pointer transition-all duration-300">
+            <div className="group rounded-[12px] overflow-hidden flex flex-col shadow-[var(--shadow-card)] hover:shadow-md border border-[var(--border-card)] bg-white cursor-pointer transition-all duration-300">
               {/* TOP ROW */}
               <div className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-6">
                 
@@ -410,7 +411,7 @@ export default function ScreenHunting({
             </div>
 
             {/* Card 2: Marc Levigne */}
-            <div className="group rounded-[32px] overflow-hidden flex flex-col shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.06)] border border-[var(--border-subtle)] bg-white cursor-pointer transition-all duration-300">
+            <div className="group rounded-[12px] overflow-hidden flex flex-col shadow-[var(--shadow-card)] hover:shadow-md border border-[var(--border-card)] bg-white cursor-pointer transition-all duration-300">
               {/* TOP ROW */}
               <div className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-6">
                 
@@ -504,7 +505,7 @@ export default function ScreenHunting({
             </div>
 
             {/* Card 3: Elena Rostova */}
-            <div className="group rounded-[32px] overflow-hidden flex flex-col shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.06)] border border-[var(--border-subtle)] bg-white cursor-pointer transition-all duration-300">
+            <div className="group rounded-[12px] overflow-hidden flex flex-col shadow-[var(--shadow-card)] hover:shadow-md border border-[var(--border-card)] bg-white cursor-pointer transition-all duration-300">
               {/* TOP ROW */}
               <div className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-6">
                 
@@ -646,7 +647,7 @@ export default function ScreenHunting({
             return (
               <div
                 key={lead.id}
-                className={`group rounded-[32px] p-5 flex flex-col gap-4 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.06)] transition-all duration-300 cursor-pointer border border-[var(--border-subtle)] relative ${
+                className={`group rounded-[12px] p-4 flex flex-col gap-4 shadow-[var(--shadow-card)] hover:shadow-md transition-all duration-300 cursor-pointer border border-[var(--border-card)] relative ${
                   selectedLeadIds.includes(lead.id) ? 'bg-[var(--signal-teal-bg)]' : 'bg-white'
                 }`}
                 onClick={() => setExpandedLeadId(isExpanded ? null : lead.id)}
@@ -667,13 +668,7 @@ export default function ScreenHunting({
                   {/* Avatar & Info */}
                   <div className="flex items-center gap-4 flex-1 min-w-0 ml-0 group-hover:ml-8 transition-all duration-300">
                     <div className="relative shrink-0">
-                      {lead.person.avatarUrl ? (
-                        <img src={lead.person.avatarUrl} alt={lead.person.name} className="w-10 h-10 rounded-full object-cover shadow-sm" />
-                      ) : (
-                        <div className="w-10 h-10 rounded-full bg-[var(--sherloq-primary)] text-white flex items-center justify-center text-[13px] font-bold shadow-sm">
-                          {lead.person.initials}
-                        </div>
-                      )}
+                      <Avatar name={lead.person.name} src={lead.person.avatarUrl} size={40} />
                       <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-[var(--signal-info-text)] border-2 border-white rounded-full"></div>
                     </div>
                     <div className="flex flex-col min-w-0">
@@ -694,7 +689,7 @@ export default function ScreenHunting({
                       <div className="bg-[var(--text-primary)] text-white text-[14px] w-[40px] h-[40px] flex items-center justify-center rounded-[12px] font-bold shrink-0">
                         {lead.person.company.charAt(0).toUpperCase()}
                       </div>
-                      <span className="text-[14px] text-[var(--text-body)] font-semibold w-[120px] truncate">{lead.person.company}</span>
+                      <span className="text-[14px] text-[var(--sherloq-primary)] font-semibold w-[120px] truncate">{lead.person.company}</span>
                     </div>
                   </div>
 
@@ -744,7 +739,7 @@ export default function ScreenHunting({
                   <div className="flex flex-col gap-6 border-t border-[var(--border-subtle)] pt-5 mt-2" onClick={(e) => e.stopPropagation()}>
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
                       {/* Left Column (KI Kurzakte) */}
-                      <div className="md:col-span-7 bg-white rounded-[24px] p-5 border border-[var(--border)]">
+                      <div className="md:col-span-7 bg-white rounded-[12px] p-5 border border-[var(--border)]">
                         <div className="flex items-center gap-2 text-[11px] font-bold font-mono text-[var(--sherloq-primary)] uppercase tracking-wider mb-4">
                           <Zap className="w-4 h-4 text-[var(--sherloq-primary)]" /> KI Kurzakte
                         </div>
@@ -771,7 +766,7 @@ export default function ScreenHunting({
                       {/* Right Column (Deal Details & Aktionen) */}
                       <div className="md:col-span-5 flex flex-col gap-5">
                         {/* Deal Details */}
-                        <div className="bg-white rounded-[24px] p-5 border border-[var(--border)]">
+                        <div className="bg-white rounded-[12px] p-5 border border-[var(--border)]">
                           <div className="flex items-center gap-2 text-[11px] font-bold font-mono text-[var(--text-muted)] uppercase tracking-wider mb-4">
                             <Briefcase className="w-4 h-4" /> Deal Details
                           </div>
@@ -798,7 +793,7 @@ export default function ScreenHunting({
                         </div>
 
                         {/* Aktionen */}
-                        <div className="bg-white rounded-[24px] p-5 border border-[var(--border)]">
+                        <div className="bg-white rounded-[12px] p-5 border border-[var(--border)]">
                           <div className="flex items-center gap-2 text-[11px] font-bold font-mono text-[var(--text-muted)] uppercase tracking-wider mb-4">
                             <Target className="w-4 h-4" /> Aktionen
                           </div>
@@ -911,7 +906,7 @@ export default function ScreenHunting({
                 return (
                   <div key={col.id} className="flex-1 min-w-[290px] w-[290px] max-w-[290px] flex flex-col h-fit transition-all duration-300 relative">
                     {/* Column Header */}
-                    <div className="bg-white rounded-[24px] p-4 shadow-[0_4px_20px_rgb(0,0,0,0.04)] mb-4">
+                    <div className="bg-white rounded-[12px] p-4 shadow-[var(--shadow-card)] mb-4">
                       <div className="flex justify-between items-center mb-3">
                         <div className="flex items-center gap-2">
                           <h3 className="font-bold text-[15px] text-[var(--text-primary)]">{col.title}</h3>
@@ -962,19 +957,13 @@ export default function ScreenHunting({
                           else if (lead.heatStatus === 'WARM') pill = { label: 'Demo Call', colorClass: 'text-red-600 bg-red-50 border border-red-100/50', icon: <AlertTriangle className="w-3 h-3" /> };
                           
                           return (
-                            <div key={lead.id} className="bg-white rounded-[24px] p-4 shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.08)] transition-all duration-300 relative group">
+                            <div key={lead.id} className="bg-white rounded-[12px] p-4 shadow-[var(--shadow-card)] hover:shadow-md transition-all duration-300 relative group">
                               <div className="flex justify-between items-start mb-4">
                                 <div className="flex items-center gap-3">
-                                  {lead.person.avatarUrl ? (
-                                    <img src={lead.person.avatarUrl} alt={lead.person.name} className="w-10 h-10 rounded-full object-cover shadow-sm shrink-0" />
-                                  ) : (
-                                    <div className="w-10 h-10 rounded-full bg-[var(--sherloq-primary)] text-white flex items-center justify-center text-[12px] font-bold shadow-sm shrink-0">
-                                      {lead.person.initials}
-                                    </div>
-                                  )}
+                                  <Avatar name={lead.person.name} src={lead.person.avatarUrl} size={40} />
                                   <div className="flex flex-col min-w-0">
                                     <span className="font-bold text-[13px] text-[var(--text-primary)] leading-tight truncate">{lead.person.name}</span>
-                                    <span className="text-[11px] text-gray-500 leading-tight truncate mt-0.5">{lead.person.company}</span>
+                                    <span className="text-[11px] text-[var(--sherloq-primary)] leading-tight truncate mt-0.5">{lead.person.company}</span>
                                     {lead.dealValue && (
                                       <span className="text-[11px] font-bold text-[var(--text-primary)] mt-1">
                                         {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(lead.dealValue)}
@@ -1192,7 +1181,7 @@ export default function ScreenHunting({
       {/* QUICK ADD MODAL */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black/35 backdrop-blur-xs flex items-center justify-center z-50 animate-fade-in">
-          <div className="w-full max-w-[460px] bg-white rounded-[24px] border border-[var(--border)] p-6 shadow-2xl relative">
+          <div className="w-full max-w-[460px] bg-white rounded-[12px] border border-[var(--border)] p-6 shadow-2xl relative">
             <h2 className="text-[15px] font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
               <Target className="w-5 h-5 text-[var(--sherloq-primary)]" />
               Neuen SDR Lead anlegen

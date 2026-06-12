@@ -1,10 +1,12 @@
 /**
  * Avatar — Initialen-Fallback, optional Bild.
- * Größen: sm (28px) / md (36px) / lg (44px).
+ * Größen: sm (28px) / md (36px) / lg (44px) — oder beliebige Pixelzahl (z.B. 40).
  * Form: rounded-[10px] (Avatar-Ebene der Radius-Hierarchie, CLAUDE.md) —
- * konsistent mit den Avataren in TopBar/Sidebar.
+ * konsistent mit den Avataren in TopBar/Sidebar und den Hunter-Kacheln.
+ * Kaputte Bild-URLs (onError) fallen automatisch auf Initialen zurück.
  */
 
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 type AvatarSize = "sm" | "md" | "lg";
@@ -26,25 +28,33 @@ function initials(name: string): string {
 interface AvatarProps {
   name: string;
   src?: string;
-  size?: AvatarSize;
+  size?: AvatarSize | number;
   className?: string;
 }
 
 export default function Avatar({ name, src, size = "md", className }: AvatarProps) {
-  const px = PX[size];
+  const [errored, setErrored] = useState(false);
+  const px = typeof size === "number" ? size : PX[size];
+  const font = typeof size === "number" ? "text-[13px]" : FONT[size];
+  const showImg = Boolean(src) && !errored;
   return (
     <div
       style={{ width: px, height: px }}
       className={cn(
         "rounded-[10px] overflow-hidden shrink-0 flex items-center justify-center select-none",
         "bg-sherloq-primary text-white font-semibold",
-        FONT[size],
+        font,
         className,
       )}
       aria-label={name}
     >
-      {src ? (
-        <img src={src} alt={name} className="w-full h-full object-cover" />
+      {showImg ? (
+        <img
+          src={src}
+          alt={name}
+          onError={() => setErrored(true)}
+          className="w-full h-full object-cover"
+        />
       ) : (
         initials(name)
       )}
