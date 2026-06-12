@@ -505,8 +505,8 @@ Full schema in `docs/database.md`. Key points:
 - **`companies`** — `cluster TEXT[]` (array, multi-value), `kurzakte TEXT` (AI-maintained), `heat_status`, `churn_risk_level`
 - **`contacts`** — `personality_profile JSONB` (3 Dimensionen: style/decision/tempo — kein DISG, AI-derived) + `personality_confidence`, Sherloq usage fields — Kurzakte lebt in eigener Tabelle `kurzakte_entries` (Append-Only)
 - **`communications`** — basis for engagement chain, heat status calc, Kurzakte updates
-- **`deals`** — `deal_volume` is a PostgreSQL generated column: `(mrr × contract_duration_months) + one_off`
-- **`pipeline_stages`** — stages stored in DB, not hardcoded. `deals.stage` stores the stage `id`, not the name
+- **`deals`** — `value BIGINT` (Deal-Wert in Cent) + `probability INT` (Win-% 0–100, erbt Stage-Default). Gewichteter Pipeline-Wert = `value × probability`
+- **`settings.pipeline_stages`** — Stages als JSONB (top-level), nicht hardcodiert. `deals.stage` speichert den **Slug** (`backlog`…`gewonnen`/`verloren`), nicht den Anzeigenamen — Name kommt aus `settings.pipeline_stages[].name`
 - **`tasks`** — never delete, only set `status = deleted`. System-generated tasks always have `suggested_channel` + `suggested_message`
 - **`system_config`** — every configurable threshold/value lives here, not in code
 - **`audit_log`** — every write (UI, chat, Cmd+K, routine) must create an entry here
@@ -3942,7 +3942,7 @@ abgeschlossen werden — das Datenmodell muss beides abbilden.
 
 `deals` bekommt daher zwei optionale Verknüpfungen:
 ```sql
--- auf deals (zusätzlich zu stage, deal_volume, mrr … und organization_id):
+-- auf deals (zusätzlich zu stage, value, probability … und organization_id):
 company_id  UUID NULL REFERENCES companies(id)   -- Deal mit einer Company
 contact_id  UUID NULL REFERENCES contacts(id)    -- Deal mit einer Einzelperson
 -- Pflicht: mindestens eines von beiden gesetzt (CHECK), beide gleichzeitig erlaubt
