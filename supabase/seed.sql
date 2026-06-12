@@ -1,0 +1,7 @@
+-- supabase/seed.sql
+-- Der eigentliche Seed (Demo-Org + settings mit allen Schwellenwerten) liegt in
+-- der versionierten Migration `migrations/012_settings_seed.sql`, damit er Teil der
+-- Migrationshistorie ist (Phase-1-Vorgehen Option a: schreiben/committen, nicht ausführen).
+--
+-- Diese Datei bleibt bewusst leer und dient nur der Supabase-Ordnerstruktur.
+-- Bei einem späteren `supabase db reset` kann hier dev-only Demo-Datensatz-Seed ergänzt werden.

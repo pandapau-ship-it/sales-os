@@ -27,7 +27,7 @@
 - [ ] Ownership-Felder überall: `created_by`, `assigned_to` — *Rollen/Verantwortung von Tag 1*
 
 ### Kern-Tabellen
-- [ ] users, contacts, companies, pipeline_deals, communications, tasks
+- [ ] users, contacts, companies, deals, communications, tasks
 - [ ] sequences, sequence_rules, contact_sequences, kurzakte_entries *(Append-Only)*
 - [ ] signals — *inkl. `routed_to`/`routed_at`/`routing_reason` (Signal Routing)*
 - [ ] user_modules, system_config, audit_log, ai_usage, error_log
@@ -40,7 +40,7 @@
 - [ ] users.role = `owner|admin|member|viewer` — *kanonisches Permission-Modell*
 - [ ] audit_log Schema: action/object_type/object_id/old_value/new_value (read-only)
 - [ ] automation_rules — *globaler Risk-Override pro Org (low/medium_risk_auto, medium_confidence)*
-- [ ] pipeline_deals: `company_id` NULL + `contact_id` NULL + CHECK (mind. eines gesetzt) — *Deal von Company ODER Person*
+- [ ] deals: `company_id` NULL + `contact_id` NULL + CHECK (mind. eines gesetzt) — *Deal von Company ODER Person*
 - [ ] Deals manuell anlegbar (Inline, Cmd+K, Drawer) via Edge Function — *Owner = Company/Person, audit_log*
 - [ ] contacts CHECK: (`vorname` + `nachname`) ODER `linkedin_url` gesetzt — *Pflichtfeld-Minimum beim Anlegen*
 - [ ] companies CHECK: `name NOT NULL` — *einziges Pflichtfeld*

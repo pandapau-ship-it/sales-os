@@ -62,7 +62,7 @@ export function subscribeToDeals<T>(
   organizationId: string,
   onChange: (change: RealtimeChange<T>) => void,
 ): Unsubscribe {
-  return subscribeToTable<T>("pipeline_deals", organizationId, onChange);
+  return subscribeToTable<T>("deals", organizationId, onChange);
 }
 
 /** Live-Updates der Benachrichtigungen (Glocken-Badge). */
