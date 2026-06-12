@@ -7,7 +7,7 @@
  * Shell nutzbar ist; mit Backend wird echte Auth erzwungen.
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   BrowserRouter,
   Routes,
@@ -23,6 +23,8 @@ import { isSupabaseConfigured } from "@/lib/db";
 import Sidebar from "@/components/layout/Sidebar";
 import TopBar from "@/components/layout/TopBar";
 import Login from "@/components/auth/Login";
+import CommandPalette from "@/components/shared/CommandPalette";
+import { ToastProvider } from "@/components/shared/Toast";
 
 /** Platzhalter-Screen für alles, was noch nicht gebaut ist. */
 function ComingSoon({ nameKey }: { nameKey: string }) {
@@ -36,8 +38,20 @@ function ComingSoon({ nameKey }: { nameKey: string }) {
 
 /** Layout-Shell: TopBar oben, Sidebar links, Screen im Outlet. */
 function AppLayout() {
-  const [, setShowPalette] = useState(false);
-  // CommandPalette wird in Schritt 8 hier eingehängt (setShowPalette).
+  const [showPalette, setShowPalette] = useState(false);
+
+  // Globaler Cmd/Ctrl+K Shortcut öffnet die Command Palette.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setShowPalette((p) => !p);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col bg-app-bg text-text-body font-sans">
       <TopBar onOpenCommandPalette={() => setShowPalette(true)} />
@@ -47,6 +61,7 @@ function AppLayout() {
           <Outlet />
         </main>
       </div>
+      <CommandPalette open={showPalette} onOpenChange={setShowPalette} />
     </div>
   );
 }
@@ -62,8 +77,9 @@ function Protected({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
+    <ToastProvider>
+      <BrowserRouter>
+        <Routes>
         <Route path="/" element={<Login />} />
         <Route
           path="/app"
@@ -82,8 +98,9 @@ export default function App() {
           <Route path="companies" element={<ComingSoon nameKey="nav.companies" />} />
           <Route path="settings" element={<ComingSoon nameKey="nav.settings" />} />
         </Route>
-        <Route path="*" element={<Navigate to="/app/meintag" replace />} />
-      </Routes>
-    </BrowserRouter>
+          <Route path="*" element={<Navigate to="/app/meintag" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </ToastProvider>
   );
 }

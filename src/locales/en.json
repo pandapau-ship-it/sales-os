@@ -59,5 +59,25 @@
   "theme": {
     "light": "Light Mode",
     "dark": "Dark Mode"
+  },
+  "cmdk": {
+    "placeholder": "Suchen oder Aktion wählen…",
+    "empty": "Keine Treffer.",
+    "navigation": "Navigation",
+    "quickActions": "Schnellaktionen",
+    "newContact": "Neuer Kontakt",
+    "newTask": "Neue Task",
+    "newDeal": "Neuer Deal"
+  },
+  "login": {
+    "title": "Bei Sales OS anmelden",
+    "subtitle": "Willkommen zurück",
+    "email": "E-Mail",
+    "password": "Passwort",
+    "emailPlaceholder": "name@firma.de",
+    "passwordPlaceholder": "••••••••",
+    "submit": "Anmelden",
+    "loading": "Wird angemeldet…",
+    "error": "Ungültige Anmeldedaten"
   }
 }
