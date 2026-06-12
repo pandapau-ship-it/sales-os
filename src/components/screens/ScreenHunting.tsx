@@ -1295,15 +1295,13 @@ export default function ScreenHunting({
         onClose={() => setSelectedSignal(null)}
       />
 
-      {selectedStagnatedPerson && (
-        <PipelineStagnatedDrawer
-          person={selectedStagnatedPerson}
-          onClose={() => setSelectedStagnatedPerson(null)}
-          onTakeAction={(text) => {
-            console.log('Took action with text:', text);
-          }}
-        />
-      )}
+      <PipelineStagnatedDrawer
+        person={selectedStagnatedPerson}
+        onClose={() => setSelectedStagnatedPerson(null)}
+        onTakeAction={(text) => {
+          console.log('Took action with text:', text);
+        }}
+      />
 
       <ContactColdDrawer
         person={selectedColdPerson}
