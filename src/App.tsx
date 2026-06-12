@@ -25,6 +25,12 @@ import TopBar from "@/components/layout/TopBar";
 import Login from "@/components/auth/Login";
 import CommandPalette from "@/components/shared/CommandPalette";
 import { ToastProvider } from "@/components/shared/Toast";
+// Referenz-Wiring der fertigen Bestands-Screens mit Mock-Daten (temporär, Phase 2 ersetzt es).
+import {
+  MeinTagReference,
+  HunterReference,
+  FarmerReference,
+} from "@/components/reference/ReferenceScreens";
 
 /** Platzhalter-Screen für alles, was noch nicht gebaut ist. */
 function ComingSoon({ nameKey }: { nameKey: string }) {
@@ -90,10 +96,10 @@ export default function App() {
           }
         >
           <Route index element={<Navigate to="meintag" replace />} />
-          <Route path="meintag" element={<ComingSoon nameKey="nav.meintag" />} />
+          <Route path="meintag" element={<MeinTagReference />} />
           <Route path="ai-sdr" element={<ComingSoon nameKey="nav.aisdr" />} />
-          <Route path="hunter" element={<ComingSoon nameKey="nav.hunter" />} />
-          <Route path="farmer" element={<ComingSoon nameKey="nav.farmer" />} />
+          <Route path="hunter" element={<HunterReference />} />
+          <Route path="farmer" element={<FarmerReference />} />
           <Route path="kontakte" element={<ComingSoon nameKey="nav.kontakte" />} />
           <Route path="companies" element={<ComingSoon nameKey="nav.companies" />} />
           <Route path="settings" element={<ComingSoon nameKey="nav.settings" />} />
