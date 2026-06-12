@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { AlertTriangle, Snowflake, X, Sparkles, RotateCw, Send, Check } from "lucide-react";
+import LinkedinIcon from "@/components/shared/LinkedinIcon";
 
 export interface ContactColdDrawerProps {
   person: {
@@ -79,10 +80,10 @@ export default function ContactColdDrawer({ person, onClose }: ContactColdDrawer
                 <h3 className="text-[15px] font-bold text-gray-900 leading-none">
                   {person.name}
                 </h3>
-                <span className="px-2 py-0.5 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-[9px] font-extrabold tracking-wide">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-[9px] font-extrabold tracking-wide">
                   Kalt <Snowflake className="w-2.5 h-2.5" />
                 </span>
-                <span className="px-2 py-0.5 rounded-full bg-red-50 border border-red-100 text-red-600 text-[9px] font-extrabold tracking-wide">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-50 border border-red-100 text-red-600 text-[9px] font-extrabold tracking-wide">
                   {person.daysInStage}T in Stage <AlertTriangle className="w-2.5 h-2.5" />
                 </span>
               </div>
@@ -190,7 +191,7 @@ export default function ContactColdDrawer({ person, onClose }: ContactColdDrawer
             <div className="bg-white rounded-[18px] border border-gray-200 shadow-sm overflow-hidden">
               <div className="px-4 py-3 bg-[var(--channel-linkedin)] text-white text-[12px] flex items-center justify-between">
                 <span className="font-extrabold flex items-center gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
+                  <LinkedinIcon className="w-3.5 h-3.5" />
                   LinkedIn Composer
                 </span>
                 <span className="text-[10px] font-bold uppercase tracking-wider bg-white/20 px-2 py-1 rounded-lg">

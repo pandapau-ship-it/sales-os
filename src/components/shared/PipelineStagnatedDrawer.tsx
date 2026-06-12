@@ -239,7 +239,8 @@ export default function PipelineStagnatedDrawer({ person, onClose, onTakeAction 
                 onTakeAction(draftText);
                 onClose();
               }}
-              className="w-full py-3 bg-gradient-to-r from-[var(--sherloq-primary)] to-[var(--sherloq-primary)] text-white rounded-full text-[13px] font-bold shadow-md hover:scale-[1.01] transition-transform cursor-pointer"
+              className="w-full py-3 text-white rounded-full text-[13px] font-bold shadow-md hover:scale-[1.01] transition-transform cursor-pointer"
+              style={{ background: "var(--sherloq-gradient)" }}
             >
               Antwort übernehmen
             </button>

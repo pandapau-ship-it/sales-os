@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { AlertTriangle, X, Sparkles, ClipboardList, Mail, Link2, Phone, Calendar, Check, CheckCircle2 } from "lucide-react";
+import { AlertTriangle, X, Sparkles, ClipboardList, Mail, Phone, Calendar, Check, CheckCircle2 } from "lucide-react";
+import LinkedinIcon from "@/components/shared/LinkedinIcon";
 
 export interface NoTaskDrawerProps {
   person: {
@@ -94,7 +95,7 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
                 <h3 className="text-[15px] font-bold text-gray-900 leading-none">
                   {person.name || "Sarah Jenkins"}
                 </h3>
-                <span className="px-2 py-0.5 rounded-full bg-amber-50 border border-amber-100 text-amber-700 text-[9px] font-extrabold tracking-wide">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 border border-amber-100 text-amber-700 text-[9px] font-extrabold tracking-wide">
                   <AlertTriangle className="w-2.5 h-2.5" /> Keine Task
                 </span>
               </div>
@@ -149,7 +150,7 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
             </div>
 
             <div className="flex items-center justify-between">
-              <span className="text-[12px] font-extrabold text-[var(--sherloq-primary)]">
+              <span className="inline-flex items-center gap-1.5 text-[12px] font-extrabold text-[var(--sherloq-primary)]">
                 <Mail className="w-3.5 h-3.5" /> Email empfohlen
               </span>
               <button onClick={handleApplySuggestion} className="px-3 py-1.5 bg-[var(--sherloq-primary)] text-white rounded-lg text-[11px] font-bold cursor-pointer">
@@ -235,7 +236,7 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
                     onClick={() => setChannel("linkedin")} 
                     className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all cursor-pointer ${activeChannel === 'linkedin' ? 'bg-[var(--sherloq-primary)] text-white border-transparent' : 'bg-gray-50 border-gray-200 text-gray-400 hover:bg-gray-100'}`}
                   >
-                    <Link2 className="w-[18px] h-[18px]" />
+                    <LinkedinIcon className="w-[18px] h-[18px]" />
                   </button>
                   <button 
                     onClick={() => setChannel("phone")} 
@@ -370,7 +371,7 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
 
           {/* AKTIONEN */}
           <section className="space-y-3 pt-1">
-            <button onClick={handleSave} className="w-full py-3 bg-gradient-to-r from-[var(--sherloq-primary)] to-[var(--sherloq-primary)] text-white rounded-full text-[13px] font-extrabold shadow-md hover:scale-[1.01] transition-transform flex items-center justify-center gap-2 cursor-pointer">
+            <button onClick={handleSave} className="w-full py-3 text-white rounded-full text-[13px] font-extrabold shadow-md hover:scale-[1.01] transition-transform flex items-center justify-center gap-2 cursor-pointer" style={{ background: "var(--sherloq-gradient)" }}>
               <Check className="w-4 h-4" />
               Task speichern
             </button>

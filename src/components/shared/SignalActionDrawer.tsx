@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { X, Link2, Sparkles, RotateCw, Send, ArrowUpRight, Check } from "lucide-react";
+import { X, Sparkles, RotateCw, Send, ArrowUpRight, Check } from "lucide-react";
+import LinkedinIcon from "@/components/shared/LinkedinIcon";
 
 export interface SignalActionDrawerProps {
   person: {
@@ -121,7 +122,7 @@ export default function SignalActionDrawer({ person, onClose, onTakeAction }: Si
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-2 min-w-0">
                 <span className="px-2.5 py-1 rounded-full bg-[var(--signal-info-bg)] text-[var(--signal-info-text)] text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 shrink-0">
-                  <Link2 className="w-[11px] h-[11px]" />
+                  <LinkedinIcon className="w-[11px] h-[11px]" />
                   LinkedIn Signal
                 </span>
                 <span className="text-[12px] font-medium text-gray-800 truncate">{person.actionText}</span>
@@ -273,7 +274,8 @@ export default function SignalActionDrawer({ person, onClose, onTakeAction }: Si
                 onTakeAction(draftText);
                 onClose();
               }}
-              className="w-full py-3 bg-gradient-to-r from-[var(--sherloq-primary)] to-[var(--sherloq-primary)] hover:from-[var(--sherloq-primary)] hover:to-[var(--sherloq-primary)] text-white rounded-full text-xs font-bold shadow-md hover:scale-[1.01] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+              className="w-full py-3 text-white rounded-full text-xs font-bold shadow-md hover:scale-[1.01] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+              style={{ background: "var(--sherloq-gradient)" }}
             >
               Antwort übernehmen <ArrowUpRight className="w-[14px] h-[14px]" />
             </button>
