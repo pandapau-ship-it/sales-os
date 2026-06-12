@@ -40,6 +40,8 @@ import FunnelAnalysis from '@/components/shared/FunnelAnalysis';
 import Avatar from '@/components/shared/Avatar';
 import TaskDrawer from '@/components/shared/TaskDrawer';
 import { LinkedinSignalCard } from '@/components/shared/LinkedinSignalCard';
+import SignalActionDrawer from '@/components/shared/SignalActionDrawer';
+import type { SignalActionData } from '@/components/shared/SignalActionDrawer';
 import PipelineStagnatedDrawer from '@/components/shared/PipelineStagnatedDrawer';
 import ContactColdDrawer from '@/components/shared/ContactColdDrawer';
 import NoTaskDrawer from '@/components/shared/NoTaskDrawer';
@@ -81,6 +83,7 @@ export default function ScreenHunting({
   const [taskTitle] = useState('Erster Outreach empfohlen — LinkedIn DM');
   const [taskNote] = useState('Hallo Sarah,\n\nich habe gerade gesehen, dass CloudSphere stark skaliert. Da wir viele BDR-Teams im selben Bereich unterstützen, dachte ich, ein kurzer Connect macht Sinn.\n\nViele Grüße');
 
+  const [selectedSignal, setSelectedSignal] = useState<SignalActionData | null>(null);
   const [selectedStagnatedPerson, setSelectedStagnatedPerson] = useState<any | null>(null);
   const [selectedColdPerson, setSelectedColdPerson] = useState<any | null>(null);
   const [selectedNoTaskPerson, setSelectedNoTaskPerson] = useState<any | null>(null);
@@ -1065,6 +1068,7 @@ export default function ScreenHunting({
             selected={selectedSignalIds.includes("Maja Voje")}
             onToggleSelect={(e) => toggleSignalSelection("Maja Voje", e)}
             onOpenInfo={onSelectLead}
+            onActNow={setSelectedSignal}
             role="GTM Strategist"
             avatarUrl="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=120&h=120"
             companyInitials="GL"
@@ -1085,6 +1089,7 @@ export default function ScreenHunting({
             selected={selectedSignalIds.includes("Sarah Jenkins")}
             onToggleSelect={(e) => toggleSignalSelection("Sarah Jenkins", e)}
             onOpenInfo={onSelectLead}
+            onActNow={setSelectedSignal}
             role="VP of Sales"
             avatarInitials="SJ"
             avatarBg="bg-[var(--icp-medium)]"
@@ -1105,6 +1110,7 @@ export default function ScreenHunting({
             selected={selectedSignalIds.includes("Marc Levigne")}
             onToggleSelect={(e) => toggleSignalSelection("Marc Levigne", e)}
             onOpenInfo={onSelectLead}
+            onActNow={setSelectedSignal}
             role="CPO"
             avatarInitials="ML"
             avatarBg="bg-[var(--signal-info-text)]"
@@ -1124,6 +1130,7 @@ export default function ScreenHunting({
             selected={selectedSignalIds.includes("Elena Rostova")}
             onToggleSelect={(e) => toggleSignalSelection("Elena Rostova", e)}
             onOpenInfo={onSelectLead}
+            onActNow={setSelectedSignal}
             role="Head of SDR"
             avatarInitials="ER"
             avatarBg="bg-[var(--accent-purple)]"
@@ -1143,6 +1150,7 @@ export default function ScreenHunting({
             selected={selectedSignalIds.includes("Dr. Christian Brand")}
             onToggleSelect={(e) => toggleSignalSelection("Dr. Christian Brand", e)}
             onOpenInfo={onSelectLead}
+            onActNow={setSelectedSignal}
             role="CEO"
             avatarInitials="CB"
             avatarBg="bg-[var(--icp-high)]"
@@ -1281,6 +1289,14 @@ export default function ScreenHunting({
         />
       )}
 
+
+      {selectedSignal && (
+        <SignalActionDrawer
+          key={selectedSignal.name}
+          signal={selectedSignal}
+          onClose={() => setSelectedSignal(null)}
+        />
+      )}
 
       {selectedStagnatedPerson && (
         <PipelineStagnatedDrawer

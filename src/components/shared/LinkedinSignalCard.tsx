@@ -5,6 +5,7 @@ import { Check, ChevronDown, ChevronUp, ArrowRight, Flame, Sparkles } from "luci
 import Avatar from "@/components/shared/Avatar";
 import { ICPDonut } from "@/components/shared/ICPDonut";
 import LinkedinIcon from "@/components/shared/LinkedinIcon";
+import type { SignalActionData } from "@/components/shared/SignalActionDrawer";
 import type { Lead } from "@/types";
 
 interface LinkedinSignalCardProps {
@@ -26,7 +27,7 @@ interface LinkedinSignalCardProps {
   commentText?: string;
   quoteText?: string;
   aiRecommendation?: string;
-  onActNow?: () => void;
+  onActNow?: (signal: SignalActionData) => void;
   selected?: boolean;
   onToggleSelect?: (e: MouseEvent) => void;
   /** Öffnet das 820px-Info-Panel für diesen Kontakt (wie der grüne Pfeil bei Leads). */
@@ -96,6 +97,22 @@ export function LinkedinSignalCard({
     pipelineStage: "signal",
     signalsCount: 1,
     contactEmail: "",
+  });
+
+  // Signal-Daten für das Action-Panel (Panel selbst hält keine eigenen Daten).
+  const buildSignal = (): SignalActionData => ({
+    name,
+    company: companyName,
+    avatarUrl,
+    icpScore,
+    actionText,
+    timeAgoLabel: timeAgoLabel ?? timeAgo,
+    timeLeftHours,
+    windowHours,
+    commentText,
+    aiRecommendation: aiRecommendation ?? "",
+    confidence: 91,
+    draft: `Hi ${name.split(" ")[0]}, dein Signal hat mich angesprochen — genau das lösen wir bei Sherloq. Hast du diese Woche 15 Minuten für einen kurzen Austausch?`,
   });
 
   return (
@@ -243,7 +260,7 @@ export function LinkedinSignalCard({
           <button
             onClick={(e) => {
               e.stopPropagation();
-              onActNow?.();
+              onActNow?.(buildSignal());
             }}
             className="bg-[var(--sherloq-primary)] text-white rounded-full px-4 py-2 text-[12px] font-bold cursor-pointer hover:opacity-90 transition-opacity shrink-0"
           >
