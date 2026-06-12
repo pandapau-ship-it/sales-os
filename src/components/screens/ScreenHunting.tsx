@@ -1305,12 +1305,10 @@ export default function ScreenHunting({
         />
       )}
 
-      {selectedColdPerson && (
-        <ContactColdDrawer
-          person={selectedColdPerson}
-          onClose={() => setSelectedColdPerson(null)}
-        />
-      )}
+      <ContactColdDrawer
+        person={selectedColdPerson}
+        onClose={() => setSelectedColdPerson(null)}
+      />
 
       {selectedNoTaskPerson && (
         <NoTaskDrawer
