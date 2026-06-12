@@ -1,8 +1,7 @@
 /**
  * Avatar — Initialen-Fallback, optional Bild.
  * Größen: sm (28px) / md (36px) / lg (44px) — oder beliebige Pixelzahl (z.B. 40).
- * Form: rounded-[10px] (Avatar-Ebene der Radius-Hierarchie, CLAUDE.md) —
- * konsistent mit den Avataren in TopBar/Sidebar und den Hunter-Kacheln.
+ * Form: rounded-full (Avatare sind app-weit rund — Kacheln, Panels, TopBar, Sidebar).
  * Kaputte Bild-URLs (onError) fallen automatisch auf Initialen zurück.
  */
 
@@ -41,7 +40,7 @@ export default function Avatar({ name, src, size = "md", className }: AvatarProp
     <div
       style={{ width: px, height: px }}
       className={cn(
-        "rounded-[10px] overflow-hidden shrink-0 flex items-center justify-center select-none",
+        "rounded-full overflow-hidden shrink-0 flex items-center justify-center select-none",
         "bg-sherloq-primary text-white font-semibold",
         font,
         className,

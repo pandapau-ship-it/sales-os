@@ -166,7 +166,7 @@ wird das Design in unser System übersetzt — nicht umgekehrt.
 | Buttons (primär/sekundär) | 10px | `rounded-[10px]` |
 | Badges, Pills | 7px | `rounded-[7px]` |
 | Count-Labels in Tabs | 5px | `rounded-[5px]` |
-| Avatar-Quadrate | 10px | `rounded-[10px]` |
+| Avatare (Kontakte/Nutzer) | 9999px | `rounded-full` |
 | Status-Punkte | 9999px | `rounded-pill` |
 
 **Niemals:** `rounded-pill` für Nav-Container oder Nav-Tabs. `rounded-pill` nur für Status-Punkte, Checkboxen, Linien.
