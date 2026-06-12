@@ -505,8 +505,8 @@ Full schema in `docs/database.md`. Key points:
 - **`companies`** — `cluster TEXT[]` (array, multi-value), `kurzakte TEXT` (AI-maintained), `heat_status`, `churn_risk_level`
 - **`contacts`** — `personality_profile JSONB` (3 Dimensionen: style/decision/tempo — kein DISG, AI-derived) + `personality_confidence`, Sherloq usage fields — Kurzakte lebt in eigener Tabelle `kurzakte_entries` (Append-Only)
 - **`communications`** — basis for engagement chain, heat status calc, Kurzakte updates
-- **`pipeline_deals`** — `deal_volume` is a PostgreSQL generated column: `(mrr × contract_duration_months) + one_off`
-- **`pipeline_stages`** — stages stored in DB, not hardcoded. `pipeline_deals.stage` stores the stage `id`, not the name
+- **`deals`** — `deal_volume` is a PostgreSQL generated column: `(mrr × contract_duration_months) + one_off`
+- **`pipeline_stages`** — stages stored in DB, not hardcoded. `deals.stage` stores the stage `id`, not the name
 - **`tasks`** — never delete, only set `status = deleted`. System-generated tasks always have `suggested_channel` + `suggested_message`
 - **`system_config`** — every configurable threshold/value lives here, not in code
 - **`audit_log`** — every write (UI, chat, Cmd+K, routine) must create an entry here
@@ -617,7 +617,7 @@ Nachrichten, Kurzakte, Deal-Titel, …) laufen **nie** durch `t()` und werden ni
 ### 1. Supabase Realtime aktivieren
 ```sql
 alter publication supabase_realtime add table
-  contacts, companies, tasks, pipeline_deals,
+  contacts, companies, tasks, deals,
   communications, kpis_daily, jira_tasks;
 ```
 
@@ -630,7 +630,7 @@ alter publication supabase_realtime add table
 | `POST /api/webhooks/email-received` | `{ contact_email, subject, body, sentiment }` | Communication erstellen, `followup_status` → `answered`, Kurzakte-Update triggern |
 | `POST /api/webhooks/slack-message` | `{ contact_id, message, channel, direction }` | Communication erstellen, Heat Status prüfen, Kurzakte-Update triggern |
 | `POST /api/webhooks/teams-message` | `{ contact_id, message, channel, direction }` | Communication erstellen, Heat Status prüfen, Kurzakte-Update triggern |
-| `POST /api/webhooks/hubspot-update` | `{ contact_id, deal_id, field, old_value, new_value }` | `pipeline_deals` updaten, Stage-Änderung vorschlagen wenn relevant |
+| `POST /api/webhooks/hubspot-update` | `{ contact_id, deal_id, field, old_value, new_value }` | `deals` updaten, Stage-Änderung vorschlagen wenn relevant |
 | `POST /api/webhooks/jira-update` | `{ jira_id, status, priority, assigned_to }` | `jira_tasks` updaten, Alert in Mein Tag wenn kritisch |
 | `POST /api/webhooks/calendar-event` | `{ contact_id, event_type, start_time, title }` | Meeting-Prep vorbereiten, Communication erstellen, Stage-Änderung wenn Keywords (Demo, Onboarding, Trial) |
 
@@ -3188,7 +3188,7 @@ Nicht nötig für: kurze Listen (Tasks in Mein Tag, Pipeline-Spalten < 20).
 - Realtime-Payload aktualisiert den React-Query-Cache direkt — löst KEINEN
   zusätzlichen Refetch aus (Payload enthält die neue Row schon).
 - Realtime nur für die 7 Tabellen aus **Realtime Events** (`contacts`, `companies`,
-  `tasks`, `pipeline_deals`, `communications`, `kpis_daily`, `jira_tasks`).
+  `tasks`, `deals`, `communications`, `kpis_daily`, `jira_tasks`).
   Alles andere: normaler Query + staleTime, kein Channel.
 
 ### Code-Splitting — pro Modul lazy laden
@@ -3940,9 +3940,9 @@ Wie Tasks müssen auch **Deals manuell anlegbar** sein (nicht nur automatisch vi
 „Termin gebucht"). Ein Deal kann von einer **Company** ODER einer **Einzelperson**
 abgeschlossen werden — das Datenmodell muss beides abbilden.
 
-`pipeline_deals` bekommt daher zwei optionale Verknüpfungen:
+`deals` bekommt daher zwei optionale Verknüpfungen:
 ```sql
--- auf pipeline_deals (zusätzlich zu stage, deal_volume, mrr … und organization_id):
+-- auf deals (zusätzlich zu stage, deal_volume, mrr … und organization_id):
 company_id  UUID NULL REFERENCES companies(id)   -- Deal mit einer Company
 contact_id  UUID NULL REFERENCES contacts(id)    -- Deal mit einer Einzelperson
 -- Pflicht: mindestens eines von beiden gesetzt (CHECK), beide gleichzeitig erlaubt
