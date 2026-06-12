@@ -42,6 +42,8 @@ import TaskDrawer from '@/components/shared/TaskDrawer';
 import { LinkedinSignalCard } from '@/components/shared/LinkedinSignalCard';
 import SignalActionDrawer from '@/components/shared/SignalActionDrawer';
 import type { SignalActionData } from '@/components/shared/SignalActionDrawer';
+import HunterCard from '@/components/shared/HunterCard';
+import { ACTION_ROW } from '@/lib/componentBehavior';
 import PipelineStagnatedDrawer from '@/components/shared/PipelineStagnatedDrawer';
 import ContactColdDrawer from '@/components/shared/ContactColdDrawer';
 import NoTaskDrawer from '@/components/shared/NoTaskDrawer';
@@ -108,6 +110,15 @@ export default function ScreenHunting({
   };
   const selectAllSignals = () => setSelectedSignalIds(signalIds);
   const deselectAllSignals = () => setSelectedSignalIds([]);
+
+  // Minimaler Lead für das Info-Panel (Übersicht-Demokarten; später aus DB).
+  const makeLead = (id: string, name: string, jobTitle: string, company: string, initials: string, icpScore: number): Lead => ({
+    id,
+    person: { id, name, jobTitle, company, initials },
+    kurzakte: '', fullTimeline: [], engagementChain: [], lastTouchpoints: [],
+    heatStatus: 'WARM', heatScore: 3, icpScore, lastActivity: '',
+    pipelineStage: 'pipeline', signalsCount: 1, contactEmail: '',
+  });
 
   const handleCreateLead = (e: React.FormEvent) => {
     e.preventDefault();
@@ -327,294 +338,59 @@ export default function ScreenHunting({
             </div>
 
 
-            {/* Card 1: Sarah Jenkins */}
-            <div className="group rounded-[12px] overflow-hidden flex flex-col shadow-[var(--shadow-card)] hover:shadow-md border border-[var(--border-card)] bg-white cursor-pointer transition-all duration-300">
-              {/* TOP ROW */}
-              <div className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-6">
-                
-                {/* Avatar & Info */}
-                <div className="flex items-center gap-4 flex-1 min-w-0 ml-0 transition-all duration-300">
-                  <div className="relative shrink-0">
-                    <div className="w-10 h-10 rounded-full bg-[var(--icp-medium)] text-white flex items-center justify-center text-[13px] font-bold shadow-sm">
-                      SJ
-                    </div>
-                    <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-[var(--signal-info-text)] border-2 border-white rounded-full"></div>
-                  </div>
-                  <div className="flex flex-col min-w-0">
-                    <span className="text-[14px] font-bold text-[var(--text-primary)] font-sans">Sarah Jenkins</span>
-                    <span className="text-[12px] text-[var(--text-muted)] mt-0.5 max-w-[200px] truncate">
-                      Head of Business Development, CloudSphere
-                    </span>
-                  </div>
+            <HunterCard
+              data={{
+                id: "ov-sarah", name: "Sarah Jenkins", jobTitle: "Head of Business Development", company: "CloudSphere", icpScore: 65, stageLabel: "Lead",
+                heat: { bgClass: "bg-[var(--signal-warn-bg)]", textClass: "text-[var(--icp-medium)] border-[var(--signal-warn-bg)]", label: t("hunter.heat.stable") },
+                timeLabel: t("hunter.common.ago", { label: "3 Tagen" }),
+                timeSubLabel: <span className="text-gray-400 font-semibold">{t("hunter.common.newInPipeline")}</span>,
+              }}
+              onOpenInfo={() => onSelectLead(makeLead("ov-sarah", "Sarah Jenkins", "Head of Business Development", "CloudSphere", "SJ", 65))}
+              statusDotClass="bg-[var(--icp-medium)]"
+              actionRow={<>
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--signal-warn-bg)] text-[var(--icp-medium)] text-[10px] font-bold uppercase tracking-wider shrink-0"><AlertTriangle className="w-[11px] h-[11px]" /> {t("hunter.leadCard.noTask")}</span>
+                  <span className={ACTION_ROW.strongText}>{t("hunter.leadCard.noTaskHint")}</span>
                 </div>
+                <button onClick={(e) => { e.stopPropagation(); setSelectedNoTaskPerson({ name: "Sarah Jenkins", company: "CloudSphere", avatarInitials: "SJ", avatarBg: "bg-[var(--icp-medium)]" }); }} className={ACTION_ROW.ctaSecondary}>{t("hunter.leadCard.createTask")}</button>
+              </>}
+            />
 
-                {/* ICP donut & Company Area */}
-                <div className="hidden md:flex items-center gap-4 px-4 border-l border-[var(--border-subtle)] shrink-0">
-                  <div className="w-[48px] flex items-center justify-center">
-                    <ICPDonut score={65} />
-                  </div>
-                  
-                  <div className="flex items-center gap-3 w-[140px] xl:w-[180px]">
-                    <div className="bg-[var(--text-body)] text-white text-[14px] w-[40px] h-[40px] flex items-center justify-center rounded-[12px] font-bold shrink-0">
-                      C
-                    </div>
-                    <span className="text-[14px] text-[var(--text-body)] font-semibold w-[120px] truncate">CloudSphere</span>
-                  </div>
+            <HunterCard
+              data={{
+                id: "ov-marc", name: "Marc Levigne", jobTitle: "Sales Director France", company: "DataPulse Corp", icpScore: 41, stageLabel: "Follow-up",
+                heat: { bgClass: "bg-[var(--signal-info-bg)]", textClass: "text-[var(--signal-info-text)] border-[var(--signal-info-bg)]", label: t("hunter.heat.resting") },
+                timeLabel: t("hunter.common.ago", { label: "12 Tagen" }),
+                timeSubLabel: <>{t("hunter.common.daysInStage", { days: 12 })} <AlertTriangle className="w-3.5 h-3.5" strokeWidth={2.5} /></>,
+              }}
+              onOpenInfo={() => onSelectLead(makeLead("ov-marc", "Marc Levigne", "Sales Director France", "DataPulse Corp", "ML", 41))}
+              statusDotClass="bg-[var(--signal-info-text)]"
+              actionRow={<>
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--signal-urgent-bg)] text-[var(--icp-low)] text-[10px] font-bold uppercase tracking-wider shrink-0"><Clock className="w-[11px] h-[11px]" /> {t("hunter.leadCard.stagnated")}</span>
+                  <span className={ACTION_ROW.strongText}>{t("hunter.leadCard.stagnatedHint")}</span>
                 </div>
+                <button onClick={(e) => { e.stopPropagation(); onOpenCopilot?.("marc"); }} className={ACTION_ROW.ctaSecondary}>{t("hunter.leadCard.nextStep")}</button>
+              </>}
+            />
 
-                {/* Middle Stats */}
-                <div className="hidden lg:flex items-center gap-4 px-4 border-l border-[var(--border-subtle)] shrink-0">
-                  <div className="flex flex-col items-center justify-center w-[80px] relative h-full">
-                    <span className="absolute -top-[14px] text-[10px] font-bold text-[var(--icon-muted)] tracking-wider uppercase">{t('hunter.common.stage')}</span>
-                    <div className="px-4 py-2 rounded-full bg-[var(--app-bg)] text-[var(--text-body)] text-[12px] font-semibold border border-[var(--border)]">
-                      Lead
-                    </div>
-                  </div>
-                  <div className="flex flex-col items-center justify-center w-[120px] relative h-full">
-                    <span className="absolute -top-[14px] text-[10px] font-bold text-[var(--icon-muted)] tracking-wider uppercase">{t('hunter.common.heat')}</span>
-                    <div className="px-4 py-2 rounded-full text-[12px] font-semibold border flex items-center gap-1.5 bg-[var(--signal-warn-bg)] text-[var(--icp-medium)] border-[var(--signal-warn-bg)]">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[var(--icp-medium)]"></span>
-                      {t('hunter.heat.stable')}
-                    </div>
-                  </div>
+            <HunterCard
+              data={{
+                id: "ov-elena", name: "Elena Rostova", jobTitle: "Head of Operations", company: "Quantum Dynamics", icpScore: 55, stageLabel: "Onboarding",
+                heat: { bgClass: "bg-[var(--signal-info-bg)]", textClass: "text-[var(--signal-info-text)] border-[var(--signal-info-bg)]", label: t("hunter.heat.cold") },
+                timeLabel: t("hunter.common.ago", { label: "32 Tagen" }),
+                timeSubLabel: <>{t("hunter.common.daysInStage", { days: 32 })} <AlertTriangle className="w-3.5 h-3.5" strokeWidth={2.5} /></>,
+              }}
+              onOpenInfo={() => onSelectLead(makeLead("ov-elena", "Elena Rostova", "Head of Operations", "Quantum Dynamics", "ER", 55))}
+              statusDotClass="bg-[var(--signal-info-text)]"
+              actionRow={<>
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--signal-info-bg)] text-[var(--signal-info-text)] text-[10px] font-bold uppercase tracking-wider shrink-0"><PenTool className="w-[11px] h-[11px]" /> {t("hunter.leadCard.cold")}</span>
+                  <span className={ACTION_ROW.strongText}>{t("hunter.leadCard.coldHint")}</span>
                 </div>
-
-                {/* Right Actions */}
-                <div className="flex items-center gap-4 pl-4 border-l border-[var(--border-subtle)] shrink-0 justify-between md:justify-end">
-                  <div className="flex flex-col items-end hidden sm:flex w-[130px]">
-                    <span className="text-[14px] font-bold text-[var(--text-primary)] whitespace-nowrap">{t('hunter.common.ago', { label: '3 Tagen' })}</span>
-                    <div className="flex items-center justify-end gap-1.5 mt-0.5 text-[var(--text-muted)] font-semibold text-[12px] whitespace-nowrap w-full">
-                      {t('hunter.common.newInPipeline')}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 relative w-[90px] justify-end">
-                    <button className="w-8 h-8 flex items-center justify-center text-[var(--icon-muted)] hover:text-[var(--text-primary)] transition-colors rounded-full hover:bg-[var(--app-bg)]">
-                      <ChevronDown className="w-4 h-4" />
-                    </button>
-                    <button className="w-10 h-10 rounded-full bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)] hover:bg-[var(--signal-teal-bg)] hover:scale-105 transition-all flex items-center justify-center shadow-sm">
-                      <ArrowRight className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* BOTTOM BANNER (Sarah) */}
-              <div className="bg-[var(--app-bg)] border-t border-[var(--border)] flex flex-col xl:flex-row items-start xl:items-center justify-between px-5 md:px-8 py-2 gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="bg-[var(--signal-warn-bg)] text-[var(--icp-medium)] px-3 py-1.5 rounded-[8px] flex items-center gap-2 font-bold text-[14px] shrink-0">
-                    <AlertTriangle className="w-4 h-4" strokeWidth={2.5} />
-                    {t('hunter.leadCard.noTask')}
-                  </div>
-                  <span className="text-[14px] font-semibold text-[var(--text-body)]">{t('hunter.leadCard.noTaskHint')}</span>
-                </div>
-                <div className="flex items-center gap-3 w-full xl:w-auto">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedNoTaskPerson({
-                        name: "Sarah Jenkins",
-                        company: "CloudSphere",
-                        avatarInitials: "SJ",
-                        avatarBg: "bg-[var(--icp-medium)]"
-                      });
-                    }}
-                    className="flex-1 xl:flex-none bg-white border border-[var(--border)] text-[var(--text-body)] px-5 py-2.5 rounded-[12px] text-[13px] font-bold shadow-sm hover:bg-[var(--app-bg)] transition-colors whitespace-nowrap"
-                  >
-                    {t('hunter.leadCard.createTask')}
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Card 2: Marc Levigne */}
-            <div className="group rounded-[12px] overflow-hidden flex flex-col shadow-[var(--shadow-card)] hover:shadow-md border border-[var(--border-card)] bg-white cursor-pointer transition-all duration-300">
-              {/* TOP ROW */}
-              <div className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-6">
-                
-                {/* Avatar & Info */}
-                <div className="flex items-center gap-4 flex-1 min-w-0 ml-0 transition-all duration-300">
-                  <div className="relative shrink-0">
-                    <div className="w-10 h-10 rounded-full bg-[var(--signal-info-text)] text-white flex items-center justify-center text-[13px] font-bold shadow-sm">
-                      ML
-                    </div>
-                    <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-[var(--signal-info-text)] border-2 border-white rounded-full"></div>
-                  </div>
-                  <div className="flex flex-col min-w-0">
-                    <span className="text-[14px] font-bold text-[var(--text-primary)] font-sans">Marc Levigne</span>
-                    <span className="text-[12px] text-[var(--text-muted)] mt-0.5 max-w-[200px] truncate">
-                      Sales Director France, DataPulse Corp
-                    </span>
-                  </div>
-                </div>
-
-                {/* ICP donut & Company Area */}
-                <div className="hidden md:flex items-center gap-4 px-4 border-l border-[var(--border-subtle)] shrink-0">
-                  <div className="w-[48px] flex items-center justify-center">
-                    <ICPDonut score={41} />
-                  </div>
-                  
-                  <div className="flex items-center gap-3 w-[140px] xl:w-[180px]">
-                    <div className="bg-[var(--text-primary)] text-white text-[14px] w-[40px] h-[40px] flex items-center justify-center rounded-[12px] font-bold shrink-0">
-                      D
-                    </div>
-                    <span className="text-[14px] text-[var(--text-body)] font-semibold w-[120px] truncate">DataPulse Corp</span>
-                  </div>
-                </div>
-
-                {/* Middle Stats */}
-                <div className="hidden lg:flex items-center gap-4 px-4 border-l border-[var(--border-subtle)] shrink-0">
-                  <div className="flex flex-col items-center justify-center w-[80px] relative h-full">
-                    <span className="absolute -top-[14px] text-[10px] font-bold text-[var(--icon-muted)] tracking-wider uppercase">{t('hunter.common.stage')}</span>
-                    <div className="px-4 py-2 rounded-full bg-[var(--signal-urgent-bg)] text-[var(--icp-low)] text-[12px] font-semibold border border-[var(--signal-urgent-bg)]">
-                      Follow-up
-                    </div>
-                  </div>
-                  <div className="flex flex-col items-center justify-center w-[120px] relative h-full">
-                    <span className="absolute -top-[14px] text-[10px] font-bold text-[var(--icon-muted)] tracking-wider uppercase">{t('hunter.common.heat')}</span>
-                    <div className="px-4 py-2 rounded-full text-[12px] font-semibold border flex items-center gap-1.5 bg-[var(--signal-info-bg)] text-[var(--signal-info-text)] border-[var(--signal-info-bg)]">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[var(--signal-info-text)]"></span>
-                      {t('hunter.heat.resting')}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Right Actions */}
-                <div className="flex items-center gap-4 pl-4 border-l border-[var(--border-subtle)] shrink-0 justify-between md:justify-end">
-                  <div className="flex flex-col items-end hidden sm:flex w-[130px]">
-                    <span className="text-[14px] font-bold text-[var(--text-primary)] whitespace-nowrap">{t('hunter.common.ago', { label: '12 Tagen' })}</span>
-                    <div className="flex items-center justify-end gap-1.5 mt-0.5 text-[var(--icp-low)] font-semibold text-[12px] whitespace-nowrap w-full">
-                      {t('hunter.common.daysInStage', { days: 12 })} <AlertTriangle className="w-3.5 h-3.5" strokeWidth={2.5} />
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 relative w-[90px] justify-end">
-                    <button className="w-8 h-8 flex items-center justify-center text-[var(--icon-muted)] hover:text-[var(--text-primary)] transition-colors rounded-full hover:bg-[var(--app-bg)]">
-                      <ChevronDown className="w-4 h-4" />
-                    </button>
-                    <button className="w-10 h-10 rounded-full bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)] hover:bg-[var(--signal-teal-bg)] hover:scale-105 transition-all flex items-center justify-center shadow-sm">
-                      <ArrowRight className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* BOTTOM BANNER (Marc) */}
-              <div className="bg-[var(--app-bg)] border-t border-[var(--border)] flex flex-col xl:flex-row items-start xl:items-center justify-between px-5 md:px-8 py-2 gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="bg-[var(--signal-urgent-bg)] text-[var(--icp-low)] px-3 py-1.5 rounded-[8px] flex items-center gap-2 font-bold text-[14px] shrink-0">
-                    <Clock className="w-4 h-4" strokeWidth={2.5} />
-                    {t('hunter.leadCard.stagnated')}
-                  </div>
-                  <span className="text-[14px] font-semibold text-[var(--text-body)]">{t('hunter.leadCard.stagnatedHint')}</span>
-                </div>
-                <div className="flex items-center gap-3 w-full xl:w-auto">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onOpenCopilot?.('marc');
-                    }}
-                    className="flex-1 xl:flex-none bg-white border border-[var(--border)] text-[var(--text-body)] px-5 py-2.5 rounded-[12px] text-[13px] font-bold shadow-sm hover:bg-[var(--app-bg)] transition-colors whitespace-nowrap"
-                  >
-                    {t('hunter.leadCard.nextStep')}
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Card 3: Elena Rostova */}
-            <div className="group rounded-[12px] overflow-hidden flex flex-col shadow-[var(--shadow-card)] hover:shadow-md border border-[var(--border-card)] bg-white cursor-pointer transition-all duration-300">
-              {/* TOP ROW */}
-              <div className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-6">
-                
-                {/* Avatar & Info */}
-                <div className="flex items-center gap-4 flex-1 min-w-0 ml-0 transition-all duration-300">
-                  <div className="relative shrink-0">
-                    <div className="w-12 h-12 rounded-full bg-[var(--accent-purple)] text-white flex items-center justify-center text-[16px] font-bold shadow-sm">
-                      ER
-                    </div>
-                  </div>
-                  <div className="flex flex-col min-w-0">
-                    <span className="text-[16px] font-bold text-[var(--text-primary)] font-sans">Elena Rostova</span>
-                    <span className="text-[13px] text-[var(--text-muted)] mt-0.5 max-w-[200px] truncate">
-                      Head of Operations, Quantum...
-                    </span>
-                  </div>
-                </div>
-
-                {/* ICP donut & Company Area */}
-                <div className="hidden md:flex items-center gap-5 px-4 border-l border-[var(--border-subtle)] shrink-0">
-                  <div className="w-[48px] flex items-center justify-center">
-                    <ICPDonut score={55} />
-                  </div>
-                  
-                  <div className="flex items-center gap-3 w-[140px] xl:w-[180px]">
-                    <div className="bg-[var(--accent-purple)] text-white text-[14px] w-[40px] h-[40px] flex items-center justify-center rounded-[12px] font-bold shrink-0">
-                      Q
-                    </div>
-                    <span className="text-[14px] font-bold text-[var(--text-body)] truncate">Quantum Dynamics</span>
-                  </div>
-                </div>
-
-                {/* Middle Stats */}
-                <div className="hidden lg:flex items-center gap-4 px-4 border-l border-[var(--border-subtle)] shrink-0">
-                  <div className="flex flex-col items-center justify-center w-[120px] relative h-full">
-                    <span className="absolute -top-[14px] text-[10px] font-bold text-[var(--icon-muted)] tracking-wider uppercase">{t('hunter.common.stage')}</span>
-                    <div className="px-5 py-2 rounded-full bg-white text-[var(--text-primary)] text-[13px] font-bold border-2 border-[var(--border)]">
-                      Onboarding
-                    </div>
-                  </div>
-                  <div className="flex flex-col items-center justify-center w-[120px] relative h-full">
-                    <span className="absolute -top-[14px] text-[10px] font-bold text-[var(--icon-muted)] tracking-wider uppercase">{t('hunter.common.heat')}</span>
-                    <div className="px-5 py-2 rounded-full text-[13px] font-bold border-2 flex items-center gap-1.5 bg-[var(--signal-info-bg)] text-[var(--signal-info-text)] border-[var(--signal-info-bg)]">
-                      <span className="w-2 h-2 rounded-full bg-[var(--signal-info-text)] mt-[1px]"></span>
-                      {t('hunter.heat.cold')}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Right Actions */}
-                <div className="flex items-center pl-4 border-l border-[var(--border-subtle)] shrink-0 justify-between md:justify-end gap-5">
-                  <div className="flex flex-col items-end hidden sm:flex w-[120px]">
-                    <span className="text-[14px] font-bold text-[var(--text-primary)] whitespace-nowrap">{t('hunter.common.ago', { label: '32 Tagen' })}</span>
-                    <div className="flex items-center justify-end gap-1.5 mt-0.5 text-[var(--icp-low)] font-bold text-[13px] whitespace-nowrap w-full">
-                      {t('hunter.common.daysInStage', { days: 32 })} <AlertTriangle className="w-3.5 h-3.5" strokeWidth={2.5} />
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 relative w-[100px] justify-end">
-                    <button className="w-10 h-10 flex items-center justify-center text-[var(--icon-muted)] hover:text-[var(--text-primary)] transition-colors rounded-full bg-[var(--app-bg)] hover:bg-[var(--border)] border border-transparent">
-                      <ChevronDown className="w-5 h-5" />
-                    </button>
-                    <button className="w-11 h-11 rounded-full bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)] hover:bg-[var(--signal-teal-bg)] hover:scale-105 transition-all flex items-center justify-center shadow-sm">
-                      <ArrowRight className="w-5 h-5" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* BOTTOM BANNER (Elena) */}
-              <div className="bg-[var(--app-bg)] border-t border-[var(--border)] flex flex-col xl:flex-row items-start xl:items-center justify-between px-5 md:px-8 pt-3 pb-3.5 gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="bg-[var(--signal-info-bg)] text-[var(--signal-info-text)] px-3 py-1.5 rounded-[8px] flex items-center gap-2 font-bold text-[14px] shrink-0">
-                    <PenTool className="w-4 h-4" strokeWidth={2.5} />
-                    {t('hunter.leadCard.cold')}
-                  </div>
-                  <span className="text-[14px] font-semibold text-[var(--text-body)]">{t('hunter.leadCard.coldHint')}</span>
-                </div>
-                <div className="flex items-center gap-3 w-full xl:w-auto">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onOpenCopilot?.('elena');
-                    }}
-                    className="flex-1 xl:flex-none bg-white border border-[var(--border)] text-[var(--text-body)] px-5 py-2.5 rounded-[12px] text-[13px] font-bold shadow-sm hover:bg-[var(--app-bg)] transition-colors whitespace-nowrap"
-                  >
-                    {t('hunter.leadCard.startOutreach')}
-                  </button>
-                  <button className="flex-1 xl:flex-none bg-white border border-[var(--border)] text-[var(--text-body)] px-5 py-2.5 rounded-[12px] text-[13px] font-bold shadow-sm hover:bg-[var(--app-bg)] transition-colors whitespace-nowrap">
-                    {t('hunter.common.snooze')}
-                  </button>
-                </div>
-              </div>
-            </div>
+                <div className="flex items-center gap-2 shrink-0"><button onClick={(e) => { e.stopPropagation(); onOpenCopilot?.("elena"); }} className={ACTION_ROW.ctaSecondary}>{t("hunter.leadCard.startOutreach")}</button><button onClick={(e) => e.stopPropagation()} className={ACTION_ROW.ctaSecondary}>{t("hunter.common.snooze")}</button></div>
+              </>}
+            />
 
           </div>
         </div>
