@@ -10,7 +10,8 @@
     "edit": "Bearbeiten",
     "back": "Zurück",
     "loading": "Lädt …",
-    "empty": "—"
+    "empty": "—",
+    "comingSoon": "wird gebaut"
   },
   "nav": {
     "meintag": "Mein Tag",
@@ -23,7 +24,10 @@
     "system": "Sherloq System",
     "jira": "Jira",
     "kontakte": "Kontakte",
-    "inbox": "Posteingang"
+    "inbox": "Posteingang",
+    "companies": "Companies",
+    "settings": "Einstellungen",
+    "profil": "Profil"
   },
   "settings": {
     "systemConfigTitle": "Sales OS Systemkonfiguration",
@@ -51,5 +55,9 @@
   "tooltips": {
     "settings": "Einstellungen",
     "search": "Suchen (⌘K)"
+  },
+  "theme": {
+    "light": "Light Mode",
+    "dark": "Dark Mode"
   }
 }

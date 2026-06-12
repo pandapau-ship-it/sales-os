@@ -12,6 +12,11 @@ dist
 dist-ssr
 *.local
 
+# Env (secrets) — .env.local ist bereits über *.local abgedeckt
+.env
+.env.*
+!.env.example
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

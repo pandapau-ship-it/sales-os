@@ -1,374 +1,89 @@
 /**
- * App.tsx — root component, wires all screens + state together.
- * State lives here; screens receive only what they need via props.
+ * App.tsx — Root + Routing (Phase 0 Fundament).
+ *
+ * Layout-Shell (Sidebar + TopBar) unter /app, Platzhalter-Screens (ComingSoon)
+ * für alle Hauptbereiche. Login unter "/". Protected Route schützt /app — in
+ * Phase 0 ohne konfiguriertes Supabase-Backend greift ein Dev-Bypass, damit die
+ * Shell nutzbar ist; mit Backend wird echte Auth erzwungen.
  */
 
-import { useState, useEffect } from "react";
-// i18n side-effect import: initialises i18next before the first render.
-// Every UI string goes through t() — never hardcoded (→ CLAUDE.md: Internationalisierung).
-import "@/lib/i18n";
+import { useState } from "react";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  Outlet,
+} from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useLanguage } from "@/hooks/useLanguage";
-// Daten kommen ausschließlich über die Abstraktionsschicht (lib/db), nie direkt
-// aus @/data oder @supabase. Phase 5 tauscht nur lib/db — App bleibt unverändert.
-import {
-  getLeads,
-  getCustomers,
-  getTasks,
-  getPriorities,
-  getAppointments,
-  getAlerts,
-  getMarketingIdeas,
-  updateLeadStage as dbUpdateLeadStage,
-  setTaskCompleted as dbSetTaskCompleted,
-  createLead as dbCreateLead,
-  upgradeSubscription as dbUpgradeSubscription,
-  publishMarketingPost as dbPublishMarketingPost,
-} from "@/lib/db";
-import type {
-  Lead,
-  Customer,
-  TaskItemType,
-  PriorityItemType,
-  AppointmentItemType,
-  AlertBannerType,
-  LinkedInPostIdea,
-} from "@/types";
-
-// Layout
-import TopBar from "@/components/layout/TopBar";
+// i18n-Init vor dem ersten Render (Default de).
+import "@/lib/i18n";
+import { useAuth } from "@/hooks/useAuth";
+import { isSupabaseConfigured } from "@/lib/db";
 import Sidebar from "@/components/layout/Sidebar";
+import TopBar from "@/components/layout/TopBar";
+import Login from "@/components/auth/Login";
 
-// Shared
-import CommandPalette from "@/components/shared/CommandPalette";
-import CustomerDrawer from "@/components/shared/CustomerDrawer";
-
-// Screens
-import ScreenMyDay from "@/components/screens/ScreenMyDay";
-import ScreenHunting from "@/components/screens/ScreenHunting";
-import ScreenFarming from "@/components/screens/ScreenFarming";
-import ScreenMarketing from "@/components/screens/ScreenMarketing";
-import ScreenSherloqSystem from "@/components/screens/ScreenSherloqSystem";
-import ScreenJira from "@/components/screens/Jira";
-
-import {
-  Settings as SettingsIcon,
-  Brain,
-  Languages,
-  X,
-} from "lucide-react";
-
-export default function App() {
+/** Platzhalter-Screen für alles, was noch nicht gebaut ist. */
+function ComingSoon({ nameKey }: { nameKey: string }) {
   const { t } = useTranslation();
-  const { language, setLanguage, languages } = useLanguage();
-
-  // Navigation
-  const [activeTab, setActiveTab] = useState("meintag");
-  const [showSettings, setShowSettings] = useState(false);
-  const [showCommandPalette, setShowCommandPalette] = useState(false);
-
-  // Domain states — initial leer, dann via lib/db geladen.
-  // Bridge-useEffect für die Mock-Phase; Phase 5 → TanStack Query (CLAUDE.md).
-  const [leads, setLeads] = useState<Lead[]>([]);
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [tasks, setTasks] = useState<TaskItemType[]>([]);
-  const [priorities, setPriorities] = useState<PriorityItemType[]>([]);
-  const [alerts, setAlerts] = useState<AlertBannerType[]>([]);
-  const [appointments, _setAppointments] = useState<AppointmentItemType[]>([]);
-  const [marketingIdeas, setMarketingIdeas] = useState<LinkedInPostIdea[]>([]);
-
-  useEffect(() => {
-    let active = true;
-    Promise.all([
-      getLeads(),
-      getCustomers(),
-      getTasks(),
-      getPriorities(),
-      getAlerts(),
-      getAppointments(),
-      getMarketingIdeas(),
-    ]).then(([l, c, t, p, a, ap, m]) => {
-      if (!active) return;
-      setLeads(l);
-      setCustomers(c);
-      setTasks(t);
-      setPriorities(p);
-      setAlerts(a);
-      _setAppointments(ap);
-      setMarketingIdeas(m);
-    });
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  // Progressive disclosure drawer (Level 3)
-  const [selectedPerson, setSelectedPerson] = useState<Lead | Customer | null>(
-    null,
-  );
-  const [selectedCommId, setSelectedCommId] = useState<string | null>(null);
-
-  // Combined people list for search
-  const allPeople = [
-    ...leads.map((l) => ({ ...l, type: "lead" })),
-    ...customers.map((c) => ({ ...c, type: "customer" })),
-  ];
-
-  const handleSelectPerson = (person: Lead | Customer) => {
-    setSelectedPerson(person);
-    setSelectedCommId(null);
-  };
-
-  const handlePersonSelectById = (id: string) => {
-    setSelectedCommId(null);
-    const foundLead = leads.find((l) => l.id === id);
-    if (foundLead) { setSelectedPerson(foundLead); return; }
-    const foundCust = customers.find((c) => c.id === id);
-    if (foundCust) { setSelectedPerson(foundCust); }
-  };
-
-  const handleSelectCommunication = (personId: string, tpId: string) => {
-    handlePersonSelectById(personId);
-    setSelectedCommId(tpId);
-  };
-
-  const handleCloseDrawer = () => {
-    setSelectedPerson(null);
-    setSelectedCommId(null);
-  };
-
-  // State mutations — optimistisches lokales Update + Persistenz via lib/db.
-  // (Mock-Phase: db-Writes sind No-ops; Phase 5 schreibt nach Supabase.)
-  const handleToggleTask = (taskId: string) => {
-    const task = tasks.find((t) => t.id === taskId);
-    const nextCompleted = task ? !task.completed : true;
-    setTasks((prev) =>
-      prev.map((t) =>
-        t.id === taskId ? { ...t, completed: !t.completed } : t,
-      ),
-    );
-    if (task && !task.completed) {
-      setPriorities((prev) => prev.filter((p) => p.id !== "prio-1"));
-    }
-    void dbSetTaskCompleted(taskId, nextCompleted);
-  };
-
-  const handleResolveAlert = (alertId: string) => {
-    setAlerts((prev) => prev.filter((a) => a.id !== alertId));
-  };
-
-  const handleUpdateLeadStage = (leadId: string, newStage: string) => {
-    const stage = newStage as Lead["pipelineStage"];
-    setLeads((prev) =>
-      prev.map((l) =>
-        l.id === leadId ? { ...l, pipelineStage: stage } : l,
-      ),
-    );
-    void dbUpdateLeadStage(leadId, stage);
-  };
-
-  const handleAddLead = (newLead: Lead) => {
-    setLeads((prev) => [newLead, ...prev]);
-    void dbCreateLead(newLead);
-    const newTask: TaskItemType = {
-      id: `task-gen-${Date.now()}`,
-      person: newLead.person,
-      title: `Erstkontakt mit ${newLead.person.name} vertiefen`,
-      isOverdue: false,
-      recommendedChannel: "LINKEDIN",
-      suggestedMessage: `Hallo ${newLead.person.name},\n\nvielen Dank für das Aufnehmen der Verbindung.`,
-      completed: false,
-    };
-    setTasks((prev) => [newTask, ...prev]);
-  };
-
-  const handleUpgradeSubscription = (
-    custId: string,
-    newPlan: "Growth" | "Enterprise",
-  ) => {
-    setCustomers((prev) =>
-      prev.map((c) =>
-        c.id === custId ? { ...c, subscriptionPlan: newPlan } : c,
-      ),
-    );
-    void dbUpgradeSubscription(custId, newPlan);
-  };
-
-  const handlePublishPost = (id: string, text: string) => {
-    setMarketingIdeas((prev) =>
-      prev.map((i) =>
-        i.id === id ? { ...i, draft: text, status: "published" } : i,
-      ),
-    );
-    void dbPublishMarketingPost(id, text);
-    alert("Post wurde eingeplant!");
-  };
-
   return (
-    <div
-      id="app-root"
-      className="min-h-screen font-sans flex flex-col bg-app-bg text-text-body transition-colors duration-300"
-    >
-      {/* Animations — Dark Mode läuft komplett über CSS-Token (index.css), kein Hack hier */}
-      <style>{`
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(4px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes slideLeft {
-          from { transform: translateX(100%); }
-          to { transform: translateX(0); }
-        }
-        .animate-fade-in { animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        .animate-slide-left { animation: slideLeft 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-      `}</style>
+    <div className="flex items-center justify-center h-full text-text-muted text-sm">
+      {t(nameKey)} — {t("common.comingSoon")}
+    </div>
+  );
+}
 
-      {/* TOP NAV */}
-      <TopBar
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        onOpenCommandPalette={() => setShowCommandPalette(true)}
-      />
-
-      {/* COMMAND PALETTE */}
-      <CommandPalette
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        allPeople={allPeople}
-        onSearchSelect={handleSelectPerson}
-        showModal={showCommandPalette}
-        setShowModal={setShowCommandPalette}
-      />
-
-      {/* BODY */}
+/** Layout-Shell: TopBar oben, Sidebar links, Screen im Outlet. */
+function AppLayout() {
+  const [, setShowPalette] = useState(false);
+  // CommandPalette wird in Schritt 8 hier eingehängt (setShowPalette).
+  return (
+    <div className="min-h-screen flex flex-col bg-app-bg text-text-body font-sans">
+      <TopBar onOpenCommandPalette={() => setShowPalette(true)} />
       <div className="flex flex-1 relative">
-        {/* Sidebar */}
-        <Sidebar
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          onOpenSettings={() => setShowSettings(true)}
-          onOpenSearch={() => setShowCommandPalette(true)}
-        />
-
-        {/* Main content */}
-        <main className="flex-1 p-6 md:p-8 overflow-y-auto max-w-7xl mx-auto w-full transition-all duration-300">
-          {activeTab === "meintag" && (
-            <ScreenMyDay
-              priorities={priorities}
-              appointments={appointments}
-              tasks={tasks}
-              alerts={alerts}
-              onPersonSelect={handlePersonSelectById}
-              onToggleTask={handleToggleTask}
-              onResolveAlert={handleResolveAlert}
-              leads={leads}
-              customers={customers}
-            />
-          )}
-          {activeTab === "hunting" && (
-            <ScreenHunting
-              leads={leads}
-              onSelectLead={handleSelectPerson}
-              onUpdateLeadStage={handleUpdateLeadStage}
-              onAddLead={handleAddLead}
-              onSelectCommunication={handleSelectCommunication}
-            />
-          )}
-          {activeTab === "farming" && (
-            <ScreenFarming
-              customers={customers}
-              onSelectCustomer={handleSelectPerson}
-              onUpgradeSubscription={handleUpgradeSubscription}
-              onSelectCommunication={handleSelectCommunication}
-            />
-          )}
-          {activeTab === "marketing" && (
-            <ScreenMarketing
-              ideas={marketingIdeas}
-              onPublishPost={handlePublishPost}
-            />
-          )}
-          {activeTab === "system" && <ScreenSherloqSystem />}
-          {activeTab === "jira" && <ScreenJira />}
+        <Sidebar />
+        <main className="flex-1 p-6 md:p-8 overflow-y-auto max-w-7xl mx-auto w-full">
+          <Outlet />
         </main>
       </div>
-
-      {/* CUSTOMER DRAWER (Level 3) — immer gemountet, damit die Ausfahr-Animation
-          beim Schließen sichtbar bleibt (Open-State steuert person=null) */}
-      <CustomerDrawer
-        person={selectedPerson}
-        initialExpandedCommId={selectedCommId}
-        onClose={handleCloseDrawer}
-      />
-
-      {/* SETTINGS MODAL */}
-      {showSettings && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-50 animate-fade-in">
-          <div className="bg-app-surface rounded-[32px] p-6 w-full max-w-[440px] shadow-dropdown relative">
-            <button
-              onClick={() => setShowSettings(false)}
-              className="absolute top-4 right-4 text-text-muted hover:text-text-primary cursor-pointer"
-            >
-              <X className="w-5 h-5" />
-            </button>
-            <h3 className="text-[14px] font-bold text-text-primary uppercase tracking-wider font-mono flex items-center gap-2">
-              <SettingsIcon className="w-4 h-4 text-sherloq-primary" />
-              {t("settings.systemConfigTitle")}
-            </h3>
-            <div className="mt-4 flex flex-col gap-3.5">
-              {/* Allgemein — Sprache (Auswahl persistiert in localStorage via useLanguage) */}
-              <div className="flex flex-col gap-2">
-                <span className="text-[11px] font-semibold text-text-primary uppercase tracking-wider">
-                  {t("settings.general.title")}
-                </span>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-[12px] text-text-body">
-                    <Languages className="w-4 h-4 text-text-muted" />
-                    <span>{t("settings.general.language")}</span>
-                  </div>
-                  <div className="flex items-center gap-0.5 p-0.5 bg-app-bg rounded-[10px]">
-                    {languages.map((lng) => {
-                      const isActive = language === lng;
-                      return (
-                        <button
-                          key={lng}
-                          onClick={() => setLanguage(lng)}
-                          className={`px-2.5 py-1 text-[11px] font-medium rounded-[7px] cursor-pointer transition-colors ${
-                            isActive
-                              ? "bg-sherloq-primary text-white"
-                              : "text-text-body hover:bg-app-surface"
-                          }`}
-                        >
-                          {t(`language.${lng}`)}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-                <p className="text-[10px] text-text-muted leading-relaxed">
-                  {t("settings.general.languageHint")}
-                </p>
-              </div>
-
-              <div className="bg-[var(--signal-teal-bg)] border border-[var(--signal-teal-text)]/10 p-4 rounded-[16px]">
-                <div className="flex items-center gap-2 text-signal-teal font-semibold text-[12px]">
-                  <Brain className="w-4 h-4" />
-                  <span>{t("settings.designToken.title")}</span>
-                </div>
-                <p className="text-[11px] text-text-body mt-1.5 leading-relaxed">
-                  {t("settings.designToken.body")}
-                </p>
-              </div>
-              <button
-                onClick={() => setShowSettings(false)}
-                className="sherloq-btn-primary w-full justify-center"
-              >
-                {t("common.close")}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
+  );
+}
+
+/** Schützt /app. Phase 0 ohne Backend: Dev-Bypass (kein Gate). */
+function Protected({ children }: { children: React.ReactNode }) {
+  const { session, loading } = useAuth();
+  if (!isSupabaseConfigured()) return <>{children}</>;
+  if (loading) return null;
+  if (!session) return <Navigate to="/" replace />;
+  return <>{children}</>;
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Login />} />
+        <Route
+          path="/app"
+          element={
+            <Protected>
+              <AppLayout />
+            </Protected>
+          }
+        >
+          <Route index element={<Navigate to="meintag" replace />} />
+          <Route path="meintag" element={<ComingSoon nameKey="nav.meintag" />} />
+          <Route path="ai-sdr" element={<ComingSoon nameKey="nav.aisdr" />} />
+          <Route path="hunter" element={<ComingSoon nameKey="nav.hunter" />} />
+          <Route path="farmer" element={<ComingSoon nameKey="nav.farmer" />} />
+          <Route path="kontakte" element={<ComingSoon nameKey="nav.kontakte" />} />
+          <Route path="companies" element={<ComingSoon nameKey="nav.companies" />} />
+          <Route path="settings" element={<ComingSoon nameKey="nav.settings" />} />
+        </Route>
+        <Route path="*" element={<Navigate to="/app/meintag" replace />} />
+      </Routes>
+    </BrowserRouter>
   );
 }

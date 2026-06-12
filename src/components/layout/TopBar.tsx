@@ -1,99 +1,76 @@
 /**
- * TopBar — primary navigation bar, 56px sticky header.
- * Follows migration spec: logo left, pill nav center (absolute), search + avatar right.
- * All values use design tokens — no hardcoded hex.
- * Sliding pill: single absolutely-positioned div that glides between tabs via offsetLeft measurement.
+ * TopBar — primäre Navigation, 56px sticky Header.
+ * Logo links · 4 Pills zentriert (Sliding-Pill) · Cmd+K + Avatar rechts.
+ *
+ * Verbindlich: Mein Tag · AI SDR · Hunter · Farmer (nicht Hunting/Farming).
+ * Nav-Container rounded-[12px], Tabs rounded-[9px], aktiv = Brand-Gradient + weiß.
+ * Alle Texte über t(), keine hardcodierten Farben (Tokens / Brand-Gradient).
  */
 
 import { useRef, useEffect, useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import {
-  Sun,
-  Target,
-  Sprout,
-} from "lucide-react";
+import { Sun, Bot, Target, Sprout } from "lucide-react";
 
 interface TopBarProps {
-  activeTab: string;
-  setActiveTab: (tab: string) => void;
   onOpenCommandPalette: () => void;
 }
 
-// Labels via i18n key — resolved with t() at render time, never hardcoded.
+const ICON = "w-4 h-4";
+
 const NAV_ITEMS = [
-  { id: "meintag", labelKey: "nav.meintag", icon: <Sun    className="w-4 h-4" /> },
-  { id: "hunting", labelKey: "nav.hunting", icon: <Target className="w-4 h-4" /> },
-  { id: "farming", labelKey: "nav.farming", icon: <Sprout className="w-4 h-4" /> },
+  { route: "meintag", labelKey: "nav.meintag", icon: <Sun className={ICON} /> },
+  { route: "ai-sdr", labelKey: "nav.aisdr", icon: <Bot className={ICON} /> },
+  { route: "hunter", labelKey: "nav.hunter", icon: <Target className={ICON} /> },
+  { route: "farmer", labelKey: "nav.farmer", icon: <Sprout className={ICON} /> },
 ];
 
-export default function TopBar({
-  activeTab,
-  setActiveTab,
-  onOpenCommandPalette,
-}: TopBarProps) {
+export default function TopBar({ onOpenCommandPalette }: TopBarProps) {
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
   const { t } = useTranslation();
-  // Track button DOM nodes so we can read offsetLeft + offsetWidth for the slider
+
+  const activeIndex = Math.max(
+    0,
+    NAV_ITEMS.findIndex((i) => pathname.startsWith(`/app/${i.route}`)),
+  );
+
   const buttonRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const [slider, setSlider] = useState({ left: 0, width: 0, ready: false });
 
   useEffect(() => {
-    const activeIndex = NAV_ITEMS.findIndex((item) => item.id === activeTab);
     const btn = buttonRefs.current[activeIndex];
-    if (btn) {
-      setSlider({ left: btn.offsetLeft, width: btn.offsetWidth, ready: true });
-    }
-  }, [activeTab]);
+    if (btn) setSlider({ left: btn.offsetLeft, width: btn.offsetWidth, ready: true });
+  }, [activeIndex, t]);
 
   return (
     <header
-      style={{
-        height: "56px",
-        background: "transparent",
-        position: "sticky",
-        top: 0,
-        zIndex: 30,
-      }}
+      style={{ height: 56, background: "transparent", position: "sticky", top: 0, zIndex: 30 }}
       className="px-6 flex items-center justify-between select-none relative"
     >
-      {/* ── LOGO ─────────────────────────────────────────────── */}
+      {/* Logo */}
       <div className="flex items-center gap-2 shrink-0">
         <div
-          style={{
-            width: 32,
-            height: 32,
-            background: "var(--sherloq-primary)",
-            borderRadius: "var(--radius-pill)",
-          }}
+          style={{ width: 32, height: 32, background: "var(--sherloq-primary)", borderRadius: "var(--radius-btn)" }}
           className="flex items-center justify-center"
         >
           <span className="text-white font-semibold text-sm leading-none">S</span>
         </div>
         <div className="flex flex-col leading-none gap-[3px]">
-          <span
-            style={{ color: "var(--text-primary)", fontSize: 14 }}
-            className="font-semibold tracking-tight"
-          >
+          <span style={{ color: "var(--text-primary)", fontSize: 14 }} className="font-semibold tracking-tight">
             Sherloq
           </span>
-          <span
-            style={{ color: "var(--text-muted)", fontSize: 10 }}
-            className="uppercase tracking-wider font-mono"
-          >
+          <span style={{ color: "var(--text-muted)", fontSize: 10 }} className="uppercase tracking-wider font-mono">
             SALES OS
           </span>
         </div>
       </div>
 
-      {/* ── NAV (absolutely centered) ─────────────────────────── */}
+      {/* Nav (absolut zentriert) */}
       <nav
-        style={{
-          background: "var(--surface)",
-          borderRadius: 12,
-          padding: "3px",
-        }}
-        className="absolute left-1/2 -translate-x-1/2 flex items-center gap-0.5"
+        style={{ background: "var(--surface)", borderRadius: 12, padding: 3 }}
+        className="absolute left-1/2 -translate-x-1/2 flex items-center gap-0.5 shadow-nav"
       >
-        {/* Sliding background pill — moves to the active tab */}
         {slider.ready && (
           <div
             style={{
@@ -102,29 +79,25 @@ export default function TopBar({
               bottom: 3,
               left: slider.left,
               width: slider.width,
-              background: "var(--sherloq-primary)",
+              background: "var(--sherloq-gradient)",
               borderRadius: 9,
-              transition: "left 220ms cubic-bezier(0.4, 0, 0.2, 1), width 220ms cubic-bezier(0.4, 0, 0.2, 1)",
+              transition: "left 200ms cubic-bezier(0.4,0,0.2,1), width 200ms cubic-bezier(0.4,0,0.2,1)",
               pointerEvents: "none",
             }}
           />
         )}
-
         {NAV_ITEMS.map((item, index) => {
-          const isActive = activeTab === item.id;
+          const active = index === activeIndex;
           return (
             <button
-              key={item.id}
-              ref={(el) => { buttonRefs.current[index] = el; }}
-              onClick={() => setActiveTab(item.id)}
-              style={{
-                color: isActive ? "white" : "var(--text-body)",
-                borderRadius: 9,
-                position: "relative", // sits above the slider
-                zIndex: 1,
+              key={item.route}
+              ref={(el) => {
+                buttonRefs.current[index] = el;
               }}
+              onClick={() => navigate(`/app/${item.route}`)}
+              style={{ color: active ? "white" : "var(--text-body)", borderRadius: 9, position: "relative", zIndex: 1 }}
               className={`flex items-center gap-2 px-4 py-1.5 text-[12px] font-medium cursor-pointer transition-colors duration-150${
-                !isActive ? " hover:bg-[var(--app-bg)]" : ""
+                !active ? " hover:bg-[var(--app-bg)]" : ""
               }`}
             >
               {item.icon}
@@ -134,7 +107,7 @@ export default function TopBar({
         })}
       </nav>
 
-      {/* ── RIGHT: Cmd+K + Avatar ─────────────────────────────── */}
+      {/* Cmd+K + Avatar */}
       <div className="flex items-center gap-2 shrink-0">
         <button
           onClick={onOpenCommandPalette}
@@ -165,12 +138,7 @@ export default function TopBar({
         </button>
 
         <button
-          style={{
-            width: 30,
-            height: 30,
-            background: "var(--sherloq-primary)",
-            borderRadius: 9,
-          }}
+          style={{ width: 30, height: 30, background: "var(--sherloq-primary)", borderRadius: 9 }}
           className="flex items-center justify-center text-white text-[11px] font-semibold cursor-pointer hover:opacity-90 transition-opacity"
         >
           OS
