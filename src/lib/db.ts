@@ -24,7 +24,6 @@ import {
   INITIAL_ALERT_BANNERS,
   INITIAL_MARKETING_IDEAS,
   INITIAL_KPIS,
-  INITIAL_SIGNALS,
 } from "@/data";
 import type {
   Lead,
@@ -35,10 +34,10 @@ import type {
   AlertBannerType,
   LinkedInPostIdea,
   KPIItemType,
-  SignalEvent,
 } from "@/types";
 import { createClient } from "@supabase/supabase-js";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Deal, Signal, PipelineStage } from "@/types/hunter";
 
 // ── Supabase Client — EINZIGER Init-Punkt im gesamten Projekt ────────────────
 // createClient() läuft AUSSCHLIESSLICH hier (audit-erzwungen). auth/storage/
@@ -118,10 +117,6 @@ export async function getKpis(): Promise<KPIItemType[]> {
   return ok(INITIAL_KPIS);
 }
 
-export async function getSignals(): Promise<SignalEvent[]> {
-  return ok(INITIAL_SIGNALS);
-}
-
 // ── Writes ─────────────────────────────────────────────────────────────────
 // Phase 5: schreiben in Supabase (+ audit_log via DB-Trigger). Aktuell geben sie
 // das Ergebnis zurück; der React-State der App bleibt die Prototyp-Quelle.
@@ -194,21 +189,122 @@ export interface DealFilters {
   cursor?: string;
 }
 
+// Join-Select: Deal + Kontakt + Company + offene Tasks (Tasks im JS gefiltert).
+const DEAL_SELECT =
+  "*, contact:contacts(*), company:companies(*), tasks(*)";
+
 export async function getDeals(
   organizationId: string,
   filters: DealFilters = {},
-): Promise<Record<string, unknown>[]> {
+): Promise<Deal[]> {
   const client = getSupabaseClient();
   if (!client) return [];
-  let q = client.from("deals").select("*").eq("organization_id", organizationId);
+  let q = client.from("deals").select(DEAL_SELECT).eq("organization_id", organizationId);
   if (filters.stage) q = q.eq("stage", filters.stage);
   if (filters.ownerId) q = q.eq("owner_id", filters.ownerId);
   if (filters.cursor) q = q.lt("created_at", filters.cursor);
   const { data, error } = await q
+    // Stagnierendste zuerst, dann neueste (Keyset bleibt via created_at möglich).
+    .order("stagnation_days", { ascending: false })
     .order("created_at", { ascending: false })
     .limit(filters.limit ?? 50);
   if (error) throw error;
-  return data ?? [];
+  const deals = (data ?? []) as unknown as Deal[];
+  // nur offene Tasks pro Deal behalten
+  for (const d of deals) d.tasks = (d.tasks ?? []).filter((t) => !t.completed_at);
+  return deals;
+}
+
+/** Einzelner Deal mit allen Details (für das Info Panel). */
+export async function getDealWithDetails(
+  dealId: string,
+  organizationId: string,
+): Promise<Deal | null> {
+  const client = getSupabaseClient();
+  if (!client) return null;
+  const { data, error } = await client
+    .from("deals")
+    .select(DEAL_SELECT)
+    .eq("organization_id", organizationId)
+    .eq("id", dealId)
+    .single();
+  if (error) return null;
+  return data as unknown as Deal;
+}
+
+export interface SignalFilters {
+  routedTo?: "hunter";
+  processed?: boolean;
+  limit?: number;
+}
+
+export async function getSignals(
+  organizationId: string,
+  filters: SignalFilters = {},
+): Promise<Signal[]> {
+  const client = getSupabaseClient();
+  if (!client) return [];
+  let q = client
+    .from("signals")
+    .select("*, contact:contacts(*)")
+    .eq("organization_id", organizationId);
+  if (filters.routedTo) q = q.eq("routed_to", filters.routedTo);
+  if (filters.processed === false) q = q.is("processed_at", null);
+  const { data, error } = await q
+    .order("created_at", { ascending: false })
+    .limit(filters.limit ?? 50);
+  if (error) throw error;
+  return (data ?? []) as unknown as Signal[];
+}
+
+/** Stage wechseln + stage_updated_at = now(). Audit-Log via DB-Trigger (audit_write). */
+export async function updateDealStage(
+  dealId: string,
+  newStage: string,
+  organizationId: string,
+): Promise<void> {
+  const client = getSupabaseClient();
+  if (!client) return;
+  const { error } = await client
+    .from("deals")
+    .update({ stage: newStage, stage_updated_at: new Date().toISOString(), stagnation_days: 0 })
+    .eq("organization_id", organizationId)
+    .eq("id", dealId);
+  if (error) throw error;
+}
+
+/** Task anlegen. Audit-Log via DB-Trigger. */
+export async function createTask(task: {
+  organizationId: string;
+  contactId?: string;
+  dealId?: string;
+  title: string;
+  description?: string;
+  dueAt: string;
+  priority: string;
+  source: "manual";
+}): Promise<void> {
+  const client = getSupabaseClient();
+  if (!client) return;
+  const { error } = await client.from("tasks").insert({
+    organization_id: task.organizationId,
+    contact_id: task.contactId ?? null,
+    deal_id: task.dealId ?? null,
+    title: task.title,
+    description: task.description ?? null,
+    due_at: task.dueAt,
+    priority: task.priority,
+    source: task.source,
+  });
+  if (error) throw error;
+}
+
+/** settings.pipeline_stages (Anzeigenamen/Slugs/Schwellen). Caching am Call-Site (TanStack). */
+export async function getPipelineSettings(
+  organizationId: string,
+): Promise<PipelineStage[]> {
+  const settings = await getSettings(organizationId);
+  return (settings?.pipeline_stages as PipelineStage[] | undefined) ?? [];
 }
 
 /** Settings-Zeile der Org (Single Source of Truth aller Schwellenwerte). */

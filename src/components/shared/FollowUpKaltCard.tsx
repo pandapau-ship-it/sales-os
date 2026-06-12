@@ -1,0 +1,596 @@
+import { useState } from "react";
+
+interface FollowUpKaltCardProps {
+  name: string;
+  role: string;
+  avatarInitials: string;
+  avatarBg: string;
+  companyInitials: string;
+  companyName: string;
+  companyBg: string;
+  icpScore: number;
+  stage: string;
+  daysInStage: number;
+  timeAgoLabel: string;
+  aiRecommendation: string;
+  generatedMessage: string;
+  onOutreachClick?: () => void;
+  onDetailsClick?: () => void;
+}
+
+export function FollowUpKaltCard({
+  name,
+  role,
+  avatarInitials,
+  avatarBg,
+  companyInitials,
+  companyName,
+  companyBg,
+  icpScore,
+  stage,
+  daysInStage,
+  timeAgoLabel,
+  onOutreachClick,
+  onDetailsClick,
+}: FollowUpKaltCardProps) {
+  const [expanded, setExpanded] = useState(false);
+
+  const donutCircumference = 125.66;
+  const donutOffset = donutCircumference - (icpScore / 100) * donutCircumference;
+
+  return (
+    <div
+      onClick={() => setExpanded(!expanded)}
+      style={{
+        background: "#ffffff",
+        boxShadow: "0 8px 30px rgba(0,0,0,0.04)",
+        overflow: "hidden",
+        cursor: "pointer",
+        maxWidth: "1100px",
+        width: "100%",
+        margin: "0 auto",
+        borderRadius: expanded ? "24px" : "32px",
+        border: expanded ? "2px solid #BAE6FD" : "1px solid #F1F3F5",
+        transition: "all 0.2s ease-in-out",
+        fontFamily: "'Plus Jakarta Sans', sans-serif",
+      }}
+    >
+      {/* TOP ROW */}
+      <div
+        style={{
+          padding: "20px 24px",
+          display: "flex",
+          alignItems: "center",
+          gap: "0",
+          flexWrap: "wrap",
+          justifyContent: "space-between",
+        }}
+      >
+        {/* Avatar + Name */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "14px",
+            flex: 1,
+            minWidth: 0,
+          }}
+        >
+          <div style={{ position: "relative", flexShrink: 0 }}>
+            <div
+              style={{
+                width: "40px",
+                height: "40px",
+                borderRadius: "9999px",
+                background: avatarBg,
+                color: "#fff",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "13px",
+                fontWeight: 700,
+                flexShrink: 0,
+              }}
+            >
+              {avatarInitials}
+            </div>
+          </div>
+
+          <div style={{ minWidth: 0 }}>
+            <div
+              style={{
+                fontSize: "14px",
+                fontWeight: 700,
+                color: "#212529",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              }}
+            >
+              {name}
+            </div>
+
+            <div
+              style={{
+                fontSize: "12px",
+                color: "#868E96",
+                marginTop: "2px",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                maxWidth: "200px",
+              }}
+            >
+              {role}
+            </div>
+          </div>
+        </div>
+
+        {/* ICP + Company */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "14px",
+            padding: "0 20px",
+            borderLeft: "1px solid #F1F3F5",
+            flexShrink: 0,
+          }}
+        >
+          <div
+            style={{
+              position: "relative",
+              width: "48px",
+              height: "48px",
+              flexShrink: 0,
+            }}
+          >
+            <svg
+              width="48"
+              height="48"
+              viewBox="0 0 48 48"
+              style={{ transform: "rotate(-90deg)", display: "block" }}
+            >
+              <circle
+                cx="24"
+                cy="24"
+                r="20"
+                stroke="#F1F3F5"
+                strokeWidth="4"
+                fill="transparent"
+              />
+              <circle
+                cx="24"
+                cy="24"
+                r="20"
+                stroke="#F59E0B"
+                strokeWidth="4"
+                fill="transparent"
+                strokeDasharray={donutCircumference}
+                strokeDashoffset={donutOffset}
+                strokeLinecap="round"
+              />
+            </svg>
+
+            <span
+              style={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%,-50%)",
+                fontSize: "13px",
+                fontWeight: 700,
+                color: "#F59E0B",
+                fontFamily: "monospace",
+                lineHeight: 1,
+              }}
+            >
+              {icpScore}
+            </span>
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              background: "#fff",
+              border: "1px solid #E9ECEF",
+              padding: "6px 12px 6px 8px",
+              borderRadius: "12px",
+              flexShrink: 0,
+            }}
+          >
+            <div
+              style={{
+                background: companyBg,
+                color: "#fff",
+                fontSize: "10px",
+                fontWeight: 700,
+                width: "24px",
+                height: "24px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                borderRadius: "6px",
+                flexShrink: 0,
+              }}
+            >
+              {companyInitials}
+            </div>
+
+            <span
+              style={{
+                fontSize: "13px",
+                color: "#495057",
+                fontWeight: 600,
+                whiteSpace: "nowrap",
+              }}
+            >
+              {companyName}
+            </span>
+          </div>
+        </div>
+
+        {/* Stage + Heat */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "12px",
+            padding: "0 20px",
+            borderLeft: "1px solid #F1F3F5",
+            flexShrink: 0,
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              position: "relative",
+              minWidth: "90px",
+            }}
+          >
+            <span
+              style={{
+                position: "absolute",
+                top: "-16px",
+                fontSize: "10px",
+                fontWeight: 700,
+                color: "#ADB5BD",
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
+                whiteSpace: "nowrap",
+              }}
+            >
+              STAGE
+            </span>
+
+            <div
+              style={{
+                padding: "6px 16px",
+                borderRadius: "9999px",
+                background: "#fff",
+                border: "2px solid #E9ECEF",
+                fontSize: "13px",
+                fontWeight: 700,
+                color: "#212529",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {stage}
+            </div>
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              position: "relative",
+              minWidth: "80px",
+            }}
+          >
+            <span
+              style={{
+                position: "absolute",
+                top: "-16px",
+                fontSize: "10px",
+                fontWeight: 700,
+                color: "#ADB5BD",
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
+                whiteSpace: "nowrap",
+              }}
+            >
+              HEAT
+            </span>
+
+            <div
+              style={{
+                padding: "6px 14px",
+                borderRadius: "9999px",
+                background: "#E7F5FF",
+                border: "2px solid #BAE6FD",
+                fontSize: "13px",
+                fontWeight: 700,
+                color: "#1971C2",
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                whiteSpace: "nowrap",
+              }}
+            >
+              <span
+                style={{
+                  width: "8px",
+                  height: "8px",
+                  borderRadius: "9999px",
+                  background: "#1971C2",
+                  display: "inline-block",
+                  flexShrink: 0,
+                }}
+              />
+              Kalt
+            </div>
+          </div>
+        </div>
+
+        {/* Zeit + Buttons */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "14px",
+            paddingLeft: "20px",
+            borderLeft: "1px solid #F1F3F5",
+            flexShrink: 0,
+            marginLeft: "auto",
+          }}
+        >
+          <div style={{ textAlign: "right", flexShrink: 0 }}>
+            <div
+              style={{
+                fontSize: "14px",
+                fontWeight: 700,
+                color: "#212529",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {timeAgoLabel}
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "flex-end",
+                gap: "4px",
+                marginTop: "2px",
+                color: "#E03131",
+                fontWeight: 700,
+                fontSize: "12px",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {daysInStage}T in Stage
+              <svg
+                width="13"
+                height="13"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#E03131"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              >
+                <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                <line x1="12" y1="9" x2="12" y2="13" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
+            </div>
+          </div>
+
+          {!expanded ? (
+            <div className="flex items-center gap-[14px]">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setExpanded(true);
+                }}
+                style={{
+                  width: "36px",
+                  height: "36px",
+                  borderRadius: "9999px",
+                  background: "#F8F9FA",
+                  color: "#ADB5BD",
+                  border: "none",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                  flexShrink: 0,
+                }}
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                >
+                  <path d="M6 9l6 6 6-6" />
+                </svg>
+              </button>
+
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDetailsClick?.();
+                }}
+                style={{
+                  width: "40px",
+                  height: "40px",
+                  borderRadius: "9999px",
+                  background: "#ECFEF9",
+                  color: "#125455",
+                  border: "none",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                  flexShrink: 0,
+                }}
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setExpanded(false);
+              }}
+              style={{
+                width: "40px",
+                height: "40px",
+                borderRadius: "9999px",
+                background: "#F1F3F5",
+                color: "#495057",
+                border: "none",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                flexShrink: 0,
+              }}
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              >
+                <path d="M18 15l-6-6-6 6" />
+              </svg>
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* SIGNAL ROW */}
+      {!expanded && (
+        <div
+          style={{
+            background: "#F8F9FA",
+            borderTop: "1px solid #E9ECEF",
+            padding: "12px 24px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "16px",
+            flexWrap: "wrap",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <div
+              style={{
+                background: "#E7F5FF",
+                color: "#1971C2",
+                padding: "6px 12px",
+                borderRadius: "8px",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                fontSize: "14px",
+                fontWeight: 700,
+                flexShrink: 0,
+              }}
+            >
+              <svg
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              >
+                <path d="M12 20h9" />
+                <path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
+              </svg>
+              Kalt
+            </div>
+
+            <span
+              style={{
+                fontSize: "14px",
+                fontWeight: 600,
+                color: "#343A40",
+              }}
+            >
+              Kontakt wird kalt. Letzter Kanal Email ohne Response. AI empfiehlt
+              Kanalwechsel zu LinkedIn.
+            </span>
+          </div>
+
+          <div style={{ display: "flex", gap: "8px", flexShrink: 0 }}>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onOutreachClick?.();
+              }}
+              style={{
+                background: "#fff",
+                border: "1px solid #E9ECEF",
+                color: "#495057",
+                padding: "8px 20px",
+                borderRadius: "12px",
+                fontSize: "13px",
+                fontWeight: 700,
+                cursor: "pointer",
+                whiteSpace: "nowrap",
+                boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
+              }}
+            >
+              Start Outreach
+            </button>
+
+            <button
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                background: "#fff",
+                border: "1px solid #E9ECEF",
+                color: "#495057",
+                padding: "8px 20px",
+                borderRadius: "12px",
+                fontSize: "13px",
+                fontWeight: 700,
+                cursor: "pointer",
+                whiteSpace: "nowrap",
+              }}
+            >
+              Snooze
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
