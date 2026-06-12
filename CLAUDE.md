@@ -171,6 +171,14 @@ wird das Design in unser System übersetzt — nicht umgekehrt.
 
 **Niemals:** `rounded-pill` für Nav-Container oder Nav-Tabs. `rounded-pill` nur für Status-Punkte, Checkboxen, Linien.
 
+**Verhaltens-Konsistenz — gilt für ALLE Komponenten: „Gleiches Element = gleiches Verhalten, immer."**
+Wenn ein UI-Element (Kachel, Button, Badge, Panel …) an einer Stelle ein bestimmtes Verhalten hat
+(Hover-Lift, Expand, Auswahl, Öffnen-Logik), MUSS dasselbe Element überall identisch funktionieren —
+nicht nur gleich aussehen. Beispiel: Lead-Kachel und Signal-Kachel teilen denselben Hover
+(`hover:shadow-md hover:-translate-y-0.5 transition-all duration-300`), dieselbe Checkbox-Auswahl,
+denselben Chevron-Expand und denselben „grüner Pfeil → 820px-Info-Panel". Abweichungen sind ein Bug,
+kein Feature. Bei neuem Verhalten: zuerst prüfen, ob das Element woanders schon existiert, und 1:1 übernehmen.
+
 **Border-Hierarchie — was einen Rand bekommt, was nicht:**
 | Element | Border | Warum |
 |---|---|---|

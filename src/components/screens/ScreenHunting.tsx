@@ -662,7 +662,7 @@ export default function ScreenHunting({
             return (
               <div
                 key={lead.id}
-                className={`group rounded-[12px] p-4 flex flex-col gap-4 shadow-[var(--shadow-card)] hover:shadow-md transition-all duration-300 cursor-pointer border border-[var(--border-card)] relative ${
+                className={`group rounded-[12px] p-4 flex flex-col gap-4 shadow-[var(--shadow-card)] hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 cursor-pointer border border-[var(--border-card)] relative ${
                   selectedLeadIds.includes(lead.id) ? 'bg-[var(--signal-teal-bg)]' : 'bg-white'
                 }`}
                 onClick={() => setExpandedLeadId(isExpanded ? null : lead.id)}
@@ -1066,6 +1066,7 @@ export default function ScreenHunting({
             name="Maja Voje"
             selected={selectedSignalIds.includes("Maja Voje")}
             onToggleSelect={(e) => toggleSignalSelection("Maja Voje", e)}
+            onOpenInfo={onSelectLead}
             role="GTM Strategist"
             avatarUrl="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=120&h=120"
             companyInitials="GL"
@@ -1099,6 +1100,7 @@ export default function ScreenHunting({
             name="Sarah Jenkins"
             selected={selectedSignalIds.includes("Sarah Jenkins")}
             onToggleSelect={(e) => toggleSignalSelection("Sarah Jenkins", e)}
+            onOpenInfo={onSelectLead}
             role="VP of Sales"
             avatarInitials="SJ"
             avatarBg="bg-[var(--icp-medium)]"
@@ -1133,6 +1135,7 @@ export default function ScreenHunting({
             name="Marc Levigne"
             selected={selectedSignalIds.includes("Marc Levigne")}
             onToggleSelect={(e) => toggleSignalSelection("Marc Levigne", e)}
+            onOpenInfo={onSelectLead}
             role="CPO"
             avatarInitials="ML"
             avatarBg="bg-[var(--signal-info-text)]"
@@ -1166,6 +1169,7 @@ export default function ScreenHunting({
             name="Elena Rostova"
             selected={selectedSignalIds.includes("Elena Rostova")}
             onToggleSelect={(e) => toggleSignalSelection("Elena Rostova", e)}
+            onOpenInfo={onSelectLead}
             role="Head of SDR"
             avatarInitials="ER"
             avatarBg="bg-[var(--accent-purple)]"
@@ -1199,6 +1203,7 @@ export default function ScreenHunting({
             name="Dr. Christian Brand"
             selected={selectedSignalIds.includes("Dr. Christian Brand")}
             onToggleSelect={(e) => toggleSignalSelection("Dr. Christian Brand", e)}
+            onOpenInfo={onSelectLead}
             role="CEO"
             avatarInitials="CB"
             avatarBg="bg-[var(--icp-high)]"
