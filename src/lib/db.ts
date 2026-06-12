@@ -157,3 +157,79 @@ export async function publishMarketingPost(
 ): Promise<{ id: string; draft: string; status: string }> {
   return ok({ id, draft: text, status: "published" });
 }
+
+// ── Phase 1: typsichere Query-Helper (echte Supabase-Queries) ─────────────────
+// Regeln: organization_id IMMER dabei · Keyset-Pagination (cursor auf created_at,
+// nie OFFSET) · ohne konfigurierte Supabase-Env (Phase 0/1) → leeres Ergebnis.
+// Diese ergänzen die Mock-Reads oben; in Phase 2 lösen sie sie schrittweise ab.
+
+export interface ContactFilters {
+  status?: string;
+  heatStatus?: string;
+  limit?: number;
+  cursor?: string; // created_at des letzten Eintrags (Keyset)
+}
+
+export async function getContacts(
+  organizationId: string,
+  filters: ContactFilters = {},
+): Promise<Record<string, unknown>[]> {
+  const client = getSupabaseClient();
+  if (!client) return [];
+  let q = client.from("contacts").select("*").eq("organization_id", organizationId);
+  if (filters.status) q = q.eq("contact_status", filters.status);
+  if (filters.heatStatus) q = q.eq("heat_status", filters.heatStatus);
+  if (filters.cursor) q = q.lt("created_at", filters.cursor);
+  const { data, error } = await q
+    .order("created_at", { ascending: false })
+    .limit(filters.limit ?? 50);
+  if (error) throw error;
+  return data ?? [];
+}
+
+export interface DealFilters {
+  stage?: string;
+  ownerId?: string;
+  limit?: number;
+  cursor?: string;
+}
+
+export async function getDeals(
+  organizationId: string,
+  filters: DealFilters = {},
+): Promise<Record<string, unknown>[]> {
+  const client = getSupabaseClient();
+  if (!client) return [];
+  let q = client.from("deals").select("*").eq("organization_id", organizationId);
+  if (filters.stage) q = q.eq("stage", filters.stage);
+  if (filters.ownerId) q = q.eq("owner_id", filters.ownerId);
+  if (filters.cursor) q = q.lt("created_at", filters.cursor);
+  const { data, error } = await q
+    .order("created_at", { ascending: false })
+    .limit(filters.limit ?? 50);
+  if (error) throw error;
+  return data ?? [];
+}
+
+/** Settings-Zeile der Org (Single Source of Truth aller Schwellenwerte). */
+export async function getSettings(
+  organizationId: string,
+): Promise<Record<string, unknown> | null> {
+  const client = getSupabaseClient();
+  if (!client) return null;
+  const { data, error } = await client
+    .from("settings")
+    .select("*")
+    .eq("organization_id", organizationId)
+    .single();
+  if (error) return null;
+  return data;
+}
+
+/** Aktive Module der Org (aus settings.modules) — Grundlage für useModules. */
+export async function getModules(
+  organizationId: string,
+): Promise<Record<string, boolean>> {
+  const settings = await getSettings(organizationId);
+  return (settings?.modules as Record<string, boolean>) ?? {};
+}

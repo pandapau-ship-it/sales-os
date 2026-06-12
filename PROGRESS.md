@@ -4,7 +4,7 @@
 
 ---
 
-## Current Status: Phase 0 (Fundament) gebaut ✅ → Phase 1 (Datenschicht: DB-Schema v3 + RLS) next
+## Current Status: Phase 1 (Datenschicht) als SQL geschrieben ✅ → Phase 2 (Hunter-Screen) next
 
 > Single Source of Truth für den Umsetzungsstand: **CHECKLIST.md** (`npm run audit` prüft).
 > CLAUDE.md = WARUM/WIE · CHECKLIST.md = WAS-offen · PROGRESS.md = Session-Historie.
@@ -15,6 +15,37 @@
 ---
 
 ## Completed
+
+### Phase 1 — Datenschicht (Branch `feature/phase-1-datenschicht`)
+
+12 SQL-Migrationen unter `supabase/migrations/` — **nur geschrieben & committet, nicht
+ausgeführt** (Option a). Live-Anbindung folgt, sobald `.env.local`-Creds stehen.
+
+- [x] **001–009** alle Tabellen feldgenau nach `db_schema_v3` (33 Tabellen): organizations/
+  users · contacts/companies · campaigns/sequences/leads · messages/signals/deals ·
+  tasks/notes/lists · automation_rules/sequence_rules/settings/audit_log · mailboxes/
+  blacklist/churn_rules/upsell_rules/user_permissions/daily_briefings/scheduled_tasks ·
+  Billing (plans/limits/subscription/credits/addons) · AI-Chat (sessions/messages/dashboards)
+- [x] **010** `update_updated_at()`-Trigger (alle Tabellen mit der Spalte) + generischer
+  `audit_write()`-Trigger auf den Kern-Entitäten
+- [x] **011** RLS auf allen 33 Tabellen + Policies; `auth_org_id()`-Helper statt Inline-
+  Subselect (vermeidet RLS-Rekursion); Sonderfälle organizations/plans/plan_limits/
+  blacklisted_domains/chat_messages
+- [x] **012** Settings-Seed (Demo-Org) mit allen Schwellenwerten: Heat-Tage, Pipeline-Stages
+  (Slug+Probability, top-level), Churn (zweischichtig), Soft-Bounce-Retry, Mein-Tag-Top-5,
+  Sending-Defaults, Follow-up 3/7
+- [x] `lib/db.ts` um Query-Helper erweitert (getContacts/getDeals/getSettings/getModules,
+  Keyset-Pagination, org_id immer, null-tolerant)
+- [x] **Build grün · Audit 0 FAIL** (DB-Checks aktiv: org_id/RLS/CASCADE PASS)
+
+**Kanonische Abweichungen vom Paket-Entwurf (Konflikt-Regel angewandt, geflaggt):**
+Tabellenname `deals` (nicht `pipeline_deals`) · Churn zweischichtig (nicht flach) ·
+Modul-Keys = kanonische `useModules`-Keys · `pipeline_stages` top-level · `auth_org_id()`-RLS.
+
+**Offen:** Migrationen ausführen + lib/db live schalten (wenn Creds da) · CLAUDE.md-Prosa
+`pipeline_deals` → `deals` angleichen (Rest-Widerspruch).
+
+---
 
 ### Phase 0 — Fundament (Branch `feature/phase-0-fundament`)
 
