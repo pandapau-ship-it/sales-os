@@ -1,6 +1,8 @@
 import { ChevronDown, ArrowRight } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export const PipelineKeineTaskCard = ({ onTaskAnlegen }: { onTaskAnlegen?: () => void }) => {
+    const { t } = useTranslation();
     return (
 <div
   className="bg-white overflow-hidden cursor-pointer max-w-[1100px] w-full mx-auto"
@@ -76,7 +78,7 @@ export const PipelineKeineTaskCard = ({ onTaskAnlegen }: { onTaskAnlegen?: () =>
     <div className="flex items-center gap-4 px-5 border-l border-[var(--border-subtle)] shrink-0">
       <div className="flex flex-col items-center relative w-[80px]">
         <span className="absolute -top-[14px] text-[10px] font-bold text-[var(--icon-muted)] tracking-[0.08em] uppercase">
-          STAGE
+          {t('hunter.common.stage')}
         </span>
         <div className="px-4 py-1.5 rounded-full bg-[var(--app-bg)] border border-[var(--border)] text-[12px] font-semibold text-[var(--text-body)]">
           Lead
@@ -85,11 +87,11 @@ export const PipelineKeineTaskCard = ({ onTaskAnlegen }: { onTaskAnlegen?: () =>
 
       <div className="flex flex-col items-center relative w-[100px]">
         <span className="absolute -top-[14px] text-[10px] font-bold text-[var(--icon-muted)] tracking-[0.08em] uppercase">
-          HEAT
+          {t('hunter.common.heat')}
         </span>
         <div className="px-4 py-1.5 rounded-full bg-[var(--signal-warn-bg)] border border-[var(--signal-warn-bg)] text-[12px] font-semibold text-[var(--icp-medium)] flex items-center gap-1.5">
           <span className="w-1.5 h-1.5 rounded-full bg-[var(--icp-medium)]"></span>
-          Stabil
+          {t('hunter.heat.stable')}
         </div>
       </div>
     </div>
@@ -98,10 +100,10 @@ export const PipelineKeineTaskCard = ({ onTaskAnlegen }: { onTaskAnlegen?: () =>
     <div className="flex items-center gap-5 pl-5 border-l border-[var(--border-subtle)] shrink-0">
       <div className="text-right">
         <div className="text-[14px] font-bold text-[var(--text-primary)] whitespace-nowrap">
-          vor 3 Tagen
+          {t('hunter.common.ago', { label: '3 Tagen' })}
         </div>
         <div className="text-[12px] text-[var(--text-muted)] font-semibold mt-[2px] whitespace-nowrap">
-          Neu in Pipeline
+          {t('hunter.card.newInPipeline')}
         </div>
       </div>
 
@@ -134,11 +136,11 @@ export const PipelineKeineTaskCard = ({ onTaskAnlegen }: { onTaskAnlegen?: () =>
           <line x1="12" y1="9" x2="12" y2="13" />
           <line x1="12" y1="17" x2="12.01" y2="17" />
         </svg>
-        Keine Task
+        {t('hunter.card.noTask')}
       </div>
 
       <span className="text-[14px] font-semibold text-[var(--text-body)]">
-        Pflicht — Deal braucht eine offene Aufgabe
+        {t('hunter.card.noTaskHint')}
       </span>
     </div>
 
@@ -149,7 +151,7 @@ export const PipelineKeineTaskCard = ({ onTaskAnlegen }: { onTaskAnlegen?: () =>
       }}
       className="bg-white border border-[var(--border)] text-[var(--text-body)] px-5 py-2 rounded-[12px] text-[13px] font-bold cursor-pointer whitespace-nowrap shadow-[0_1px_4px_rgba(0,0,0,0.04)] hover:bg-gray-50 flex items-center transition-all"
     >
-      Task anlegen
+      {t('hunter.card.createTask')}
     </button>
   </div>
 </div>

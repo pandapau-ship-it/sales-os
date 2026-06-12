@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Check } from 'lucide-react';
 
 const STAGES_DATA = [
@@ -65,6 +66,7 @@ const STAGES_DATA = [
 ];
 
 export default function FunnelAnalysis() {
+  const { t } = useTranslation();
   const [hoveredStage, setHoveredStage] = useState<number | null>(null);
 
   const getConversionColorClass = (rate: number | null) => {
@@ -81,7 +83,7 @@ export default function FunnelAnalysis() {
         {/* Header Sektion */}
         <div className="mb-8">
           <span className="text-[10px] font-extrabold text-[var(--text-muted)] uppercase tracking-widest leading-none">
-            Funnel Analyse · Pipeline Stufen
+            {t('hunter.funnel.header')}
           </span>
         </div>
 
@@ -108,8 +110,8 @@ export default function FunnelAnalysis() {
                     isHovered ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-1 scale-95'
                   }`}>
                     <div className="flex flex-col items-center text-center">
-                      <span className="font-semibold">Ø {stage.avgDays} Tage in Stage</span>
-                      <span className="text-gray-400 text-[10px] mt-0.5 font-medium">Ø {stage.avgValue} Deal-Wert</span>
+                      <span className="font-semibold">{t('hunter.funnel.avgDaysInStage', { days: stage.avgDays })}</span>
+                      <span className="text-gray-400 text-[10px] mt-0.5 font-medium">{t('hunter.funnel.avgDealValue', { value: stage.avgValue })}</span>
                     </div>
                     {/* Tooltip Arrow */}
                     <div className="w-2.5 h-2.5 bg-gray-900 rotate-45 absolute -bottom-1 left-1/2 -translate-x-1/2 z-20"></div>
@@ -118,7 +120,7 @@ export default function FunnelAnalysis() {
                   {/* Deals Count & Currency Value */}
                   <div className="text-center h-[48px] flex flex-col justify-end pb-2.5">
                     <span className="text-[14px] font-bold text-[var(--text-primary)] leading-none">
-                      {stage.deals} Deals
+                      {t('hunter.funnel.deals', { count: stage.deals })}
                     </span>
                     <span className="text-[12px] font-semibold text-[var(--text-muted)] mt-1.5 leading-none">
                       {stage.value}

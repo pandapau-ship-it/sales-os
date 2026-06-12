@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Flame, ArrowRight, ChevronDown, ChevronUp } from "lucide-react";
 
 interface LinkedinSignalCardProps {
@@ -44,6 +45,7 @@ export function LinkedinSignalCard({
   aiRecommendation,
   onActNow,
 }: LinkedinSignalCardProps) {
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
 
   const timeProgress =
@@ -150,11 +152,11 @@ export function LinkedinSignalCard({
         {/* Heat */}
         <div className="flex flex-col items-center gap-1.5 shrink-0">
           <span className="text-[10px] font-extrabold text-[var(--icon-muted)] tracking-[0.05em] uppercase">
-            HEAT
+            {t('hunter.common.heat')}
           </span>
           <div className="border border-[var(--signal-urgent-bg)] bg-[var(--signal-urgent-bg)] rounded-full px-5 py-1.5 text-sm font-extrabold text-[var(--icp-low)] flex items-center gap-1.5">
             <div className="w-2 h-2 rounded-sm bg-[var(--icp-low)]" />
-            Hot
+            {t('hunter.common.hot')}
           </div>
         </div>
 
@@ -166,7 +168,7 @@ export function LinkedinSignalCard({
             {timeAgoLabel || timeAgo}
           </span>
           <span className="text-xs text-[var(--icon-muted)] font-bold mt-0.5 whitespace-nowrap">
-            {timeLeftHours}h left
+            {t('hunter.common.hoursLeft', { hours: timeLeftHours })}
           </span>
         </div>
 
@@ -181,7 +183,7 @@ export function LinkedinSignalCard({
         {/* Left Side: Event & Action Info */}
         <div className="flex items-center gap-5 overflow-hidden">
           <div className="bg-[var(--signal-info-text)] text-white px-5 py-2.5 rounded-lg font-extrabold text-sm shrink-0">
-            LinkedIn Signal
+            {t('hunter.common.linkedinSignal')}
           </div>
           <div className="text-[var(--signal-info-text)] font-extrabold text-[15px] truncate">
             {actionText}
@@ -195,10 +197,10 @@ export function LinkedinSignalCard({
             <div className="flex flex-col w-[260px]">
               <div className="flex justify-between items-center mb-1.5">
                 <span className="text-[var(--icp-low)] font-extrabold text-[13px] flex items-center gap-1">
-                  <Flame className="w-3 h-3" /> Hot
+                  <Flame className="w-3 h-3" /> {t('hunter.common.hot')}
                 </span>
                 <span className="text-[var(--icp-low)] font-extrabold text-[13px]">
-                  {timeLeftHours}h left
+                  {t('hunter.common.hoursLeft', { hours: timeLeftHours })}
                 </span>
               </div>
               <div className="bg-[var(--signal-info-bg)] h-1.5 rounded-full overflow-hidden w-full">
@@ -208,7 +210,7 @@ export function LinkedinSignalCard({
                 />
               </div>
               <div className="text-right text-[var(--icon-muted)] text-[11px] font-extrabold mt-1.5">
-                {windowHours}h window
+                {t('hunter.common.hoursWindow', { hours: windowHours })}
               </div>
             </div>
 
@@ -250,7 +252,7 @@ export function LinkedinSignalCard({
               }}
               className="bg-[var(--sherloq-primary)] text-white border-none rounded-full px-6 py-2.5 font-extrabold text-sm cursor-pointer hover:opacity-90 transition-opacity"
             >
-              Act now
+              {t('hunter.signals.actNow')}
             </button>
             <button
               onClick={() => setExpanded(!expanded)}
@@ -272,8 +274,8 @@ export function LinkedinSignalCard({
           <div className="bg-[var(--app-bg)] border border-[var(--signal-info-bg)] rounded-xl p-5 mb-4">
             <div className="inline-block bg-[var(--signal-info-bg)] text-[var(--signal-info-text)] px-3 py-1.5 rounded-md text-xs font-extrabold mb-3">
               {actionText?.includes("ommentar")
-                ? "Replied to a comment"
-                : "Signal Details"}
+                ? t('hunter.signals.repliedToComment')
+                : t('hunter.signals.signalDetails')}
             </div>
             <p className={`text-[15px] font-medium text-[var(--text-primary)] leading-relaxed ${quoteText ? "mb-4" : "mb-0"}`}>
               "{commentText}"
@@ -290,7 +292,7 @@ export function LinkedinSignalCard({
           <div className="bg-[var(--signal-success-bg)] border border-[var(--signal-teal-bg)] rounded-xl p-5 mb-5">
             <div className="flex items-center gap-2 mb-3">
               <span className="text-sm font-extrabold text-[var(--icp-high)]">
-                KI Empfehlung
+                {t('hunter.signals.kiRecommendation')}
               </span>
             </div>
             <p className="text-sm text-[var(--icp-high)] leading-relaxed font-medium">
@@ -300,13 +302,13 @@ export function LinkedinSignalCard({
 
           <div className="flex items-center gap-3">
             <button className="bg-[var(--sherloq-primary)] text-white px-6 py-2.5 rounded-lg border-none text-sm font-extrabold cursor-pointer hover:opacity-90">
-              Reply generieren
+              {t('hunter.signals.generateReply')}
             </button>
             <button className="bg-white border border-[var(--border)] text-[var(--text-body)] px-6 py-2.5 rounded-lg text-sm font-extrabold cursor-pointer hover:bg-[var(--app-bg)]">
-              Original ansehen
+              {t('hunter.signals.viewOriginal')}
             </button>
             <button className="bg-white border border-[var(--border)] text-[var(--text-muted)] px-6 py-2.5 rounded-lg text-sm font-extrabold cursor-pointer hover:bg-[var(--app-bg)] ml-2">
-              Ignorieren
+              {t('hunter.signals.ignore')}
             </button>
           </div>
         </div>

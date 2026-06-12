@@ -4,8 +4,9 @@
  */
 
 import { useState } from 'react';
-import { 
-  Target, 
+import { useTranslation } from 'react-i18next';
+import {
+  Target,
   Mail, 
   MessageSquare, 
   ArrowRight, 
@@ -60,6 +61,7 @@ export default function ScreenHunting({
   onSelectCommunication,
   onOpenCopilot
 }: ScreenHuntingProps) {
+  const { t } = useTranslation();
   const [subTab, setSubTab] = useState<'overview' | 'new_leads' | 'leads' | 'pipeline' | 'signals' | 'sequences' | 'follow_ups'>('leads');
   const [expandedLeadId, setExpandedLeadId] = useState<string | null>(null);
   const [selectedLeadIds, setSelectedLeadIds] = useState<string[]>([]);
@@ -130,21 +132,21 @@ export default function ScreenHunting({
   };
 
   const menuItems = [
-    { id: 'overview', label: 'Übersicht', count: null },
-    { id: 'signals', label: 'Signals', count: 5 },
-    { id: 'new_leads', label: 'Neu in Pipeline', count: null },
-    { id: 'leads', label: 'Leads', count: leads.length },
-    { id: 'follow_ups', label: 'Follow-ups', count: 2 },
-    { id: 'pipeline', label: 'Pipeline (Kanban)', count: null },
+    { id: 'overview', label: t('hunter.tabs.overview'), count: null },
+    { id: 'signals', label: t('hunter.tabs.signals'), count: 5 },
+    { id: 'new_leads', label: t('hunter.tabs.newInPipeline'), count: null },
+    { id: 'leads', label: t('hunter.tabs.leads'), count: leads.length },
+    { id: 'follow_ups', label: t('hunter.tabs.followUps'), count: 2 },
+    { id: 'pipeline', label: t('hunter.tabs.pipelineKanban'), count: null },
   ];
 
   const getHeatColor = (status: HeatStatus) => {
     switch (status) {
-      case 'HOT': return { bg: 'bg-[var(--signal-success-bg)]', text: 'text-[var(--icp-high)] border-[var(--signal-success-bg)]', emoji: '● Aktiv' };
-      case 'WARM': return { bg: 'bg-[var(--signal-warn-bg)]', text: 'text-[var(--icp-medium)] border-[var(--signal-warn-bg)]', emoji: '● Stabil' };
-      case 'LUKEWARM': return { bg: 'bg-[var(--signal-warn-bg)]', text: 'text-[var(--icp-medium)] border-[var(--signal-warn-bg)]', emoji: '● Rückläufig' };
-      case 'COLD': return { bg: 'bg-[var(--signal-info-bg)]', text: 'text-[var(--signal-info-text)] border-[var(--signal-info-bg)]', emoji: '● Ruhend' };
-      default: return { bg: 'bg-[var(--app-bg)]', text: 'text-[var(--text-muted)] border-[var(--app-bg)]', emoji: '● Inaktiv' };
+      case 'HOT': return { bg: 'bg-[var(--signal-success-bg)]', text: 'text-[var(--icp-high)] border-[var(--signal-success-bg)]', emoji: `● ${t('hunter.heat.active')}` };
+      case 'WARM': return { bg: 'bg-[var(--signal-warn-bg)]', text: 'text-[var(--icp-medium)] border-[var(--signal-warn-bg)]', emoji: `● ${t('hunter.heat.stable')}` };
+      case 'LUKEWARM': return { bg: 'bg-[var(--signal-warn-bg)]', text: 'text-[var(--icp-medium)] border-[var(--signal-warn-bg)]', emoji: `● ${t('hunter.heat.declining')}` };
+      case 'COLD': return { bg: 'bg-[var(--signal-info-bg)]', text: 'text-[var(--signal-info-text)] border-[var(--signal-info-bg)]', emoji: `● ${t('hunter.heat.resting')}` };
+      default: return { bg: 'bg-[var(--app-bg)]', text: 'text-[var(--text-muted)] border-[var(--app-bg)]', emoji: `● ${t('hunter.heat.inactive')}` };
     }
   };
 
@@ -155,15 +157,15 @@ export default function ScreenHunting({
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-[20px] font-semibold text-[var(--text-primary)] tracking-tight">Hunter</h1>
-          <p className="text-[12px] text-[var(--text-muted)] mt-0.5">Finde Leads, tracke Signale und verwalte Abschlussphasen.</p>
+          <h1 className="text-[20px] font-semibold text-[var(--text-primary)] tracking-tight">{t('hunter.title')}</h1>
+          <p className="text-[12px] text-[var(--text-muted)] mt-0.5">{t('hunter.subtitle')}</p>
         </div>
         <button
           onClick={() => setShowAddModal(true)}
           className="bg-[var(--sherloq-primary)] hover:bg-[var(--sherloq-primary)]/95 text-white text-[12px] font-semibold px-4 py-2 rounded-full cursor-pointer shadow-sm flex items-center gap-1.5"
         >
           <Plus className="w-4 h-4" />
-          <span>SDR Lead hinzufügen</span>
+          <span>{t('hunter.addSdrLead')}</span>
         </button>
       </div>
 
@@ -203,7 +205,7 @@ export default function ScreenHunting({
             <div className="bg-white rounded-[12px] p-6 shadow-[var(--shadow-card)] flex flex-col justify-between h-[160px] hover:shadow-md transition-shadow relative">
               <div className="flex justify-between items-start">
                 <span className="text-[12px] font-bold text-gray-400 uppercase tracking-widest">
-                  Pipeline Wert
+                  {t('hunter.overview.pipelineValue')}
                 </span>
                 <div className="w-8 h-8 rounded-[12px] bg-emerald-50 text-[var(--sherloq-primary)] flex items-center justify-center shrink-0">
                   <TrendingUp size={16} strokeWidth={2.5} />
@@ -215,7 +217,7 @@ export default function ScreenHunting({
                   € 284.500
                 </div>
                 <div className="text-[11px] font-semibold text-emerald-700 flex items-center gap-1.5">
-                  <span><TrendingUp className="w-3 h-3" /> +12% gegenüber Vormonat</span>
+                  <span><TrendingUp className="w-3 h-3" /> {t('hunter.overview.pipelineValueTrend')}</span>
                 </div>
               </div>
             </div>
@@ -224,7 +226,7 @@ export default function ScreenHunting({
             <div className="bg-white rounded-[12px] p-6 shadow-[var(--shadow-card)] flex flex-col justify-between h-[160px] hover:shadow-md transition-shadow relative">
               <div className="flex justify-between items-start">
                 <span className="text-[12px] font-bold text-gray-400 uppercase tracking-widest">
-                  Deals in Gefahr
+                  {t('hunter.overview.dealsAtRisk')}
                 </span>
                 <div className="w-8 h-8 rounded-[12px] bg-red-50 text-red-600 flex items-center justify-center shrink-0">
                   <AlertTriangle size={16} strokeWidth={2.5} />
@@ -236,7 +238,7 @@ export default function ScreenHunting({
                   4
                 </div>
                 <div className="text-[11px] font-semibold text-gray-400">
-                  Stagniert &gt; 7 Tage
+                  {t('hunter.overview.stagnatedOver7Days')}
                 </div>
               </div>
             </div>
@@ -245,7 +247,7 @@ export default function ScreenHunting({
             <div className="bg-white rounded-[12px] p-6 shadow-[var(--shadow-card)] flex flex-col justify-between h-[160px] hover:shadow-md transition-shadow relative">
               <div className="flex justify-between items-start">
                 <span className="text-[12px] font-bold text-gray-400 uppercase tracking-widest">
-                  Heisse Signale
+                  {t('hunter.overview.hotSignals')}
                 </span>
                 <div className="w-8 h-8 rounded-[12px] bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)] flex items-center justify-center shrink-0">
                   <Zap size={16} strokeWidth={2.5} />
@@ -257,7 +259,7 @@ export default function ScreenHunting({
                   7
                 </div>
                 <div className="text-[11px] font-semibold text-gray-400">
-                  Aktive Signale heute
+                  {t('hunter.overview.activeSignalsToday')}
                 </div>
               </div>
             </div>
@@ -266,7 +268,7 @@ export default function ScreenHunting({
             <div className="bg-white rounded-[12px] p-6 shadow-[var(--shadow-card)] flex flex-col justify-between h-[160px] hover:shadow-md transition-shadow relative">
               <div className="flex justify-between items-start">
                 <span className="text-[12px] font-bold text-gray-400 uppercase tracking-widest">
-                  Follow-ups heute
+                  {t('hunter.overview.followUpsToday')}
                 </span>
                 <div className="w-8 h-8 rounded-[12px] bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
                   <Clock size={16} strokeWidth={2.5} />
@@ -278,7 +280,7 @@ export default function ScreenHunting({
                   5
                 </div>
                 <div className="text-[11px] font-semibold text-gray-400">
-                  Fällig bis 18:00
+                  {t('hunter.overview.dueBy1800')}
                 </div>
               </div>
             </div>
@@ -349,16 +351,16 @@ export default function ScreenHunting({
                 {/* Middle Stats */}
                 <div className="hidden lg:flex items-center gap-4 px-4 border-l border-[var(--border-subtle)] shrink-0">
                   <div className="flex flex-col items-center justify-center w-[80px] relative h-full">
-                    <span className="absolute -top-[14px] text-[10px] font-bold text-[var(--icon-muted)] tracking-wider uppercase">STAGE</span>
+                    <span className="absolute -top-[14px] text-[10px] font-bold text-[var(--icon-muted)] tracking-wider uppercase">{t('hunter.common.stage')}</span>
                     <div className="px-4 py-2 rounded-full bg-[var(--app-bg)] text-[var(--text-body)] text-[12px] font-semibold border border-[var(--border)]">
                       Lead
                     </div>
                   </div>
                   <div className="flex flex-col items-center justify-center w-[120px] relative h-full">
-                    <span className="absolute -top-[14px] text-[10px] font-bold text-[var(--icon-muted)] tracking-wider uppercase">HEAT</span>
+                    <span className="absolute -top-[14px] text-[10px] font-bold text-[var(--icon-muted)] tracking-wider uppercase">{t('hunter.common.heat')}</span>
                     <div className="px-4 py-2 rounded-full text-[12px] font-semibold border flex items-center gap-1.5 bg-[var(--signal-warn-bg)] text-[var(--icp-medium)] border-[var(--signal-warn-bg)]">
                       <span className="w-1.5 h-1.5 rounded-full bg-[var(--icp-medium)]"></span>
-                      Stabil
+                      {t('hunter.heat.stable')}
                     </div>
                   </div>
                 </div>
@@ -366,9 +368,9 @@ export default function ScreenHunting({
                 {/* Right Actions */}
                 <div className="flex items-center gap-4 pl-4 border-l border-[var(--border-subtle)] shrink-0 justify-between md:justify-end">
                   <div className="flex flex-col items-end hidden sm:flex w-[130px]">
-                    <span className="text-[14px] font-bold text-[var(--text-primary)] whitespace-nowrap">vor 3 Tagen</span>
+                    <span className="text-[14px] font-bold text-[var(--text-primary)] whitespace-nowrap">{t('hunter.common.ago', { label: '3 Tagen' })}</span>
                     <div className="flex items-center justify-end gap-1.5 mt-0.5 text-[var(--text-muted)] font-semibold text-[12px] whitespace-nowrap w-full">
-                      Neu in Pipeline
+                      {t('hunter.common.newInPipeline')}
                     </div>
                   </div>
                   <div className="flex items-center gap-3 relative w-[90px] justify-end">
@@ -387,14 +389,14 @@ export default function ScreenHunting({
                 <div className="flex items-center gap-3">
                   <div className="bg-[var(--signal-warn-bg)] text-[var(--icp-medium)] px-3 py-1.5 rounded-[8px] flex items-center gap-2 font-bold text-[14px] shrink-0">
                     <AlertTriangle className="w-4 h-4" strokeWidth={2.5} />
-                    Keine Task
+                    {t('hunter.leadCard.noTask')}
                   </div>
-                  <span className="text-[14px] font-semibold text-[var(--text-body)]">Pflicht — Deal braucht eine offene Aufgabe</span>
+                  <span className="text-[14px] font-semibold text-[var(--text-body)]">{t('hunter.leadCard.noTaskHint')}</span>
                 </div>
                 <div className="flex items-center gap-3 w-full xl:w-auto">
-                  <button 
-                    onClick={(e) => { 
-                      e.stopPropagation(); 
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
                       setSelectedNoTaskPerson({
                         name: "Sarah Jenkins",
                         company: "CloudSphere",
@@ -404,7 +406,7 @@ export default function ScreenHunting({
                     }}
                     className="flex-1 xl:flex-none bg-white border border-[var(--border)] text-[var(--text-body)] px-5 py-2.5 rounded-[12px] text-[13px] font-bold shadow-sm hover:bg-[var(--app-bg)] transition-colors whitespace-nowrap"
                   >
-                    Task anlegen
+                    {t('hunter.leadCard.createTask')}
                   </button>
                 </div>
               </div>
@@ -448,16 +450,16 @@ export default function ScreenHunting({
                 {/* Middle Stats */}
                 <div className="hidden lg:flex items-center gap-4 px-4 border-l border-[var(--border-subtle)] shrink-0">
                   <div className="flex flex-col items-center justify-center w-[80px] relative h-full">
-                    <span className="absolute -top-[14px] text-[10px] font-bold text-[var(--icon-muted)] tracking-wider uppercase">STAGE</span>
+                    <span className="absolute -top-[14px] text-[10px] font-bold text-[var(--icon-muted)] tracking-wider uppercase">{t('hunter.common.stage')}</span>
                     <div className="px-4 py-2 rounded-full bg-[var(--signal-urgent-bg)] text-[var(--icp-low)] text-[12px] font-semibold border border-[var(--signal-urgent-bg)]">
                       Follow-up
                     </div>
                   </div>
                   <div className="flex flex-col items-center justify-center w-[120px] relative h-full">
-                    <span className="absolute -top-[14px] text-[10px] font-bold text-[var(--icon-muted)] tracking-wider uppercase">HEAT</span>
+                    <span className="absolute -top-[14px] text-[10px] font-bold text-[var(--icon-muted)] tracking-wider uppercase">{t('hunter.common.heat')}</span>
                     <div className="px-4 py-2 rounded-full text-[12px] font-semibold border flex items-center gap-1.5 bg-[var(--signal-info-bg)] text-[var(--signal-info-text)] border-[var(--signal-info-bg)]">
                       <span className="w-1.5 h-1.5 rounded-full bg-[var(--signal-info-text)]"></span>
-                      Ruhend
+                      {t('hunter.heat.resting')}
                     </div>
                   </div>
                 </div>
@@ -465,9 +467,9 @@ export default function ScreenHunting({
                 {/* Right Actions */}
                 <div className="flex items-center gap-4 pl-4 border-l border-[var(--border-subtle)] shrink-0 justify-between md:justify-end">
                   <div className="flex flex-col items-end hidden sm:flex w-[130px]">
-                    <span className="text-[14px] font-bold text-[var(--text-primary)] whitespace-nowrap">vor 12 Tagen</span>
+                    <span className="text-[14px] font-bold text-[var(--text-primary)] whitespace-nowrap">{t('hunter.common.ago', { label: '12 Tagen' })}</span>
                     <div className="flex items-center justify-end gap-1.5 mt-0.5 text-[var(--icp-low)] font-semibold text-[12px] whitespace-nowrap w-full">
-                      12T in Stage <AlertTriangle className="w-3.5 h-3.5" strokeWidth={2.5} />
+                      {t('hunter.common.daysInStage', { days: 12 })} <AlertTriangle className="w-3.5 h-3.5" strokeWidth={2.5} />
                     </div>
                   </div>
                   <div className="flex items-center gap-3 relative w-[90px] justify-end">
@@ -486,19 +488,19 @@ export default function ScreenHunting({
                 <div className="flex items-center gap-3">
                   <div className="bg-[var(--signal-urgent-bg)] text-[var(--icp-low)] px-3 py-1.5 rounded-[8px] flex items-center gap-2 font-bold text-[14px] shrink-0">
                     <Clock className="w-4 h-4" strokeWidth={2.5} />
-                    Stagniert
+                    {t('hunter.leadCard.stagnated')}
                   </div>
-                  <span className="text-[14px] font-semibold text-[var(--text-body)]">Deal stagniert — AI empfiehlt nächsten Schritt</span>
+                  <span className="text-[14px] font-semibold text-[var(--text-body)]">{t('hunter.leadCard.stagnatedHint')}</span>
                 </div>
                 <div className="flex items-center gap-3 w-full xl:w-auto">
-                  <button 
-                    onClick={(e) => { 
-                      e.stopPropagation(); 
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
                       onOpenCopilot?.('marc');
                     }}
                     className="flex-1 xl:flex-none bg-white border border-[var(--border)] text-[var(--text-body)] px-5 py-2.5 rounded-[12px] text-[13px] font-bold shadow-sm hover:bg-[var(--app-bg)] transition-colors whitespace-nowrap"
                   >
-                    Next Step
+                    {t('hunter.leadCard.nextStep')}
                   </button>
                 </div>
               </div>
@@ -541,16 +543,16 @@ export default function ScreenHunting({
                 {/* Middle Stats */}
                 <div className="hidden lg:flex items-center gap-4 px-4 border-l border-[var(--border-subtle)] shrink-0">
                   <div className="flex flex-col items-center justify-center w-[120px] relative h-full">
-                    <span className="absolute -top-[14px] text-[10px] font-bold text-[var(--icon-muted)] tracking-wider uppercase">STAGE</span>
+                    <span className="absolute -top-[14px] text-[10px] font-bold text-[var(--icon-muted)] tracking-wider uppercase">{t('hunter.common.stage')}</span>
                     <div className="px-5 py-2 rounded-full bg-white text-[var(--text-primary)] text-[13px] font-bold border-2 border-[var(--border)]">
                       Onboarding
                     </div>
                   </div>
                   <div className="flex flex-col items-center justify-center w-[120px] relative h-full">
-                    <span className="absolute -top-[14px] text-[10px] font-bold text-[var(--icon-muted)] tracking-wider uppercase">HEAT</span>
+                    <span className="absolute -top-[14px] text-[10px] font-bold text-[var(--icon-muted)] tracking-wider uppercase">{t('hunter.common.heat')}</span>
                     <div className="px-5 py-2 rounded-full text-[13px] font-bold border-2 flex items-center gap-1.5 bg-[var(--signal-info-bg)] text-[var(--signal-info-text)] border-[var(--signal-info-bg)]">
                       <span className="w-2 h-2 rounded-full bg-[var(--signal-info-text)] mt-[1px]"></span>
-                      Kalt
+                      {t('hunter.heat.cold')}
                     </div>
                   </div>
                 </div>
@@ -558,9 +560,9 @@ export default function ScreenHunting({
                 {/* Right Actions */}
                 <div className="flex items-center pl-4 border-l border-[var(--border-subtle)] shrink-0 justify-between md:justify-end gap-5">
                   <div className="flex flex-col items-end hidden sm:flex w-[120px]">
-                    <span className="text-[14px] font-bold text-[var(--text-primary)] whitespace-nowrap">vor 32 Tagen</span>
+                    <span className="text-[14px] font-bold text-[var(--text-primary)] whitespace-nowrap">{t('hunter.common.ago', { label: '32 Tagen' })}</span>
                     <div className="flex items-center justify-end gap-1.5 mt-0.5 text-[var(--icp-low)] font-bold text-[13px] whitespace-nowrap w-full">
-                      32T in Stage <AlertTriangle className="w-3.5 h-3.5" strokeWidth={2.5} />
+                      {t('hunter.common.daysInStage', { days: 32 })} <AlertTriangle className="w-3.5 h-3.5" strokeWidth={2.5} />
                     </div>
                   </div>
                   <div className="flex items-center gap-3 relative w-[100px] justify-end">
@@ -579,22 +581,22 @@ export default function ScreenHunting({
                 <div className="flex items-center gap-3">
                   <div className="bg-[var(--signal-info-bg)] text-[var(--signal-info-text)] px-3 py-1.5 rounded-[8px] flex items-center gap-2 font-bold text-[14px] shrink-0">
                     <PenTool className="w-4 h-4" strokeWidth={2.5} />
-                    Kalt
+                    {t('hunter.leadCard.cold')}
                   </div>
-                  <span className="text-[14px] font-semibold text-[var(--text-body)]">Kontakt wird kalt. Letzter Kanal (Email) ohne Response. AI empfiehlt Kanalwechsel zu LinkedIn.</span>
+                  <span className="text-[14px] font-semibold text-[var(--text-body)]">{t('hunter.leadCard.coldHint')}</span>
                 </div>
                 <div className="flex items-center gap-3 w-full xl:w-auto">
-                  <button 
-                    onClick={(e) => { 
-                      e.stopPropagation(); 
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
                       onOpenCopilot?.('elena');
                     }}
                     className="flex-1 xl:flex-none bg-white border border-[var(--border)] text-[var(--text-body)] px-5 py-2.5 rounded-[12px] text-[13px] font-bold shadow-sm hover:bg-[var(--app-bg)] transition-colors whitespace-nowrap"
                   >
-                    Start Outreach
+                    {t('hunter.leadCard.startOutreach')}
                   </button>
                   <button className="flex-1 xl:flex-none bg-white border border-[var(--border)] text-[var(--text-body)] px-5 py-2.5 rounded-[12px] text-[13px] font-bold shadow-sm hover:bg-[var(--app-bg)] transition-colors whitespace-nowrap">
-                    Snooze
+                    {t('hunter.common.snooze')}
                   </button>
                 </div>
               </div>
@@ -627,13 +629,13 @@ export default function ScreenHunting({
                 <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />
               </button>
               <span className="text-[13px] font-bold text-[var(--text-primary)]">
-                {selectedLeadIds.length} {selectedLeadIds.length === 1 ? 'Lead' : 'Leads'} ausgewählt
+                {t('hunter.leadCard.selected', { count: selectedLeadIds.length, noun: selectedLeadIds.length === 1 ? t('hunter.leadCard.leadSingular') : t('hunter.leadCard.leadPlural') })}
               </span>
-              <button onClick={deselectAll} className="ml-2 text-[12px] text-[var(--text-muted)] hover:text-[var(--text-body)] font-semibold underline underline-offset-2">Auswahl aufheben</button>
+              <button onClick={deselectAll} className="ml-2 text-[12px] text-[var(--text-muted)] hover:text-[var(--text-body)] font-semibold underline underline-offset-2">{t('hunter.leadCard.deselect')}</button>
             </div>
             <div className="flex items-center gap-2">
               <button className="bg-white border text-[var(--text-body)] border-[var(--border)] hover:border-[var(--icon-muted)] hover:bg-[var(--app-bg)] px-3 py-1.5 rounded-full text-[12px] font-semibold flex items-center gap-1.5 transition-colors">
-                <Target className="w-3.5 h-3.5" /> Zu Kampagne hinzufügen
+                <Target className="w-3.5 h-3.5" /> {t('hunter.leadCard.addToCampaign')}
               </button>
               <button className="bg-white border border-red-200 text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-full text-[12px] font-semibold flex items-center gap-1.5 transition-colors">
                 <Trash className="w-3.5 h-3.5" />
@@ -696,13 +698,13 @@ export default function ScreenHunting({
                   {/* Middle Stats (Simplified) */}
                   <div className="hidden lg:flex items-center gap-4 px-4 border-l border-[var(--border-subtle)] shrink-0">
                     <div className="flex flex-col items-center justify-center w-[80px] relative h-full">
-                      <span className="absolute -top-[14px] text-[10px] font-bold text-[var(--icon-muted)] tracking-wider uppercase">STAGE</span>
+                      <span className="absolute -top-[14px] text-[10px] font-bold text-[var(--icon-muted)] tracking-wider uppercase">{t('hunter.common.stage')}</span>
                       <div className="px-4 py-2 rounded-full bg-[var(--app-bg)] text-[var(--text-body)] text-[12px] font-semibold border border-[var(--border)]">
                         {lead.pipelineStage === 'pipeline' ? 'Demo' : 'Lead'}
                       </div>
                     </div>
                     <div className="flex flex-col items-center justify-center w-[120px] relative h-full">
-                      <span className="absolute -top-[14px] text-[10px] font-bold text-[var(--icon-muted)] tracking-wider uppercase">HEAT</span>
+                      <span className="absolute -top-[14px] text-[10px] font-bold text-[var(--icon-muted)] tracking-wider uppercase">{t('hunter.common.heat')}</span>
                       <div className={`px-4 py-2 rounded-full text-[12px] font-semibold border flex items-center gap-1.5 ${getHeatColor(lead.heatStatus).bg} ${getHeatColor(lead.heatStatus).text}`}>
                         {getHeatColor(lead.heatStatus).emoji}
                       </div>
@@ -712,9 +714,9 @@ export default function ScreenHunting({
                   {/* Right Actions */}
                   <div className="flex items-center gap-4 pl-4 border-l border-[var(--border-subtle)] shrink-0 justify-between md:justify-end">
                     <div className="flex flex-col items-end hidden sm:flex w-[130px]">
-                      <span className="text-[14px] font-bold text-[var(--text-primary)] whitespace-nowrap">vor 5 Tagen</span>
+                      <span className="text-[14px] font-bold text-[var(--text-primary)] whitespace-nowrap">{t('hunter.common.ago', { label: '5 Tagen' })}</span>
                       <div className="flex items-center justify-end gap-1.5 mt-0.5 text-[var(--icp-low)] font-semibold text-[12px] whitespace-nowrap w-full">
-                        8T in Stage <AlertTriangle className="w-3.5 h-3.5" strokeWidth={2.5} />
+                        {t('hunter.common.daysInStage', { days: 8 })} <AlertTriangle className="w-3.5 h-3.5" strokeWidth={2.5} />
                       </div>
                     </div>
                     <div className="flex items-center gap-3 relative w-[90px] justify-end">
@@ -741,7 +743,7 @@ export default function ScreenHunting({
                       {/* Left Column (KI Kurzakte) */}
                       <div className="md:col-span-7 bg-white rounded-[12px] p-5 border border-[var(--border)]">
                         <div className="flex items-center gap-2 text-[11px] font-bold font-mono text-[var(--sherloq-primary)] uppercase tracking-wider mb-4">
-                          <Zap className="w-4 h-4 text-[var(--sherloq-primary)]" /> KI Kurzakte
+                          <Zap className="w-4 h-4 text-[var(--sherloq-primary)]" /> {t('hunter.common.kiKurzakte')}
                         </div>
                         <ul className="flex flex-col gap-3 text-[13px] text-[var(--text-body)] leading-relaxed">
                           <li className="flex items-start gap-2.5">
@@ -768,25 +770,25 @@ export default function ScreenHunting({
                         {/* Deal Details */}
                         <div className="bg-white rounded-[12px] p-5 border border-[var(--border)]">
                           <div className="flex items-center gap-2 text-[11px] font-bold font-mono text-[var(--text-muted)] uppercase tracking-wider mb-4">
-                            <Briefcase className="w-4 h-4" /> Deal Details
+                            <Briefcase className="w-4 h-4" /> {t('hunter.leadCard.dealDetails')}
                           </div>
                           <div className="grid grid-cols-2 gap-4 text-[12px]">
                             <div className="flex flex-col gap-1">
-                              <span className="text-[var(--text-muted)] font-mono text-[10px] uppercase tracking-wider">Volumen</span>
+                              <span className="text-[var(--text-muted)] font-mono text-[10px] uppercase tracking-wider">{t('hunter.leadCard.volume')}</span>
                               <span className="font-bold text-[var(--sherloq-primary)] text-[14px]">24.000 € ARR</span>
                             </div>
                             <div className="flex flex-col gap-1">
-                              <span className="text-[var(--text-muted)] font-mono text-[10px] uppercase tracking-wider">Laufzeit</span>
+                              <span className="text-[var(--text-muted)] font-mono text-[10px] uppercase tracking-wider">{t('hunter.leadCard.duration')}</span>
                               <span className="font-bold text-[var(--text-primary)] text-[14px]">12 Monate</span>
                             </div>
                             <div className="flex flex-col gap-1">
-                              <span className="text-[var(--text-muted)] font-mono text-[10px] uppercase tracking-wider">Stage</span>
+                              <span className="text-[var(--text-muted)] font-mono text-[10px] uppercase tracking-wider">{t('hunter.common.stage')}</span>
                               <span className="font-bold text-[var(--icp-low)] text-[14px] flex items-center gap-1.5">
                                 Demo <span className="font-semibold text-red-500"><AlertTriangle className="w-3 h-3" /> 8T</span>
                               </span>
                             </div>
                             <div className="flex flex-col gap-1">
-                              <span className="text-[var(--text-muted)] font-mono text-[10px] uppercase tracking-wider">Probability</span>
+                              <span className="text-[var(--text-muted)] font-mono text-[10px] uppercase tracking-wider">{t('hunter.leadCard.probability')}</span>
                               <span className="font-bold text-[var(--text-primary)] text-[14px]">60%</span>
                             </div>
                           </div>
@@ -795,22 +797,22 @@ export default function ScreenHunting({
                         {/* Aktionen */}
                         <div className="bg-white rounded-[12px] p-5 border border-[var(--border)]">
                           <div className="flex items-center gap-2 text-[11px] font-bold font-mono text-[var(--text-muted)] uppercase tracking-wider mb-4">
-                            <Target className="w-4 h-4" /> Aktionen
+                            <Target className="w-4 h-4" /> {t('hunter.leadCard.actions')}
                           </div>
                           <div className="flex flex-col gap-3">
                             <div className="flex items-center gap-2">
                               <button className="flex-1 bg-white border border-[var(--border)] text-[var(--text-body)] text-[12px] font-semibold py-2 rounded-[12px] hover:bg-[var(--app-bg)] transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
-                                <Mail className="w-3.5 h-3.5" /> Mail
+                                <Mail className="w-3.5 h-3.5" /> {t('hunter.leadCard.mail')}
                               </button>
                               <button className="flex-1 bg-white border border-[var(--border)] text-[var(--text-body)] text-[12px] font-semibold py-2 rounded-[12px] hover:bg-[var(--app-bg)] transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
-                                <CalendarCheck className="w-3.5 h-3.5" /> Task
+                                <CalendarCheck className="w-3.5 h-3.5" /> {t('hunter.leadCard.task')}
                               </button>
                               <button className="flex-1 bg-white border border-[var(--border)] text-[var(--text-body)] text-[12px] font-semibold py-2 rounded-[12px] hover:bg-[var(--app-bg)] transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
-                                <ArrowRight className="w-3.5 h-3.5" /> Stage
+                                <ArrowRight className="w-3.5 h-3.5" /> {t('hunter.common.stage')}
                               </button>
                             </div>
                             <button className="w-full bg-white border border-[var(--border)] hover:bg-[var(--app-bg)] text-[var(--text-primary)] font-bold text-[13px] py-2.5 rounded-[12px] transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm">
-                              <MessageSquare className="w-4 h-4 text-[var(--sherloq-primary)]" /> AI Chat starten
+                              <MessageSquare className="w-4 h-4 text-[var(--sherloq-primary)]" /> {t('hunter.leadCard.startAiChat')}
                             </button>
                           </div>
                         </div>
@@ -835,7 +837,7 @@ export default function ScreenHunting({
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between mb-2">
             <h2 className="text-[18px] font-bold text-[var(--text-primary)]">
-              Pipeline & Tasks
+              {t('hunter.pipeline.title')}
             </h2>
 
             {/* BUTTON ZUM SWITCHEN DER BEIDEN ANSICHTEN */}
@@ -848,7 +850,7 @@ export default function ScreenHunting({
                     : "text-[var(--text-muted)] hover:text-[var(--text-body)]"
                 }`}
               >
-                Task Liste
+                {t('hunter.pipeline.taskList')}
               </button>
 
               <button
@@ -859,7 +861,7 @@ export default function ScreenHunting({
                     : "text-[var(--text-muted)] hover:text-[var(--text-body)]"
                 }`}
               >
-                Kanban
+                {t('hunter.pipeline.kanban')}
               </button>
             </div>
           </div>
@@ -925,7 +927,7 @@ export default function ScreenHunting({
                       <div className="flex flex-col gap-1">
                         <div className="flex items-baseline gap-1.5">
                           <span className="text-[34px] font-extrabold leading-none tracking-tight text-[var(--text-primary)]">{count}</span>
-                          <span className="text-[12px] text-gray-400 font-medium">Opportunities</span>
+                          <span className="text-[12px] text-gray-400 font-medium">{t('hunter.pipeline.opportunities')}</span>
                         </div>
                         <div className="text-[14px] font-bold text-[var(--text-primary)] mt-1">
                           {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(totalValue)}
@@ -933,16 +935,16 @@ export default function ScreenHunting({
                       </div>
                       
                       <div className="mt-4 flex justify-between items-center border-t border-gray-50 pt-3">
-                        <span className="text-[11px] text-gray-400 font-medium">Status</span>
+                        <span className="text-[11px] text-gray-400 font-medium">{t('hunter.common.status')}</span>
                         {actionsCount > 0 ? (
                           <div className="bg-white text-red-600 px-3 py-1 rounded-full text-[11px] font-bold flex items-center gap-1.5 shadow-sm border border-red-100/50">
                             <div className="w-1.5 h-1.5 rounded-full bg-red-600"></div>
-                            {actionsCount} Action{actionsCount !== 1 ? 's' : ''}
+                            {actionsCount} {actionsCount !== 1 ? t('hunter.pipeline.actionsPlural') : t('hunter.pipeline.actions')}
                           </div>
                         ) : (
                           <div className="bg-white text-[var(--icp-high)] px-3 py-1 rounded-full text-[11px] font-bold flex items-center gap-1.5 shadow-sm border border-[var(--icp-high)]/20">
                             <CheckCircle2 className="w-3.5 h-3.5" />
-                            Im Flow
+                            {t('hunter.pipeline.inFlow')}
                           </div>
                         )}
                       </div>
@@ -1184,16 +1186,16 @@ export default function ScreenHunting({
           <div className="w-full max-w-[460px] bg-white rounded-[12px] border border-[var(--border)] p-6 shadow-2xl relative">
             <h2 className="text-[15px] font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
               <Target className="w-5 h-5 text-[var(--sherloq-primary)]" />
-              Neuen SDR Lead anlegen
+              {t('hunter.addModal.title')}
             </h2>
             
             <form onSubmit={handleCreateLead} className="flex flex-col gap-3.5">
               <div>
-                <label className="text-[11px] text-[var(--text-muted)] font-semibold block mb-1">Voller Name *</label>
-                <input 
-                  type="text" 
+                <label className="text-[11px] text-[var(--text-muted)] font-semibold block mb-1">{t('hunter.addModal.fullName')}</label>
+                <input
+                  type="text"
                   required
-                  placeholder="z.B. Dr. Michael Schumacher"
+                  placeholder={t('hunter.addModal.fullNamePlaceholder')}
                   value={newLeadName}
                   onChange={(e) => setNewLeadName(e.target.value)}
                   className="w-full text-[12px] font-sans px-3.5 py-2.5 bg-[var(--app-bg)] border border-[var(--border)] focus:border-[var(--sherloq-primary)] rounded-[12px] focus:outline-none"
@@ -1202,21 +1204,21 @@ export default function ScreenHunting({
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[11px] text-[var(--text-muted)] font-semibold block mb-1">Unternehmen *</label>
-                  <input 
-                    type="text" 
+                  <label className="text-[11px] text-[var(--text-muted)] font-semibold block mb-1">{t('hunter.addModal.company')}</label>
+                  <input
+                    type="text"
                     required
-                    placeholder="z.B. Porsche AG"
+                    placeholder={t('hunter.addModal.companyPlaceholder')}
                     value={newLeadCompany}
                     onChange={(e) => setNewLeadCompany(e.target.value)}
                     className="w-full text-[12px] font-sans px-3.5 py-2.5 bg-[var(--app-bg)] border border-[var(--border)] focus:border-[var(--sherloq-primary)] rounded-[12px] focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="text-[11px] text-[var(--text-muted)] font-semibold block mb-1">Rolle / Position</label>
-                  <input 
-                    type="text" 
-                    placeholder="z.B. VP of Procurement"
+                  <label className="text-[11px] text-[var(--text-muted)] font-semibold block mb-1">{t('hunter.addModal.role')}</label>
+                  <input
+                    type="text"
+                    placeholder={t('hunter.addModal.rolePlaceholder')}
                     value={newLeadRole}
                     onChange={(e) => setNewLeadRole(e.target.value)}
                     className="w-full text-[12px] font-sans px-3.5 py-2.5 bg-[var(--app-bg)] border border-[var(--border)] focus:border-[var(--sherloq-primary)] rounded-[12px] focus:outline-none"
@@ -1225,10 +1227,10 @@ export default function ScreenHunting({
               </div>
 
               <div>
-                <label className="text-[11px] text-[var(--text-muted)] font-semibold block mb-1">Kontakt E-Mail</label>
-                <input 
-                  type="email" 
-                  placeholder="m.schumacher@porsche.de"
+                <label className="text-[11px] text-[var(--text-muted)] font-semibold block mb-1">{t('hunter.addModal.email')}</label>
+                <input
+                  type="email"
+                  placeholder={t('hunter.addModal.emailPlaceholder')}
                   value={newLeadEmail}
                   onChange={(e) => setNewLeadEmail(e.target.value)}
                   className="w-full text-[12px] font-sans px-3.5 py-2.5 bg-[var(--app-bg)] border border-[var(--border)] focus:border-[var(--sherloq-primary)] rounded-[12px] focus:outline-none"
@@ -1236,9 +1238,9 @@ export default function ScreenHunting({
               </div>
 
               <div>
-                <label className="text-[11px] text-[var(--text-muted)] font-semibold block mb-1">SDR Kurzakte (AI-Summary Vorschau)</label>
-                <textarea 
-                  placeholder="Interesse an schnellerer BDR Einarbeitung im EMEA Raum. Erwartet DSGVO Abnahme..."
+                <label className="text-[11px] text-[var(--text-muted)] font-semibold block mb-1">{t('hunter.addModal.kurzakte')}</label>
+                <textarea
+                  placeholder={t('hunter.addModal.kurzaktePlaceholder')}
                   rows={2}
                   value={newLeadAka}
                   onChange={(e) => setNewLeadAka(e.target.value)}
@@ -1247,17 +1249,17 @@ export default function ScreenHunting({
               </div>
 
               <div>
-                <label className="text-[11px] text-[var(--text-muted)] font-semibold block mb-1">Lead Heat-Level</label>
+                <label className="text-[11px] text-[var(--text-muted)] font-semibold block mb-1">{t('hunter.addModal.heatLevel')}</label>
                 <select
                   value={newLeadHeat}
                   onChange={(e) => setNewLeadHeat(e.target.value as HeatStatus)}
                   className="w-full text-[12px] font-sans px-3.5 py-2.5 bg-[var(--app-bg)] border border-[var(--border)] focus:border-[var(--sherloq-primary)] rounded-[12px] focus:outline-none"
                 >
-                  <option value="HOT">● Aktiv</option>
-                  <option value="WARM">● Stabil</option>
-                  <option value="LUKEWARM">● Rückläufig</option>
-                  <option value="COLD">● Ruhend</option>
-                  <option value="DEAD">● Inaktiv</option>
+                  <option value="HOT">● {t('hunter.heat.active')}</option>
+                  <option value="WARM">● {t('hunter.heat.stable')}</option>
+                  <option value="LUKEWARM">● {t('hunter.heat.declining')}</option>
+                  <option value="COLD">● {t('hunter.heat.resting')}</option>
+                  <option value="DEAD">● {t('hunter.heat.inactive')}</option>
                 </select>
               </div>
 
@@ -1267,13 +1269,13 @@ export default function ScreenHunting({
                   onClick={() => setShowAddModal(false)}
                   className="px-4 py-2 bg-[var(--app-bg)] hover:bg-[var(--border)] text-[var(--text-body)] text-[12px] rounded-full cursor-pointer border border-[var(--border)]"
                 >
-                  Abbrechen
+                  {t('hunter.addModal.cancel')}
                 </button>
                 <button
                   type="submit"
                   className="px-5 py-2 bg-[var(--sherloq-primary)] hover:bg-[var(--sherloq-primary)]/95 text-white text-[12px] font-semibold rounded-full cursor-pointer shadow-xs"
                 >
-                  Lead anlegen
+                  {t('hunter.addModal.create')}
                 </button>
               </div>
             </form>

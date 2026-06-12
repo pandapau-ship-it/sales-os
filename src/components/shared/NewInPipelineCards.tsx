@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { 
+import { useTranslation } from 'react-i18next';
+import {
   Calendar, Clock, Check, Bot,
   UserCheck, ArrowUpRight, RotateCw
 } from 'lucide-react';
@@ -41,6 +42,7 @@ const ICPProgressRing = ({ score }: { score: number }) => {
 };
 
 export default function NewInPipelineCards({ onSelectLead }: { onSelectLead: (lead: any) => void }) {
+  const { t } = useTranslation();
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const triggerToast = (msg: string) => {
@@ -118,13 +120,13 @@ export default function NewInPipelineCards({ onSelectLead }: { onSelectLead: (le
         {/* Header Section */}
         <header className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Hunter &gt; Pipeline</span>
+            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{t('hunter.newPipeline.breadcrumb')}</span>
           </div>
           <h1 className="text-[28px] font-extrabold tracking-tight text-gray-900 leading-tight">
-            Neu in Pipeline
+            {t('hunter.newPipeline.title')}
           </h1>
           <p className="text-[13px] text-gray-400 font-medium">
-            3 neu qualifizierte Leads verlangen nach deiner Interaktion.
+            {t('hunter.newPipeline.subtitle')}
           </p>
         </header>
 
@@ -183,7 +185,7 @@ export default function NewInPipelineCards({ onSelectLead }: { onSelectLead: (le
                   <div className="flex items-center gap-4 ml-2">
                     <div className="text-right">
                       <p className="text-[12px] font-bold text-gray-900 leading-none">{lead.days}</p>
-                      <span className="text-[11px] text-gray-400 font-semibold mt-1 inline-block">Neu in Pipeline</span>
+                      <span className="text-[11px] text-gray-400 font-semibold mt-1 inline-block">{t('hunter.newPipeline.label')}</span>
                     </div>
 
                     <button 
@@ -223,12 +225,12 @@ export default function NewInPipelineCards({ onSelectLead }: { onSelectLead: (le
                       {lead.prepStatus === 'ready' ? (
                         <div className="flex items-center gap-1.5 text-emerald-700">
                           <Check size={14} className="text-emerald-500 shrink-0" strokeWidth={3} />
-                          <span>Meeting-Prep bereit</span>
+                          <span>{t('hunter.newPipeline.prepReady')}</span>
                         </div>
                       ) : (
                         <div className="flex items-center gap-1.5 text-amber-700">
                           <Clock size={14} className="text-amber-500 shrink-0 animate-spin" strokeWidth={2.5} />
-                          <span>Meeting-Prep wird generiert</span>
+                          <span>{t('hunter.newPipeline.prepLoading')}</span>
                         </div>
                       )}
                     </div>
@@ -248,14 +250,14 @@ export default function NewInPipelineCards({ onSelectLead }: { onSelectLead: (le
                 <div className="shrink-0">
                   {lead.btnType === 'primary' ? (
                     <button 
-                      onClick={() => triggerToast(`Aktion ausgeführt: ${lead.btnText}`)}
+                      onClick={() => triggerToast(t('hunter.newPipeline.toastActionDone', { action: lead.btnText }))}
                       className="px-4 py-1.5 bg-[var(--sherloq-primary)] hover:bg-[var(--sherloq-primary)] text-white rounded-full text-[11px] font-black transition-colors shadow-sm"
                     >
                       {lead.btnText}
                     </button>
                   ) : (
                     <button 
-                      onClick={() => triggerToast(`Meeting-Prep wird gestartet...`)}
+                      onClick={() => triggerToast(t('hunter.newPipeline.toastPrepStarting'))}
                       className="px-4 py-1.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-full text-[11px] font-black transition-colors shadow-sm flex items-center gap-1.5"
                     >
                       <RotateCw size={11} className="animate-spin text-[var(--sherloq-primary)]" />

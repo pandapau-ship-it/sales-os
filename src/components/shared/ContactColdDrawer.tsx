@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { AlertTriangle, Snowflake, X, Sparkles, RotateCw, Send, Check } from "lucide-react";
 import LinkedinIcon from "@/components/shared/LinkedinIcon";
 
@@ -19,6 +20,7 @@ export interface ContactColdDrawerProps {
 }
 
 export default function ContactColdDrawer({ person, onClose }: ContactColdDrawerProps) {
+  const { t } = useTranslation();
   const [draftText, setDraftText] = useState("Hi Christian, wollte mich kurz melden — habt ihr das Thema BDR-Effizienz intern weiterverfolgt?");
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [showToast, setShowToast] = useState(false);
@@ -37,22 +39,22 @@ export default function ContactColdDrawer({ person, onClose }: ContactColdDrawer
     setTimeout(() => {
       setDraftText("Hi Christian, ich wollte nochmal an unser Demo-Gespräch anknüpfen — ist BDR-Effizienz bei euch aktuell noch ein Thema?");
       setIsRegenerating(false);
-      triggerToast("Reaktivierungsnachricht neu generiert ");
+      triggerToast(t('hunter.drawers.cold.toastRegenerated'));
     }, 700);
   };
 
   const toggleReminder = () => {
     if (reminderActive) {
-      triggerToast("Automatische Erinnerung deaktiviert");
+      triggerToast(t('hunter.drawers.cold.toastReminderOff'));
     } else {
-      triggerToast("Automatische Erinnerung aktiviert");
+      triggerToast(t('hunter.drawers.cold.toastReminderOn'));
     }
     setReminderActive(!reminderActive);
   };
 
   const setChannel = (channel: string) => {
     setActiveChannel(channel);
-    triggerToast(channel + " ausgewählt");
+    triggerToast(t('hunter.drawers.cold.toastChannelSelected', { channel }));
   };
 
   return (
@@ -81,10 +83,10 @@ export default function ContactColdDrawer({ person, onClose }: ContactColdDrawer
                   {person.name}
                 </h3>
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-[9px] font-extrabold tracking-wide">
-                  Kalt <Snowflake className="w-2.5 h-2.5" />
+                  {t('hunter.heat.cold')} <Snowflake className="w-2.5 h-2.5" />
                 </span>
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-50 border border-red-100 text-red-600 text-[9px] font-extrabold tracking-wide">
-                  {person.daysInStage}T in Stage <AlertTriangle className="w-2.5 h-2.5" />
+                  {t('hunter.common.daysInStage', { days: person.daysInStage })} <AlertTriangle className="w-2.5 h-2.5" />
                 </span>
               </div>
               <p className="text-[11px] font-medium text-gray-400 mt-1">
@@ -104,21 +106,21 @@ export default function ContactColdDrawer({ person, onClose }: ContactColdDrawer
           {/* BLOCK 1: KALT KONTEXT */}
           <section className="space-y-3">
             <span className="text-[10px] font-extrabold text-blue-600 uppercase tracking-widest flex items-center gap-1.5">
-              <Snowflake className="w-2.5 h-2.5" /> Kontakt wird kalt
+              <Snowflake className="w-2.5 h-2.5" /> {t('hunter.drawers.cold.contactGoingCold')}
             </span>
 
             <div className="p-4 bg-blue-50 border border-blue-100 rounded-xl space-y-3">
               <p className="text-[13px] text-blue-800 font-semibold leading-relaxed">
-                Letzter Kontakt: {person.lastContactChannel} vor {person.lastContactDays} Tagen · Keine Antwort
+                {t('hunter.drawers.cold.lastContact', { channel: person.lastContactChannel, days: person.lastContactDays })}
               </p>
               <p className="text-[13px] text-blue-800 font-semibold leading-relaxed">
-                Letzter Kanal: {person.lastContactChannel} · KI empfiehlt Kanalwechsel
+                {t('hunter.drawers.cold.lastChannel', { channel: person.lastContactChannel })}
               </p>
             </div>
 
             <div className="p-4 bg-white border border-gray-100 rounded-xl shadow-sm">
               <span className="text-[9px] font-extrabold text-gray-400 uppercase tracking-widest block mb-1">
-                Sentiment
+                {t('hunter.drawers.cold.sentiment')}
               </span>
               <p className="text-[13px] text-gray-700 font-semibold leading-relaxed">
                 {person.lastConversationSentiment}
@@ -131,10 +133,10 @@ export default function ContactColdDrawer({ person, onClose }: ContactColdDrawer
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-extrabold text-[var(--sherloq-primary)] uppercase tracking-widest flex items-center gap-1.5">
                 <Sparkles className="w-3 h-3" />
-                AI empfiehlt
+                {t('hunter.common.aiRecommends')}
               </span>
               <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[9px] font-extrabold border border-emerald-100">
-                Confidence {person.confidence}%
+                {t('hunter.common.confidence', { n: person.confidence })}
               </span>
             </div>
 
@@ -144,9 +146,9 @@ export default function ContactColdDrawer({ person, onClose }: ContactColdDrawer
               </p>
 
               <div className="flex gap-2 flex-wrap">
-                {person.tags.map((t, idx) => (
+                {person.tags.map((tag, idx) => (
                   <span key={idx} className="px-2.5 py-1 rounded-full bg-white border border-[var(--sherloq-primary)]/10 text-[var(--sherloq-primary)] text-[10px] font-bold">
-                    {t}
+                    {tag}
                   </span>
                 ))}
               </div>
@@ -157,10 +159,10 @@ export default function ContactColdDrawer({ person, onClose }: ContactColdDrawer
           <section className="space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-extrabold text-gray-400 uppercase tracking-widest">
-                AI Reaktivierungs-Nachricht
+                {t('hunter.drawers.cold.reactivationMessage')}
               </span>
               <button onClick={handleRegenerate} className="text-[11px] font-extrabold text-[var(--sherloq-primary)] hover:underline flex items-center gap-1 cursor-pointer">
-                Neu generieren
+                {t('hunter.common.regenerate')}
                 <RotateCw className={`w-3 h-3 ${isRegenerating ? "animate-spin" : ""}`} />
               </button>
             </div>
@@ -192,10 +194,10 @@ export default function ContactColdDrawer({ person, onClose }: ContactColdDrawer
               <div className="px-4 py-3 bg-[var(--channel-linkedin)] text-white text-[12px] flex items-center justify-between">
                 <span className="font-extrabold flex items-center gap-2">
                   <LinkedinIcon className="w-3.5 h-3.5" />
-                  LinkedIn Composer
+                  {t('hunter.drawers.cold.linkedinComposer')}
                 </span>
                 <span className="text-[10px] font-bold uppercase tracking-wider bg-white/20 px-2 py-1 rounded-lg">
-                  Auto Draft
+                  {t('hunter.common.autoDraft')}
                 </span>
               </div>
 
@@ -209,7 +211,7 @@ export default function ContactColdDrawer({ person, onClose }: ContactColdDrawer
                 </div>
 
                 <div className="flex justify-between mt-2 px-1 text-[10px] text-gray-400 font-bold uppercase">
-                  <span>Heute · Entwurf von Sherloq</span>
+                  <span>{t('hunter.common.draftFromSherloqToday')}</span>
                   <span>{draftText.length}/300</span>
                 </div>
               </div>
@@ -219,13 +221,13 @@ export default function ContactColdDrawer({ person, onClose }: ContactColdDrawer
           {/* BLOCK 4: FOLLOW-UP REMINDER */}
           <section className="space-y-3">
             <span className="text-[10px] font-extrabold text-gray-400 uppercase tracking-widest">
-              Follow-up Reminder
+              {t('hunter.drawers.cold.followUpReminder')}
             </span>
 
             <div className="bg-white border border-gray-100 rounded-xl shadow-sm p-4 space-y-4">
               <div className="flex items-center justify-between gap-3">
                 <label className="text-[12px] font-semibold text-gray-700 leading-relaxed">
-                  Wenn keine Antwort in
+                  {t('hunter.drawers.cold.ifNoReplyIn')}
                 </label>
                 <div className="flex items-center gap-2 shrink-0">
                   <input
@@ -234,13 +236,13 @@ export default function ContactColdDrawer({ person, onClose }: ContactColdDrawer
                     min="1"
                     className="w-14 px-2 py-1.5 rounded-lg bg-gray-50 border border-gray-200 text-center text-[12px] font-extrabold text-gray-900 outline-none focus:border-[var(--sherloq-primary)]"
                   />
-                  <span className="text-[12px] font-bold text-gray-500">Tagen erneut erinnern</span>
+                  <span className="text-[12px] font-bold text-gray-500">{t('hunter.drawers.cold.daysRemindAgain')}</span>
                 </div>
               </div>
 
               <div className="flex items-center justify-between">
                 <span className="text-[12px] font-bold text-gray-700">
-                  Automatische Erinnerung
+                  {t('hunter.drawers.cold.automaticReminder')}
                 </span>
                 <button 
                   onClick={toggleReminder} 
@@ -254,20 +256,20 @@ export default function ContactColdDrawer({ person, onClose }: ContactColdDrawer
 
           {/* BLOCK 5: AKTIONEN */}
           <section className="space-y-2 pt-2">
-            <button onClick={() => triggerToast("LinkedIn Nachricht gesendet")} className="w-full py-3 bg-gradient-to-r from-[var(--sherloq-primary)] to-[var(--channel-linkedin)] text-white rounded-full text-[13px] font-extrabold shadow-md hover:scale-[1.01] transition-transform flex items-center justify-center gap-2 cursor-pointer">
+            <button onClick={() => triggerToast(t('hunter.drawers.cold.toastLinkedinSent'))} className="w-full py-3 bg-gradient-to-r from-[var(--sherloq-primary)] to-[var(--channel-linkedin)] text-white rounded-full text-[13px] font-extrabold shadow-md hover:scale-[1.01] transition-transform flex items-center justify-center gap-2 cursor-pointer">
               <Send className="w-4 h-4" />
-              Auf LinkedIn senden
+              {t('hunter.drawers.cold.sendOnLinkedin')}
             </button>
 
             <div className="grid grid-cols-3 gap-2">
-              <button onClick={() => triggerToast("Email-Reaktivierung vorbereitet")} className="py-2.5 bg-white border border-gray-200 rounded-full text-[11px] font-bold text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer">
-                Per Email reaktivieren
+              <button onClick={() => triggerToast(t('hunter.drawers.cold.toastEmailPrepared'))} className="py-2.5 bg-white border border-gray-200 rounded-full text-[11px] font-bold text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer">
+                {t('hunter.drawers.cold.reactivateByEmail')}
               </button>
-              <button onClick={() => triggerToast("Task erstellt")} className="py-2.5 bg-white border border-gray-200 rounded-full text-[11px] font-bold text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer">
-                Task erstellen
+              <button onClick={() => triggerToast(t('hunter.drawers.cold.toastTask'))} className="py-2.5 bg-white border border-gray-200 rounded-full text-[11px] font-bold text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer">
+                {t('hunter.common.createTask')}
               </button>
-              <button onClick={() => triggerToast("Gesnoozed")} className="py-2.5 bg-white border border-gray-200 rounded-full text-[11px] font-bold text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer">
-                Snooze
+              <button onClick={() => triggerToast(t('hunter.drawers.cold.toastSnoozed'))} className="py-2.5 bg-white border border-gray-200 rounded-full text-[11px] font-bold text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer">
+                {t('hunter.common.snooze')}
               </button>
             </div>
           </section>

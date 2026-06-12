@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Calendar, X, Mail, Link2, Phone, Video, MessageCircle, AlertTriangle } from "lucide-react";
 
 interface TaskDrawerProps {
@@ -19,6 +20,7 @@ export default function TaskDrawer({
   onClose,
   onSave
 }: TaskDrawerProps) {
+  const { t } = useTranslation();
   const [channel, setChannel] = useState(recommendedChannel);
   const [title, setTitle] = useState(recommendedTitle);
   const [note, setNote] = useState(recommendedNote);
@@ -78,21 +80,21 @@ export default function TaskDrawer({
                 {/* Right side stats */}
                 <div className="flex items-center gap-6">
                   <div className="flex flex-col items-center gap-1.5">
-                    <span className="text-[10px] font-bold text-[var(--icon-muted)] uppercase tracking-wider">Status</span>
+                    <span className="text-[10px] font-bold text-[var(--icon-muted)] uppercase tracking-wider">{t('hunter.common.status')}</span>
                     <div className="bg-[var(--signal-success-bg)] text-[var(--icp-high)] px-3.5 py-1.5 rounded-full flex items-center gap-1.5 text-[13px] font-bold">
                       <div className="w-2 h-2 rounded-full bg-[var(--icp-high)]" style={{ width: '8px', height: '8px' }}></div>
                       Aktiv
                     </div>
                   </div>
                   <div className="flex flex-col items-center gap-1.5">
-                    <span className="text-[10px] font-bold text-[var(--icon-muted)] uppercase tracking-wider">Heat</span>
+                    <span className="text-[10px] font-bold text-[var(--icon-muted)] uppercase tracking-wider">{t('hunter.common.heat')}</span>
                     <div className="bg-[var(--signal-success-bg)] text-[var(--icp-high)] px-3.5 py-1.5 rounded-full flex items-center gap-1.5 text-[13px] font-bold">
                       <div className="w-2.5 h-2.5 rounded-full bg-[var(--icp-high)]"></div>
                       Aktiv
                     </div>
                   </div>
                   <div className="flex flex-col items-center gap-1.5">
-                    <span className="text-[10px] font-bold text-[var(--icon-muted)] uppercase tracking-wider">Stage</span>
+                    <span className="text-[10px] font-bold text-[var(--icon-muted)] uppercase tracking-wider">{t('hunter.common.stage')}</span>
                     <div className="bg-white border border-[var(--border)] text-[var(--text-body)] px-5 py-1.5 rounded-full flex items-center justify-center text-[13px] font-bold shadow-sm">
                       Demo
                     </div>
@@ -128,7 +130,7 @@ export default function TaskDrawer({
 
             <div className="flex flex-col gap-6 w-full max-w-[600px] mt-2">
                 <div className="flex flex-col gap-3">
-                    <span className="text-[12px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Kanal</span>
+                    <span className="text-[12px] font-bold text-[var(--text-muted)] uppercase tracking-wider">{t('hunter.drawers.task.channel')}</span>
                     <div className="flex flex-wrap items-center gap-2">
                     {[
                         { id: 'EMAIL', icon: Mail, label: 'Email', color: 'text-[var(--signal-info-text)]' },
@@ -160,7 +162,7 @@ export default function TaskDrawer({
                 {/* KI EMPFEHLUNG */}
                 <div className="bg-[var(--signal-teal-bg)] border border-[var(--signal-teal-bg)] rounded-2xl p-5 flex flex-col gap-3 relative overflow-hidden">
                     <div className="flex items-center gap-2 text-[var(--icp-high)] font-bold text-[12px] tracking-wider uppercase">
-                        <AlertTriangle className="w-4 h-4" /> KI Empfehlung
+                        <AlertTriangle className="w-4 h-4" /> {t('hunter.drawers.task.kiRecommendation')}
                     </div>
                     <p className="text-[var(--icp-high)] text-[14px] font-semibold leading-relaxed">
                         Erster Outreach empfohlen — LinkedIn DM basierend auf Post vom 14. Mai.<br/><br/>
@@ -170,7 +172,7 @@ export default function TaskDrawer({
 
                 {/* TITEL DER TASK */}
                 <div className="flex flex-col gap-3 mt-1">
-                    <span className="text-[12px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Titel der Task</span>
+                    <span className="text-[12px] font-bold text-[var(--text-muted)] uppercase tracking-wider">{t('hunter.drawers.task.taskTitle')}</span>
                     <input 
                         type="text" 
                         value={title}
@@ -181,7 +183,7 @@ export default function TaskDrawer({
 
                 {/* AI-ENTWURF (OPTIONAL) */}
                 <div className="flex flex-col gap-3">
-                    <span className="text-[12px] font-bold text-[var(--text-muted)] uppercase tracking-wider">AI-Entwurf (Optional)</span>
+                    <span className="text-[12px] font-bold text-[var(--text-muted)] uppercase tracking-wider">{t('hunter.drawers.task.aiDraftOptional')}</span>
                     <textarea 
                         value={note}
                         onChange={e => setNote(e.target.value)}
@@ -192,14 +194,14 @@ export default function TaskDrawer({
                 {/* BOTTOM ROW: DATE & PRIORITY */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-0">
                     <div className="flex flex-col gap-3">
-                        <span className="text-[12px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Fällig am</span>
+                        <span className="text-[12px] font-bold text-[var(--text-muted)] uppercase tracking-wider">{t('hunter.drawers.task.dueDate')}</span>
                         <div className="bg-white border border-[var(--border)] rounded-xl px-4 py-3.5 flex items-center gap-3">
                             <span className="text-[var(--text-muted)]"><Calendar className="w-4 h-4" /></span>
                             <span className="text-[var(--text-primary)] text-[15px] font-bold">{date}</span>
                         </div>
                     </div>
                     <div className="flex flex-col gap-3">
-                        <span className="text-[12px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Priorität</span>
+                        <span className="text-[12px] font-bold text-[var(--text-muted)] uppercase tracking-wider">{t('hunter.drawers.task.priority')}</span>
                         <div className="bg-[var(--border-subtle)] rounded-xl p-1 flex items-center">
                             {['Low', 'Medium', 'High', 'Urgent'].map(p => (
                                 <button
@@ -226,7 +228,7 @@ export default function TaskDrawer({
                 onClick={() => onSave({ channel, title, note, date, priority })}
                 className="w-full bg-[var(--sherloq-primary)] hover:bg-[var(--sherloq-primary)]/95 text-white text-[15px] font-bold py-3.5 rounded-2xl transition-all shadow-sm flex items-center justify-center gap-2"
              >
-                 Task speichern
+                 {t('hunter.common.saveTask')}
              </button>
           </div>
         </div>

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface TooltipData {
   channel: string;
@@ -111,13 +112,14 @@ function generateChainForPerson(id: string): Touchpoint[] {
 }
 
 export default function CommunicationChain({ personId, onSelectCommunication }: CommunicationChainProps) {
+  const { t } = useTranslation();
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const chain = generateChainForPerson(personId);
 
   return (
     <div className="w-full mt-4 bg-[var(--app-bg)] rounded-[24px] p-6 border border-[var(--border)]">
       <div className="text-[11px] font-bold font-mono text-[var(--text-muted)] uppercase tracking-wider mb-10 text-center">
-        Kommunikationskette — Hover für Details
+        {t('hunter.chain.header')}
       </div>
       
       <div className="relative flex justify-between items-start w-full px-2 md:px-10 mt-4">
@@ -168,7 +170,7 @@ export default function CommunicationChain({ personId, onSelectCommunication }: 
                      <span className="text-[10px] text-[var(--text-muted)]">{tp.tooltip.date}</span>
                    </div>
                    <div className="text-[12px] text-[var(--text-body)] mb-1">
-                     Sentiment: <span className={getSentimentColor(tp.tooltip.sentiment)}>{tp.tooltip.sentiment}</span>
+                     {t('hunter.chain.sentiment')}: <span className={getSentimentColor(tp.tooltip.sentiment)}>{tp.tooltip.sentiment}</span>
                    </div>
                    <div className="text-[11px] text-[var(--text-muted)] leading-snug line-clamp-2">
                      {tp.tooltip.preview}

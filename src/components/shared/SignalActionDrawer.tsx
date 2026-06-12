@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { X, Sparkles, RotateCw, Send, ArrowUpRight, Check } from "lucide-react";
 import LinkedinIcon from "@/components/shared/LinkedinIcon";
 
@@ -24,6 +25,7 @@ export interface SignalActionDrawerProps {
 }
 
 export default function SignalActionDrawer({ person, onClose, onTakeAction }: SignalActionDrawerProps) {
+  const { t } = useTranslation();
   const [draftText, setDraftText] = useState("");
   const [chatInput, setChatInput] = useState("");
   const [isRegenerating, setIsRegenerating] = useState(false);
@@ -53,7 +55,7 @@ export default function SignalActionDrawer({ person, onClose, onTakeAction }: Si
     setTimeout(() => {
       setDraftText(`Hi ${person.name.split(" ")[0]}, danke für deinen Kommentar — das Thema Integrationen hören wir gerade häufig von Sales-Teams. Hast du diese Woche 15 Minuten für einen kurzen Austausch?`);
       setIsRegenerating(false);
-      triggerToast("AI-Entwurf neu generiert ");
+      triggerToast(t('hunter.common.draftNeuGeneriert'));
     }, 700);
   };
 
@@ -76,7 +78,7 @@ export default function SignalActionDrawer({ person, onClose, onTakeAction }: Si
     setTimeout(() => {
       setDraftText(newDraft);
       setUserMessages(prev => [...prev, { text: "Klar — ich passe den Entwurf entsprechend an. Du kannst auch schreiben: 'Mach es kürzer', 'als E-Mail', 'förmlicher' oder 'mit konkretem CTA'.", role: "ai" }]);
-      triggerToast("Anweisung an AI übernommen");
+      triggerToast(t('hunter.common.instructionApplied'));
     }, 500);
     
     setChatInput("");
@@ -123,12 +125,12 @@ export default function SignalActionDrawer({ person, onClose, onTakeAction }: Si
               <div className="flex items-center gap-2 min-w-0">
                 <span className="px-2.5 py-1 rounded-full bg-[var(--signal-info-bg)] text-[var(--signal-info-text)] text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 shrink-0">
                   <LinkedinIcon className="w-[11px] h-[11px]" />
-                  LinkedIn Signal
+                  {t('hunter.common.linkedinSignal')}
                 </span>
                 <span className="text-[12px] font-medium text-gray-800 truncate">{person.actionText}</span>
               </div>
               <span className="text-[11px] font-bold text-gray-400 shrink-0">
-                vor {person.timeAgoLabel} · <span className="text-red-600 font-extrabold">{person.timeLeftHours}h left</span>
+                {t('hunter.common.ago', { label: person.timeAgoLabel })} · <span className="text-red-600 font-extrabold">{t('hunter.common.hoursLeft', { hours: person.timeLeftHours })}</span>
               </span>
             </div>
 
@@ -137,7 +139,7 @@ export default function SignalActionDrawer({ person, onClose, onTakeAction }: Si
                 <div className="h-full bg-red-500 rounded-full" style={{ width: `${Math.max(10, 100 - (person.timeLeftHours / person.windowHours) * 100)}%` }} />
               </div>
               <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block text-right">
-                {person.windowHours}h window
+                {t('hunter.common.hoursWindow', { hours: person.windowHours })}
               </span>
             </div>
 
@@ -153,27 +155,27 @@ export default function SignalActionDrawer({ person, onClose, onTakeAction }: Si
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-[10px] font-black text-[var(--sherloq-primary)] uppercase tracking-widest">
                 <Sparkles className="w-[13px] h-[13px]" />
-                AI empfiehlt
+                {t('hunter.common.aiRecommends')}
               </div>
-              <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-extrabold uppercase">Confidence 91%</span>
+              <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-extrabold uppercase">{t('hunter.common.confidence', { n: 91 })}</span>
             </div>
             <p className="text-[13px] font-medium text-gray-700 leading-relaxed">
               {person.aiRecommendation}
             </p>
             <div className="flex gap-1.5 flex-wrap">
-              <span className="px-2.5 py-1 rounded-full bg-white border border-[var(--sherloq-primary)]/10 text-[var(--sherloq-primary)] text-[10px] font-bold">Signal heiß</span>
-              <span className="px-2.5 py-1 rounded-full bg-white border border-[var(--sherloq-primary)]/10 text-[var(--sherloq-primary)] text-[10px] font-bold">ICP passt</span>
-              <span className="px-2.5 py-1 rounded-full bg-white border border-[var(--sherloq-primary)]/10 text-[var(--sherloq-primary)] text-[10px] font-bold">Kanal flexibel</span>
+              <span className="px-2.5 py-1 rounded-full bg-white border border-[var(--sherloq-primary)]/10 text-[var(--sherloq-primary)] text-[10px] font-bold">{t('hunter.drawers.signal.tagSignalHot')}</span>
+              <span className="px-2.5 py-1 rounded-full bg-white border border-[var(--sherloq-primary)]/10 text-[var(--sherloq-primary)] text-[10px] font-bold">{t('hunter.drawers.signal.tagIcpFits')}</span>
+              <span className="px-2.5 py-1 rounded-full bg-white border border-[var(--sherloq-primary)]/10 text-[var(--sherloq-primary)] text-[10px] font-bold">{t('hunter.drawers.signal.tagChannelFlexible')}</span>
             </div>
           </section>
 
           {/* Composer Section */}
           <section className="space-y-2">
             <div className="flex justify-between items-center text-[10px] font-bold text-gray-400 uppercase tracking-widest px-0.5">
-              <span>AI Composer</span>
+              <span>{t('hunter.common.aiComposer')}</span>
               <button onClick={handleRegenerate} className="text-[var(--sherloq-primary)] hover:underline flex items-center gap-1 font-extrabold cursor-pointer">
                 <RotateCw className={`w-[11px] h-[11px] ${isRegenerating ? "animate-spin" : ""}`} />
-                Neu generieren
+                {t('hunter.common.regenerate')}
               </button>
             </div>
 
@@ -181,16 +183,16 @@ export default function SignalActionDrawer({ person, onClose, onTakeAction }: Si
               <div className="px-4 py-3 bg-[var(--sherloq-primary)] text-white text-[12px] flex items-center justify-between">
                 <div className="flex items-center gap-2 font-extrabold">
                   <Sparkles className="w-[13px] h-[13px] fill-current" />
-                  Antwort-Vorschlag · {person.name}
+                  {t('hunter.drawers.signal.composerHeader', { name: person.name })}
                 </div>
                 <div className="flex items-center gap-2">
                   <select className="bg-white/15 border border-white/15 text-white rounded-lg px-2 py-1 text-[10px] font-bold outline-none cursor-pointer">
-                    <option className="text-gray-900">LinkedIn DM</option>
-                    <option className="text-gray-900">E-Mail</option>
-                    <option className="text-gray-900">Call-Skript</option>
-                    <option className="text-gray-900">Follow-up Task</option>
+                    <option className="text-gray-900">{t('hunter.drawers.signal.channelLinkedinDm')}</option>
+                    <option className="text-gray-900">{t('hunter.drawers.signal.channelEmail')}</option>
+                    <option className="text-gray-900">{t('hunter.drawers.signal.channelCallScript')}</option>
+                    <option className="text-gray-900">{t('hunter.drawers.signal.channelFollowupTask')}</option>
                   </select>
-                  <span className="text-[10px] font-bold uppercase tracking-wider bg-white/20 px-2 py-1 rounded-lg">Auto Draft</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider bg-white/20 px-2 py-1 rounded-lg">{t('hunter.common.autoDraft')}</span>
                 </div>
               </div>
 
@@ -200,7 +202,7 @@ export default function SignalActionDrawer({ person, onClose, onTakeAction }: Si
                     <Sparkles className="w-[14px] h-[14px] fill-current" />
                   </div>
                   <div className="flex-1">
-                    <div className="mb-1 text-[10px] font-bold uppercase tracking-wider text-gray-400">Sherloq AI · Vorschlag</div>
+                    <div className="mb-1 text-[10px] font-bold uppercase tracking-wider text-gray-400">{t('hunter.common.sherloqSuggestion')}</div>
                     <div className="bg-white border border-gray-200 text-gray-900 p-4 rounded-2xl rounded-tl-md shadow-sm leading-relaxed">
                       <textarea 
                         value={draftText}
@@ -209,8 +211,8 @@ export default function SignalActionDrawer({ person, onClose, onTakeAction }: Si
                       />
                     </div>
                     <div className="flex justify-between mt-2 px-1 text-[10px] text-gray-400 font-bold uppercase">
-                      <span>Heute · Entwurf von Sherloq</span>
-                      <span>{draftText.length}/300 Zeichen</span>
+                      <span>{t('hunter.common.draftFromSherloqToday')}</span>
+                      <span>{t('hunter.common.charsOf300', { count: draftText.length })}</span>
                     </div>
                   </div>
                 </div>
@@ -219,7 +221,7 @@ export default function SignalActionDrawer({ person, onClose, onTakeAction }: Si
                   <div key={idx} className={`${msg.role === "user" ? "self-end max-w-[82%]" : "flex items-start gap-2 max-w-[96%]"}`}>
                     {msg.role === "user" ? (
                       <>
-                        <div className="mb-1 text-right text-[10px] font-bold uppercase tracking-wider text-gray-400">Du</div>
+                        <div className="mb-1 text-right text-[10px] font-bold uppercase tracking-wider text-gray-400">{t('hunter.common.you')}</div>
                         <div className="bg-[var(--signal-info-bg)] border border-blue-100 text-gray-900 p-3 rounded-2xl rounded-tr-md shadow-sm text-[13px] font-medium leading-relaxed">
                           {msg.text}
                         </div>
@@ -230,7 +232,7 @@ export default function SignalActionDrawer({ person, onClose, onTakeAction }: Si
                           <Sparkles className="w-[14px] h-[14px] fill-current" />
                         </div>
                         <div className="flex-1">
-                          <div className="mb-1 text-[10px] font-bold uppercase tracking-wider text-gray-400">Sherloq AI</div>
+                          <div className="mb-1 text-[10px] font-bold uppercase tracking-wider text-gray-400">{t('hunter.common.sherloqAi')}</div>
                           <div className="bg-white border border-gray-200 text-gray-900 p-3 rounded-2xl rounded-tl-md shadow-sm text-[13px] font-medium leading-relaxed">
                             {msg.text}
                           </div>
@@ -245,7 +247,7 @@ export default function SignalActionDrawer({ person, onClose, onTakeAction }: Si
                 <div className="flex items-end gap-2 bg-gray-50 border border-gray-200 rounded-2xl px-3 py-2 flex-within focus-within:border-[var(--sherloq-primary)] focus-within:bg-white transition-all">
                   <textarea 
                     rows={1} 
-                    placeholder="Sag der AI, was angepasst werden soll, z. B. 'Schreib mir daraus eine E-Mail'..." 
+                    placeholder={t('hunter.drawers.signal.instructPlaceholder')}
                     className="flex-1 bg-transparent resize-none outline-none text-[12px] font-medium leading-relaxed text-gray-800 placeholder-gray-400 min-h-[32px] max-h-[96px] scrollbar-none"
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
@@ -261,8 +263,8 @@ export default function SignalActionDrawer({ person, onClose, onTakeAction }: Si
                   </button>
                 </div>
                 <div className="flex justify-between items-center mt-2 px-1 text-[10px] text-gray-400 font-bold">
-                  <span>AI kann Kanal, Tonalität, Länge und CTA anpassen.</span>
-                  <span>Enter zum Senden</span>
+                  <span>{t('hunter.drawers.signal.aiHint')}</span>
+                  <span>{t('hunter.common.enterToSend')}</span>
                 </div>
               </div>
             </div>
@@ -277,13 +279,13 @@ export default function SignalActionDrawer({ person, onClose, onTakeAction }: Si
               className="w-full py-3 text-white rounded-full text-xs font-bold shadow-md hover:scale-[1.01] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
               style={{ background: "var(--sherloq-gradient)" }}
             >
-              Antwort übernehmen <ArrowUpRight className="w-[14px] h-[14px]" />
+              {t('hunter.common.applyReply')} <ArrowUpRight className="w-[14px] h-[14px]" />
             </button>
 
             <div className="flex gap-2">
-              <button onClick={() => triggerToast("Bearbeiten gestartet")} className="flex-1 py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-600 rounded-full text-xs font-bold transition-all shadow-sm cursor-pointer">Bearbeiten</button>
-              <button onClick={() => triggerToast("Signal ignoriert")} className="flex-1 py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-600 rounded-full text-xs font-bold transition-all shadow-sm cursor-pointer">Ignorieren</button>
-              <button onClick={() => triggerToast("Task erstellt")} className="flex-1 py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-600 rounded-full text-xs font-bold transition-all shadow-sm cursor-pointer">Task erstellen</button>
+              <button onClick={() => triggerToast(t('hunter.drawers.signal.toastEdit'))} className="flex-1 py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-600 rounded-full text-xs font-bold transition-all shadow-sm cursor-pointer">{t('hunter.common.edit')}</button>
+              <button onClick={() => triggerToast(t('hunter.drawers.signal.toastIgnore'))} className="flex-1 py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-600 rounded-full text-xs font-bold transition-all shadow-sm cursor-pointer">{t('hunter.common.ignore')}</button>
+              <button onClick={() => triggerToast(t('hunter.drawers.signal.toastTask'))} className="flex-1 py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-600 rounded-full text-xs font-bold transition-all shadow-sm cursor-pointer">{t('hunter.common.createTask')}</button>
             </div>
           </section>
         </main>

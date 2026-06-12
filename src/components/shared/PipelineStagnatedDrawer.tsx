@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { X, Clock, Sparkles, RotateCw, Send, Check } from "lucide-react";
 
 interface PipelineStagnatedDrawerProps {
@@ -22,6 +23,7 @@ interface PipelineStagnatedDrawerProps {
 }
 
 export default function PipelineStagnatedDrawer({ person, onClose, onTakeAction }: PipelineStagnatedDrawerProps) {
+  const { t } = useTranslation();
   const [draftText, setDraftText] = useState("");
   const [chatInput, setChatInput] = useState("");
   const [isRegenerating, setIsRegenerating] = useState(false);
@@ -44,7 +46,7 @@ export default function PipelineStagnatedDrawer({ person, onClose, onTakeAction 
     setTimeout(() => {
       setDraftText(`Hi ${person.name.split(" ")[0]}, danke nochmal für die Demo. Mich interessiert, ob das Thema intern weiter priorisiert wird — hast du diese Woche 15 Minuten für einen kurzen Abgleich?`);
       setIsRegenerating(false);
-      triggerToast("AI-Entwurf neu generiert ");
+      triggerToast(t('hunter.common.draftNeuGeneriert'));
     }, 700);
   };
 
@@ -67,7 +69,7 @@ export default function PipelineStagnatedDrawer({ person, onClose, onTakeAction 
     setTimeout(() => {
       setDraftText(newDraft);
       setUserMessages(prev => [...prev, { text: "Klar — ich passe den Entwurf entsprechend an. Du kannst z. B. schreiben: 'kürzer', 'förmlicher', 'als E-Mail' oder 'mit konkretem CTA'.", role: "ai" }]);
-      triggerToast("Anweisung an AI übernommen");
+      triggerToast(t('hunter.common.instructionApplied'));
     }, 500);
     
     setChatInput("");
@@ -107,11 +109,11 @@ export default function PipelineStagnatedDrawer({ person, onClose, onTakeAction 
           {/* Alert Section */}
           <section className="space-y-2">
             <span className="text-[10px] font-bold text-red-600 uppercase tracking-widest flex items-center gap-1.5">
-              <Clock className="w-3 h-3" /> Deal stagniert
+              <Clock className="w-3 h-3" /> {t('hunter.drawers.stagnated.dealStagnated')}
             </span>
             <div className="p-4 bg-red-50 border border-red-100 rounded-xl text-[13px] text-red-800 font-medium leading-relaxed">
-              Kein Fortschritt seit {person.daysStagnated} Tagen in Stage {person.stageName}. Letzter Kontakt: Email vor {person.lastContactDays}T, keine Antwort.
-              <div className="mt-2 text-[11px] font-bold opacity-80">ARR: {person.arr} · Probability: {person.probability}</div>
+              {t('hunter.drawers.stagnated.context', { days: person.daysStagnated, stage: person.stageName, lastContactDays: person.lastContactDays })}
+              <div className="mt-2 text-[11px] font-bold opacity-80">{t('hunter.drawers.stagnated.arrProbability', { arr: person.arr, probability: person.probability })}</div>
             </div>
           </section>
 
@@ -119,10 +121,10 @@ export default function PipelineStagnatedDrawer({ person, onClose, onTakeAction 
           <section className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-bold text-[var(--sherloq-primary)] uppercase tracking-widest flex items-center gap-1.5">
-                <Sparkles className="w-3 h-3" /> AI empfiehlt
+                <Sparkles className="w-3 h-3" /> {t('hunter.common.aiRecommends')}
               </span>
               <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[9px] font-bold border border-emerald-100">
-                Confidence {person.confidence}%
+                {t('hunter.common.confidence', { n: person.confidence })}
               </span>
             </div>
             <div className="p-4 bg-[var(--signal-teal-bg)] border border-[var(--signal-teal-bg)]/50 rounded-xl space-y-3">
@@ -133,9 +135,9 @@ export default function PipelineStagnatedDrawer({ person, onClose, onTakeAction 
                 “{person.aiInsight}”
               </div>
               <div className="flex gap-2 flex-wrap">
-                {person.tags.map((t, idx) => (
+                {person.tags.map((tag, idx) => (
                   <span key={idx} className="px-2.5 py-1 rounded-full bg-white border border-[var(--sherloq-primary)]/10 text-[var(--sherloq-primary)] text-[10px] font-bold">
-                    {t}
+                    {tag}
                   </span>
                 ))}
               </div>
@@ -145,18 +147,18 @@ export default function PipelineStagnatedDrawer({ person, onClose, onTakeAction 
           {/* Composer Section */}
           <section className="space-y-2">
             <div className="flex items-center justify-between text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-              <span>KI Antwort-Entwurf</span>
+              <span>{t('hunter.drawers.stagnated.kiAntwortEntwurf')}</span>
               <button onClick={handleRegenerate} className="text-[var(--sherloq-primary)] hover:underline flex items-center gap-1 font-extrabold cursor-pointer">
-                <RotateCw className={`w-3 h-3 ${isRegenerating ? "animate-spin" : ""}`} /> Neu generieren
+                <RotateCw className={`w-3 h-3 ${isRegenerating ? "animate-spin" : ""}`} /> {t('hunter.common.regenerate')}
               </button>
             </div>
 
             <div className="bg-white rounded-[18px] border border-gray-200 shadow-sm overflow-hidden flex flex-col">
               <div className="px-4 py-3 bg-[var(--sherloq-primary)] text-white text-[12px] flex items-center justify-between">
                 <span className="font-extrabold flex items-center gap-2">
-                  <Sparkles className="w-3.5 h-3.5 fill-current" /> AI Composer · Antwort-Vorschlag
+                  <Sparkles className="w-3.5 h-3.5 fill-current" /> {t('hunter.drawers.stagnated.composerHeader')}
                 </span>
-                <span className="text-[10px] font-bold uppercase tracking-wider bg-white/20 px-2 py-1 rounded-lg">Auto Draft</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider bg-white/20 px-2 py-1 rounded-lg">{t('hunter.common.autoDraft')}</span>
               </div>
 
               <div className="bg-[var(--border-subtle)] min-h-[430px] p-4 flex flex-col gap-4">
@@ -165,7 +167,7 @@ export default function PipelineStagnatedDrawer({ person, onClose, onTakeAction 
                     <Sparkles className="w-3.5 h-3.5 fill-current" />
                   </div>
                   <div className="flex-1">
-                    <div className="mb-1 text-[10px] font-bold uppercase tracking-wider text-gray-400">Sherloq AI · Vorschlag</div>
+                    <div className="mb-1 text-[10px] font-bold uppercase tracking-wider text-gray-400">{t('hunter.common.sherloqSuggestion')}</div>
                     <div className="bg-white border border-gray-200 text-gray-900 p-4 rounded-2xl rounded-tl-md shadow-sm leading-relaxed">
                       <textarea 
                         value={draftText}
@@ -174,8 +176,8 @@ export default function PipelineStagnatedDrawer({ person, onClose, onTakeAction 
                       />
                     </div>
                     <div className="flex justify-between mt-2 px-1 text-[10px] text-gray-400 font-bold uppercase">
-                      <span>Heute · Entwurf von Sherloq</span>
-                      <span>{draftText.length}/300 Zeichen</span>
+                      <span>{t('hunter.common.draftFromSherloqToday')}</span>
+                      <span>{t('hunter.common.charsOf300', { count: draftText.length })}</span>
                     </div>
                   </div>
                 </div>
@@ -184,7 +186,7 @@ export default function PipelineStagnatedDrawer({ person, onClose, onTakeAction 
                   <div key={idx} className={`${msg.role === "user" ? "self-end max-w-[82%]" : "flex items-start gap-2 max-w-[96%]"}`}>
                     {msg.role === "user" ? (
                       <>
-                        <div className="mb-1 text-right text-[10px] font-bold uppercase tracking-wider text-gray-400">Du</div>
+                        <div className="mb-1 text-right text-[10px] font-bold uppercase tracking-wider text-gray-400">{t('hunter.common.you')}</div>
                         <div className="bg-[var(--signal-info-bg)] border border-blue-100 text-gray-900 p-3 rounded-2xl rounded-tr-md shadow-sm text-[13px] font-medium leading-relaxed">
                           {msg.text}
                         </div>
@@ -195,7 +197,7 @@ export default function PipelineStagnatedDrawer({ person, onClose, onTakeAction 
                           <Sparkles className="w-3.5 h-3.5 fill-current" />
                         </div>
                         <div className="flex-1">
-                          <div className="mb-1 text-[10px] font-bold uppercase tracking-wider text-gray-400">Sherloq AI</div>
+                          <div className="mb-1 text-[10px] font-bold uppercase tracking-wider text-gray-400">{t('hunter.common.sherloqAi')}</div>
                           <div className="bg-white border border-gray-200 text-gray-900 p-3 rounded-2xl rounded-tl-md shadow-sm text-[13px] font-medium leading-relaxed">
                             {msg.text}
                           </div>
@@ -210,7 +212,7 @@ export default function PipelineStagnatedDrawer({ person, onClose, onTakeAction 
                 <div className="flex items-end gap-2 bg-gray-50 border border-gray-200 rounded-2xl px-3 py-2 focus-within:border-[var(--sherloq-primary)] focus-within:bg-white transition-all">
                   <textarea 
                     rows={1} 
-                    placeholder="Sag der AI, was angepasst werden soll..." 
+                    placeholder={t('hunter.common.instructAiPlaceholder')}
                     className="flex-1 bg-transparent resize-none outline-none text-[12px] font-medium leading-relaxed text-gray-800 placeholder-gray-400 min-h-[32px] max-h-[96px] scrollbar-none"
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
@@ -226,8 +228,8 @@ export default function PipelineStagnatedDrawer({ person, onClose, onTakeAction 
                   </button>
                 </div>
                 <div className="flex justify-between items-center mt-2 px-1 text-[10px] text-gray-400 font-bold">
-                  <span>AI kann Tonalität, Länge, Kanal und CTA anpassen.</span>
-                  <span>Enter zum Senden</span>
+                  <span>{t('hunter.drawers.stagnated.aiHint')}</span>
+                  <span>{t('hunter.common.enterToSend')}</span>
                 </div>
               </div>
             </div>
@@ -242,12 +244,12 @@ export default function PipelineStagnatedDrawer({ person, onClose, onTakeAction 
               className="w-full py-3 text-white rounded-full text-[13px] font-bold shadow-md hover:scale-[1.01] transition-transform cursor-pointer"
               style={{ background: "var(--sherloq-gradient)" }}
             >
-              Antwort übernehmen
+              {t('hunter.common.applyReply')}
             </button>
             <div className="grid grid-cols-3 gap-2">
-              <button onClick={() => triggerToast("Nur senden")} className="py-2.5 bg-white border border-gray-200 rounded-full text-[11px] font-bold text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors">Nur senden</button>
-              <button onClick={() => triggerToast("Stage wechseln")} className="py-2.5 bg-white border border-gray-200 rounded-full text-[11px] font-bold text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors">Stage wechseln</button>
-              <button onClick={() => triggerToast("Task erstellt")} className="py-2.5 bg-white border border-gray-200 rounded-full text-[11px] font-bold text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors">Task erstellen</button>
+              <button onClick={() => triggerToast(t('hunter.drawers.stagnated.onlySend'))} className="py-2.5 bg-white border border-gray-200 rounded-full text-[11px] font-bold text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors">{t('hunter.drawers.stagnated.onlySend')}</button>
+              <button onClick={() => triggerToast(t('hunter.drawers.stagnated.changeStage'))} className="py-2.5 bg-white border border-gray-200 rounded-full text-[11px] font-bold text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors">{t('hunter.drawers.stagnated.changeStage')}</button>
+              <button onClick={() => triggerToast(t('hunter.drawers.signal.toastTask'))} className="py-2.5 bg-white border border-gray-200 rounded-full text-[11px] font-bold text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors">{t('hunter.common.createTask')}</button>
             </div>
           </section>
         </main>

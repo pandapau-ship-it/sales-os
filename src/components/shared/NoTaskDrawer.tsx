@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { AlertTriangle, X, Sparkles, ClipboardList, Mail, Phone, Calendar, Check, CheckCircle2 } from "lucide-react";
 import LinkedinIcon from "@/components/shared/LinkedinIcon";
 
@@ -13,6 +14,7 @@ export interface NoTaskDrawerProps {
 }
 
 export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
+  const { t } = useTranslation();
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [taskTitle, setTaskTitle] = useState("ROI-Dokument senden");
@@ -37,7 +39,7 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
   const handleApplySuggestion = () => {
     setTaskTitle("ROI-Dokument senden");
     setIsError(false);
-    triggerToast("KI-Vorschlag übernommen");
+    triggerToast(t('hunter.drawers.noTask.toastApplied'));
   };
 
   const setChannel = (channel: string) => {
@@ -50,9 +52,9 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
 
   const toggleReminder = () => {
     if (reminderActive) {
-      triggerToast("Erinnerung deaktiviert");
+      triggerToast(t('hunter.drawers.noTask.toastReminderOff'));
     } else {
-      triggerToast("Erinnerung aktiviert");
+      triggerToast(t('hunter.drawers.noTask.toastReminderOn'));
     }
     setReminderActive(!reminderActive);
   };
@@ -64,8 +66,8 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
     }
     
     // In a real app we'd save the task here
-    triggerToast("Task gespeichert ✓");
-    
+    triggerToast(`${t('hunter.drawers.noTask.toastSaved')} ✓`);
+
     setTimeout(() => {
       onClose();
     }, 1100);
@@ -96,7 +98,7 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
                   {person.name || "Sarah Jenkins"}
                 </h3>
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 border border-amber-100 text-amber-700 text-[9px] font-extrabold tracking-wide">
-                  <AlertTriangle className="w-2.5 h-2.5" /> Keine Task
+                  <AlertTriangle className="w-2.5 h-2.5" /> {t('hunter.card.noTask')}
                 </span>
               </div>
               <p className="text-[11px] font-medium text-gray-400 mt-1">
@@ -116,16 +118,16 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
           {/* BLOCK 1: KONTEXT */}
           <section className="space-y-3">
             <span className="text-[10px] font-extrabold text-amber-600 uppercase tracking-widest flex items-center gap-1.5">
-              <AlertTriangle className="w-2.5 h-2.5" /> Keine Task hinterlegt
+              <AlertTriangle className="w-2.5 h-2.5" /> {t('hunter.drawers.noTask.noTaskStored')}
             </span>
 
             <div className="p-4 bg-amber-50 border border-amber-100 rounded-xl text-[13px] text-amber-800 font-semibold leading-relaxed">
-              Jeder Deal braucht eine offene Aufgabe. KI schlägt passende Task vor.
+              {t('hunter.drawers.noTask.everyDealNeedsTask')}
             </div>
 
             <div className="p-4 bg-white border border-gray-100 rounded-xl shadow-sm">
               <span className="text-[9px] font-extrabold text-gray-400 uppercase tracking-widest block mb-1">
-                Deal-Info
+                {t('hunter.drawers.noTask.dealInfo')}
               </span>
               <p className="text-[13px] text-gray-700 font-semibold leading-relaxed">
                 Stage: Demo vereinbart · Neu in Pipeline · vor 3 Tagen
@@ -137,7 +139,7 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
           <section className="bg-[var(--signal-teal-bg)] border border-emerald-100 rounded-xl p-4 space-y-3 animate-fade-in">
             <div className="flex items-center gap-1.5 text-[10px] font-bold text-[var(--sherloq-primary)] uppercase tracking-wider">
               <Sparkles className="w-3 h-3" />
-               KI schlägt vor
+               {t('hunter.drawers.noTask.kiSuggests')}
             </div>
 
             <div>
@@ -151,10 +153,10 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
 
             <div className="flex items-center justify-between">
               <span className="inline-flex items-center gap-1.5 text-[12px] font-extrabold text-[var(--sherloq-primary)]">
-                <Mail className="w-3.5 h-3.5" /> Email empfohlen
+                <Mail className="w-3.5 h-3.5" /> {t('hunter.drawers.noTask.emailRecommended')}
               </span>
               <button onClick={handleApplySuggestion} className="px-3 py-1.5 bg-[var(--sherloq-primary)] text-white rounded-lg text-[11px] font-bold cursor-pointer">
-                Übernehmen
+                {t('hunter.common.apply')}
               </button>
             </div>
           </section>
@@ -166,11 +168,11 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
               <div className="flex items-center gap-2">
                 <ClipboardList className="w-4 h-4 text-[var(--sherloq-primary)]" />
                 <h2 className="text-[16px] font-semibold text-[var(--text-primary)]">
-                  Neue Task
+                  {t('hunter.drawers.noTask.newTask')}
                 </h2>
               </div>
               <span className="text-[10px] font-extrabold text-gray-400 uppercase tracking-wider">
-                sofort geöffnet
+                {t('hunter.drawers.noTask.openedInstantly')}
               </span>
             </div>
 
@@ -179,7 +181,7 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
               {/* Titel */}
               <div className="space-y-1.5">
                 <label className="text-[12px] font-bold text-gray-500">
-                  Was muss getan werden?
+                  {t('hunter.drawers.noTask.whatToDo')}
                 </label>
                 <input
                   type="text"
@@ -188,7 +190,7 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
                     setTaskTitle(e.target.value);
                     if (isError) setIsError(false);
                   }}
-                  placeholder="z.B. ROI-Dokument an Max senden"
+                  placeholder={t('hunter.drawers.noTask.taskTitlePlaceholder')}
                   className={`w-full px-4 py-3 rounded-xl border outline-none transition-all focus:border-[var(--sherloq-primary)] text-[13px] font-semibold ${isError ? 'border-amber-500 bg-amber-50' : 'border-gray-200'}`}
                 />
               </div>
@@ -197,7 +199,7 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="text-[12px] font-bold text-gray-500">
-                    Kontakt
+                    {t('hunter.drawers.noTask.contact')}
                   </label>
                   <input
                     type="text"
@@ -209,7 +211,7 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
 
                 <div className="space-y-1.5">
                   <label className="text-[12px] font-bold text-gray-500">
-                    Deal
+                    {t('hunter.drawers.noTask.deal')}
                   </label>
                   <select className="w-full px-4 py-2.5 rounded-xl border border-gray-200 outline-none focus:border-[var(--sherloq-primary)] bg-white text-[13px] font-semibold">
                     <option>Demo vereinbart</option>
@@ -222,7 +224,7 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
               {/* Kanal */}
               <div className="space-y-2">
                 <label className="text-[12px] font-bold text-gray-500">
-                  Kanal
+                  {t('hunter.drawers.noTask.channel')}
                 </label>
 
                 <div className="flex gap-2">
@@ -262,7 +264,7 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
               {/* Beschreibung */}
               <div className="space-y-1.5">
                 <label className="text-[12px] font-bold text-gray-500">
-                  Beschreibung optional
+                  {t('hunter.drawers.noTask.descriptionOptional')}
                 </label>
                 <textarea
                   rows={3}
@@ -275,7 +277,7 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="text-[12px] font-bold text-gray-500">
-                    Fällig am
+                    {t('hunter.drawers.noTask.dueDate')}
                   </label>
                   <input
                     type="date"
@@ -287,7 +289,7 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
 
                 <div className="space-y-1.5">
                   <label className="text-[12px] font-bold text-gray-500">
-                    Uhrzeit
+                    {t('hunter.drawers.noTask.time')}
                   </label>
                   <input
                     type="time"
@@ -298,28 +300,28 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
 
                 <div className="space-y-1.5">
                   <label className="text-[12px] font-bold text-gray-500">
-                    Priorität
+                    {t('hunter.drawers.noTask.priority')}
                   </label>
 
                   <div className="flex gap-1.5">
                     <button onClick={() => setPriority("low")} className={`px-2 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer ${activePriority === 'low' ? 'bg-[var(--sherloq-primary)] text-white' : 'bg-gray-100 text-gray-500'}`}>
-                      Low
+                      {t('hunter.drawers.noTask.low')}
                     </button>
                     <button onClick={() => setPriority("medium")} className={`px-2 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer ${activePriority === 'medium' ? 'bg-[var(--sherloq-primary)] text-white' : 'bg-gray-100 text-gray-500'}`}>
-                      Medium
+                      {t('hunter.drawers.noTask.medium')}
                     </button>
                     <button onClick={() => setPriority("high")} className={`px-2 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer ${activePriority === 'high' ? 'bg-[var(--sherloq-primary)] text-white' : 'bg-gray-100 text-gray-500'}`}>
-                      High
+                      {t('hunter.drawers.noTask.high')}
                     </button>
                     <button onClick={() => setPriority("urgent")} className={`px-2 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer ${activePriority === 'urgent' ? 'bg-[var(--sherloq-primary)] text-white' : 'bg-gray-100 text-gray-500'}`}>
-                      Urgent
+                      {t('hunter.drawers.noTask.urgent')}
                     </button>
                   </div>
                 </div>
 
                 <div className="space-y-1.5">
                   <label className="text-[12px] font-bold text-gray-500">
-                    Zuständig
+                    {t('hunter.drawers.noTask.assignee')}
                   </label>
 
                   <div className="flex items-center gap-2 bg-gray-50 p-1.5 rounded-xl">
@@ -327,7 +329,7 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
                       ME
                     </div>
                     <span className="text-[12px] font-bold text-gray-700">
-                      Ich selbst
+                      {t('hunter.drawers.noTask.myself')}
                     </span>
                   </div>
                 </div>
@@ -336,7 +338,7 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
               {/* Reminder */}
               <div className="flex items-center justify-between pt-1">
                 <span className="text-[12px] font-bold text-gray-700">
-                  1T vorher erinnern
+                  {t('hunter.drawers.noTask.remind1DayBefore')}
                 </span>
                 <button 
                   onClick={toggleReminder} 
@@ -349,7 +351,7 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
               {/* Verknüpfen mit */}
               <div className="space-y-2">
                 <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">
-                  Verknüpfen mit
+                  {t('hunter.drawers.noTask.linkWith')}
                 </label>
 
                 <div className="flex gap-2">
@@ -362,7 +364,7 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
                     <X className="w-3 h-3" />
                   </span>
                   <button className="px-3 py-1.5 border border-dashed border-gray-300 rounded-lg text-[11px] font-bold text-gray-400 cursor-pointer hover:bg-gray-50">
-                    + Verknüpfung
+                    {t('hunter.drawers.noTask.addLink')}
                   </button>
                 </div>
               </div>
@@ -373,14 +375,14 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
           <section className="space-y-3 pt-1">
             <button onClick={handleSave} className="w-full py-3 text-white rounded-full text-[13px] font-extrabold shadow-md hover:scale-[1.01] transition-transform flex items-center justify-center gap-2 cursor-pointer" style={{ background: "var(--sherloq-gradient)" }}>
               <Check className="w-4 h-4" />
-              Task speichern
+              {t('hunter.common.saveTask')}
             </button>
 
             <button onClick={() => {
-              triggerToast("Abgebrochen");
+              triggerToast(t('hunter.drawers.noTask.toastCancelled'));
               setTimeout(() => onClose(), 1100);
             }} className="w-full text-center text-[12px] font-bold text-gray-400 hover:text-gray-700 transition-colors cursor-pointer">
-              Abbrechen
+              {t('hunter.common.cancel')}
             </button>
           </section>
         </main>
