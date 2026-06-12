@@ -40,7 +40,6 @@ import FunnelAnalysis from '@/components/shared/FunnelAnalysis';
 import Avatar from '@/components/shared/Avatar';
 import TaskDrawer from '@/components/shared/TaskDrawer';
 import { LinkedinSignalCard } from '@/components/shared/LinkedinSignalCard';
-import SignalActionDrawer from '@/components/shared/SignalActionDrawer';
 import PipelineStagnatedDrawer from '@/components/shared/PipelineStagnatedDrawer';
 import ContactColdDrawer from '@/components/shared/ContactColdDrawer';
 import NoTaskDrawer from '@/components/shared/NoTaskDrawer';
@@ -82,7 +81,6 @@ export default function ScreenHunting({
   const [taskTitle] = useState('Erster Outreach empfohlen — LinkedIn DM');
   const [taskNote] = useState('Hallo Sarah,\n\nich habe gerade gesehen, dass CloudSphere stark skaliert. Da wir viele BDR-Teams im selben Bereich unterstützen, dachte ich, ein kurzer Connect macht Sinn.\n\nViele Grüße');
 
-  const [selectedSignalPerson, setSelectedSignalPerson] = useState<any | null>(null);
   const [selectedStagnatedPerson, setSelectedStagnatedPerson] = useState<any | null>(null);
   const [selectedColdPerson, setSelectedColdPerson] = useState<any | null>(null);
   const [selectedNoTaskPerson, setSelectedNoTaskPerson] = useState<any | null>(null);
@@ -1081,20 +1079,6 @@ export default function ScreenHunting({
             commentText="Anze Voje postete über GTM Strategien für 2026 — Maja Voje antwortete und verknüpfte das Thema mit Sales Enablement."
             quoteText="The first working week of 2026 is wrapping up..."
             aiRecommendation="Idealer Zeitpunkt — Post-Thema passt direkt zu Sherloq. Maja ist gerade aktiv. Persönlichkeit Blau: sachlicher Einstieg mit konkretem Bezug zum Post."
-            onActNow={() => setSelectedSignalPerson({
-              name: "Maja Voje",
-              company: "Growth Lab",
-              role: "GTM Strategist",
-              avatarUrl: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=120&h=120",
-              icpScore: 92,
-              actionText: "Hat auf Kommentar geantwortet — GTM Strategie",
-              commentText: "Anze Voje postete über GTM Strategien für 2026 — Maja Voje antwortete und verknüpfte das Thema mit Sales Enablement.",
-              timeAgoLabel: "11 Min",
-              timeLeftHours: 4,
-              windowHours: 72,
-              aiRecommendation: "Idealer Zeitpunkt — Post-Thema passt direkt zu Sherloq. Maja ist gerade aktiv. Persönlichkeit Blau: sachlicher Einstieg mit konkretem Bezug zum Post.",
-              signalType: "comment"
-            })}
           />
           <LinkedinSignalCard
             name="Sarah Jenkins"
@@ -1115,21 +1099,6 @@ export default function ScreenHunting({
             commentText="Sarah hat einen neuen LinkedIn Beitrag über die Skalierung von BDR-Teams im EMEA-Raum veröffentlicht."
             quoteText="Building a high-performing BDR team takes time, but what if..."
             aiRecommendation="Hohe Relevanz! Sie thematisiert BDR Skalierung. Ein Reply, der Sherloqs schnelle Ramp-up Zeit erwähnt, wäre perfekt."
-            onActNow={() => setSelectedSignalPerson({
-              name: "Sarah Jenkins",
-              company: "CloudSphere",
-              role: "VP of Sales",
-              avatarInitials: "SJ",
-              avatarBg: "bg-[var(--icp-medium)]",
-              icpScore: 85,
-              actionText: "Neuer Beitrag — BDR Skalierung",
-              commentText: "Sarah hat einen neuen LinkedIn Beitrag über die Skalierung von BDR-Teams im EMEA-Raum veröffentlicht.",
-              timeAgoLabel: "2h",
-              timeLeftHours: 20,
-              windowHours: 48,
-              aiRecommendation: "Hohe Relevanz! Sie thematisiert BDR Skalierung. Ein Reply, der Sherloqs schnelle Ramp-up Zeit erwähnt, wäre perfekt.",
-              signalType: "post"
-            })}
           />
           <LinkedinSignalCard
             name="Marc Levigne"
@@ -1149,21 +1118,6 @@ export default function ScreenHunting({
             actionText="Hat Beitrag geliked — Sales Ops Trends"
             commentText="Marc hat den aktuellen Beitrag von Gartner Analysten zu Sales Ops Automation Tendenzen 2026 geliked."
             aiRecommendation="Er recherchiert weiter. Ideal um jetzt mit echten Case Studies zu Sherloqs Automatisierung nachzuhaken."
-            onActNow={() => setSelectedSignalPerson({
-              name: "Marc Levigne",
-              company: "DataPulse Corp",
-              role: "CPO",
-              avatarInitials: "ML",
-              avatarBg: "bg-[var(--signal-info-text)]",
-              icpScore: 78,
-              actionText: "Hat Beitrag geliked — Sales Ops Trends",
-              commentText: "Marc hat den aktuellen Beitrag von Gartner Analysten zu Sales Ops Automation Tendenzen 2026 geliked.",
-              timeAgoLabel: "5h",
-              timeLeftHours: 43,
-              windowHours: 48,
-              aiRecommendation: "Er recherchiert weiter. Ideal um jetzt mit echten Case Studies zu Sherloqs Automatisierung nachzuhaken.",
-              signalType: "like"
-            })}
           />
           <LinkedinSignalCard
             name="Elena Rostova"
@@ -1183,21 +1137,6 @@ export default function ScreenHunting({
             actionText="Firmen-News: Series B Funding"
             commentText="Quantum Dynamics hat auf LinkedIn die erfolgreiche Series B in Höhe von €18M verkündet."
             aiRecommendation="Nutze diesen Trigger für einen neuen Kanal! Gratuliere zur Finanzierungsrunde per LinkedIn Message."
-            onActNow={() => setSelectedSignalPerson({
-              name: "Elena Rostova",
-              company: "Quantum Dynamics",
-              role: "Head of SDR",
-              avatarInitials: "ER",
-              avatarBg: "bg-[var(--accent-purple)]",
-              icpScore: 88,
-              actionText: "Firmen-News: Series B Funding",
-              commentText: "Quantum Dynamics hat auf LinkedIn die erfolgreiche Series B in Höhe von €18M verkündet.",
-              timeAgoLabel: "1d",
-              timeLeftHours: 48,
-              windowHours: 72,
-              aiRecommendation: "Nutze diesen Trigger für einen neuen Kanal! Gratuliere zur Finanzierungsrunde per LinkedIn Message.",
-              signalType: "company"
-            })}
           />
           <LinkedinSignalCard
             name="Dr. Christian Brand"
@@ -1217,21 +1156,6 @@ export default function ScreenHunting({
             actionText="Hat Profil besucht"
             commentText="Christian hat gerade dein LinkedIn Profil besucht, kurz nachdem du den Vorschlag per E-Mail gesendet hast."
             aiRecommendation="Sofort nachfassen! Er prüft gerade deine Authentizität und Lösung. Eine kurze LinkedIn Connectanfrage hinterherschicken."
-            onActNow={() => setSelectedSignalPerson({
-              name: "Dr. Christian Brand",
-              company: "Nexus",
-              role: "CEO",
-              avatarInitials: "CB",
-              avatarBg: "bg-[var(--icp-high)]",
-              icpScore: 95,
-              actionText: "Hat Profil besucht",
-              commentText: "Christian hat gerade dein LinkedIn Profil besucht, kurz nachdem du den Vorschlag per E-Mail gesendet hast.",
-              timeAgoLabel: "15m",
-              timeLeftHours: 8,
-              windowHours: 24,
-              aiRecommendation: "Sofort nachfassen! Er prüft gerade deine Authentizität und Lösung. Eine kurze LinkedIn Connectanfrage hinterherschicken.",
-              signalType: "visit"
-            })}
           />
         </div>
       )}
@@ -1357,15 +1281,6 @@ export default function ScreenHunting({
         />
       )}
 
-      {selectedSignalPerson && (
-        <SignalActionDrawer 
-          person={selectedSignalPerson}
-          onClose={() => setSelectedSignalPerson(null)}
-          onTakeAction={(text) => {
-            console.log('Took action with text:', text);
-          }}
-        />
-      )}
 
       {selectedStagnatedPerson && (
         <PipelineStagnatedDrawer

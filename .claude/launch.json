@@ -1,11 +1,6 @@
 {
   "version": "0.0.1",
   "configurations": [
-    {
-      "name": "sales-os",
-      "runtimeExecutable": "/bin/sh",
-      "runtimeArgs": ["-c", "PATH=/Users/oliversand/.nvm/versions/node/v24.16.0/bin:$PATH npm run dev -- --port 5173"],
-      "port": 5173
-    }
+    { "name": "hunter-dev", "runtimeExecutable": "npm", "runtimeArgs": ["run", "dev"], "port": 5173 }
   ]
 }
