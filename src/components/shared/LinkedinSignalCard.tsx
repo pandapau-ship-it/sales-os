@@ -112,7 +112,6 @@ export function LinkedinSignalCard({
     commentText,
     aiRecommendation: aiRecommendation ?? "",
     confidence: 91,
-    draft: `Hi ${name.split(" ")[0]}, dein Signal hat mich angesprochen — genau das lösen wir bei Sherloq. Hast du diese Woche 15 Minuten für einen kurzen Austausch?`,
   });
 
   return (

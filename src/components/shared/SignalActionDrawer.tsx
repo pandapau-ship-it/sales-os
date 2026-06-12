@@ -18,12 +18,17 @@ export interface SignalActionData {
   commentText?: string;
   aiRecommendation: string;
   confidence?: number;
-  draft: string;
 }
 
 interface SignalActionDrawerProps {
   /** Offen, wenn gesetzt; null = geschlossen (für Ausfahr-Animation immer gemountet). */
   signal: SignalActionData | null;
+  /**
+   * Vorbefüllter AI-Entwurf für das Composer-Textarea. Kommt in Phase 3 aus der
+   * DB (messages-Tabelle, status='draft', via generate_message()). Ohne Wert →
+   * leeres, editierbares Textarea mit Placeholder.
+   */
+  initialDraft?: string;
   onClose: () => void;
   onApply?: (draft: string) => void;
   onEdit?: () => void;
@@ -40,6 +45,7 @@ interface SignalActionDrawerProps {
  */
 export default function SignalActionDrawer({
   signal,
+  initialDraft,
   onClose,
   onApply,
   onEdit,
@@ -51,13 +57,14 @@ export default function SignalActionDrawer({
   // Open-State von der Prop; Inhalt aus einer gehaltenen Kopie, damit das Panel
   // während der Ausfahr-Animation (signal→null) nicht leer wird (wie CustomerDrawer).
   const [display, setDisplay] = useState<SignalActionData | null>(signal);
-  const [draft, setDraft] = useState(signal?.draft ?? "");
+  // Draft kommt als Prop rein (Phase 3: aus DB) — nicht hardcodiert. Ohne Prop leer.
+  const [draft, setDraft] = useState(initialDraft ?? "");
   useEffect(() => {
     if (signal) {
       setDisplay(signal);
-      setDraft(signal.draft);
+      setDraft(initialDraft ?? "");
     }
-  }, [signal]);
+  }, [signal, initialDraft]);
 
   const [chatInput, setChatInput] = useState("");
   const [isRegenerating, setIsRegenerating] = useState(false);
@@ -219,7 +226,8 @@ export default function SignalActionDrawer({
                             <textarea
                               value={draft}
                               onChange={(e) => setDraft(e.target.value)}
-                              className="w-full min-h-[118px] bg-transparent resize-none outline-none text-[13px] font-medium leading-relaxed text-gray-900 border-none scrollbar-none"
+                              placeholder={t("hunter.signal_panel.draft_placeholder")}
+                              className="w-full min-h-[118px] bg-transparent resize-none outline-none text-[13px] font-medium leading-relaxed text-gray-900 placeholder-gray-400 border-none scrollbar-none"
                             />
                           </div>
                           <div className="flex justify-between mt-2 px-1 text-[10px] text-gray-400 font-bold uppercase">
