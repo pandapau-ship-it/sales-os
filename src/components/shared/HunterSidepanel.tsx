@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
-  ArrowUpRight, X, Mail, Phone, Globe,
-  AlertTriangle, Clock, Video, Check
+  ArrowUpRight, X, Mail, Phone, Globe, AlertTriangle, Clock, Check,
+  Zap, Briefcase, Calendar, ChevronDown, Pencil, Trash2, Save, Plus,
+  StickyNote, BarChart3
 } from 'lucide-react';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import LinkedinIcon from '@/components/shared/LinkedinIcon';
+import { TeamsIcon, OutlookIcon } from '@/components/shared/BrandIcons';
 
 /**
  * HunterSidepanel — Info Panel (§22.1, 820px). Nutzt dieselbe Sheet-„drawer"-Shell
@@ -17,7 +19,6 @@ export default function HunterSidepanel({ person: personProp, onClose }: { perso
   const [activeTab, setActiveTab] = useState('overview');
   const [expandedComm, setExpandedComm] = useState<Record<number, boolean>>({});
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [showAutosave, setShowAutosave] = useState(false);
 
   // Open-State von der Prop; Inhalt aus gehaltener Kopie (wie CustomerDrawer).
   const [display, setDisplay] = useState<any>(personProp);
@@ -34,15 +35,6 @@ export default function HunterSidepanel({ person: personProp, onClose }: { perso
     setTimeout(() => {
       setToastMessage(null);
     }, 2200);
-  };
-
-  const handleNoteBlur = (e: React.FocusEvent<HTMLTextAreaElement>) => {
-    if (!e.target.value.trim()) return;
-    setShowAutosave(true);
-    setTimeout(() => {
-      setShowAutosave(false);
-      showToast('Notiz automatisch gespeichert');
-    }, 700);
   };
 
   return (
@@ -167,14 +159,33 @@ export default function HunterSidepanel({ person: personProp, onClose }: { perso
 
         {activeTab === 'overview' && (
           <div className="space-y-7 animate-fade-in">
-            <div className="space-y-2">
-              <span className="text-[10px] font-extrabold text-text-muted uppercase tracking-widest pl-1">KI Kurzakte</span>
-              <div className="bg-[var(--signal-teal-bg)] border border-[var(--signal-teal-bg)] rounded-[12px] p-5 leading-relaxed text-[13px] text-text-body font-medium shadow-sm">
-                Refactoring der Outreach-Struktur gestartet. Sucht aktiv nach einem Tool zur Senkung der SDR Ramp-Up-Time.
-                Reagiert stark auf analytische Vergleiche und klare ROI-Argumentation.
+            {/* KI Kurzakte — gleiches Bullet-Design wie die aufklappbare Lead-Kachel */}
+            <div className="bg-app-surface rounded-[12px] p-5 border border-border shadow-[var(--shadow-card)]">
+              <div className="flex items-center gap-2 text-[11px] font-bold font-mono text-[var(--sherloq-primary)] uppercase tracking-wider mb-4">
+                <Zap className="w-4 h-4" /> KI Kurzakte
               </div>
+              <ul className="flex flex-col gap-3 text-[13px] text-text-body leading-relaxed">
+                <li className="flex items-start gap-2.5">
+                  <span className="w-1.5 h-1.5 bg-[var(--sherloq-primary)] rounded-full mt-1.5 shrink-0" />
+                  Refactoring der Outreach-Struktur gestartet — sucht aktiv ein Tool zur Senkung der SDR Ramp-Up-Time.
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <span className="w-1.5 h-1.5 bg-[var(--sherloq-primary)] rounded-full mt-1.5 shrink-0" />
+                  Persönlichkeit: analytisch & datengetrieben — reagiert auf klare ROI-Argumentation, wenig Smalltalk.
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <span className="w-1.5 h-1.5 bg-[var(--sherloq-primary)] rounded-full mt-1.5 shrink-0" />
+                  Objection: Budget-Freeze bis Q3 — echter Einwand, kein Vorwand. Der ROI-Case ist der Hebel.
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <span className="w-1.5 h-1.5 bg-[var(--sherloq-primary)] rounded-full mt-1.5 shrink-0" />
+                  Buying Signal: Demo sehr positiv, fragte nach Implementierungs-Zeitplan. Abschluss realistisch ab Q4.
+                </li>
+              </ul>
             </div>
 
+            {/* Aktive Signale — zeigt künftig NUR real vorhandene Signale; jede Zeile ist
+                mit ihrer konkreten Aufgabe verlinkt und öffnet das passende Action-Panel. */}
             <div className="space-y-2">
               <span className="text-[10px] font-extrabold text-text-muted uppercase tracking-widest pl-1">Aktive Signale</span>
               <div className="space-y-3">
@@ -210,36 +221,37 @@ export default function HunterSidepanel({ person: personProp, onClose }: { perso
               </div>
             </div>
 
-            <div className="space-y-2">
-              <span className="text-[10px] font-extrabold text-text-muted uppercase tracking-widest pl-1">Deal Setup</span>
-              <div className="bg-app-surface rounded-[12px] p-5 border border-border shadow-sm">
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-xs font-semibold text-text-body">
-                  <div className="bg-app-bg border border-border rounded-xl p-3">
-                    <span className="text-[9px] font-bold text-text-muted uppercase block mb-1">Stage</span>
-                    <span className="text-text-primary font-bold block">{person.stage || "Demo vereinbart"}</span>
-                  </div>
-                  <div className="bg-app-bg border border-border rounded-xl p-3">
-                    <span className="text-[9px] font-bold text-text-muted uppercase block mb-1">Probability</span>
-                    <span className="text-text-primary font-bold block">100%</span>
-                  </div>
-                  <div className="bg-app-bg border border-border rounded-xl p-3">
-                    <span className="text-[9px] font-bold text-text-muted uppercase block mb-1">ARR</span>
-                    <span className="text-[var(--sherloq-primary)] font-extrabold text-[13px] block">12.500 EUR</span>
-                  </div>
-                  <div className="bg-app-bg border border-border rounded-xl p-3">
-                    <span className="text-[9px] font-bold text-text-muted uppercase block mb-1">MRR</span>
-                    <span className="text-text-primary font-bold block">1.041,667 EUR</span>
-                  </div>
-                  <div className="bg-app-bg border border-border rounded-xl p-3">
-                    <span className="text-[9px] font-bold text-text-muted uppercase block mb-1">Laufzeit</span>
-                    <span className="text-text-primary font-bold block">12 Monate</span>
-                  </div>
-                  <div className="bg-[var(--signal-urgent-bg)] border border-[var(--signal-urgent-bg)] rounded-xl p-3">
-                    <span className="text-[9px] font-bold text-[var(--signal-urgent-text)] uppercase block mb-1">In Stage Seit</span>
-                    <span className="px-2 py-0.5 rounded bg-app-surface text-[var(--signal-urgent-text)] font-bold text-[11px] inline-flex items-center gap-1 mt-1 border border-[var(--signal-urgent-bg)]">
-                      8 Tagen <AlertTriangle className="w-[11px] h-[11px]" />
-                    </span>
-                  </div>
+            {/* Deal Setup — Master-Card-Stil wie „Deal Details" der aufklappbaren Kachel */}
+            <div className="bg-app-surface rounded-[12px] p-5 border border-border shadow-[var(--shadow-card)]">
+              <div className="flex items-center gap-2 text-[11px] font-bold font-mono text-text-muted uppercase tracking-wider mb-4">
+                <Briefcase className="w-4 h-4" /> Deal Setup
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-[12px]">
+                <div className="flex flex-col gap-1">
+                  <span className="text-text-muted font-mono text-[10px] uppercase tracking-wider">Stage</span>
+                  <span className="font-bold text-text-primary text-[14px]">{person.stage || "Demo vereinbart"}</span>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-text-muted font-mono text-[10px] uppercase tracking-wider">Probability</span>
+                  <span className="font-bold text-text-primary text-[14px]">100%</span>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-text-muted font-mono text-[10px] uppercase tracking-wider">ARR</span>
+                  <span className="font-bold text-[var(--sherloq-primary)] text-[14px]">12.500 €</span>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-text-muted font-mono text-[10px] uppercase tracking-wider">MRR</span>
+                  <span className="font-bold text-text-primary text-[14px]">1.041 €</span>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-text-muted font-mono text-[10px] uppercase tracking-wider">Laufzeit</span>
+                  <span className="font-bold text-text-primary text-[14px]">12 Monate</span>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-text-muted font-mono text-[10px] uppercase tracking-wider">In Stage seit</span>
+                  <span className="font-bold text-[var(--icp-low)] text-[14px] flex items-center gap-1.5">
+                    8 Tage <AlertTriangle className="w-3 h-3" />
+                  </span>
                 </div>
               </div>
             </div>
@@ -258,8 +270,8 @@ export default function HunterSidepanel({ person: personProp, onClose }: { perso
                     <input type="checkbox" className="accent-[var(--sherloq-primary)] w-4 h-4 cursor-pointer" />
                     <div>
                       <p className="text-xs font-bold text-[var(--signal-urgent-text)]">ROI-Dokument senden</p>
-                      <span className="text-[10px] font-semibold flex items-center gap-1 mt-1 text-[var(--signal-urgent-text)]">
-                        <AlertTriangle className="w-[10px] h-[10px]" /> Heute fällig · ✉ Email
+                      <span className="text-[10px] font-semibold flex items-center gap-1.5 mt-1 text-[var(--signal-urgent-text)]">
+                        <AlertTriangle className="w-[10px] h-[10px]" /> Heute fällig · <Mail className="w-[11px] h-[11px]" /> Email
                       </span>
                     </div>
                   </div>
@@ -270,8 +282,8 @@ export default function HunterSidepanel({ person: personProp, onClose }: { perso
                     <input type="checkbox" className="accent-[var(--sherloq-primary)] w-4 h-4 cursor-pointer" />
                     <div>
                       <p className="text-xs font-bold text-text-primary">Follow-up Call buchen</p>
-                      <span className="text-[10px] font-semibold flex items-center gap-1 mt-1 text-text-muted">
-                        In 3 Tagen · 📞 Telefon
+                      <span className="text-[10px] font-semibold flex items-center gap-1.5 mt-1 text-text-muted">
+                        In 3 Tagen · <Phone className="w-[11px] h-[11px]" /> Telefon
                       </span>
                     </div>
                   </div>
@@ -318,9 +330,9 @@ export default function HunterSidepanel({ person: personProp, onClose }: { perso
 
                 <div className="flex flex-col items-center gap-2 relative z-10">
                   <div className="w-9 h-9 rounded-full flex items-center justify-center bg-app-surface border-2 border-dashed border-border text-icon-muted">
-                    <Phone className="w-[14px] h-[14px]" />
+                    <Calendar className="w-[14px] h-[14px]" />
                   </div>
-                  <span className="text-[10px] font-bold text-text-muted">Telefon</span>
+                  <span className="text-[10px] font-bold text-text-muted">Termin</span>
                 </div>
               </div>
             </div>
@@ -339,12 +351,7 @@ export default function HunterSidepanel({ person: personProp, onClose }: { perso
               <div className="bg-app-surface rounded-[12px] p-5 border border-border shadow-sm divide-y divide-[var(--border-subtle)]">
                 <div className="py-3 first:pt-0">
                   <div className="flex items-start gap-4">
-                    <div className="w-11 h-11 rounded-xl bg-[var(--sherloq-primary)] flex items-center justify-center shrink-0 relative overflow-hidden shadow-sm text-on-accent">
-                      <Video className="w-[18px] h-[18px]" />
-                      <div className="absolute bottom-0.5 left-0.5 w-4 h-4 bg-[var(--sherloq-dark)] rounded-md border border-[var(--surface)] flex items-center justify-center shadow-sm">
-                        <span className="text-[9px] font-black text-on-accent leading-none">T</span>
-                      </div>
-                    </div>
+                    <TeamsIcon className="w-11 h-11 shrink-0 rounded-[12px] shadow-sm" />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
                         <h4 className="text-[14px] font-bold text-text-primary leading-tight">Discovery Call & Demo</h4>
@@ -359,12 +366,7 @@ export default function HunterSidepanel({ person: personProp, onClose }: { perso
 
                 <div className="py-3 last:pb-0">
                   <div className="flex items-start gap-4">
-                    <div className="w-11 h-11 rounded-xl bg-[var(--sherloq-primary)] flex items-center justify-center shrink-0 relative overflow-hidden shadow-sm text-on-accent">
-                      <Mail className="w-[18px] h-[18px]" />
-                      <div className="absolute bottom-0.5 left-0.5 w-4 h-4 bg-[var(--sherloq-dark)] rounded-md border border-[var(--surface)] flex items-center justify-center shadow-sm">
-                        <span className="text-[9px] font-black text-on-accent leading-none">O</span>
-                      </div>
-                    </div>
+                    <OutlookIcon className="w-11 h-11 shrink-0 rounded-[12px] shadow-sm" />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
                         <h4 className="text-[14px] font-bold text-text-primary leading-tight">Angebot gesendet: ROI-Dokument</h4>
@@ -398,26 +400,20 @@ export default function HunterSidepanel({ person: personProp, onClose }: { perso
               {/* Comm Item 1 */}
               <div className="py-3.5 first:pt-0 cursor-pointer group select-none" onClick={() => toggleComm(0)}>
                 <div className="flex items-start gap-4">
-                  <div className="w-11 h-11 rounded-xl bg-[var(--sherloq-primary)] flex items-center justify-center shrink-0 relative overflow-hidden shadow-sm text-on-accent">
-                    <Video className="w-[18px] h-[18px]" />
-                    <div className="absolute bottom-0.5 left-0.5 w-4 h-4 bg-[var(--sherloq-dark)] rounded-md border border-[var(--surface)] flex items-center justify-center shadow-sm">
-                      <span className="text-[9px] font-black text-on-accent leading-none">T</span>
-                    </div>
-                  </div>
+                  <TeamsIcon className="w-11 h-11 shrink-0 rounded-[12px] shadow-sm" />
                   <div className="flex-1 min-w-0 pt-0.5">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between gap-2">
                       <h4 className="text-[14px] font-bold text-text-primary leading-tight group-hover:text-[var(--sherloq-primary)] transition-colors">
                         Discovery Call & Demo
                       </h4>
-                      <span className="text-[11px] font-medium text-text-muted shrink-0">vor 5 Tagen</span>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className="text-[11px] font-medium text-text-muted">vor 5 Tagen</span>
+                        <ChevronDown className={`w-4 h-4 text-icon-muted transition-transform duration-200 ${expandedComm[0] ? 'rotate-180' : ''}`} />
+                      </div>
                     </div>
                     <p className="text-[12px] text-text-muted font-medium leading-relaxed truncate mt-1">
                       Kunde zeigte starkes Interesse an Feature Y, Budget-Freeze bis Q3 angesprochen...
                     </p>
-                    <div className="flex items-center gap-1 text-[11px] font-bold text-[var(--sherloq-primary)] mt-2">
-                      <span className={`transition-transform duration-200 inline-block ${expandedComm[0] ? 'rotate-180' : ''}`}>▼</span>
-                      <span>{expandedComm[0] ? 'Zuklappen' : 'Klicken zum Lesen'}</span>
-                    </div>
 
                     {expandedComm[0] && (
                       <div className="mt-3 p-4 bg-app-bg border border-border rounded-xl space-y-2 text-[12px] text-text-body leading-relaxed italic shadow-inner animate-fade-in">
@@ -432,26 +428,20 @@ export default function HunterSidepanel({ person: personProp, onClose }: { perso
               {/* Comm Item 2 */}
               <div className="py-3.5 cursor-pointer group select-none" onClick={() => toggleComm(1)}>
                 <div className="flex items-start gap-4">
-                  <div className="w-11 h-11 rounded-xl bg-[var(--sherloq-primary)] flex items-center justify-center shrink-0 relative overflow-hidden shadow-sm text-on-accent">
-                    <Mail className="w-[18px] h-[18px]" />
-                    <div className="absolute bottom-0.5 left-0.5 w-4 h-4 bg-[var(--sherloq-dark)] rounded-md border border-[var(--surface)] flex items-center justify-center shadow-sm">
-                      <span className="text-[9px] font-black text-on-accent leading-none">O</span>
-                    </div>
-                  </div>
+                  <OutlookIcon className="w-11 h-11 shrink-0 rounded-[12px] shadow-sm" />
                   <div className="flex-1 min-w-0 pt-0.5">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between gap-2">
                       <h4 className="text-[14px] font-bold text-text-primary leading-tight group-hover:text-[var(--sherloq-primary)] transition-colors">
                         Angebot gesendet: ROI-Dokument
                       </h4>
-                      <span className="text-[11px] font-medium text-text-muted shrink-0">vor 8 Tagen</span>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className="text-[11px] font-medium text-text-muted">vor 8 Tagen</span>
+                        <ChevronDown className={`w-4 h-4 text-icon-muted transition-transform duration-200 ${expandedComm[1] ? 'rotate-180' : ''}`} />
+                      </div>
                     </div>
                     <p className="text-[12px] text-text-muted font-medium leading-relaxed truncate mt-1">
                       Hallo Max, anbei wie besprochen das ROI-Dokument für Sherloq Enterprise...
                     </p>
-                    <div className="flex items-center gap-1 text-[11px] font-bold text-[var(--sherloq-primary)] mt-2">
-                      <span className={`transition-transform duration-200 inline-block ${expandedComm[1] ? 'rotate-180' : ''}`}>▼</span>
-                      <span>{expandedComm[1] ? 'Zuklappen' : 'Klicken zum Lesen'}</span>
-                    </div>
                     {expandedComm[1] && (
                       <div className="mt-3 p-4 bg-[var(--signal-warn-bg)] border border-[var(--signal-warn-bg)] rounded-xl space-y-2 text-[12px] leading-relaxed shadow-inner animate-fade-in">
                         <span className="text-[10px] font-extrabold uppercase tracking-widest text-[var(--signal-warn-text)] block">Vollständige E-Mail</span>
@@ -465,23 +455,22 @@ export default function HunterSidepanel({ person: personProp, onClose }: { perso
               {/* Comm Item 3 */}
               <div className="py-3.5 last:pb-0 cursor-pointer group select-none" onClick={() => toggleComm(2)}>
                 <div className="flex items-start gap-4">
-                  <div className="w-11 h-11 rounded-xl bg-[var(--channel-linkedin)] flex items-center justify-center shrink-0 shadow-sm text-on-accent">
-                    <LinkedinIcon className="w-[18px] h-[18px]" />
+                  <div className="w-11 h-11 rounded-[12px] bg-[var(--channel-linkedin)] flex items-center justify-center shrink-0 shadow-sm text-on-accent">
+                    <LinkedinIcon className="w-[20px] h-[20px]" />
                   </div>
                   <div className="flex-1 min-w-0 pt-0.5">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between gap-2">
                       <h4 className="text-[14px] font-bold text-text-primary leading-tight group-hover:text-[var(--sherloq-primary)] transition-colors">
                         LinkedIn Nachricht
                       </h4>
-                      <span className="text-[11px] font-medium text-text-muted shrink-0">vor 12 Tagen</span>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className="text-[11px] font-medium text-text-muted">vor 12 Tagen</span>
+                        <ChevronDown className={`w-4 h-4 text-icon-muted transition-transform duration-200 ${expandedComm[2] ? 'rotate-180' : ''}`} />
+                      </div>
                     </div>
                     <p className="text-[12px] text-text-muted font-medium leading-relaxed truncate mt-1">
                       Danke für die Vernetzung, Max. Klasse was ihr bei PayGuard aufbaut...
                     </p>
-                    <div className="flex items-center gap-1 text-[11px] font-bold text-[var(--sherloq-primary)] mt-2">
-                      <span className={`transition-transform duration-200 inline-block ${expandedComm[2] ? 'rotate-180' : ''}`}>▼</span>
-                      <span>{expandedComm[2] ? 'Zuklappen' : 'Klicken zum Lesen'}</span>
-                    </div>
                     {expandedComm[2] && (
                       <div className="mt-3 p-4 bg-app-bg border border-border rounded-xl text-[12px] text-text-body leading-relaxed italic shadow-inner animate-fade-in">
                         "Hi Christian, danke für die Vernetzung! Ich verfolge eure Updates schon eine Weile. Lass uns bald mal kurz quatschen."
@@ -509,26 +498,64 @@ export default function HunterSidepanel({ person: personProp, onClose }: { perso
           <div className="space-y-4 animate-fade-in">
             <div className="flex justify-between items-center px-1">
               <span className="text-[10px] font-extrabold text-text-muted uppercase tracking-widest">Alle Aufgaben</span>
-              <button onClick={() => showToast('Neue Task angelegt')} className="text-xs font-bold text-[var(--sherloq-primary)] hover:underline cursor-pointer">
-                + Task anlegen
+              <button onClick={() => showToast('Neue Task angelegt')} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] bg-[var(--sherloq-primary)] text-on-accent text-[11px] font-bold shadow-sm hover:opacity-90 transition-opacity cursor-pointer">
+                <Plus className="w-3.5 h-3.5" /> Neue Task
               </button>
             </div>
 
             <div className="space-y-3">
-              <div className="p-4 bg-app-surface border border-border rounded-[12px] flex items-center justify-between shadow-sm">
-                <div className="flex items-center gap-3">
-                  <input type="checkbox" className="accent-[var(--sherloq-primary)] w-4 h-4 cursor-pointer" />
-                  <span className="text-xs font-bold text-[var(--signal-urgent-text)]">ROI-Dokument senden</span>
+              {/* Task 1 — überfällig/heute, mit Detail-Infos + Aktionen */}
+              <div className="p-4 bg-app-surface border border-border rounded-[12px] shadow-sm">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-3 min-w-0">
+                    <input type="checkbox" className="accent-[var(--sherloq-primary)] w-4 h-4 mt-0.5 cursor-pointer shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-[13px] font-bold text-text-primary">ROI-Dokument senden</p>
+                      <p className="text-[11px] text-text-muted leading-relaxed mt-1">Demo war positiv — konkretes Angebot als nächsten Schritt senden.</p>
+                      <div className="flex items-center flex-wrap gap-1.5 mt-2.5">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-app-bg border border-border text-text-body text-[10px] font-bold"><Mail className="w-3 h-3" /> Email</span>
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[var(--signal-urgent-bg)] border border-[var(--signal-urgent-bg)] text-[var(--signal-urgent-text)] text-[10px] font-bold"><Clock className="w-3 h-3" /> Heute fällig</span>
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-[var(--signal-warn-bg)] border border-[var(--signal-warn-bg)] text-[var(--signal-warn-text)] text-[10px] font-bold">Priorität: Hoch</span>
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[var(--signal-teal-bg)] border border-[var(--signal-teal-bg)] text-[var(--sherloq-primary)] text-[10px] font-bold"><Briefcase className="w-3 h-3" /> Demo vereinbart</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button onClick={() => showToast('Task bearbeiten')} aria-label="Bearbeiten" className="w-8 h-8 rounded-full flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-app-bg transition-colors cursor-pointer">
+                      <Pencil className="w-3.5 h-3.5" />
+                    </button>
+                    <button onClick={() => showToast('Task gelöscht')} aria-label="Löschen" className="w-8 h-8 rounded-full flex items-center justify-center text-text-muted hover:text-[var(--signal-urgent-text)] hover:bg-[var(--signal-urgent-bg)] transition-colors cursor-pointer">
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
-                <span className="text-[10px] font-bold text-[var(--signal-urgent-text)] bg-[var(--signal-urgent-bg)] px-2 py-0.5 rounded-full border border-[var(--signal-urgent-bg)]">Heute fällig</span>
               </div>
 
-              <div className="p-4 bg-app-surface border border-border rounded-[12px] flex items-center justify-between shadow-sm">
-                <div className="flex items-center gap-3">
-                  <input type="checkbox" className="accent-[var(--sherloq-primary)] w-4 h-4 cursor-pointer" />
-                  <span className="text-xs font-bold text-text-body">Follow-up Call buchen</span>
+              {/* Task 2 — geplant */}
+              <div className="p-4 bg-app-surface border border-border rounded-[12px] shadow-sm">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-3 min-w-0">
+                    <input type="checkbox" className="accent-[var(--sherloq-primary)] w-4 h-4 mt-0.5 cursor-pointer shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-[13px] font-bold text-text-primary">Follow-up Call buchen</p>
+                      <p className="text-[11px] text-text-muted leading-relaxed mt-1">Nach dem Angebot kurzen Abschluss-Call zur Klärung offener Punkte vereinbaren.</p>
+                      <div className="flex items-center flex-wrap gap-1.5 mt-2.5">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-app-bg border border-border text-text-body text-[10px] font-bold"><Phone className="w-3 h-3" /> Telefon</span>
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-app-bg border border-border text-text-muted text-[10px] font-bold"><Calendar className="w-3 h-3" /> In 3 Tagen</span>
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-app-bg border border-border text-text-muted text-[10px] font-bold">Priorität: Mittel</span>
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[var(--signal-teal-bg)] border border-[var(--signal-teal-bg)] text-[var(--sherloq-primary)] text-[10px] font-bold"><Briefcase className="w-3 h-3" /> Demo vereinbart</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button onClick={() => showToast('Task bearbeiten')} aria-label="Bearbeiten" className="w-8 h-8 rounded-full flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-app-bg transition-colors cursor-pointer">
+                      <Pencil className="w-3.5 h-3.5" />
+                    </button>
+                    <button onClick={() => showToast('Task gelöscht')} aria-label="Löschen" className="w-8 h-8 rounded-full flex items-center justify-center text-text-muted hover:text-[var(--signal-urgent-text)] hover:bg-[var(--signal-urgent-bg)] transition-colors cursor-pointer">
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
-                <span className="text-[10px] font-bold text-text-muted">In 3 Tagen</span>
               </div>
             </div>
           </div>
@@ -538,27 +565,46 @@ export default function HunterSidepanel({ person: personProp, onClose }: { perso
           <div className="space-y-4 animate-fade-in">
             <div className="flex justify-between items-center px-1">
               <span className="text-[10px] font-extrabold text-text-muted uppercase tracking-widest">Notizen</span>
-              {showAutosave && (
-                <span className="text-[10px] font-bold text-[var(--sherloq-primary)] bg-[var(--signal-teal-bg)] px-2 py-0.5 rounded animate-pulse">Auto-Save...</span>
-              )}
+              <button onClick={() => showToast('Neue Notiz angelegt')} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] bg-[var(--sherloq-primary)] text-on-accent text-[11px] font-bold shadow-sm hover:opacity-90 transition-opacity cursor-pointer">
+                <Plus className="w-3.5 h-3.5" /> Neue Notiz
+              </button>
             </div>
 
-            <textarea
-              onBlur={handleNoteBlur}
-              placeholder="Notiz verfassen..."
-              className="w-full h-32 p-4 bg-app-surface border border-border focus:border-[var(--sherloq-primary)] rounded-[12px] outline-none text-xs leading-relaxed resize-none shadow-sm font-medium"
-              defaultValue="Sucht aktives Tool zur Senkung der SDR Ramp-Up-Time."
-            ></textarea>
-
-            <div className="space-y-2 pt-2">
-              <span className="text-[9px] font-bold text-text-muted uppercase tracking-wider pl-1">Verlauf</span>
-              <div className="p-4 bg-app-surface border border-border-subtle rounded-[12px] text-xs space-y-1 shadow-sm">
-                <span className="text-[10px] text-text-muted font-bold">12. Mai 2026 · Oliver Prossi</span>
-                <p className="text-text-body font-medium">Thomas hat angedeutet, dass das Q3-Budget freigegeben wird.</p>
+            <div className="space-y-3">
+              <div className="p-4 bg-app-surface border border-border rounded-[12px] shadow-sm group">
+                <div className="flex items-start justify-between gap-3">
+                  <span className="text-[10px] text-text-muted font-bold">12. Mai 2026 · Oliver Prossi</span>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button onClick={() => showToast('Notiz gespeichert')} aria-label="Speichern" className="w-7 h-7 rounded-full flex items-center justify-center text-text-muted hover:text-[var(--sherloq-primary)] hover:bg-app-bg transition-colors cursor-pointer">
+                      <Save className="w-3.5 h-3.5" />
+                    </button>
+                    <button onClick={() => showToast('Notiz bearbeiten')} aria-label="Ändern" className="w-7 h-7 rounded-full flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-app-bg transition-colors cursor-pointer">
+                      <Pencil className="w-3.5 h-3.5" />
+                    </button>
+                    <button onClick={() => showToast('Notiz gelöscht')} aria-label="Löschen" className="w-7 h-7 rounded-full flex items-center justify-center text-text-muted hover:text-[var(--signal-urgent-text)] hover:bg-[var(--signal-urgent-bg)] transition-colors cursor-pointer">
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+                <p className="text-[12px] text-text-body font-medium leading-relaxed mt-1.5">Thomas hat angedeutet, dass das Q3-Budget freigegeben wird.</p>
               </div>
-              <div className="p-4 bg-app-surface border border-border-subtle rounded-[12px] text-xs space-y-1 shadow-sm">
-                <span className="text-[10px] text-text-muted font-bold">03. April 2026 · Oliver Prossi</span>
-                <p className="text-text-body font-medium">Demo lief hervorragend, Thomas war sehr engagiert.</p>
+
+              <div className="p-4 bg-app-surface border border-border rounded-[12px] shadow-sm group">
+                <div className="flex items-start justify-between gap-3">
+                  <span className="text-[10px] text-text-muted font-bold">03. April 2026 · Oliver Prossi</span>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button onClick={() => showToast('Notiz gespeichert')} aria-label="Speichern" className="w-7 h-7 rounded-full flex items-center justify-center text-text-muted hover:text-[var(--sherloq-primary)] hover:bg-app-bg transition-colors cursor-pointer">
+                      <Save className="w-3.5 h-3.5" />
+                    </button>
+                    <button onClick={() => showToast('Notiz bearbeiten')} aria-label="Ändern" className="w-7 h-7 rounded-full flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-app-bg transition-colors cursor-pointer">
+                      <Pencil className="w-3.5 h-3.5" />
+                    </button>
+                    <button onClick={() => showToast('Notiz gelöscht')} aria-label="Löschen" className="w-7 h-7 rounded-full flex items-center justify-center text-text-muted hover:text-[var(--signal-urgent-text)] hover:bg-[var(--signal-urgent-bg)] transition-colors cursor-pointer">
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+                <p className="text-[12px] text-text-body font-medium leading-relaxed mt-1.5">Demo lief hervorragend, Thomas war sehr engagiert.</p>
               </div>
             </div>
           </div>
@@ -567,11 +613,11 @@ export default function HunterSidepanel({ person: personProp, onClose }: { perso
       </main>
 
       <footer className="p-4 border-t border-border-subtle bg-app-surface shrink-0 flex items-center justify-between gap-2 shadow-sm relative z-10">
-        <button onClick={() => showToast('Task Aktion gestartet')} className="px-3.5 py-2 border border-border hover:bg-app-bg text-text-body rounded-full text-[12px] font-bold flex-1 transition-colors shadow-sm cursor-pointer hover:-translate-y-0.5">Task</button>
-        <button onClick={() => showToast('Mail Aktion gestartet')} className="px-3.5 py-2 border border-border hover:bg-app-bg text-text-body rounded-full text-[12px] font-bold flex-1 transition-colors shadow-sm cursor-pointer hover:-translate-y-0.5">✉ Mail</button>
-        <button onClick={() => showToast('LinkedIn Aktion gestartet')} className="px-3.5 py-2 border border-border hover:bg-app-bg text-text-body rounded-full text-[12px] font-bold flex-1 transition-colors shadow-sm cursor-pointer hover:-translate-y-0.5">LinkedIn</button>
-        <button onClick={() => showToast('Notiz Aktion gestartet')} className="px-3.5 py-2 border border-border hover:bg-app-bg text-text-body rounded-full text-[12px] font-bold flex-1 transition-colors shadow-sm cursor-pointer hover:-translate-y-0.5">📎 Notiz</button>
-        <button onClick={() => showToast('Usage geöffnet')} className="px-3.5 py-2 border border-border hover:bg-app-bg text-text-body rounded-full text-[12px] font-bold flex-1 transition-colors shadow-sm cursor-pointer hover:-translate-y-0.5">📊 Usage ansehen</button>
+        <button onClick={() => showToast('Task Aktion gestartet')} className="px-3.5 py-2 border border-border hover:bg-app-bg text-text-body rounded-full text-[12px] font-bold flex-1 transition-colors shadow-sm cursor-pointer hover:-translate-y-0.5 flex items-center justify-center gap-1.5"><Plus className="w-3.5 h-3.5" /> Task</button>
+        <button onClick={() => showToast('Mail Aktion gestartet')} className="px-3.5 py-2 border border-border hover:bg-app-bg text-text-body rounded-full text-[12px] font-bold flex-1 transition-colors shadow-sm cursor-pointer hover:-translate-y-0.5 flex items-center justify-center gap-1.5"><Mail className="w-3.5 h-3.5" /> Mail</button>
+        <button onClick={() => showToast('LinkedIn Aktion gestartet')} className="px-3.5 py-2 border border-border hover:bg-app-bg text-text-body rounded-full text-[12px] font-bold flex-1 transition-colors shadow-sm cursor-pointer hover:-translate-y-0.5 flex items-center justify-center gap-1.5"><LinkedinIcon className="w-3.5 h-3.5" /> LinkedIn</button>
+        <button onClick={() => showToast('Notiz Aktion gestartet')} className="px-3.5 py-2 border border-border hover:bg-app-bg text-text-body rounded-full text-[12px] font-bold flex-1 transition-colors shadow-sm cursor-pointer hover:-translate-y-0.5 flex items-center justify-center gap-1.5"><StickyNote className="w-3.5 h-3.5" /> Notiz</button>
+        <button onClick={() => showToast('Usage geöffnet')} className="px-3.5 py-2 border border-border hover:bg-app-bg text-text-body rounded-full text-[12px] font-bold flex-1 transition-colors shadow-sm cursor-pointer hover:-translate-y-0.5 flex items-center justify-center gap-1.5"><BarChart3 className="w-3.5 h-3.5" /> Usage</button>
       </footer>
         </>
         )}

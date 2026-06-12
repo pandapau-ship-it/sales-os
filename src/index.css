@@ -93,6 +93,11 @@
   --channel-phone:    #10B981;
   --channel-whatsapp: #25D366;
 
+  /* Brand-Kanal-Logos (Marken-Glyphen, konstant in beiden Modi) */
+  --brand-gmail:      #EA4335;
+  --brand-outlook:    #0078D4;
+  --brand-meet:       #00897B;
+
   /* ICP Score Colors */
   --icp-high:   #2B8A3E;
   --icp-medium: #F59E0B;
