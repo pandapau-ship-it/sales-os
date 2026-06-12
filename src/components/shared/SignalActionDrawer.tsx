@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { X, Sparkles, RotateCw, Send, ArrowUpRight, Check } from "lucide-react";
 import { Sheet, SheetContent, SheetClose } from "@/components/ui/sheet";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import Avatar from "@/components/shared/Avatar";
 import LinkedinIcon from "@/components/shared/LinkedinIcon";
 
@@ -205,12 +206,17 @@ export default function SignalActionDrawer({
                         <span className="truncate">{t("hunter.signal_panel.composer_header", { name: s.name })}</span>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
-                        <select className="bg-white/15 border border-white/15 text-white rounded-lg px-2 py-1 text-[10px] font-bold outline-none cursor-pointer">
-                          <option className="text-gray-900">{t("hunter.signal_panel.channel_linkedin_dm")}</option>
-                          <option className="text-gray-900">{t("hunter.signal_panel.channel_email")}</option>
-                          <option className="text-gray-900">{t("hunter.signal_panel.channel_call_script")}</option>
-                          <option className="text-gray-900">{t("hunter.signal_panel.channel_followup_task")}</option>
-                        </select>
+                        <Select defaultValue="linkedin_dm">
+                          <SelectTrigger className="w-auto h-auto bg-white/15 border-white/15 text-white rounded-lg px-2 py-1 text-[10px] font-bold gap-1 cursor-pointer">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="linkedin_dm">{t("hunter.signal_panel.channel_linkedin_dm")}</SelectItem>
+                            <SelectItem value="email">{t("hunter.signal_panel.channel_email")}</SelectItem>
+                            <SelectItem value="call_script">{t("hunter.signal_panel.channel_call_script")}</SelectItem>
+                            <SelectItem value="followup_task">{t("hunter.signal_panel.channel_followup_task")}</SelectItem>
+                          </SelectContent>
+                        </Select>
                         <span className="text-[10px] font-bold uppercase tracking-wider bg-white/20 px-2 py-1 rounded-lg">{t("hunter.signal_panel.auto_draft")}</span>
                       </div>
                     </div>

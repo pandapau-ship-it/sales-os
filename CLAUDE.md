@@ -77,6 +77,14 @@ Wenn neue Abschnitte in CLAUDE.md hinzukommen:
 
 Diese Regel gilt absolut. Kein Ausnahme für "schneller selbst gebaut".
 
+**shadcn-Primitive bevorzugen, wenn vorhanden. Nur hand-rollen, wenn KEIN passendes Primitiv existiert.**
+Vor JEDER neuen Komponente zwingend `src/components/ui/` prüfen. Aktuell vorhanden:
+`button`, `card`, `command`, `dialog`, `dropdown-menu`, `input`, `select`, `sheet`, `tooltip`.
+Pflicht-Zuordnung: Side-Panels / Drawer → **`sheet`** · Dropdowns → **`select`** ·
+Modals → **`dialog`** · Buttons → **`button`** · Tooltips → **`tooltip`** · Cmd+K → **`command`**.
+Ein natives `<select>`/`<button>` oder ein eigener `fixed`-Overlay statt `sheet` ist ein
+**Regelverstoß, kein Stilfrage**. Fehlt ein Primitiv: `npx shadcn add [component]`.
+
 **At the end of every session** → siehe **Selbst-Wartung** (oben, höchste Priorität).
 Kurzfassung: PROGRESS.md + CHECKLIST.md aktualisieren, neue Komponenten in
 `componentRegistry.ts`, fünf Prüffragen durchgehen, dann commit + push.
