@@ -8,7 +8,7 @@ import { Shield, Server } from 'lucide-react';
 export default function ScreenSherloqSystem() {
   const stats = [
     { title: 'PROFILES ADDED', value: '198 / 500', pct: 40, color: 'bg-sherloq-primary' },
-    { title: 'SDK TRAFFIC', value: '1.43M calls', pct: 72, color: 'bg-emerald-600' },
+    { title: 'SDK TRAFFIC', value: '1.43M calls', pct: 72, color: 'bg-[var(--signal-success-text)]' },
     { title: 'API HEALTH', value: '100.0%', pct: 100, color: 'bg-[var(--signal-success-text)]' },
   ];
 
@@ -27,7 +27,7 @@ export default function ScreenSherloqSystem() {
             <span className="text-[10px] font-mono font-semibold text-text-muted uppercase tracking-wider">{stat.title}</span>
             <h3 className="text-[24px] font-bold text-text-primary mt-1.5">{stat.value}</h3>
             
-            <div className="w-full bg-gray-100 h-2 rounded-pill overflow-hidden mt-4">
+            <div className="w-full bg-app-bg h-2 rounded-pill overflow-hidden mt-4">
               <div className={`${stat.color} h-full transition-all`} style={{ width: `${stat.pct}%` }} />
             </div>
           </div>

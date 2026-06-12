@@ -68,11 +68,11 @@ export default function ScreenJira() {
             </thead>
             <tbody className="divide-y divide-[var(--app-bg)]">
               {tickets.map((t) => (
-                <tr key={t.id} className="hover:bg-gray-50/50 transition-colors text-[12px]">
+                <tr key={t.id} className="hover:bg-app-bg/50 transition-colors text-[12px]">
                   <td className="px-5 py-4 font-mono font-bold text-sherloq-primary">{t.id}</td>
                   <td className="px-5 py-4 font-medium text-text-primary">
                     <div className="flex items-center gap-1.5">
-                      {t.priority === 'HIGH' && <span className="w-2 h-2 rounded-pill bg-red-500" title="High Priority" />}
+                      {t.priority === 'HIGH' && <span className="w-2 h-2 rounded-pill bg-[var(--icp-low)]" title="High Priority" />}
                       <span>{t.summary}</span>
                     </div>
                   </td>
@@ -109,7 +109,7 @@ export default function ScreenJira() {
             <p className="text-[11px] text-text-body mt-1.5 leading-relaxed">Systemweiter Launch des weichen, schwebenden Hyper-Modern Floating UI Themes.</p>
             <div className="mt-4 flex items-center justify-between text-[10px] font-mono text-text-muted">
               <span>0 Tasks verbleibend</span>
-              <span className="text-emerald-700 font-bold font-sans">100% abgeschlossen ✓</span>
+              <span className="text-[var(--signal-success-text)] font-bold font-sans">100% abgeschlossen ✓</span>
             </div>
           </div>
         </div>

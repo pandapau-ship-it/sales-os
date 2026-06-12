@@ -212,7 +212,7 @@ export default function ScreenMyDay({
           <h2 className="text-[14px] font-semibold text-text-primary tracking-tight uppercase tracking-wider font-sans inline-flex items-center gap-2">
             <Flame className="w-4 h-4 text-signal-urgent" /> Top Prioritäten für heute (Max 5)
           </h2>
-          <span className="text-[11px] font-mono text-text-muted bg-amber-50 text-amber-700 px-2.5 py-0.5 rounded-pill border border-amber-100 font-semibold">
+          <span className="text-[11px] font-mono text-text-muted bg-[var(--signal-warn-bg)] text-[var(--signal-warn-text)] px-2.5 py-0.5 rounded-pill border border-[var(--signal-warn-bg)] font-semibold">
             Urgent Dispatcher
           </span>
         </div>
@@ -356,7 +356,7 @@ export default function ScreenMyDay({
                         <span className="text-[13px] font-semibold text-text-primary">{task.person.name}</span>
                         <span className="text-[11px] text-text-muted">· {task.person.company} ({task.person.jobTitle})</span>
                         {task.isOverdue && !task.completed && (
-                          <span className="text-[9px] font-mono bg-red-50 text-red-600 border border-red-100 px-2 py-0.5 rounded-pill font-bold">
+                          <span className="text-[9px] font-mono bg-[var(--signal-urgent-bg)] text-[var(--signal-urgent-text)] border border-[var(--signal-urgent-bg)] px-2 py-0.5 rounded-pill font-bold">
                             FÄLLIG
                           </span>
                         )}
@@ -444,7 +444,7 @@ export default function ScreenMyDay({
                             navigator.clipboard.writeText(aiDraftMessage);
                             alert("Kopiert!");
                           }}
-                          className="bg-app-surface border border-border text-text-body text-[11px] rounded-pill px-3 py-1 transition-all hover:bg-gray-50 cursor-pointer"
+                          className="bg-app-surface border border-border text-text-body text-[11px] rounded-pill px-3 py-1 transition-all hover:bg-app-bg cursor-pointer"
                         >
                           Kopieren
                         </button>

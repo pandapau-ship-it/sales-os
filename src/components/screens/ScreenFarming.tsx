@@ -126,9 +126,9 @@ export default function ScreenFarming({
               <p className="text-[12px] text-text-body mt-1.5">Soll-Abschluss für Q2</p>
             </div>
             <div className="bg-app-surface rounded-[16px] p-6 shadow-card ring-1 ring-red-100">
-              <span className="text-[10px] text-red-600 uppercase font-semibold">Churn Risk At Risk</span>
+              <span className="text-[10px] text-[var(--signal-urgent-text)] uppercase font-semibold">Churn Risk At Risk</span>
               <h3 className="text-[28px] font-bold text-text-primary mt-1">1 Account</h3>
-              <p className="text-[12px] text-red-700 font-medium mt-1.5">Logistify DE (CS-Support benötigt)</p>
+              <p className="text-[12px] text-[var(--signal-urgent-text)] font-medium mt-1.5">Logistify DE (CS-Support benötigt)</p>
             </div>
           </div>
 
@@ -138,24 +138,24 @@ export default function ScreenFarming({
             <div className="mt-6 flex flex-col gap-3">
               <div className="flex items-center justify-between text-[11px]">
                 <span className="font-semibold text-text-body w-24 text-left">PayGuard AG</span>
-                <div className="flex-1 bg-gray-100 h-2.5 rounded-pill overflow-hidden mx-4">
+                <div className="flex-1 bg-app-bg h-2.5 rounded-pill overflow-hidden mx-4">
                   <div className="bg-sherloq-primary h-full" style={{ width: '92%' }} />
                 </div>
                 <span className="font-mono text-text-muted w-12 text-right">92%</span>
               </div>
               <div className="flex items-center justify-between text-[11px]">
                 <span className="font-semibold text-text-body w-24 text-left">HiringMate Ltd</span>
-                <div className="flex-1 bg-gray-100 h-2.5 rounded-pill overflow-hidden mx-4">
+                <div className="flex-1 bg-app-bg h-2.5 rounded-pill overflow-hidden mx-4">
                   <div className="bg-sherloq-primary h-full" style={{ width: '68%' }} />
                 </div>
                 <span className="font-mono text-text-muted w-12 text-right">68%</span>
               </div>
               <div className="flex items-center justify-between text-[11px]">
                 <span className="font-semibold text-text-body w-24 text-left">Logistify DE</span>
-                <div className="flex-1 bg-gray-100 h-2.5 rounded-pill overflow-hidden mx-4">
-                  <div className="bg-red-500 h-full" style={{ width: '8%' }} />
+                <div className="flex-1 bg-app-bg h-2.5 rounded-pill overflow-hidden mx-4">
+                  <div className="bg-[var(--icp-low)] h-full" style={{ width: '8%' }} />
                 </div>
-                <span className="font-mono text-red-500 w-12 text-right inline-flex items-center justify-end gap-1">8% <AlertTriangle className="w-3 h-3" /></span>
+                <span className="font-mono text-[var(--icp-low)] w-12 text-right inline-flex items-center justify-end gap-1">8% <AlertTriangle className="w-3 h-3" /></span>
               </div>
             </div>
           </div>
@@ -184,7 +184,7 @@ export default function ScreenFarming({
               <button className="bg-app-surface border text-text-body border-border hover:border-border-strong hover:bg-app-bg px-3 py-1.5 rounded-pill text-[12px] font-semibold flex items-center gap-1.5 transition-colors">
                 <Target className="w-3.5 h-3.5" /> Zu Kampagne hinzufügen
               </button>
-              <button className="bg-app-surface border border-red-200 text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-pill text-[12px] font-semibold flex items-center gap-1.5 transition-colors">
+              <button className="bg-app-surface border border-[var(--signal-urgent-bg)] text-[var(--signal-urgent-text)] hover:bg-[var(--signal-urgent-bg)] px-3 py-1.5 rounded-pill text-[12px] font-semibold flex items-center gap-1.5 transition-colors">
                 <Trash className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -423,7 +423,7 @@ export default function ScreenFarming({
                   <div 
                     key={cust.id}
                     className={`flex items-center justify-between p-4 rounded-[14px] border transition-all ${
-                      isCritical ? 'bg-[var(--signal-urgent-bg)]/30 border-red-100' : 'bg-app-surface border-border'
+                      isCritical ? 'bg-[var(--signal-urgent-bg)]/30 border-[var(--signal-urgent-bg)]' : 'bg-app-surface border-border'
                     }`}
                   >
                     <div className="flex items-center gap-3">
