@@ -1,15 +1,29 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ArrowUpRight, X, Mail, Phone, Globe,
   AlertTriangle, Clock, Video, Check
 } from 'lucide-react';
+import { Sheet, SheetContent } from '@/components/ui/sheet';
 import LinkedinIcon from '@/components/shared/LinkedinIcon';
 
-export default function HunterSidepanel({ person, onClose }: { person: any, onClose: () => void }) {
+/**
+ * HunterSidepanel — Info Panel (§22.1, 820px). Nutzt dieselbe Sheet-„drawer"-Shell
+ * wie CustomerDrawer / die Action-Panels: schwebendes, abgerundetes Panel rechts mit
+ * identischer Slide-in/-out-Animation (kein Inline-Layout, überlagert die Liste).
+ * `person = null` → geschlossen; Inhalt rendert aus einer gehaltenen Kopie, damit das
+ * Panel während der Ausfahr-Animation nicht leer wird.
+ */
+export default function HunterSidepanel({ person: personProp, onClose }: { person: any, onClose: () => void }) {
   const [activeTab, setActiveTab] = useState('overview');
   const [expandedComm, setExpandedComm] = useState<Record<number, boolean>>({});
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [showAutosave, setShowAutosave] = useState(false);
+
+  // Open-State von der Prop; Inhalt aus gehaltener Kopie (wie CustomerDrawer).
+  const [display, setDisplay] = useState<any>(personProp);
+  useEffect(() => { if (personProp) setDisplay(personProp); }, [personProp]);
+  const isOpen = personProp !== null;
+  const person = display;
 
   const toggleComm = (index: number) => {
     setExpandedComm(prev => ({ ...prev, [index]: !prev[index] }));
@@ -32,9 +46,15 @@ export default function HunterSidepanel({ person, onClose }: { person: any, onCl
   };
 
   return (
-    <div
-      className="w-[820px] h-full bg-app-surface shadow-[var(--shadow-panel)] flex flex-col border-l border-border rounded-[16px] overflow-hidden"
-    >
+    <>
+    <Sheet open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
+      <SheetContent
+        side="drawer"
+        className="flex flex-col font-sans overflow-hidden p-0 bg-app-surface"
+        style={{ width: 820, maxWidth: "95vw" }}
+      >
+        {person && (
+        <>
       <header className="p-7 pb-0 bg-app-surface items-start relative z-10 border-b border-border-subtle shrink-0">
         <div className="flex items-start justify-between gap-6">
           <div className="flex items-center gap-4 min-w-0">
@@ -50,7 +70,7 @@ export default function HunterSidepanel({ person, onClose }: { person: any, onCl
                 <h1 className="text-[20px] font-extrabold text-text-primary leading-tight">
                   {person.name || "Dr. Christian Brand"}
                 </h1>
-                <span className="px-2.5 py-1 rounded-lg bg-[var(--signal-success-bg)] border border-[var(--signal-success-bg)] text-[var(--signal-success-text)] text-[10px] font-extrabold">
+                <span className="px-2.5 py-1 rounded-full bg-[var(--signal-success-bg)] border border-[var(--signal-success-bg)] text-[var(--signal-success-text)] text-[10px] font-extrabold">
                   ICP: 87
                 </span>
               </div>
@@ -143,13 +163,13 @@ export default function HunterSidepanel({ person, onClose }: { person: any, onCl
         </nav>
       </header>
 
-      <main className="flex-1 overflow-y-auto p-7 space-y-7 bg-app-bg scrollbar-none pb-28">
+      <main className="flex-1 overflow-y-auto p-7 space-y-7 bg-app-bg custom-scrollbar pb-28">
 
         {activeTab === 'overview' && (
           <div className="space-y-7 animate-fade-in">
             <div className="space-y-2">
               <span className="text-[10px] font-extrabold text-text-muted uppercase tracking-widest pl-1">KI Kurzakte</span>
-              <div className="bg-[var(--signal-teal-bg)] border border-[var(--signal-teal-bg)] rounded-2xl p-5 leading-relaxed text-[13px] text-text-body font-medium shadow-sm">
+              <div className="bg-[var(--signal-teal-bg)] border border-[var(--signal-teal-bg)] rounded-[12px] p-5 leading-relaxed text-[13px] text-text-body font-medium shadow-sm">
                 Refactoring der Outreach-Struktur gestartet. Sucht aktiv nach einem Tool zur Senkung der SDR Ramp-Up-Time.
                 Reagiert stark auf analytische Vergleiche und klare ROI-Argumentation.
               </div>
@@ -158,7 +178,7 @@ export default function HunterSidepanel({ person, onClose }: { person: any, onCl
             <div className="space-y-2">
               <span className="text-[10px] font-extrabold text-text-muted uppercase tracking-widest pl-1">Aktive Signale</span>
               <div className="space-y-3">
-                <div className="p-4 bg-[var(--signal-urgent-bg)] border border-[var(--signal-urgent-bg)] rounded-2xl flex items-center justify-between text-xs text-[var(--signal-urgent-text)] font-semibold shadow-sm">
+                <div className="p-4 bg-[var(--signal-urgent-bg)] border border-[var(--signal-urgent-bg)] rounded-[12px] flex items-center justify-between text-xs text-[var(--signal-urgent-text)] font-semibold shadow-sm">
                   <span className="flex items-center gap-2">
                     <AlertTriangle className="w-4 h-4" />
                     Stagniert — 8T in Stage Demo
@@ -168,7 +188,7 @@ export default function HunterSidepanel({ person, onClose }: { person: any, onCl
                   </button>
                 </div>
 
-                <div className="p-4 bg-[var(--signal-warn-bg)] border border-[var(--signal-warn-bg)] rounded-2xl flex items-center justify-between text-xs text-[var(--signal-warn-text)] font-semibold shadow-sm">
+                <div className="p-4 bg-[var(--signal-warn-bg)] border border-[var(--signal-warn-bg)] rounded-[12px] flex items-center justify-between text-xs text-[var(--signal-warn-text)] font-semibold shadow-sm">
                   <span className="flex items-center gap-2">
                     <Clock className="w-4 h-4" />
                     Keine Task hinterlegt
@@ -178,7 +198,7 @@ export default function HunterSidepanel({ person, onClose }: { person: any, onCl
                   </button>
                 </div>
 
-                <div className="p-4 bg-[var(--signal-info-bg)] border border-[var(--signal-info-bg)] rounded-2xl flex items-center justify-between text-xs text-[var(--signal-info-text)] font-semibold shadow-sm">
+                <div className="p-4 bg-[var(--signal-info-bg)] border border-[var(--signal-info-bg)] rounded-[12px] flex items-center justify-between text-xs text-[var(--signal-info-text)] font-semibold shadow-sm">
                   <span className="flex items-center gap-2">
                     <LinkedinIcon className="w-4 h-4" />
                     LinkedIn Signal — vor 2h
@@ -192,7 +212,7 @@ export default function HunterSidepanel({ person, onClose }: { person: any, onCl
 
             <div className="space-y-2">
               <span className="text-[10px] font-extrabold text-text-muted uppercase tracking-widest pl-1">Deal Setup</span>
-              <div className="bg-app-surface rounded-2xl p-5 border border-border shadow-sm">
+              <div className="bg-app-surface rounded-[12px] p-5 border border-border shadow-sm">
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-xs font-semibold text-text-body">
                   <div className="bg-app-bg border border-border rounded-xl p-3">
                     <span className="text-[9px] font-bold text-text-muted uppercase block mb-1">Stage</span>
@@ -233,7 +253,7 @@ export default function HunterSidepanel({ person, onClose }: { person: any, onCl
               </div>
 
               <div className="space-y-3">
-                <div className="p-4 rounded-2xl flex items-center justify-between bg-[var(--signal-urgent-bg)] border border-[var(--signal-urgent-bg)] shadow-sm">
+                <div className="p-4 rounded-[12px] flex items-center justify-between bg-[var(--signal-urgent-bg)] border border-[var(--signal-urgent-bg)] shadow-sm">
                   <div className="flex items-center gap-3">
                     <input type="checkbox" className="accent-[var(--sherloq-primary)] w-4 h-4 cursor-pointer" />
                     <div>
@@ -245,7 +265,7 @@ export default function HunterSidepanel({ person, onClose }: { person: any, onCl
                   </div>
                 </div>
 
-                <div className="p-4 rounded-2xl flex items-center justify-between bg-app-surface border border-border shadow-sm">
+                <div className="p-4 rounded-[12px] flex items-center justify-between bg-app-surface border border-border shadow-sm">
                   <div className="flex items-center gap-3">
                     <input type="checkbox" className="accent-[var(--sherloq-primary)] w-4 h-4 cursor-pointer" />
                     <div>
@@ -265,7 +285,7 @@ export default function HunterSidepanel({ person, onClose }: { person: any, onCl
                 <span className="text-[11px] font-bold text-[var(--sherloq-primary)]">Schritt 3 von 5</span>
               </div>
 
-              <div className="bg-app-surface rounded-2xl p-6 border border-border shadow-sm flex items-start justify-between relative px-8">
+              <div className="bg-app-surface rounded-[12px] p-6 border border-border shadow-sm flex items-start justify-between relative px-8">
                 <div className="absolute left-12 right-12 top-[42px] h-px bg-border z-0"></div>
 
                 <div className="flex flex-col items-center gap-2 relative z-10">
@@ -316,7 +336,7 @@ export default function HunterSidepanel({ person, onClose }: { person: any, onCl
                 </button>
               </div>
 
-              <div className="bg-app-surface rounded-2xl p-5 border border-border shadow-sm divide-y divide-[var(--border-subtle)]">
+              <div className="bg-app-surface rounded-[12px] p-5 border border-border shadow-sm divide-y divide-[var(--border-subtle)]">
                 <div className="py-3 first:pt-0">
                   <div className="flex items-start gap-4">
                     <div className="w-11 h-11 rounded-xl bg-[var(--sherloq-primary)] flex items-center justify-center shrink-0 relative overflow-hidden shadow-sm text-on-accent">
@@ -373,7 +393,7 @@ export default function HunterSidepanel({ person, onClose }: { person: any, onCl
               </span>
             </div>
 
-            <div className="bg-app-surface rounded-2xl p-5 border border-border shadow-sm divide-y divide-[var(--border-subtle)]">
+            <div className="bg-app-surface rounded-[12px] p-5 border border-border shadow-sm divide-y divide-[var(--border-subtle)]">
 
               {/* Comm Item 1 */}
               <div className="py-3.5 first:pt-0 cursor-pointer group select-none" onClick={() => toggleComm(0)}>
@@ -478,7 +498,7 @@ export default function HunterSidepanel({ person, onClose }: { person: any, onCl
         {activeTab === 'activity' && (
           <div className="space-y-4 animate-fade-in">
             <span className="text-[10px] font-extrabold text-text-muted uppercase tracking-widest pl-1">Historischer Zeitstrahl</span>
-            <div className="bg-app-surface rounded-2xl p-8 border border-border shadow-sm text-center text-xs text-text-muted py-14">
+            <div className="bg-app-surface rounded-[12px] p-8 border border-border shadow-sm text-center text-xs text-text-muted py-14">
               <Clock className="w-7 h-7 mx-auto mb-3 text-icon-muted" />
               Hier werden alle CRM-Aktivitäten aus HubSpot, Outlook und LinkedIn synchronisiert.
             </div>
@@ -495,7 +515,7 @@ export default function HunterSidepanel({ person, onClose }: { person: any, onCl
             </div>
 
             <div className="space-y-3">
-              <div className="p-4 bg-app-surface border border-border rounded-2xl flex items-center justify-between shadow-sm">
+              <div className="p-4 bg-app-surface border border-border rounded-[12px] flex items-center justify-between shadow-sm">
                 <div className="flex items-center gap-3">
                   <input type="checkbox" className="accent-[var(--sherloq-primary)] w-4 h-4 cursor-pointer" />
                   <span className="text-xs font-bold text-[var(--signal-urgent-text)]">ROI-Dokument senden</span>
@@ -503,7 +523,7 @@ export default function HunterSidepanel({ person, onClose }: { person: any, onCl
                 <span className="text-[10px] font-bold text-[var(--signal-urgent-text)] bg-[var(--signal-urgent-bg)] px-2 py-0.5 rounded-full border border-[var(--signal-urgent-bg)]">Heute fällig</span>
               </div>
 
-              <div className="p-4 bg-app-surface border border-border rounded-2xl flex items-center justify-between shadow-sm">
+              <div className="p-4 bg-app-surface border border-border rounded-[12px] flex items-center justify-between shadow-sm">
                 <div className="flex items-center gap-3">
                   <input type="checkbox" className="accent-[var(--sherloq-primary)] w-4 h-4 cursor-pointer" />
                   <span className="text-xs font-bold text-text-body">Follow-up Call buchen</span>
@@ -526,17 +546,17 @@ export default function HunterSidepanel({ person, onClose }: { person: any, onCl
             <textarea
               onBlur={handleNoteBlur}
               placeholder="Notiz verfassen..."
-              className="w-full h-32 p-4 bg-app-surface border border-border focus:border-[var(--sherloq-primary)] rounded-2xl outline-none text-xs leading-relaxed resize-none shadow-sm font-medium"
+              className="w-full h-32 p-4 bg-app-surface border border-border focus:border-[var(--sherloq-primary)] rounded-[12px] outline-none text-xs leading-relaxed resize-none shadow-sm font-medium"
               defaultValue="Sucht aktives Tool zur Senkung der SDR Ramp-Up-Time."
             ></textarea>
 
             <div className="space-y-2 pt-2">
               <span className="text-[9px] font-bold text-text-muted uppercase tracking-wider pl-1">Verlauf</span>
-              <div className="p-4 bg-app-surface border border-border-subtle rounded-2xl text-xs space-y-1 shadow-sm">
+              <div className="p-4 bg-app-surface border border-border-subtle rounded-[12px] text-xs space-y-1 shadow-sm">
                 <span className="text-[10px] text-text-muted font-bold">12. Mai 2026 · Oliver Prossi</span>
                 <p className="text-text-body font-medium">Thomas hat angedeutet, dass das Q3-Budget freigegeben wird.</p>
               </div>
-              <div className="p-4 bg-app-surface border border-border-subtle rounded-2xl text-xs space-y-1 shadow-sm">
+              <div className="p-4 bg-app-surface border border-border-subtle rounded-[12px] text-xs space-y-1 shadow-sm">
                 <span className="text-[10px] text-text-muted font-bold">03. April 2026 · Oliver Prossi</span>
                 <p className="text-text-body font-medium">Demo lief hervorragend, Thomas war sehr engagiert.</p>
               </div>
@@ -553,6 +573,10 @@ export default function HunterSidepanel({ person, onClose }: { person: any, onCl
         <button onClick={() => showToast('Notiz Aktion gestartet')} className="px-3.5 py-2 border border-border hover:bg-app-bg text-text-body rounded-full text-[12px] font-bold flex-1 transition-colors shadow-sm cursor-pointer hover:-translate-y-0.5">📎 Notiz</button>
         <button onClick={() => showToast('Usage geöffnet')} className="px-3.5 py-2 border border-border hover:bg-app-bg text-text-body rounded-full text-[12px] font-bold flex-1 transition-colors shadow-sm cursor-pointer hover:-translate-y-0.5">📊 Usage ansehen</button>
       </footer>
+        </>
+        )}
+      </SheetContent>
+    </Sheet>
 
       {toastMessage && (
         <div className="fixed bottom-6 right-6 z-[200] bg-inverse-surface text-on-accent px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2 animate-fade-in">
@@ -560,6 +584,6 @@ export default function HunterSidepanel({ person, onClose }: { person: any, onCl
           <span className="text-xs font-semibold">{toastMessage}</span>
         </div>
       )}
-    </div>
+    </>
   );
 }

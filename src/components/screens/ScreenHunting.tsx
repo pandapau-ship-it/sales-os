@@ -410,8 +410,7 @@ export default function ScreenHunting({
 
       {/* 2. VIEW LEADS (LIST) */}
       {subTab === 'leads' && (
-        <div className="flex gap-5 items-start">
-          <div className={`flex flex-col gap-4 min-w-0 ${infoPanelLead ? 'flex-1' : 'w-full'}`}>
+        <div className="flex flex-col gap-4">
 
           {/* List Actions / Select All Bar */}
           <div className={`transition-all duration-300 flex items-center justify-between px-2 ${selectedLeadIds.length > 0 ? 'opacity-100 h-10 mb-2' : 'opacity-0 h-0 overflow-hidden'}`}>
@@ -623,17 +622,6 @@ export default function ScreenHunting({
               </div>
             );
           })}
-          </div>
-
-          {/* Info Panel (§22.1) — rechts neben der Liste, schließt nur via X */}
-          {infoPanelLead && (
-            <div className="shrink-0 sticky top-4 self-start h-[calc(100vh-7rem)] hidden xl:block">
-              <HunterSidepanel
-                person={infoPanelLead.person}
-                onClose={() => setInfoPanelLead(null)}
-              />
-            </div>
-          )}
         </div>
       )}
 
@@ -1102,6 +1090,13 @@ export default function ScreenHunting({
       <NoTaskDrawer
         person={selectedNoTaskPerson}
         onClose={() => setSelectedNoTaskPerson(null)}
+      />
+
+      {/* Info Panel (§22.1, 820px) — Slide-in-Overlay, vorerst nur Leads-Tab.
+          Immer gemountet für die Ausfahr-Animation; person=null → geschlossen. */}
+      <HunterSidepanel
+        person={infoPanelLead?.person ?? null}
+        onClose={() => setInfoPanelLead(null)}
       />
 
     </div>
