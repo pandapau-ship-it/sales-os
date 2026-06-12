@@ -76,7 +76,7 @@ export default function Sidebar() {
             style={active ? { background: "var(--sherloq-gradient)" } : undefined}
             className={`w-[40px] h-[40px] rounded-[10px] flex items-center justify-center transition-all duration-200 cursor-pointer ${
               active
-                ? "text-white shadow-brand"
+                ? "text-on-accent shadow-brand"
                 : "text-text-muted hover:bg-app-bg hover:text-text-primary"
             }`}
           >
@@ -130,7 +130,7 @@ export default function Sidebar() {
             <TooltipTrigger asChild>
               <button
                 aria-label={t("nav.profil")}
-                className="w-[34px] h-[34px] mt-1 rounded-[10px] bg-sherloq-primary text-white text-[11px] font-semibold flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity"
+                className="w-[34px] h-[34px] mt-1 rounded-[10px] bg-sherloq-primary text-on-accent text-[11px] font-semibold flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity"
               >
                 OS
               </button>

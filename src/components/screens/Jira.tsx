@@ -40,7 +40,7 @@ export default function ScreenJira() {
         <button 
           onClick={() => setSubTab('tickets')}
           className={`text-[11px] font-mono px-3 py-1 rounded-pill border transition-all cursor-pointer ${
-            subTab === 'tickets' ? 'bg-[var(--text-primary)] text-white border-[#212529]' : 'bg-app-surface text-text-muted border-border hover:bg-app-bg'
+            subTab === 'tickets' ? 'bg-[var(--text-primary)] text-on-accent border-[var(--text-primary)]' : 'bg-app-surface text-text-muted border-border hover:bg-app-bg'
           }`}
         >
           Meine Tickets ({tickets.length})
@@ -48,7 +48,7 @@ export default function ScreenJira() {
         <button 
           onClick={() => setSubTab('epics')}
           className={`text-[11px] font-mono px-3 py-1 rounded-pill border transition-all cursor-pointer ${
-            subTab === 'epics' ? 'bg-[var(--text-primary)] text-white border-[#212529]' : 'bg-app-surface text-text-muted border-border hover:bg-app-bg'
+            subTab === 'epics' ? 'bg-[var(--text-primary)] text-on-accent border-[var(--text-primary)]' : 'bg-app-surface text-text-muted border-border hover:bg-app-bg'
           }`}
         >
           Epics
@@ -79,7 +79,7 @@ export default function ScreenJira() {
                   <td className="px-5 py-4 text-text-muted">{t.epic}</td>
                   <td className="px-5 py-4">
                     <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-pill ${
-                      t.status === 'DONE' ? 'bg-[var(--signal-success-bg)] text-signal-success' : t.status === 'IN_PROGRESS' ? 'bg-[var(--signal-warn-bg)] text-[#F59E0B]' : 'bg-[var(--signal-cold-bg)] text-signal-info'
+                      t.status === 'DONE' ? 'bg-[var(--signal-success-bg)] text-signal-success' : t.status === 'IN_PROGRESS' ? 'bg-[var(--signal-warn-bg)] text-[var(--signal-warn-text)]' : 'bg-[var(--signal-cold-bg)] text-signal-info'
                     }`}>
                       {t.status.replace('_', ' ')}
                     </span>

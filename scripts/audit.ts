@@ -202,6 +202,33 @@ function checkNoEmojiBadges(): void {
     offenders.length ? `Emoji gefunden in: ${offenders.join(', ')}` : 'Keine Status-Emoji in .tsx.')
 }
 
+// ── Design: nur Token-Farben (Dark Mode) ────────────────────────────────────
+// Hardcodierte Farben brechen Dark Mode (sie sind kein Hex, rutschen sonst durch).
+// Verboten in .tsx: bg/text/border-white, -black, -gray-N · direkte Hex-Werte.
+// Erlaubt: Token-Klassen (bg-app-surface, text-text-primary, bg-on-accent, bg-scrim …).
+// Token-Definitionen (Hex) leben in src/index.css (.css) — wird NICHT gescannt.
+
+function checkHardcodedColors(): void {
+  const files = walk(SRC, ['.tsx'])
+  const named = /\b(?:bg|text|border)-(?:white|black|gray-\d{1,3})\b/g
+  const hex = /#[0-9a-fA-F]{3,8}\b/g
+  const offenders: string[] = []
+  for (const f of files) {
+    const src = read(f)
+    const hits = new Set<string>()
+    for (const m of src.matchAll(named)) hits.add(m[0])
+    for (const m of src.matchAll(hex)) hits.add(m[0])
+    if (hits.size) {
+      const list = [...hits].slice(0, 4).join(', ') + (hits.size > 4 ? ' …' : '')
+      offenders.push(`${rel(f)} (${list})`)
+    }
+  }
+  add('Design: nur Token-Farben', offenders.length ? 'FAIL' : 'PASS',
+    offenders.length
+      ? `Hardcodierte Farben (bg/text/border-white/black/gray-* oder Hex) — auf CSS-Tokens umstellen:\n        ${offenders.join('\n        ')}`
+      : 'Keine hardcodierten Farb-Klassen/Hex in .tsx — Dark-Mode-sicher.')
+}
+
 // ── Run ──────────────────────────────────────────────────────────────────────
 
 checkDatabase()
@@ -213,6 +240,7 @@ checkAbstraction('notify.ts', 'Notifications → notify()', /from\s+['"](resend|
 checkAbstraction('email.ts', 'Emails → sendEmail()', /from\s+['"](resend|postmark|nodemailer)['"]/)
 checkSupabaseAbstraction()
 checkNoEmojiBadges()
+checkHardcodedColors()
 
 // ── Report ───────────────────────────────────────────────────────────────────
 

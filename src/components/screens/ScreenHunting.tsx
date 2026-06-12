@@ -187,7 +187,7 @@ export default function ScreenHunting({
         </div>
         <button
           onClick={() => setShowAddModal(true)}
-          className="bg-[var(--sherloq-primary)] hover:bg-[var(--sherloq-primary)]/95 text-white text-[12px] font-semibold px-4 py-2 rounded-full cursor-pointer shadow-sm flex items-center gap-1.5"
+          className="bg-[var(--sherloq-primary)] hover:bg-[var(--sherloq-primary)]/95 text-on-accent text-[12px] font-semibold px-4 py-2 rounded-full cursor-pointer shadow-sm flex items-center gap-1.5"
         >
           <Plus className="w-4 h-4" />
           <span>{t('hunter.addSdrLead')}</span>
@@ -205,7 +205,7 @@ export default function ScreenHunting({
               style={isActive ? { background: "var(--sherloq-gradient)" } : undefined}
               className={`px-4.5 py-1.5 text-[12px] font-medium transition-all rounded-[9px] cursor-pointer flex items-center gap-1.5 ${
                 isActive
-                  ? 'text-white shadow-sm'
+                  ? 'text-on-accent shadow-sm'
                   : 'text-[var(--text-body)] hover:bg-[var(--app-bg)] hover:text-[var(--text-primary)]'
               }`}
             >
@@ -416,7 +416,7 @@ export default function ScreenHunting({
                 onClick={selectedLeadIds.length === leads.length ? deselectAll : selectAll}
                 className="flex items-center justify-center w-[22px] h-[22px] rounded-md bg-[var(--sherloq-primary)] border border-[var(--sherloq-primary)]"
               >
-                <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />
+                <Check className="w-3.5 h-3.5 text-on-accent" strokeWidth={3} />
               </button>
               <span className="text-[13px] font-bold text-[var(--text-primary)]">
                 {t('hunter.leadCard.selected', { count: selectedLeadIds.length, noun: selectedLeadIds.length === 1 ? t('hunter.leadCard.leadSingular') : t('hunter.leadCard.leadPlural') })}
@@ -454,7 +454,7 @@ export default function ScreenHunting({
                       selectedLeadIds.includes(lead.id) ? 'bg-[var(--sherloq-primary)] opacity-100 border-[var(--sherloq-primary)]' : 'bg-app-surface border-2 border-[var(--border)] hover:border-[var(--text-muted)]'
                     }`}
                   >
-                    {selectedLeadIds.includes(lead.id) && <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />}
+                    {selectedLeadIds.includes(lead.id) && <Check className="w-3.5 h-3.5 text-on-accent" strokeWidth={3} />}
                   </div>
 
                   {/* Avatar & Info */}
@@ -478,7 +478,7 @@ export default function ScreenHunting({
                     </div>
                     
                     <div className="flex items-center gap-3 w-[140px] xl:w-[180px]">
-                      <div className="bg-[var(--text-primary)] text-white text-[14px] w-[40px] h-[40px] flex items-center justify-center rounded-[12px] font-bold shrink-0">
+                      <div className="bg-[var(--text-primary)] text-on-accent text-[14px] w-[40px] h-[40px] flex items-center justify-center rounded-[12px] font-bold shrink-0">
                         {lead.person.company.charAt(0).toUpperCase()}
                       </div>
                       <span className="text-[14px] text-[var(--sherloq-primary)] font-semibold w-[120px] truncate">{lead.person.company}</span>
@@ -788,7 +788,7 @@ export default function ScreenHunting({
                                   {col.next && (
                                     <button 
                                       onClick={() => onUpdateLeadStage(lead.id, col.next!)}
-                                      className="w-7 h-7 rounded-full bg-[var(--sherloq-primary)] hover:bg-[var(--sherloq-primary)] text-white flex items-center justify-center transition-colors shadow-sm cursor-pointer"
+                                      className="w-7 h-7 rounded-full bg-[var(--sherloq-primary)] hover:bg-[var(--sherloq-primary)] text-on-accent flex items-center justify-center transition-colors shadow-sm cursor-pointer"
                                     >
                                       <ArrowRight className="w-3 h-3 stroke-[3]" />
                                     </button>
@@ -819,7 +819,7 @@ export default function ScreenHunting({
                 onClick={selectedSignalIds.length === signalIds.length ? deselectAllSignals : selectAllSignals}
                 className="flex items-center justify-center w-[22px] h-[22px] rounded-md bg-[var(--sherloq-primary)] border border-[var(--sherloq-primary)]"
               >
-                <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />
+                <Check className="w-3.5 h-3.5 text-on-accent" strokeWidth={3} />
               </button>
               <span className="text-[13px] font-bold text-[var(--text-primary)]">
                 {t('hunter.signals.selected', { count: selectedSignalIds.length, noun: selectedSignalIds.length === 1 ? t('hunter.signals.signalSingular') : t('hunter.signals.signalPlural') })}
@@ -946,7 +946,7 @@ export default function ScreenHunting({
 
       {/* QUICK ADD MODAL */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black/35 backdrop-blur-xs flex items-center justify-center z-50 animate-fade-in">
+        <div className="fixed inset-0 bg-scrim/35 backdrop-blur-xs flex items-center justify-center z-50 animate-fade-in">
           <div className="w-full max-w-[460px] bg-app-surface rounded-[12px] border border-[var(--border)] p-6 shadow-2xl relative">
             <h2 className="text-[15px] font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
               <Target className="w-5 h-5 text-[var(--sherloq-primary)]" />
@@ -1037,7 +1037,7 @@ export default function ScreenHunting({
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-[var(--sherloq-primary)] hover:bg-[var(--sherloq-primary)]/95 text-white text-[12px] font-semibold rounded-full cursor-pointer shadow-xs"
+                  className="px-5 py-2 bg-[var(--sherloq-primary)] hover:bg-[var(--sherloq-primary)]/95 text-on-accent text-[12px] font-semibold rounded-full cursor-pointer shadow-xs"
                 >
                   {t('hunter.addModal.create')}
                 </button>

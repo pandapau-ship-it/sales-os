@@ -51,7 +51,7 @@ export default function TaskDrawer({
                     {person.person.avatarUrl ? (
                       <img src={person.person.avatarUrl} alt={person.person.name} className="w-16 h-16 rounded-[20px] object-cover shadow-sm" />
                     ) : (
-                      <div className="w-16 h-16 rounded-[20px] bg-[var(--sherloq-primary)] text-white flex items-center justify-center font-sans font-bold text-[22px] shadow-sm">
+                      <div className="w-16 h-16 rounded-[20px] bg-[var(--sherloq-primary)] text-on-accent flex items-center justify-center font-sans font-bold text-[22px] shadow-sm">
                         {person.person.initials}
                       </div>
                     )}
@@ -68,7 +68,7 @@ export default function TaskDrawer({
                       <span className="font-semibold">{person.person.jobTitle}</span>
                       <span className="text-[var(--icon-muted)]">•</span>
                       <div className="flex items-center gap-1.5">
-                        <div className="bg-[var(--text-primary)] text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-[6px] font-bold">
+                        <div className="bg-[var(--text-primary)] text-on-accent text-[10px] w-5 h-5 flex items-center justify-center rounded-[6px] font-bold">
                           {person.person.company.charAt(0).toUpperCase()}
                         </div>
                         <span className="font-bold text-[var(--text-body)]">{person.person.company}</span>
@@ -226,7 +226,7 @@ export default function TaskDrawer({
           <div className="pl-12 pr-8 py-5 border-t border-[var(--border)] bg-app-surface sticky bottom-0">
              <button 
                 onClick={() => onSave({ channel, title, note, date, priority })}
-                className="w-full bg-[var(--sherloq-primary)] hover:bg-[var(--sherloq-primary)]/95 text-white text-[15px] font-bold py-3.5 rounded-2xl transition-all shadow-sm flex items-center justify-center gap-2"
+                className="w-full bg-[var(--sherloq-primary)] hover:bg-[var(--sherloq-primary)]/95 text-on-accent text-[15px] font-bold py-3.5 rounded-2xl transition-all shadow-sm flex items-center justify-center gap-2"
              >
                  {t('hunter.common.saveTask')}
              </button>

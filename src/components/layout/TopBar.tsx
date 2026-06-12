@@ -54,7 +54,7 @@ export default function TopBar({ onOpenCommandPalette }: TopBarProps) {
           style={{ width: 32, height: 32, background: "var(--sherloq-primary)", borderRadius: "var(--radius-btn)" }}
           className="flex items-center justify-center"
         >
-          <span className="text-white font-semibold text-sm leading-none">S</span>
+          <span className="text-on-accent font-semibold text-sm leading-none">S</span>
         </div>
         <div className="flex flex-col leading-none gap-[3px]">
           <span style={{ color: "var(--text-primary)", fontSize: 14 }} className="font-semibold tracking-tight">
@@ -139,7 +139,7 @@ export default function TopBar({ onOpenCommandPalette }: TopBarProps) {
 
         <button
           style={{ width: 30, height: 30, background: "var(--sherloq-primary)", borderRadius: 9 }}
-          className="flex items-center justify-center text-white text-[11px] font-semibold cursor-pointer hover:opacity-90 transition-opacity"
+          className="flex items-center justify-center text-on-accent text-[11px] font-semibold cursor-pointer hover:opacity-90 transition-opacity"
         >
           OS
         </button>

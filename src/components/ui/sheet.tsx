@@ -19,7 +19,7 @@ const SheetOverlay = React.forwardRef<
   <SheetPrimitive.Overlay
     className={cn(
       // Matches dialog overlay — soft blur. sheet-overlay → Fade-Animation (index.css)
-      "fixed inset-0 z-50 bg-[#0B1120]/40 backdrop-blur-sm sheet-overlay",
+      "fixed inset-0 z-50 bg-[var(--scrim)]/40 backdrop-blur-sm sheet-overlay",
       className
     )}
     {...props}

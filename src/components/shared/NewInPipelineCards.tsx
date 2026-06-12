@@ -143,7 +143,7 @@ export default function NewInPipelineCards({ onSelectLead }: { onSelectLead: (le
 
       {/* Toast — animate-bounce bleibt */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 bg-gray-950 text-white px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2 animate-bounce">
+        <div className="fixed bottom-6 right-6 z-50 bg-inverse-surface text-on-accent px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2 animate-bounce">
           <Check size={14} className="text-emerald-400" strokeWidth={3} />
           <span className="text-xs font-semibold">{toastMessage}</span>
         </div>

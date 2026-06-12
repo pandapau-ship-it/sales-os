@@ -184,6 +184,12 @@ CLAUDE.md und `/docs` werden **im selben Commit** aktualisiert.
   `card`/`popover`/`muted`/`accent`/`primary`/`secondary`/`destructive`/`input`/`ring`) sind in
   `@theme inline` (`index.css`) auf unsere Tokens gemappt. `ui/`-Primitive adaptieren Dark Mode
   damit automatisch — dieses Mapping nicht entfernen.
+- **Beim Portieren von AI-Studio-Code — PFLICHT vor dem ERSTEN Commit: alle hardcodierten Farben
+  auf CSS-Tokens umstellen. `npm run audit` muss grün sein, bevor irgendwas committet wird.
+  Keine Ausnahmen.** Der Check „Design: nur Token-Farben" (`scripts/audit.ts`) markiert
+  `bg/text/border-white|black|gray-*` und direkte Hex-Werte in `.tsx` als **FAIL** → Commit
+  blockiert. Fixe Sonderfälle haben Tokens: weißer Text/Icon auf Farbe → `text-on-accent`,
+  dunkle Flächen (Toast) → `bg-inverse-surface`, Overlays/Backdrops → `bg-scrim`.
 - Toggle (Sonne/Mond) sitzt im Profil/Avatar-Bereich der Sidebar.
 
 ---

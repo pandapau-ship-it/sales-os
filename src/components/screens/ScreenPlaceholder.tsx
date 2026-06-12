@@ -12,8 +12,8 @@ export function ScreenPlaceholder({ title, description }: ScreenPlaceholderProps
       style={{ minHeight: 'calc(100vh - 52px)' }}>
 
       <div
-        className="flex h-14 w-14 items-center justify-center rounded-2xl text-white text-xl font-bold"
-        style={{ background: 'linear-gradient(135deg, #125455, #3f8383)' }}
+        className="flex h-14 w-14 items-center justify-center rounded-2xl text-on-accent text-xl font-bold"
+        style={{ background: 'linear-gradient(135deg, var(--sherloq-primary), var(--sherloq-primary-hover))' }}
       >
         ✦
       </div>

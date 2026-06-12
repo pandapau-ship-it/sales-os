@@ -108,6 +108,11 @@
   --primary-foreground: 0 0% 100%;
   --border-shadcn:    214 14% 91%;
   --radius:           0.5rem;
+
+  /* Fixe Akzent-/Overlay-Tokens (kein bg-white/black/gray nötig) */
+  --on-accent:        #FFFFFF;   /* Text/Icon auf farbigem/dunklem Grund — bleibt hell in beiden Modi */
+  --inverse-surface:  #111827;   /* dunkle Fläche (Toasts) — Light */
+  --scrim:            #0B1120;   /* Overlay/Backdrop — fix dunkel in beiden Modi */
 }
 
 /* ─── Dark Mode — überschreibt NUR die Tokens, @theme inline folgt automatisch ──
@@ -179,6 +184,10 @@
   --primary:          179 53% 36%;
   --primary-foreground: 0 0% 100%;
   --border-shadcn:    220 26% 22%;
+
+  /* Inverse Fläche im Dark Mode etwas heller, damit Toasts auf dunklem Grund abheben.
+     --on-accent / --scrim bleiben bewusst fix (hell bzw. dunkel). */
+  --inverse-surface:  #1E293B;
 }
 
 /* ─── Tailwind v4 @theme — mapped for utility classes ────────────────────────
@@ -243,6 +252,11 @@
   --color-destructive-foreground: #FFFFFF;
   --color-input:                 var(--border);
   --color-ring:                  var(--sherloq-primary);
+
+  /* Fixe Akzent-/Overlay-Tokens */
+  --color-on-accent:             var(--on-accent);
+  --color-inverse-surface:       var(--inverse-surface);
+  --color-scrim:                 var(--scrim);
 
   /* Radius */
   --radius-card:                 var(--radius-card);

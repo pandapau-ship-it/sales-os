@@ -16,7 +16,7 @@ interface TopNavProps {
  * Left: logo lockup + 5 main section pills + Jira (separated, smaller).
  * Right: Cmd+K pill button + user avatar.
  *
- * Active pill: gradient fill (#175253 → #3f8383), white text.
+ * Active pill: gradient fill (var(--sherloq-primary) → var(--sherloq-primary-hover)), white text.
  * Inactive: transparent, gray text — no borders, no dividers.
  * Jira rendered as secondary (smaller pill) after a visual gap.
  */

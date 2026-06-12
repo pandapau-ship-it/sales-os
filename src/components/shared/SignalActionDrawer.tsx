@@ -200,14 +200,14 @@ export default function SignalActionDrawer({
                   </div>
 
                   <div className="bg-app-surface rounded-[18px] border border-border shadow-sm overflow-hidden flex flex-col">
-                    <div className="px-4 py-3 bg-[var(--sherloq-primary)] text-white text-[12px] flex items-center justify-between">
+                    <div className="px-4 py-3 bg-[var(--sherloq-primary)] text-on-accent text-[12px] flex items-center justify-between">
                       <div className="flex items-center gap-2 font-extrabold min-w-0">
                         <Sparkles className="w-[13px] h-[13px] fill-current shrink-0" />
                         <span className="truncate">{t("hunter.signal_panel.composer_header", { name: s.name })}</span>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
                         <Select defaultValue="linkedin_dm">
-                          <SelectTrigger className="w-auto h-auto bg-white/15 border-white/15 text-white rounded-lg px-2 py-1 text-[10px] font-bold gap-1 cursor-pointer">
+                          <SelectTrigger className="w-auto h-auto bg-on-accent/15 border-on-accent/15 text-on-accent rounded-lg px-2 py-1 text-[10px] font-bold gap-1 cursor-pointer">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -217,13 +217,13 @@ export default function SignalActionDrawer({
                             <SelectItem value="followup_task">{t("hunter.signal_panel.channel_followup_task")}</SelectItem>
                           </SelectContent>
                         </Select>
-                        <span className="text-[10px] font-bold uppercase tracking-wider bg-white/20 px-2 py-1 rounded-lg">{t("hunter.signal_panel.auto_draft")}</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider bg-on-accent/20 px-2 py-1 rounded-lg">{t("hunter.signal_panel.auto_draft")}</span>
                       </div>
                     </div>
 
                     <div className="bg-[var(--app-bg)] min-h-[320px] p-4 flex flex-col gap-4">
                       <div className="flex items-start gap-2 max-w-[96%]">
-                        <div className="w-7 h-7 rounded-full bg-[var(--sherloq-primary)] text-white flex items-center justify-center shrink-0 shadow-sm">
+                        <div className="w-7 h-7 rounded-full bg-[var(--sherloq-primary)] text-on-accent flex items-center justify-center shrink-0 shadow-sm">
                           <Sparkles className="w-[14px] h-[14px] fill-current" />
                         </div>
                         <div className="flex-1">
@@ -259,7 +259,7 @@ export default function SignalActionDrawer({
                             }
                           }}
                         />
-                        <button onClick={handleSend} className="w-8 h-8 rounded-full bg-[var(--sherloq-primary)] hover:opacity-90 text-white flex items-center justify-center shrink-0 transition-opacity cursor-pointer">
+                        <button onClick={handleSend} className="w-8 h-8 rounded-full bg-[var(--sherloq-primary)] hover:opacity-90 text-on-accent flex items-center justify-center shrink-0 transition-opacity cursor-pointer">
                           <Send className="w-[14px] h-[14px]" />
                         </button>
                       </div>
@@ -275,7 +275,7 @@ export default function SignalActionDrawer({
                 <section className="space-y-2.5 pt-2">
                   <button
                     onClick={() => actAndClose(t("hunter.signal_panel.toast_applied"), () => onApply?.(draft))}
-                    className="w-full py-3 text-white rounded-full text-xs font-bold shadow-md hover:scale-[1.01] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="w-full py-3 text-on-accent rounded-full text-xs font-bold shadow-md hover:scale-[1.01] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                     style={{ background: "var(--sherloq-gradient)" }}
                   >
                     {t("hunter.signal_panel.apply_reply")} <ArrowUpRight className="w-[14px] h-[14px]" />
@@ -294,7 +294,7 @@ export default function SignalActionDrawer({
       </Sheet>
 
       {toast && (
-        <div className="fixed bottom-6 right-6 z-[120] bg-gray-900 text-white px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2 animate-fade-in">
+        <div className="fixed bottom-6 right-6 z-[120] bg-inverse-surface text-on-accent px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2 animate-fade-in">
           <Check className="w-4 h-4 text-emerald-400" />
           <span className="text-xs font-semibold">{toast}</span>
         </div>

@@ -53,7 +53,7 @@ export default function ScreenSherloqSystem() {
             <p className="text-[11px] text-text-body mt-1">Für einzelne BDRs. Bis zu 50 Leads.</p>
           </div>
           <div className="bg-app-surface shadow-[0_4px_15px_rgb(0,0,0,0.04)] ring-1 ring-sherloq-primary/10 rounded-[24px] p-5 relative">
-            <span className="absolute top-3 right-3 text-[9px] bg-sherloq-primary text-white px-2 py-0.5 rounded-pill font-bold">AKTIV</span>
+            <span className="absolute top-3 right-3 text-[9px] bg-sherloq-primary text-on-accent px-2 py-0.5 rounded-pill font-bold">AKTIV</span>
             <span className="text-[11px] font-mono text-sherloq-primary font-bold">GROWTH</span>
             <h4 className="text-[18px] font-bold text-text-primary mt-2">149€ / AM Team</h4>
             <p className="text-[11px] text-text-body mt-1">Für bis zu 5 AMs. Unlimitierte Sequenzen.</p>

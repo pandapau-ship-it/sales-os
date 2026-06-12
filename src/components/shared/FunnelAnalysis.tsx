@@ -106,7 +106,7 @@ export default function FunnelAnalysis() {
                   onMouseLeave={() => setHoveredStage(null)}
                 >
                   {/* Floating Tooltip above the bar context on hover */}
-                  <div className={`absolute -top-10 bg-gray-900 text-white text-[11px] font-medium py-1.5 px-3 rounded-[12px] shadow-lg z-30 whitespace-nowrap transition-all duration-200 pointer-events-none ${
+                  <div className={`absolute -top-10 bg-inverse-surface text-on-accent text-[11px] font-medium py-1.5 px-3 rounded-[12px] shadow-lg z-30 whitespace-nowrap transition-all duration-200 pointer-events-none ${
                     isHovered ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-1 scale-95'
                   }`}>
                     <div className="flex flex-col items-center text-center">
@@ -114,7 +114,7 @@ export default function FunnelAnalysis() {
                       <span className="text-text-muted text-[10px] mt-0.5 font-medium">{t('hunter.funnel.avgDealValue', { value: stage.avgValue })}</span>
                     </div>
                     {/* Tooltip Arrow */}
-                    <div className="w-2.5 h-2.5 bg-gray-900 rotate-45 absolute -bottom-1 left-1/2 -translate-x-1/2 z-20"></div>
+                    <div className="w-2.5 h-2.5 bg-inverse-surface rotate-45 absolute -bottom-1 left-1/2 -translate-x-1/2 z-20"></div>
                   </div>
 
                   {/* Deals Count & Currency Value */}

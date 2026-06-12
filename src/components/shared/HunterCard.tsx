@@ -75,7 +75,7 @@ export default function HunterCard({
                   : "bg-app-surface border-2 border-[var(--border)] hover:border-[var(--text-muted)]"
               }`}
             >
-              {selected && <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />}
+              {selected && <Check className="w-3.5 h-3.5 text-on-accent" strokeWidth={3} />}
             </div>
           )}
 

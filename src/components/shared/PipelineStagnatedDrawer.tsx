@@ -198,7 +198,7 @@ export default function PipelineStagnatedDrawer({ person, onClose, onTakeAction 
                         onClick={() => setSelectedStage(stage)}
                         className={`px-3.5 py-2 rounded-full border text-[11px] font-extrabold transition-all cursor-pointer ${
                           selectedStage === stage
-                            ? 'bg-[var(--sherloq-primary)] text-white border-[var(--sherloq-primary)] shadow-[0_2px_8px_rgba(23,82,83,0.12)]'
+                            ? 'bg-[var(--sherloq-primary)] text-on-accent border-[var(--sherloq-primary)] shadow-[0_2px_8px_rgba(23,82,83,0.12)]'
                             : 'bg-app-surface border-border text-text-muted hover:border-border-strong'
                         }`}
                       >
@@ -218,16 +218,16 @@ export default function PipelineStagnatedDrawer({ person, onClose, onTakeAction 
                   </div>
 
                   <div className="bg-app-surface rounded-[18px] border border-border shadow-sm overflow-hidden flex flex-col">
-                    <div className="px-4 py-3 bg-[var(--sherloq-primary)] text-white text-[12px] flex items-center justify-between">
+                    <div className="px-4 py-3 bg-[var(--sherloq-primary)] text-on-accent text-[12px] flex items-center justify-between">
                       <span className="font-extrabold flex items-center gap-2">
                         <Sparkles className="w-3.5 h-3.5 fill-current" /> {t('hunter.drawers.stagnated.composerHeader')}
                       </span>
-                      <span className="text-[10px] font-bold uppercase tracking-wider bg-white/20 px-2 py-1 rounded-lg">{t('hunter.common.autoDraft')}</span>
+                      <span className="text-[10px] font-bold uppercase tracking-wider bg-on-accent/20 px-2 py-1 rounded-lg">{t('hunter.common.autoDraft')}</span>
                     </div>
 
                     <div className="bg-[var(--border-subtle)] min-h-[430px] p-4 flex flex-col gap-4">
                       <div className="flex items-start gap-2 max-w-[96%]">
-                        <div className="w-7 h-7 rounded-full bg-[var(--sherloq-primary)] text-white flex items-center justify-center shrink-0 shadow-sm">
+                        <div className="w-7 h-7 rounded-full bg-[var(--sherloq-primary)] text-on-accent flex items-center justify-center shrink-0 shadow-sm">
                           <Sparkles className="w-3.5 h-3.5 fill-current" />
                         </div>
                         <div className="flex-1">
@@ -257,7 +257,7 @@ export default function PipelineStagnatedDrawer({ person, onClose, onTakeAction 
                             </>
                           ) : (
                             <>
-                              <div className="w-7 h-7 rounded-full bg-[var(--sherloq-primary)] text-white flex items-center justify-center shrink-0 shadow-sm">
+                              <div className="w-7 h-7 rounded-full bg-[var(--sherloq-primary)] text-on-accent flex items-center justify-center shrink-0 shadow-sm">
                                 <Sparkles className="w-3.5 h-3.5 fill-current" />
                               </div>
                               <div className="flex-1">
@@ -287,7 +287,7 @@ export default function PipelineStagnatedDrawer({ person, onClose, onTakeAction 
                             }
                           }}
                         />
-                        <button onClick={handleSendInstruction} className="w-8 h-8 rounded-full bg-[var(--sherloq-primary)] hover:bg-[var(--sherloq-primary)] text-white flex items-center justify-center shrink-0 transition-colors cursor-pointer">
+                        <button onClick={handleSendInstruction} className="w-8 h-8 rounded-full bg-[var(--sherloq-primary)] hover:bg-[var(--sherloq-primary)] text-on-accent flex items-center justify-center shrink-0 transition-colors cursor-pointer">
                           <Send className="w-3.5 h-3.5" />
                         </button>
                       </div>
@@ -302,7 +302,7 @@ export default function PipelineStagnatedDrawer({ person, onClose, onTakeAction 
                 <section className="space-y-2 pt-2">
                   <button
                     onClick={() => actAndClose(t('hunter.drawers.stagnated.toastSavedStageChanged', { stage: selectedStage }), () => onTakeAction(draftText))}
-                    className="w-full py-3 text-white rounded-full text-[13px] font-bold shadow-md hover:scale-[1.01] transition-transform cursor-pointer"
+                    className="w-full py-3 text-on-accent rounded-full text-[13px] font-bold shadow-md hover:scale-[1.01] transition-transform cursor-pointer"
                     style={{ background: "var(--sherloq-gradient)" }}
                   >
                     {t('hunter.drawers.stagnated.saveAndChangeStage')}
@@ -319,7 +319,7 @@ export default function PipelineStagnatedDrawer({ person, onClose, onTakeAction 
       </Sheet>
 
       {showToast && (
-        <div className="fixed bottom-6 right-6 z-[120] bg-gray-900 text-white px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2 animate-fade-in">
+        <div className="fixed bottom-6 right-6 z-[120] bg-inverse-surface text-on-accent px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2 animate-fade-in">
           <Check className="w-4 h-4 text-emerald-400" />
           <span className="text-xs font-semibold">{toastMessage}</span>
         </div>

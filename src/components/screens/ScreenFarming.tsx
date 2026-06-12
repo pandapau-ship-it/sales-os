@@ -96,13 +96,13 @@ export default function ScreenFarming({
               onClick={() => setSubTab(item.id as any)}
               className={`px-3.5 py-1.5 text-[12px] font-medium transition-all rounded-[9px] cursor-pointer flex items-center gap-1.5 ${
                 isActive
-                  ? 'bg-sherloq-primary text-white'
+                  ? 'bg-sherloq-primary text-on-accent'
                   : 'text-text-body hover:bg-app-bg hover:text-text-primary'
               }`}
             >
               <span>{item.label}</span>
               {item.count !== undefined && (
-                <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-[5px] ${isActive ? 'bg-white/20 text-white' : 'bg-border text-text-muted'}`}>
+                <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-[5px] ${isActive ? 'bg-on-accent/20 text-on-accent' : 'bg-border text-text-muted'}`}>
                   {item.count}
                 </span>
               )}
@@ -173,7 +173,7 @@ export default function ScreenFarming({
                 onClick={selectedCustomerIds.length === customers.length ? deselectAll : selectAll}
                 className="flex items-center justify-center w-[22px] h-[22px] rounded-md bg-sherloq-dark border border-sherloq-dark"
               >
-                <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />
+                <Check className="w-3.5 h-3.5 text-on-accent" strokeWidth={3} />
               </button>
               <span className="text-[13px] font-bold text-text-primary">
                 {selectedCustomerIds.length} {selectedCustomerIds.length === 1 ? 'Kunde' : 'Kunden'} ausgewählt
@@ -212,13 +212,13 @@ export default function ScreenFarming({
                       selectedCustomerIds.includes(cust.id) ? 'bg-sherloq-dark opacity-100 border-sherloq-dark' : 'bg-app-surface border-2 border-border hover:border-text-muted'
                     }`}
                   >
-                    {selectedCustomerIds.includes(cust.id) && <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />}
+                    {selectedCustomerIds.includes(cust.id) && <Check className="w-3.5 h-3.5 text-on-accent" strokeWidth={3} />}
                   </div>
 
                   {/* Avatar & Info */}
                   <div className="flex items-center gap-4 flex-1 min-w-0 ml-0 group-hover:ml-8 transition-all duration-300">
                     <div className="relative shrink-0">
-                      <div className="w-9 h-9 rounded-[10px] bg-sherloq-primary text-white flex items-center justify-center text-[12px] font-bold">
+                      <div className="w-9 h-9 rounded-[10px] bg-sherloq-primary text-on-accent flex items-center justify-center text-[12px] font-bold">
                         {cust.person.initials}
                       </div>
                     </div>
@@ -266,12 +266,12 @@ export default function ScreenFarming({
                   <div className="flex items-center gap-4 pl-4 border-l border-border-subtle shrink-0 justify-between md:justify-end">
                     <div className="flex flex-col items-end hidden sm:flex w-[130px]">
                       <span className="text-[14px] font-bold text-text-primary whitespace-nowrap">vor 5 Tagen</span>
-                      <div className="flex items-center justify-end gap-1 mt-0.5 text-[#B03020] font-medium text-[11px] whitespace-nowrap w-full">
+                      <div className="flex items-center justify-end gap-1 mt-0.5 text-[var(--icp-low)] font-medium text-[11px] whitespace-nowrap w-full">
                         8T ohne Login <AlertTriangle className="w-3 h-3" strokeWidth={2} />
                       </div>
                     </div>
                     <div className="flex items-center gap-3 relative w-[90px] justify-end">
-                      <button className="w-8 h-8 flex items-center justify-center text-[#ADB5BD] hover:text-text-primary transition-colors rounded-pill hover:bg-app-bg">
+                      <button className="w-8 h-8 flex items-center justify-center text-[var(--text-muted)] hover:text-text-primary transition-colors rounded-pill hover:bg-app-bg">
                         {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                       </button>
                       <button
@@ -430,7 +430,7 @@ export default function ScreenFarming({
                       {cust.person.avatarUrl ? (
                         <img src={cust.person.avatarUrl} alt={cust.person.name} className="w-9 h-9 rounded-pill object-cover" />
                       ) : (
-                        <div className="w-9 h-9 rounded-pill bg-sherloq-primary text-white flex items-center justify-center font-sans font-medium text-[12px]">
+                        <div className="w-9 h-9 rounded-pill bg-sherloq-primary text-on-accent flex items-center justify-center font-sans font-medium text-[12px]">
                           {cust.person.initials}
                         </div>
                       )}
@@ -465,7 +465,7 @@ export default function ScreenFarming({
                         onClick={() => onSelectCustomer(cust)}
                         className={`text-[11px] font-semibold px-4 py-1.5 rounded-pill border cursor-pointer transition-all ${
                           isCritical
-                            ? 'bg-[var(--signal-urgent-bg)] border-[#E8590C]/20 text-signal-urgent hover:bg-[var(--signal-urgent-bg)]/80'
+                            ? 'bg-[var(--signal-urgent-bg)] border-[var(--signal-urgent-text)]/20 text-signal-urgent hover:bg-[var(--signal-urgent-bg)]/80'
                             : 'bg-app-surface border-border hover:bg-app-bg text-text-body'
                         }`}
                       >

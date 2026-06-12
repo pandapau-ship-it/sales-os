@@ -103,7 +103,7 @@ export default function CustomerDrawer({
             <div className="flex items-center justify-between mb-2 mt-4 pr-12">
               <div className="flex items-center gap-4">
                 <div className="relative">
-                  <div className="w-14 h-14 rounded-[14px] bg-sherloq-primary text-white flex items-center justify-center font-sans font-bold text-[20px]">
+                  <div className="w-14 h-14 rounded-[14px] bg-sherloq-primary text-on-accent flex items-center justify-center font-sans font-bold text-[20px]">
                     {person.person.initials}
                   </div>
                 </div>
@@ -123,7 +123,7 @@ export default function CustomerDrawer({
                     </span>
                     <span className="text-icon-muted">•</span>
                     <div className="flex items-center gap-1.5">
-                      <div className="bg-[var(--text-primary)] text-white text-[9px] w-4 h-4 flex items-center justify-center rounded-[4px] font-bold">
+                      <div className="bg-[var(--text-primary)] text-on-accent text-[9px] w-4 h-4 flex items-center justify-center rounded-[4px] font-bold">
                         {person.person.company.charAt(0).toUpperCase()}
                       </div>
                       <span className="font-semibold text-text-primary">
@@ -314,10 +314,10 @@ export default function CustomerDrawer({
                       <div className="absolute left-[8%] right-[8%] top-1/2 -translate-y-1/2 h-[2px] bg-[var(--border)] z-0" />
                       {/* Active Line (up to step 3) */}
                       <div className="absolute left-[8%] right-[50%] top-1/2 -translate-y-1/2 h-[2px] bg-[var(--signal-success-text)] z-0" />
-                      <div className="relative z-10 w-9 h-9 rounded-pill bg-[var(--signal-success-text)] flex items-center justify-center text-white border-2 border-app-surface shadow-sm cursor-pointer">
+                      <div className="relative z-10 w-9 h-9 rounded-pill bg-[var(--signal-success-text)] flex items-center justify-center text-on-accent border-2 border-app-surface shadow-sm cursor-pointer">
                         <Mail className="w-4 h-4" />
                       </div>
-                      <div className="relative z-10 w-9 h-9 rounded-pill bg-[var(--signal-success-text)] flex items-center justify-center text-white border-2 border-app-surface shadow-sm cursor-pointer"></div>
+                      <div className="relative z-10 w-9 h-9 rounded-pill bg-[var(--signal-success-text)] flex items-center justify-center text-on-accent border-2 border-app-surface shadow-sm cursor-pointer"></div>
                       <div className="relative z-10 w-10 h-10 rounded-pill bg-app-surface border-[2.5px] border-[var(--signal-success-text)] flex items-center justify-center text-signal-success shadow-sm cursor-pointer">
                         <Mail className="w-4 h-4" />
                       </div>
@@ -451,7 +451,7 @@ export default function CustomerDrawer({
 
                   {/* Upsell Potential */}
                   {castedCustomer.upsellOpportunity && (
-                    <div className="bg-app-surface border border-border rounded-[14px] p-6 shadow-card border-l-4 border-l-[#10B981]">
+                    <div className="bg-app-surface border border-border rounded-[14px] p-6 shadow-card border-l-4 border-l-[var(--signal-success-text)]">
                       <h3 className="text-[10px] font-bold text-signal-success uppercase tracking-wider font-mono mb-4 flex items-center gap-2">
                         UPSELL POTENTIAL
                       </h3>

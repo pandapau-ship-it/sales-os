@@ -88,7 +88,7 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
               <header className="h-[74px] px-6 border-b border-border flex items-center justify-between shrink-0 bg-app-surface z-30">
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="relative shrink-0">
-                    <div className={`w-11 h-11 rounded-full text-white flex items-center justify-center font-extrabold text-[15px] shadow-sm ${s.avatarBg || "bg-[var(--icp-medium)]"}`}>
+                    <div className={`w-11 h-11 rounded-full text-on-accent flex items-center justify-center font-extrabold text-[15px] shadow-sm ${s.avatarBg || "bg-[var(--icp-medium)]"}`}>
                       {s.avatarInitials || "SJ"}
                     </div>
                     <span className="absolute bottom-0 right-0 w-3 h-3 bg-[var(--signal-warn-text)] border-2 border-[var(--surface)] rounded-full"></span>
@@ -159,7 +159,7 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
                     <span className="inline-flex items-center gap-1.5 text-[12px] font-extrabold text-[var(--sherloq-primary)]">
                       <Mail className="w-3.5 h-3.5" /> {t('hunter.drawers.noTask.emailRecommended')}
                     </span>
-                    <button onClick={handleApplySuggestion} className="px-3 py-1.5 bg-[var(--sherloq-primary)] text-white rounded-lg text-[11px] font-bold cursor-pointer">
+                    <button onClick={handleApplySuggestion} className="px-3 py-1.5 bg-[var(--sherloq-primary)] text-on-accent rounded-lg text-[11px] font-bold cursor-pointer">
                       {t('hunter.common.apply')}
                     </button>
                   </div>
@@ -239,31 +239,31 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
                       <div className="flex gap-2">
                         <button
                           onClick={() => setChannel("mail")}
-                          className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all cursor-pointer ${activeChannel === 'mail' ? 'bg-[var(--sherloq-primary)] text-white border-transparent' : 'bg-app-bg border-border text-text-muted hover:bg-app-bg'}`}
+                          className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all cursor-pointer ${activeChannel === 'mail' ? 'bg-[var(--sherloq-primary)] text-on-accent border-transparent' : 'bg-app-bg border-border text-text-muted hover:bg-app-bg'}`}
                         >
                           <Mail className="w-[18px] h-[18px]" />
                         </button>
                         <button
                           onClick={() => setChannel("linkedin")}
-                          className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all cursor-pointer ${activeChannel === 'linkedin' ? 'bg-[var(--sherloq-primary)] text-white border-transparent' : 'bg-app-bg border-border text-text-muted hover:bg-app-bg'}`}
+                          className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all cursor-pointer ${activeChannel === 'linkedin' ? 'bg-[var(--sherloq-primary)] text-on-accent border-transparent' : 'bg-app-bg border-border text-text-muted hover:bg-app-bg'}`}
                         >
                           <LinkedinIcon className="w-[18px] h-[18px]" />
                         </button>
                         <button
                           onClick={() => setChannel("phone")}
-                          className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all cursor-pointer ${activeChannel === 'phone' ? 'bg-[var(--sherloq-primary)] text-white border-transparent' : 'bg-app-bg border-border text-text-muted hover:bg-app-bg'}`}
+                          className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all cursor-pointer ${activeChannel === 'phone' ? 'bg-[var(--sherloq-primary)] text-on-accent border-transparent' : 'bg-app-bg border-border text-text-muted hover:bg-app-bg'}`}
                         >
                           <Phone className="w-[18px] h-[18px]" />
                         </button>
                         <button
                           onClick={() => setChannel("calendar")}
-                          className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all cursor-pointer ${activeChannel === 'calendar' ? 'bg-[var(--sherloq-primary)] text-white border-transparent' : 'bg-app-bg border-border text-text-muted hover:bg-app-bg'}`}
+                          className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all cursor-pointer ${activeChannel === 'calendar' ? 'bg-[var(--sherloq-primary)] text-on-accent border-transparent' : 'bg-app-bg border-border text-text-muted hover:bg-app-bg'}`}
                         >
                           <Calendar className="w-[18px] h-[18px]" />
                         </button>
                         <button
                           onClick={() => setChannel("other")}
-                          className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all cursor-pointer ${activeChannel === 'other' ? 'bg-[var(--sherloq-primary)] text-white border-transparent' : 'bg-app-bg border-border text-text-muted hover:bg-app-bg'}`}
+                          className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all cursor-pointer ${activeChannel === 'other' ? 'bg-[var(--sherloq-primary)] text-on-accent border-transparent' : 'bg-app-bg border-border text-text-muted hover:bg-app-bg'}`}
                         >
                           <ClipboardList className="w-[18px] h-[18px]" />
                         </button>
@@ -313,16 +313,16 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
                         </label>
 
                         <div className="flex gap-1.5">
-                          <button onClick={() => setPriority("low")} className={`px-2 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer ${activePriority === 'low' ? 'bg-[var(--sherloq-primary)] text-white' : 'bg-app-bg text-text-muted'}`}>
+                          <button onClick={() => setPriority("low")} className={`px-2 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer ${activePriority === 'low' ? 'bg-[var(--sherloq-primary)] text-on-accent' : 'bg-app-bg text-text-muted'}`}>
                             {t('hunter.drawers.noTask.low')}
                           </button>
-                          <button onClick={() => setPriority("medium")} className={`px-2 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer ${activePriority === 'medium' ? 'bg-[var(--sherloq-primary)] text-white' : 'bg-app-bg text-text-muted'}`}>
+                          <button onClick={() => setPriority("medium")} className={`px-2 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer ${activePriority === 'medium' ? 'bg-[var(--sherloq-primary)] text-on-accent' : 'bg-app-bg text-text-muted'}`}>
                             {t('hunter.drawers.noTask.medium')}
                           </button>
-                          <button onClick={() => setPriority("high")} className={`px-2 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer ${activePriority === 'high' ? 'bg-[var(--sherloq-primary)] text-white' : 'bg-app-bg text-text-muted'}`}>
+                          <button onClick={() => setPriority("high")} className={`px-2 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer ${activePriority === 'high' ? 'bg-[var(--sherloq-primary)] text-on-accent' : 'bg-app-bg text-text-muted'}`}>
                             {t('hunter.drawers.noTask.high')}
                           </button>
-                          <button onClick={() => setPriority("urgent")} className={`px-2 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer ${activePriority === 'urgent' ? 'bg-[var(--sherloq-primary)] text-white' : 'bg-app-bg text-text-muted'}`}>
+                          <button onClick={() => setPriority("urgent")} className={`px-2 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer ${activePriority === 'urgent' ? 'bg-[var(--sherloq-primary)] text-on-accent' : 'bg-app-bg text-text-muted'}`}>
                             {t('hunter.drawers.noTask.urgent')}
                           </button>
                         </div>
@@ -334,7 +334,7 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
                         </label>
 
                         <div className="flex items-center gap-2 bg-app-bg p-1.5 rounded-xl">
-                          <div className="w-6 h-6 rounded-full bg-sherloq-primary text-white text-[10px] flex items-center justify-center font-bold">
+                          <div className="w-6 h-6 rounded-full bg-sherloq-primary text-on-accent text-[10px] flex items-center justify-center font-bold">
                             ME
                           </div>
                           <span className="text-[12px] font-bold text-text-body">
@@ -382,7 +382,7 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
 
                 {/* AKTIONEN */}
                 <section className="space-y-3 pt-1">
-                  <button onClick={handleSave} className="w-full py-3 text-white rounded-full text-[13px] font-extrabold shadow-md hover:scale-[1.01] transition-transform flex items-center justify-center gap-2 cursor-pointer" style={{ background: "var(--sherloq-gradient)" }}>
+                  <button onClick={handleSave} className="w-full py-3 text-on-accent rounded-full text-[13px] font-extrabold shadow-md hover:scale-[1.01] transition-transform flex items-center justify-center gap-2 cursor-pointer" style={{ background: "var(--sherloq-gradient)" }}>
                     <Check className="w-4 h-4" />
                     {t('hunter.common.saveTask')}
                   </button>
@@ -401,7 +401,7 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
       </Sheet>
 
       {showToast && (
-        <div className="fixed bottom-6 right-6 z-[120] bg-gray-950 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 animate-fade-in">
+        <div className="fixed bottom-6 right-6 z-[120] bg-inverse-surface text-on-accent px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 animate-fade-in">
           <CheckCircle2 className="w-4 h-4 text-emerald-400" />
           <span className="text-xs font-semibold">{toastMessage}</span>
         </div>

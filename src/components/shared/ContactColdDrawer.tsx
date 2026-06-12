@@ -182,7 +182,7 @@ export default function ContactColdDrawer({ person, onClose }: ContactColdDrawer
                       onClick={() => setChannel("LinkedIn")}
                       className={`px-4 py-2 rounded-full border text-[11px] font-extrabold transition-all cursor-pointer ${
                         activeChannel === "LinkedIn"
-                          ? "bg-[var(--sherloq-primary)] text-white border-[var(--sherloq-primary)] shadow-[0_2px_8px_rgba(23,82,83,0.12)]"
+                          ? "bg-[var(--sherloq-primary)] text-on-accent border-[var(--sherloq-primary)] shadow-[0_2px_8px_rgba(23,82,83,0.12)]"
                           : "bg-app-surface border-border text-text-muted"
                       }`}
                     >
@@ -192,7 +192,7 @@ export default function ContactColdDrawer({ person, onClose }: ContactColdDrawer
                       onClick={() => setChannel("Email")}
                       className={`px-4 py-2 rounded-full border text-[11px] font-extrabold transition-all cursor-pointer ${
                         activeChannel === "Email"
-                          ? "bg-[var(--sherloq-primary)] text-white border-[var(--sherloq-primary)] shadow-[0_2px_8px_rgba(23,82,83,0.12)]"
+                          ? "bg-[var(--sherloq-primary)] text-on-accent border-[var(--sherloq-primary)] shadow-[0_2px_8px_rgba(23,82,83,0.12)]"
                           : "bg-app-surface border-border text-text-muted"
                       }`}
                     >
@@ -201,12 +201,12 @@ export default function ContactColdDrawer({ person, onClose }: ContactColdDrawer
                   </div>
 
                   <div className="bg-app-surface rounded-[18px] border border-border shadow-sm overflow-hidden">
-                    <div className="px-4 py-3 bg-[var(--channel-linkedin)] text-white text-[12px] flex items-center justify-between">
+                    <div className="px-4 py-3 bg-[var(--channel-linkedin)] text-on-accent text-[12px] flex items-center justify-between">
                       <span className="font-extrabold flex items-center gap-2">
                         <LinkedinIcon className="w-3.5 h-3.5" />
                         {t('hunter.drawers.cold.linkedinComposer')}
                       </span>
-                      <span className="text-[10px] font-bold uppercase tracking-wider bg-white/20 px-2 py-1 rounded-lg">
+                      <span className="text-[10px] font-bold uppercase tracking-wider bg-on-accent/20 px-2 py-1 rounded-lg">
                         {t('hunter.common.autoDraft')}
                       </span>
                     </div>
@@ -266,7 +266,7 @@ export default function ContactColdDrawer({ person, onClose }: ContactColdDrawer
 
                 {/* BLOCK 5: AKTIONEN */}
                 <section className="space-y-2 pt-2">
-                  <button onClick={() => triggerToast(t('hunter.drawers.cold.toastLinkedinSent'))} className="w-full py-3 bg-gradient-to-r from-[var(--sherloq-primary)] to-[var(--channel-linkedin)] text-white rounded-full text-[13px] font-extrabold shadow-md hover:scale-[1.01] transition-transform flex items-center justify-center gap-2 cursor-pointer">
+                  <button onClick={() => triggerToast(t('hunter.drawers.cold.toastLinkedinSent'))} className="w-full py-3 bg-gradient-to-r from-[var(--sherloq-primary)] to-[var(--channel-linkedin)] text-on-accent rounded-full text-[13px] font-extrabold shadow-md hover:scale-[1.01] transition-transform flex items-center justify-center gap-2 cursor-pointer">
                     <Send className="w-4 h-4" />
                     {t('hunter.drawers.cold.sendOnLinkedin')}
                   </button>
@@ -290,7 +290,7 @@ export default function ContactColdDrawer({ person, onClose }: ContactColdDrawer
       </Sheet>
 
       {showToast && (
-        <div className="fixed bottom-6 right-6 z-[120] bg-gray-950 text-white px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2 animate-fade-in">
+        <div className="fixed bottom-6 right-6 z-[120] bg-inverse-surface text-on-accent px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2 animate-fade-in">
           <Check className="w-4 h-4 text-emerald-400" />
           <span className="text-xs font-semibold">{toastMessage}</span>
         </div>

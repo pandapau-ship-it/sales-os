@@ -52,7 +52,7 @@ export default function Login() {
             style={{ width: 40, height: 40, background: "var(--sherloq-primary)", borderRadius: "var(--radius-btn)" }}
             className="flex items-center justify-center"
           >
-            <span className="text-white font-semibold text-base leading-none">S</span>
+            <span className="text-on-accent font-semibold text-base leading-none">S</span>
           </div>
           <div className="text-center">
             <h1 className="text-[16px] font-semibold text-text-primary">{t("login.title")}</h1>

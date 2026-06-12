@@ -41,7 +41,7 @@ export default function Avatar({ name, src, size = "md", className }: AvatarProp
       style={{ width: px, height: px }}
       className={cn(
         "rounded-full overflow-hidden shrink-0 flex items-center justify-center select-none",
-        "bg-sherloq-primary text-white font-semibold",
+        "bg-sherloq-primary text-on-accent font-semibold",
         font,
         className,
       )}
