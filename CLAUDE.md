@@ -165,6 +165,25 @@ CLAUDE.md und `/docs` werden **im selben Commit** aktualisiert.
   Darum: Strukturelles (bg/text/border) immer über Token-Klassen, Akzente über Signal-Tokens.
 - Umschalten: `useTheme()` (`src/hooks/useTheme.ts`) setzt `data-theme` auf `<html>` +
   localStorage. FOUC-Guard in `index.html` setzt das Attribut vor dem ersten Paint.
+- **Niemals `bg-white`, `bg-gray-*`, `text-gray-*`, `border-gray-*` oder semantische Tailwind-
+  Farben (`bg-blue-50`, `text-emerald-700`, `text-red-600` …) direkt — immer Token-Klassen.**
+  Diese sind fixe Light-Werte und **brechen Dark Mode** (sie sind kein Hex, rutschen also durch
+  `npm run audit` — trotzdem verboten). Pflicht-Mapping:
+  | Hardcodiert | Token-Klasse |
+  |---|---|
+  | `bg-white` | `bg-app-surface` |
+  | `bg-gray-50` / `bg-gray-100` | `bg-app-bg` |
+  | `text-gray-900` | `text-text-primary` |
+  | `text-gray-700` / `-800` | `text-text-body` |
+  | `text-gray-400` / `-500` / `-600` | `text-text-muted` |
+  | `border-gray-100` / `-200` | `border-border` |
+  | `bg-blue-*` / `text-blue-*` | `…-[var(--signal-info-*)]` |
+  | `emerald` / `amber` / `red`-Tints | `signal-success` / `signal-warn` / `signal-urgent` |
+  Ausnahmen nur bewusst: `text-white` auf farbigem Grund · Overlays/Toasts, die in beiden Modi dunkel sind.
+- **shadcn-Primitive teilen denselben Token-Satz** — die shadcn-Farbnamen (`background`/`foreground`/
+  `card`/`popover`/`muted`/`accent`/`primary`/`secondary`/`destructive`/`input`/`ring`) sind in
+  `@theme inline` (`index.css`) auf unsere Tokens gemappt. `ui/`-Primitive adaptieren Dark Mode
+  damit automatisch — dieses Mapping nicht entfernen.
 - Toggle (Sonne/Mond) sitzt im Profil/Avatar-Bereich der Sidebar.
 
 ---
