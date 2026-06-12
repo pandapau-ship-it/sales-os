@@ -2,11 +2,72 @@ import { useState, useEffect } from 'react';
 import {
   ArrowUpRight, X, Mail, Phone, Globe, AlertTriangle, Clock, Check,
   Zap, Briefcase, Calendar, ChevronDown, Pencil, Trash2, Save, Plus,
-  StickyNote, BarChart3
+  StickyNote
 } from 'lucide-react';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
+import {
+  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
+} from '@/components/ui/dropdown-menu';
 import LinkedinIcon from '@/components/shared/LinkedinIcon';
 import BrandLogo from '@/components/shared/BrandLogo';
+
+/** Kanonische Default-Stages (Spec §3.2) — bis zum DB-Wiring dokumentierter Fallback. */
+const PIPELINE_STAGES = ['Backlog', 'Demo vereinbart', 'Follow-up offen', 'Onboarding offen', 'Free Trial', 'Gewonnen'];
+
+/** Mock-Defaults für die vom User editierbaren Felder (kein System-Wert). */
+const DEFAULT_CONTACT = {
+  email: 'c.brand@logixflow.de',
+  phone: '+49 123 456789',
+  linkedin: 'in/christianbrand',
+  web: 'logixflow.de',
+};
+const DEFAULT_KURZAKTE = [
+  'Refactoring der Outreach-Struktur gestartet — sucht aktiv ein Tool zur Senkung der SDR Ramp-Up-Time.',
+  'Persönlichkeit: analytisch & datengetrieben — reagiert auf klare ROI-Argumentation, wenig Smalltalk.',
+  'Objection: Budget-Freeze bis Q3 — echter Einwand, kein Vorwand. Der ROI-Case ist der Hebel.',
+  'Buying Signal: Demo sehr positiv, fragte nach Implementierungs-Zeitplan. Abschluss realistisch ab Q4.',
+];
+
+/**
+ * EditableInline — einzeiliges Inline-Edit für nicht-systemvorgegebene Felder.
+ * Stift → Eingabe + Speichern/Abbrechen (Enter speichert, Escape bricht ab).
+ */
+function EditableInline({
+  value, onSave, type = 'text',
+}: { value: string; onSave: (v: string) => void; type?: string }) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(value);
+  const start = () => { setDraft(value); setEditing(true); };
+  const save = () => { onSave(draft.trim()); setEditing(false); };
+
+  if (editing) {
+    return (
+      <span className="inline-flex items-center gap-1">
+        <input
+          autoFocus
+          type={type}
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') { e.preventDefault(); save(); }
+            if (e.key === 'Escape') { e.preventDefault(); setEditing(false); }
+          }}
+          className="bg-app-bg border border-[var(--sherloq-primary)] rounded-[7px] px-1.5 py-0.5 text-[12px] text-text-primary outline-none w-[150px] max-w-[55vw]"
+        />
+        <button onClick={save} aria-label="Speichern" className="text-[var(--sherloq-primary)] hover:opacity-80 cursor-pointer shrink-0"><Check className="w-3.5 h-3.5" /></button>
+        <button onClick={() => setEditing(false)} aria-label="Abbrechen" className="text-text-muted hover:text-text-primary cursor-pointer shrink-0"><X className="w-3.5 h-3.5" /></button>
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1 group/edit">
+      <span className="truncate">{value}</span>
+      <button onClick={start} aria-label="Bearbeiten" className="opacity-0 group-hover/edit:opacity-100 transition-opacity text-text-muted hover:text-[var(--sherloq-primary)] cursor-pointer shrink-0">
+        <Pencil className="w-3 h-3" />
+      </button>
+    </span>
+  );
+}
 
 /**
  * HunterSidepanel — Info Panel (§22.1, 820px). Nutzt dieselbe Sheet-„drawer"-Shell
@@ -20,9 +81,25 @@ export default function HunterSidepanel({ person: personProp, onClose }: { perso
   const [expandedComm, setExpandedComm] = useState<Record<number, boolean>>({});
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+  // Vom User editierbare Felder (kein System-Wert) — lokaler Mock-State.
+  const [stage, setStage] = useState<string>('');
+  const [contact, setContact] = useState(DEFAULT_CONTACT);
+  const [kurzakte, setKurzakte] = useState<string[]>(DEFAULT_KURZAKTE);
+  const [editingKurzakte, setEditingKurzakte] = useState(false);
+  const [kurzakteDraft, setKurzakteDraft] = useState('');
+
   // Open-State von der Prop; Inhalt aus gehaltener Kopie (wie CustomerDrawer).
   const [display, setDisplay] = useState<any>(personProp);
-  useEffect(() => { if (personProp) setDisplay(personProp); }, [personProp]);
+  useEffect(() => {
+    if (personProp) {
+      setDisplay(personProp);
+      // Editierbare Felder beim Öffnen auf den Stand des Kontakts zurücksetzen.
+      setStage(personProp.stage || 'Demo vereinbart');
+      setContact(DEFAULT_CONTACT);
+      setKurzakte(DEFAULT_KURZAKTE);
+      setEditingKurzakte(false);
+    }
+  }, [personProp]);
   const isOpen = personProp !== null;
   const person = display;
 
@@ -105,31 +182,49 @@ export default function HunterSidepanel({ person: personProp, onClose }: { perso
 
           <div className="flex flex-col items-center">
             <span className="text-[9px] font-extrabold text-text-muted uppercase tracking-widest mb-2">Stage</span>
-            <span className="px-5 py-1.5 rounded-full bg-app-surface border border-border text-text-body text-[12px] font-extrabold leading-none shadow-sm">
-              {person.stage || "Demo"}
-            </span>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="px-4 py-1.5 rounded-full bg-app-surface border border-border text-text-body text-[12px] font-extrabold leading-none shadow-sm hover:border-[var(--sherloq-primary)] hover:text-[var(--sherloq-primary)] transition-colors cursor-pointer flex items-center gap-1.5">
+                  {stage}
+                  <ChevronDown className="w-3.5 h-3.5" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                {PIPELINE_STAGES.map((s) => (
+                  <DropdownMenuItem
+                    key={s}
+                    onClick={() => { setStage(s); showToast(`Stage geändert zu „${s}"`); }}
+                    className="cursor-pointer text-[13px] font-semibold"
+                  >
+                    <span className={`w-1.5 h-1.5 rounded-full ${s === stage ? 'bg-[var(--sherloq-primary)]' : 'bg-[var(--border-strong)]'}`} />
+                    {s}
+                    {s === stage && <Check className="w-3.5 h-3.5 ml-auto text-[var(--sherloq-primary)]" />}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 
         <div className="bg-app-surface border border-border-subtle rounded-full px-5 py-3 mt-10 flex items-center justify-between gap-3 text-[12px] text-text-muted shadow-sm overflow-x-auto">
-          <span className="flex items-center gap-1.5 min-w-0 hover:underline cursor-pointer">
+          <span className="flex items-center gap-1.5 min-w-0">
             <Mail className="w-[13px] h-[13px] text-text-muted shrink-0" />
-            <span className="truncate">c.brand@logixflow.de</span>
+            <EditableInline type="email" value={contact.email} onSave={(v) => { setContact((c) => ({ ...c, email: v })); showToast('E-Mail gespeichert'); }} />
           </span>
-          <span className="h-4 w-px bg-border"></span>
-          <span className="flex items-center gap-1.5 shrink-0 hover:underline cursor-pointer">
+          <span className="h-4 w-px bg-border shrink-0"></span>
+          <span className="flex items-center gap-1.5 shrink-0">
             <Phone className="w-[13px] h-[13px] text-text-muted" />
-            +49 123 456789
+            <EditableInline type="tel" value={contact.phone} onSave={(v) => { setContact((c) => ({ ...c, phone: v })); showToast('Telefon gespeichert'); }} />
           </span>
-          <span className="h-4 w-px bg-border"></span>
-          <span className="flex items-center gap-1.5 shrink-0 hover:underline cursor-pointer">
+          <span className="h-4 w-px bg-border shrink-0"></span>
+          <span className="flex items-center gap-1.5 shrink-0">
             <LinkedinIcon className="w-[13px] h-[13px] text-text-muted" />
-            in/christianbrand
+            <EditableInline value={contact.linkedin} onSave={(v) => { setContact((c) => ({ ...c, linkedin: v })); showToast('LinkedIn gespeichert'); }} />
           </span>
-          <span className="h-4 w-px bg-border"></span>
-          <span className="flex items-center gap-1.5 shrink-0 hover:underline cursor-pointer">
+          <span className="h-4 w-px bg-border shrink-0"></span>
+          <span className="flex items-center gap-1.5 shrink-0">
             <Globe className="w-[13px] h-[13px] text-text-muted" />
-            logixflow.de
+            <EditableInline value={contact.web} onSave={(v) => { setContact((c) => ({ ...c, web: v })); showToast('Webadresse gespeichert'); }} />
           </span>
         </div>
 
@@ -159,29 +254,54 @@ export default function HunterSidepanel({ person: personProp, onClose }: { perso
 
         {activeTab === 'overview' && (
           <div className="space-y-7 animate-fade-in">
-            {/* KI Kurzakte — gleiches Bullet-Design wie die aufklappbare Lead-Kachel */}
+            {/* KI Kurzakte — Bullet-Design + manuell editierbar (Stift) */}
             <div className="bg-app-surface rounded-[12px] p-5 border border-border shadow-[var(--shadow-card)]">
-              <div className="flex items-center gap-2 text-[11px] font-bold font-mono text-[var(--sherloq-primary)] uppercase tracking-wider mb-4">
-                <Zap className="w-4 h-4" /> KI Kurzakte
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2 text-[11px] font-bold font-mono text-[var(--sherloq-primary)] uppercase tracking-wider">
+                  <Zap className="w-4 h-4" /> KI Kurzakte
+                </div>
+                {!editingKurzakte && (
+                  <button onClick={() => { setKurzakteDraft(kurzakte.join('\n')); setEditingKurzakte(true); }} aria-label="Bearbeiten" className="text-text-muted hover:text-[var(--sherloq-primary)] transition-colors cursor-pointer">
+                    <Pencil className="w-3.5 h-3.5" />
+                  </button>
+                )}
               </div>
-              <ul className="flex flex-col gap-3 text-[13px] text-text-body leading-relaxed">
-                <li className="flex items-start gap-2.5">
-                  <span className="w-1.5 h-1.5 bg-[var(--sherloq-primary)] rounded-full mt-1.5 shrink-0" />
-                  Refactoring der Outreach-Struktur gestartet — sucht aktiv ein Tool zur Senkung der SDR Ramp-Up-Time.
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className="w-1.5 h-1.5 bg-[var(--sherloq-primary)] rounded-full mt-1.5 shrink-0" />
-                  Persönlichkeit: analytisch & datengetrieben — reagiert auf klare ROI-Argumentation, wenig Smalltalk.
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className="w-1.5 h-1.5 bg-[var(--sherloq-primary)] rounded-full mt-1.5 shrink-0" />
-                  Objection: Budget-Freeze bis Q3 — echter Einwand, kein Vorwand. Der ROI-Case ist der Hebel.
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className="w-1.5 h-1.5 bg-[var(--sherloq-primary)] rounded-full mt-1.5 shrink-0" />
-                  Buying Signal: Demo sehr positiv, fragte nach Implementierungs-Zeitplan. Abschluss realistisch ab Q4.
-                </li>
-              </ul>
+
+              {editingKurzakte ? (
+                <div className="space-y-2">
+                  <textarea
+                    autoFocus
+                    value={kurzakteDraft}
+                    onChange={(e) => setKurzakteDraft(e.target.value)}
+                    rows={6}
+                    placeholder="Ein Stichpunkt pro Zeile"
+                    className="w-full bg-app-bg border border-[var(--sherloq-primary)] rounded-[10px] p-3 text-[13px] text-text-primary leading-relaxed outline-none resize-none scrollbar-none"
+                  />
+                  <div className="flex items-center justify-end gap-2">
+                    <button onClick={() => setEditingKurzakte(false)} className="px-3 py-1.5 rounded-[10px] border border-border text-text-body text-[11px] font-bold hover:bg-app-bg transition-colors cursor-pointer">Abbrechen</button>
+                    <button
+                      onClick={() => {
+                        const lines = kurzakteDraft.split('\n').map((l) => l.trim()).filter(Boolean);
+                        setKurzakte(lines);
+                        setEditingKurzakte(false);
+                        showToast('KI Kurzakte gespeichert');
+                      }}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] bg-[var(--sherloq-primary)] text-on-accent text-[11px] font-bold hover:opacity-90 transition-opacity cursor-pointer"
+                    >
+                      <Save className="w-3.5 h-3.5" /> Speichern
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <ul className="flex flex-col gap-3 text-[13px] text-text-body leading-relaxed">
+                  {kurzakte.map((line, i) => (
+                    <li key={i} className="flex items-start gap-2.5">
+                      <span className="w-1.5 h-1.5 bg-[var(--sherloq-primary)] rounded-full mt-1.5 shrink-0" />
+                      {line}
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
 
             {/* Aktive Signale — zeigt künftig NUR real vorhandene Signale; jede Zeile ist
@@ -229,7 +349,7 @@ export default function HunterSidepanel({ person: personProp, onClose }: { perso
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-[12px]">
                 <div className="flex flex-col gap-1">
                   <span className="text-text-muted font-mono text-[10px] uppercase tracking-wider">Stage</span>
-                  <span className="font-bold text-text-primary text-[14px]">{person.stage || "Demo vereinbart"}</span>
+                  <span className="font-bold text-text-primary text-[14px]">{stage}</span>
                 </div>
                 <div className="flex flex-col gap-1">
                   <span className="text-text-muted font-mono text-[10px] uppercase tracking-wider">Probability</span>
@@ -615,7 +735,6 @@ export default function HunterSidepanel({ person: personProp, onClose }: { perso
         <button onClick={() => showToast('Mail Aktion gestartet')} className="px-3.5 py-2 border border-border hover:bg-app-bg text-text-body rounded-full text-[12px] font-bold flex-1 transition-colors shadow-sm cursor-pointer hover:-translate-y-0.5 flex items-center justify-center gap-1.5"><Mail className="w-3.5 h-3.5" /> Mail</button>
         <button onClick={() => showToast('LinkedIn Aktion gestartet')} className="px-3.5 py-2 border border-border hover:bg-app-bg text-text-body rounded-full text-[12px] font-bold flex-1 transition-colors shadow-sm cursor-pointer hover:-translate-y-0.5 flex items-center justify-center gap-1.5"><LinkedinIcon className="w-3.5 h-3.5" /> LinkedIn</button>
         <button onClick={() => showToast('Notiz Aktion gestartet')} className="px-3.5 py-2 border border-border hover:bg-app-bg text-text-body rounded-full text-[12px] font-bold flex-1 transition-colors shadow-sm cursor-pointer hover:-translate-y-0.5 flex items-center justify-center gap-1.5"><StickyNote className="w-3.5 h-3.5" /> Notiz</button>
-        <button onClick={() => showToast('Usage geöffnet')} className="px-3.5 py-2 border border-border hover:bg-app-bg text-text-body rounded-full text-[12px] font-bold flex-1 transition-colors shadow-sm cursor-pointer hover:-translate-y-0.5 flex items-center justify-center gap-1.5"><BarChart3 className="w-3.5 h-3.5" /> Usage</button>
       </footer>
         </>
         )}
