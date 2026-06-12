@@ -32,16 +32,29 @@ interface PipelineStagnatedDrawerProps {
  * (slide-in von rechts, Radix-Overlay/Backdrop, custom-scrollbar, X/Backdrop/Escape),
  * Breite 580px. Inhalt/Design unverändert.
  */
+// Kanonische Stages (Spec §3.2). Kommen später aus settings.pipeline_stages —
+// bis zum DB-Wiring dokumentierter Fallback.
+const PIPELINE_STAGES = ["Backlog", "Demo vereinbart", "Follow-up offen", "Onboarding offen", "Free Trial", "Gewonnen"];
+
+/** Nächste Stage relativ zur aktuellen (lockerer Präfix-Match auf den Anzeigenamen). */
+function nextStageFor(current: string): string {
+  const idx = PIPELINE_STAGES.findIndex((s) => s.toLowerCase().startsWith(current.trim().toLowerCase()));
+  if (idx >= 0 && idx < PIPELINE_STAGES.length - 1) return PIPELINE_STAGES[idx + 1];
+  return PIPELINE_STAGES[Math.min(Math.max(idx, 0) + 1, PIPELINE_STAGES.length - 1)];
+}
+
 export default function PipelineStagnatedDrawer({ person, onClose, onTakeAction }: PipelineStagnatedDrawerProps) {
   const { t } = useTranslation();
 
   // Inhalt aus gehaltener Kopie, damit das Panel während der Ausfahr-Animation gefüllt bleibt.
   const [display, setDisplay] = useState<StagnatedPerson | null>(person);
   const [draftText, setDraftText] = useState("");
+  const [selectedStage, setSelectedStage] = useState("");
   useEffect(() => {
     if (person) {
       setDisplay(person);
       setDraftText(`Hi ${person.name.split(" ")[0]}, wollte kurz nachfassen — wie war der interne Stand nach unserem Demo?`);
+      setSelectedStage(nextStageFor(person.stageName));
     }
   }, [person]);
 
@@ -60,6 +73,13 @@ export default function PipelineStagnatedDrawer({ person, onClose, onTakeAction 
     setToastMessage(msg);
     setShowToast(true);
     setTimeout(() => setShowToast(false), 2400);
+  };
+
+  /** Aktion ausführen → Toast → Panel automatisch schließen (Action-Panel-Verhalten §22.2). */
+  const actAndClose = (msg: string, extra?: () => void) => {
+    extra?.();
+    triggerToast(msg);
+    setTimeout(() => onClose(), 1100);
   };
 
   const handleRegenerate = () => {
@@ -166,6 +186,28 @@ export default function PipelineStagnatedDrawer({ person, onClose, onTakeAction 
                   </div>
                 </section>
 
+                {/* Stage wechseln zu — Pills (nächste Stage vorausgewählt) §4.2 */}
+                <section className="space-y-2">
+                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block">
+                    {t('hunter.drawers.stagnated.changeStageTo')}
+                  </span>
+                  <div className="flex gap-2 flex-wrap">
+                    {PIPELINE_STAGES.map((stage) => (
+                      <button
+                        key={stage}
+                        onClick={() => setSelectedStage(stage)}
+                        className={`px-3.5 py-2 rounded-full border text-[11px] font-extrabold transition-all cursor-pointer ${
+                          selectedStage === stage
+                            ? 'bg-[var(--sherloq-primary)] text-white border-[var(--sherloq-primary)] shadow-[0_2px_8px_rgba(23,82,83,0.12)]'
+                            : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
+                        }`}
+                      >
+                        {stage}
+                      </button>
+                    ))}
+                  </div>
+                </section>
+
                 {/* Composer Section */}
                 <section className="space-y-2">
                   <div className="flex items-center justify-between text-[10px] font-bold text-gray-400 uppercase tracking-widest">
@@ -259,19 +301,15 @@ export default function PipelineStagnatedDrawer({ person, onClose, onTakeAction 
 
                 <section className="space-y-2 pt-2">
                   <button
-                    onClick={() => {
-                      onTakeAction(draftText);
-                      onClose();
-                    }}
+                    onClick={() => actAndClose(t('hunter.drawers.stagnated.toastSavedStageChanged', { stage: selectedStage }), () => onTakeAction(draftText))}
                     className="w-full py-3 text-white rounded-full text-[13px] font-bold shadow-md hover:scale-[1.01] transition-transform cursor-pointer"
                     style={{ background: "var(--sherloq-gradient)" }}
                   >
-                    {t('hunter.common.applyReply')}
+                    {t('hunter.drawers.stagnated.saveAndChangeStage')}
                   </button>
-                  <div className="grid grid-cols-3 gap-2">
-                    <button onClick={() => triggerToast(t('hunter.drawers.stagnated.onlySend'))} className="py-2.5 bg-white border border-gray-200 rounded-full text-[11px] font-bold text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors">{t('hunter.drawers.stagnated.onlySend')}</button>
-                    <button onClick={() => triggerToast(t('hunter.drawers.stagnated.changeStage'))} className="py-2.5 bg-white border border-gray-200 rounded-full text-[11px] font-bold text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors">{t('hunter.drawers.stagnated.changeStage')}</button>
-                    <button onClick={() => triggerToast(t('hunter.drawers.signal.toastTask'))} className="py-2.5 bg-white border border-gray-200 rounded-full text-[11px] font-bold text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors">{t('hunter.common.createTask')}</button>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button onClick={() => actAndClose(t('hunter.drawers.stagnated.toastTaskSaved'))} className="py-2.5 bg-white border border-gray-200 rounded-full text-[11px] font-bold text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors">{t('hunter.drawers.stagnated.onlySaveTask')}</button>
+                    <button onClick={() => actAndClose(t('hunter.drawers.stagnated.toastIgnored'))} className="py-2.5 bg-white border border-gray-200 rounded-full text-[11px] font-bold text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors">{t('hunter.common.ignore')}</button>
                   </div>
                 </section>
               </div>

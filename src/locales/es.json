@@ -280,7 +280,13 @@
         "composerHeader": "AI Composer · Antwort-Vorschlag",
         "aiHint": "AI kann Tonalität, Länge, Kanal und CTA anpassen.",
         "onlySend": "Nur senden",
-        "changeStage": "Stage wechseln"
+        "changeStage": "Stage wechseln",
+        "changeStageTo": "Stage wechseln zu",
+        "saveAndChangeStage": "Speichern + Stage wechseln",
+        "onlySaveTask": "Nur Task speichern",
+        "toastSavedStageChanged": "Gespeichert · Stage → {{stage}}",
+        "toastTaskSaved": "Task gespeichert",
+        "toastIgnored": "Signal ignoriert"
       },
       "signal": {
         "composerHeader": "Antwort-Vorschlag · {{name}}",
