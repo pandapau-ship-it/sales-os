@@ -4,7 +4,7 @@
 
 ---
 
-## Current Status: Phase 1 (Datenschicht) als SQL geschrieben ✅ → Phase 2 (Hunter-Screen) next
+## Current Status: Phase 2 (Hunter-Screen) — UI-Vereinheitlichung weitgehend fertig ✅ → DB-Wiring next
 
 > Single Source of Truth für den Umsetzungsstand: **CHECKLIST.md** (`npm run audit` prüft).
 > CLAUDE.md = WARUM/WIE · CHECKLIST.md = WAS-offen · PROGRESS.md = Session-Historie.
@@ -14,7 +14,52 @@
 
 ---
 
+## Offen — Nächste Session (Phase 2 Abschluss → Phase 3 DB)
+
+1. **Side Panels als Basis-Komponenten vereinheitlichen** — Info-Panel (820px) + Action-Panel
+   (580px) als wiederverwendbare Shells extrahieren (analog `HunterCard` für Karten). Die Drawer
+   nutzen bereits dieselbe `ui/sheet`-Shell, aber es fehlt eine gemeinsame Panel-Basis-Komponente.
+2. **PipelineStagnatedDrawer Spec-Flow** — Grundgerüst steht (Commit `6f81f83`); nur noch
+   Feinschliff/Review gegen §1.3/§4.2.
+3. **Empty States für alle Hunter-Tabs** — „Keine Signale heute" · „Noch keine Leads" ·
+   „Keine offenen Follow-ups" · leere Kanban-Spalte „Keine Deals" (bestehende `EmptyState`-
+   Komponente nutzen). Aktuell: **keine** Empty/Loading-States (alles Mock).
+4. **DB-Wiring (Phase 3 Start)** — Mock → echte Queries (`getDeals`/`getSignals`/
+   `getPipelineSettings`), props → `organizationId`/`userId`, TanStack Query (bringt
+   Skeleton/Loading automatisch), Realtime, Routing `HunterReference` → echtes `ScreenHunting`.
+   Composer-`initialDraft` aus `messages` (`status='draft'`, via `generate_message()`).
+
+> **PR #12** (Draft) vorbereiten, aber **NICHT mergen** — auf Freigabe warten.
+
+---
+
 ## Completed
+
+### Phase 2 — Hunter-Screen (Branch `feature/phase-2-hunter`) — Session 2026-06-12
+
+UI-Vereinheitlichung & Komponenten-Standardisierung (alles Mock-Daten, **kein DB-Wiring**).
+Build grün · Audit 0 FAIL durchgehend. Draft-PR #12 offen (nicht gemergt).
+
+- [x] **Design-Etappen 1–6**: Header „Hunter", aktiver Tab Gradient, **673 Hex → CSS-Tokens**,
+  Emoji → Lucide/Dots, Avatare app-weit rund, **alle UI-Strings → i18n** (`hunter.*` in
+  de/en/es; en/es = DE-Kopie bis Phase 4)
+- [x] **Einheitliches Kachel-System** — neue geteilte Komponente
+  `src/components/shared/HunterCard.tsx` + `src/lib/componentBehavior.ts` (EINZIGE Quelle der
+  Werte: `CARD` = Lead-Kachel-Referenz, `ACTION_ROW` = Neu-in-Pipeline-Referenz). **ALLE**
+  Profilkarten nutzen sie: Übersicht · Signals · Neu in Pipeline · Follow-ups · Pipeline-Task-
+  Liste (Leads = Referenz; Kanban-Mini-Karten bauartbedingt separat). Identische Top-Row,
+  Badge-Größe, Breite, Ausrichtung; Chevron → Kurzansicht (KI Kurzakte + Deal Details +
+  Aktionen + Kommunikationskette); grüner Pfeil → 820px Info-Panel — überall gleich.
+  **CLAUDE.md-Pflichtregel verankert** („Kacheln immer HunterCard + componentBehavior").
+- [x] **Side Panels**: `SignalActionDrawer` neu (580px, props-driven, `initialDraft`-ready,
+  nutzt `ui/sheet`-Shell wie Kontakt-Panel) · ContactCold/NoTask/PipelineStagnated auf
+  `ui/sheet` migriert (slide-in, Radix-Backdrop, custom-scrollbar, X/Backdrop/Escape)
+- [x] **PipelineStagnatedDrawer auf Spec-Flow** (§1.3/§4.2): „Stage wechseln zu"-Pills +
+  „Speichern + Stage wechseln"/„Nur Task speichern"/„Ignorieren" *(bereits in dieser Session
+  umgesetzt, Commit `6f81f83` — ggf. nur noch Feinschliff offen)*
+- [x] **shadcn**: Regel verschärft (Primitive bevorzugen); Composer- + Deal-Dropdown → `ui/select`
+
+**Offen (nächste Session) — siehe unten „Offen / Nächste Schritte".**
 
 ### Phase 1 — Datenschicht (Branch `feature/phase-1-datenschicht`)
 

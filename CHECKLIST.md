@@ -16,6 +16,27 @@
 
 ---
 
+## 🎯 Hunter-Screen (Phase 2 — UI, Branch `feature/phase-2-hunter`)
+
+### Erledigt
+- [x] Design-Etappen 1–6: Header/Gradient · 673 Hex → Tokens · Emoji → Lucide · Avatare rund · i18n `hunter.*`
+- [x] **`HunterCard`** (`src/components/shared/`) = eine Kachel für alle Tabs — *einheitliche Top-Row, Chevron-Kurzansicht, grüner Pfeil → Info-Panel*
+- [x] **`componentBehavior.ts`** (`src/lib/`) = einzige Wertquelle (`CARD` + `ACTION_ROW`)
+- [x] Alle Profilkarten auf HunterCard: Übersicht · Signals · Neu in Pipeline · Follow-ups · Pipeline-Task-Liste
+- [x] Side Panels auf `ui/sheet`: SignalAction (580) · ContactCold · NoTask · PipelineStagnated
+- [x] SignalActionDrawer props-driven (`initialDraft`) · Composer/Deal-Dropdown → `ui/select`
+- [x] PipelineStagnatedDrawer Spec-Flow (Stage-Pills + 3 Buttons)
+- [x] CLAUDE.md-Regel: Kacheln immer HunterCard · shadcn-Primitive bevorzugen
+
+### Offen
+- [ ] Side Panels als Basis-Komponenten (Info 820 / Action 580) abstrahieren
+- [ ] Empty States für alle Hunter-Tabs (`EmptyState`-Komponente)
+- [ ] Skeleton/Loading — kommt mit DB-Wiring via TanStack Query
+- [ ] Kanban-Mini-Karten angleichen (bauartbedingt separat)
+- [ ] DB-Wiring: Mock → `getDeals`/`getSignals`/`getPipelineSettings`, Realtime, Routing → echtes ScreenHunting
+
+---
+
 ## 🗄️ Datenbank (Phase 5 — noch nicht gestartet)
 
 ### Multi-Tenancy & Isolation (zuerst, nicht verhandelbar)
