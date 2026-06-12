@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ICPDonut } from "@/components/shared/ICPDonut";
 
 interface FollowUpKaltCardProps {
   name: string;
@@ -25,7 +26,6 @@ export function FollowUpKaltCard({
   avatarBg,
   companyInitials,
   companyName,
-  companyBg,
   icpScore,
   stage,
   daysInStage,
@@ -35,30 +35,29 @@ export function FollowUpKaltCard({
 }: FollowUpKaltCardProps) {
   const [expanded, setExpanded] = useState(false);
 
-  const donutCircumference = 125.66;
-  const donutOffset = donutCircumference - (icpScore / 100) * donutCircumference;
-
   return (
     <div
       onClick={() => setExpanded(!expanded)}
       style={{
         background: "var(--surface)",
-        boxShadow: "0 8px 30px rgba(0,0,0,0.04)",
+        boxShadow: "var(--shadow-card)",
         overflow: "hidden",
         cursor: "pointer",
         maxWidth: "1100px",
         width: "100%",
         margin: "0 auto",
-        borderRadius: expanded ? "24px" : "32px",
-        border: expanded ? "2px solid var(--signal-info-bg)" : "1px solid var(--border-subtle)",
+        // Kachel-Designvorgabe: rounded-[12px]; Expand behält 2px-Highlight als Cue.
+        borderRadius: "12px",
+        border: expanded ? "2px solid var(--signal-info-bg)" : "1px solid var(--border-card)",
+        // Animation behalten:
         transition: "all 0.2s ease-in-out",
         fontFamily: "'Plus Jakarta Sans', sans-serif",
       }}
     >
-      {/* TOP ROW */}
+      {/* TOP ROW — Padding 16px */}
       <div
         style={{
-          padding: "20px 24px",
+          padding: "16px",
           display: "flex",
           alignItems: "center",
           gap: "0",
@@ -137,82 +136,23 @@ export function FollowUpKaltCard({
             flexShrink: 0,
           }}
         >
-          <div
-            style={{
-              position: "relative",
-              width: "48px",
-              height: "48px",
-              flexShrink: 0,
-            }}
-          >
-            <svg
-              width="48"
-              height="48"
-              viewBox="0 0 48 48"
-              style={{ transform: "rotate(-90deg)", display: "block" }}
-            >
-              <circle
-                cx="24"
-                cy="24"
-                r="20"
-                stroke="var(--border-subtle)"
-                strokeWidth="4"
-                fill="transparent"
-              />
-              <circle
-                cx="24"
-                cy="24"
-                r="20"
-                stroke="var(--icp-medium)"
-                strokeWidth="4"
-                fill="transparent"
-                strokeDasharray={donutCircumference}
-                strokeDashoffset={donutOffset}
-                strokeLinecap="round"
-              />
-            </svg>
+          {/* Kanonischer ICPDonut */}
+          <ICPDonut score={icpScore} />
 
-            <span
-              style={{
-                position: "absolute",
-                top: "50%",
-                left: "50%",
-                transform: "translate(-50%,-50%)",
-                fontSize: "13px",
-                fontWeight: 700,
-                color: "var(--icp-medium)",
-                fontFamily: "monospace",
-                lineHeight: 1,
-              }}
-            >
-              {icpScore}
-            </span>
-          </div>
-
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              background: "var(--surface)",
-              border: "1px solid var(--border)",
-              padding: "6px 12px 6px 8px",
-              borderRadius: "12px",
-              flexShrink: 0,
-            }}
-          >
+          {/* Company — dunkle Initial-Box (rounded-[12px]) + Teal-Name (Kachel-Vorgabe) */}
+          <div style={{ display: "flex", alignItems: "center", gap: "12px", flexShrink: 0 }}>
             <div
               style={{
-                background: companyBg,
+                background: "var(--text-primary)",
                 color: "var(--surface)",
-                fontSize: "10px",
+                fontSize: "14px",
                 fontWeight: 700,
-                width: "24px",
-                height: "24px",
+                width: "40px",
+                height: "40px",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                borderRadius: "6px",
+                borderRadius: "12px",
                 flexShrink: 0,
               }}
             >
@@ -221,10 +161,13 @@ export function FollowUpKaltCard({
 
             <span
               style={{
-                fontSize: "13px",
-                color: "var(--text-body)",
+                fontSize: "14px",
+                color: "var(--sherloq-primary)",
                 fontWeight: 600,
                 whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                maxWidth: "160px",
               }}
             >
               {companyName}
@@ -272,7 +215,7 @@ export function FollowUpKaltCard({
                 padding: "6px 16px",
                 borderRadius: "9999px",
                 background: "var(--surface)",
-                border: "2px solid var(--border)",
+                border: "1px solid var(--border)",
                 fontSize: "13px",
                 fontWeight: 700,
                 color: "var(--text-primary)",
@@ -312,7 +255,7 @@ export function FollowUpKaltCard({
                 padding: "6px 14px",
                 borderRadius: "9999px",
                 background: "var(--signal-info-bg)",
-                border: "2px solid var(--signal-info-bg)",
+                border: "1px solid var(--signal-info-bg)",
                 fontSize: "13px",
                 fontWeight: 700,
                 color: "var(--signal-info-text)",
@@ -494,13 +437,13 @@ export function FollowUpKaltCard({
         </div>
       </div>
 
-      {/* SIGNAL ROW */}
+      {/* SIGNAL ROW — Padding 16px horizontal */}
       {!expanded && (
         <div
           style={{
             background: "var(--app-bg)",
-            borderTop: "1px solid var(--border)",
-            padding: "12px 24px",
+            borderTop: "1px solid var(--border-card)",
+            padding: "12px 16px",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",

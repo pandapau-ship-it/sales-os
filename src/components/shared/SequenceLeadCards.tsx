@@ -2,7 +2,7 @@ import { FollowUpKaltCard } from './FollowUpKaltCard';
 
 export const SequenceLeadCards = ({ onOutreachClick }: { onOutreachClick?: (person: any) => void }) => {
     return (
-        <div className="w-full flex flex-col gap-6 mt-6">
+        <div className="w-full flex flex-col gap-4 mt-6">
             <FollowUpKaltCard
                 name="Dr. Christian Brand"
                 role="VP of Sales EMEA, LogixFlow GmbH"
