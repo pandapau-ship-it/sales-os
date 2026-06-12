@@ -259,7 +259,8 @@
         "instructPlaceholder": "Sag der AI, was angepasst werden soll, z. B. 'Schreib mir daraus eine E-Mail'...",
         "toastEdit": "Bearbeiten gestartet",
         "toastIgnore": "Signal ignoriert",
-        "toastTask": "Task erstellt"
+        "toastTask": "Task erstellt",
+        "toastApplied": "Antwort übernommen"
       },
       "cold": {
         "contactGoingCold": "Kontakt wird kalt",
