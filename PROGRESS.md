@@ -4,7 +4,7 @@
 
 ---
 
-## Current Status: Referenz-Dokumente konsolidiert + alle Konflikte aufgelöst ✅ → Phase 5 (Supabase) next
+## Current Status: Phase 0 (Fundament) gebaut ✅ → Phase 1 (Datenschicht: DB-Schema v3 + RLS) next
 
 > Single Source of Truth für den Umsetzungsstand: **CHECKLIST.md** (`npm run audit` prüft).
 > CLAUDE.md = WARUM/WIE · CHECKLIST.md = WAS-offen · PROGRESS.md = Session-Historie.
@@ -15,6 +15,31 @@
 ---
 
 ## Completed
+
+### Phase 0 — Fundament (Branch `feature/phase-0-fundament`)
+
+Erstes Bau-Paket: Layout, Auth, Tokens, Hooks, Panel-Shells, Cmd+K, Primitives, Login.
+Keine Geschäftslogik. AI-Studio-Code als visueller Ausgangspunkt, vereinheitlicht.
+
+- [x] **1 Setup:** Branch + `react-router-dom` & `@supabase/supabase-js` installiert
+- [x] **2 Tokens:** bestehendes (kanonisches) Token-System behalten + `--shadow-panel` ergänzt
+- [x] **3 Auth:** Supabase-Client in `db.ts` (env-tolerant, `createClient` audit-konform nur dort),
+  `auth.ts` echte Supabase-Auth, `useAuth`, `.env.example`, `.gitignore` `.env*`
+- [x] **4 useModules:** `hasModule()`, kanonische ModuleKeys, Phase-0-Default alle aktiv
+- [x] **5 Dark Mode:** vorhandenes `useTheme` + FOUC-Guard (bereits erfüllt)
+- [x] **6 Shell:** Router-Routing `/app/*`, TopBar (4 Pills, Sliding-Pill), Sidebar (8 Icons),
+  ComingSoon-Platzhalter, Protected-Route (Phase-0-Dev-Bypass ohne Backend)
+- [x] **7 Panel-Shells:** InfoPanel (820, nur X), ActionPanel (580, auto-close + Toast), Toast-System
+- [x] **8 Cmd+K:** CommandPalette (cmdk), Navigation + Quick-Actions, globaler Shortcut, kein AI-Chat
+- [x] **9 Primitives:** Badge · Avatar · EmptyState · SignalRow
+- [x] **10 Login:** funktionaler Login (signIn/Loading/Inline-Fehler/redirect) + `ui/input.tsx`
+- [x] **DoD:** build grün · 0 Hex im Code · 8 Sidebar-Icons · 4 TopBar-Punkte · 6+1 Routen ·
+  Panels öffnen/schließen · Cmd+K ohne AI-Chat · i18n via `t()` (nur DE gepflegt) · Audit 0 FAIL
+
+**Offen:** Login mit echtem Test-User erst verifizierbar wenn `.env.local` (Supabase-Creds)
+gesetzt ist — Code ist funktionsfähig, greift dann automatisch.
+
+---
 
 ### Session 10 — 2026-06-11 — Referenz-Dokumente + Konfliktauflösung (Doku)
 

@@ -37,38 +37,43 @@ import type {
   KPIItemType,
   SignalEvent,
 } from "@/types";
+import { createClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 // ── Supabase Client — EINZIGER Init-Punkt im gesamten Projekt ────────────────
-// Phase 5: echten Client hier aktivieren. Bis dahin wirft getSupabaseClient(),
-// damit niemand versehentlich gegen eine nicht-konfigurierte DB läuft.
-//
-//   import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-//   let client: SupabaseClient | null = null;
-//   export function getSupabaseClient(): SupabaseClient {
-//     if (!client) {
-//       client = createClient(
-//         import.meta.env.VITE_SUPABASE_URL,
-//         import.meta.env.VITE_SUPABASE_ANON_KEY,
-//       );
-//     }
-//     return client;
-//   }
+// createClient() läuft AUSSCHLIESSLICH hier (audit-erzwungen). auth/storage/
+// realtime holen den Client nur über getSupabaseClient(). Env-tolerant: ohne
+// gesetzte VITE_SUPABASE_*-Variablen (z.B. lokal in Phase 0) → null statt Crash.
 
-/** Platzhalter-Client-Typ bis @supabase/supabase-js installiert ist (Phase 5). */
-export type DbClient = unknown;
+let _client: SupabaseClient | null = null;
+let _initialized = false;
 
-let _client: DbClient | null = null;
+/** True, wenn beide Supabase-Env-Variablen gesetzt sind. */
+export function isSupabaseConfigured(): boolean {
+  return Boolean(
+    import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY,
+  );
+}
 
 /**
- * Einziger Zugriffspunkt auf die Supabase-Instanz. auth/storage/realtime nutzen
- * ausschließlich diese Funktion — nie createClient() direkt.
+ * Einziger Zugriffspunkt auf die Supabase-Instanz. Gibt `null` zurück, wenn die
+ * Env nicht konfiguriert ist (Phase 0 ohne Backend) — Aufrufer behandeln null.
  */
-export function getSupabaseClient(): DbClient {
-  if (_client) return _client;
-  throw new Error(
-    "Supabase ist noch nicht konfiguriert (Phase 5). " +
-      "db.ts liefert aktuell Mock-Daten — getSupabaseClient() erst nach Setup nutzen.",
+export function getSupabaseClient(): SupabaseClient | null {
+  if (_initialized) return _client;
+  _initialized = true;
+  if (!isSupabaseConfigured()) {
+    if (import.meta.env.DEV) {
+      // eslint-disable-next-line no-console
+      console.warn("[db] Supabase-Env nicht gesetzt — Auth/DB inaktiv (Phase 0).");
+    }
+    return null;
+  }
+  _client = createClient(
+    import.meta.env.VITE_SUPABASE_URL,
+    import.meta.env.VITE_SUPABASE_ANON_KEY,
   );
+  return _client;
 }
 
 // Mock-Helfer: simuliert die asynchrone Supabase-Antwort (Microtask, kein Flash).
