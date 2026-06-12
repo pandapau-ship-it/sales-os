@@ -223,6 +223,27 @@
   --color-border:                var(--border);
   --color-border-strong:         var(--border-strong);
 
+  /* shadcn-Primitive: Farbnamen → unsere Design-Tokens (EIN Token-Satz für
+     shadcn + eigene Komponenten; Dark Mode greift automatisch via [data-theme]). */
+  --color-background:            var(--surface);
+  --color-foreground:            var(--text-primary);
+  --color-card:                  var(--surface);
+  --color-card-foreground:       var(--text-primary);
+  --color-popover:               var(--surface);
+  --color-popover-foreground:    var(--text-primary);
+  --color-primary:               var(--sherloq-primary);
+  --color-primary-foreground:    #FFFFFF;
+  --color-secondary:             var(--app-bg);
+  --color-secondary-foreground:  var(--text-primary);
+  --color-muted:                 var(--app-bg);
+  --color-muted-foreground:      var(--text-muted);
+  --color-accent:                var(--app-bg);
+  --color-accent-foreground:     var(--text-primary);
+  --color-destructive:           var(--signal-urgent-text);
+  --color-destructive-foreground: #FFFFFF;
+  --color-input:                 var(--border);
+  --color-ring:                  var(--sherloq-primary);
+
   /* Radius */
   --radius-card:                 var(--radius-card);
   --radius-pill:                 var(--radius-pill);
