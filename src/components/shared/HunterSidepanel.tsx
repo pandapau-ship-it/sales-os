@@ -471,7 +471,7 @@ export default function HunterSidepanel({ person: personProp, onClose }: { perso
               <div className="bg-app-surface rounded-[12px] p-5 border border-border shadow-sm divide-y divide-[var(--border-subtle)]">
                 <div className="py-3 first:pt-0">
                   <div className="flex items-start gap-4">
-                    <BrandLogo name="teams" className="w-11 h-11 shrink-0 rounded-[12px] shadow-sm" />
+                    <BrandLogo name="teams" className="w-11 h-11 shrink-0 rounded-[12px] shadow-sm" tile />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
                         <h4 className="text-[14px] font-bold text-text-primary leading-tight">Discovery Call & Demo</h4>
@@ -486,7 +486,7 @@ export default function HunterSidepanel({ person: personProp, onClose }: { perso
 
                 <div className="py-3 last:pb-0">
                   <div className="flex items-start gap-4">
-                    <BrandLogo name="outlook" className="w-11 h-11 shrink-0 rounded-[12px] shadow-sm" />
+                    <BrandLogo name="outlook" className="w-11 h-11 shrink-0 rounded-[12px] shadow-sm" tile />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
                         <h4 className="text-[14px] font-bold text-text-primary leading-tight">Angebot gesendet: ROI-Dokument</h4>
@@ -520,7 +520,7 @@ export default function HunterSidepanel({ person: personProp, onClose }: { perso
               {/* Comm Item 1 */}
               <div className="py-3.5 first:pt-0 cursor-pointer group select-none" onClick={() => toggleComm(0)}>
                 <div className="flex items-start gap-4">
-                  <BrandLogo name="teams" className="w-11 h-11 shrink-0 rounded-[12px] shadow-sm" />
+                  <BrandLogo name="teams" className="w-11 h-11 shrink-0 rounded-[12px] shadow-sm" tile />
                   <div className="flex-1 min-w-0 pt-0.5">
                     <div className="flex items-center justify-between gap-2">
                       <h4 className="text-[14px] font-bold text-text-primary leading-tight group-hover:text-[var(--sherloq-primary)] transition-colors">
@@ -548,7 +548,7 @@ export default function HunterSidepanel({ person: personProp, onClose }: { perso
               {/* Comm Item 2 */}
               <div className="py-3.5 cursor-pointer group select-none" onClick={() => toggleComm(1)}>
                 <div className="flex items-start gap-4">
-                  <BrandLogo name="outlook" className="w-11 h-11 shrink-0 rounded-[12px] shadow-sm" />
+                  <BrandLogo name="outlook" className="w-11 h-11 shrink-0 rounded-[12px] shadow-sm" tile />
                   <div className="flex-1 min-w-0 pt-0.5">
                     <div className="flex items-center justify-between gap-2">
                       <h4 className="text-[14px] font-bold text-text-primary leading-tight group-hover:text-[var(--sherloq-primary)] transition-colors">
@@ -575,7 +575,7 @@ export default function HunterSidepanel({ person: personProp, onClose }: { perso
               {/* Comm Item 3 */}
               <div className="py-3.5 last:pb-0 cursor-pointer group select-none" onClick={() => toggleComm(2)}>
                 <div className="flex items-start gap-4">
-                  <BrandLogo name="linkedin" className="w-11 h-11 shrink-0 rounded-[12px] shadow-sm" />
+                  <BrandLogo name="linkedin" className="w-11 h-11 shrink-0 rounded-[12px] shadow-sm" tile />
                   <div className="flex-1 min-w-0 pt-0.5">
                     <div className="flex items-center justify-between gap-2">
                       <h4 className="text-[14px] font-bold text-text-primary leading-tight group-hover:text-[var(--sherloq-primary)] transition-colors">

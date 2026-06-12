@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import type { Lead, Customer } from "@/types";
 import { getHeatColor } from "@/lib/heatUtils";
+import BrandLogo from "@/components/shared/BrandLogo";
 
 interface CustomerDrawerProps {
   person: Lead | Customer | null;
@@ -538,13 +539,7 @@ export default function CustomerDrawer({
                       setExpandedComm((prev) => ({ ...prev, 1: !prev[1] }))
                     }
                   >
-                    <div className="w-12 h-12 rounded-card overflow-hidden shrink-0 shadow-sm border border-border">
-                      <img
-                        src="/teams.jpeg"
-                        alt="Teams"
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
+                    <BrandLogo name="teams" tile className="w-12 h-12 rounded-card shrink-0 shadow-sm" />
                     <div className="flex flex-col flex-1 pr-2">
                       <div className="flex justify-between items-center w-full">
                         <span className="text-[14px] font-bold text-text-primary">
@@ -606,13 +601,7 @@ export default function CustomerDrawer({
                       setExpandedComm((prev) => ({ ...prev, 2: !prev[2] }))
                     }
                   >
-                    <div className="w-12 h-12 rounded-card overflow-hidden shrink-0 shadow-sm border border-border">
-                      <img
-                        src="/microsoft-outlook-2025.jpg"
-                        alt="Outlook"
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
+                    <BrandLogo name="outlook" tile className="w-12 h-12 rounded-card shrink-0 shadow-sm" />
                     <div className="flex flex-col flex-1 pr-2">
                       <div className="flex justify-between items-center w-full">
                         <span className="text-[14px] font-bold text-text-primary">

@@ -14,12 +14,13 @@ Diese Dateien werden über `BrandLogo` (`src/components/shared/BrandLogo.tsx`) a
 | `google-meet.svg`  | Google Meet    |
 | `linkedin.svg`     | LinkedIn       |
 
-## Aktueller Stand: Platzhalter
+## Aktueller Stand: offizielle Logos hinterlegt
 
-Die hier liegenden SVGs sind **vereinfachte, eigene Marken-Glyphen** (Markenfarben,
-quadratisch, 12px-Rundung) — KEINE offiziellen Logos.
+Hier liegen die offiziellen Marken-Logos (vom Nutzer bereitgestellt, icons8-Set).
+`BrandLogo` rendert sie auf einer Surface-Kachel (`tile`), damit die meist
+transparenten Logos in Light- UND Dark-Mode sauber sitzen.
 
-## Durch offizielle Logos ersetzen
+## Durch andere Logos ersetzen
 
 Einfach die jeweilige Datei mit demselben Dateinamen überschreiben — **kein
 Code-Change nötig**. Empfohlen:

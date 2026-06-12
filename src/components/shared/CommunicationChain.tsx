@@ -1,5 +1,8 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Phone, FileText } from 'lucide-react';
+import BrandLogo, { brandForChannel } from '@/components/shared/BrandLogo';
+import type { BrandName } from '@/components/shared/BrandLogo';
 
 interface TooltipData {
   channel: string;
@@ -11,6 +14,7 @@ interface TooltipData {
 interface Touchpoint {
   id: string;
   type: string;
+  brand?: BrandName;
   label: string;
   dateStr: string;
   tooltip: TooltipData;
@@ -22,22 +26,17 @@ interface CommunicationChainProps {
   onSelectCommunication?: (personId: string, tpId: string) => void;
 }
 
-const getIconImage = (type: string, isPast: boolean) => {
-  const grayscaleClass = isPast ? '' : 'grayscale opacity-40';
-  const sizeClass = "w-[28px] h-[28px] object-contain"; 
-  
-  switch (type) {
-    case 'LINKEDIN': 
-      return <img src="/LinkedIn_icon.png" alt="LinkedIn" className={`${sizeClass} ${grayscaleClass}`} />;
-    case 'EMAIL': 
-      return <img src="/microsoft-outlook-2025.jpg" alt="Email" className={`${sizeClass} ${grayscaleClass}`} />;
-    case 'VIDEO':
-    case 'MEETING':
-    case 'PHONE':
-    case 'DOC':
-    default: 
-      return <img src="/teams.jpeg" alt="Teams" className={`${sizeClass} ${grayscaleClass}`} />;
+// Touchpoint-Visual: Marken-Logo (BrandLogo) für Mail/Meeting/LinkedIn, sonst
+// neutrales Lucide-Icon (Telefon/Dokument). Zukünftige Schritte gedimmt.
+const getChannelVisual = (tp: Touchpoint) => {
+  const dim = tp.isPast ? '' : 'grayscale opacity-40';
+  if (tp.brand) {
+    return <BrandLogo name={tp.brand} className={`w-[30px] h-[30px] object-contain ${dim}`} />;
   }
+  if (tp.type === 'PHONE') {
+    return <Phone className={`w-[22px] h-[22px] text-[var(--channel-call)] ${dim}`} strokeWidth={2} />;
+  }
+  return <FileText className={`w-[22px] h-[22px] text-text-muted ${dim}`} strokeWidth={2} />;
 };
 
 const getSentimentColor = (sentiment: string) => {
@@ -93,9 +92,13 @@ function generateChainForPerson(id: string): Touchpoint[] {
     const tooltipDate = isPast ? `vor ${daysAgo} Tagen` : (i === numItems - 2 ? 'Ausstehend' : 'in Planung');
     const sentiment = isPast ? sentimentOptions[Math.floor(random() * sentimentOptions.length)] : 'Ausstehend';
     
+    // Deterministische Anbieter-Varianz: mischt Outlook/Gmail bzw. Teams/Google Meet.
+    const brand = brandForChannel(finalType, (i + id.length) % 2 === 1) ?? undefined;
+
     chain.push({
       id: `${id}-${i}`,
       type: finalType,
+      brand,
       label: labels[finalType],
       dateStr,
       isPast,
@@ -146,7 +149,7 @@ export default function CommunicationChain({ personId, onSelectCommunication }: 
                 <div className={`w-[46px] h-[46px] bg-app-surface rounded-full flex items-center justify-center transition-transform group-hover:scale-110 z-10 shadow-[0_0_0_6px_var(--app-bg)] relative
                  ${hoveredId === tp.id ? 'ring-2 ring-[var(--accent-teal)]/30' : ''}`}
                 >
-                  {getIconImage(tp.type, tp.isPast)}
+                  {getChannelVisual(tp)}
                 </div>
                 
                 {/* Status dot for the most recent past event */}

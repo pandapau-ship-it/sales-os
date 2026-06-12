@@ -1,6 +1,7 @@
 import { Mail, Phone, Video, MessageSquare, Link2 } from 'lucide-react'
 import type { ComponentType } from 'react'
 import type { CommunicationChannel } from '@/types'
+import BrandLogo, { brandForChannel } from '@/components/shared/BrandLogo'
 
 const CHANNEL_ICONS: Record<CommunicationChannel, ComponentType<{ size?: number; strokeWidth?: number }>> = {
   EMAIL:    Mail,
@@ -35,6 +36,12 @@ export function EngagementChain({ channels, max = 5 }: EngagementChainProps) {
   return (
     <div className="flex items-center gap-1">
       {visible.map((ch, i) => {
+        // Marken-Logo wo es einen Anbieter gibt (Mail/Meeting/Teams/LinkedIn),
+        // sonst getöntes Lucide-Icon (Telefon/Slack/WhatsApp).
+        const brand = brandForChannel(ch)
+        if (brand) {
+          return <BrandLogo key={i} name={brand} className="h-5 w-5 rounded-[5px] object-contain" />
+        }
         const Icon = CHANNEL_ICONS[ch]
         const color = CHANNEL_COLORS[ch]
         return (
