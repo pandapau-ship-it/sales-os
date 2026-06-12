@@ -11,6 +11,7 @@
 ## 🛠️ Selbst-Wartung (Tooling)
 - [x] CHECKLIST.md als Single Source of Truth — *Umsetzungsstand zentral*
 - [x] `scripts/audit.ts` + `npm run audit` — *prüft die 5 Pflicht-Prüffragen automatisch*
+- [x] audit-Check „Design: nur Token-Farben" — *FAIL bei bg/text/border-white|black|gray-* oder Hex in .tsx*
 - [ ] audit.ts an Pre-Commit-Hook hängen — *kein Commit mit hartem Verstoß*
 - [ ] audit.ts erweitern wenn neue Infrastruktur existiert (DB, lib/ai.ts …)
 
@@ -27,6 +28,7 @@
 - [x] SignalActionDrawer props-driven (`initialDraft`) · Composer/Deal-Dropdown → `ui/select`
 - [x] PipelineStagnatedDrawer Spec-Flow (Stage-Pills + 3 Buttons)
 - [x] CLAUDE.md-Regel: Kacheln immer HunterCard · shadcn-Primitive bevorzugen
+- [x] **Dark Mode app-weit token-sicher** — alle hardcodierten Farben → Tokens; shadcn-Farbnamen in `@theme inline` gemappt; Enforcement via Audit-Check + CLAUDE.md-Regel
 
 ### Offen
 - [ ] Side Panels als Basis-Komponenten (Info 820 / Action 580) abstrahieren
@@ -240,9 +242,11 @@
 - [x] FOUC-Guard in `index.html` (Theme vor erstem Paint)
 - [x] Theme-Toggle (Sonne/Mond) im Profil/Avatar-Bereich der Sidebar
 - [x] Alter `.dark-theme` !important-Hack aus App.tsx entfernt → Token-System
-- [~] Strukturelle Flächen schalten korrekt (laufen über Token-Klassen)
-- [ ] **Akzent-Hex → Signal-Tokens** in Screens (≈144 Vorkommen, meist Status-Akzente):
-      ScreenMyDay/Hunting/Farming/Marketing/Jira/CustomerDrawer — *brechen Dark Mode optisch, nicht strukturell*
+- [x] Strukturelle Flächen schalten korrekt (alle über Token-Klassen)
+- [x] **Akzent-Hex/-Klassen → Signal-Tokens** app-weit (Hunter + ScreenMyDay/Farming/Marketing/
+      Jira/CustomerDrawer): bg-white/gray/semantik/Hex → Tokens; `--on-accent`/`--inverse-surface`/`--scrim`
+- [x] **shadcn-Farbnamen** (`background`/`card`/`popover`/`muted`/`accent`/`primary`/…) in `@theme inline` gemappt
+- [x] **Enforcement**: Audit-Check „Design: nur Token-Farben" (FAIL bei Hardcode) + CLAUDE.md-Pflichtregel
 - [ ] Tote Dateien mit Hex entfernen: `src/theme.ts`, `src/components/shell/TopNav.tsx` (nicht importiert)
 - [ ] personalityColors Token in theme.ts umbenennen (kein DISG: rot/gelb/grün/blau → neutral benennen, passend zu 3-Dimensionen-Modell)
 

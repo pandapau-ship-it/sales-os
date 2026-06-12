@@ -58,6 +58,14 @@ Build grün · Audit 0 FAIL durchgehend. Draft-PR #12 offen (nicht gemergt).
   „Speichern + Stage wechseln"/„Nur Task speichern"/„Ignorieren" *(bereits in dieser Session
   umgesetzt, Commit `6f81f83` — ggf. nur noch Feinschliff offen)*
 - [x] **shadcn**: Regel verschärft (Primitive bevorzugen); Composer- + Deal-Dropdown → `ui/select`
+- [x] **Dark Mode app-weit token-sicher** — alle hardcodierten Farben → CSS-Tokens
+  (`bg-white→bg-app-surface`, `text-gray-*→text-text-*`, Semantik → Signal-Tokens; neue fixe
+  Tokens `--on-accent`/`--inverse-surface`/`--scrim`). **shadcn-Farbnamen** (`background`/`card`/
+  `popover`/`muted`/`accent`/`primary`/…) in `@theme inline` auf unsere Tokens gemappt →
+  `ui/`-Primitive adaptieren Dark Mode automatisch.
+- [x] **Token-Enforcement** — neuer Audit-Check „Design: nur Token-Farben" (`scripts/audit.ts`):
+  **FAIL** bei `bg/text/border-white|black|gray-*` oder Hex in `.tsx` → Commit blockiert.
+  CLAUDE.md-Regel: AI-Studio-Imports vor erstem Commit tokenisieren, Audit muss grün sein.
 
 **Offen (nächste Session) — siehe unten „Offen / Nächste Schritte".**
 
