@@ -25,7 +25,8 @@ import {
   Trash,
   Clock,
   PenTool,
-  TrendingUp
+  TrendingUp,
+  X
 } from 'lucide-react';
 import type { Lead, HeatStatus } from '@/types';
 import { ICPDonut } from '@/components/shared/ICPDonut';
@@ -94,6 +95,18 @@ export default function ScreenHunting({
   };
   const selectAll = () => setSelectedLeadIds(leads.map(l => l.id));
   const deselectAll = () => setSelectedLeadIds([]);
+
+  // Signals-Auswahl (gleiche Mechanik wie Leads). IDs = Namen der Signal-Kacheln.
+  const [selectedSignalIds, setSelectedSignalIds] = useState<string[]>([]);
+  const signalIds = ['Maja Voje', 'Sarah Jenkins', 'Marc Levigne', 'Elena Rostova', 'Dr. Christian Brand'];
+  const toggleSignalSelection = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedSignalIds(prev =>
+      prev.includes(id) ? prev.filter(sId => sId !== id) : [...prev, id]
+    );
+  };
+  const selectAllSignals = () => setSelectedSignalIds(signalIds);
+  const deselectAllSignals = () => setSelectedSignalIds([]);
 
   const handleCreateLead = (e: React.FormEvent) => {
     e.preventDefault();
@@ -1021,8 +1034,38 @@ export default function ScreenHunting({
       {/* SIGNALS TAB */}
       {subTab === 'signals' && (
         <div className="flex flex-col gap-4">
+
+          {/* Bulk-Aktionsleiste — gleiche Leiste wie bei Leads */}
+          <div className={`transition-all duration-300 flex items-center justify-between px-2 ${selectedSignalIds.length > 0 ? 'opacity-100 h-10 mb-2' : 'opacity-0 h-0 overflow-hidden'}`}>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={selectedSignalIds.length === signalIds.length ? deselectAllSignals : selectAllSignals}
+                className="flex items-center justify-center w-[22px] h-[22px] rounded-md bg-[var(--sherloq-primary)] border border-[var(--sherloq-primary)]"
+              >
+                <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />
+              </button>
+              <span className="text-[13px] font-bold text-[var(--text-primary)]">
+                {t('hunter.signals.selected', { count: selectedSignalIds.length, noun: selectedSignalIds.length === 1 ? t('hunter.signals.signalSingular') : t('hunter.signals.signalPlural') })}
+              </span>
+              <button onClick={deselectAllSignals} className="ml-2 text-[12px] text-[var(--text-muted)] hover:text-[var(--text-body)] font-semibold underline underline-offset-2">{t('hunter.signals.deselect')}</button>
+            </div>
+            <div className="flex items-center gap-2">
+              <button className="bg-white border text-[var(--text-body)] border-[var(--border)] hover:border-[var(--icon-muted)] hover:bg-[var(--app-bg)] px-3 py-1.5 rounded-full text-[12px] font-semibold flex items-center gap-1.5 transition-colors">
+                <X className="w-3.5 h-3.5" /> {t('hunter.signals.ignore')}
+              </button>
+              <button className="bg-white border text-[var(--text-body)] border-[var(--border)] hover:border-[var(--icon-muted)] hover:bg-[var(--app-bg)] px-3 py-1.5 rounded-full text-[12px] font-semibold flex items-center gap-1.5 transition-colors">
+                <Clock className="w-3.5 h-3.5" /> {t('hunter.signals.snooze')}
+              </button>
+              <button className="bg-white border border-red-200 text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-full text-[12px] font-semibold flex items-center gap-1.5 transition-colors">
+                <Trash className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+
           <LinkedinSignalCard
             name="Maja Voje"
+            selected={selectedSignalIds.includes("Maja Voje")}
+            onToggleSelect={(e) => toggleSignalSelection("Maja Voje", e)}
             role="GTM Strategist"
             avatarUrl="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=120&h=120"
             companyInitials="GL"
@@ -1054,6 +1097,8 @@ export default function ScreenHunting({
           />
           <LinkedinSignalCard
             name="Sarah Jenkins"
+            selected={selectedSignalIds.includes("Sarah Jenkins")}
+            onToggleSelect={(e) => toggleSignalSelection("Sarah Jenkins", e)}
             role="VP of Sales"
             avatarInitials="SJ"
             avatarBg="bg-[var(--icp-medium)]"
@@ -1086,6 +1131,8 @@ export default function ScreenHunting({
           />
           <LinkedinSignalCard
             name="Marc Levigne"
+            selected={selectedSignalIds.includes("Marc Levigne")}
+            onToggleSelect={(e) => toggleSignalSelection("Marc Levigne", e)}
             role="CPO"
             avatarInitials="ML"
             avatarBg="bg-[var(--signal-info-text)]"
@@ -1117,6 +1164,8 @@ export default function ScreenHunting({
           />
           <LinkedinSignalCard
             name="Elena Rostova"
+            selected={selectedSignalIds.includes("Elena Rostova")}
+            onToggleSelect={(e) => toggleSignalSelection("Elena Rostova", e)}
             role="Head of SDR"
             avatarInitials="ER"
             avatarBg="bg-[var(--accent-purple)]"
@@ -1148,6 +1197,8 @@ export default function ScreenHunting({
           />
           <LinkedinSignalCard
             name="Dr. Christian Brand"
+            selected={selectedSignalIds.includes("Dr. Christian Brand")}
+            onToggleSelect={(e) => toggleSignalSelection("Dr. Christian Brand", e)}
             role="CEO"
             avatarInitials="CB"
             avatarBg="bg-[var(--icp-high)]"

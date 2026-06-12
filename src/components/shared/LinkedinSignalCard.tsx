@@ -1,4 +1,6 @@
+import type { MouseEvent } from "react";
 import { useTranslation } from "react-i18next";
+import { Check } from "lucide-react";
 import Avatar from "@/components/shared/Avatar";
 import { ICPDonut } from "@/components/shared/ICPDonut";
 import LinkedinIcon from "@/components/shared/LinkedinIcon";
@@ -23,6 +25,8 @@ interface LinkedinSignalCardProps {
   quoteText?: string;
   aiRecommendation?: string;
   onActNow?: () => void;
+  selected?: boolean;
+  onToggleSelect?: (e: MouseEvent) => void;
 }
 
 /**
@@ -45,6 +49,8 @@ export function LinkedinSignalCard({
   windowHours = 48,
   actionText,
   onActNow,
+  selected = false,
+  onToggleSelect,
 }: LinkedinSignalCardProps) {
   const { t } = useTranslation();
 
@@ -52,12 +58,25 @@ export function LinkedinSignalCard({
     windowHours > 0 ? Math.max(0, 100 - (timeLeftHours / windowHours) * 100) : 100;
 
   return (
-    <div className="rounded-[12px] shadow-[var(--shadow-card)] border border-[var(--border-card)] bg-white flex flex-col overflow-hidden font-sans">
+    <div className={`group relative rounded-[12px] shadow-[var(--shadow-card)] hover:shadow-md hover:-translate-y-0.5 border border-[var(--border-card)] flex flex-col font-sans transition-all duration-300 ${selected ? 'bg-[var(--signal-teal-bg)]' : 'bg-white'}`}>
       {/* TOP ROW — identisch zur Leads-Kachel */}
       <div className="p-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative">
+          {/* Select Checkbox (Hover/Selected state) — 1:1 wie Leads-Kachel.
+              Nur wenn Auswahl aktiv ist (onToggleSelect gesetzt). */}
+          {onToggleSelect && (
+            <div
+              onClick={(e) => onToggleSelect(e)}
+              className={`absolute -left-3 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center w-[22px] h-[22px] rounded-md z-10 cursor-pointer ${
+                selected ? 'bg-[var(--sherloq-primary)] opacity-100 border-[var(--sherloq-primary)]' : 'bg-white border-2 border-[var(--border)] hover:border-[var(--text-muted)]'
+              }`}
+            >
+              {selected && <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />}
+            </div>
+          )}
+
           {/* Avatar & Info */}
-          <div className="flex items-center gap-4 flex-1 min-w-0">
+          <div className={`flex items-center gap-4 flex-1 min-w-0 transition-all duration-300 ${onToggleSelect ? 'ml-0 group-hover:ml-8' : ''}`}>
             <div className="relative shrink-0">
               <Avatar name={name} src={avatarUrl} size={40} />
               <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-[var(--signal-info-text)] border-2 border-white rounded-full"></div>
@@ -113,7 +132,7 @@ export function LinkedinSignalCard({
       </div>
 
       {/* SIGNAL-ROW — einzige Ergänzung ggü. Leads-Kachel */}
-      <div className="bg-[var(--app-bg)] border-t border-[var(--border-card)] px-4 py-3 flex items-center justify-between gap-4">
+      <div className="bg-[var(--app-bg)] border-t border-[var(--border-card)] rounded-b-[12px] px-4 py-3 flex items-center justify-between gap-4">
         {/* Links: LinkedIn-Signal-Badge + Aktionstext */}
         <div className="flex items-center gap-3 min-w-0">
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--signal-info-bg)] text-[var(--signal-info-text)] text-[10px] font-bold uppercase tracking-wider shrink-0">

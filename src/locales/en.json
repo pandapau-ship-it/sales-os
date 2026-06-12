@@ -202,7 +202,12 @@
       "kiRecommendation": "KI Empfehlung",
       "generateReply": "Reply generieren",
       "viewOriginal": "Original ansehen",
-      "ignore": "Ignorieren"
+      "ignore": "Ignorieren",
+      "selected": "{{count}} {{noun}} ausgewählt",
+      "signalSingular": "Signal",
+      "signalPlural": "Signale",
+      "deselect": "Auswahl aufheben",
+      "snooze": "Snoozen"
     },
     "card": {
       "pipelineStagnated": "Pipeline Stagniert",
