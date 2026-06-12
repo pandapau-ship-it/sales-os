@@ -85,6 +85,16 @@ Modals → **`dialog`** · Buttons → **`button`** · Tooltips → **`tooltip`*
 Ein natives `<select>`/`<button>` oder ein eigener `fixed`-Overlay statt `sheet` ist ein
 **Regelverstoß, kein Stilfrage**. Fehlt ein Primitiv: `npx shadcn add [component]`.
 
+**Hunter-Kacheln (Profilkarten): IMMER `HunterCard` + `componentBehavior.ts` — niemals von Hand bauen.**
+Jede Profilkarte in Hunter (Übersicht, Signals, Neu in Pipeline, Leads, Follow-ups, Pipeline und
+ALLE künftigen) rendert über `src/components/shared/HunterCard.tsx`. Diese garantiert die einheitliche
+Top-Row (Avatar/Name/Jobtitel/ICP/Company/Stage/Heat/Zeit), die identische Chevron-Kurzansicht
+(KI Kurzakte + Deal Details + Aktionen + Kommunikationskette) und „grüner Pfeil → 820px Info-Panel".
+Alle Werte (Größen, Farben, Badge-Größe, Action-Row) kommen aus `src/lib/componentBehavior.ts`
+(`CARD` = Top-Row-Referenz Lead-Kachel; `ACTION_ROW` = Referenz Neu-in-Pipeline). Karten-spezifisch
+ist NUR die Action-Row (als Slot). Werte ändern → `componentBehavior.ts` ändern, nie pro Karte.
+Eine neue, hand-gebaute Kachel mit eigener Top-Row/Inline-Styles ist ein **Regelverstoß**.
+
 **At the end of every session** → siehe **Selbst-Wartung** (oben, höchste Priorität).
 Kurzfassung: PROGRESS.md + CHECKLIST.md aktualisieren, neue Komponenten in
 `componentRegistry.ts`, fünf Prüffragen durchgehen, dann commit + push.

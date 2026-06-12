@@ -882,7 +882,7 @@ export default function ScreenHunting({
 
           {!isKanbanView ? (
             <div className="flex flex-col gap-4 w-full pb-8">
-              <PipelineStagniertCard onTaskAnlegen={() => setSelectedStagnatedPerson({
+              <PipelineStagniertCard onSelectLead={onSelectLead} onTaskAnlegen={() => setSelectedStagnatedPerson({
                 name: "Dr. Christian Brand",
                 company: "LogixFlow GmbH",
                 avatarUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150",
@@ -897,7 +897,7 @@ export default function ScreenHunting({
                 tags: ["Email erschöpft", "LinkedIn noch nicht versucht", "ICP Score hoch"],
                 confidence: 87
               })} />
-              <PipelineKeineTaskCard onTaskAnlegen={() => setSelectedNoTaskPerson({
+              <PipelineKeineTaskCard onSelectLead={onSelectLead} onTaskAnlegen={() => setSelectedNoTaskPerson({
                 name: "Sarah Jenkins",
                 company: "CloudSphere",
                 avatarInitials: "SJ",
