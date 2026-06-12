@@ -4,8 +4,8 @@ export const ICPDonut = ({ score, size = 40, strokeWidth = 2, maxValue = 100, fo
   const isHigh = percentage >= 75;
   const isMedium = percentage >= 50 && percentage < 75;
   
-  const color = forceColor || (isHigh ? '#2B8A3E' : isMedium ? '#F59E0B' : '#E53E3E');
-  const trackColor = '#F1F3F5';
+  const color = forceColor || (isHigh ? 'var(--icp-high)' : isMedium ? 'var(--icp-medium)' : 'var(--icp-low)');
+  const trackColor = 'var(--border-subtle)';
   
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;

@@ -118,23 +118,23 @@ export default function PipelineStagnatedDrawer({ person, onClose, onTakeAction 
           {/* AI Recommendation Section */}
           <section className="space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold text-[#175253] uppercase tracking-widest flex items-center gap-1.5">
+              <span className="text-[10px] font-bold text-[var(--sherloq-primary)] uppercase tracking-widest flex items-center gap-1.5">
                 <Sparkles className="w-3 h-3" /> AI empfiehlt
               </span>
               <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[9px] font-bold border border-emerald-100">
                 Confidence {person.confidence}%
               </span>
             </div>
-            <div className="p-4 bg-[#f0f6f6] border border-[#c4dbda]/50 rounded-xl space-y-3">
-              <p className="text-[13px] text-[#175253] font-medium leading-relaxed">
+            <div className="p-4 bg-[var(--signal-teal-bg)] border border-[var(--signal-teal-bg)]/50 rounded-xl space-y-3">
+              <p className="text-[13px] text-[var(--sherloq-primary)] font-medium leading-relaxed">
                 {person.aiRecommendation}
               </p>
-              <div className="text-[11px] text-[#175253]/70 font-semibold italic">
+              <div className="text-[11px] text-[var(--sherloq-primary)]/70 font-semibold italic">
                 “{person.aiInsight}”
               </div>
               <div className="flex gap-2 flex-wrap">
                 {person.tags.map((t, idx) => (
-                  <span key={idx} className="px-2.5 py-1 rounded-full bg-white border border-[#175253]/10 text-[#175253] text-[10px] font-bold">
+                  <span key={idx} className="px-2.5 py-1 rounded-full bg-white border border-[var(--sherloq-primary)]/10 text-[var(--sherloq-primary)] text-[10px] font-bold">
                     {t}
                   </span>
                 ))}
@@ -146,22 +146,22 @@ export default function PipelineStagnatedDrawer({ person, onClose, onTakeAction 
           <section className="space-y-2">
             <div className="flex items-center justify-between text-[10px] font-bold text-gray-400 uppercase tracking-widest">
               <span>KI Antwort-Entwurf</span>
-              <button onClick={handleRegenerate} className="text-[#175253] hover:underline flex items-center gap-1 font-extrabold cursor-pointer">
+              <button onClick={handleRegenerate} className="text-[var(--sherloq-primary)] hover:underline flex items-center gap-1 font-extrabold cursor-pointer">
                 <RotateCw className={`w-3 h-3 ${isRegenerating ? "animate-spin" : ""}`} /> Neu generieren
               </button>
             </div>
 
             <div className="bg-white rounded-[18px] border border-gray-200 shadow-sm overflow-hidden flex flex-col">
-              <div className="px-4 py-3 bg-[#175253] text-white text-[12px] flex items-center justify-between">
+              <div className="px-4 py-3 bg-[var(--sherloq-primary)] text-white text-[12px] flex items-center justify-between">
                 <span className="font-extrabold flex items-center gap-2">
                   <Sparkles className="w-3.5 h-3.5 fill-current" /> AI Composer · Antwort-Vorschlag
                 </span>
                 <span className="text-[10px] font-bold uppercase tracking-wider bg-white/20 px-2 py-1 rounded-lg">Auto Draft</span>
               </div>
 
-              <div className="bg-[#F3F6F8] min-h-[430px] p-4 flex flex-col gap-4">
+              <div className="bg-[var(--border-subtle)] min-h-[430px] p-4 flex flex-col gap-4">
                 <div className="flex items-start gap-2 max-w-[96%]">
-                  <div className="w-7 h-7 rounded-full bg-[#175253] text-white flex items-center justify-center shrink-0 shadow-sm">
+                  <div className="w-7 h-7 rounded-full bg-[var(--sherloq-primary)] text-white flex items-center justify-center shrink-0 shadow-sm">
                     <Sparkles className="w-3.5 h-3.5 fill-current" />
                   </div>
                   <div className="flex-1">
@@ -185,13 +185,13 @@ export default function PipelineStagnatedDrawer({ person, onClose, onTakeAction 
                     {msg.role === "user" ? (
                       <>
                         <div className="mb-1 text-right text-[10px] font-bold uppercase tracking-wider text-gray-400">Du</div>
-                        <div className="bg-[#E8F3FF] border border-blue-100 text-gray-900 p-3 rounded-2xl rounded-tr-md shadow-sm text-[13px] font-medium leading-relaxed">
+                        <div className="bg-[var(--signal-info-bg)] border border-blue-100 text-gray-900 p-3 rounded-2xl rounded-tr-md shadow-sm text-[13px] font-medium leading-relaxed">
                           {msg.text}
                         </div>
                       </>
                     ) : (
                       <>
-                        <div className="w-7 h-7 rounded-full bg-[#175253] text-white flex items-center justify-center shrink-0 shadow-sm">
+                        <div className="w-7 h-7 rounded-full bg-[var(--sherloq-primary)] text-white flex items-center justify-center shrink-0 shadow-sm">
                           <Sparkles className="w-3.5 h-3.5 fill-current" />
                         </div>
                         <div className="flex-1">
@@ -207,7 +207,7 @@ export default function PipelineStagnatedDrawer({ person, onClose, onTakeAction 
               </div>
 
               <div className="p-3 bg-white border-t border-gray-100">
-                <div className="flex items-end gap-2 bg-gray-50 border border-gray-200 rounded-2xl px-3 py-2 focus-within:border-[#175253] focus-within:bg-white transition-all">
+                <div className="flex items-end gap-2 bg-gray-50 border border-gray-200 rounded-2xl px-3 py-2 focus-within:border-[var(--sherloq-primary)] focus-within:bg-white transition-all">
                   <textarea 
                     rows={1} 
                     placeholder="Sag der AI, was angepasst werden soll..." 
@@ -221,7 +221,7 @@ export default function PipelineStagnatedDrawer({ person, onClose, onTakeAction 
                       }
                     }}
                   />
-                  <button onClick={handleSendInstruction} className="w-8 h-8 rounded-full bg-[#175253] hover:bg-[#124040] text-white flex items-center justify-center shrink-0 transition-colors cursor-pointer">
+                  <button onClick={handleSendInstruction} className="w-8 h-8 rounded-full bg-[var(--sherloq-primary)] hover:bg-[var(--sherloq-primary)] text-white flex items-center justify-center shrink-0 transition-colors cursor-pointer">
                     <Send className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -239,7 +239,7 @@ export default function PipelineStagnatedDrawer({ person, onClose, onTakeAction 
                 onTakeAction(draftText);
                 onClose();
               }}
-              className="w-full py-3 bg-gradient-to-r from-[#175253] to-[#3f8383] text-white rounded-full text-[13px] font-bold shadow-md hover:scale-[1.01] transition-transform cursor-pointer"
+              className="w-full py-3 bg-gradient-to-r from-[var(--sherloq-primary)] to-[var(--sherloq-primary)] text-white rounded-full text-[13px] font-bold shadow-md hover:scale-[1.01] transition-transform cursor-pointer"
             >
               Antwort übernehmen
             </button>

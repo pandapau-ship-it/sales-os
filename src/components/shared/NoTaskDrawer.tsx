@@ -83,7 +83,7 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
         <header className="h-[74px] px-6 border-b border-gray-100 flex items-center justify-between shrink-0 bg-white z-30">
           <div className="flex items-center gap-3 min-w-0">
             <div className="relative shrink-0">
-              <div className={`w-11 h-11 rounded-full text-white flex items-center justify-center font-extrabold text-[15px] shadow-sm ${person.avatarBg || "bg-[#D97706]"}`}>
+              <div className={`w-11 h-11 rounded-full text-white flex items-center justify-center font-extrabold text-[15px] shadow-sm ${person.avatarBg || "bg-[var(--icp-medium)]"}`}>
                 {person.avatarInitials || "SJ"}
               </div>
               <span className="absolute bottom-0 right-0 w-3 h-3 bg-amber-500 border-2 border-white rounded-full"></span>
@@ -133,8 +133,8 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
           </section>
 
           {/* BLOCK 2: KI VORSCHLAG */}
-          <section className="bg-[#ECFEF9] border border-emerald-100 rounded-xl p-4 space-y-3 animate-fade-in">
-            <div className="flex items-center gap-1.5 text-[10px] font-bold text-[#175253] uppercase tracking-wider">
+          <section className="bg-[var(--signal-teal-bg)] border border-emerald-100 rounded-xl p-4 space-y-3 animate-fade-in">
+            <div className="flex items-center gap-1.5 text-[10px] font-bold text-[var(--sherloq-primary)] uppercase tracking-wider">
               <Sparkles className="w-3 h-3" />
               ✨ KI schlägt vor
             </div>
@@ -149,10 +149,10 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
             </div>
 
             <div className="flex items-center justify-between">
-              <span className="text-[12px] font-extrabold text-[#175253]">
+              <span className="text-[12px] font-extrabold text-[var(--sherloq-primary)]">
                 ✉ Email empfohlen
               </span>
-              <button onClick={handleApplySuggestion} className="px-3 py-1.5 bg-[#175253] text-white rounded-lg text-[11px] font-bold cursor-pointer">
+              <button onClick={handleApplySuggestion} className="px-3 py-1.5 bg-[var(--sherloq-primary)] text-white rounded-lg text-[11px] font-bold cursor-pointer">
                 Übernehmen
               </button>
             </div>
@@ -163,8 +163,8 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
 
             <div className="px-5 py-4 flex items-center justify-between border-b border-gray-50">
               <div className="flex items-center gap-2">
-                <ClipboardList className="w-4 h-4 text-[#175253]" />
-                <h2 className="text-[16px] font-semibold text-[#111]">
+                <ClipboardList className="w-4 h-4 text-[var(--sherloq-primary)]" />
+                <h2 className="text-[16px] font-semibold text-[var(--text-primary)]">
                   Neue Task
                 </h2>
               </div>
@@ -188,7 +188,7 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
                     if (isError) setIsError(false);
                   }}
                   placeholder="z.B. ROI-Dokument an Max senden"
-                  className={`w-full px-4 py-3 rounded-xl border outline-none transition-all focus:border-[#175253] text-[13px] font-semibold ${isError ? 'border-amber-500 bg-amber-50' : 'border-gray-200'}`}
+                  className={`w-full px-4 py-3 rounded-xl border outline-none transition-all focus:border-[var(--sherloq-primary)] text-[13px] font-semibold ${isError ? 'border-amber-500 bg-amber-50' : 'border-gray-200'}`}
                 />
               </div>
 
@@ -210,7 +210,7 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
                   <label className="text-[12px] font-bold text-gray-500">
                     Deal
                   </label>
-                  <select className="w-full px-4 py-2.5 rounded-xl border border-gray-200 outline-none focus:border-[#175253] bg-white text-[13px] font-semibold">
+                  <select className="w-full px-4 py-2.5 rounded-xl border border-gray-200 outline-none focus:border-[var(--sherloq-primary)] bg-white text-[13px] font-semibold">
                     <option>Demo vereinbart</option>
                     <option>Enterprise Upgrade (24.000€)</option>
                     <option>Kein Deal verknüpft</option>
@@ -227,31 +227,31 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
                 <div className="flex gap-2">
                   <button 
                     onClick={() => setChannel("mail")} 
-                    className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all cursor-pointer ${activeChannel === 'mail' ? 'bg-[#175253] text-white border-transparent' : 'bg-gray-50 border-gray-200 text-gray-400 hover:bg-gray-100'}`}
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all cursor-pointer ${activeChannel === 'mail' ? 'bg-[var(--sherloq-primary)] text-white border-transparent' : 'bg-gray-50 border-gray-200 text-gray-400 hover:bg-gray-100'}`}
                   >
                     <Mail className="w-[18px] h-[18px]" />
                   </button>
                   <button 
                     onClick={() => setChannel("linkedin")} 
-                    className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all cursor-pointer ${activeChannel === 'linkedin' ? 'bg-[#175253] text-white border-transparent' : 'bg-gray-50 border-gray-200 text-gray-400 hover:bg-gray-100'}`}
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all cursor-pointer ${activeChannel === 'linkedin' ? 'bg-[var(--sherloq-primary)] text-white border-transparent' : 'bg-gray-50 border-gray-200 text-gray-400 hover:bg-gray-100'}`}
                   >
                     <Link2 className="w-[18px] h-[18px]" />
                   </button>
                   <button 
                     onClick={() => setChannel("phone")} 
-                    className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all cursor-pointer ${activeChannel === 'phone' ? 'bg-[#175253] text-white border-transparent' : 'bg-gray-50 border-gray-200 text-gray-400 hover:bg-gray-100'}`}
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all cursor-pointer ${activeChannel === 'phone' ? 'bg-[var(--sherloq-primary)] text-white border-transparent' : 'bg-gray-50 border-gray-200 text-gray-400 hover:bg-gray-100'}`}
                   >
                     <Phone className="w-[18px] h-[18px]" />
                   </button>
                   <button 
                     onClick={() => setChannel("calendar")} 
-                    className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all cursor-pointer ${activeChannel === 'calendar' ? 'bg-[#175253] text-white border-transparent' : 'bg-gray-50 border-gray-200 text-gray-400 hover:bg-gray-100'}`}
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all cursor-pointer ${activeChannel === 'calendar' ? 'bg-[var(--sherloq-primary)] text-white border-transparent' : 'bg-gray-50 border-gray-200 text-gray-400 hover:bg-gray-100'}`}
                   >
                     <Calendar className="w-[18px] h-[18px]" />
                   </button>
                   <button 
                     onClick={() => setChannel("other")} 
-                    className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all cursor-pointer ${activeChannel === 'other' ? 'bg-[#175253] text-white border-transparent' : 'bg-gray-50 border-gray-200 text-gray-400 hover:bg-gray-100'}`}
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all cursor-pointer ${activeChannel === 'other' ? 'bg-[var(--sherloq-primary)] text-white border-transparent' : 'bg-gray-50 border-gray-200 text-gray-400 hover:bg-gray-100'}`}
                   >
                     <ClipboardList className="w-[18px] h-[18px]" />
                   </button>
@@ -266,7 +266,7 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
                 <textarea
                   rows={3}
                   defaultValue="AI-Notiz: Demo war positiv. ROI-Dokument und konkretes Angebot als nächsten Schritt senden."
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-[#175253] resize-none text-[13px] font-medium leading-relaxed"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-[var(--sherloq-primary)] resize-none text-[13px] font-medium leading-relaxed"
                 />
               </div>
 
@@ -301,16 +301,16 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
                   </label>
 
                   <div className="flex gap-1.5">
-                    <button onClick={() => setPriority("low")} className={`px-2 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer ${activePriority === 'low' ? 'bg-[#175253] text-white' : 'bg-gray-100 text-gray-500'}`}>
+                    <button onClick={() => setPriority("low")} className={`px-2 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer ${activePriority === 'low' ? 'bg-[var(--sherloq-primary)] text-white' : 'bg-gray-100 text-gray-500'}`}>
                       Low
                     </button>
-                    <button onClick={() => setPriority("medium")} className={`px-2 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer ${activePriority === 'medium' ? 'bg-[#175253] text-white' : 'bg-gray-100 text-gray-500'}`}>
+                    <button onClick={() => setPriority("medium")} className={`px-2 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer ${activePriority === 'medium' ? 'bg-[var(--sherloq-primary)] text-white' : 'bg-gray-100 text-gray-500'}`}>
                       Medium
                     </button>
-                    <button onClick={() => setPriority("high")} className={`px-2 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer ${activePriority === 'high' ? 'bg-[#175253] text-white' : 'bg-gray-100 text-gray-500'}`}>
+                    <button onClick={() => setPriority("high")} className={`px-2 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer ${activePriority === 'high' ? 'bg-[var(--sherloq-primary)] text-white' : 'bg-gray-100 text-gray-500'}`}>
                       High
                     </button>
-                    <button onClick={() => setPriority("urgent")} className={`px-2 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer ${activePriority === 'urgent' ? 'bg-[#175253] text-white' : 'bg-gray-100 text-gray-500'}`}>
+                    <button onClick={() => setPriority("urgent")} className={`px-2 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer ${activePriority === 'urgent' ? 'bg-[var(--sherloq-primary)] text-white' : 'bg-gray-100 text-gray-500'}`}>
                       Urgent
                     </button>
                   </div>
@@ -339,7 +339,7 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
                 </span>
                 <button 
                   onClick={toggleReminder} 
-                  className={`w-11 h-6 rounded-full p-0.5 transition-colors cursor-pointer ${reminderActive ? 'bg-[#175253]' : 'bg-gray-200'}`}
+                  className={`w-11 h-6 rounded-full p-0.5 transition-colors cursor-pointer ${reminderActive ? 'bg-[var(--sherloq-primary)]' : 'bg-gray-200'}`}
                 >
                   <span className={`block w-5 h-5 rounded-full bg-white shadow-sm transition-transform ${reminderActive ? 'translate-x-[20px]' : 'translate-x-0'}`}></span>
                 </button>
@@ -370,7 +370,7 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
 
           {/* AKTIONEN */}
           <section className="space-y-3 pt-1">
-            <button onClick={handleSave} className="w-full py-3 bg-gradient-to-r from-[#175253] to-[#3f8383] text-white rounded-full text-[13px] font-extrabold shadow-md hover:scale-[1.01] transition-transform flex items-center justify-center gap-2 cursor-pointer">
+            <button onClick={handleSave} className="w-full py-3 bg-gradient-to-r from-[var(--sherloq-primary)] to-[var(--sherloq-primary)] text-white rounded-full text-[13px] font-extrabold shadow-md hover:scale-[1.01] transition-transform flex items-center justify-center gap-2 cursor-pointer">
               <Check className="w-4 h-4" />
               Task speichern
             </button>

@@ -62,10 +62,10 @@ export function LinkedinSignalCard({
 
   const extractedBg = avatarBg?.includes("bg-[")
     ? avatarBg.replace("bg-[", "").replace("]", "")
-    : avatarBg || "#2B8A3E";
+    : avatarBg || "var(--icp-high)";
 
   return (
-    <div className="w-full bg-white rounded-[24px] border border-[#F1F3F5] flex flex-col overflow-hidden font-sans shadow-[0_8px_30px_rgba(0,0,0,0.04)]">
+    <div className="w-full bg-white rounded-[24px] border border-[var(--border-subtle)] flex flex-col overflow-hidden font-sans shadow-[0_8px_30px_rgba(0,0,0,0.04)]">
       {/* ROW 1: HEADER SECTION */}
       <div className="p-5 md:px-6 flex items-center justify-between gap-4">
         {/* Avatar & Name */}
@@ -85,19 +85,19 @@ export function LinkedinSignalCard({
                 {avatarInitials}
               </div>
             )}
-            <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-[#2B8A3E] border-2 border-white rounded-full"></div>
+            <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-[var(--icp-high)] border-2 border-white rounded-full"></div>
           </div>
           <div>
-            <div className="text-base font-extrabold text-[#212529]">
+            <div className="text-base font-extrabold text-[var(--text-primary)]">
               {name}
             </div>
-            <div className="text-[13px] text-[#868E96] font-semibold mt-0.5">
+            <div className="text-[13px] text-[var(--text-muted)] font-semibold mt-0.5">
               {role}
             </div>
           </div>
         </div>
 
-        <div className="w-[1px] h-12 bg-[#F1F3F5] shrink-0" />
+        <div className="w-[1px] h-12 bg-[var(--border-subtle)] shrink-0" />
 
         {/* ICP Donut */}
         <div className="relative w-12 h-12 shrink-0">
@@ -107,12 +107,12 @@ export function LinkedinSignalCard({
             viewBox="0 0 48 48"
             className="-rotate-90 block"
           >
-            <circle cx="24" cy="24" r="20" stroke="#F1F3F5" strokeWidth="4" fill="transparent" />
+            <circle cx="24" cy="24" r="20" stroke="var(--border-subtle)" strokeWidth="4" fill="transparent" />
             <circle
               cx="24"
               cy="24"
               r="20"
-              stroke="#2B8A3E"
+              stroke="var(--icp-high)"
               strokeWidth="4"
               fill="transparent"
               strokeDasharray={donutCircumference}
@@ -120,70 +120,70 @@ export function LinkedinSignalCard({
               strokeLinecap="round"
             />
           </svg>
-          <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-sm font-extrabold text-[#2B8A3E]">
+          <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-sm font-extrabold text-[var(--icp-high)]">
             {icpScore}
           </span>
         </div>
 
         {/* Company Pill */}
-        <div className="flex items-center gap-2.5 bg-white border border-[#E9ECEF] p-1.5 pr-4 rounded-xl whitespace-nowrap shrink-0">
-          <div className="bg-[#121212] text-white text-[11px] font-extrabold w-8 h-8 flex items-center justify-center rounded-lg">
+        <div className="flex items-center gap-2.5 bg-white border border-[var(--border)] p-1.5 pr-4 rounded-xl whitespace-nowrap shrink-0">
+          <div className="bg-[var(--text-primary)] text-white text-[11px] font-extrabold w-8 h-8 flex items-center justify-center rounded-lg">
             {companyInitials}
           </div>
-          <span className="text-[15px] font-extrabold text-[#212529]">
+          <span className="text-[15px] font-extrabold text-[var(--text-primary)]">
             {companyName}
           </span>
         </div>
 
-        <div className="w-[1px] h-12 bg-[#F1F3F5] shrink-0 xl:block hidden" />
+        <div className="w-[1px] h-12 bg-[var(--border-subtle)] shrink-0 xl:block hidden" />
 
         {/* Subscription / Stage */}
         <div className="flex flex-col items-center gap-1.5 shrink-0">
-          <span className="text-[10px] font-extrabold text-[#ADB5BD] tracking-[0.05em] uppercase">
+          <span className="text-[10px] font-extrabold text-[var(--icon-muted)] tracking-[0.05em] uppercase">
             {labelType}
           </span>
-          <div className="border border-[#E9ECEF] bg-white rounded-full px-6 py-1.5 text-sm font-extrabold text-[#212529]">
+          <div className="border border-[var(--border)] bg-white rounded-full px-6 py-1.5 text-sm font-extrabold text-[var(--text-primary)]">
             {stage}
           </div>
         </div>
 
         {/* Heat */}
         <div className="flex flex-col items-center gap-1.5 shrink-0">
-          <span className="text-[10px] font-extrabold text-[#ADB5BD] tracking-[0.05em] uppercase">
+          <span className="text-[10px] font-extrabold text-[var(--icon-muted)] tracking-[0.05em] uppercase">
             HEAT
           </span>
-          <div className="border border-[#FFC9C9] bg-[#FFF5F5] rounded-full px-5 py-1.5 text-sm font-extrabold text-[#E03131] flex items-center gap-1.5">
-            <div className="w-2 h-2 rounded-sm bg-[#E03131]" />
+          <div className="border border-[var(--signal-urgent-bg)] bg-[var(--signal-urgent-bg)] rounded-full px-5 py-1.5 text-sm font-extrabold text-[var(--icp-low)] flex items-center gap-1.5">
+            <div className="w-2 h-2 rounded-sm bg-[var(--icp-low)]" />
             Hot
           </div>
         </div>
 
-        <div className="w-[1px] h-12 bg-[#F1F3F5] shrink-0" />
+        <div className="w-[1px] h-12 bg-[var(--border-subtle)] shrink-0" />
 
         {/* Time */}
         <div className="flex flex-col items-end w-16 shrink-0">
-          <span className="text-base font-extrabold text-[#212529] whitespace-nowrap">
+          <span className="text-base font-extrabold text-[var(--text-primary)] whitespace-nowrap">
             {timeAgoLabel || timeAgo}
           </span>
-          <span className="text-xs text-[#ADB5BD] font-bold mt-0.5 whitespace-nowrap">
+          <span className="text-xs text-[var(--icon-muted)] font-bold mt-0.5 whitespace-nowrap">
             {timeLeftHours}h left
           </span>
         </div>
 
         {/* Action Button */}
-        <button className="w-14 h-14 rounded-full bg-[#E6FCF5] text-[#125455] flex items-center justify-center shrink-0 hover:scale-105 transition-transform cursor-pointer border-none outline-none">
+        <button className="w-14 h-14 rounded-full bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)] flex items-center justify-center shrink-0 hover:scale-105 transition-transform cursor-pointer border-none outline-none">
           <ArrowRight className="w-6 h-6 stroke-[2.5]" />
         </button>
       </div>
 
       {/* ROW 2: ACTION SECTION */}
-      <div className="bg-[#F8F9FA] px-6 py-4 flex items-center justify-between border-t border-[#F1F3F5] gap-4">
+      <div className="bg-[var(--app-bg)] px-6 py-4 flex items-center justify-between border-t border-[var(--border-subtle)] gap-4">
         {/* Left Side: Event & Action Info */}
         <div className="flex items-center gap-5 overflow-hidden">
-          <div className="bg-[#1971C2] text-white px-5 py-2.5 rounded-lg font-extrabold text-sm shrink-0">
+          <div className="bg-[var(--signal-info-text)] text-white px-5 py-2.5 rounded-lg font-extrabold text-sm shrink-0">
             LinkedIn Signal
           </div>
-          <div className="text-[#1971C2] font-extrabold text-[15px] truncate">
+          <div className="text-[var(--signal-info-text)] font-extrabold text-[15px] truncate">
             {actionText}
           </div>
         </div>
@@ -194,20 +194,20 @@ export function LinkedinSignalCard({
           <div className="flex items-center gap-6">
             <div className="flex flex-col w-[260px]">
               <div className="flex justify-between items-center mb-1.5">
-                <span className="text-[#E03131] font-extrabold text-[13px] flex items-center gap-1">
+                <span className="text-[var(--icp-low)] font-extrabold text-[13px] flex items-center gap-1">
                   🔥 Hot
                 </span>
-                <span className="text-[#E03131] font-extrabold text-[13px]">
+                <span className="text-[var(--icp-low)] font-extrabold text-[13px]">
                   {timeLeftHours}h left
                 </span>
               </div>
-              <div className="bg-[#A5D8FF] h-1.5 rounded-full overflow-hidden w-full">
+              <div className="bg-[var(--signal-info-bg)] h-1.5 rounded-full overflow-hidden w-full">
                 <div
-                  className="bg-[#D0EBFF] h-full rounded-full"
+                  className="bg-[var(--signal-info-bg)] h-full rounded-full"
                   style={{ width: `${timeProgress}%` }}
                 />
               </div>
-              <div className="text-right text-[#ADB5BD] text-[11px] font-extrabold mt-1.5">
+              <div className="text-right text-[var(--icon-muted)] text-[11px] font-extrabold mt-1.5">
                 {windowHours}h window
               </div>
             </div>
@@ -220,12 +220,12 @@ export function LinkedinSignalCard({
                 viewBox="0 0 40 40"
                 className="-rotate-90 block"
               >
-                <circle cx="20" cy="20" r="16" stroke="#E9ECEF" strokeWidth="4" fill="transparent" />
+                <circle cx="20" cy="20" r="16" stroke="var(--border)" strokeWidth="4" fill="transparent" />
                 <circle
                   cx="20"
                   cy="20"
                   r="16"
-                  stroke="#2B8A3E"
+                  stroke="var(--icp-high)"
                   strokeWidth="4"
                   fill="transparent"
                   strokeDasharray={smallDonutCircumference}
@@ -233,13 +233,13 @@ export function LinkedinSignalCard({
                   strokeLinecap="round"
                 />
               </svg>
-              <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[13px] font-extrabold text-[#2B8A3E]">
+              <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[13px] font-extrabold text-[var(--icp-high)]">
                 {smallIcpValue}
               </span>
             </div>
           </div>
 
-          <div className="w-[1px] h-10 bg-[#DCE4E8] shrink-0" />
+          <div className="w-[1px] h-10 bg-[var(--signal-teal-bg)] shrink-0" />
 
           {/* Actions */}
           <div className="flex items-center gap-5">
@@ -248,13 +248,13 @@ export function LinkedinSignalCard({
                 e.stopPropagation();
                 onActNow?.();
               }}
-              className="bg-[#125455] text-white border-none rounded-full px-6 py-2.5 font-extrabold text-sm cursor-pointer hover:opacity-90 transition-opacity"
+              className="bg-[var(--sherloq-primary)] text-white border-none rounded-full px-6 py-2.5 font-extrabold text-sm cursor-pointer hover:opacity-90 transition-opacity"
             >
               Act now
             </button>
             <button
               onClick={() => setExpanded(!expanded)}
-              className="text-[#1971C2] hover:bg-[#E7F5FF] w-8 h-8 rounded flex items-center justify-center transition-colors cursor-pointer border-none bg-transparent"
+              className="text-[var(--signal-info-text)] hover:bg-[var(--signal-info-bg)] w-8 h-8 rounded flex items-center justify-center transition-colors cursor-pointer border-none bg-transparent"
             >
               {expanded ? (
                 <ChevronUp className="w-6 h-6 stroke-[2.5]" />
@@ -268,44 +268,44 @@ export function LinkedinSignalCard({
 
       {/* ROW 3: EXPANDED CONTENT (Optional) */}
       {expanded && (
-        <div className="p-6 border-t border-[#F1F3F5] bg-white">
-          <div className="bg-[#F8F9FA] border border-[#E7F5FF] rounded-xl p-5 mb-4">
-            <div className="inline-block bg-[#E7F5FF] text-[#1971C2] px-3 py-1.5 rounded-md text-xs font-extrabold mb-3">
+        <div className="p-6 border-t border-[var(--border-subtle)] bg-white">
+          <div className="bg-[var(--app-bg)] border border-[var(--signal-info-bg)] rounded-xl p-5 mb-4">
+            <div className="inline-block bg-[var(--signal-info-bg)] text-[var(--signal-info-text)] px-3 py-1.5 rounded-md text-xs font-extrabold mb-3">
               {actionText?.includes("ommentar")
                 ? "Replied to a comment"
                 : "Signal Details"}
             </div>
-            <p className={`text-[15px] font-medium text-[#212529] leading-relaxed ${quoteText ? "mb-4" : "mb-0"}`}>
+            <p className={`text-[15px] font-medium text-[var(--text-primary)] leading-relaxed ${quoteText ? "mb-4" : "mb-0"}`}>
               "{commentText}"
             </p>
             {quoteText && (
-              <div className="border-l-[3px] border-[#D0EBFF] pl-4">
-                <span className="text-sm text-[#868E96] italic">
+              <div className="border-l-[3px] border-[var(--signal-info-bg)] pl-4">
+                <span className="text-sm text-[var(--text-muted)] italic">
                   "{quoteText}"
                 </span>
               </div>
             )}
           </div>
 
-          <div className="bg-[#EBFBEE] border border-[#AEE6D5] rounded-xl p-5 mb-5">
+          <div className="bg-[var(--signal-success-bg)] border border-[var(--signal-teal-bg)] rounded-xl p-5 mb-5">
             <div className="flex items-center gap-2 mb-3">
-              <span className="text-sm font-extrabold text-[#2B8A3E]">
+              <span className="text-sm font-extrabold text-[var(--icp-high)]">
                 KI Empfehlung
               </span>
             </div>
-            <p className="text-sm text-[#2B8A3E] leading-relaxed font-medium">
+            <p className="text-sm text-[var(--icp-high)] leading-relaxed font-medium">
               {aiRecommendation}
             </p>
           </div>
 
           <div className="flex items-center gap-3">
-            <button className="bg-[#125455] text-white px-6 py-2.5 rounded-lg border-none text-sm font-extrabold cursor-pointer hover:opacity-90">
+            <button className="bg-[var(--sherloq-primary)] text-white px-6 py-2.5 rounded-lg border-none text-sm font-extrabold cursor-pointer hover:opacity-90">
               Reply generieren
             </button>
-            <button className="bg-white border border-[#E9ECEF] text-[#495057] px-6 py-2.5 rounded-lg text-sm font-extrabold cursor-pointer hover:bg-[#F8F9FA]">
+            <button className="bg-white border border-[var(--border)] text-[var(--text-body)] px-6 py-2.5 rounded-lg text-sm font-extrabold cursor-pointer hover:bg-[var(--app-bg)]">
               Original ansehen
             </button>
-            <button className="bg-white border border-[#E9ECEF] text-[#868E96] px-6 py-2.5 rounded-lg text-sm font-extrabold cursor-pointer hover:bg-[#F8F9FA] ml-2">
+            <button className="bg-white border border-[var(--border)] text-[var(--text-muted)] px-6 py-2.5 rounded-lg text-sm font-extrabold cursor-pointer hover:bg-[var(--app-bg)] ml-2">
               Ignorieren
             </button>
           </div>

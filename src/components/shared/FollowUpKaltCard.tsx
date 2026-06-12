@@ -42,7 +42,7 @@ export function FollowUpKaltCard({
     <div
       onClick={() => setExpanded(!expanded)}
       style={{
-        background: "#ffffff",
+        background: "var(--surface)",
         boxShadow: "0 8px 30px rgba(0,0,0,0.04)",
         overflow: "hidden",
         cursor: "pointer",
@@ -50,7 +50,7 @@ export function FollowUpKaltCard({
         width: "100%",
         margin: "0 auto",
         borderRadius: expanded ? "24px" : "32px",
-        border: expanded ? "2px solid #BAE6FD" : "1px solid #F1F3F5",
+        border: expanded ? "2px solid var(--signal-info-bg)" : "1px solid var(--border-subtle)",
         transition: "all 0.2s ease-in-out",
         fontFamily: "'Plus Jakarta Sans', sans-serif",
       }}
@@ -83,7 +83,7 @@ export function FollowUpKaltCard({
                 height: "40px",
                 borderRadius: "9999px",
                 background: avatarBg,
-                color: "#fff",
+                color: "var(--surface)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -101,7 +101,7 @@ export function FollowUpKaltCard({
               style={{
                 fontSize: "14px",
                 fontWeight: 700,
-                color: "#212529",
+                color: "var(--text-primary)",
                 whiteSpace: "nowrap",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
@@ -113,7 +113,7 @@ export function FollowUpKaltCard({
             <div
               style={{
                 fontSize: "12px",
-                color: "#868E96",
+                color: "var(--text-muted)",
                 marginTop: "2px",
                 whiteSpace: "nowrap",
                 overflow: "hidden",
@@ -133,7 +133,7 @@ export function FollowUpKaltCard({
             alignItems: "center",
             gap: "14px",
             padding: "0 20px",
-            borderLeft: "1px solid #F1F3F5",
+            borderLeft: "1px solid var(--border-subtle)",
             flexShrink: 0,
           }}
         >
@@ -155,7 +155,7 @@ export function FollowUpKaltCard({
                 cx="24"
                 cy="24"
                 r="20"
-                stroke="#F1F3F5"
+                stroke="var(--border-subtle)"
                 strokeWidth="4"
                 fill="transparent"
               />
@@ -163,7 +163,7 @@ export function FollowUpKaltCard({
                 cx="24"
                 cy="24"
                 r="20"
-                stroke="#F59E0B"
+                stroke="var(--icp-medium)"
                 strokeWidth="4"
                 fill="transparent"
                 strokeDasharray={donutCircumference}
@@ -180,7 +180,7 @@ export function FollowUpKaltCard({
                 transform: "translate(-50%,-50%)",
                 fontSize: "13px",
                 fontWeight: 700,
-                color: "#F59E0B",
+                color: "var(--icp-medium)",
                 fontFamily: "monospace",
                 lineHeight: 1,
               }}
@@ -194,8 +194,8 @@ export function FollowUpKaltCard({
               display: "flex",
               alignItems: "center",
               gap: "8px",
-              background: "#fff",
-              border: "1px solid #E9ECEF",
+              background: "var(--surface)",
+              border: "1px solid var(--border)",
               padding: "6px 12px 6px 8px",
               borderRadius: "12px",
               flexShrink: 0,
@@ -204,7 +204,7 @@ export function FollowUpKaltCard({
             <div
               style={{
                 background: companyBg,
-                color: "#fff",
+                color: "var(--surface)",
                 fontSize: "10px",
                 fontWeight: 700,
                 width: "24px",
@@ -222,7 +222,7 @@ export function FollowUpKaltCard({
             <span
               style={{
                 fontSize: "13px",
-                color: "#495057",
+                color: "var(--text-body)",
                 fontWeight: 600,
                 whiteSpace: "nowrap",
               }}
@@ -239,7 +239,7 @@ export function FollowUpKaltCard({
             alignItems: "center",
             gap: "12px",
             padding: "0 20px",
-            borderLeft: "1px solid #F1F3F5",
+            borderLeft: "1px solid var(--border-subtle)",
             flexShrink: 0,
           }}
         >
@@ -258,7 +258,7 @@ export function FollowUpKaltCard({
                 top: "-16px",
                 fontSize: "10px",
                 fontWeight: 700,
-                color: "#ADB5BD",
+                color: "var(--icon-muted)",
                 letterSpacing: "0.08em",
                 textTransform: "uppercase",
                 whiteSpace: "nowrap",
@@ -271,11 +271,11 @@ export function FollowUpKaltCard({
               style={{
                 padding: "6px 16px",
                 borderRadius: "9999px",
-                background: "#fff",
-                border: "2px solid #E9ECEF",
+                background: "var(--surface)",
+                border: "2px solid var(--border)",
                 fontSize: "13px",
                 fontWeight: 700,
-                color: "#212529",
+                color: "var(--text-primary)",
                 whiteSpace: "nowrap",
               }}
             >
@@ -298,7 +298,7 @@ export function FollowUpKaltCard({
                 top: "-16px",
                 fontSize: "10px",
                 fontWeight: 700,
-                color: "#ADB5BD",
+                color: "var(--icon-muted)",
                 letterSpacing: "0.08em",
                 textTransform: "uppercase",
                 whiteSpace: "nowrap",
@@ -311,11 +311,11 @@ export function FollowUpKaltCard({
               style={{
                 padding: "6px 14px",
                 borderRadius: "9999px",
-                background: "#E7F5FF",
-                border: "2px solid #BAE6FD",
+                background: "var(--signal-info-bg)",
+                border: "2px solid var(--signal-info-bg)",
                 fontSize: "13px",
                 fontWeight: 700,
-                color: "#1971C2",
+                color: "var(--signal-info-text)",
                 display: "flex",
                 alignItems: "center",
                 gap: "6px",
@@ -327,7 +327,7 @@ export function FollowUpKaltCard({
                   width: "8px",
                   height: "8px",
                   borderRadius: "9999px",
-                  background: "#1971C2",
+                  background: "var(--signal-info-text)",
                   display: "inline-block",
                   flexShrink: 0,
                 }}
@@ -344,7 +344,7 @@ export function FollowUpKaltCard({
             alignItems: "center",
             gap: "14px",
             paddingLeft: "20px",
-            borderLeft: "1px solid #F1F3F5",
+            borderLeft: "1px solid var(--border-subtle)",
             flexShrink: 0,
             marginLeft: "auto",
           }}
@@ -354,7 +354,7 @@ export function FollowUpKaltCard({
               style={{
                 fontSize: "14px",
                 fontWeight: 700,
-                color: "#212529",
+                color: "var(--text-primary)",
                 whiteSpace: "nowrap",
               }}
             >
@@ -368,7 +368,7 @@ export function FollowUpKaltCard({
                 justifyContent: "flex-end",
                 gap: "4px",
                 marginTop: "2px",
-                color: "#E03131",
+                color: "var(--icp-low)",
                 fontWeight: 700,
                 fontSize: "12px",
                 whiteSpace: "nowrap",
@@ -380,7 +380,7 @@ export function FollowUpKaltCard({
                 height="13"
                 viewBox="0 0 24 24"
                 fill="none"
-                stroke="#E03131"
+                stroke="var(--icp-low)"
                 strokeWidth="2.5"
                 strokeLinecap="round"
               >
@@ -402,8 +402,8 @@ export function FollowUpKaltCard({
                   width: "36px",
                   height: "36px",
                   borderRadius: "9999px",
-                  background: "#F8F9FA",
-                  color: "#ADB5BD",
+                  background: "var(--app-bg)",
+                  color: "var(--icon-muted)",
                   border: "none",
                   display: "flex",
                   alignItems: "center",
@@ -434,8 +434,8 @@ export function FollowUpKaltCard({
                   width: "40px",
                   height: "40px",
                   borderRadius: "9999px",
-                  background: "#ECFEF9",
-                  color: "#125455",
+                  background: "var(--signal-teal-bg)",
+                  color: "var(--sherloq-primary)",
                   border: "none",
                   display: "flex",
                   alignItems: "center",
@@ -468,8 +468,8 @@ export function FollowUpKaltCard({
                 width: "40px",
                 height: "40px",
                 borderRadius: "9999px",
-                background: "#F1F3F5",
-                color: "#495057",
+                background: "var(--border-subtle)",
+                color: "var(--text-body)",
                 border: "none",
                 display: "flex",
                 alignItems: "center",
@@ -498,8 +498,8 @@ export function FollowUpKaltCard({
       {!expanded && (
         <div
           style={{
-            background: "#F8F9FA",
-            borderTop: "1px solid #E9ECEF",
+            background: "var(--app-bg)",
+            borderTop: "1px solid var(--border)",
             padding: "12px 24px",
             display: "flex",
             alignItems: "center",
@@ -511,8 +511,8 @@ export function FollowUpKaltCard({
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
             <div
               style={{
-                background: "#E7F5FF",
-                color: "#1971C2",
+                background: "var(--signal-info-bg)",
+                color: "var(--signal-info-text)",
                 padding: "6px 12px",
                 borderRadius: "8px",
                 display: "flex",
@@ -542,7 +542,7 @@ export function FollowUpKaltCard({
               style={{
                 fontSize: "14px",
                 fontWeight: 600,
-                color: "#343A40",
+                color: "var(--text-body)",
               }}
             >
               Kontakt wird kalt. Letzter Kanal Email ohne Response. AI empfiehlt
@@ -557,9 +557,9 @@ export function FollowUpKaltCard({
                 onOutreachClick?.();
               }}
               style={{
-                background: "#fff",
-                border: "1px solid #E9ECEF",
-                color: "#495057",
+                background: "var(--surface)",
+                border: "1px solid var(--border)",
+                color: "var(--text-body)",
                 padding: "8px 20px",
                 borderRadius: "12px",
                 fontSize: "13px",
@@ -575,9 +575,9 @@ export function FollowUpKaltCard({
             <button
               onClick={(e) => e.stopPropagation()}
               style={{
-                background: "#fff",
-                border: "1px solid #E9ECEF",
-                color: "#495057",
+                background: "var(--surface)",
+                border: "1px solid var(--border)",
+                color: "var(--text-body)",
                 padding: "8px 20px",
                 borderRadius: "12px",
                 fontSize: "13px",

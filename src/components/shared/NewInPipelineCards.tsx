@@ -112,7 +112,7 @@ export default function NewInPipelineCards({ onSelectLead }: { onSelectLead: (le
   ];
 
   return (
-    <div className="font-sans antialiased text-[#111827]">
+    <div className="font-sans antialiased text-[var(--text-primary)]">
       <div className="max-w-[1040px] space-y-8">
         
         {/* Header Section */}
@@ -157,7 +157,7 @@ export default function NewInPipelineCards({ onSelectLead }: { onSelectLead: (le
                   <ICPProgressRing score={lead.score} />
 
                   {/* Company Badge (Dark Pill) */}
-                  <div className="flex items-center gap-2 bg-[#111827] text-white pl-1.5 pr-3 py-1.5 rounded-full shrink-0 shadow-sm">
+                  <div className="flex items-center gap-2 bg-[var(--text-primary)] text-white pl-1.5 pr-3 py-1.5 rounded-full shrink-0 shadow-sm">
                     <div className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center text-[10px] font-extrabold">
                       {lead.initials}
                     </div>
@@ -188,7 +188,7 @@ export default function NewInPipelineCards({ onSelectLead }: { onSelectLead: (le
 
                     <button 
                       onClick={() => onSelectLead({ ...lead, type: 'lead' })}
-                      className="w-10 h-10 rounded-full bg-[#f0f6f6] hover:bg-[#dceceb] text-[#175253] flex items-center justify-center transition-colors border border-transparent shadow-sm"
+                      className="w-10 h-10 rounded-full bg-[var(--signal-teal-bg)] hover:bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)] flex items-center justify-center transition-colors border border-transparent shadow-sm"
                     >
                       <ArrowUpRight size={18} strokeWidth={2.5} />
                     </button>
@@ -207,7 +207,7 @@ export default function NewInPipelineCards({ onSelectLead }: { onSelectLead: (le
                   {/* Origin Icon */}
                   <div className="flex items-center gap-1.5">
                     {lead.sourceType === 'ai_sdr' ? (
-                      <Bot size={15} className="text-[#175253]" />
+                      <Bot size={15} className="text-[var(--sherloq-primary)]" />
                     ) : (
                       <UserCheck size={15} className="text-gray-500" />
                     )}
@@ -236,7 +236,7 @@ export default function NewInPipelineCards({ onSelectLead }: { onSelectLead: (le
 
                   {/* Appointment detail block */}
                   {lead.meetingText && (
-                    <div className="flex items-center gap-2 bg-[#ECFEF9] border border-[#175253]/10 px-2.5 py-1 rounded-full text-[11px] font-bold text-[#175253] ml-2 shrink-0">
+                    <div className="flex items-center gap-2 bg-[var(--signal-teal-bg)] border border-[var(--sherloq-primary)]/10 px-2.5 py-1 rounded-full text-[11px] font-bold text-[var(--sherloq-primary)] ml-2 shrink-0">
                       <Calendar size={13} className="shrink-0" />
                       <span>{lead.meetingText}</span>
                     </div>
@@ -249,7 +249,7 @@ export default function NewInPipelineCards({ onSelectLead }: { onSelectLead: (le
                   {lead.btnType === 'primary' ? (
                     <button 
                       onClick={() => triggerToast(`Aktion ausgeführt: ${lead.btnText}`)}
-                      className="px-4 py-1.5 bg-[#175253] hover:bg-[#124040] text-white rounded-full text-[11px] font-black transition-colors shadow-sm"
+                      className="px-4 py-1.5 bg-[var(--sherloq-primary)] hover:bg-[var(--sherloq-primary)] text-white rounded-full text-[11px] font-black transition-colors shadow-sm"
                     >
                       {lead.btnText}
                     </button>
@@ -258,7 +258,7 @@ export default function NewInPipelineCards({ onSelectLead }: { onSelectLead: (le
                       onClick={() => triggerToast(`Meeting-Prep wird gestartet...`)}
                       className="px-4 py-1.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-full text-[11px] font-black transition-colors shadow-sm flex items-center gap-1.5"
                     >
-                      <RotateCw size={11} className="animate-spin text-[#175253]" />
+                      <RotateCw size={11} className="animate-spin text-[var(--sherloq-primary)]" />
                       {lead.btnText}
                     </button>
                   )}

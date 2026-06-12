@@ -128,7 +128,7 @@ export default function ContactColdDrawer({ person, onClose }: ContactColdDrawer
           {/* BLOCK 2: AI EMPFEHLUNG */}
           <section className="space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-extrabold text-[#175253] uppercase tracking-widest flex items-center gap-1.5">
+              <span className="text-[10px] font-extrabold text-[var(--sherloq-primary)] uppercase tracking-widest flex items-center gap-1.5">
                 <Sparkles className="w-3 h-3" />
                 AI empfiehlt
               </span>
@@ -137,14 +137,14 @@ export default function ContactColdDrawer({ person, onClose }: ContactColdDrawer
               </span>
             </div>
 
-            <div className="p-4 bg-[#f0f6f6] border border-[#c4dbda]/50 rounded-xl space-y-3">
-              <p className="text-[13px] text-[#175253] font-bold leading-relaxed">
+            <div className="p-4 bg-[var(--signal-teal-bg)] border border-[var(--signal-teal-bg)]/50 rounded-xl space-y-3">
+              <p className="text-[13px] text-[var(--sherloq-primary)] font-bold leading-relaxed">
                 {person.aiRecommendation}
               </p>
 
               <div className="flex gap-2 flex-wrap">
                 {person.tags.map((t, idx) => (
-                  <span key={idx} className="px-2.5 py-1 rounded-full bg-white border border-[#175253]/10 text-[#175253] text-[10px] font-bold">
+                  <span key={idx} className="px-2.5 py-1 rounded-full bg-white border border-[var(--sherloq-primary)]/10 text-[var(--sherloq-primary)] text-[10px] font-bold">
                     {t}
                   </span>
                 ))}
@@ -158,7 +158,7 @@ export default function ContactColdDrawer({ person, onClose }: ContactColdDrawer
               <span className="text-[10px] font-extrabold text-gray-400 uppercase tracking-widest">
                 AI Reaktivierungs-Nachricht
               </span>
-              <button onClick={handleRegenerate} className="text-[11px] font-extrabold text-[#175253] hover:underline flex items-center gap-1 cursor-pointer">
+              <button onClick={handleRegenerate} className="text-[11px] font-extrabold text-[var(--sherloq-primary)] hover:underline flex items-center gap-1 cursor-pointer">
                 Neu generieren
                 <RotateCw className={`w-3 h-3 ${isRegenerating ? "animate-spin" : ""}`} />
               </button>
@@ -169,7 +169,7 @@ export default function ContactColdDrawer({ person, onClose }: ContactColdDrawer
                 onClick={() => setChannel("LinkedIn")} 
                 className={`px-4 py-2 rounded-full border text-[11px] font-extrabold transition-all cursor-pointer ${
                   activeChannel === "LinkedIn" 
-                    ? "bg-[#175253] text-white border-[#175253] shadow-[0_2px_8px_rgba(23,82,83,0.12)]" 
+                    ? "bg-[var(--sherloq-primary)] text-white border-[var(--sherloq-primary)] shadow-[0_2px_8px_rgba(23,82,83,0.12)]" 
                     : "bg-white border-gray-200 text-gray-600"
                 }`}
               >
@@ -179,7 +179,7 @@ export default function ContactColdDrawer({ person, onClose }: ContactColdDrawer
                 onClick={() => setChannel("Email")} 
                 className={`px-4 py-2 rounded-full border text-[11px] font-extrabold transition-all cursor-pointer ${
                   activeChannel === "Email" 
-                    ? "bg-[#175253] text-white border-[#175253] shadow-[0_2px_8px_rgba(23,82,83,0.12)]" 
+                    ? "bg-[var(--sherloq-primary)] text-white border-[var(--sherloq-primary)] shadow-[0_2px_8px_rgba(23,82,83,0.12)]" 
                     : "bg-white border-gray-200 text-gray-600"
                 }`}
               >
@@ -188,7 +188,7 @@ export default function ContactColdDrawer({ person, onClose }: ContactColdDrawer
             </div>
 
             <div className="bg-white rounded-[18px] border border-gray-200 shadow-sm overflow-hidden">
-              <div className="px-4 py-3 bg-[#0A66C2] text-white text-[12px] flex items-center justify-between">
+              <div className="px-4 py-3 bg-[var(--channel-linkedin)] text-white text-[12px] flex items-center justify-between">
                 <span className="font-extrabold flex items-center gap-2">
                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
                   LinkedIn Composer
@@ -198,7 +198,7 @@ export default function ContactColdDrawer({ person, onClose }: ContactColdDrawer
                 </span>
               </div>
 
-              <div className="bg-[#F3F6F8] p-4">
+              <div className="bg-[var(--border-subtle)] p-4">
                 <div className="bg-blue-50 border border-blue-100 text-gray-900 p-4 rounded-2xl rounded-tr-md shadow-sm leading-relaxed">
                   <textarea
                     value={draftText}
@@ -231,7 +231,7 @@ export default function ContactColdDrawer({ person, onClose }: ContactColdDrawer
                     type="number"
                     defaultValue="5"
                     min="1"
-                    className="w-14 px-2 py-1.5 rounded-lg bg-gray-50 border border-gray-200 text-center text-[12px] font-extrabold text-gray-900 outline-none focus:border-[#175253]"
+                    className="w-14 px-2 py-1.5 rounded-lg bg-gray-50 border border-gray-200 text-center text-[12px] font-extrabold text-gray-900 outline-none focus:border-[var(--sherloq-primary)]"
                   />
                   <span className="text-[12px] font-bold text-gray-500">Tagen erneut erinnern</span>
                 </div>
@@ -243,7 +243,7 @@ export default function ContactColdDrawer({ person, onClose }: ContactColdDrawer
                 </span>
                 <button 
                   onClick={toggleReminder} 
-                  className={`w-11 h-6 rounded-full p-0.5 transition-colors cursor-pointer ${reminderActive ? 'bg-[#175253]' : 'bg-gray-200'}`}
+                  className={`w-11 h-6 rounded-full p-0.5 transition-colors cursor-pointer ${reminderActive ? 'bg-[var(--sherloq-primary)]' : 'bg-gray-200'}`}
                 >
                   <span className={`block w-5 h-5 rounded-full bg-white shadow-sm transition-transform ${reminderActive ? 'translate-x-[20px]' : 'translate-x-0'}`}></span>
                 </button>
@@ -253,7 +253,7 @@ export default function ContactColdDrawer({ person, onClose }: ContactColdDrawer
 
           {/* BLOCK 5: AKTIONEN */}
           <section className="space-y-2 pt-2">
-            <button onClick={() => triggerToast("LinkedIn Nachricht gesendet")} className="w-full py-3 bg-gradient-to-r from-[#175253] to-[#0A66C2] text-white rounded-full text-[13px] font-extrabold shadow-md hover:scale-[1.01] transition-transform flex items-center justify-center gap-2 cursor-pointer">
+            <button onClick={() => triggerToast("LinkedIn Nachricht gesendet")} className="w-full py-3 bg-gradient-to-r from-[var(--sherloq-primary)] to-[var(--channel-linkedin)] text-white rounded-full text-[13px] font-extrabold shadow-md hover:scale-[1.01] transition-transform flex items-center justify-center gap-2 cursor-pointer">
               <Send className="w-4 h-4" />
               Auf LinkedIn senden
             </button>

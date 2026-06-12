@@ -8,7 +8,7 @@ const STAGES_DATA = [
     deals: 12,
     value: '€ 84k',
     barHeight: 120, // Proportional to deals count
-    gradient: 'linear-gradient(to bottom, #257d80, #175253)',
+    gradient: 'linear-gradient(to bottom, var(--sherloq-primary), var(--sherloq-primary))',
     isWon: false,
     avgDays: 4,
     avgValue: '€ 7.000',
@@ -20,7 +20,7 @@ const STAGES_DATA = [
     deals: 8,
     value: '€ 142k',
     barHeight: 80,
-    gradient: 'linear-gradient(to bottom, #2f9797, #1e6b6b)',
+    gradient: 'linear-gradient(to bottom, var(--sherloq-primary), var(--sherloq-primary))',
     isWon: false,
     avgDays: 6,
     avgValue: '€ 17.750',
@@ -32,7 +32,7 @@ const STAGES_DATA = [
     deals: 5,
     value: '€ 98k',
     barHeight: 50,
-    gradient: 'linear-gradient(to bottom, #3eb2b2, #2a7f7f)',
+    gradient: 'linear-gradient(to bottom, var(--sherloq-primary), var(--sherloq-primary))',
     isWon: false,
     avgDays: 10,
     avgValue: '€ 19.600',
@@ -44,7 +44,7 @@ const STAGES_DATA = [
     deals: 3,
     value: '€ 61k',
     barHeight: 30,
-    gradient: 'linear-gradient(to bottom, #59b8b8, #3f8383)',
+    gradient: 'linear-gradient(to bottom, var(--sherloq-primary), var(--sherloq-primary))',
     isWon: false,
     avgDays: 14,
     avgValue: '€ 20.333',
@@ -56,7 +56,7 @@ const STAGES_DATA = [
     deals: 2,
     value: '€ 45k',
     barHeight: 20,
-    gradient: 'linear-gradient(to bottom, #22c55e, #12B76A)',
+    gradient: 'linear-gradient(to bottom, var(--icp-high), var(--icp-high))',
     isWon: true,
     avgDays: 5,
     avgValue: '€ 22.500',
@@ -69,9 +69,9 @@ export default function FunnelAnalysis() {
 
   const getConversionColorClass = (rate: number | null) => {
     if (rate === null) return '';
-    if (rate >= 60) return 'text-[#12B76A] bg-[#EBFBEE] border-[#12B76A]/15'; // Green
-    if (rate >= 40) return 'text-[#D97706] bg-[#FFF9DB] border-[#D97706]/15'; // Amber
-    return 'text-[#E03131] bg-[#FFF5F5] border-[#E03131]/15'; // Red
+    if (rate >= 60) return 'text-[var(--icp-high)] bg-[var(--signal-success-bg)] border-[var(--icp-high)]/15'; // Green
+    if (rate >= 40) return 'text-[var(--icp-medium)] bg-[var(--signal-warn-bg)] border-[var(--icp-medium)]/15'; // Amber
+    return 'text-[var(--icp-low)] bg-[var(--signal-urgent-bg)] border-[var(--icp-low)]/15'; // Red
   };
 
   return (
@@ -80,7 +80,7 @@ export default function FunnelAnalysis() {
         
         {/* Header Sektion */}
         <div className="mb-8">
-          <span className="text-[10px] font-extrabold text-[#9CA3AF] uppercase tracking-widest leading-none">
+          <span className="text-[10px] font-extrabold text-[var(--text-muted)] uppercase tracking-widest leading-none">
             Funnel Analyse · Pipeline Stufen
           </span>
         </div>
@@ -89,7 +89,7 @@ export default function FunnelAnalysis() {
         <div className="relative flex items-end justify-between w-full h-[220px]">
           
           {/* Feste Baseline am Boden auf der alle Balken wachsen */}
-          <div className="absolute bottom-[30px] left-0 right-0 h-[1.5px] bg-[#F3F4F6] z-0"></div>
+          <div className="absolute bottom-[30px] left-0 right-0 h-[1.5px] bg-[var(--border-subtle)] z-0"></div>
 
           {/* Mapping Stage Columns & Connectors */}
           {STAGES_DATA.map((stage, idx) => {
@@ -117,10 +117,10 @@ export default function FunnelAnalysis() {
 
                   {/* Deals Count & Currency Value */}
                   <div className="text-center h-[48px] flex flex-col justify-end pb-2.5">
-                    <span className="text-[14px] font-bold text-[#111] leading-none">
+                    <span className="text-[14px] font-bold text-[var(--text-primary)] leading-none">
                       {stage.deals} Deals
                     </span>
-                    <span className="text-[12px] font-semibold text-[#6B7280] mt-1.5 leading-none">
+                    <span className="text-[12px] font-semibold text-[var(--text-muted)] mt-1.5 leading-none">
                       {stage.value}
                     </span>
                   </div>
@@ -129,7 +129,7 @@ export default function FunnelAnalysis() {
                   <div className="h-[120px] w-[56px] flex flex-col justify-end items-center relative z-10 mb-[30px]">
                     {/* Checkmark icon for CLOSED WON (Placed exactly above the bar) */}
                     {stage.isWon && (
-                      <div className="text-[#12B76A] flex items-center justify-center mb-1 absolute" style={{ bottom: `${stage.barHeight + 4}px` }}>
+                      <div className="text-[var(--icp-high)] flex items-center justify-center mb-1 absolute" style={{ bottom: `${stage.barHeight + 4}px` }}>
                         <Check size={14} strokeWidth={3} />
                       </div>
                     )}
@@ -148,7 +148,7 @@ export default function FunnelAnalysis() {
                   
                   {/* Stage Title */}
                   <div className="absolute bottom-0 text-center w-full">
-                    <span className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-widest block leading-none py-1">
+                    <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest block leading-none py-1">
                       {stage.name}
                     </span>
                   </div>
@@ -158,7 +158,7 @@ export default function FunnelAnalysis() {
                 {idx < STAGES_DATA.length - 1 && (
                   <div className="flex flex-col items-center justify-center h-[120px] mb-[30px] w-[60px] shrink-0 relative z-10 select-none">
                     {/* Smooth minimalistic arrow */}
-                    <span className="text-[12px] text-[#D1D5DB] font-extrabold">→</span>
+                    <span className="text-[12px] text-[var(--border-strong)] font-extrabold">→</span>
                     {/* Inline-Badge for conversion rate */}
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border mt-1.5 ${getConversionColorClass(STAGES_DATA[idx + 1].conversionRate)}`}>
                       {STAGES_DATA[idx + 1].conversionRate}%

@@ -139,11 +139,11 @@ export default function ScreenHunting({
 
   const getHeatColor = (status: HeatStatus) => {
     switch (status) {
-      case 'HOT': return { bg: 'bg-[#EBFBEE]', text: 'text-[#2B8A3E] border-[#EBFBEE]', emoji: '🟢 Aktiv' };
-      case 'WARM': return { bg: 'bg-[#FFF4E6]', text: 'text-[#DD6B20] border-[#FFF4E6]', emoji: '🟠 Stabil' };
-      case 'LUKEWARM': return { bg: 'bg-[#FFF9DB]', text: 'text-[#F59E0B] border-[#FFF9DB]', emoji: '🟡 Rückläufig' };
-      case 'COLD': return { bg: 'bg-[#EBF8FF]', text: 'text-[#3182CE] border-[#EBF8FF]', emoji: '🔵 Ruhend' };
-      default: return { bg: 'bg-[#F7FAFC]', text: 'text-[#718096] border-[#F7FAFC]', emoji: '⚫ Inaktiv' };
+      case 'HOT': return { bg: 'bg-[var(--signal-success-bg)]', text: 'text-[var(--icp-high)] border-[var(--signal-success-bg)]', emoji: '🟢 Aktiv' };
+      case 'WARM': return { bg: 'bg-[var(--signal-warn-bg)]', text: 'text-[var(--icp-medium)] border-[var(--signal-warn-bg)]', emoji: '🟠 Stabil' };
+      case 'LUKEWARM': return { bg: 'bg-[var(--signal-warn-bg)]', text: 'text-[var(--icp-medium)] border-[var(--signal-warn-bg)]', emoji: '🟡 Rückläufig' };
+      case 'COLD': return { bg: 'bg-[var(--signal-info-bg)]', text: 'text-[var(--signal-info-text)] border-[var(--signal-info-bg)]', emoji: '🔵 Ruhend' };
+      default: return { bg: 'bg-[var(--app-bg)]', text: 'text-[var(--text-muted)] border-[var(--app-bg)]', emoji: '⚫ Inaktiv' };
     }
   };
 
@@ -154,12 +154,12 @@ export default function ScreenHunting({
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-[20px] font-semibold text-[#212529] tracking-tight">Hunter</h1>
-          <p className="text-[12px] text-[#868E96] mt-0.5">Finde Leads, tracke Signale und verwalte Abschlussphasen.</p>
+          <h1 className="text-[20px] font-semibold text-[var(--text-primary)] tracking-tight">Hunter</h1>
+          <p className="text-[12px] text-[var(--text-muted)] mt-0.5">Finde Leads, tracke Signale und verwalte Abschlussphasen.</p>
         </div>
         <button
           onClick={() => setShowAddModal(true)}
-          className="bg-[#125455] hover:bg-[#125455]/95 text-white text-[12px] font-semibold px-4 py-2 rounded-full cursor-pointer shadow-sm flex items-center gap-1.5"
+          className="bg-[var(--sherloq-primary)] hover:bg-[var(--sherloq-primary)]/95 text-white text-[12px] font-semibold px-4 py-2 rounded-full cursor-pointer shadow-sm flex items-center gap-1.5"
         >
           <Plus className="w-4 h-4" />
           <span>SDR Lead hinzufügen</span>
@@ -178,12 +178,12 @@ export default function ScreenHunting({
               className={`px-4.5 py-1.5 text-[12px] font-medium transition-all rounded-[9px] cursor-pointer flex items-center gap-1.5 ${
                 isActive
                   ? 'text-white shadow-sm'
-                  : 'text-[#495057] hover:bg-[#F8F9FA] hover:text-[#212529]'
+                  : 'text-[var(--text-body)] hover:bg-[var(--app-bg)] hover:text-[var(--text-primary)]'
               }`}
             >
               <span>{item.label}</span>
               {item.count !== null && (
-                <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-[5px] ${isActive ? 'bg-white text-[#175253]' : 'bg-[#E9ECEF] text-[#495057]'}`}>
+                <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-[5px] ${isActive ? 'bg-white text-[var(--sherloq-primary)]' : 'bg-[var(--border)] text-[var(--text-body)]'}`}>
                   {item.count}
                 </span>
               )}
@@ -204,7 +204,7 @@ export default function ScreenHunting({
                 <span className="text-[12px] font-bold text-gray-400 uppercase tracking-widest">
                   Pipeline Wert
                 </span>
-                <div className="w-8 h-8 rounded-[12px] bg-emerald-50 text-[#175253] flex items-center justify-center shrink-0">
+                <div className="w-8 h-8 rounded-[12px] bg-emerald-50 text-[var(--sherloq-primary)] flex items-center justify-center shrink-0">
                   <TrendingUp size={16} strokeWidth={2.5} />
                 </div>
               </div>
@@ -246,13 +246,13 @@ export default function ScreenHunting({
                 <span className="text-[12px] font-bold text-gray-400 uppercase tracking-widest">
                   Heisse Signale
                 </span>
-                <div className="w-8 h-8 rounded-[12px] bg-[#f0f6f6] text-[#175253] flex items-center justify-center shrink-0">
+                <div className="w-8 h-8 rounded-[12px] bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)] flex items-center justify-center shrink-0">
                   <Zap size={16} strokeWidth={2.5} />
                 </div>
               </div>
 
               <div>
-                <div className="text-[32px] font-extrabold text-[#175253] tracking-tighter leading-none mb-1">
+                <div className="text-[32px] font-extrabold text-[var(--sherloq-primary)] tracking-tighter leading-none mb-1">
                   7
                 </div>
                 <div className="text-[11px] font-semibold text-gray-400">
@@ -311,70 +311,70 @@ export default function ScreenHunting({
 
 
             {/* Card 1: Sarah Jenkins */}
-            <div className="group rounded-[32px] overflow-hidden flex flex-col shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.06)] border border-[#F1F3F5] bg-white cursor-pointer transition-all duration-300">
+            <div className="group rounded-[32px] overflow-hidden flex flex-col shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.06)] border border-[var(--border-subtle)] bg-white cursor-pointer transition-all duration-300">
               {/* TOP ROW */}
               <div className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-6">
                 
                 {/* Avatar & Info */}
                 <div className="flex items-center gap-4 flex-1 min-w-0 ml-0 transition-all duration-300">
                   <div className="relative shrink-0">
-                    <div className="w-10 h-10 rounded-full bg-[#D97706] text-white flex items-center justify-center text-[13px] font-bold shadow-sm">
+                    <div className="w-10 h-10 rounded-full bg-[var(--icp-medium)] text-white flex items-center justify-center text-[13px] font-bold shadow-sm">
                       SJ
                     </div>
-                    <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-[#3B82F6] border-2 border-white rounded-full"></div>
+                    <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-[var(--signal-info-text)] border-2 border-white rounded-full"></div>
                   </div>
                   <div className="flex flex-col min-w-0">
-                    <span className="text-[14px] font-bold text-[#212529] font-sans">Sarah Jenkins</span>
-                    <span className="text-[12px] text-[#868E96] mt-0.5 max-w-[200px] truncate">
+                    <span className="text-[14px] font-bold text-[var(--text-primary)] font-sans">Sarah Jenkins</span>
+                    <span className="text-[12px] text-[var(--text-muted)] mt-0.5 max-w-[200px] truncate">
                       Head of Business Development, CloudSphere
                     </span>
                   </div>
                 </div>
 
                 {/* ICP donut & Company Area */}
-                <div className="hidden md:flex items-center gap-4 px-4 border-l border-[#F1F3F5] shrink-0">
+                <div className="hidden md:flex items-center gap-4 px-4 border-l border-[var(--border-subtle)] shrink-0">
                   <div className="w-[48px] flex items-center justify-center">
                     <ICPDonut score={65} />
                   </div>
                   
                   <div className="flex items-center gap-3 w-[140px] xl:w-[180px]">
-                    <div className="bg-[#495057] text-white text-[14px] w-[40px] h-[40px] flex items-center justify-center rounded-[12px] font-bold shrink-0">
+                    <div className="bg-[var(--text-body)] text-white text-[14px] w-[40px] h-[40px] flex items-center justify-center rounded-[12px] font-bold shrink-0">
                       C
                     </div>
-                    <span className="text-[14px] text-[#495057] font-semibold w-[120px] truncate">CloudSphere</span>
+                    <span className="text-[14px] text-[var(--text-body)] font-semibold w-[120px] truncate">CloudSphere</span>
                   </div>
                 </div>
 
                 {/* Middle Stats */}
-                <div className="hidden lg:flex items-center gap-4 px-4 border-l border-[#F1F3F5] shrink-0">
+                <div className="hidden lg:flex items-center gap-4 px-4 border-l border-[var(--border-subtle)] shrink-0">
                   <div className="flex flex-col items-center justify-center w-[80px] relative h-full">
-                    <span className="absolute -top-[14px] text-[10px] font-bold text-[#ADB5BD] tracking-wider uppercase">STAGE</span>
-                    <div className="px-4 py-2 rounded-full bg-[#F8F9FA] text-[#343A40] text-[12px] font-semibold border border-[#E9ECEF]">
+                    <span className="absolute -top-[14px] text-[10px] font-bold text-[var(--icon-muted)] tracking-wider uppercase">STAGE</span>
+                    <div className="px-4 py-2 rounded-full bg-[var(--app-bg)] text-[var(--text-body)] text-[12px] font-semibold border border-[var(--border)]">
                       Lead
                     </div>
                   </div>
                   <div className="flex flex-col items-center justify-center w-[120px] relative h-full">
-                    <span className="absolute -top-[14px] text-[10px] font-bold text-[#ADB5BD] tracking-wider uppercase">HEAT</span>
-                    <div className="px-4 py-2 rounded-full text-[12px] font-semibold border flex items-center gap-1.5 bg-[#FFF9DB] text-[#D97706] border-[#FFF9DB]">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#D97706]"></span>
+                    <span className="absolute -top-[14px] text-[10px] font-bold text-[var(--icon-muted)] tracking-wider uppercase">HEAT</span>
+                    <div className="px-4 py-2 rounded-full text-[12px] font-semibold border flex items-center gap-1.5 bg-[var(--signal-warn-bg)] text-[var(--icp-medium)] border-[var(--signal-warn-bg)]">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[var(--icp-medium)]"></span>
                       Stabil
                     </div>
                   </div>
                 </div>
 
                 {/* Right Actions */}
-                <div className="flex items-center gap-4 pl-4 border-l border-[#F1F3F5] shrink-0 justify-between md:justify-end">
+                <div className="flex items-center gap-4 pl-4 border-l border-[var(--border-subtle)] shrink-0 justify-between md:justify-end">
                   <div className="flex flex-col items-end hidden sm:flex w-[130px]">
-                    <span className="text-[14px] font-bold text-[#212529] whitespace-nowrap">vor 3 Tagen</span>
-                    <div className="flex items-center justify-end gap-1.5 mt-0.5 text-[#868E96] font-semibold text-[12px] whitespace-nowrap w-full">
+                    <span className="text-[14px] font-bold text-[var(--text-primary)] whitespace-nowrap">vor 3 Tagen</span>
+                    <div className="flex items-center justify-end gap-1.5 mt-0.5 text-[var(--text-muted)] font-semibold text-[12px] whitespace-nowrap w-full">
                       Neu in Pipeline
                     </div>
                   </div>
                   <div className="flex items-center gap-3 relative w-[90px] justify-end">
-                    <button className="w-8 h-8 flex items-center justify-center text-[#ADB5BD] hover:text-[#212529] transition-colors rounded-full hover:bg-[#F8F9FA]">
+                    <button className="w-8 h-8 flex items-center justify-center text-[var(--icon-muted)] hover:text-[var(--text-primary)] transition-colors rounded-full hover:bg-[var(--app-bg)]">
                       <ChevronDown className="w-4 h-4" />
                     </button>
-                    <button className="w-10 h-10 rounded-full bg-[#ECFEF9] text-[#125455] hover:bg-[#D9FAF1] hover:scale-105 transition-all flex items-center justify-center shadow-sm">
+                    <button className="w-10 h-10 rounded-full bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)] hover:bg-[var(--signal-teal-bg)] hover:scale-105 transition-all flex items-center justify-center shadow-sm">
                       <ArrowRight className="w-4 h-4" />
                     </button>
                   </div>
@@ -382,13 +382,13 @@ export default function ScreenHunting({
               </div>
 
               {/* BOTTOM BANNER (Sarah) */}
-              <div className="bg-[#F8F9FA] border-t border-[#E9ECEF] flex flex-col xl:flex-row items-start xl:items-center justify-between px-5 md:px-8 py-2 gap-4">
+              <div className="bg-[var(--app-bg)] border-t border-[var(--border)] flex flex-col xl:flex-row items-start xl:items-center justify-between px-5 md:px-8 py-2 gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="bg-[#FFE8CC] text-[#D97706] px-3 py-1.5 rounded-[8px] flex items-center gap-2 font-bold text-[14px] shrink-0">
+                  <div className="bg-[var(--signal-warn-bg)] text-[var(--icp-medium)] px-3 py-1.5 rounded-[8px] flex items-center gap-2 font-bold text-[14px] shrink-0">
                     <AlertTriangle className="w-4 h-4" strokeWidth={2.5} />
                     Keine Task
                   </div>
-                  <span className="text-[14px] font-semibold text-[#343A40]">Pflicht — Deal braucht eine offene Aufgabe</span>
+                  <span className="text-[14px] font-semibold text-[var(--text-body)]">Pflicht — Deal braucht eine offene Aufgabe</span>
                 </div>
                 <div className="flex items-center gap-3 w-full xl:w-auto">
                   <button 
@@ -398,10 +398,10 @@ export default function ScreenHunting({
                         name: "Sarah Jenkins",
                         company: "CloudSphere",
                         avatarInitials: "SJ",
-                        avatarBg: "bg-[#D97706]"
+                        avatarBg: "bg-[var(--icp-medium)]"
                       });
                     }}
-                    className="flex-1 xl:flex-none bg-white border border-[#E9ECEF] text-[#495057] px-5 py-2.5 rounded-[12px] text-[13px] font-bold shadow-sm hover:bg-[#F8F9FA] transition-colors whitespace-nowrap"
+                    className="flex-1 xl:flex-none bg-white border border-[var(--border)] text-[var(--text-body)] px-5 py-2.5 rounded-[12px] text-[13px] font-bold shadow-sm hover:bg-[var(--app-bg)] transition-colors whitespace-nowrap"
                   >
                     Task anlegen
                   </button>
@@ -410,70 +410,70 @@ export default function ScreenHunting({
             </div>
 
             {/* Card 2: Marc Levigne */}
-            <div className="group rounded-[32px] overflow-hidden flex flex-col shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.06)] border border-[#F1F3F5] bg-white cursor-pointer transition-all duration-300">
+            <div className="group rounded-[32px] overflow-hidden flex flex-col shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.06)] border border-[var(--border-subtle)] bg-white cursor-pointer transition-all duration-300">
               {/* TOP ROW */}
               <div className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-6">
                 
                 {/* Avatar & Info */}
                 <div className="flex items-center gap-4 flex-1 min-w-0 ml-0 transition-all duration-300">
                   <div className="relative shrink-0">
-                    <div className="w-10 h-10 rounded-full bg-[#1971C2] text-white flex items-center justify-center text-[13px] font-bold shadow-sm">
+                    <div className="w-10 h-10 rounded-full bg-[var(--signal-info-text)] text-white flex items-center justify-center text-[13px] font-bold shadow-sm">
                       ML
                     </div>
-                    <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-[#3B82F6] border-2 border-white rounded-full"></div>
+                    <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-[var(--signal-info-text)] border-2 border-white rounded-full"></div>
                   </div>
                   <div className="flex flex-col min-w-0">
-                    <span className="text-[14px] font-bold text-[#212529] font-sans">Marc Levigne</span>
-                    <span className="text-[12px] text-[#868E96] mt-0.5 max-w-[200px] truncate">
+                    <span className="text-[14px] font-bold text-[var(--text-primary)] font-sans">Marc Levigne</span>
+                    <span className="text-[12px] text-[var(--text-muted)] mt-0.5 max-w-[200px] truncate">
                       Sales Director France, DataPulse Corp
                     </span>
                   </div>
                 </div>
 
                 {/* ICP donut & Company Area */}
-                <div className="hidden md:flex items-center gap-4 px-4 border-l border-[#F1F3F5] shrink-0">
+                <div className="hidden md:flex items-center gap-4 px-4 border-l border-[var(--border-subtle)] shrink-0">
                   <div className="w-[48px] flex items-center justify-center">
                     <ICPDonut score={41} />
                   </div>
                   
                   <div className="flex items-center gap-3 w-[140px] xl:w-[180px]">
-                    <div className="bg-[#1C2025] text-white text-[14px] w-[40px] h-[40px] flex items-center justify-center rounded-[12px] font-bold shrink-0">
+                    <div className="bg-[var(--text-primary)] text-white text-[14px] w-[40px] h-[40px] flex items-center justify-center rounded-[12px] font-bold shrink-0">
                       D
                     </div>
-                    <span className="text-[14px] text-[#495057] font-semibold w-[120px] truncate">DataPulse Corp</span>
+                    <span className="text-[14px] text-[var(--text-body)] font-semibold w-[120px] truncate">DataPulse Corp</span>
                   </div>
                 </div>
 
                 {/* Middle Stats */}
-                <div className="hidden lg:flex items-center gap-4 px-4 border-l border-[#F1F3F5] shrink-0">
+                <div className="hidden lg:flex items-center gap-4 px-4 border-l border-[var(--border-subtle)] shrink-0">
                   <div className="flex flex-col items-center justify-center w-[80px] relative h-full">
-                    <span className="absolute -top-[14px] text-[10px] font-bold text-[#ADB5BD] tracking-wider uppercase">STAGE</span>
-                    <div className="px-4 py-2 rounded-full bg-[#FFF5F5] text-[#E03131] text-[12px] font-semibold border border-[#FFC9C9]">
+                    <span className="absolute -top-[14px] text-[10px] font-bold text-[var(--icon-muted)] tracking-wider uppercase">STAGE</span>
+                    <div className="px-4 py-2 rounded-full bg-[var(--signal-urgent-bg)] text-[var(--icp-low)] text-[12px] font-semibold border border-[var(--signal-urgent-bg)]">
                       Follow-up
                     </div>
                   </div>
                   <div className="flex flex-col items-center justify-center w-[120px] relative h-full">
-                    <span className="absolute -top-[14px] text-[10px] font-bold text-[#ADB5BD] tracking-wider uppercase">HEAT</span>
-                    <div className="px-4 py-2 rounded-full text-[12px] font-semibold border flex items-center gap-1.5 bg-[#E7F5FF] text-[#1971C2] border-[#E7F5FF]">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#1971C2]"></span>
+                    <span className="absolute -top-[14px] text-[10px] font-bold text-[var(--icon-muted)] tracking-wider uppercase">HEAT</span>
+                    <div className="px-4 py-2 rounded-full text-[12px] font-semibold border flex items-center gap-1.5 bg-[var(--signal-info-bg)] text-[var(--signal-info-text)] border-[var(--signal-info-bg)]">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[var(--signal-info-text)]"></span>
                       Ruhend
                     </div>
                   </div>
                 </div>
 
                 {/* Right Actions */}
-                <div className="flex items-center gap-4 pl-4 border-l border-[#F1F3F5] shrink-0 justify-between md:justify-end">
+                <div className="flex items-center gap-4 pl-4 border-l border-[var(--border-subtle)] shrink-0 justify-between md:justify-end">
                   <div className="flex flex-col items-end hidden sm:flex w-[130px]">
-                    <span className="text-[14px] font-bold text-[#212529] whitespace-nowrap">vor 12 Tagen</span>
-                    <div className="flex items-center justify-end gap-1.5 mt-0.5 text-[#E03131] font-semibold text-[12px] whitespace-nowrap w-full">
+                    <span className="text-[14px] font-bold text-[var(--text-primary)] whitespace-nowrap">vor 12 Tagen</span>
+                    <div className="flex items-center justify-end gap-1.5 mt-0.5 text-[var(--icp-low)] font-semibold text-[12px] whitespace-nowrap w-full">
                       12T in Stage <AlertTriangle className="w-3.5 h-3.5" strokeWidth={2.5} />
                     </div>
                   </div>
                   <div className="flex items-center gap-3 relative w-[90px] justify-end">
-                    <button className="w-8 h-8 flex items-center justify-center text-[#ADB5BD] hover:text-[#212529] transition-colors rounded-full hover:bg-[#F8F9FA]">
+                    <button className="w-8 h-8 flex items-center justify-center text-[var(--icon-muted)] hover:text-[var(--text-primary)] transition-colors rounded-full hover:bg-[var(--app-bg)]">
                       <ChevronDown className="w-4 h-4" />
                     </button>
-                    <button className="w-10 h-10 rounded-full bg-[#ECFEF9] text-[#125455] hover:bg-[#D9FAF1] hover:scale-105 transition-all flex items-center justify-center shadow-sm">
+                    <button className="w-10 h-10 rounded-full bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)] hover:bg-[var(--signal-teal-bg)] hover:scale-105 transition-all flex items-center justify-center shadow-sm">
                       <ArrowRight className="w-4 h-4" />
                     </button>
                   </div>
@@ -481,13 +481,13 @@ export default function ScreenHunting({
               </div>
 
               {/* BOTTOM BANNER (Marc) */}
-              <div className="bg-[#F8F9FA] border-t border-[#E9ECEF] flex flex-col xl:flex-row items-start xl:items-center justify-between px-5 md:px-8 py-2 gap-4">
+              <div className="bg-[var(--app-bg)] border-t border-[var(--border)] flex flex-col xl:flex-row items-start xl:items-center justify-between px-5 md:px-8 py-2 gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="bg-[#FFE3E3] text-[#FA5252] px-3 py-1.5 rounded-[8px] flex items-center gap-2 font-bold text-[14px] shrink-0">
+                  <div className="bg-[var(--signal-urgent-bg)] text-[var(--icp-low)] px-3 py-1.5 rounded-[8px] flex items-center gap-2 font-bold text-[14px] shrink-0">
                     <Clock className="w-4 h-4" strokeWidth={2.5} />
                     Stagniert
                   </div>
-                  <span className="text-[14px] font-semibold text-[#343A40]">Deal stagniert — AI empfiehlt nächsten Schritt</span>
+                  <span className="text-[14px] font-semibold text-[var(--text-body)]">Deal stagniert — AI empfiehlt nächsten Schritt</span>
                 </div>
                 <div className="flex items-center gap-3 w-full xl:w-auto">
                   <button 
@@ -495,7 +495,7 @@ export default function ScreenHunting({
                       e.stopPropagation(); 
                       onOpenCopilot?.('marc');
                     }}
-                    className="flex-1 xl:flex-none bg-white border border-[#E9ECEF] text-[#495057] px-5 py-2.5 rounded-[12px] text-[13px] font-bold shadow-sm hover:bg-[#F8F9FA] transition-colors whitespace-nowrap"
+                    className="flex-1 xl:flex-none bg-white border border-[var(--border)] text-[var(--text-body)] px-5 py-2.5 rounded-[12px] text-[13px] font-bold shadow-sm hover:bg-[var(--app-bg)] transition-colors whitespace-nowrap"
                   >
                     Next Step
                   </button>
@@ -504,69 +504,69 @@ export default function ScreenHunting({
             </div>
 
             {/* Card 3: Elena Rostova */}
-            <div className="group rounded-[32px] overflow-hidden flex flex-col shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.06)] border border-[#F1F3F5] bg-white cursor-pointer transition-all duration-300">
+            <div className="group rounded-[32px] overflow-hidden flex flex-col shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.06)] border border-[var(--border-subtle)] bg-white cursor-pointer transition-all duration-300">
               {/* TOP ROW */}
               <div className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-6">
                 
                 {/* Avatar & Info */}
                 <div className="flex items-center gap-4 flex-1 min-w-0 ml-0 transition-all duration-300">
                   <div className="relative shrink-0">
-                    <div className="w-12 h-12 rounded-full bg-[#8B5CF6] text-white flex items-center justify-center text-[16px] font-bold shadow-sm">
+                    <div className="w-12 h-12 rounded-full bg-[var(--accent-purple)] text-white flex items-center justify-center text-[16px] font-bold shadow-sm">
                       ER
                     </div>
                   </div>
                   <div className="flex flex-col min-w-0">
-                    <span className="text-[16px] font-bold text-[#212529] font-sans">Elena Rostova</span>
-                    <span className="text-[13px] text-[#868E96] mt-0.5 max-w-[200px] truncate">
+                    <span className="text-[16px] font-bold text-[var(--text-primary)] font-sans">Elena Rostova</span>
+                    <span className="text-[13px] text-[var(--text-muted)] mt-0.5 max-w-[200px] truncate">
                       Head of Operations, Quantum...
                     </span>
                   </div>
                 </div>
 
                 {/* ICP donut & Company Area */}
-                <div className="hidden md:flex items-center gap-5 px-4 border-l border-[#F1F3F5] shrink-0">
+                <div className="hidden md:flex items-center gap-5 px-4 border-l border-[var(--border-subtle)] shrink-0">
                   <div className="w-[48px] flex items-center justify-center">
                     <ICPDonut score={55} />
                   </div>
                   
                   <div className="flex items-center gap-3 w-[140px] xl:w-[180px]">
-                    <div className="bg-[#581C87] text-white text-[14px] w-[40px] h-[40px] flex items-center justify-center rounded-[12px] font-bold shrink-0">
+                    <div className="bg-[var(--accent-purple)] text-white text-[14px] w-[40px] h-[40px] flex items-center justify-center rounded-[12px] font-bold shrink-0">
                       Q
                     </div>
-                    <span className="text-[14px] font-bold text-[#495057] truncate">Quantum Dynamics</span>
+                    <span className="text-[14px] font-bold text-[var(--text-body)] truncate">Quantum Dynamics</span>
                   </div>
                 </div>
 
                 {/* Middle Stats */}
-                <div className="hidden lg:flex items-center gap-4 px-4 border-l border-[#F1F3F5] shrink-0">
+                <div className="hidden lg:flex items-center gap-4 px-4 border-l border-[var(--border-subtle)] shrink-0">
                   <div className="flex flex-col items-center justify-center w-[120px] relative h-full">
-                    <span className="absolute -top-[14px] text-[10px] font-bold text-[#ADB5BD] tracking-wider uppercase">STAGE</span>
-                    <div className="px-5 py-2 rounded-full bg-white text-[#212529] text-[13px] font-bold border-2 border-[#E9ECEF]">
+                    <span className="absolute -top-[14px] text-[10px] font-bold text-[var(--icon-muted)] tracking-wider uppercase">STAGE</span>
+                    <div className="px-5 py-2 rounded-full bg-white text-[var(--text-primary)] text-[13px] font-bold border-2 border-[var(--border)]">
                       Onboarding
                     </div>
                   </div>
                   <div className="flex flex-col items-center justify-center w-[120px] relative h-full">
-                    <span className="absolute -top-[14px] text-[10px] font-bold text-[#ADB5BD] tracking-wider uppercase">HEAT</span>
-                    <div className="px-5 py-2 rounded-full text-[13px] font-bold border-2 flex items-center gap-1.5 bg-[#E7F5FF] text-[#1971C2] border-[#E7F5FF]">
-                      <span className="w-2 h-2 rounded-full bg-[#1971C2] mt-[1px]"></span>
+                    <span className="absolute -top-[14px] text-[10px] font-bold text-[var(--icon-muted)] tracking-wider uppercase">HEAT</span>
+                    <div className="px-5 py-2 rounded-full text-[13px] font-bold border-2 flex items-center gap-1.5 bg-[var(--signal-info-bg)] text-[var(--signal-info-text)] border-[var(--signal-info-bg)]">
+                      <span className="w-2 h-2 rounded-full bg-[var(--signal-info-text)] mt-[1px]"></span>
                       Kalt
                     </div>
                   </div>
                 </div>
 
                 {/* Right Actions */}
-                <div className="flex items-center pl-4 border-l border-[#F1F3F5] shrink-0 justify-between md:justify-end gap-5">
+                <div className="flex items-center pl-4 border-l border-[var(--border-subtle)] shrink-0 justify-between md:justify-end gap-5">
                   <div className="flex flex-col items-end hidden sm:flex w-[120px]">
-                    <span className="text-[14px] font-bold text-[#212529] whitespace-nowrap">vor 32 Tagen</span>
-                    <div className="flex items-center justify-end gap-1.5 mt-0.5 text-[#E03131] font-bold text-[13px] whitespace-nowrap w-full">
+                    <span className="text-[14px] font-bold text-[var(--text-primary)] whitespace-nowrap">vor 32 Tagen</span>
+                    <div className="flex items-center justify-end gap-1.5 mt-0.5 text-[var(--icp-low)] font-bold text-[13px] whitespace-nowrap w-full">
                       32T in Stage <AlertTriangle className="w-3.5 h-3.5" strokeWidth={2.5} />
                     </div>
                   </div>
                   <div className="flex items-center gap-3 relative w-[100px] justify-end">
-                    <button className="w-10 h-10 flex items-center justify-center text-[#ADB5BD] hover:text-[#212529] transition-colors rounded-full bg-[#F8F9FA] hover:bg-[#E9ECEF] border border-transparent">
+                    <button className="w-10 h-10 flex items-center justify-center text-[var(--icon-muted)] hover:text-[var(--text-primary)] transition-colors rounded-full bg-[var(--app-bg)] hover:bg-[var(--border)] border border-transparent">
                       <ChevronDown className="w-5 h-5" />
                     </button>
-                    <button className="w-11 h-11 rounded-full bg-[#ECFEF9] text-[#125455] hover:bg-[#D9FAF1] hover:scale-105 transition-all flex items-center justify-center shadow-sm">
+                    <button className="w-11 h-11 rounded-full bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)] hover:bg-[var(--signal-teal-bg)] hover:scale-105 transition-all flex items-center justify-center shadow-sm">
                       <ArrowRight className="w-5 h-5" />
                     </button>
                   </div>
@@ -574,13 +574,13 @@ export default function ScreenHunting({
               </div>
 
               {/* BOTTOM BANNER (Elena) */}
-              <div className="bg-[#F8F9FA] border-t border-[#E9ECEF] flex flex-col xl:flex-row items-start xl:items-center justify-between px-5 md:px-8 pt-3 pb-3.5 gap-4">
+              <div className="bg-[var(--app-bg)] border-t border-[var(--border)] flex flex-col xl:flex-row items-start xl:items-center justify-between px-5 md:px-8 pt-3 pb-3.5 gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="bg-[#E7F5FF] text-[#1971C2] px-3 py-1.5 rounded-[8px] flex items-center gap-2 font-bold text-[14px] shrink-0">
+                  <div className="bg-[var(--signal-info-bg)] text-[var(--signal-info-text)] px-3 py-1.5 rounded-[8px] flex items-center gap-2 font-bold text-[14px] shrink-0">
                     <PenTool className="w-4 h-4" strokeWidth={2.5} />
                     Kalt
                   </div>
-                  <span className="text-[14px] font-semibold text-[#343A40]">Kontakt wird kalt. Letzter Kanal (Email) ohne Response. AI empfiehlt Kanalwechsel zu LinkedIn.</span>
+                  <span className="text-[14px] font-semibold text-[var(--text-body)]">Kontakt wird kalt. Letzter Kanal (Email) ohne Response. AI empfiehlt Kanalwechsel zu LinkedIn.</span>
                 </div>
                 <div className="flex items-center gap-3 w-full xl:w-auto">
                   <button 
@@ -588,11 +588,11 @@ export default function ScreenHunting({
                       e.stopPropagation(); 
                       onOpenCopilot?.('elena');
                     }}
-                    className="flex-1 xl:flex-none bg-white border border-[#E9ECEF] text-[#495057] px-5 py-2.5 rounded-[12px] text-[13px] font-bold shadow-sm hover:bg-[#F8F9FA] transition-colors whitespace-nowrap"
+                    className="flex-1 xl:flex-none bg-white border border-[var(--border)] text-[var(--text-body)] px-5 py-2.5 rounded-[12px] text-[13px] font-bold shadow-sm hover:bg-[var(--app-bg)] transition-colors whitespace-nowrap"
                   >
                     Start Outreach
                   </button>
-                  <button className="flex-1 xl:flex-none bg-white border border-[#E9ECEF] text-[#495057] px-5 py-2.5 rounded-[12px] text-[13px] font-bold shadow-sm hover:bg-[#F8F9FA] transition-colors whitespace-nowrap">
+                  <button className="flex-1 xl:flex-none bg-white border border-[var(--border)] text-[var(--text-body)] px-5 py-2.5 rounded-[12px] text-[13px] font-bold shadow-sm hover:bg-[var(--app-bg)] transition-colors whitespace-nowrap">
                     Snooze
                   </button>
                 </div>
@@ -621,17 +621,17 @@ export default function ScreenHunting({
             <div className="flex items-center gap-3">
               <button 
                 onClick={selectedLeadIds.length === leads.length ? deselectAll : selectAll}
-                className="flex items-center justify-center w-[22px] h-[22px] rounded-md bg-[#064E3B] border border-[#064E3B]"
+                className="flex items-center justify-center w-[22px] h-[22px] rounded-md bg-[var(--sherloq-primary)] border border-[var(--sherloq-primary)]"
               >
                 <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />
               </button>
-              <span className="text-[13px] font-bold text-[#212529]">
+              <span className="text-[13px] font-bold text-[var(--text-primary)]">
                 {selectedLeadIds.length} {selectedLeadIds.length === 1 ? 'Lead' : 'Leads'} ausgewählt
               </span>
-              <button onClick={deselectAll} className="ml-2 text-[12px] text-[#868E96] hover:text-[#495057] font-semibold underline underline-offset-2">Auswahl aufheben</button>
+              <button onClick={deselectAll} className="ml-2 text-[12px] text-[var(--text-muted)] hover:text-[var(--text-body)] font-semibold underline underline-offset-2">Auswahl aufheben</button>
             </div>
             <div className="flex items-center gap-2">
-              <button className="bg-white border text-[#495057] border-[#CED4DA] hover:border-[#ADB5BD] hover:bg-[#F8F9FA] px-3 py-1.5 rounded-full text-[12px] font-semibold flex items-center gap-1.5 transition-colors">
+              <button className="bg-white border text-[var(--text-body)] border-[var(--border)] hover:border-[var(--icon-muted)] hover:bg-[var(--app-bg)] px-3 py-1.5 rounded-full text-[12px] font-semibold flex items-center gap-1.5 transition-colors">
                 <Target className="w-3.5 h-3.5" /> Zu Kampagne hinzufügen
               </button>
               <button className="bg-white border border-red-200 text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-full text-[12px] font-semibold flex items-center gap-1.5 transition-colors">
@@ -646,8 +646,8 @@ export default function ScreenHunting({
             return (
               <div
                 key={lead.id}
-                className={`group rounded-[32px] p-5 flex flex-col gap-4 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.06)] transition-all duration-300 cursor-pointer border border-[#F1F3F5] relative ${
-                  selectedLeadIds.includes(lead.id) ? 'bg-[#EDF5F5]' : 'bg-white'
+                className={`group rounded-[32px] p-5 flex flex-col gap-4 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.06)] transition-all duration-300 cursor-pointer border border-[var(--border-subtle)] relative ${
+                  selectedLeadIds.includes(lead.id) ? 'bg-[var(--signal-teal-bg)]' : 'bg-white'
                 }`}
                 onClick={() => setExpandedLeadId(isExpanded ? null : lead.id)}
               >
@@ -658,7 +658,7 @@ export default function ScreenHunting({
                   <div 
                     onClick={(e) => toggleLeadSelection(lead.id, e)}
                     className={`absolute -left-3 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center w-[22px] h-[22px] rounded-md z-10 ${
-                      selectedLeadIds.includes(lead.id) ? 'bg-[#064E3B] opacity-100 border-[#064E3B]' : 'bg-white border-2 border-[#CED4DA] hover:border-[#868E96]'
+                      selectedLeadIds.includes(lead.id) ? 'bg-[var(--sherloq-primary)] opacity-100 border-[var(--sherloq-primary)]' : 'bg-white border-2 border-[var(--border)] hover:border-[var(--text-muted)]'
                     }`}
                   >
                     {selectedLeadIds.includes(lead.id) && <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />}
@@ -670,44 +670,44 @@ export default function ScreenHunting({
                       {lead.person.avatarUrl ? (
                         <img src={lead.person.avatarUrl} alt={lead.person.name} className="w-10 h-10 rounded-full object-cover shadow-sm" />
                       ) : (
-                        <div className="w-10 h-10 rounded-full bg-[#125455] text-white flex items-center justify-center text-[13px] font-bold shadow-sm">
+                        <div className="w-10 h-10 rounded-full bg-[var(--sherloq-primary)] text-white flex items-center justify-center text-[13px] font-bold shadow-sm">
                           {lead.person.initials}
                         </div>
                       )}
-                      <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-[#3B82F6] border-2 border-white rounded-full"></div>
+                      <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-[var(--signal-info-text)] border-2 border-white rounded-full"></div>
                     </div>
                     <div className="flex flex-col min-w-0">
-                      <span className="text-[14px] font-bold text-[#212529] font-sans">{lead.person.name}</span>
-                      <span className="text-[12px] text-[#868E96] mt-0.5 max-w-[200px] truncate">
+                      <span className="text-[14px] font-bold text-[var(--text-primary)] font-sans">{lead.person.name}</span>
+                      <span className="text-[12px] text-[var(--text-muted)] mt-0.5 max-w-[200px] truncate">
                         {lead.person.jobTitle}, {lead.person.company}
                       </span>
                     </div>
                   </div>
 
                   {/* ICP donut & Company Area */}
-                  <div className="hidden md:flex items-center gap-4 px-4 border-l border-[#F1F3F5] shrink-0">
+                  <div className="hidden md:flex items-center gap-4 px-4 border-l border-[var(--border-subtle)] shrink-0">
                     <div className="w-[48px] flex items-center justify-center">
                       <ICPDonut score={lead.icpScore ?? 87} />
                     </div>
                     
                     <div className="flex items-center gap-3 w-[140px] xl:w-[180px]">
-                      <div className="bg-[#121212] text-white text-[14px] w-[40px] h-[40px] flex items-center justify-center rounded-[12px] font-bold shrink-0">
+                      <div className="bg-[var(--text-primary)] text-white text-[14px] w-[40px] h-[40px] flex items-center justify-center rounded-[12px] font-bold shrink-0">
                         {lead.person.company.charAt(0).toUpperCase()}
                       </div>
-                      <span className="text-[14px] text-[#495057] font-semibold w-[120px] truncate">{lead.person.company}</span>
+                      <span className="text-[14px] text-[var(--text-body)] font-semibold w-[120px] truncate">{lead.person.company}</span>
                     </div>
                   </div>
 
                   {/* Middle Stats (Simplified) */}
-                  <div className="hidden lg:flex items-center gap-4 px-4 border-l border-[#F1F3F5] shrink-0">
+                  <div className="hidden lg:flex items-center gap-4 px-4 border-l border-[var(--border-subtle)] shrink-0">
                     <div className="flex flex-col items-center justify-center w-[80px] relative h-full">
-                      <span className="absolute -top-[14px] text-[10px] font-bold text-[#ADB5BD] tracking-wider uppercase">STAGE</span>
-                      <div className="px-4 py-2 rounded-full bg-[#F8F9FA] text-[#343A40] text-[12px] font-semibold border border-[#E9ECEF]">
+                      <span className="absolute -top-[14px] text-[10px] font-bold text-[var(--icon-muted)] tracking-wider uppercase">STAGE</span>
+                      <div className="px-4 py-2 rounded-full bg-[var(--app-bg)] text-[var(--text-body)] text-[12px] font-semibold border border-[var(--border)]">
                         {lead.pipelineStage === 'pipeline' ? 'Demo' : 'Lead'}
                       </div>
                     </div>
                     <div className="flex flex-col items-center justify-center w-[120px] relative h-full">
-                      <span className="absolute -top-[14px] text-[10px] font-bold text-[#ADB5BD] tracking-wider uppercase">HEAT</span>
+                      <span className="absolute -top-[14px] text-[10px] font-bold text-[var(--icon-muted)] tracking-wider uppercase">HEAT</span>
                       <div className={`px-4 py-2 rounded-full text-[12px] font-semibold border flex items-center gap-1.5 ${getHeatColor(lead.heatStatus).bg} ${getHeatColor(lead.heatStatus).text}`}>
                         {getHeatColor(lead.heatStatus).emoji}
                       </div>
@@ -715,19 +715,19 @@ export default function ScreenHunting({
                   </div>
 
                   {/* Right Actions */}
-                  <div className="flex items-center gap-4 pl-4 border-l border-[#F1F3F5] shrink-0 justify-between md:justify-end">
+                  <div className="flex items-center gap-4 pl-4 border-l border-[var(--border-subtle)] shrink-0 justify-between md:justify-end">
                     <div className="flex flex-col items-end hidden sm:flex w-[130px]">
-                      <span className="text-[14px] font-bold text-[#212529] whitespace-nowrap">vor 5 Tagen</span>
-                      <div className="flex items-center justify-end gap-1.5 mt-0.5 text-[#E03131] font-semibold text-[12px] whitespace-nowrap w-full">
+                      <span className="text-[14px] font-bold text-[var(--text-primary)] whitespace-nowrap">vor 5 Tagen</span>
+                      <div className="flex items-center justify-end gap-1.5 mt-0.5 text-[var(--icp-low)] font-semibold text-[12px] whitespace-nowrap w-full">
                         8T in Stage <AlertTriangle className="w-3.5 h-3.5" strokeWidth={2.5} />
                       </div>
                     </div>
                     <div className="flex items-center gap-3 relative w-[90px] justify-end">
-                      <button className="w-8 h-8 flex items-center justify-center text-[#ADB5BD] hover:text-[#212529] transition-colors rounded-full hover:bg-[#F8F9FA]">
+                      <button className="w-8 h-8 flex items-center justify-center text-[var(--icon-muted)] hover:text-[var(--text-primary)] transition-colors rounded-full hover:bg-[var(--app-bg)]">
                         {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                       </button>
                       <button 
-                        className="w-10 h-10 rounded-full bg-[#ECFEF9] text-[#125455] hover:bg-[#D9FAF1] hover:scale-105 transition-all flex items-center justify-center shadow-sm"
+                        className="w-10 h-10 rounded-full bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)] hover:bg-[var(--signal-teal-bg)] hover:scale-105 transition-all flex items-center justify-center shadow-sm"
                         onClick={(e) => {
                           e.stopPropagation();
                           onSelectLead(lead);
@@ -741,28 +741,28 @@ export default function ScreenHunting({
 
                 {/* EXPANDED CONTENT */}
                 {isExpanded && (
-                  <div className="flex flex-col gap-6 border-t border-[#F1F3F5] pt-5 mt-2" onClick={(e) => e.stopPropagation()}>
+                  <div className="flex flex-col gap-6 border-t border-[var(--border-subtle)] pt-5 mt-2" onClick={(e) => e.stopPropagation()}>
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
                       {/* Left Column (KI Kurzakte) */}
-                      <div className="md:col-span-7 bg-white rounded-[24px] p-5 border border-[#E9ECEF]">
-                        <div className="flex items-center gap-2 text-[11px] font-bold font-mono text-[#125455] uppercase tracking-wider mb-4">
-                          <Zap className="w-4 h-4 text-[#125455]" /> KI Kurzakte
+                      <div className="md:col-span-7 bg-white rounded-[24px] p-5 border border-[var(--border)]">
+                        <div className="flex items-center gap-2 text-[11px] font-bold font-mono text-[var(--sherloq-primary)] uppercase tracking-wider mb-4">
+                          <Zap className="w-4 h-4 text-[var(--sherloq-primary)]" /> KI Kurzakte
                         </div>
-                        <ul className="flex flex-col gap-3 text-[13px] text-[#495057] leading-relaxed">
+                        <ul className="flex flex-col gap-3 text-[13px] text-[var(--text-body)] leading-relaxed">
                           <li className="flex items-start gap-2.5">
-                            <span className="w-1.5 h-1.5 bg-[#125455] rounded-full mt-1.5 shrink-0" />
+                            <span className="w-1.5 h-1.5 bg-[var(--sherloq-primary)] rounded-full mt-1.5 shrink-0" />
                             Hat Budget-Freeze bis Q3 bestätigt. Trotzdem starkes Interesse an Feature Y — fragte aktiv nach ROI-Zahlen.
                           </li>
                           <li className="flex items-start gap-2.5">
-                            <span className="w-1.5 h-1.5 bg-[#125455] rounded-full mt-1.5 shrink-0" />
+                            <span className="w-1.5 h-1.5 bg-[var(--sherloq-primary)] rounded-full mt-1.5 shrink-0" />
                             Persönlichkeit: Blau — analytisch, entscheidet auf Basis von Daten. Kein Smalltalk, direkt zum Punkt.
                           </li>
                           <li className="flex items-start gap-2.5">
-                            <span className="w-1.5 h-1.5 bg-[#125455] rounded-full mt-1.5 shrink-0" />
+                            <span className="w-1.5 h-1.5 bg-[var(--sherloq-primary)] rounded-full mt-1.5 shrink-0" />
                             Objection: Timing wegen Budget-Freeze. Echter Einwand — kein Vorwand. ROI-Argument ist der Schlüssel.
                           </li>
                           <li className="flex items-start gap-2.5">
-                            <span className="w-1.5 h-1.5 bg-[#125455] rounded-full mt-1.5 shrink-0" />
+                            <span className="w-1.5 h-1.5 bg-[var(--sherloq-primary)] rounded-full mt-1.5 shrink-0" />
                             Buying Signal: Demo sehr positiv, fragte nach Implementierungs-Zeitplan. Abschluss realistisch ab Q4.
                           </li>
                         </ul>
@@ -771,51 +771,51 @@ export default function ScreenHunting({
                       {/* Right Column (Deal Details & Aktionen) */}
                       <div className="md:col-span-5 flex flex-col gap-5">
                         {/* Deal Details */}
-                        <div className="bg-white rounded-[24px] p-5 border border-[#E9ECEF]">
-                          <div className="flex items-center gap-2 text-[11px] font-bold font-mono text-[#868E96] uppercase tracking-wider mb-4">
+                        <div className="bg-white rounded-[24px] p-5 border border-[var(--border)]">
+                          <div className="flex items-center gap-2 text-[11px] font-bold font-mono text-[var(--text-muted)] uppercase tracking-wider mb-4">
                             <Briefcase className="w-4 h-4" /> Deal Details
                           </div>
                           <div className="grid grid-cols-2 gap-4 text-[12px]">
                             <div className="flex flex-col gap-1">
-                              <span className="text-[#868E96] font-mono text-[10px] uppercase tracking-wider">Volumen</span>
-                              <span className="font-bold text-[#125455] text-[14px]">24.000 € ARR</span>
+                              <span className="text-[var(--text-muted)] font-mono text-[10px] uppercase tracking-wider">Volumen</span>
+                              <span className="font-bold text-[var(--sherloq-primary)] text-[14px]">24.000 € ARR</span>
                             </div>
                             <div className="flex flex-col gap-1">
-                              <span className="text-[#868E96] font-mono text-[10px] uppercase tracking-wider">Laufzeit</span>
-                              <span className="font-bold text-[#212529] text-[14px]">12 Monate</span>
+                              <span className="text-[var(--text-muted)] font-mono text-[10px] uppercase tracking-wider">Laufzeit</span>
+                              <span className="font-bold text-[var(--text-primary)] text-[14px]">12 Monate</span>
                             </div>
                             <div className="flex flex-col gap-1">
-                              <span className="text-[#868E96] font-mono text-[10px] uppercase tracking-wider">Stage</span>
-                              <span className="font-bold text-[#D92D20] text-[14px] flex items-center gap-1.5">
+                              <span className="text-[var(--text-muted)] font-mono text-[10px] uppercase tracking-wider">Stage</span>
+                              <span className="font-bold text-[var(--icp-low)] text-[14px] flex items-center gap-1.5">
                                 Demo <span className="font-semibold text-red-500">⚠️ 8T</span>
                               </span>
                             </div>
                             <div className="flex flex-col gap-1">
-                              <span className="text-[#868E96] font-mono text-[10px] uppercase tracking-wider">Probability</span>
-                              <span className="font-bold text-[#212529] text-[14px]">60%</span>
+                              <span className="text-[var(--text-muted)] font-mono text-[10px] uppercase tracking-wider">Probability</span>
+                              <span className="font-bold text-[var(--text-primary)] text-[14px]">60%</span>
                             </div>
                           </div>
                         </div>
 
                         {/* Aktionen */}
-                        <div className="bg-white rounded-[24px] p-5 border border-[#E9ECEF]">
-                          <div className="flex items-center gap-2 text-[11px] font-bold font-mono text-[#868E96] uppercase tracking-wider mb-4">
+                        <div className="bg-white rounded-[24px] p-5 border border-[var(--border)]">
+                          <div className="flex items-center gap-2 text-[11px] font-bold font-mono text-[var(--text-muted)] uppercase tracking-wider mb-4">
                             <Target className="w-4 h-4" /> Aktionen
                           </div>
                           <div className="flex flex-col gap-3">
                             <div className="flex items-center gap-2">
-                              <button className="flex-1 bg-white border border-[#E9ECEF] text-[#495057] text-[12px] font-semibold py-2 rounded-[12px] hover:bg-[#F8F9FA] transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
+                              <button className="flex-1 bg-white border border-[var(--border)] text-[var(--text-body)] text-[12px] font-semibold py-2 rounded-[12px] hover:bg-[var(--app-bg)] transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
                                 <Mail className="w-3.5 h-3.5" /> Mail
                               </button>
-                              <button className="flex-1 bg-white border border-[#E9ECEF] text-[#495057] text-[12px] font-semibold py-2 rounded-[12px] hover:bg-[#F8F9FA] transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
+                              <button className="flex-1 bg-white border border-[var(--border)] text-[var(--text-body)] text-[12px] font-semibold py-2 rounded-[12px] hover:bg-[var(--app-bg)] transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
                                 <CalendarCheck className="w-3.5 h-3.5" /> Task
                               </button>
-                              <button className="flex-1 bg-white border border-[#E9ECEF] text-[#495057] text-[12px] font-semibold py-2 rounded-[12px] hover:bg-[#F8F9FA] transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
+                              <button className="flex-1 bg-white border border-[var(--border)] text-[var(--text-body)] text-[12px] font-semibold py-2 rounded-[12px] hover:bg-[var(--app-bg)] transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
                                 <ArrowRight className="w-3.5 h-3.5" /> Stage
                               </button>
                             </div>
-                            <button className="w-full bg-white border border-[#E9ECEF] hover:bg-[#F8F9FA] text-[#212529] font-bold text-[13px] py-2.5 rounded-[12px] transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm">
-                              <MessageSquare className="w-4 h-4 text-[#125455]" /> AI Chat starten
+                            <button className="w-full bg-white border border-[var(--border)] hover:bg-[var(--app-bg)] text-[var(--text-primary)] font-bold text-[13px] py-2.5 rounded-[12px] transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm">
+                              <MessageSquare className="w-4 h-4 text-[var(--sherloq-primary)]" /> AI Chat starten
                             </button>
                           </div>
                         </div>
@@ -839,18 +839,18 @@ export default function ScreenHunting({
       {subTab === 'pipeline' && (
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between mb-2">
-            <h2 className="text-[18px] font-bold text-[#212529]">
+            <h2 className="text-[18px] font-bold text-[var(--text-primary)]">
               Pipeline & Tasks
             </h2>
 
             {/* BUTTON ZUM SWITCHEN DER BEIDEN ANSICHTEN */}
-            <div className="flex bg-[#F8F9FA] rounded-[10px] p-1 border border-[#E9ECEF]">
+            <div className="flex bg-[var(--app-bg)] rounded-[10px] p-1 border border-[var(--border)]">
               <button
                 onClick={() => setIsKanbanView(false)}
                 className={`px-4 py-1.5 rounded-[8px] text-[13px] font-bold transition-all ${
                   !isKanbanView
-                    ? "bg-white shadow-sm text-[#125455]"
-                    : "text-[#868E96] hover:text-[#495057]"
+                    ? "bg-white shadow-sm text-[var(--sherloq-primary)]"
+                    : "text-[var(--text-muted)] hover:text-[var(--text-body)]"
                 }`}
               >
                 Task Liste
@@ -860,8 +860,8 @@ export default function ScreenHunting({
                 onClick={() => setIsKanbanView(true)}
                 className={`px-4 py-1.5 rounded-[8px] text-[13px] font-bold transition-all ${
                   isKanbanView
-                    ? "bg-white shadow-sm text-[#125455]"
-                    : "text-[#868E96] hover:text-[#495057]"
+                    ? "bg-white shadow-sm text-[var(--sherloq-primary)]"
+                    : "text-[var(--text-muted)] hover:text-[var(--text-body)]"
                 }`}
               >
                 Kanban
@@ -890,7 +890,7 @@ export default function ScreenHunting({
                 name: "Sarah Jenkins",
                 company: "CloudSphere",
                 avatarInitials: "SJ",
-                avatarBg: "bg-[#D97706]"
+                avatarBg: "bg-[var(--icp-medium)]"
               })} />
             </div>
           ) : (
@@ -914,7 +914,7 @@ export default function ScreenHunting({
                     <div className="bg-white rounded-[24px] p-4 shadow-[0_4px_20px_rgb(0,0,0,0.04)] mb-4">
                       <div className="flex justify-between items-center mb-3">
                         <div className="flex items-center gap-2">
-                          <h3 className="font-bold text-[15px] text-[#111827]">{col.title}</h3>
+                          <h3 className="font-bold text-[15px] text-[var(--text-primary)]">{col.title}</h3>
                           <div className="min-w-[24px] h-6 px-1.5 rounded-full border border-gray-200 text-gray-500 text-[11px] font-semibold flex items-center justify-center bg-gray-50 shadow-sm">
                             {count}
                           </div>
@@ -929,10 +929,10 @@ export default function ScreenHunting({
                       
                       <div className="flex flex-col gap-1">
                         <div className="flex items-baseline gap-1.5">
-                          <span className="text-[34px] font-extrabold leading-none tracking-tight text-[#111827]">{count}</span>
+                          <span className="text-[34px] font-extrabold leading-none tracking-tight text-[var(--text-primary)]">{count}</span>
                           <span className="text-[12px] text-gray-400 font-medium">Opportunities</span>
                         </div>
-                        <div className="text-[14px] font-bold text-[#111827] mt-1">
+                        <div className="text-[14px] font-bold text-[var(--text-primary)] mt-1">
                           {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(totalValue)}
                         </div>
                       </div>
@@ -945,7 +945,7 @@ export default function ScreenHunting({
                             {actionsCount} Action{actionsCount !== 1 ? 's' : ''}
                           </div>
                         ) : (
-                          <div className="bg-white text-[#16A34A] px-3 py-1 rounded-full text-[11px] font-bold flex items-center gap-1.5 shadow-sm border border-[#16A34A]/20">
+                          <div className="bg-white text-[var(--icp-high)] px-3 py-1 rounded-full text-[11px] font-bold flex items-center gap-1.5 shadow-sm border border-[var(--icp-high)]/20">
                             <CheckCircle2 className="w-3.5 h-3.5" />
                             Im Flow
                           </div>
@@ -968,15 +968,15 @@ export default function ScreenHunting({
                                   {lead.person.avatarUrl ? (
                                     <img src={lead.person.avatarUrl} alt={lead.person.name} className="w-10 h-10 rounded-full object-cover shadow-sm shrink-0" />
                                   ) : (
-                                    <div className="w-10 h-10 rounded-full bg-[#125455] text-white flex items-center justify-center text-[12px] font-bold shadow-sm shrink-0">
+                                    <div className="w-10 h-10 rounded-full bg-[var(--sherloq-primary)] text-white flex items-center justify-center text-[12px] font-bold shadow-sm shrink-0">
                                       {lead.person.initials}
                                     </div>
                                   )}
                                   <div className="flex flex-col min-w-0">
-                                    <span className="font-bold text-[13px] text-[#111827] leading-tight truncate">{lead.person.name}</span>
+                                    <span className="font-bold text-[13px] text-[var(--text-primary)] leading-tight truncate">{lead.person.name}</span>
                                     <span className="text-[11px] text-gray-500 leading-tight truncate mt-0.5">{lead.person.company}</span>
                                     {lead.dealValue && (
-                                      <span className="text-[11px] font-bold text-[#111827] mt-1">
+                                      <span className="text-[11px] font-bold text-[var(--text-primary)] mt-1">
                                         {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(lead.dealValue)}
                                       </span>
                                     )}
@@ -999,7 +999,7 @@ export default function ScreenHunting({
                                   {col.prev && (
                                     <button 
                                       onClick={() => onUpdateLeadStage(lead.id, col.prev!)}
-                                      className="w-7 h-7 rounded-full bg-[#F8F9FA] hover:bg-[#E9ECEF] text-[#868E96] flex items-center justify-center transition-colors cursor-pointer shadow-sm"
+                                      className="w-7 h-7 rounded-full bg-[var(--app-bg)] hover:bg-[var(--border)] text-[var(--text-muted)] flex items-center justify-center transition-colors cursor-pointer shadow-sm"
                                     >
                                       <ArrowLeft className="w-3.5 h-3.5" />
                                     </button>
@@ -1007,7 +1007,7 @@ export default function ScreenHunting({
                                   {col.next && (
                                     <button 
                                       onClick={() => onUpdateLeadStage(lead.id, col.next!)}
-                                      className="w-7 h-7 rounded-full bg-[#125455] hover:bg-[#0c3839] text-white flex items-center justify-center transition-colors shadow-sm cursor-pointer"
+                                      className="w-7 h-7 rounded-full bg-[var(--sherloq-primary)] hover:bg-[var(--sherloq-primary)] text-white flex items-center justify-center transition-colors shadow-sm cursor-pointer"
                                     >
                                       <ArrowRight className="w-3 h-3 stroke-[3]" />
                                     </button>
@@ -1065,7 +1065,7 @@ export default function ScreenHunting({
             name="Sarah Jenkins"
             role="VP of Sales"
             avatarInitials="SJ"
-            avatarBg="bg-[#D97706]"
+            avatarBg="bg-[var(--icp-medium)]"
             companyInitials="CS"
             companyName="CloudSphere"
             stage="Trial"
@@ -1082,7 +1082,7 @@ export default function ScreenHunting({
               company: "CloudSphere",
               role: "VP of Sales",
               avatarInitials: "SJ",
-              avatarBg: "bg-[#D97706]",
+              avatarBg: "bg-[var(--icp-medium)]",
               icpScore: 85,
               actionText: "Neuer Beitrag — BDR Skalierung",
               commentText: "Sarah hat einen neuen LinkedIn Beitrag über die Skalierung von BDR-Teams im EMEA-Raum veröffentlicht.",
@@ -1097,7 +1097,7 @@ export default function ScreenHunting({
             name="Marc Levigne"
             role="CPO"
             avatarInitials="ML"
-            avatarBg="bg-[#1971C2]"
+            avatarBg="bg-[var(--signal-info-text)]"
             companyInitials="DP"
             companyName="DataPulse Corp"
             stage="Proposal"
@@ -1113,7 +1113,7 @@ export default function ScreenHunting({
               company: "DataPulse Corp",
               role: "CPO",
               avatarInitials: "ML",
-              avatarBg: "bg-[#1971C2]",
+              avatarBg: "bg-[var(--signal-info-text)]",
               icpScore: 78,
               actionText: "Hat Beitrag geliked — Sales Ops Trends",
               commentText: "Marc hat den aktuellen Beitrag von Gartner Analysten zu Sales Ops Automation Tendenzen 2026 geliked.",
@@ -1128,7 +1128,7 @@ export default function ScreenHunting({
             name="Elena Rostova"
             role="Head of SDR"
             avatarInitials="ER"
-            avatarBg="bg-[#8B5CF6]"
+            avatarBg="bg-[var(--accent-purple)]"
             companyInitials="QD"
             companyName="Quantum Dynamics"
             stage="Cold"
@@ -1144,7 +1144,7 @@ export default function ScreenHunting({
               company: "Quantum Dynamics",
               role: "Head of SDR",
               avatarInitials: "ER",
-              avatarBg: "bg-[#8B5CF6]",
+              avatarBg: "bg-[var(--accent-purple)]",
               icpScore: 88,
               actionText: "Firmen-News: Series B Funding",
               commentText: "Quantum Dynamics hat auf LinkedIn die erfolgreiche Series B in Höhe von €18M verkündet.",
@@ -1159,7 +1159,7 @@ export default function ScreenHunting({
             name="Dr. Christian Brand"
             role="CEO"
             avatarInitials="CB"
-            avatarBg="bg-[#2B8A3E]"
+            avatarBg="bg-[var(--icp-high)]"
             companyInitials="NX"
             companyName="Nexus"
             stage="Active"
@@ -1175,7 +1175,7 @@ export default function ScreenHunting({
               company: "Nexus",
               role: "CEO",
               avatarInitials: "CB",
-              avatarBg: "bg-[#2B8A3E]",
+              avatarBg: "bg-[var(--icp-high)]",
               icpScore: 95,
               actionText: "Hat Profil besucht",
               commentText: "Christian hat gerade dein LinkedIn Profil besucht, kurz nachdem du den Vorschlag per E-Mail gesendet hast.",
@@ -1192,77 +1192,77 @@ export default function ScreenHunting({
       {/* QUICK ADD MODAL */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black/35 backdrop-blur-xs flex items-center justify-center z-50 animate-fade-in">
-          <div className="w-full max-w-[460px] bg-white rounded-[24px] border border-[#E9ECEF] p-6 shadow-2xl relative">
-            <h2 className="text-[15px] font-bold text-[#212529] mb-4 flex items-center gap-2">
-              <Target className="w-5 h-5 text-[#175253]" />
+          <div className="w-full max-w-[460px] bg-white rounded-[24px] border border-[var(--border)] p-6 shadow-2xl relative">
+            <h2 className="text-[15px] font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
+              <Target className="w-5 h-5 text-[var(--sherloq-primary)]" />
               Neuen SDR Lead anlegen
             </h2>
             
             <form onSubmit={handleCreateLead} className="flex flex-col gap-3.5">
               <div>
-                <label className="text-[11px] text-[#868E96] font-semibold block mb-1">Voller Name *</label>
+                <label className="text-[11px] text-[var(--text-muted)] font-semibold block mb-1">Voller Name *</label>
                 <input 
                   type="text" 
                   required
                   placeholder="z.B. Dr. Michael Schumacher"
                   value={newLeadName}
                   onChange={(e) => setNewLeadName(e.target.value)}
-                  className="w-full text-[12px] font-sans px-3.5 py-2.5 bg-[#F8F9FA] border border-[#E9ECEF] focus:border-[#175253] rounded-[12px] focus:outline-none"
+                  className="w-full text-[12px] font-sans px-3.5 py-2.5 bg-[var(--app-bg)] border border-[var(--border)] focus:border-[var(--sherloq-primary)] rounded-[12px] focus:outline-none"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[11px] text-[#868E96] font-semibold block mb-1">Unternehmen *</label>
+                  <label className="text-[11px] text-[var(--text-muted)] font-semibold block mb-1">Unternehmen *</label>
                   <input 
                     type="text" 
                     required
                     placeholder="z.B. Porsche AG"
                     value={newLeadCompany}
                     onChange={(e) => setNewLeadCompany(e.target.value)}
-                    className="w-full text-[12px] font-sans px-3.5 py-2.5 bg-[#F8F9FA] border border-[#E9ECEF] focus:border-[#175253] rounded-[12px] focus:outline-none"
+                    className="w-full text-[12px] font-sans px-3.5 py-2.5 bg-[var(--app-bg)] border border-[var(--border)] focus:border-[var(--sherloq-primary)] rounded-[12px] focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="text-[11px] text-[#868E96] font-semibold block mb-1">Rolle / Position</label>
+                  <label className="text-[11px] text-[var(--text-muted)] font-semibold block mb-1">Rolle / Position</label>
                   <input 
                     type="text" 
                     placeholder="z.B. VP of Procurement"
                     value={newLeadRole}
                     onChange={(e) => setNewLeadRole(e.target.value)}
-                    className="w-full text-[12px] font-sans px-3.5 py-2.5 bg-[#F8F9FA] border border-[#E9ECEF] focus:border-[#175253] rounded-[12px] focus:outline-none"
+                    className="w-full text-[12px] font-sans px-3.5 py-2.5 bg-[var(--app-bg)] border border-[var(--border)] focus:border-[var(--sherloq-primary)] rounded-[12px] focus:outline-none"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="text-[11px] text-[#868E96] font-semibold block mb-1">Kontakt E-Mail</label>
+                <label className="text-[11px] text-[var(--text-muted)] font-semibold block mb-1">Kontakt E-Mail</label>
                 <input 
                   type="email" 
                   placeholder="m.schumacher@porsche.de"
                   value={newLeadEmail}
                   onChange={(e) => setNewLeadEmail(e.target.value)}
-                  className="w-full text-[12px] font-sans px-3.5 py-2.5 bg-[#F8F9FA] border border-[#E9ECEF] focus:border-[#175253] rounded-[12px] focus:outline-none"
+                  className="w-full text-[12px] font-sans px-3.5 py-2.5 bg-[var(--app-bg)] border border-[var(--border)] focus:border-[var(--sherloq-primary)] rounded-[12px] focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="text-[11px] text-[#868E96] font-semibold block mb-1">SDR Kurzakte (AI-Summary Vorschau)</label>
+                <label className="text-[11px] text-[var(--text-muted)] font-semibold block mb-1">SDR Kurzakte (AI-Summary Vorschau)</label>
                 <textarea 
                   placeholder="Interesse an schnellerer BDR Einarbeitung im EMEA Raum. Erwartet DSGVO Abnahme..."
                   rows={2}
                   value={newLeadAka}
                   onChange={(e) => setNewLeadAka(e.target.value)}
-                  className="w-full text-[11px] font-mono leading-relaxed p-3 bg-[#F8F9FA] border border-[#E9ECEF] focus:border-[#175253] rounded-[12px] focus:outline-none"
+                  className="w-full text-[11px] font-mono leading-relaxed p-3 bg-[var(--app-bg)] border border-[var(--border)] focus:border-[var(--sherloq-primary)] rounded-[12px] focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="text-[11px] text-[#868E96] font-semibold block mb-1">Lead Heat-Level</label>
+                <label className="text-[11px] text-[var(--text-muted)] font-semibold block mb-1">Lead Heat-Level</label>
                 <select
                   value={newLeadHeat}
                   onChange={(e) => setNewLeadHeat(e.target.value as HeatStatus)}
-                  className="w-full text-[12px] font-sans px-3.5 py-2.5 bg-[#F8F9FA] border border-[#E9ECEF] focus:border-[#175253] rounded-[12px] focus:outline-none"
+                  className="w-full text-[12px] font-sans px-3.5 py-2.5 bg-[var(--app-bg)] border border-[var(--border)] focus:border-[var(--sherloq-primary)] rounded-[12px] focus:outline-none"
                 >
                   <option value="HOT">🟢 Aktiv</option>
                   <option value="WARM">🟠 Stabil</option>
@@ -1276,13 +1276,13 @@ export default function ScreenHunting({
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 bg-[#F8F9FA] hover:bg-[#E9ECEF] text-[#495057] text-[12px] rounded-full cursor-pointer border border-[#E9ECEF]"
+                  className="px-4 py-2 bg-[var(--app-bg)] hover:bg-[var(--border)] text-[var(--text-body)] text-[12px] rounded-full cursor-pointer border border-[var(--border)]"
                 >
                   Abbrechen
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-[#125455] hover:bg-[#125455]/95 text-white text-[12px] font-semibold rounded-full cursor-pointer shadow-xs"
+                  className="px-5 py-2 bg-[var(--sherloq-primary)] hover:bg-[var(--sherloq-primary)]/95 text-white text-[12px] font-semibold rounded-full cursor-pointer shadow-xs"
                 >
                   Lead anlegen
                 </button>

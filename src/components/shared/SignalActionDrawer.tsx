@@ -94,7 +94,7 @@ export default function SignalActionDrawer({ person, onClose, onTakeAction }: Si
               {person.avatarUrl ? (
                 <img src={person.avatarUrl} alt={person.name} className="w-10 h-10 rounded-full object-cover shadow-sm" />
               ) : (
-                <div className={`w-10 h-10 rounded-full text-white flex items-center justify-center font-bold shadow-sm ${person.avatarBg || "bg-[#2B8A3E]"}`}>
+                <div className={`w-10 h-10 rounded-full text-white flex items-center justify-center font-bold shadow-sm ${person.avatarBg || "bg-[var(--icp-high)]"}`}>
                   {person.avatarInitials}
                 </div>
               )}
@@ -120,7 +120,7 @@ export default function SignalActionDrawer({ person, onClose, onTakeAction }: Si
           <section className="space-y-3.5">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-2 min-w-0">
-                <span className="px-2.5 py-1 rounded-full bg-[#E6F1FB] text-[#0C447C] text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 shrink-0">
+                <span className="px-2.5 py-1 rounded-full bg-[var(--signal-info-bg)] text-[var(--signal-info-text)] text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 shrink-0">
                   <Link2 className="w-[11px] h-[11px]" />
                   LinkedIn Signal
                 </span>
@@ -148,9 +148,9 @@ export default function SignalActionDrawer({ person, onClose, onTakeAction }: Si
           </section>
 
           {/* AI Recommendation Section */}
-          <section className="bg-[#f0f6f6] border border-[#c4dbda]/50 p-4 rounded-[16px] space-y-3.5">
+          <section className="bg-[var(--signal-teal-bg)] border border-[var(--signal-teal-bg)]/50 p-4 rounded-[16px] space-y-3.5">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-[10px] font-black text-[#175253] uppercase tracking-widest">
+              <div className="flex items-center gap-2 text-[10px] font-black text-[var(--sherloq-primary)] uppercase tracking-widest">
                 <Sparkles className="w-[13px] h-[13px]" />
                 AI empfiehlt
               </div>
@@ -160,9 +160,9 @@ export default function SignalActionDrawer({ person, onClose, onTakeAction }: Si
               {person.aiRecommendation}
             </p>
             <div className="flex gap-1.5 flex-wrap">
-              <span className="px-2.5 py-1 rounded-full bg-white border border-[#175253]/10 text-[#175253] text-[10px] font-bold">Signal heiß</span>
-              <span className="px-2.5 py-1 rounded-full bg-white border border-[#175253]/10 text-[#175253] text-[10px] font-bold">ICP passt</span>
-              <span className="px-2.5 py-1 rounded-full bg-white border border-[#175253]/10 text-[#175253] text-[10px] font-bold">Kanal flexibel</span>
+              <span className="px-2.5 py-1 rounded-full bg-white border border-[var(--sherloq-primary)]/10 text-[var(--sherloq-primary)] text-[10px] font-bold">Signal heiß</span>
+              <span className="px-2.5 py-1 rounded-full bg-white border border-[var(--sherloq-primary)]/10 text-[var(--sherloq-primary)] text-[10px] font-bold">ICP passt</span>
+              <span className="px-2.5 py-1 rounded-full bg-white border border-[var(--sherloq-primary)]/10 text-[var(--sherloq-primary)] text-[10px] font-bold">Kanal flexibel</span>
             </div>
           </section>
 
@@ -170,14 +170,14 @@ export default function SignalActionDrawer({ person, onClose, onTakeAction }: Si
           <section className="space-y-2">
             <div className="flex justify-between items-center text-[10px] font-bold text-gray-400 uppercase tracking-widest px-0.5">
               <span>AI Composer</span>
-              <button onClick={handleRegenerate} className="text-[#175253] hover:underline flex items-center gap-1 font-extrabold cursor-pointer">
+              <button onClick={handleRegenerate} className="text-[var(--sherloq-primary)] hover:underline flex items-center gap-1 font-extrabold cursor-pointer">
                 <RotateCw className={`w-[11px] h-[11px] ${isRegenerating ? "animate-spin" : ""}`} />
                 Neu generieren
               </button>
             </div>
 
             <div className="bg-white rounded-[18px] border border-gray-200 shadow-sm overflow-hidden flex flex-col">
-              <div className="px-4 py-3 bg-[#175253] text-white text-[12px] flex items-center justify-between">
+              <div className="px-4 py-3 bg-[var(--sherloq-primary)] text-white text-[12px] flex items-center justify-between">
                 <div className="flex items-center gap-2 font-extrabold">
                   <Sparkles className="w-[13px] h-[13px] fill-current" />
                   Antwort-Vorschlag · {person.name}
@@ -193,9 +193,9 @@ export default function SignalActionDrawer({ person, onClose, onTakeAction }: Si
                 </div>
               </div>
 
-              <div className="bg-[#F3F6F8] min-h-[320px] p-4 flex flex-col gap-4">
+              <div className="bg-[var(--border-subtle)] min-h-[320px] p-4 flex flex-col gap-4">
                 <div className="flex items-start gap-2 max-w-[96%]">
-                  <div className="w-7 h-7 rounded-full bg-[#175253] text-white flex items-center justify-center shrink-0 shadow-sm">
+                  <div className="w-7 h-7 rounded-full bg-[var(--sherloq-primary)] text-white flex items-center justify-center shrink-0 shadow-sm">
                     <Sparkles className="w-[14px] h-[14px] fill-current" />
                   </div>
                   <div className="flex-1">
@@ -219,13 +219,13 @@ export default function SignalActionDrawer({ person, onClose, onTakeAction }: Si
                     {msg.role === "user" ? (
                       <>
                         <div className="mb-1 text-right text-[10px] font-bold uppercase tracking-wider text-gray-400">Du</div>
-                        <div className="bg-[#E8F3FF] border border-blue-100 text-gray-900 p-3 rounded-2xl rounded-tr-md shadow-sm text-[13px] font-medium leading-relaxed">
+                        <div className="bg-[var(--signal-info-bg)] border border-blue-100 text-gray-900 p-3 rounded-2xl rounded-tr-md shadow-sm text-[13px] font-medium leading-relaxed">
                           {msg.text}
                         </div>
                       </>
                     ) : (
                       <>
-                        <div className="w-7 h-7 rounded-full bg-[#175253] text-white flex items-center justify-center shrink-0 shadow-sm">
+                        <div className="w-7 h-7 rounded-full bg-[var(--sherloq-primary)] text-white flex items-center justify-center shrink-0 shadow-sm">
                           <Sparkles className="w-[14px] h-[14px] fill-current" />
                         </div>
                         <div className="flex-1">
@@ -241,7 +241,7 @@ export default function SignalActionDrawer({ person, onClose, onTakeAction }: Si
               </div>
 
               <div className="p-3 bg-white border-t border-gray-100">
-                <div className="flex items-end gap-2 bg-gray-50 border border-gray-200 rounded-2xl px-3 py-2 flex-within focus-within:border-[#175253] focus-within:bg-white transition-all">
+                <div className="flex items-end gap-2 bg-gray-50 border border-gray-200 rounded-2xl px-3 py-2 flex-within focus-within:border-[var(--sherloq-primary)] focus-within:bg-white transition-all">
                   <textarea 
                     rows={1} 
                     placeholder="Sag der AI, was angepasst werden soll, z. B. 'Schreib mir daraus eine E-Mail'..." 
@@ -255,7 +255,7 @@ export default function SignalActionDrawer({ person, onClose, onTakeAction }: Si
                       }
                     }}
                   />
-                  <button onClick={handleSendInstruction} className="w-8 h-8 rounded-full bg-[#175253] hover:bg-[#124040] text-white flex items-center justify-center shrink-0 transition-colors cursor-pointer" title="An AI senden">
+                  <button onClick={handleSendInstruction} className="w-8 h-8 rounded-full bg-[var(--sherloq-primary)] hover:bg-[var(--sherloq-primary)] text-white flex items-center justify-center shrink-0 transition-colors cursor-pointer" title="An AI senden">
                     <Send className="w-[14px] h-[14px]" />
                   </button>
                 </div>
@@ -273,7 +273,7 @@ export default function SignalActionDrawer({ person, onClose, onTakeAction }: Si
                 onTakeAction(draftText);
                 onClose();
               }}
-              className="w-full py-3 bg-gradient-to-r from-[#175253] to-[#3f8383] hover:from-[#124040] hover:to-[#2e6262] text-white rounded-full text-xs font-bold shadow-md hover:scale-[1.01] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+              className="w-full py-3 bg-gradient-to-r from-[var(--sherloq-primary)] to-[var(--sherloq-primary)] hover:from-[var(--sherloq-primary)] hover:to-[var(--sherloq-primary)] text-white rounded-full text-xs font-bold shadow-md hover:scale-[1.01] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
             >
               Antwort übernehmen <ArrowUpRight className="w-[14px] h-[14px]" />
             </button>

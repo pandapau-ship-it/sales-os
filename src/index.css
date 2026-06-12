@@ -71,6 +71,7 @@
   --icon-muted:      #ADB5BD;  /* muted icons, placeholder text */
   --selection-bg:    #EDF5F5;  /* selected row background */
   --accent-teal:     #36D1A1;  /* CommunicationChain progress bar */
+  --accent-purple:   #8B5CF6;  /* AI / Insight Akzent (Signale, AI-Hinweise) */
 
   /* Personality Colors (DISG) */
   --personality-rot-text:   #E11D48;
@@ -158,6 +159,7 @@
   --icon-muted:      #64748B;
   --selection-bg:    #14322F;
   --accent-teal:     #36D1A1;
+  --accent-purple:   #A78BFA;
 
   /* Personality Colors (DISG) — aufgehellt */
   --personality-rot-text:   #FB7185; --personality-rot-bg:   #3A1A22;
