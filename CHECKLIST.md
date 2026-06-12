@@ -184,6 +184,7 @@
 - [ ] Supabase-Client in `lib/db.ts` aktivieren (Phase 5) — *nur Funktionskörper tauschen*
 - [ ] TanStack Query als einziger Server-State — *Bridge-useEffect in App ersetzen*
 - [ ] `useModules()` Hook (gecacht) — *Modul-Gating*
+- [ ] **Phase 2:** `useModules` von Tabelle `user_modules` (existiert nicht) auf `getModules()` = `settings.modules` umstellen — *braucht Org-Kontext aus Auth; Live-DB ist bereits angebunden*
 - [ ] Mock-Daten (`data.ts`) durch echte Queries in `lib/db` ersetzen
 - [ ] Glocke: echter Badge-Count aus `notifications` (read=false), live via Realtime
 
