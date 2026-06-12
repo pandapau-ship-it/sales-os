@@ -16,6 +16,8 @@ import {
   Outlet,
 } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { queryClient } from "@/lib/queryClient";
 // i18n-Init vor dem ersten Render (Default de).
 import "@/lib/i18n";
 import { useAuth } from "@/hooks/useAuth";
@@ -83,8 +85,9 @@ function Protected({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   return (
-    <ToastProvider>
-      <BrowserRouter>
+    <QueryClientProvider client={queryClient}>
+      <ToastProvider>
+        <BrowserRouter>
         <Routes>
         <Route path="/" element={<Login />} />
         <Route
@@ -106,7 +109,8 @@ export default function App() {
         </Route>
           <Route path="*" element={<Navigate to="/app/meintag" replace />} />
         </Routes>
-      </BrowserRouter>
-    </ToastProvider>
+        </BrowserRouter>
+      </ToastProvider>
+    </QueryClientProvider>
   );
 }

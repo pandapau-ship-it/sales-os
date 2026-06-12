@@ -1237,6 +1237,12 @@ Jede Supabase-Query im Frontend filtert zusätzlich auf `organization_id` — ni
 JWT enthält `organization_id` als Custom Claim.
 Service Role Key nur in Edge Functions — nie im Client.
 
+> **TODO (Auth→Org, Phase 2 — Übergangslösung):** Bis Login + `users`-Tabelle die
+> `organization_id` aus der Session liefern, nutzen die Screens die Konstante
+> `DEMO_ORGANIZATION_ID` aus `src/lib/org.ts` (Demo-Org aus dem settings-Seed,
+> Migration 012). Danach durch die echte Session-`organization_id` ersetzen.
+> Hängt mit dem offenen `useModules`-Punkt zusammen (CHECKLIST.md).
+
 ### 3. Benutzer & Einladungen
 
 ```sql
