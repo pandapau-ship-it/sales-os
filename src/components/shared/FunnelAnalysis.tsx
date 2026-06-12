@@ -78,7 +78,7 @@ export default function FunnelAnalysis() {
 
   return (
     <div className="font-sans antialiased select-none mt-2 w-full">      
-      <div className="w-full bg-white rounded-[16px] p-7 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.04)]">
+      <div className="w-full bg-app-surface rounded-[16px] p-7 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.04)]">
         
         {/* Header Sektion */}
         <div className="mb-8">
@@ -111,7 +111,7 @@ export default function FunnelAnalysis() {
                   }`}>
                     <div className="flex flex-col items-center text-center">
                       <span className="font-semibold">{t('hunter.funnel.avgDaysInStage', { days: stage.avgDays })}</span>
-                      <span className="text-gray-400 text-[10px] mt-0.5 font-medium">{t('hunter.funnel.avgDealValue', { value: stage.avgValue })}</span>
+                      <span className="text-text-muted text-[10px] mt-0.5 font-medium">{t('hunter.funnel.avgDealValue', { value: stage.avgValue })}</span>
                     </div>
                     {/* Tooltip Arrow */}
                     <div className="w-2.5 h-2.5 bg-gray-900 rotate-45 absolute -bottom-1 left-1/2 -translate-x-1/2 z-20"></div>

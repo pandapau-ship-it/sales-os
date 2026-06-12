@@ -20,7 +20,7 @@ export const CARD = {
 
   avatarSize: 40,
   /** Status-Punkt am Avatar. */
-  statusDot: "absolute -bottom-0.5 -right-0.5 w-4 h-4 border-2 border-white rounded-full",
+  statusDot: "absolute -bottom-0.5 -right-0.5 w-4 h-4 border-2 border-[var(--surface)] rounded-full",
 
   /** Personenname. */
   name: "text-[14px] font-bold text-[var(--text-primary)] font-sans",
@@ -72,13 +72,13 @@ export const ACTION_ROW = {
   container:
     "bg-[var(--app-bg)] border-t border-[var(--border-card)] px-4 py-3 flex items-center justify-between flex-wrap gap-4",
   /** Linke Info-Texte. */
-  text: "text-[12.5px] font-semibold text-gray-500",
+  text: "text-[12.5px] font-semibold text-text-muted",
   /** Hervorgehobener Text (z.B. Quelle/Aktionstext). */
-  strongText: "text-[12.5px] font-semibold text-gray-800",
+  strongText: "text-[12.5px] font-semibold text-text-body",
   /** Primärer CTA (gefüllt). */
   ctaPrimary:
     "px-4 py-1.5 bg-[var(--sherloq-primary)] hover:opacity-90 text-white rounded-full text-[11px] font-black transition-opacity shadow-sm cursor-pointer",
   /** Sekundärer CTA (Outline). */
   ctaSecondary:
-    "px-4 py-1.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-full text-[11px] font-black transition-colors shadow-sm cursor-pointer",
+    "px-4 py-1.5 bg-app-surface border border-border hover:bg-app-bg text-text-body rounded-full text-[11px] font-black transition-colors shadow-sm cursor-pointer",
 } as const;

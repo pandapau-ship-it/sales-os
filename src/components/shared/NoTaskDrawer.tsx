@@ -81,76 +81,76 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
   return (
     <>
       <Sheet open={isOpen} onOpenChange={(o) => { if (!o) onClose(); }}>
-        <SheetContent side="drawer" className="flex flex-col font-sans overflow-hidden p-0 bg-white" style={{ width: 580, maxWidth: "95vw" }}>
+        <SheetContent side="drawer" className="flex flex-col font-sans overflow-hidden p-0 bg-app-surface" style={{ width: 580, maxWidth: "95vw" }}>
           {s && (
             <>
               {/* HEADER */}
-              <header className="h-[74px] px-6 border-b border-gray-100 flex items-center justify-between shrink-0 bg-white z-30">
+              <header className="h-[74px] px-6 border-b border-border flex items-center justify-between shrink-0 bg-app-surface z-30">
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="relative shrink-0">
                     <div className={`w-11 h-11 rounded-full text-white flex items-center justify-center font-extrabold text-[15px] shadow-sm ${s.avatarBg || "bg-[var(--icp-medium)]"}`}>
                       {s.avatarInitials || "SJ"}
                     </div>
-                    <span className="absolute bottom-0 right-0 w-3 h-3 bg-amber-500 border-2 border-white rounded-full"></span>
+                    <span className="absolute bottom-0 right-0 w-3 h-3 bg-[var(--signal-warn-text)] border-2 border-[var(--surface)] rounded-full"></span>
                   </div>
 
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="text-[15px] font-bold text-gray-900 leading-none">
+                      <h3 className="text-[15px] font-bold text-text-primary leading-none">
                         {s.name || "Sarah Jenkins"}
                       </h3>
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 border border-amber-100 text-amber-700 text-[9px] font-extrabold tracking-wide">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[var(--signal-warn-bg)] border border-[var(--signal-warn-bg)] text-[var(--signal-warn-text)] text-[9px] font-extrabold tracking-wide">
                         <AlertTriangle className="w-2.5 h-2.5" /> {t('hunter.card.noTask')}
                       </span>
                     </div>
-                    <p className="text-[11px] font-medium text-gray-400 mt-1">
+                    <p className="text-[11px] font-medium text-text-muted mt-1">
                       {s.company || "CloudSphere"}
                     </p>
                   </div>
                 </div>
 
                 <SheetClose asChild>
-                  <button className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:text-gray-900 transition-colors shrink-0 cursor-pointer">
+                  <button className="w-8 h-8 rounded-full bg-app-bg flex items-center justify-center text-text-muted hover:text-text-primary transition-colors shrink-0 cursor-pointer">
                     <X className="w-4 h-4" />
                   </button>
                 </SheetClose>
               </header>
 
               {/* SCROLLABLE CONTENT — custom-scrollbar wie Kontakt-Panel */}
-              <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-white custom-scrollbar">
+              <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-app-surface custom-scrollbar">
 
                 {/* BLOCK 1: KONTEXT */}
                 <section className="space-y-3">
-                  <span className="text-[10px] font-extrabold text-amber-600 uppercase tracking-widest flex items-center gap-1.5">
+                  <span className="text-[10px] font-extrabold text-[var(--signal-warn-text)] uppercase tracking-widest flex items-center gap-1.5">
                     <AlertTriangle className="w-2.5 h-2.5" /> {t('hunter.drawers.noTask.noTaskStored')}
                   </span>
 
-                  <div className="p-4 bg-amber-50 border border-amber-100 rounded-xl text-[13px] text-amber-800 font-semibold leading-relaxed">
+                  <div className="p-4 bg-[var(--signal-warn-bg)] border border-[var(--signal-warn-bg)] rounded-xl text-[13px] text-[var(--signal-warn-text)] font-semibold leading-relaxed">
                     {t('hunter.drawers.noTask.everyDealNeedsTask')}
                   </div>
 
-                  <div className="p-4 bg-white border border-gray-100 rounded-xl shadow-sm">
-                    <span className="text-[9px] font-extrabold text-gray-400 uppercase tracking-widest block mb-1">
+                  <div className="p-4 bg-app-surface border border-border rounded-xl shadow-sm">
+                    <span className="text-[9px] font-extrabold text-text-muted uppercase tracking-widest block mb-1">
                       {t('hunter.drawers.noTask.dealInfo')}
                     </span>
-                    <p className="text-[13px] text-gray-700 font-semibold leading-relaxed">
+                    <p className="text-[13px] text-text-body font-semibold leading-relaxed">
                       Stage: Demo vereinbart · Neu in Pipeline · vor 3 Tagen
                     </p>
                   </div>
                 </section>
 
                 {/* BLOCK 2: KI VORSCHLAG */}
-                <section className="bg-[var(--signal-teal-bg)] border border-emerald-100 rounded-xl p-4 space-y-3 animate-fade-in">
+                <section className="bg-[var(--signal-teal-bg)] border border-[var(--signal-success-bg)] rounded-xl p-4 space-y-3 animate-fade-in">
                   <div className="flex items-center gap-1.5 text-[10px] font-bold text-[var(--sherloq-primary)] uppercase tracking-wider">
                     <Sparkles className="w-3 h-3" />
                     {t('hunter.drawers.noTask.kiSuggests')}
                   </div>
 
                   <div>
-                    <h4 className="text-[15px] font-extrabold text-gray-900 leading-tight">
+                    <h4 className="text-[15px] font-extrabold text-text-primary leading-tight">
                       ROI-Dokument senden
                     </h4>
-                    <p className="text-[13px] font-medium text-gray-800 leading-relaxed mt-2">
+                    <p className="text-[13px] font-medium text-text-body leading-relaxed mt-2">
                       Demo war positiv — konkretes Angebot als nächster Schritt sinnvoll.
                     </p>
                   </div>
@@ -166,16 +166,16 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
                 </section>
 
                 {/* BLOCK 3: TASK FORMULAR IM MODAL STYLE */}
-                <section className="bg-white rounded-[20px] border border-gray-100 shadow-[0_14px_35px_-18px_rgba(0,0,0,0.25)] overflow-hidden">
+                <section className="bg-app-surface rounded-[20px] border border-border shadow-[0_14px_35px_-18px_rgba(0,0,0,0.25)] overflow-hidden">
 
-                  <div className="px-5 py-4 flex items-center justify-between border-b border-gray-50">
+                  <div className="px-5 py-4 flex items-center justify-between border-b border-border-subtle">
                     <div className="flex items-center gap-2">
                       <ClipboardList className="w-4 h-4 text-[var(--sherloq-primary)]" />
                       <h2 className="text-[16px] font-semibold text-[var(--text-primary)]">
                         {t('hunter.drawers.noTask.newTask')}
                       </h2>
                     </div>
-                    <span className="text-[10px] font-extrabold text-gray-400 uppercase tracking-wider">
+                    <span className="text-[10px] font-extrabold text-text-muted uppercase tracking-wider">
                       {t('hunter.drawers.noTask.openedInstantly')}
                     </span>
                   </div>
@@ -184,7 +184,7 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
 
                     {/* Titel */}
                     <div className="space-y-1.5">
-                      <label className="text-[12px] font-bold text-gray-500">
+                      <label className="text-[12px] font-bold text-text-muted">
                         {t('hunter.drawers.noTask.whatToDo')}
                       </label>
                       <input
@@ -195,30 +195,30 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
                           if (isError) setIsError(false);
                         }}
                         placeholder={t('hunter.drawers.noTask.taskTitlePlaceholder')}
-                        className={`w-full px-4 py-3 rounded-xl border outline-none transition-all focus:border-[var(--sherloq-primary)] text-[13px] font-semibold ${isError ? 'border-amber-500 bg-amber-50' : 'border-gray-200'}`}
+                        className={`w-full px-4 py-3 rounded-xl border outline-none transition-all focus:border-[var(--sherloq-primary)] text-[13px] font-semibold ${isError ? 'border-[var(--signal-warn-bg)] bg-[var(--signal-warn-bg)]' : 'border-border'}`}
                       />
                     </div>
 
                     {/* Kontakt & Deal */}
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-1.5">
-                        <label className="text-[12px] font-bold text-gray-500">
+                        <label className="text-[12px] font-bold text-text-muted">
                           {t('hunter.drawers.noTask.contact')}
                         </label>
                         <input
                           type="text"
                           value={s.name || "Sarah Jenkins"}
                           readOnly
-                          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 outline-none bg-gray-100 cursor-not-allowed text-[13px] font-semibold text-gray-500"
+                          className="w-full px-4 py-2.5 rounded-xl border border-border outline-none bg-app-bg cursor-not-allowed text-[13px] font-semibold text-text-muted"
                         />
                       </div>
 
                       <div className="space-y-1.5">
-                        <label className="text-[12px] font-bold text-gray-500">
+                        <label className="text-[12px] font-bold text-text-muted">
                           {t('hunter.drawers.noTask.deal')}
                         </label>
                         <Select defaultValue="demo">
-                          <SelectTrigger className="w-full px-4 py-2.5 rounded-xl border-gray-200 bg-white text-[13px] font-semibold text-gray-900">
+                          <SelectTrigger className="w-full px-4 py-2.5 rounded-xl border-border bg-app-surface text-[13px] font-semibold text-text-primary">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -232,38 +232,38 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
 
                     {/* Kanal */}
                     <div className="space-y-2">
-                      <label className="text-[12px] font-bold text-gray-500">
+                      <label className="text-[12px] font-bold text-text-muted">
                         {t('hunter.drawers.noTask.channel')}
                       </label>
 
                       <div className="flex gap-2">
                         <button
                           onClick={() => setChannel("mail")}
-                          className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all cursor-pointer ${activeChannel === 'mail' ? 'bg-[var(--sherloq-primary)] text-white border-transparent' : 'bg-gray-50 border-gray-200 text-gray-400 hover:bg-gray-100'}`}
+                          className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all cursor-pointer ${activeChannel === 'mail' ? 'bg-[var(--sherloq-primary)] text-white border-transparent' : 'bg-app-bg border-border text-text-muted hover:bg-app-bg'}`}
                         >
                           <Mail className="w-[18px] h-[18px]" />
                         </button>
                         <button
                           onClick={() => setChannel("linkedin")}
-                          className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all cursor-pointer ${activeChannel === 'linkedin' ? 'bg-[var(--sherloq-primary)] text-white border-transparent' : 'bg-gray-50 border-gray-200 text-gray-400 hover:bg-gray-100'}`}
+                          className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all cursor-pointer ${activeChannel === 'linkedin' ? 'bg-[var(--sherloq-primary)] text-white border-transparent' : 'bg-app-bg border-border text-text-muted hover:bg-app-bg'}`}
                         >
                           <LinkedinIcon className="w-[18px] h-[18px]" />
                         </button>
                         <button
                           onClick={() => setChannel("phone")}
-                          className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all cursor-pointer ${activeChannel === 'phone' ? 'bg-[var(--sherloq-primary)] text-white border-transparent' : 'bg-gray-50 border-gray-200 text-gray-400 hover:bg-gray-100'}`}
+                          className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all cursor-pointer ${activeChannel === 'phone' ? 'bg-[var(--sherloq-primary)] text-white border-transparent' : 'bg-app-bg border-border text-text-muted hover:bg-app-bg'}`}
                         >
                           <Phone className="w-[18px] h-[18px]" />
                         </button>
                         <button
                           onClick={() => setChannel("calendar")}
-                          className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all cursor-pointer ${activeChannel === 'calendar' ? 'bg-[var(--sherloq-primary)] text-white border-transparent' : 'bg-gray-50 border-gray-200 text-gray-400 hover:bg-gray-100'}`}
+                          className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all cursor-pointer ${activeChannel === 'calendar' ? 'bg-[var(--sherloq-primary)] text-white border-transparent' : 'bg-app-bg border-border text-text-muted hover:bg-app-bg'}`}
                         >
                           <Calendar className="w-[18px] h-[18px]" />
                         </button>
                         <button
                           onClick={() => setChannel("other")}
-                          className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all cursor-pointer ${activeChannel === 'other' ? 'bg-[var(--sherloq-primary)] text-white border-transparent' : 'bg-gray-50 border-gray-200 text-gray-400 hover:bg-gray-100'}`}
+                          className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all cursor-pointer ${activeChannel === 'other' ? 'bg-[var(--sherloq-primary)] text-white border-transparent' : 'bg-app-bg border-border text-text-muted hover:bg-app-bg'}`}
                         >
                           <ClipboardList className="w-[18px] h-[18px]" />
                         </button>
@@ -272,72 +272,72 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
 
                     {/* Beschreibung */}
                     <div className="space-y-1.5">
-                      <label className="text-[12px] font-bold text-gray-500">
+                      <label className="text-[12px] font-bold text-text-muted">
                         {t('hunter.drawers.noTask.descriptionOptional')}
                       </label>
                       <textarea
                         rows={3}
                         defaultValue="AI-Notiz: Demo war positiv. ROI-Dokument und konkretes Angebot als nächsten Schritt senden."
-                        className="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-[var(--sherloq-primary)] resize-none text-[13px] font-medium leading-relaxed"
+                        className="w-full px-4 py-3 rounded-xl border border-border outline-none focus:border-[var(--sherloq-primary)] resize-none text-[13px] font-medium leading-relaxed"
                       />
                     </div>
 
                     {/* Settings Grid */}
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-1.5">
-                        <label className="text-[12px] font-bold text-gray-500">
+                        <label className="text-[12px] font-bold text-text-muted">
                           {t('hunter.drawers.noTask.dueDate')}
                         </label>
                         <input
                           type="date"
                           value={dueDate}
                           onChange={(e) => setDueDate(e.target.value)}
-                          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 outline-none text-[13px] font-semibold"
+                          className="w-full px-4 py-2.5 rounded-xl border border-border outline-none text-[13px] font-semibold"
                         />
                       </div>
 
                       <div className="space-y-1.5">
-                        <label className="text-[12px] font-bold text-gray-500">
+                        <label className="text-[12px] font-bold text-text-muted">
                           {t('hunter.drawers.noTask.time')}
                         </label>
                         <input
                           type="time"
                           defaultValue="09:00"
-                          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 outline-none text-[13px] font-semibold"
+                          className="w-full px-4 py-2.5 rounded-xl border border-border outline-none text-[13px] font-semibold"
                         />
                       </div>
 
                       <div className="space-y-1.5">
-                        <label className="text-[12px] font-bold text-gray-500">
+                        <label className="text-[12px] font-bold text-text-muted">
                           {t('hunter.drawers.noTask.priority')}
                         </label>
 
                         <div className="flex gap-1.5">
-                          <button onClick={() => setPriority("low")} className={`px-2 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer ${activePriority === 'low' ? 'bg-[var(--sherloq-primary)] text-white' : 'bg-gray-100 text-gray-500'}`}>
+                          <button onClick={() => setPriority("low")} className={`px-2 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer ${activePriority === 'low' ? 'bg-[var(--sherloq-primary)] text-white' : 'bg-app-bg text-text-muted'}`}>
                             {t('hunter.drawers.noTask.low')}
                           </button>
-                          <button onClick={() => setPriority("medium")} className={`px-2 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer ${activePriority === 'medium' ? 'bg-[var(--sherloq-primary)] text-white' : 'bg-gray-100 text-gray-500'}`}>
+                          <button onClick={() => setPriority("medium")} className={`px-2 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer ${activePriority === 'medium' ? 'bg-[var(--sherloq-primary)] text-white' : 'bg-app-bg text-text-muted'}`}>
                             {t('hunter.drawers.noTask.medium')}
                           </button>
-                          <button onClick={() => setPriority("high")} className={`px-2 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer ${activePriority === 'high' ? 'bg-[var(--sherloq-primary)] text-white' : 'bg-gray-100 text-gray-500'}`}>
+                          <button onClick={() => setPriority("high")} className={`px-2 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer ${activePriority === 'high' ? 'bg-[var(--sherloq-primary)] text-white' : 'bg-app-bg text-text-muted'}`}>
                             {t('hunter.drawers.noTask.high')}
                           </button>
-                          <button onClick={() => setPriority("urgent")} className={`px-2 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer ${activePriority === 'urgent' ? 'bg-[var(--sherloq-primary)] text-white' : 'bg-gray-100 text-gray-500'}`}>
+                          <button onClick={() => setPriority("urgent")} className={`px-2 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer ${activePriority === 'urgent' ? 'bg-[var(--sherloq-primary)] text-white' : 'bg-app-bg text-text-muted'}`}>
                             {t('hunter.drawers.noTask.urgent')}
                           </button>
                         </div>
                       </div>
 
                       <div className="space-y-1.5">
-                        <label className="text-[12px] font-bold text-gray-500">
+                        <label className="text-[12px] font-bold text-text-muted">
                           {t('hunter.drawers.noTask.assignee')}
                         </label>
 
-                        <div className="flex items-center gap-2 bg-gray-50 p-1.5 rounded-xl">
-                          <div className="w-6 h-6 rounded-full bg-indigo-500 text-white text-[10px] flex items-center justify-center font-bold">
+                        <div className="flex items-center gap-2 bg-app-bg p-1.5 rounded-xl">
+                          <div className="w-6 h-6 rounded-full bg-sherloq-primary text-white text-[10px] flex items-center justify-center font-bold">
                             ME
                           </div>
-                          <span className="text-[12px] font-bold text-gray-700">
+                          <span className="text-[12px] font-bold text-text-body">
                             {t('hunter.drawers.noTask.myself')}
                           </span>
                         </div>
@@ -346,33 +346,33 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
 
                     {/* Reminder */}
                     <div className="flex items-center justify-between pt-1">
-                      <span className="text-[12px] font-bold text-gray-700">
+                      <span className="text-[12px] font-bold text-text-body">
                         {t('hunter.drawers.noTask.remind1DayBefore')}
                       </span>
                       <button
                         onClick={toggleReminder}
-                        className={`w-11 h-6 rounded-full p-0.5 transition-colors cursor-pointer ${reminderActive ? 'bg-[var(--sherloq-primary)]' : 'bg-gray-200'}`}
+                        className={`w-11 h-6 rounded-full p-0.5 transition-colors cursor-pointer ${reminderActive ? 'bg-[var(--sherloq-primary)]' : 'bg-border'}`}
                       >
-                        <span className={`block w-5 h-5 rounded-full bg-white shadow-sm transition-transform ${reminderActive ? 'translate-x-[20px]' : 'translate-x-0'}`}></span>
+                        <span className={`block w-5 h-5 rounded-full bg-app-surface shadow-sm transition-transform ${reminderActive ? 'translate-x-[20px]' : 'translate-x-0'}`}></span>
                       </button>
                     </div>
 
                     {/* Verknüpfen mit */}
                     <div className="space-y-2">
-                      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">
+                      <label className="text-[10px] font-bold text-text-muted uppercase tracking-wider block">
                         {t('hunter.drawers.noTask.linkWith')}
                       </label>
 
                       <div className="flex gap-2">
-                        <span className="px-3 py-1.5 bg-gray-100 rounded-lg text-[11px] font-bold text-gray-600 flex items-center gap-1.5 cursor-pointer">
+                        <span className="px-3 py-1.5 bg-app-bg rounded-lg text-[11px] font-bold text-text-muted flex items-center gap-1.5 cursor-pointer">
                           Campaign
                           <X className="w-3 h-3" />
                         </span>
-                        <span className="px-3 py-1.5 bg-gray-100 rounded-lg text-[11px] font-bold text-gray-600 flex items-center gap-1.5 cursor-pointer">
+                        <span className="px-3 py-1.5 bg-app-bg rounded-lg text-[11px] font-bold text-text-muted flex items-center gap-1.5 cursor-pointer">
                           Demo Deal
                           <X className="w-3 h-3" />
                         </span>
-                        <button className="px-3 py-1.5 border border-dashed border-gray-300 rounded-lg text-[11px] font-bold text-gray-400 cursor-pointer hover:bg-gray-50">
+                        <button className="px-3 py-1.5 border border-dashed border-border-strong rounded-lg text-[11px] font-bold text-text-muted cursor-pointer hover:bg-app-bg">
                           {t('hunter.drawers.noTask.addLink')}
                         </button>
                       </div>
@@ -390,7 +390,7 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
                   <button onClick={() => {
                     triggerToast(t('hunter.drawers.noTask.toastCancelled'));
                     setTimeout(() => onClose(), 1100);
-                  }} className="w-full text-center text-[12px] font-bold text-gray-400 hover:text-gray-700 transition-colors cursor-pointer">
+                  }} className="w-full text-center text-[12px] font-bold text-text-muted hover:text-text-body transition-colors cursor-pointer">
                     {t('hunter.common.cancel')}
                   </button>
                 </section>

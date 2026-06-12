@@ -35,7 +35,7 @@ export default function TaskDrawer({
       >
         <button
           onClick={onClose}
-          className="absolute top-6 right-6 w-9 h-9 bg-white border border-[var(--border)] rounded-full hover:bg-gray-50 flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-primary)] cursor-pointer transition-all z-20 shadow-sm"
+          className="absolute top-6 right-6 w-9 h-9 bg-app-surface border border-[var(--border)] rounded-full hover:bg-app-bg flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-primary)] cursor-pointer transition-all z-20 shadow-sm"
         >
           <X className="w-4 h-4" />
         </button>
@@ -55,7 +55,7 @@ export default function TaskDrawer({
                         {person.person.initials}
                       </div>
                     )}
-                    <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-[var(--signal-info-text)] border-2 border-white rounded-full" />
+                    <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-[var(--signal-info-text)] border-2 border-[var(--surface)] rounded-full" />
                   </div>
                   <div className="flex flex-col justify-center">
                     <div className="flex items-center gap-3">
@@ -95,7 +95,7 @@ export default function TaskDrawer({
                   </div>
                   <div className="flex flex-col items-center gap-1.5">
                     <span className="text-[10px] font-bold text-[var(--icon-muted)] uppercase tracking-wider">{t('hunter.common.stage')}</span>
-                    <div className="bg-white border border-[var(--border)] text-[var(--text-body)] px-5 py-1.5 rounded-full flex items-center justify-center text-[13px] font-bold shadow-sm">
+                    <div className="bg-app-surface border border-[var(--border)] text-[var(--text-body)] px-5 py-1.5 rounded-full flex items-center justify-center text-[13px] font-bold shadow-sm">
                       Demo
                     </div>
                   </div>
@@ -103,7 +103,7 @@ export default function TaskDrawer({
               </div>
 
               {/* Contact Info Bar */}
-              <div className="bg-white border border-[var(--border)] rounded-[24px] py-4 px-6 flex items-center justify-between shadow-[0_2px_10px_rgb(0,0,0,0.02)] w-full">
+              <div className="bg-app-surface border border-[var(--border)] rounded-[24px] py-4 px-6 flex items-center justify-between shadow-[0_2px_10px_rgb(0,0,0,0.02)] w-full">
                 <div className="flex items-center gap-2.5 text-[var(--text-body)]">
                   <Mail className="w-4 h-4 text-[var(--icon-muted)]" />
                   <span className="text-[14px] font-semibold">c.brand@logixflow.de</span>
@@ -147,8 +147,8 @@ export default function TaskDrawer({
                             onClick={() => setChannel(c.id)}
                             className={`flex items-center gap-2 px-4 py-2.5 rounded-full border text-[14px] font-semibold transition-all ${
                             isSelected 
-                                ? 'border-[var(--border)] bg-white text-[var(--text-primary)] shadow-sm'
-                                : 'border-[var(--border)] bg-transparent text-[var(--text-body)] hover:bg-white hover:shadow-xs'
+                                ? 'border-[var(--border)] bg-app-surface text-[var(--text-primary)] shadow-sm'
+                                : 'border-[var(--border)] bg-transparent text-[var(--text-body)] hover:bg-app-surface hover:shadow-xs'
                             }`}
                         >
                             <Icon className={`w-4 h-4 ${c.color}`} />
@@ -177,7 +177,7 @@ export default function TaskDrawer({
                         type="text" 
                         value={title}
                         onChange={e => setTitle(e.target.value)}
-                        className="w-full bg-white border border-[var(--border)] rounded-xl px-4 py-3.5 text-[var(--text-body)] font-medium text-[15px] focus:outline-none focus:border-[var(--sherloq-primary)] focus:ring-1 focus:ring-[var(--sherloq-primary)]"
+                        className="w-full bg-app-surface border border-[var(--border)] rounded-xl px-4 py-3.5 text-[var(--text-body)] font-medium text-[15px] focus:outline-none focus:border-[var(--sherloq-primary)] focus:ring-1 focus:ring-[var(--sherloq-primary)]"
                     />
                 </div>
 
@@ -187,7 +187,7 @@ export default function TaskDrawer({
                     <textarea 
                         value={note}
                         onChange={e => setNote(e.target.value)}
-                        className="w-full bg-white border border-[var(--border)] rounded-xl px-4 py-3.5 text-[var(--text-body)] text-[15px] min-h-[140px] resize-none focus:outline-none focus:border-[var(--sherloq-primary)] focus:ring-1 focus:ring-[var(--sherloq-primary)]"
+                        className="w-full bg-app-surface border border-[var(--border)] rounded-xl px-4 py-3.5 text-[var(--text-body)] text-[15px] min-h-[140px] resize-none focus:outline-none focus:border-[var(--sherloq-primary)] focus:ring-1 focus:ring-[var(--sherloq-primary)]"
                     />
                 </div>
 
@@ -195,7 +195,7 @@ export default function TaskDrawer({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-0">
                     <div className="flex flex-col gap-3">
                         <span className="text-[12px] font-bold text-[var(--text-muted)] uppercase tracking-wider">{t('hunter.drawers.task.dueDate')}</span>
-                        <div className="bg-white border border-[var(--border)] rounded-xl px-4 py-3.5 flex items-center gap-3">
+                        <div className="bg-app-surface border border-[var(--border)] rounded-xl px-4 py-3.5 flex items-center gap-3">
                             <span className="text-[var(--text-muted)]"><Calendar className="w-4 h-4" /></span>
                             <span className="text-[var(--text-primary)] text-[15px] font-bold">{date}</span>
                         </div>
@@ -209,7 +209,7 @@ export default function TaskDrawer({
                                     onClick={() => setPriority(p)}
                                     className={`flex-1 py-3 rounded-lg text-[13px] font-bold transition-all ${
                                         priority === p 
-                                        ? 'bg-white text-[var(--text-primary)] shadow-sm'
+                                        ? 'bg-app-surface text-[var(--text-primary)] shadow-sm'
                                         : 'text-[var(--text-muted)] hover:text-[var(--text-body)]'
                                     }`}
                                 >
@@ -223,7 +223,7 @@ export default function TaskDrawer({
             </div>
           </div>
           
-          <div className="pl-12 pr-8 py-5 border-t border-[var(--border)] bg-white sticky bottom-0">
+          <div className="pl-12 pr-8 py-5 border-t border-[var(--border)] bg-app-surface sticky bottom-0">
              <button 
                 onClick={() => onSave({ channel, title, note, date, priority })}
                 className="w-full bg-[var(--sherloq-primary)] hover:bg-[var(--sherloq-primary)]/95 text-white text-[15px] font-bold py-3.5 rounded-2xl transition-all shadow-sm flex items-center justify-center gap-2"

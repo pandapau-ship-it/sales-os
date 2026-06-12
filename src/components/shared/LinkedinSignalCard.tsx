@@ -131,7 +131,7 @@ export function LinkedinSignalCard({
               {t("hunter.common.hoursLeft", { hours: timeLeftHours })}
             </span>
           </div>
-          <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+          <div className="w-full h-1.5 bg-app-bg rounded-full overflow-hidden">
             <div className="h-full bg-[var(--signal-urgent-text)] rounded-full" style={{ width: `${timeProgress}%` }} />
           </div>
           <span className="mt-1 text-[10px] font-bold text-[var(--icon-muted)] uppercase tracking-widest text-right">

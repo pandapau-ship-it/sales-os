@@ -108,35 +108,35 @@ export default function SignalActionDrawer({
     <>
       {/* Sheet liefert Overlay/Backdrop, Slide-Animation, Escape & Focus-Trap — wie Kontakt-Panel */}
       <Sheet open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
-        <SheetContent side="drawer" className="flex flex-col font-sans overflow-hidden p-0 bg-white" style={{ width: 580, maxWidth: "95vw" }}>
+        <SheetContent side="drawer" className="flex flex-col font-sans overflow-hidden p-0 bg-app-surface" style={{ width: 580, maxWidth: "95vw" }}>
           {s && (
             <>
               {/* HEADER */}
-              <header className="h-[72px] px-6 border-b border-gray-100 flex items-center justify-between shrink-0 bg-white z-30">
+              <header className="h-[72px] px-6 border-b border-border flex items-center justify-between shrink-0 bg-app-surface z-30">
                 <div className="flex items-center gap-3">
                   <div className="relative">
                     <Avatar name={s.name} src={s.avatarUrl} size={40} />
-                    <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full" />
+                    <span className="absolute bottom-0 right-0 w-3 h-3 bg-[var(--signal-success-text)] border-2 border-[var(--surface)] rounded-full" />
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <h3 className="text-[15px] font-bold text-gray-900 leading-none">{s.name}</h3>
-                      <span className="px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-700 text-[9px] font-extrabold tracking-wide">
+                      <h3 className="text-[15px] font-bold text-text-primary leading-none">{s.name}</h3>
+                      <span className="px-2 py-0.5 rounded-full bg-[var(--signal-success-bg)] border border-[var(--signal-success-bg)] text-[var(--signal-success-text)] text-[9px] font-extrabold tracking-wide">
                         ICP: {s.icpScore}
                       </span>
                     </div>
-                    <p className="text-[11px] font-medium text-gray-400 mt-1">{s.company}</p>
+                    <p className="text-[11px] font-medium text-text-muted mt-1">{s.company}</p>
                   </div>
                 </div>
                 <SheetClose asChild>
-                  <button className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:text-gray-900 transition-colors cursor-pointer">
+                  <button className="w-8 h-8 rounded-full bg-app-bg flex items-center justify-center text-text-muted hover:text-text-primary transition-colors cursor-pointer">
                     <X className="w-4 h-4" />
                   </button>
                 </SheetClose>
               </header>
 
               {/* SCROLL-CONTAINER — custom-scrollbar wie Kontakt-Panel */}
-              <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-white custom-scrollbar">
+              <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-app-surface custom-scrollbar">
                 {/* SIGNAL-KONTEXT */}
                 <section className="space-y-3.5">
                   <div className="flex items-center justify-between gap-4">
@@ -145,26 +145,26 @@ export default function SignalActionDrawer({
                         <LinkedinIcon className="w-[11px] h-[11px]" />
                         {t("hunter.signal_panel.linkedin_signal")}
                       </span>
-                      <span className="text-[12px] font-medium text-gray-800 truncate">{s.actionText}</span>
+                      <span className="text-[12px] font-medium text-text-body truncate">{s.actionText}</span>
                     </div>
-                    <span className="text-[11px] font-bold text-gray-400 shrink-0 whitespace-nowrap">
+                    <span className="text-[11px] font-bold text-text-muted shrink-0 whitespace-nowrap">
                       {t("hunter.signal_panel.ago", { label: s.timeAgoLabel })} ·{" "}
-                      <span className="text-red-600 font-extrabold">{t("hunter.signal_panel.hours_left", { hours: s.timeLeftHours })}</span>
+                      <span className="text-[var(--signal-urgent-text)] font-extrabold">{t("hunter.signal_panel.hours_left", { hours: s.timeLeftHours })}</span>
                     </span>
                   </div>
 
                   <div className="space-y-1">
-                    <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="w-full h-1.5 bg-app-bg rounded-full overflow-hidden">
                       <div className="h-full bg-[var(--icp-low)] rounded-full" style={{ width: `${timeProgress}%` }} />
                     </div>
-                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block text-right">
+                    <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest block text-right">
                       {t("hunter.signal_panel.hours_window", { hours: s.windowHours })}
                     </span>
                   </div>
 
                   {/* KOMMENTAR-BOX (grau) */}
                   {s.commentText && (
-                    <div className="p-4 bg-gray-50/80 border border-gray-100 rounded-[16px] text-xs text-gray-700 leading-relaxed font-semibold italic">
+                    <div className="p-4 bg-app-bg/80 border border-border rounded-[16px] text-xs text-text-body leading-relaxed font-semibold italic">
                       "{s.commentText}"
                     </div>
                   )}
@@ -177,21 +177,21 @@ export default function SignalActionDrawer({
                       <Sparkles className="w-[13px] h-[13px]" />
                       {t("hunter.signal_panel.ai_recommends")}
                     </div>
-                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-extrabold uppercase">
+                    <span className="px-2.5 py-0.5 rounded-full bg-[var(--signal-success-bg)] text-[var(--signal-success-text)] text-[10px] font-extrabold uppercase">
                       {t("hunter.signal_panel.confidence", { n: s.confidence ?? 91 })}
                     </span>
                   </div>
-                  <p className="text-[13px] font-medium text-gray-700 leading-relaxed">{s.aiRecommendation}</p>
+                  <p className="text-[13px] font-medium text-text-body leading-relaxed">{s.aiRecommendation}</p>
                   <div className="flex gap-1.5 flex-wrap">
-                    <span className="px-2.5 py-1 rounded-full bg-white border border-[var(--sherloq-primary)]/10 text-[var(--sherloq-primary)] text-[10px] font-bold">{t("hunter.signal_panel.tag_signal_hot")}</span>
-                    <span className="px-2.5 py-1 rounded-full bg-white border border-[var(--sherloq-primary)]/10 text-[var(--sherloq-primary)] text-[10px] font-bold">{t("hunter.signal_panel.tag_icp_fits")}</span>
-                    <span className="px-2.5 py-1 rounded-full bg-white border border-[var(--sherloq-primary)]/10 text-[var(--sherloq-primary)] text-[10px] font-bold">{t("hunter.signal_panel.tag_channel_flexible")}</span>
+                    <span className="px-2.5 py-1 rounded-full bg-app-surface border border-[var(--sherloq-primary)]/10 text-[var(--sherloq-primary)] text-[10px] font-bold">{t("hunter.signal_panel.tag_signal_hot")}</span>
+                    <span className="px-2.5 py-1 rounded-full bg-app-surface border border-[var(--sherloq-primary)]/10 text-[var(--sherloq-primary)] text-[10px] font-bold">{t("hunter.signal_panel.tag_icp_fits")}</span>
+                    <span className="px-2.5 py-1 rounded-full bg-app-surface border border-[var(--sherloq-primary)]/10 text-[var(--sherloq-primary)] text-[10px] font-bold">{t("hunter.signal_panel.tag_channel_flexible")}</span>
                   </div>
                 </section>
 
                 {/* AI COMPOSER */}
                 <section className="space-y-2">
-                  <div className="flex justify-between items-center text-[10px] font-bold text-gray-400 uppercase tracking-widest px-0.5">
+                  <div className="flex justify-between items-center text-[10px] font-bold text-text-muted uppercase tracking-widest px-0.5">
                     <span>{t("hunter.signal_panel.ai_composer")}</span>
                     <button onClick={handleRegenerate} className="text-[var(--sherloq-primary)] hover:underline flex items-center gap-1 font-extrabold cursor-pointer">
                       <RotateCw className={`w-[11px] h-[11px] ${isRegenerating ? "animate-spin" : ""}`} />
@@ -199,7 +199,7 @@ export default function SignalActionDrawer({
                     </button>
                   </div>
 
-                  <div className="bg-white rounded-[18px] border border-gray-200 shadow-sm overflow-hidden flex flex-col">
+                  <div className="bg-app-surface rounded-[18px] border border-border shadow-sm overflow-hidden flex flex-col">
                     <div className="px-4 py-3 bg-[var(--sherloq-primary)] text-white text-[12px] flex items-center justify-between">
                       <div className="flex items-center gap-2 font-extrabold min-w-0">
                         <Sparkles className="w-[13px] h-[13px] fill-current shrink-0" />
@@ -227,16 +227,16 @@ export default function SignalActionDrawer({
                           <Sparkles className="w-[14px] h-[14px] fill-current" />
                         </div>
                         <div className="flex-1">
-                          <div className="mb-1 text-[10px] font-bold uppercase tracking-wider text-gray-400">{t("hunter.signal_panel.sherloq_suggestion")}</div>
-                          <div className="bg-white border border-gray-200 text-gray-900 p-4 rounded-2xl rounded-tl-md shadow-sm leading-relaxed">
+                          <div className="mb-1 text-[10px] font-bold uppercase tracking-wider text-text-muted">{t("hunter.signal_panel.sherloq_suggestion")}</div>
+                          <div className="bg-app-surface border border-border text-text-primary p-4 rounded-2xl rounded-tl-md shadow-sm leading-relaxed">
                             <textarea
                               value={draft}
                               onChange={(e) => setDraft(e.target.value)}
                               placeholder={t("hunter.signal_panel.draft_placeholder")}
-                              className="w-full min-h-[118px] bg-transparent resize-none outline-none text-[13px] font-medium leading-relaxed text-gray-900 placeholder-gray-400 border-none scrollbar-none"
+                              className="w-full min-h-[118px] bg-transparent resize-none outline-none text-[13px] font-medium leading-relaxed text-text-primary placeholder-[var(--text-muted)] border-none scrollbar-none"
                             />
                           </div>
-                          <div className="flex justify-between mt-2 px-1 text-[10px] text-gray-400 font-bold uppercase">
+                          <div className="flex justify-between mt-2 px-1 text-[10px] text-text-muted font-bold uppercase">
                             <span>{t("hunter.signal_panel.draft_from_sherloq_today")}</span>
                             <span>{t("hunter.signal_panel.chars_of_300", { count: draft.length })}</span>
                           </div>
@@ -244,12 +244,12 @@ export default function SignalActionDrawer({
                       </div>
                     </div>
 
-                    <div className="p-3 bg-white border-t border-gray-100">
-                      <div className="flex items-end gap-2 bg-gray-50 border border-gray-200 rounded-2xl px-3 py-2 focus-within:border-[var(--sherloq-primary)] focus-within:bg-white transition-all">
+                    <div className="p-3 bg-app-surface border-t border-border">
+                      <div className="flex items-end gap-2 bg-app-bg border border-border rounded-2xl px-3 py-2 focus-within:border-[var(--sherloq-primary)] focus-within:bg-app-surface transition-all">
                         <textarea
                           rows={1}
                           placeholder={t("hunter.signal_panel.instruct_placeholder")}
-                          className="flex-1 bg-transparent resize-none outline-none text-[12px] font-medium leading-relaxed text-gray-800 placeholder-gray-400 min-h-[32px] max-h-[96px] scrollbar-none"
+                          className="flex-1 bg-transparent resize-none outline-none text-[12px] font-medium leading-relaxed text-text-body placeholder-[var(--text-muted)] min-h-[32px] max-h-[96px] scrollbar-none"
                           value={chatInput}
                           onChange={(e) => setChatInput(e.target.value)}
                           onKeyDown={(e) => {
@@ -263,7 +263,7 @@ export default function SignalActionDrawer({
                           <Send className="w-[14px] h-[14px]" />
                         </button>
                       </div>
-                      <div className="flex justify-between items-center mt-2 px-1 text-[10px] text-gray-400 font-bold">
+                      <div className="flex justify-between items-center mt-2 px-1 text-[10px] text-text-muted font-bold">
                         <span>{t("hunter.signal_panel.ai_hint")}</span>
                         <span>{t("hunter.signal_panel.enter_to_send")}</span>
                       </div>
@@ -282,9 +282,9 @@ export default function SignalActionDrawer({
                   </button>
 
                   <div className="flex gap-2">
-                    <button onClick={() => actAndClose(t("hunter.signal_panel.toast_edit"), onEdit)} className="flex-1 py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-600 rounded-full text-xs font-bold transition-all shadow-sm cursor-pointer">{t("hunter.signal_panel.edit")}</button>
-                    <button onClick={() => actAndClose(t("hunter.signal_panel.toast_ignore"), onIgnore)} className="flex-1 py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-600 rounded-full text-xs font-bold transition-all shadow-sm cursor-pointer">{t("hunter.signal_panel.ignore")}</button>
-                    <button onClick={() => actAndClose(t("hunter.signal_panel.toast_task"), onCreateTask)} className="flex-1 py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-600 rounded-full text-xs font-bold transition-all shadow-sm cursor-pointer">{t("hunter.signal_panel.create_task")}</button>
+                    <button onClick={() => actAndClose(t("hunter.signal_panel.toast_edit"), onEdit)} className="flex-1 py-2 bg-app-surface border border-border hover:bg-app-bg text-text-muted rounded-full text-xs font-bold transition-all shadow-sm cursor-pointer">{t("hunter.signal_panel.edit")}</button>
+                    <button onClick={() => actAndClose(t("hunter.signal_panel.toast_ignore"), onIgnore)} className="flex-1 py-2 bg-app-surface border border-border hover:bg-app-bg text-text-muted rounded-full text-xs font-bold transition-all shadow-sm cursor-pointer">{t("hunter.signal_panel.ignore")}</button>
+                    <button onClick={() => actAndClose(t("hunter.signal_panel.toast_task"), onCreateTask)} className="flex-1 py-2 bg-app-surface border border-border hover:bg-app-bg text-text-muted rounded-full text-xs font-bold transition-all shadow-sm cursor-pointer">{t("hunter.signal_panel.create_task")}</button>
                   </div>
                 </section>
               </div>

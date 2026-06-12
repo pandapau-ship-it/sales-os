@@ -61,7 +61,7 @@ export default function HunterCard({
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className={`${CARD.shell} ${selected ? "bg-[var(--signal-teal-bg)]" : "bg-white"}`}>
+    <div className={`${CARD.shell} ${selected ? "bg-[var(--signal-teal-bg)]" : "bg-app-surface"}`}>
       <div className={CARD.body}>
         {/* TOP ROW */}
         <div className={CARD.topRow}>
@@ -72,7 +72,7 @@ export default function HunterCard({
               className={`${CARD.checkboxBase} ${
                 selected
                   ? "bg-[var(--sherloq-primary)] opacity-100 border-[var(--sherloq-primary)]"
-                  : "bg-white border-2 border-[var(--border)] hover:border-[var(--text-muted)]"
+                  : "bg-app-surface border-2 border-[var(--border)] hover:border-[var(--text-muted)]"
               }`}
             >
               {selected && <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />}
@@ -141,7 +141,7 @@ export default function HunterCard({
           <div className="flex flex-col gap-6 border-t border-[var(--border-subtle)] pt-5 mt-2">
             <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
               {/* KI Kurzakte */}
-              <div className="md:col-span-7 bg-white rounded-[12px] p-5 border border-[var(--border)]">
+              <div className="md:col-span-7 bg-app-surface rounded-[12px] p-5 border border-[var(--border)]">
                 <div className="flex items-center gap-2 text-[11px] font-bold font-mono text-[var(--sherloq-primary)] uppercase tracking-wider mb-4">
                   <Zap className="w-4 h-4 text-[var(--sherloq-primary)]" /> {t("hunter.common.kiKurzakte")}
                 </div>
@@ -167,7 +167,7 @@ export default function HunterCard({
 
               {/* Deal Details & Aktionen */}
               <div className="md:col-span-5 flex flex-col gap-5">
-                <div className="bg-white rounded-[12px] p-5 border border-[var(--border)]">
+                <div className="bg-app-surface rounded-[12px] p-5 border border-[var(--border)]">
                   <div className="flex items-center gap-2 text-[11px] font-bold font-mono text-[var(--text-muted)] uppercase tracking-wider mb-4">
                     <Briefcase className="w-4 h-4" /> {t("hunter.leadCard.dealDetails")}
                   </div>
@@ -183,7 +183,7 @@ export default function HunterCard({
                     <div className="flex flex-col gap-1">
                       <span className="text-[var(--text-muted)] font-mono text-[10px] uppercase tracking-wider">{t("hunter.common.stage")}</span>
                       <span className="font-bold text-[var(--icp-low)] text-[14px] flex items-center gap-1.5">
-                        {data.stageLabel} <span className="font-semibold text-red-500 flex items-center gap-0.5"><AlertTriangle className="w-3 h-3" /> 8T</span>
+                        {data.stageLabel} <span className="font-semibold text-[var(--icp-low)] flex items-center gap-0.5"><AlertTriangle className="w-3 h-3" /> 8T</span>
                       </span>
                     </div>
                     <div className="flex flex-col gap-1">
@@ -193,23 +193,23 @@ export default function HunterCard({
                   </div>
                 </div>
 
-                <div className="bg-white rounded-[12px] p-5 border border-[var(--border)]">
+                <div className="bg-app-surface rounded-[12px] p-5 border border-[var(--border)]">
                   <div className="flex items-center gap-2 text-[11px] font-bold font-mono text-[var(--text-muted)] uppercase tracking-wider mb-4">
                     <Target className="w-4 h-4" /> {t("hunter.leadCard.actions")}
                   </div>
                   <div className="flex flex-col gap-3">
                     <div className="flex items-center gap-2">
-                      <button className="flex-1 bg-white border border-[var(--border)] text-[var(--text-body)] text-[12px] font-semibold py-2 rounded-[12px] hover:bg-[var(--app-bg)] transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
+                      <button className="flex-1 bg-app-surface border border-[var(--border)] text-[var(--text-body)] text-[12px] font-semibold py-2 rounded-[12px] hover:bg-[var(--app-bg)] transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
                         <Mail className="w-3.5 h-3.5" /> {t("hunter.leadCard.mail")}
                       </button>
-                      <button className="flex-1 bg-white border border-[var(--border)] text-[var(--text-body)] text-[12px] font-semibold py-2 rounded-[12px] hover:bg-[var(--app-bg)] transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
+                      <button className="flex-1 bg-app-surface border border-[var(--border)] text-[var(--text-body)] text-[12px] font-semibold py-2 rounded-[12px] hover:bg-[var(--app-bg)] transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
                         <CalendarCheck className="w-3.5 h-3.5" /> {t("hunter.leadCard.task")}
                       </button>
-                      <button className="flex-1 bg-white border border-[var(--border)] text-[var(--text-body)] text-[12px] font-semibold py-2 rounded-[12px] hover:bg-[var(--app-bg)] transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
+                      <button className="flex-1 bg-app-surface border border-[var(--border)] text-[var(--text-body)] text-[12px] font-semibold py-2 rounded-[12px] hover:bg-[var(--app-bg)] transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
                         <ArrowRight className="w-3.5 h-3.5" /> {t("hunter.common.stage")}
                       </button>
                     </div>
-                    <button className="w-full bg-white border border-[var(--border)] hover:bg-[var(--app-bg)] text-[var(--text-primary)] font-bold text-[13px] py-2.5 rounded-[12px] transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm">
+                    <button className="w-full bg-app-surface border border-[var(--border)] hover:bg-[var(--app-bg)] text-[var(--text-primary)] font-bold text-[13px] py-2.5 rounded-[12px] transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm">
                       <MessageSquare className="w-4 h-4 text-[var(--sherloq-primary)]" /> {t("hunter.leadCard.startAiChat")}
                     </button>
                   </div>

@@ -42,8 +42,8 @@ const getIconImage = (type: string, isPast: boolean) => {
 
 const getSentimentColor = (sentiment: string) => {
   if (sentiment.toLowerCase().includes('positiv')) return 'text-green-600 font-semibold';
-  if (sentiment.toLowerCase().includes('negativ')) return 'text-red-600 font-semibold';
-  return 'text-gray-600';
+  if (sentiment.toLowerCase().includes('negativ')) return 'text-[var(--signal-urgent-text)] font-semibold';
+  return 'text-text-muted';
 }
 
 function generateChainForPerson(id: string): Touchpoint[] {
@@ -143,7 +143,7 @@ export default function CommunicationChain({ personId, onSelectCommunication }: 
             >
               {/* Icon container with white circle taking precedence and a fake gap via shadow */}
               <div className="relative group/icon mb-2 w-full flex justify-center">
-                <div className={`w-[46px] h-[46px] bg-white rounded-full flex items-center justify-center transition-transform group-hover:scale-110 z-10 shadow-[0_0_0_6px_var(--app-bg)] relative
+                <div className={`w-[46px] h-[46px] bg-app-surface rounded-full flex items-center justify-center transition-transform group-hover:scale-110 z-10 shadow-[0_0_0_6px_var(--app-bg)] relative
                  ${hoveredId === tp.id ? 'ring-2 ring-[var(--accent-teal)]/30' : ''}`}
                 >
                   {getIconImage(tp.type, tp.isPast)}
@@ -151,7 +151,7 @@ export default function CommunicationChain({ personId, onSelectCommunication }: 
                 
                 {/* Status dot for the most recent past event */}
                 {tp.isPast && idx === chain.filter(c => c.isPast).length - 1 && (
-                  <div className="absolute top-0 right-[4px] w-3 h-3 bg-[var(--accent-teal)] border-2 border-white rounded-full z-20 group-hover:scale-110 transition-transform" />
+                  <div className="absolute top-0 right-[4px] w-3 h-3 bg-[var(--accent-teal)] border-2 border-[var(--surface)] rounded-full z-20 group-hover:scale-110 transition-transform" />
                 )}
               </div>
               
@@ -164,7 +164,7 @@ export default function CommunicationChain({ personId, onSelectCommunication }: 
 
               {/* Tooltip */}
               {hoveredId === tp.id && (
-                <div className="absolute bottom-16 left-1/2 -translate-x-1/2 w-48 bg-white border border-[var(--border)] shadow-[0_10px_30px_rgb(0,0,0,0.1)] rounded-xl p-3 z-50 animate-fade-in text-left">
+                <div className="absolute bottom-16 left-1/2 -translate-x-1/2 w-48 bg-app-surface border border-[var(--border)] shadow-[0_10px_30px_rgb(0,0,0,0.1)] rounded-xl p-3 z-50 animate-fade-in text-left">
                    <div className="flex justify-between items-center mb-2">
                      <span className="text-[11px] font-bold text-[var(--sherloq-primary)] font-mono">{tp.tooltip.channel}</span>
                      <span className="text-[10px] text-[var(--text-muted)]">{tp.tooltip.date}</span>
@@ -176,7 +176,7 @@ export default function CommunicationChain({ personId, onSelectCommunication }: 
                      {tp.tooltip.preview}
                    </div>
                    {/* Tooltip triangle */}
-                   <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-3 h-3 bg-white border-b border-r border-[var(--border)] rotate-45" />
+                   <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-3 h-3 bg-app-surface border-b border-r border-[var(--border)] rotate-45" />
                 </div>
               )}
             </div>

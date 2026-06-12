@@ -195,7 +195,7 @@ export default function ScreenHunting({
       </div>
 
       {/* Sub-Navigation (Section 12) */}
-      <div className="flex gap-1 p-1 bg-white rounded-[12px] shadow-[var(--shadow-card)] w-fit items-center">
+      <div className="flex gap-1 p-1 bg-app-surface rounded-[12px] shadow-[var(--shadow-card)] w-fit items-center">
         {menuItems.map((item) => {
           const isActive = subTab === item.id;
           return (
@@ -211,7 +211,7 @@ export default function ScreenHunting({
             >
               <span>{item.label}</span>
               {item.count !== null && (
-                <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-[5px] ${isActive ? 'bg-white text-[var(--sherloq-primary)]' : 'bg-[var(--border)] text-[var(--text-body)]'}`}>
+                <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-[5px] ${isActive ? 'bg-app-surface text-[var(--sherloq-primary)]' : 'bg-[var(--border)] text-[var(--text-body)]'}`}>
                   {item.count}
                 </span>
               )}
@@ -227,51 +227,51 @@ export default function ScreenHunting({
           <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
             
             {/* KPI Card 1: Pipeline-Wert */}
-            <div className="bg-white rounded-[12px] p-6 shadow-[var(--shadow-card)] flex flex-col justify-between h-[160px] hover:shadow-md transition-shadow relative">
+            <div className="bg-app-surface rounded-[12px] p-6 shadow-[var(--shadow-card)] flex flex-col justify-between h-[160px] hover:shadow-md transition-shadow relative">
               <div className="flex justify-between items-start">
-                <span className="text-[12px] font-bold text-gray-400 uppercase tracking-widest">
+                <span className="text-[12px] font-bold text-text-muted uppercase tracking-widest">
                   {t('hunter.overview.pipelineValue')}
                 </span>
-                <div className="w-8 h-8 rounded-[12px] bg-emerald-50 text-[var(--sherloq-primary)] flex items-center justify-center shrink-0">
+                <div className="w-8 h-8 rounded-[12px] bg-[var(--signal-success-bg)] text-[var(--sherloq-primary)] flex items-center justify-center shrink-0">
                   <TrendingUp size={16} strokeWidth={2.5} />
                 </div>
               </div>
 
               <div>
-                <div className="text-[32px] font-extrabold text-gray-900 tracking-tighter leading-none mb-1">
+                <div className="text-[32px] font-extrabold text-text-primary tracking-tighter leading-none mb-1">
                   € 284.500
                 </div>
-                <div className="text-[11px] font-semibold text-emerald-700 flex items-center gap-1.5">
+                <div className="text-[11px] font-semibold text-[var(--signal-success-text)] flex items-center gap-1.5">
                   <span><TrendingUp className="w-3 h-3" /> {t('hunter.overview.pipelineValueTrend')}</span>
                 </div>
               </div>
             </div>
 
             {/* KPI Card 2: Deals in Gefahr */}
-            <div className="bg-white rounded-[12px] p-6 shadow-[var(--shadow-card)] flex flex-col justify-between h-[160px] hover:shadow-md transition-shadow relative">
+            <div className="bg-app-surface rounded-[12px] p-6 shadow-[var(--shadow-card)] flex flex-col justify-between h-[160px] hover:shadow-md transition-shadow relative">
               <div className="flex justify-between items-start">
-                <span className="text-[12px] font-bold text-gray-400 uppercase tracking-widest">
+                <span className="text-[12px] font-bold text-text-muted uppercase tracking-widest">
                   {t('hunter.overview.dealsAtRisk')}
                 </span>
-                <div className="w-8 h-8 rounded-[12px] bg-red-50 text-red-600 flex items-center justify-center shrink-0">
+                <div className="w-8 h-8 rounded-[12px] bg-[var(--signal-urgent-bg)] text-[var(--signal-urgent-text)] flex items-center justify-center shrink-0">
                   <AlertTriangle size={16} strokeWidth={2.5} />
                 </div>
               </div>
 
               <div>
-                <div className="text-[32px] font-extrabold text-red-600 tracking-tighter leading-none mb-1">
+                <div className="text-[32px] font-extrabold text-[var(--signal-urgent-text)] tracking-tighter leading-none mb-1">
                   4
                 </div>
-                <div className="text-[11px] font-semibold text-gray-400">
+                <div className="text-[11px] font-semibold text-text-muted">
                   {t('hunter.overview.stagnatedOver7Days')}
                 </div>
               </div>
             </div>
 
             {/* KPI Card 3: Heisse Signale */}
-            <div className="bg-white rounded-[12px] p-6 shadow-[var(--shadow-card)] flex flex-col justify-between h-[160px] hover:shadow-md transition-shadow relative">
+            <div className="bg-app-surface rounded-[12px] p-6 shadow-[var(--shadow-card)] flex flex-col justify-between h-[160px] hover:shadow-md transition-shadow relative">
               <div className="flex justify-between items-start">
-                <span className="text-[12px] font-bold text-gray-400 uppercase tracking-widest">
+                <span className="text-[12px] font-bold text-text-muted uppercase tracking-widest">
                   {t('hunter.overview.hotSignals')}
                 </span>
                 <div className="w-8 h-8 rounded-[12px] bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)] flex items-center justify-center shrink-0">
@@ -283,28 +283,28 @@ export default function ScreenHunting({
                 <div className="text-[32px] font-extrabold text-[var(--sherloq-primary)] tracking-tighter leading-none mb-1">
                   7
                 </div>
-                <div className="text-[11px] font-semibold text-gray-400">
+                <div className="text-[11px] font-semibold text-text-muted">
                   {t('hunter.overview.activeSignalsToday')}
                 </div>
               </div>
             </div>
 
             {/* KPI Card 4: Follow-ups heute */}
-            <div className="bg-white rounded-[12px] p-6 shadow-[var(--shadow-card)] flex flex-col justify-between h-[160px] hover:shadow-md transition-shadow relative">
+            <div className="bg-app-surface rounded-[12px] p-6 shadow-[var(--shadow-card)] flex flex-col justify-between h-[160px] hover:shadow-md transition-shadow relative">
               <div className="flex justify-between items-start">
-                <span className="text-[12px] font-bold text-gray-400 uppercase tracking-widest">
+                <span className="text-[12px] font-bold text-text-muted uppercase tracking-widest">
                   {t('hunter.overview.followUpsToday')}
                 </span>
-                <div className="w-8 h-8 rounded-[12px] bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                <div className="w-8 h-8 rounded-[12px] bg-[var(--signal-info-bg)] text-[var(--signal-info-text)] flex items-center justify-center shrink-0">
                   <Clock size={16} strokeWidth={2.5} />
                 </div>
               </div>
 
               <div>
-                <div className="text-[32px] font-extrabold text-gray-900 tracking-tighter leading-none mb-1">
+                <div className="text-[32px] font-extrabold text-text-primary tracking-tighter leading-none mb-1">
                   5
                 </div>
-                <div className="text-[11px] font-semibold text-gray-400">
+                <div className="text-[11px] font-semibold text-text-muted">
                   {t('hunter.overview.dueBy1800')}
                 </div>
               </div>
@@ -343,7 +343,7 @@ export default function ScreenHunting({
                 id: "ov-sarah", name: "Sarah Jenkins", jobTitle: "Head of Business Development", company: "CloudSphere", icpScore: 65, stageLabel: "Lead",
                 heat: { bgClass: "bg-[var(--signal-warn-bg)]", textClass: "text-[var(--icp-medium)] border-[var(--signal-warn-bg)]", label: t("hunter.heat.stable") },
                 timeLabel: t("hunter.common.ago", { label: "3 Tagen" }),
-                timeSubLabel: <span className="text-gray-400 font-semibold">{t("hunter.common.newInPipeline")}</span>,
+                timeSubLabel: <span className="text-text-muted font-semibold">{t("hunter.common.newInPipeline")}</span>,
               }}
               onOpenInfo={() => onSelectLead(makeLead("ov-sarah", "Sarah Jenkins", "Head of Business Development", "CloudSphere", "SJ", 65))}
               statusDotClass="bg-[var(--icp-medium)]"
@@ -424,10 +424,10 @@ export default function ScreenHunting({
               <button onClick={deselectAll} className="ml-2 text-[12px] text-[var(--text-muted)] hover:text-[var(--text-body)] font-semibold underline underline-offset-2">{t('hunter.leadCard.deselect')}</button>
             </div>
             <div className="flex items-center gap-2">
-              <button className="bg-white border text-[var(--text-body)] border-[var(--border)] hover:border-[var(--icon-muted)] hover:bg-[var(--app-bg)] px-3 py-1.5 rounded-full text-[12px] font-semibold flex items-center gap-1.5 transition-colors">
+              <button className="bg-app-surface border text-[var(--text-body)] border-[var(--border)] hover:border-[var(--icon-muted)] hover:bg-[var(--app-bg)] px-3 py-1.5 rounded-full text-[12px] font-semibold flex items-center gap-1.5 transition-colors">
                 <Target className="w-3.5 h-3.5" /> {t('hunter.leadCard.addToCampaign')}
               </button>
-              <button className="bg-white border border-red-200 text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-full text-[12px] font-semibold flex items-center gap-1.5 transition-colors">
+              <button className="bg-app-surface border border-[var(--signal-urgent-bg)] text-[var(--signal-urgent-text)] hover:bg-[var(--signal-urgent-bg)] px-3 py-1.5 rounded-full text-[12px] font-semibold flex items-center gap-1.5 transition-colors">
                 <Trash className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -440,7 +440,7 @@ export default function ScreenHunting({
               <div
                 key={lead.id}
                 className={`group rounded-[12px] p-4 flex flex-col gap-4 shadow-[var(--shadow-card)] hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 cursor-pointer border border-[var(--border-card)] relative ${
-                  selectedLeadIds.includes(lead.id) ? 'bg-[var(--signal-teal-bg)]' : 'bg-white'
+                  selectedLeadIds.includes(lead.id) ? 'bg-[var(--signal-teal-bg)]' : 'bg-app-surface'
                 }`}
                 onClick={() => setExpandedLeadId(isExpanded ? null : lead.id)}
               >
@@ -451,7 +451,7 @@ export default function ScreenHunting({
                   <div 
                     onClick={(e) => toggleLeadSelection(lead.id, e)}
                     className={`absolute -left-3 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center w-[22px] h-[22px] rounded-md z-10 ${
-                      selectedLeadIds.includes(lead.id) ? 'bg-[var(--sherloq-primary)] opacity-100 border-[var(--sherloq-primary)]' : 'bg-white border-2 border-[var(--border)] hover:border-[var(--text-muted)]'
+                      selectedLeadIds.includes(lead.id) ? 'bg-[var(--sherloq-primary)] opacity-100 border-[var(--sherloq-primary)]' : 'bg-app-surface border-2 border-[var(--border)] hover:border-[var(--text-muted)]'
                     }`}
                   >
                     {selectedLeadIds.includes(lead.id) && <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />}
@@ -461,7 +461,7 @@ export default function ScreenHunting({
                   <div className="flex items-center gap-4 flex-1 min-w-0 ml-0 group-hover:ml-8 transition-all duration-300">
                     <div className="relative shrink-0">
                       <Avatar name={lead.person.name} src={lead.person.avatarUrl} size={40} />
-                      <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-[var(--signal-info-text)] border-2 border-white rounded-full"></div>
+                      <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-[var(--signal-info-text)] border-2 border-[var(--surface)] rounded-full"></div>
                     </div>
                     <div className="flex flex-col min-w-0">
                       <span className="text-[14px] font-bold text-[var(--text-primary)] font-sans">{lead.person.name}</span>
@@ -531,7 +531,7 @@ export default function ScreenHunting({
                   <div className="flex flex-col gap-6 border-t border-[var(--border-subtle)] pt-5 mt-2" onClick={(e) => e.stopPropagation()}>
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
                       {/* Left Column (KI Kurzakte) */}
-                      <div className="md:col-span-7 bg-white rounded-[12px] p-5 border border-[var(--border)]">
+                      <div className="md:col-span-7 bg-app-surface rounded-[12px] p-5 border border-[var(--border)]">
                         <div className="flex items-center gap-2 text-[11px] font-bold font-mono text-[var(--sherloq-primary)] uppercase tracking-wider mb-4">
                           <Zap className="w-4 h-4 text-[var(--sherloq-primary)]" /> {t('hunter.common.kiKurzakte')}
                         </div>
@@ -558,7 +558,7 @@ export default function ScreenHunting({
                       {/* Right Column (Deal Details & Aktionen) */}
                       <div className="md:col-span-5 flex flex-col gap-5">
                         {/* Deal Details */}
-                        <div className="bg-white rounded-[12px] p-5 border border-[var(--border)]">
+                        <div className="bg-app-surface rounded-[12px] p-5 border border-[var(--border)]">
                           <div className="flex items-center gap-2 text-[11px] font-bold font-mono text-[var(--text-muted)] uppercase tracking-wider mb-4">
                             <Briefcase className="w-4 h-4" /> {t('hunter.leadCard.dealDetails')}
                           </div>
@@ -574,7 +574,7 @@ export default function ScreenHunting({
                             <div className="flex flex-col gap-1">
                               <span className="text-[var(--text-muted)] font-mono text-[10px] uppercase tracking-wider">{t('hunter.common.stage')}</span>
                               <span className="font-bold text-[var(--icp-low)] text-[14px] flex items-center gap-1.5">
-                                Demo <span className="font-semibold text-red-500"><AlertTriangle className="w-3 h-3" /> 8T</span>
+                                Demo <span className="font-semibold text-[var(--icp-low)]"><AlertTriangle className="w-3 h-3" /> 8T</span>
                               </span>
                             </div>
                             <div className="flex flex-col gap-1">
@@ -585,23 +585,23 @@ export default function ScreenHunting({
                         </div>
 
                         {/* Aktionen */}
-                        <div className="bg-white rounded-[12px] p-5 border border-[var(--border)]">
+                        <div className="bg-app-surface rounded-[12px] p-5 border border-[var(--border)]">
                           <div className="flex items-center gap-2 text-[11px] font-bold font-mono text-[var(--text-muted)] uppercase tracking-wider mb-4">
                             <Target className="w-4 h-4" /> {t('hunter.leadCard.actions')}
                           </div>
                           <div className="flex flex-col gap-3">
                             <div className="flex items-center gap-2">
-                              <button className="flex-1 bg-white border border-[var(--border)] text-[var(--text-body)] text-[12px] font-semibold py-2 rounded-[12px] hover:bg-[var(--app-bg)] transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
+                              <button className="flex-1 bg-app-surface border border-[var(--border)] text-[var(--text-body)] text-[12px] font-semibold py-2 rounded-[12px] hover:bg-[var(--app-bg)] transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
                                 <Mail className="w-3.5 h-3.5" /> {t('hunter.leadCard.mail')}
                               </button>
-                              <button className="flex-1 bg-white border border-[var(--border)] text-[var(--text-body)] text-[12px] font-semibold py-2 rounded-[12px] hover:bg-[var(--app-bg)] transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
+                              <button className="flex-1 bg-app-surface border border-[var(--border)] text-[var(--text-body)] text-[12px] font-semibold py-2 rounded-[12px] hover:bg-[var(--app-bg)] transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
                                 <CalendarCheck className="w-3.5 h-3.5" /> {t('hunter.leadCard.task')}
                               </button>
-                              <button className="flex-1 bg-white border border-[var(--border)] text-[var(--text-body)] text-[12px] font-semibold py-2 rounded-[12px] hover:bg-[var(--app-bg)] transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
+                              <button className="flex-1 bg-app-surface border border-[var(--border)] text-[var(--text-body)] text-[12px] font-semibold py-2 rounded-[12px] hover:bg-[var(--app-bg)] transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
                                 <ArrowRight className="w-3.5 h-3.5" /> {t('hunter.common.stage')}
                               </button>
                             </div>
-                            <button className="w-full bg-white border border-[var(--border)] hover:bg-[var(--app-bg)] text-[var(--text-primary)] font-bold text-[13px] py-2.5 rounded-[12px] transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm">
+                            <button className="w-full bg-app-surface border border-[var(--border)] hover:bg-[var(--app-bg)] text-[var(--text-primary)] font-bold text-[13px] py-2.5 rounded-[12px] transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm">
                               <MessageSquare className="w-4 h-4 text-[var(--sherloq-primary)]" /> {t('hunter.leadCard.startAiChat')}
                             </button>
                           </div>
@@ -636,7 +636,7 @@ export default function ScreenHunting({
                 onClick={() => setIsKanbanView(false)}
                 className={`px-4 py-1.5 rounded-[8px] text-[13px] font-bold transition-all ${
                   !isKanbanView
-                    ? "bg-white shadow-sm text-[var(--sherloq-primary)]"
+                    ? "bg-app-surface shadow-sm text-[var(--sherloq-primary)]"
                     : "text-[var(--text-muted)] hover:text-[var(--text-body)]"
                 }`}
               >
@@ -647,7 +647,7 @@ export default function ScreenHunting({
                 onClick={() => setIsKanbanView(true)}
                 className={`px-4 py-1.5 rounded-[8px] text-[13px] font-bold transition-all ${
                   isKanbanView
-                    ? "bg-white shadow-sm text-[var(--sherloq-primary)]"
+                    ? "bg-app-surface shadow-sm text-[var(--sherloq-primary)]"
                     : "text-[var(--text-muted)] hover:text-[var(--text-body)]"
                 }`}
               >
@@ -698,41 +698,41 @@ export default function ScreenHunting({
                 return (
                   <div key={col.id} className="flex-1 min-w-[290px] w-[290px] max-w-[290px] flex flex-col h-fit transition-all duration-300 relative">
                     {/* Column Header */}
-                    <div className="bg-white rounded-[12px] p-4 shadow-[var(--shadow-card)] mb-4">
+                    <div className="bg-app-surface rounded-[12px] p-4 shadow-[var(--shadow-card)] mb-4">
                       <div className="flex justify-between items-center mb-3">
                         <div className="flex items-center gap-2">
                           <h3 className="font-bold text-[15px] text-[var(--text-primary)]">{col.title}</h3>
-                          <div className="min-w-[24px] h-6 px-1.5 rounded-full border border-gray-200 text-gray-500 text-[11px] font-semibold flex items-center justify-center bg-gray-50 shadow-sm">
+                          <div className="min-w-[24px] h-6 px-1.5 rounded-full border border-border text-text-muted text-[11px] font-semibold flex items-center justify-center bg-app-bg shadow-sm">
                             {count}
                           </div>
                         </div>
                         <button 
                           onClick={() => setExpandedCols(prev => ({ ...prev, [col.id]: !prev[col.id] }))}
-                          className="w-7 h-7 rounded-full bg-gray-50 hover:bg-gray-100 flex items-center justify-center border border-transparent hover:border-gray-200 transition-colors z-10 cursor-pointer shadow-sm"
+                          className="w-7 h-7 rounded-full bg-app-bg hover:bg-app-bg flex items-center justify-center border border-transparent hover:border-border transition-colors z-10 cursor-pointer shadow-sm"
                         >
-                          {isExpanded ? <ChevronDown className="w-4 h-4 text-gray-500" /> : <ChevronLeft className="w-4 h-4 text-gray-500" />}
+                          {isExpanded ? <ChevronDown className="w-4 h-4 text-text-muted" /> : <ChevronLeft className="w-4 h-4 text-text-muted" />}
                         </button>
                       </div>
                       
                       <div className="flex flex-col gap-1">
                         <div className="flex items-baseline gap-1.5">
                           <span className="text-[34px] font-extrabold leading-none tracking-tight text-[var(--text-primary)]">{count}</span>
-                          <span className="text-[12px] text-gray-400 font-medium">{t('hunter.pipeline.opportunities')}</span>
+                          <span className="text-[12px] text-text-muted font-medium">{t('hunter.pipeline.opportunities')}</span>
                         </div>
                         <div className="text-[14px] font-bold text-[var(--text-primary)] mt-1">
                           {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(totalValue)}
                         </div>
                       </div>
                       
-                      <div className="mt-4 flex justify-between items-center border-t border-gray-50 pt-3">
-                        <span className="text-[11px] text-gray-400 font-medium">{t('hunter.common.status')}</span>
+                      <div className="mt-4 flex justify-between items-center border-t border-border-subtle pt-3">
+                        <span className="text-[11px] text-text-muted font-medium">{t('hunter.common.status')}</span>
                         {actionsCount > 0 ? (
-                          <div className="bg-white text-red-600 px-3 py-1 rounded-full text-[11px] font-bold flex items-center gap-1.5 shadow-sm border border-red-100/50">
-                            <div className="w-1.5 h-1.5 rounded-full bg-red-600"></div>
+                          <div className="bg-app-surface text-[var(--signal-urgent-text)] px-3 py-1 rounded-full text-[11px] font-bold flex items-center gap-1.5 shadow-sm border border-[var(--signal-urgent-bg)]">
+                            <div className="w-1.5 h-1.5 rounded-full bg-[var(--icp-low)]"></div>
                             {actionsCount} {actionsCount !== 1 ? t('hunter.pipeline.actionsPlural') : t('hunter.pipeline.actions')}
                           </div>
                         ) : (
-                          <div className="bg-white text-[var(--icp-high)] px-3 py-1 rounded-full text-[11px] font-bold flex items-center gap-1.5 shadow-sm border border-[var(--icp-high)]/20">
+                          <div className="bg-app-surface text-[var(--icp-high)] px-3 py-1 rounded-full text-[11px] font-bold flex items-center gap-1.5 shadow-sm border border-[var(--icp-high)]/20">
                             <CheckCircle2 className="w-3.5 h-3.5" />
                             {t('hunter.pipeline.inFlow')}
                           </div>
@@ -745,11 +745,11 @@ export default function ScreenHunting({
                       <div className="flex flex-col gap-3">
                         {colLeads.map(lead => {
                           let pill: any = null;
-                          if (lead.heatStatus === 'HOT') pill = { label: 'Signal Call', colorClass: 'text-orange-600 bg-orange-50 border border-orange-100/50', icon: <Flame className="w-3 h-3" /> };
-                          else if (lead.heatStatus === 'WARM') pill = { label: 'Demo Call', colorClass: 'text-red-600 bg-red-50 border border-red-100/50', icon: <AlertTriangle className="w-3 h-3" /> };
+                          if (lead.heatStatus === 'HOT') pill = { label: 'Signal Call', colorClass: 'text-[var(--signal-urgent-text)] bg-[var(--signal-urgent-bg)] border border-[var(--signal-urgent-bg)]', icon: <Flame className="w-3 h-3" /> };
+                          else if (lead.heatStatus === 'WARM') pill = { label: 'Demo Call', colorClass: 'text-[var(--signal-urgent-text)] bg-[var(--signal-urgent-bg)] border border-[var(--signal-urgent-bg)]', icon: <AlertTriangle className="w-3 h-3" /> };
                           
                           return (
-                            <div key={lead.id} className="bg-white rounded-[12px] p-4 shadow-[var(--shadow-card)] hover:shadow-md transition-all duration-300 relative group">
+                            <div key={lead.id} className="bg-app-surface rounded-[12px] p-4 shadow-[var(--shadow-card)] hover:shadow-md transition-all duration-300 relative group">
                               <div className="flex justify-between items-start mb-4">
                                 <div className="flex items-center gap-3">
                                   <Avatar name={lead.person.name} src={lead.person.avatarUrl} size={40} />
@@ -827,13 +827,13 @@ export default function ScreenHunting({
               <button onClick={deselectAllSignals} className="ml-2 text-[12px] text-[var(--text-muted)] hover:text-[var(--text-body)] font-semibold underline underline-offset-2">{t('hunter.signals.deselect')}</button>
             </div>
             <div className="flex items-center gap-2">
-              <button className="bg-white border text-[var(--text-body)] border-[var(--border)] hover:border-[var(--icon-muted)] hover:bg-[var(--app-bg)] px-3 py-1.5 rounded-full text-[12px] font-semibold flex items-center gap-1.5 transition-colors">
+              <button className="bg-app-surface border text-[var(--text-body)] border-[var(--border)] hover:border-[var(--icon-muted)] hover:bg-[var(--app-bg)] px-3 py-1.5 rounded-full text-[12px] font-semibold flex items-center gap-1.5 transition-colors">
                 <X className="w-3.5 h-3.5" /> {t('hunter.signals.ignore')}
               </button>
-              <button className="bg-white border text-[var(--text-body)] border-[var(--border)] hover:border-[var(--icon-muted)] hover:bg-[var(--app-bg)] px-3 py-1.5 rounded-full text-[12px] font-semibold flex items-center gap-1.5 transition-colors">
+              <button className="bg-app-surface border text-[var(--text-body)] border-[var(--border)] hover:border-[var(--icon-muted)] hover:bg-[var(--app-bg)] px-3 py-1.5 rounded-full text-[12px] font-semibold flex items-center gap-1.5 transition-colors">
                 <Clock className="w-3.5 h-3.5" /> {t('hunter.signals.snooze')}
               </button>
-              <button className="bg-white border border-red-200 text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-full text-[12px] font-semibold flex items-center gap-1.5 transition-colors">
+              <button className="bg-app-surface border border-[var(--signal-urgent-bg)] text-[var(--signal-urgent-text)] hover:bg-[var(--signal-urgent-bg)] px-3 py-1.5 rounded-full text-[12px] font-semibold flex items-center gap-1.5 transition-colors">
                 <Trash className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -947,7 +947,7 @@ export default function ScreenHunting({
       {/* QUICK ADD MODAL */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black/35 backdrop-blur-xs flex items-center justify-center z-50 animate-fade-in">
-          <div className="w-full max-w-[460px] bg-white rounded-[12px] border border-[var(--border)] p-6 shadow-2xl relative">
+          <div className="w-full max-w-[460px] bg-app-surface rounded-[12px] border border-[var(--border)] p-6 shadow-2xl relative">
             <h2 className="text-[15px] font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
               <Target className="w-5 h-5 text-[var(--sherloq-primary)]" />
               {t('hunter.addModal.title')}

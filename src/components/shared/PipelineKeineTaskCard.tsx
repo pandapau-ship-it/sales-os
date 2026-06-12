@@ -28,7 +28,7 @@ export const PipelineKeineTaskCard = ({ onTaskAnlegen, onSelectLead }: { onTaskA
     stageLabel: 'Lead',
     heat: { bgClass: 'bg-[var(--signal-warn-bg)]', textClass: 'text-[var(--icp-medium)] border-[var(--signal-warn-bg)]', label: t('hunter.heat.stable') },
     timeLabel: t('hunter.common.ago', { label: '3 Tagen' }),
-    timeSubLabel: <span className="text-gray-400 font-semibold">{t('hunter.card.newInPipeline')}</span>,
+    timeSubLabel: <span className="text-text-muted font-semibold">{t('hunter.card.newInPipeline')}</span>,
   };
 
   const actionRow = (

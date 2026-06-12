@@ -22,21 +22,21 @@ export default function NewInPipelineCards({ onSelectLead }: { onSelectLead: (le
     {
       id: 'l1', name: "Sarah Jenkins", title: "VP Sales EMEA", company: "Atrium GmbH",
       avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=150",
-      score: 92, stage: "Demo", heat: "Aktiv", heatColor: "bg-emerald-50 text-emerald-700 border-emerald-150",
+      score: 92, stage: "Demo", heat: "Aktiv", heatColor: "bg-[var(--signal-success-bg)] text-[var(--signal-success-text)] border-[var(--signal-success-bg)]",
       days: "vor 2 Tagen", source: "Via AI SDR · Termin gebucht", sourceType: "ai_sdr",
       prepStatus: "ready", meetingText: "Demo · 12. Juni · 14:00", btnText: "Meeting-Prep ansehen →", btnType: "primary",
     },
     {
       id: 'l2', name: "Marcus Müller", title: "Head of Business Development", company: "LogixFlow GmbH",
       avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150",
-      score: 68, stage: "Discovery", heat: "Warm", heatColor: "bg-amber-50 text-amber-700 border-amber-150",
+      score: 68, stage: "Discovery", heat: "Warm", heatColor: "bg-[var(--signal-warn-bg)] text-[var(--signal-warn-text)] border-[var(--signal-warn-bg)]",
       days: "vor 3 Tagen", source: "Via AI SDR · Termin gebucht", sourceType: "ai_sdr",
       prepStatus: "loading", meetingText: "Discovery · 14. Juni · 10:30", btnText: "Meeting-Prep generieren", btnType: "secondary_glow",
     },
     {
       id: 'l3', name: "Elena Rostova", title: "RevOps Specialist", company: "Quantum Dynamics",
       avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150",
-      score: 45, stage: "Proposal", heat: "Kalt", heatColor: "bg-blue-50 text-blue-700 border-blue-150",
+      score: 45, stage: "Proposal", heat: "Kalt", heatColor: "bg-[var(--signal-info-bg)] text-[var(--signal-info-text)] border-[var(--signal-info-bg)]",
       days: "vor 5 Tagen", source: "Manuell hinzugefügt", sourceType: "manual",
       prepStatus: "none", meetingText: null, btnText: "Termin vereinbaren →", btnType: "primary",
     },
@@ -62,9 +62,9 @@ export default function NewInPipelineCards({ onSelectLead }: { onSelectLead: (le
     <div className="font-sans antialiased text-[var(--text-primary)]">
       {/* Header */}
       <header className="space-y-1 mb-6">
-        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{t('hunter.newPipeline.breadcrumb')}</span>
-        <h1 className="text-[28px] font-extrabold tracking-tight text-gray-900 leading-tight">{t('hunter.newPipeline.title')}</h1>
-        <p className="text-[13px] text-gray-400 font-medium">{t('hunter.newPipeline.subtitle')}</p>
+        <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest">{t('hunter.newPipeline.breadcrumb')}</span>
+        <h1 className="text-[28px] font-extrabold tracking-tight text-text-primary leading-tight">{t('hunter.newPipeline.title')}</h1>
+        <p className="text-[13px] text-text-muted font-medium">{t('hunter.newPipeline.subtitle')}</p>
       </header>
 
       {/* Karten — volle Breite (= Leads), einheitliche HunterCard */}
@@ -80,7 +80,7 @@ export default function NewInPipelineCards({ onSelectLead }: { onSelectLead: (le
             stageLabel: lead.stage,
             heat: { bgClass: lead.heatColor, textClass: "", label: lead.heat },
             timeLabel: lead.days,
-            timeSubLabel: <span className="text-gray-400 font-semibold">{t('hunter.newPipeline.label')}</span>,
+            timeSubLabel: <span className="text-text-muted font-semibold">{t('hunter.newPipeline.label')}</span>,
           };
 
           // Action-Row = REFERENZ für alle Action-Rows.
@@ -90,19 +90,19 @@ export default function NewInPipelineCards({ onSelectLead }: { onSelectLead: (le
                 <div className="flex items-center gap-1.5">
                   {lead.sourceType === 'ai_sdr'
                     ? <Bot size={15} className="text-[var(--sherloq-primary)]" />
-                    : <UserCheck size={15} className="text-gray-500" />}
+                    : <UserCheck size={15} className="text-text-muted" />}
                   <span className={ACTION_ROW.strongText}>{lead.source}</span>
                 </div>
-                <span className="text-gray-300">•</span>
+                <span className="text-icon-muted">•</span>
                 {lead.prepStatus !== 'none' && (
                   lead.prepStatus === 'ready' ? (
-                    <div className="flex items-center gap-1.5 text-emerald-700 text-[12.5px] font-semibold">
-                      <Check size={14} className="text-emerald-500 shrink-0" strokeWidth={3} />
+                    <div className="flex items-center gap-1.5 text-[var(--signal-success-text)] text-[12.5px] font-semibold">
+                      <Check size={14} className="text-[var(--signal-success-text)] shrink-0" strokeWidth={3} />
                       <span>{t('hunter.newPipeline.prepReady')}</span>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-1.5 text-amber-700 text-[12.5px] font-semibold">
-                      <Clock size={14} className="text-amber-500 shrink-0 animate-spin" strokeWidth={2.5} />
+                    <div className="flex items-center gap-1.5 text-[var(--signal-warn-text)] text-[12.5px] font-semibold">
+                      <Clock size={14} className="text-[var(--signal-warn-text)] shrink-0 animate-spin" strokeWidth={2.5} />
                       <span>{t('hunter.newPipeline.prepLoading')}</span>
                     </div>
                   )
