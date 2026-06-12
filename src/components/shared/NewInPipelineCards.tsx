@@ -4,42 +4,8 @@ import {
   Calendar, Clock, Check, Bot,
   UserCheck, ArrowUpRight, RotateCw
 } from 'lucide-react';
-
-// --- Helper: Circular ICP Score Ring ---
-const ICPProgressRing = ({ score }: { score: number }) => {
-  const radius = 16;
-  const circumference = 2 * Math.PI * radius;
-  const strokeDashoffset = circumference - (score / 100) * circumference;
-  
-  let color = "stroke-emerald-500 text-emerald-700";
-  let bg = "stroke-emerald-100";
-  
-  if (score < 75) { 
-    color = "stroke-amber-500 text-amber-700"; 
-    bg = "stroke-amber-100"; 
-  }
-  if (score < 50) { 
-    color = "stroke-red-500 text-red-700"; 
-    bg = "stroke-red-100"; 
-  }
-
-  return (
-    <div className="relative flex items-center justify-center w-10 h-10 shrink-0">
-      <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
-        <circle cx="18" cy="18" r={radius} fill="none" className={bg} strokeWidth="3.5" />
-        <circle 
-          cx="18" cy="18" r={radius} fill="none" 
-          className={color.split(" ")[0]} strokeWidth="3.5"
-          strokeDasharray={circumference} strokeDashoffset={strokeDashoffset}
-          strokeLinecap="round"
-        />
-      </svg>
-      <span className={`absolute text-[11px] font-extrabold ${color.split(" ")[1]}`}>
-        {score}
-      </span>
-    </div>
-  );
-};
+import Avatar from '@/components/shared/Avatar';
+import { ICPDonut } from '@/components/shared/ICPDonut';
 
 export default function NewInPipelineCards({ onSelectLead }: { onSelectLead: (lead: any) => void }) {
   const { t } = useTranslation();
@@ -116,7 +82,7 @@ export default function NewInPipelineCards({ onSelectLead }: { onSelectLead: (le
   return (
     <div className="font-sans antialiased text-[var(--text-primary)]">
       <div className="max-w-[1040px] space-y-8">
-        
+
         {/* Header Section */}
         <header className="space-y-1">
           <div className="flex items-center gap-2">
@@ -130,40 +96,41 @@ export default function NewInPipelineCards({ onSelectLead }: { onSelectLead: (le
           </p>
         </header>
 
-        {/* Dynamic Cards List */}
-        <section className="space-y-6">
+        {/* Dynamic Cards List — Kachel-Designvorgaben (rounded-12, shadow-card, border-card),
+            2-Zeilen-Aufbau (Spec §5.1), Animationen bleiben erhalten. */}
+        <section className="space-y-4">
           {leads.map(lead => (
-            <div 
-              key={lead.id} 
-              className="bg-white rounded-[24px] shadow-[0_8px_30px_-12px_rgba(0,0,0,0.04)] border border-gray-100/50 flex flex-col overflow-hidden transition-all duration-300 hover:shadow-md hover:border-gray-200/50"
+            <div
+              key={lead.id}
+              className="bg-white rounded-[12px] shadow-[var(--shadow-card)] border border-[var(--border-card)] flex flex-col overflow-hidden transition-all duration-300 hover:shadow-md hover:-translate-y-0.5"
             >
-              {/* LINE 1: Lead Info */}
-              <div className="px-6 pt-6 pb-4 flex items-center justify-between flex-wrap gap-4">
-                
+              {/* LINE 1: Lead Info — Padding 16px */}
+              <div className="px-4 pt-4 pb-4 flex items-center justify-between flex-wrap gap-4">
+
                 {/* Left Side Profile Details */}
                 <div className="flex items-center gap-4 min-w-[280px]">
                   <div className="relative shrink-0">
-                    <img src={lead.avatar} alt={lead.name} className="w-10 h-10 rounded-full object-cover shadow-sm" />
+                    <Avatar name={lead.name} src={lead.avatar} size={40} />
                     <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full"></div>
                   </div>
-                  <div>
-                    <h3 className="text-[14px] font-bold text-gray-900 leading-tight">{lead.name}</h3>
-                    <p className="text-[12px] font-medium text-gray-400 mt-1">{lead.title}</p>
+                  <div className="min-w-0">
+                    <h3 className="text-[14px] font-bold text-[var(--text-primary)] leading-tight">{lead.name}</h3>
+                    <p className="text-[12px] font-medium text-[var(--text-muted)] mt-1 truncate">{lead.title}</p>
                   </div>
                 </div>
 
                 {/* Score & Badges Row */}
                 <div className="flex items-center gap-6 flex-wrap">
-                  
-                  {/* ICP Progress Ring */}
-                  <ICPProgressRing score={lead.score} />
 
-                  {/* Company Badge (Dark Pill) */}
-                  <div className="flex items-center gap-2 bg-[var(--text-primary)] text-white pl-1.5 pr-3 py-1.5 rounded-full shrink-0 shadow-sm">
-                    <div className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center text-[10px] font-extrabold">
+                  {/* ICP Donut (kanonisch) */}
+                  <ICPDonut score={lead.score} />
+
+                  {/* Company — dunkle Initial-Box + Teal-Name (Kachel-Vorgabe) */}
+                  <div className="flex items-center gap-3 shrink-0">
+                    <div className="bg-[var(--text-primary)] text-white text-[14px] w-[40px] h-[40px] flex items-center justify-center rounded-[12px] font-bold shrink-0">
                       {lead.initials}
                     </div>
-                    <span className="text-[12px] font-semibold">{lead.company}</span>
+                    <span className="text-[14px] text-[var(--sherloq-primary)] font-semibold truncate max-w-[140px]">{lead.company}</span>
                   </div>
 
                   {/* Stage Badge (Neutral Outline) */}
@@ -184,13 +151,13 @@ export default function NewInPipelineCards({ onSelectLead }: { onSelectLead: (le
                   {/* Days Info & Arrow */}
                   <div className="flex items-center gap-4 ml-2">
                     <div className="text-right">
-                      <p className="text-[12px] font-bold text-gray-900 leading-none">{lead.days}</p>
+                      <p className="text-[12px] font-bold text-[var(--text-primary)] leading-none">{lead.days}</p>
                       <span className="text-[11px] text-gray-400 font-semibold mt-1 inline-block">{t('hunter.newPipeline.label')}</span>
                     </div>
 
-                    <button 
+                    <button
                       onClick={() => onSelectLead({ ...lead, type: 'lead' })}
-                      className="w-10 h-10 rounded-full bg-[var(--signal-teal-bg)] hover:bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)] flex items-center justify-center transition-colors border border-transparent shadow-sm"
+                      className="w-10 h-10 rounded-full bg-[var(--signal-teal-bg)] hover:bg-[var(--signal-teal-bg)] hover:scale-105 text-[var(--sherloq-primary)] flex items-center justify-center transition-all border border-transparent shadow-sm"
                     >
                       <ArrowUpRight size={18} strokeWidth={2.5} />
                     </button>
@@ -200,12 +167,12 @@ export default function NewInPipelineCards({ onSelectLead }: { onSelectLead: (le
 
               </div>
 
-              {/* LINE 2: Note / Vermerk (Light Grey Offset) */}
-              <div className="bg-gray-50/80 border-t border-gray-150/40 px-6 py-3 flex items-center justify-between flex-wrap gap-4">
-                
+              {/* LINE 2: Note / Vermerk (Spec §5.1, Zeile 2) — Padding 16px */}
+              <div className="bg-[var(--app-bg)] border-t border-[var(--border-card)] px-4 py-3 flex items-center justify-between flex-wrap gap-4">
+
                 {/* Source & Status text details */}
                 <div className="flex items-center gap-2.5 text-[12.5px] font-semibold text-gray-500 flex-wrap">
-                  
+
                   {/* Origin Icon */}
                   <div className="flex items-center gap-1.5">
                     {lead.sourceType === 'ai_sdr' ? (
@@ -219,7 +186,7 @@ export default function NewInPipelineCards({ onSelectLead }: { onSelectLead: (le
                   {/* Separator Dot */}
                   <span className="text-gray-300">•</span>
 
-                  {/* Prep Status */}
+                  {/* Prep Status — Spinner-Animation bleibt */}
                   {lead.prepStatus !== 'none' && (
                     <div className="flex items-center gap-1.5">
                       {lead.prepStatus === 'ready' ? (
@@ -249,17 +216,18 @@ export default function NewInPipelineCards({ onSelectLead }: { onSelectLead: (le
                 {/* Primary Action Button */}
                 <div className="shrink-0">
                   {lead.btnType === 'primary' ? (
-                    <button 
+                    <button
                       onClick={() => triggerToast(t('hunter.newPipeline.toastActionDone', { action: lead.btnText }))}
-                      className="px-4 py-1.5 bg-[var(--sherloq-primary)] hover:bg-[var(--sherloq-primary)] text-white rounded-full text-[11px] font-black transition-colors shadow-sm"
+                      className="px-4 py-1.5 bg-[var(--sherloq-primary)] hover:opacity-90 text-white rounded-full text-[11px] font-black transition-opacity shadow-sm"
                     >
                       {lead.btnText}
                     </button>
                   ) : (
-                    <button 
+                    <button
                       onClick={() => triggerToast(t('hunter.newPipeline.toastPrepStarting'))}
                       className="px-4 py-1.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-full text-[11px] font-black transition-colors shadow-sm flex items-center gap-1.5"
                     >
+                      {/* Spinner-Animation bleibt */}
                       <RotateCw size={11} className="animate-spin text-[var(--sherloq-primary)]" />
                       {lead.btnText}
                     </button>
@@ -274,7 +242,7 @@ export default function NewInPipelineCards({ onSelectLead }: { onSelectLead: (le
 
       </div>
 
-      {/* Global Toast */}
+      {/* Global Toast — animate-bounce bleibt */}
       {toastMessage && (
         <div className="fixed bottom-6 right-6 z-50 bg-gray-950 text-white px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2 animate-bounce">
           <Check size={14} className="text-emerald-400" strokeWidth={3} />
