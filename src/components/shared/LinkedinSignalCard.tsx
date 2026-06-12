@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowRight, ChevronDown, ChevronUp } from "lucide-react";
+import { Flame, ArrowRight, ChevronDown, ChevronUp } from "lucide-react";
 
 interface LinkedinSignalCardProps {
   name: string;
@@ -195,7 +195,7 @@ export function LinkedinSignalCard({
             <div className="flex flex-col w-[260px]">
               <div className="flex justify-between items-center mb-1.5">
                 <span className="text-[var(--icp-low)] font-extrabold text-[13px] flex items-center gap-1">
-                  🔥 Hot
+                  <Flame className="w-3 h-3" /> Hot
                 </span>
                 <span className="text-[var(--icp-low)] font-extrabold text-[13px]">
                   {timeLeftHours}h left

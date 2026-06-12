@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, Sparkles, ClipboardList, Mail, Link2, Phone, Calendar, Check, CheckCircle2 } from "lucide-react";
+import { AlertTriangle, X, Sparkles, ClipboardList, Mail, Link2, Phone, Calendar, Check, CheckCircle2 } from "lucide-react";
 
 export interface NoTaskDrawerProps {
   person: {
@@ -95,7 +95,7 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
                   {person.name || "Sarah Jenkins"}
                 </h3>
                 <span className="px-2 py-0.5 rounded-full bg-amber-50 border border-amber-100 text-amber-700 text-[9px] font-extrabold tracking-wide">
-                  ⚠ Keine Task
+                  <AlertTriangle className="w-2.5 h-2.5" /> Keine Task
                 </span>
               </div>
               <p className="text-[11px] font-medium text-gray-400 mt-1">
@@ -115,7 +115,7 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
           {/* BLOCK 1: KONTEXT */}
           <section className="space-y-3">
             <span className="text-[10px] font-extrabold text-amber-600 uppercase tracking-widest flex items-center gap-1.5">
-              ⚠ Keine Task hinterlegt
+              <AlertTriangle className="w-2.5 h-2.5" /> Keine Task hinterlegt
             </span>
 
             <div className="p-4 bg-amber-50 border border-amber-100 rounded-xl text-[13px] text-amber-800 font-semibold leading-relaxed">
@@ -136,7 +136,7 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
           <section className="bg-[var(--signal-teal-bg)] border border-emerald-100 rounded-xl p-4 space-y-3 animate-fade-in">
             <div className="flex items-center gap-1.5 text-[10px] font-bold text-[var(--sherloq-primary)] uppercase tracking-wider">
               <Sparkles className="w-3 h-3" />
-              ✨ KI schlägt vor
+               KI schlägt vor
             </div>
 
             <div>
@@ -150,7 +150,7 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
 
             <div className="flex items-center justify-between">
               <span className="text-[12px] font-extrabold text-[var(--sherloq-primary)]">
-                ✉ Email empfohlen
+                <Mail className="w-3.5 h-3.5" /> Email empfohlen
               </span>
               <button onClick={handleApplySuggestion} className="px-3 py-1.5 bg-[var(--sherloq-primary)] text-white rounded-lg text-[11px] font-bold cursor-pointer">
                 Übernehmen

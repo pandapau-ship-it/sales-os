@@ -44,7 +44,7 @@ export default function PipelineStagnatedDrawer({ person, onClose, onTakeAction 
     setTimeout(() => {
       setDraftText(`Hi ${person.name.split(" ")[0]}, danke nochmal für die Demo. Mich interessiert, ob das Thema intern weiter priorisiert wird — hast du diese Woche 15 Minuten für einen kurzen Abgleich?`);
       setIsRegenerating(false);
-      triggerToast("AI-Entwurf neu generiert ✨");
+      triggerToast("AI-Entwurf neu generiert ");
     }, 700);
   };
 

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, Mail, Link2, Phone, Video, MessageCircle, AlertTriangle } from "lucide-react";
+import { Calendar, X, Mail, Link2, Phone, Video, MessageCircle, AlertTriangle } from "lucide-react";
 
 interface TaskDrawerProps {
   person: any;
@@ -194,7 +194,7 @@ export default function TaskDrawer({
                     <div className="flex flex-col gap-3">
                         <span className="text-[12px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Fällig am</span>
                         <div className="bg-white border border-[var(--border)] rounded-xl px-4 py-3.5 flex items-center gap-3">
-                            <span className="text-[var(--text-muted)]">📅</span>
+                            <span className="text-[var(--text-muted)]"><Calendar className="w-4 h-4" /></span>
                             <span className="text-[var(--text-primary)] text-[15px] font-bold">{date}</span>
                         </div>
                     </div>

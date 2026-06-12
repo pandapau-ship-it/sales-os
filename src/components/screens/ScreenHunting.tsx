@@ -139,11 +139,11 @@ export default function ScreenHunting({
 
   const getHeatColor = (status: HeatStatus) => {
     switch (status) {
-      case 'HOT': return { bg: 'bg-[var(--signal-success-bg)]', text: 'text-[var(--icp-high)] border-[var(--signal-success-bg)]', emoji: '🟢 Aktiv' };
-      case 'WARM': return { bg: 'bg-[var(--signal-warn-bg)]', text: 'text-[var(--icp-medium)] border-[var(--signal-warn-bg)]', emoji: '🟠 Stabil' };
-      case 'LUKEWARM': return { bg: 'bg-[var(--signal-warn-bg)]', text: 'text-[var(--icp-medium)] border-[var(--signal-warn-bg)]', emoji: '🟡 Rückläufig' };
-      case 'COLD': return { bg: 'bg-[var(--signal-info-bg)]', text: 'text-[var(--signal-info-text)] border-[var(--signal-info-bg)]', emoji: '🔵 Ruhend' };
-      default: return { bg: 'bg-[var(--app-bg)]', text: 'text-[var(--text-muted)] border-[var(--app-bg)]', emoji: '⚫ Inaktiv' };
+      case 'HOT': return { bg: 'bg-[var(--signal-success-bg)]', text: 'text-[var(--icp-high)] border-[var(--signal-success-bg)]', emoji: '● Aktiv' };
+      case 'WARM': return { bg: 'bg-[var(--signal-warn-bg)]', text: 'text-[var(--icp-medium)] border-[var(--signal-warn-bg)]', emoji: '● Stabil' };
+      case 'LUKEWARM': return { bg: 'bg-[var(--signal-warn-bg)]', text: 'text-[var(--icp-medium)] border-[var(--signal-warn-bg)]', emoji: '● Rückläufig' };
+      case 'COLD': return { bg: 'bg-[var(--signal-info-bg)]', text: 'text-[var(--signal-info-text)] border-[var(--signal-info-bg)]', emoji: '● Ruhend' };
+      default: return { bg: 'bg-[var(--app-bg)]', text: 'text-[var(--text-muted)] border-[var(--app-bg)]', emoji: '● Inaktiv' };
     }
   };
 
@@ -214,7 +214,7 @@ export default function ScreenHunting({
                   € 284.500
                 </div>
                 <div className="text-[11px] font-semibold text-emerald-700 flex items-center gap-1.5">
-                  <span>▲ +12% gegenüber Vormonat</span>
+                  <span><TrendingUp className="w-3 h-3" /> +12% gegenüber Vormonat</span>
                 </div>
               </div>
             </div>
@@ -787,7 +787,7 @@ export default function ScreenHunting({
                             <div className="flex flex-col gap-1">
                               <span className="text-[var(--text-muted)] font-mono text-[10px] uppercase tracking-wider">Stage</span>
                               <span className="font-bold text-[var(--icp-low)] text-[14px] flex items-center gap-1.5">
-                                Demo <span className="font-semibold text-red-500">⚠️ 8T</span>
+                                Demo <span className="font-semibold text-red-500"><AlertTriangle className="w-3 h-3" /> 8T</span>
                               </span>
                             </div>
                             <div className="flex flex-col gap-1">
@@ -1264,11 +1264,11 @@ export default function ScreenHunting({
                   onChange={(e) => setNewLeadHeat(e.target.value as HeatStatus)}
                   className="w-full text-[12px] font-sans px-3.5 py-2.5 bg-[var(--app-bg)] border border-[var(--border)] focus:border-[var(--sherloq-primary)] rounded-[12px] focus:outline-none"
                 >
-                  <option value="HOT">🟢 Aktiv</option>
-                  <option value="WARM">🟠 Stabil</option>
-                  <option value="LUKEWARM">🟡 Rückläufig</option>
-                  <option value="COLD">🔵 Ruhend</option>
-                  <option value="DEAD">⚫ Inaktiv</option>
+                  <option value="HOT">● Aktiv</option>
+                  <option value="WARM">● Stabil</option>
+                  <option value="LUKEWARM">● Rückläufig</option>
+                  <option value="COLD">● Ruhend</option>
+                  <option value="DEAD">● Inaktiv</option>
                 </select>
               </div>
 

@@ -52,7 +52,7 @@ export default function SignalActionDrawer({ person, onClose, onTakeAction }: Si
     setTimeout(() => {
       setDraftText(`Hi ${person.name.split(" ")[0]}, danke für deinen Kommentar — das Thema Integrationen hören wir gerade häufig von Sales-Teams. Hast du diese Woche 15 Minuten für einen kurzen Austausch?`);
       setIsRegenerating(false);
-      triggerToast("AI-Entwurf neu generiert ✨");
+      triggerToast("AI-Entwurf neu generiert ");
     }, 700);
   };
 

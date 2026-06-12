@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, Sparkles, RotateCw, Send, Check } from "lucide-react";
+import { AlertTriangle, Snowflake, X, Sparkles, RotateCw, Send, Check } from "lucide-react";
 
 export interface ContactColdDrawerProps {
   person: {
@@ -36,7 +36,7 @@ export default function ContactColdDrawer({ person, onClose }: ContactColdDrawer
     setTimeout(() => {
       setDraftText("Hi Christian, ich wollte nochmal an unser Demo-Gespräch anknüpfen — ist BDR-Effizienz bei euch aktuell noch ein Thema?");
       setIsRegenerating(false);
-      triggerToast("Reaktivierungsnachricht neu generiert ✨");
+      triggerToast("Reaktivierungsnachricht neu generiert ");
     }, 700);
   };
 
@@ -80,10 +80,10 @@ export default function ContactColdDrawer({ person, onClose }: ContactColdDrawer
                   {person.name}
                 </h3>
                 <span className="px-2 py-0.5 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-[9px] font-extrabold tracking-wide">
-                  Kalt ❄
+                  Kalt <Snowflake className="w-2.5 h-2.5" />
                 </span>
                 <span className="px-2 py-0.5 rounded-full bg-red-50 border border-red-100 text-red-600 text-[9px] font-extrabold tracking-wide">
-                  {person.daysInStage}T in Stage ⚠
+                  {person.daysInStage}T in Stage <AlertTriangle className="w-2.5 h-2.5" />
                 </span>
               </div>
               <p className="text-[11px] font-medium text-gray-400 mt-1">
@@ -103,7 +103,7 @@ export default function ContactColdDrawer({ person, onClose }: ContactColdDrawer
           {/* BLOCK 1: KALT KONTEXT */}
           <section className="space-y-3">
             <span className="text-[10px] font-extrabold text-blue-600 uppercase tracking-widest flex items-center gap-1.5">
-              ❄ Kontakt wird kalt
+              <Snowflake className="w-2.5 h-2.5" /> Kontakt wird kalt
             </span>
 
             <div className="p-4 bg-blue-50 border border-blue-100 rounded-xl space-y-3">
