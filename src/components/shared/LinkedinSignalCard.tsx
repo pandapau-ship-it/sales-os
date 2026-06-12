@@ -1,6 +1,7 @@
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Flame, ArrowRight, ChevronDown, ChevronUp } from "lucide-react";
+import Avatar from "@/components/shared/Avatar";
+import { ICPDonut } from "@/components/shared/ICPDonut";
+import LinkedinIcon from "@/components/shared/LinkedinIcon";
 
 interface LinkedinSignalCardProps {
   name: string;
@@ -18,301 +19,131 @@ interface LinkedinSignalCardProps {
   timeLeftHours?: number;
   windowHours?: number;
   actionText: string;
-  commentText: string;
+  commentText?: string;
   quoteText?: string;
-  aiRecommendation: string;
+  aiRecommendation?: string;
   onActNow?: () => void;
 }
 
+/**
+ * LinkedinSignalCard — gleiche Kachel-Struktur wie eine Leads-Kachel
+ * (Avatar · Name/Jobtitel | ICP/Company | Stage/Heat | Zeit), plus eine
+ * Signal-Row am unteren Rand (grauer Hintergrund, border-t) mit
+ * LinkedIn-Signal-Badge, Aktionstext, Timer-Balken und Act-now-Button.
+ */
 export function LinkedinSignalCard({
   name,
   role,
   avatarUrl,
-  avatarInitials,
-  avatarBg,
   companyInitials,
   companyName,
   stage = "Signal",
-  labelType = "STAGE",
   icpScore = 80,
   timeAgo = "2 Std.",
   timeAgoLabel,
   timeLeftHours = 46,
   windowHours = 48,
   actionText,
-  commentText,
-  quoteText,
-  aiRecommendation,
   onActNow,
 }: LinkedinSignalCardProps) {
   const { t } = useTranslation();
-  const [expanded, setExpanded] = useState(false);
 
   const timeProgress =
-    windowHours > 0
-      ? Math.max(0, 100 - (timeLeftHours / windowHours) * 100)
-      : 100;
-
-  const donutCircumference = 125.66;
-  const donutOffset =
-    donutCircumference - (icpScore / 100) * donutCircumference;
-
-  const smallDonutCircumference = 100.53;
-  const smallIcpValue = Math.round(icpScore / 10);
-  const smallIcpOffset =
-    smallDonutCircumference - (smallIcpValue / 10) * smallDonutCircumference;
-
-  const extractedBg = avatarBg?.includes("bg-[")
-    ? avatarBg.replace("bg-[", "").replace("]", "")
-    : avatarBg || "var(--icp-high)";
+    windowHours > 0 ? Math.max(0, 100 - (timeLeftHours / windowHours) * 100) : 100;
 
   return (
-    <div className="w-full bg-white rounded-[24px] border border-[var(--border-subtle)] flex flex-col overflow-hidden font-sans shadow-[0_8px_30px_rgba(0,0,0,0.04)]">
-      {/* ROW 1: HEADER SECTION */}
-      <div className="p-5 md:px-6 flex items-center justify-between gap-4">
-        {/* Avatar & Name */}
-        <div className="flex items-center gap-4 min-w-[220px] shrink-0">
-          <div className="relative">
-            {avatarUrl ? (
-              <img
-                src={avatarUrl}
-                alt={name}
-                className="w-14 h-14 rounded-full object-cover block"
-              />
-            ) : (
-              <div
-                className="w-14 h-14 rounded-full text-white flex items-center justify-center text-lg font-bold"
-                style={{ backgroundColor: extractedBg }}
-              >
-                {avatarInitials}
+    <div className="rounded-[12px] shadow-[var(--shadow-card)] border border-[var(--border-card)] bg-white flex flex-col overflow-hidden font-sans">
+      {/* TOP ROW — identisch zur Leads-Kachel */}
+      <div className="p-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative">
+          {/* Avatar & Info */}
+          <div className="flex items-center gap-4 flex-1 min-w-0">
+            <div className="relative shrink-0">
+              <Avatar name={name} src={avatarUrl} size={40} />
+              <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-[var(--signal-info-text)] border-2 border-white rounded-full"></div>
+            </div>
+            <div className="flex flex-col min-w-0">
+              <span className="text-[14px] font-bold text-[var(--text-primary)] font-sans">{name}</span>
+              <span className="text-[12px] text-[var(--text-muted)] mt-0.5 max-w-[200px] truncate">
+                {role}, {companyName}
+              </span>
+            </div>
+          </div>
+
+          {/* ICP donut & Company Area */}
+          <div className="hidden md:flex items-center gap-4 px-4 border-l border-[var(--border-subtle)] shrink-0">
+            <div className="w-[48px] flex items-center justify-center">
+              <ICPDonut score={icpScore} />
+            </div>
+
+            <div className="flex items-center gap-3 w-[140px] xl:w-[180px]">
+              <div className="bg-[var(--text-primary)] text-white text-[14px] w-[40px] h-[40px] flex items-center justify-center rounded-[12px] font-bold shrink-0">
+                {companyInitials}
               </div>
-            )}
-            <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-[var(--icp-high)] border-2 border-white rounded-full"></div>
-          </div>
-          <div>
-            <div className="text-base font-extrabold text-[var(--text-primary)]">
-              {name}
-            </div>
-            <div className="text-[13px] text-[var(--text-muted)] font-semibold mt-0.5">
-              {role}
+              <span className="text-[14px] text-[var(--sherloq-primary)] font-semibold w-[120px] truncate">{companyName}</span>
             </div>
           </div>
-        </div>
 
-        <div className="w-[1px] h-12 bg-[var(--border-subtle)] shrink-0" />
-
-        {/* ICP Donut */}
-        <div className="relative w-12 h-12 shrink-0">
-          <svg
-            width="48"
-            height="48"
-            viewBox="0 0 48 48"
-            className="-rotate-90 block"
-          >
-            <circle cx="24" cy="24" r="20" stroke="var(--border-subtle)" strokeWidth="4" fill="transparent" />
-            <circle
-              cx="24"
-              cy="24"
-              r="20"
-              stroke="var(--icp-high)"
-              strokeWidth="4"
-              fill="transparent"
-              strokeDasharray={donutCircumference}
-              strokeDashoffset={donutOffset}
-              strokeLinecap="round"
-            />
-          </svg>
-          <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-sm font-extrabold text-[var(--icp-high)]">
-            {icpScore}
-          </span>
-        </div>
-
-        {/* Company Pill */}
-        <div className="flex items-center gap-2.5 bg-white border border-[var(--border)] p-1.5 pr-4 rounded-xl whitespace-nowrap shrink-0">
-          <div className="bg-[var(--text-primary)] text-white text-[11px] font-extrabold w-8 h-8 flex items-center justify-center rounded-lg">
-            {companyInitials}
+          {/* Stage & Heat */}
+          <div className="hidden lg:flex items-center gap-4 px-4 border-l border-[var(--border-subtle)] shrink-0">
+            <div className="flex flex-col items-center justify-center w-[80px] relative h-full">
+              <span className="absolute -top-[14px] text-[10px] font-bold text-[var(--icon-muted)] tracking-wider uppercase">{t('hunter.common.stage')}</span>
+              <div className="px-4 py-2 rounded-full bg-[var(--app-bg)] text-[var(--text-body)] text-[12px] font-semibold border border-[var(--border)]">
+                {stage}
+              </div>
+            </div>
+            <div className="flex flex-col items-center justify-center w-[120px] relative h-full">
+              <span className="absolute -top-[14px] text-[10px] font-bold text-[var(--icon-muted)] tracking-wider uppercase">{t('hunter.common.heat')}</span>
+              <div className="px-4 py-2 rounded-full text-[12px] font-semibold border flex items-center gap-1.5 bg-[var(--signal-success-bg)] text-[var(--icp-high)] border-[var(--signal-success-bg)]">
+                ● {t('hunter.heat.active')}
+              </div>
+            </div>
           </div>
-          <span className="text-[15px] font-extrabold text-[var(--text-primary)]">
-            {companyName}
-          </span>
-        </div>
 
-        <div className="w-[1px] h-12 bg-[var(--border-subtle)] shrink-0 xl:block hidden" />
-
-        {/* Subscription / Stage */}
-        <div className="flex flex-col items-center gap-1.5 shrink-0">
-          <span className="text-[10px] font-extrabold text-[var(--icon-muted)] tracking-[0.05em] uppercase">
-            {labelType}
-          </span>
-          <div className="border border-[var(--border)] bg-white rounded-full px-6 py-1.5 text-sm font-extrabold text-[var(--text-primary)]">
-            {stage}
+          {/* Zeit — ganz rechts */}
+          <div className="flex items-center pl-4 border-l border-[var(--border-subtle)] shrink-0 justify-end">
+            <div className="flex flex-col items-end w-[130px]">
+              <span className="text-[14px] font-bold text-[var(--text-primary)] whitespace-nowrap">{timeAgoLabel || timeAgo}</span>
+              <span className="mt-0.5 text-[var(--icp-low)] font-semibold text-[12px] whitespace-nowrap">
+                {t('hunter.common.hoursLeft', { hours: timeLeftHours })}
+              </span>
+            </div>
           </div>
         </div>
-
-        {/* Heat */}
-        <div className="flex flex-col items-center gap-1.5 shrink-0">
-          <span className="text-[10px] font-extrabold text-[var(--icon-muted)] tracking-[0.05em] uppercase">
-            {t('hunter.common.heat')}
-          </span>
-          <div className="border border-[var(--signal-urgent-bg)] bg-[var(--signal-urgent-bg)] rounded-full px-5 py-1.5 text-sm font-extrabold text-[var(--icp-low)] flex items-center gap-1.5">
-            <div className="w-2 h-2 rounded-sm bg-[var(--icp-low)]" />
-            {t('hunter.common.hot')}
-          </div>
-        </div>
-
-        <div className="w-[1px] h-12 bg-[var(--border-subtle)] shrink-0" />
-
-        {/* Time */}
-        <div className="flex flex-col items-end w-16 shrink-0">
-          <span className="text-base font-extrabold text-[var(--text-primary)] whitespace-nowrap">
-            {timeAgoLabel || timeAgo}
-          </span>
-          <span className="text-xs text-[var(--icon-muted)] font-bold mt-0.5 whitespace-nowrap">
-            {t('hunter.common.hoursLeft', { hours: timeLeftHours })}
-          </span>
-        </div>
-
-        {/* Action Button */}
-        <button className="w-14 h-14 rounded-full bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)] flex items-center justify-center shrink-0 hover:scale-105 transition-transform cursor-pointer border-none outline-none">
-          <ArrowRight className="w-6 h-6 stroke-[2.5]" />
-        </button>
       </div>
 
-      {/* ROW 2: ACTION SECTION */}
-      <div className="bg-[var(--app-bg)] px-6 py-4 flex items-center justify-between border-t border-[var(--border-subtle)] gap-4">
-        {/* Left Side: Event & Action Info */}
-        <div className="flex items-center gap-5 overflow-hidden">
-          <div className="bg-[var(--signal-info-text)] text-white px-5 py-2.5 rounded-lg font-extrabold text-sm shrink-0">
+      {/* SIGNAL-ROW — einzige Ergänzung ggü. Leads-Kachel */}
+      <div className="bg-[var(--app-bg)] border-t border-[var(--border-card)] px-4 py-3 flex items-center justify-between gap-4">
+        {/* Links: LinkedIn-Signal-Badge + Aktionstext */}
+        <div className="flex items-center gap-3 min-w-0">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--signal-info-bg)] text-[var(--signal-info-text)] text-[10px] font-bold uppercase tracking-wider shrink-0">
+            <LinkedinIcon className="w-[11px] h-[11px]" />
             {t('hunter.common.linkedinSignal')}
-          </div>
-          <div className="text-[var(--signal-info-text)] font-extrabold text-[15px] truncate">
-            {actionText}
-          </div>
+          </span>
+          <span className="text-[12px] font-medium text-[var(--text-body)] truncate">{actionText}</span>
         </div>
 
-        {/* Right Side Controls */}
-        <div className="flex items-center gap-6 shrink-0">
-          {/* Progress / Status Block */}
-          <div className="flex items-center gap-6">
-            <div className="flex flex-col w-[260px]">
-              <div className="flex justify-between items-center mb-1.5">
-                <span className="text-[var(--icp-low)] font-extrabold text-[13px] flex items-center gap-1">
-                  <Flame className="w-3 h-3" /> {t('hunter.common.hot')}
-                </span>
-                <span className="text-[var(--icp-low)] font-extrabold text-[13px]">
-                  {t('hunter.common.hoursLeft', { hours: timeLeftHours })}
-                </span>
-              </div>
-              <div className="bg-[var(--signal-info-bg)] h-1.5 rounded-full overflow-hidden w-full">
-                <div
-                  className="bg-[var(--signal-info-bg)] h-full rounded-full"
-                  style={{ width: `${timeProgress}%` }}
-                />
-              </div>
-              <div className="text-right text-[var(--icon-muted)] text-[11px] font-extrabold mt-1.5">
-                {t('hunter.common.hoursWindow', { hours: windowHours })}
-              </div>
+        {/* Rechts: Timer-Balken + Act now */}
+        <div className="flex items-center gap-4 shrink-0">
+          <div className="flex flex-col w-[160px]">
+            <div className="w-full h-1.5 bg-[var(--border)] rounded-full overflow-hidden">
+              <div className="h-full bg-[var(--icp-low)] rounded-full" style={{ width: `${timeProgress}%` }} />
             </div>
-
-            {/* Small ICP Donut */}
-            <div className="relative w-10 h-10 shrink-0">
-              <svg
-                width="40"
-                height="40"
-                viewBox="0 0 40 40"
-                className="-rotate-90 block"
-              >
-                <circle cx="20" cy="20" r="16" stroke="var(--border)" strokeWidth="4" fill="transparent" />
-                <circle
-                  cx="20"
-                  cy="20"
-                  r="16"
-                  stroke="var(--icp-high)"
-                  strokeWidth="4"
-                  fill="transparent"
-                  strokeDasharray={smallDonutCircumference}
-                  strokeDashoffset={smallIcpOffset}
-                  strokeLinecap="round"
-                />
-              </svg>
-              <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[13px] font-extrabold text-[var(--icp-high)]">
-                {smallIcpValue}
-              </span>
-            </div>
+            <span className="mt-1 text-[10px] font-bold text-[var(--icon-muted)] uppercase tracking-widest text-right">
+              {t('hunter.common.hoursWindow', { hours: windowHours })}
+            </span>
           </div>
-
-          <div className="w-[1px] h-10 bg-[var(--signal-teal-bg)] shrink-0" />
-
-          {/* Actions */}
-          <div className="flex items-center gap-5">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onActNow?.();
-              }}
-              className="bg-[var(--sherloq-primary)] text-white border-none rounded-full px-6 py-2.5 font-extrabold text-sm cursor-pointer hover:opacity-90 transition-opacity"
-            >
-              {t('hunter.signals.actNow')}
-            </button>
-            <button
-              onClick={() => setExpanded(!expanded)}
-              className="text-[var(--signal-info-text)] hover:bg-[var(--signal-info-bg)] w-8 h-8 rounded flex items-center justify-center transition-colors cursor-pointer border-none bg-transparent"
-            >
-              {expanded ? (
-                <ChevronUp className="w-6 h-6 stroke-[2.5]" />
-              ) : (
-                <ChevronDown className="w-6 h-6 stroke-[2.5]" />
-              )}
-            </button>
-          </div>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onActNow?.();
+            }}
+            className="bg-[var(--sherloq-primary)] text-white rounded-full px-4 py-2 text-[12px] font-bold cursor-pointer hover:opacity-90 transition-opacity shrink-0"
+          >
+            {t('hunter.signals.actNow')}
+          </button>
         </div>
       </div>
-
-      {/* ROW 3: EXPANDED CONTENT (Optional) */}
-      {expanded && (
-        <div className="p-6 border-t border-[var(--border-subtle)] bg-white">
-          <div className="bg-[var(--app-bg)] border border-[var(--signal-info-bg)] rounded-xl p-5 mb-4">
-            <div className="inline-block bg-[var(--signal-info-bg)] text-[var(--signal-info-text)] px-3 py-1.5 rounded-md text-xs font-extrabold mb-3">
-              {actionText?.includes("ommentar")
-                ? t('hunter.signals.repliedToComment')
-                : t('hunter.signals.signalDetails')}
-            </div>
-            <p className={`text-[15px] font-medium text-[var(--text-primary)] leading-relaxed ${quoteText ? "mb-4" : "mb-0"}`}>
-              "{commentText}"
-            </p>
-            {quoteText && (
-              <div className="border-l-[3px] border-[var(--signal-info-bg)] pl-4">
-                <span className="text-sm text-[var(--text-muted)] italic">
-                  "{quoteText}"
-                </span>
-              </div>
-            )}
-          </div>
-
-          <div className="bg-[var(--signal-success-bg)] border border-[var(--signal-teal-bg)] rounded-xl p-5 mb-5">
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-sm font-extrabold text-[var(--icp-high)]">
-                {t('hunter.signals.kiRecommendation')}
-              </span>
-            </div>
-            <p className="text-sm text-[var(--icp-high)] leading-relaxed font-medium">
-              {aiRecommendation}
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <button className="bg-[var(--sherloq-primary)] text-white px-6 py-2.5 rounded-lg border-none text-sm font-extrabold cursor-pointer hover:opacity-90">
-              {t('hunter.signals.generateReply')}
-            </button>
-            <button className="bg-white border border-[var(--border)] text-[var(--text-body)] px-6 py-2.5 rounded-lg text-sm font-extrabold cursor-pointer hover:bg-[var(--app-bg)]">
-              {t('hunter.signals.viewOriginal')}
-            </button>
-            <button className="bg-white border border-[var(--border)] text-[var(--text-muted)] px-6 py-2.5 rounded-lg text-sm font-extrabold cursor-pointer hover:bg-[var(--app-bg)] ml-2">
-              {t('hunter.signals.ignore')}
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

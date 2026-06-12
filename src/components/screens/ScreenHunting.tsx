@@ -1020,7 +1020,7 @@ export default function ScreenHunting({
 
       {/* SIGNALS TAB */}
       {subTab === 'signals' && (
-        <div className="flex flex-col gap-4 max-w-4xl mx-auto w-full">
+        <div className="flex flex-col gap-4">
           <LinkedinSignalCard
             name="Maja Voje"
             role="GTM Strategist"
