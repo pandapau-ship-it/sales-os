@@ -1310,12 +1310,10 @@ export default function ScreenHunting({
         onClose={() => setSelectedColdPerson(null)}
       />
 
-      {selectedNoTaskPerson && (
-        <NoTaskDrawer
-          person={selectedNoTaskPerson}
-          onClose={() => setSelectedNoTaskPerson(null)}
-        />
-      )}
+      <NoTaskDrawer
+        person={selectedNoTaskPerson}
+        onClose={() => setSelectedNoTaskPerson(null)}
+      />
 
     </div>
   );
