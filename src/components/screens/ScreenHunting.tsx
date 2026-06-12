@@ -1290,13 +1290,10 @@ export default function ScreenHunting({
       )}
 
 
-      {selectedSignal && (
-        <SignalActionDrawer
-          key={selectedSignal.name}
-          signal={selectedSignal}
-          onClose={() => setSelectedSignal(null)}
-        />
-      )}
+      <SignalActionDrawer
+        signal={selectedSignal}
+        onClose={() => setSelectedSignal(null)}
+      />
 
       {selectedStagnatedPerson && (
         <PipelineStagnatedDrawer
