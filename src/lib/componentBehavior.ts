@@ -39,11 +39,11 @@ export const CARD = {
   /** Mini-Label über Stage/Heat ("STAGE"/"HEAT"). */
   miniLabel:
     "absolute -top-[14px] text-[10px] font-bold text-[var(--icon-muted)] tracking-wider uppercase",
-  /** Stage-Badge. */
+  /** Stage-Badge — Größe wie Neu-in-Pipeline (px-3 py-1), Farben wie Lead-Kachel. */
   stageBadge:
-    "px-4 py-2 rounded-full bg-[var(--app-bg)] text-[var(--text-body)] text-[12px] font-semibold border border-[var(--border)]",
-  /** Heat-Badge (Basis — Farbe kommt aus getHeatColor). */
-  heatBadge: "px-4 py-2 rounded-full text-[12px] font-semibold border flex items-center gap-1.5",
+    "px-3 py-1 rounded-full bg-[var(--app-bg)] text-[var(--text-body)] text-[12px] font-semibold border border-[var(--border)]",
+  /** Heat-Badge — Größe wie Neu-in-Pipeline (px-3 py-1); Farbe kommt aus getHeatColor. */
+  heatBadge: "px-3 py-1 rounded-full text-[12px] font-semibold border flex items-center gap-1.5",
 
   /** Zeitangabe (Hauptzeile). */
   timeMain: "text-[14px] font-bold text-[var(--text-primary)] whitespace-nowrap",

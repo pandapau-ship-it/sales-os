@@ -1,9 +1,11 @@
 import { FollowUpKaltCard } from './FollowUpKaltCard';
+import type { Lead } from '@/types';
 
-export const SequenceLeadCards = ({ onOutreachClick }: { onOutreachClick?: (person: any) => void }) => {
+export const SequenceLeadCards = ({ onOutreachClick, onSelectLead }: { onOutreachClick?: (person: any) => void; onSelectLead?: (lead: Lead) => void }) => {
     return (
         <div className="w-full flex flex-col gap-4 mt-6">
             <FollowUpKaltCard
+                onSelectLead={onSelectLead}
                 name="Dr. Christian Brand"
                 role="VP of Sales EMEA, LogixFlow GmbH"
                 avatarInitials="CB"
@@ -30,6 +32,7 @@ export const SequenceLeadCards = ({ onOutreachClick }: { onOutreachClick?: (pers
                 })}
             />
             <FollowUpKaltCard
+                onSelectLead={onSelectLead}
                 name="Marc Levigne"
                 role="Sales Director France, DataPulse Corp"
                 avatarInitials="ML"
@@ -45,6 +48,7 @@ export const SequenceLeadCards = ({ onOutreachClick }: { onOutreachClick?: (pers
                 generatedMessage="LinkedIn DM due today."
             />
             <FollowUpKaltCard
+                onSelectLead={onSelectLead}
                 name="Elena Rostova"
                 role="Head of Operations, Quantum Dynamics"
                 avatarInitials="ER"
