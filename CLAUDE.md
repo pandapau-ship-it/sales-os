@@ -3891,6 +3891,32 @@ Zwei klar getrennte Panel-Typen (verbindlich für Hunter, Farmer und alle Screen
 
 ---
 
+## Feature-Spezifikationen
+
+### Snooze — Regelwerk
+
+Verhalten:
+→ Signal bleibt sichtbar, gedimmt + Countdown "Snoozed · noch X Tage"
+→ Statt Action-Buttons: "Snoozed bis [Datum] · Reaktivieren"
+→ Nach Ablauf: Signal erscheint wieder wie neu
+
+Limits (konfigurierbar in system_config):
+→ snooze_max_count (Default: 3) — max. Snoozes pro Signal
+→ snooze_max_days (Default: 7) — max. Dauer pro Snooze
+→ snooze_escalation_type ('task' | 'notification' | 'both') — was passiert bei Limit
+
+Wenn Limit erreicht:
+→ Snooze-Button verschwindet
+→ Signal eskaliert je nach snooze_escalation_type
+→ Admin bekommt Benachrichtigung
+
+system_config Keys (beim DB-Wiring anlegen):
+snooze_max_count = 3
+snooze_max_days = 7
+snooze_escalation_type = 'both'
+
+---
+
 ## Mein Tag — Klarstellung (aggregierter Tages-Feed)
 
 Mein Tag ist **kein eigener Sales-Bereich** und **keine eigene Datenquelle**.
