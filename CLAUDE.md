@@ -407,6 +407,9 @@ Regeln:
 → Nie shadcn Primitives verändern
 → Bestehende Komponente wird angefasst und liegt noch
   in alter Struktur? → sofort miterledigen, nicht separat
+→ Jede neue Komponente die gebaut wird landet sofort in der
+  richtigen Ordner-Struktur (panels/ · panel-blocks/ · features/[modul]/).
+  Keine Ausnahme. Auch nicht "erstmal schnell" in components/ root.
 
 ---
 
