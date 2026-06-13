@@ -69,7 +69,7 @@ export default function AddSdrLeadPanel({ open, onClose, onAdd }: AddSdrLeadPane
     setShowDeal(false); setDeal(EMPTY_DEAL);
   };
 
-  const canSubmit = Boolean(vorname.trim() && nachname.trim() && (email.trim() || linkedin.trim()) && company.trim());
+  const canSubmit = Boolean(owner && vorname.trim() && nachname.trim() && (email.trim() || linkedin.trim()) && company.trim());
   const dealHint = stage !== "" && !showDeal; // Stage gewählt, aber noch kein Deal
 
   const submit = (e: React.FormEvent) => {
@@ -118,6 +118,13 @@ export default function AddSdrLeadPanel({ open, onClose, onAdd }: AddSdrLeadPane
 
           {/* STUFE 1 — Pflicht, immer sichtbar */}
           <section className="flex flex-col gap-3">
+            <PanelField label="Owner" required>
+              <Select value={owner || undefined} onValueChange={setOwner}>
+                <SelectTrigger className={TRIGGER}><SelectValue placeholder="Zuständig…" /></SelectTrigger>
+                <SelectContent>{OWNERS.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
+              </Select>
+            </PanelField>
+
             <div className="grid grid-cols-2 gap-3">
               <PanelField label="Vorname" required>
                 <input type="text" placeholder="Christian" value={vorname} onChange={(e) => setVorname(e.target.value)} className={FIELD} />
@@ -182,29 +189,22 @@ export default function AddSdrLeadPanel({ open, onClose, onAdd }: AddSdrLeadPane
                   </PanelField>
 
                   <div className="grid grid-cols-2 gap-3">
-                    <PanelField label="Owner">
-                      <Select value={owner || undefined} onValueChange={setOwner}>
-                        <SelectTrigger className={TRIGGER}><SelectValue placeholder="Zuständig…" /></SelectTrigger>
-                        <SelectContent>{OWNERS.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
-                      </Select>
-                    </PanelField>
                     <PanelField label="Quelle">
                       <Select value={source} onValueChange={setSource}>
                         <SelectTrigger className={TRIGGER}><SelectValue /></SelectTrigger>
                         <SelectContent>{SOURCES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
                       </Select>
                     </PanelField>
+                    <PanelField label="Pipeline-Stage">
+                      <Select value={stage || "none"} onValueChange={(v) => setStage(v === "none" ? "" : v)}>
+                        <SelectTrigger className={TRIGGER}><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none"><span className="text-text-muted">— Keine Stage</span></SelectItem>
+                          {STAGES.map((s) => <SelectItem key={s.id} value={s.id}>{s.label}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </PanelField>
                   </div>
-
-                  <PanelField label="Pipeline-Stage">
-                    <Select value={stage || "none"} onValueChange={(v) => setStage(v === "none" ? "" : v)}>
-                      <SelectTrigger className={TRIGGER}><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none"><span className="text-text-muted">— Keine Stage</span></SelectItem>
-                        {STAGES.map((s) => <SelectItem key={s.id} value={s.id}>{s.label}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </PanelField>
 
                   <PanelField label="Notizen">
                     <textarea rows={3} placeholder="Kontext, nächste Schritte, Hinweise..." value={notes} onChange={(e) => setNotes(e.target.value)} className="w-full text-[13px] font-sans leading-relaxed p-3 bg-app-bg border border-border focus:border-[var(--sherloq-primary)] rounded-[10px] focus:outline-none resize-none transition-colors placeholder-[var(--text-muted)]" />
