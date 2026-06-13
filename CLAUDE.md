@@ -4509,3 +4509,40 @@ Gilt für alle Felder in Kontakte, Companies, Side Panels, Listen:
 
 > Hinweis: Hex-Werte beim Bau auf nächstliegende Tokens aus `index.css` mappen
 > (→ Design System Regeln) — die Werte hier definieren das Verhalten, nicht die Quelle.
+
+---
+
+## PRODUCT BACKLOG — Noch nicht gebaut, aber beim Bauen berücksichtigen
+
+### 1. Proaktiver AI Chat
+- AI Chat erkennt Optimierungspotenzial (z.B. Sequenz hat schlechte Reply-Rate)
+- AI Chat Icon zeigt Zahl + blinkt wenn Vorschläge vorhanden
+- Ab X Vorschlägen: Chat öffnet automatisch ("Wir müssen reden")
+- Zeigt 1-3 Punkte die einzeln abgearbeitet werden können
+- Admin kann einstellen: ignorierbar ja/nein
+- DB: `ai_suggestions` Tabelle (id, type, message, status, created_at, org_id)
+- Berücksichtigen: aiCall() muss Suggestions schreiben können, nicht nur lesen
+
+### 2. Team-Management + Ziele
+- Rollen & Rechte: Teams anlegen, Personen zuordnen
+- Admin kann Ziele definieren: pro Team + pro Person
+- Team-Dashboard für Admin
+- DB: `teams` Tabelle + `team_members` + `goals` Tabelle von Anfang an einplanen
+- Berücksichtigen: RLS muss team-aware sein, nicht nur org-aware
+
+### 3. Permission-Request Flow + Token-Kauf
+- User will Aktion die er nicht darf → Chat bietet an Anfrage an Admin zu senden
+- Token aufgebraucht → Chat öffnet Token-Kauf Modal
+- User gibt gewünschte Menge ein → "An Admin senden"
+- Admin bekommt Email + Eintrag im Admin Dashboard
+- Admin kann direkt per Button freigeben
+- DB: `permission_requests` Tabelle (type, requested_by, amount, status, approved_by)
+- Berücksichtigen: Token-Limits in system_config, Approval-Flow via Edge Function
+
+### 4. Activity Tracking — alles loggen
+- Jede Aktion muss geloggt werden: Mails, Calls, Termine, neue Leads, Sequenz-Schritte,
+  Reply-Rates, Öffnungsraten, Follow-ups, LinkedIn Messages
+- Basis für alle Dashboards + KPIs
+- DB: `activity_log` Tabelle (actor, action_type, entity_type, entity_id, metadata, org_id)
+- Berücksichtigen: JEDE neue Funktion die gebaut wird muss einen activity_log Eintrag schreiben
+- Prüffrage vor jedem Commit: "Schreibt diese Aktion einen activity_log Eintrag?"
