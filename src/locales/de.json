@@ -179,6 +179,7 @@
     "pipeline": {
       "title": "Pipeline & Tasks",
       "taskList": "Task Liste",
+      "listView": "Listenansicht",
       "kanban": "Kanban",
       "opportunities": "Opportunities",
       "actions": "Action",

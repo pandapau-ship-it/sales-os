@@ -38,6 +38,7 @@ import { PipelineKeineTaskCard } from '@/components/shared/PipelineKeineTaskCard
 import FunnelAnalysis from '@/components/shared/FunnelAnalysis';
 
 import Avatar from '@/components/shared/Avatar';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import TaskDrawer from '@/components/shared/TaskDrawer';
 import { LinkedinSignalCard } from '@/components/shared/LinkedinSignalCard';
 import SignalActionDrawer from '@/components/shared/SignalActionDrawer';
@@ -58,6 +59,19 @@ interface ScreenHuntingProps {
   onOpenCopilot?: (context?: 'elena' | 'marc') => void;
 }
 
+// Pipeline-Stage-Slug → Anzeigename (wie die Kanban-Spalten; später aus settings.pipeline_stages).
+const STAGE_LABELS: Record<string, string> = {
+  lead: 'Backlog',
+  pipeline: 'Demo vereinbart',
+  signal: 'Follow-up offen',
+  sequence: 'Onboarding offen',
+  trial: 'Free Trial',
+};
+// Mock-Deal-Owner (Phase 3: aus deals.owner / users). Deterministisch je Lead.
+const DEAL_OWNERS = ['Oliver Sand', 'Lena Brandt', 'Marc Vogel'];
+const ownerForLead = (id: string) =>
+  DEAL_OWNERS[[...id].reduce((a, c) => a + c.charCodeAt(0), 0) % DEAL_OWNERS.length];
+
 export default function ScreenHunting({
   leads,
   onUpdateLeadStage,
@@ -70,7 +84,16 @@ export default function ScreenHunting({
   const [expandedLeadId, setExpandedLeadId] = useState<string | null>(null);
   const [selectedLeadIds, setSelectedLeadIds] = useState<string[]>([]);
   const [expandedCols, setExpandedCols] = useState<Record<string, boolean>>({ lead: true, pipeline: true, signal: true, sequence: false, trial: false });
-  const [isKanbanView, setIsKanbanView] = useState(false);
+  // Pipeline-Tab: Listenansicht ↔ Kanban (Toggle); 'tasks' = jetzige Task-Liste (per Button).
+  const [pipelineView, setPipelineView] = useState<'list' | 'kanban' | 'tasks'>('list');
+  const [dealOwnerFilter, setDealOwnerFilter] = useState('all');
+  const [stageFilter, setStageFilter] = useState('all');
+  const openTaskCount = 2; // Mock — Phase 3: COUNT(tasks WHERE status='open')
+  // Listenansicht: Deals nach Owner + Stage gefiltert.
+  const pipelineDeals = leads.filter((l) =>
+    (stageFilter === 'all' || l.pipelineStage === stageFilter) &&
+    (dealOwnerFilter === 'all' || ownerForLead(l.id) === dealOwnerFilter)
+  );
   
   // Local state for Quick Lead Adder Dialog
   const [showAddModal, setShowAddModal] = useState(false);
@@ -626,38 +649,56 @@ export default function ScreenHunting({
       {/* 3. VIEW PIPELINE (KANBAN BOARD) */}
       {subTab === 'pipeline' && (
         <div className="flex flex-col gap-4">
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center justify-between mb-2 gap-3 flex-wrap">
             <h2 className="text-[18px] font-bold text-[var(--text-primary)]">
               {t('hunter.pipeline.title')}
             </h2>
 
-            {/* BUTTON ZUM SWITCHEN DER BEIDEN ANSICHTEN */}
-            <div className="flex bg-[var(--app-bg)] rounded-[10px] p-1 border border-[var(--border)]">
+            <div className="flex items-center gap-2">
+              {/* Task-Liste-Button mit Anzahl offener Tasks → öffnet die Task-Ansicht */}
               <button
-                onClick={() => setIsKanbanView(false)}
-                className={`px-4 py-1.5 rounded-[8px] text-[13px] font-bold transition-all ${
-                  !isKanbanView
-                    ? "bg-app-surface shadow-sm text-[var(--sherloq-primary)]"
-                    : "text-[var(--text-muted)] hover:text-[var(--text-body)]"
+                onClick={() => setPipelineView('tasks')}
+                className={`px-3.5 py-1.5 rounded-[10px] text-[13px] font-bold flex items-center gap-2 border transition-colors cursor-pointer ${
+                  pipelineView === 'tasks'
+                    ? 'bg-[var(--sherloq-primary)] text-on-accent border-[var(--sherloq-primary)]'
+                    : 'bg-app-surface text-[var(--text-body)] border-[var(--border)] hover:bg-[var(--app-bg)]'
                 }`}
               >
                 {t('hunter.pipeline.taskList')}
+                <span className={`min-w-[20px] h-5 px-1.5 rounded-full text-[11px] font-extrabold flex items-center justify-center ${
+                  pipelineView === 'tasks' ? 'bg-on-accent/20 text-on-accent' : 'bg-[var(--signal-urgent-bg)] text-[var(--signal-urgent-text)]'
+                }`}>
+                  {openTaskCount}
+                </span>
               </button>
 
-              <button
-                onClick={() => setIsKanbanView(true)}
-                className={`px-4 py-1.5 rounded-[8px] text-[13px] font-bold transition-all ${
-                  isKanbanView
-                    ? "bg-app-surface shadow-sm text-[var(--sherloq-primary)]"
-                    : "text-[var(--text-muted)] hover:text-[var(--text-body)]"
-                }`}
-              >
-                {t('hunter.pipeline.kanban')}
-              </button>
+              {/* Toggle: Listenansicht ↔ Kanban */}
+              <div className="flex bg-[var(--app-bg)] rounded-[10px] p-1 border border-[var(--border)]">
+                <button
+                  onClick={() => setPipelineView('list')}
+                  className={`px-4 py-1.5 rounded-[8px] text-[13px] font-bold transition-all cursor-pointer ${
+                    pipelineView === 'list'
+                      ? 'bg-app-surface shadow-sm text-[var(--sherloq-primary)]'
+                      : 'text-[var(--text-muted)] hover:text-[var(--text-body)]'
+                  }`}
+                >
+                  {t('hunter.pipeline.listView')}
+                </button>
+                <button
+                  onClick={() => setPipelineView('kanban')}
+                  className={`px-4 py-1.5 rounded-[8px] text-[13px] font-bold transition-all cursor-pointer ${
+                    pipelineView === 'kanban'
+                      ? 'bg-app-surface shadow-sm text-[var(--sherloq-primary)]'
+                      : 'text-[var(--text-muted)] hover:text-[var(--text-body)]'
+                  }`}
+                >
+                  {t('hunter.pipeline.kanban')}
+                </button>
+              </div>
             </div>
           </div>
 
-          {!isKanbanView ? (
+          {pipelineView === 'tasks' ? (
             <div className="flex flex-col gap-4 w-full pb-8">
               <PipelineStagniertCard onSelectLead={setInfoPanelLead} onTaskAnlegen={() => setSelectedStagnatedPerson({
                 name: "Dr. Christian Brand",
@@ -679,7 +720,7 @@ export default function ScreenHunting({
                 company: "CloudSphere"
               })} />
             </div>
-          ) : (
+          ) : pipelineView === 'kanban' ? (
             <div className="flex flex-col md:flex-row gap-4 overflow-x-auto pb-6 items-start min-h-[600px] w-full hide-scrollbar">
               {[
                 { id: 'lead', title: 'Backlog', prev: null, next: 'pipeline' },
@@ -802,6 +843,81 @@ export default function ScreenHunting({
                   </div>
                 );
               })}
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3 pb-8">
+              {/* Filter: Deal Owner + Stage */}
+              <div className="flex items-center gap-3 flex-wrap">
+                <span className="text-[12px] font-bold text-text-muted">Filter:</span>
+                <Select value={dealOwnerFilter} onValueChange={setDealOwnerFilter}>
+                  <SelectTrigger className="w-[190px] rounded-[10px] border-border bg-app-surface text-[13px] font-semibold text-text-primary">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Alle Deal Owner</SelectItem>
+                    {DEAL_OWNERS.map((o) => (<SelectItem key={o} value={o}>{o}</SelectItem>))}
+                  </SelectContent>
+                </Select>
+                <Select value={stageFilter} onValueChange={setStageFilter}>
+                  <SelectTrigger className="w-[190px] rounded-[10px] border-border bg-app-surface text-[13px] font-semibold text-text-primary">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Alle Stages</SelectItem>
+                    {Object.entries(STAGE_LABELS).map(([id, label]) => (<SelectItem key={id} value={id}>{label}</SelectItem>))}
+                  </SelectContent>
+                </Select>
+                <span className="text-[12px] text-text-muted ml-auto font-medium">{pipelineDeals.length} Deals</span>
+              </div>
+
+              {/* Deals-Tabelle */}
+              <div className="bg-app-surface rounded-[12px] border border-border shadow-[var(--shadow-card)] overflow-hidden">
+                <div className="grid grid-cols-[2.2fr_1.4fr_1.2fr_1fr_1.2fr_auto] gap-4 px-4 py-2.5 bg-app-bg border-b border-border text-[10px] font-extrabold text-text-muted uppercase tracking-wider">
+                  <span>Kontakt</span>
+                  <span>Stage</span>
+                  <span>Deal Owner</span>
+                  <span>Wert</span>
+                  <span>Heat</span>
+                  <span className="w-8" />
+                </div>
+                {pipelineDeals.map((lead) => {
+                  const heat = getHeatColor(lead.heatStatus);
+                  return (
+                    <div key={lead.id} className="grid grid-cols-[2.2fr_1.4fr_1.2fr_1fr_1.2fr_auto] gap-4 px-4 py-3 items-center border-b border-border-subtle last:border-0 hover:bg-app-bg transition-colors">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <Avatar name={lead.person.name} src={lead.person.avatarUrl} size={32} />
+                        <div className="min-w-0">
+                          <div className="text-[13px] font-bold text-text-primary truncate">{lead.person.name}</div>
+                          <div className="text-[11px] text-text-muted truncate">{lead.person.company}</div>
+                        </div>
+                      </div>
+                      <div className="min-w-0">
+                        <span className="inline-block px-2.5 py-1 rounded-full bg-app-bg text-text-body text-[11px] font-semibold border border-border truncate max-w-full">
+                          {STAGE_LABELS[lead.pipelineStage] ?? lead.pipelineStage}
+                        </span>
+                      </div>
+                      <span className="text-[12px] text-text-body font-medium truncate">{ownerForLead(lead.id)}</span>
+                      <span className="text-[12px] font-bold text-text-primary">
+                        {lead.dealValue ? new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(lead.dealValue) : '—'}
+                      </span>
+                      <div className="min-w-0">
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border w-fit ${heat.bg} ${heat.text}`}>
+                          {heat.emoji}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => setInfoPanelLead(lead)}
+                        className="w-8 h-8 rounded-full bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)] hover:scale-105 transition-all flex items-center justify-center shadow-sm cursor-pointer shrink-0"
+                      >
+                        <ArrowRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  );
+                })}
+                {pipelineDeals.length === 0 && (
+                  <div className="px-4 py-10 text-center text-[13px] text-text-muted">Keine Deals für diese Filter.</div>
+                )}
+              </div>
             </div>
           )}
         </div>
