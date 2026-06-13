@@ -25,7 +25,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import type { Lead, Customer } from "@/types";
-import { getHeatColor } from "@/lib/heatUtils";
+import HeatBadge from "@/components/panel-blocks/HeatBadge";
 import BrandLogo from "@/components/shared/BrandLogo";
 import Avatar from "@/components/shared/Avatar";
 
@@ -80,9 +80,7 @@ export default function CustomerDrawer({
   const castedCustomer = person as Customer;
   const lead = person as Lead;
 
-  // getHeatColor imported from @/lib/heatUtils — single source of truth
   const heatStatusStr = person?.heatStatus || "COLD";
-  const heatSettings = getHeatColor(heatStatusStr);
 
   return (
     // Sheet handles overlay, backdrop-blur, animation, Escape key, and focus-trap
@@ -147,12 +145,7 @@ export default function CustomerDrawer({
                   <span className="text-[9px] font-bold text-icon-muted uppercase tracking-wider font-mono">
                     HEAT
                   </span>
-                  <div
-                    className={`px-3 py-1.5 rounded-pill text-[12px] font-semibold flex items-center gap-1.5 border ${heatSettings.bg} ${heatSettings.text} ${heatSettings.border}`}
-                  >
-                    <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: heatSettings.dot }} />
-                    {heatSettings.label}
-                  </div>
+                  <HeatBadge status={heatStatusStr} />
                 </div>
                 <div className="flex flex-col items-center gap-1.5">
                   <span className="text-[9px] font-bold text-icon-muted uppercase tracking-wider font-mono">

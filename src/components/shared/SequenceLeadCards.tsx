@@ -81,7 +81,7 @@ export const SequenceLeadCards = ({ onOutreachClick, onSelectLead }: { onOutreac
                   lastConversationSentiment: "Letztes Gespräch: Neutral · seit 32 Tagen kein Kontakt",
                   aiRecommendation: "Reaktivierung über LinkedIn — E-Mail-Kanal erschöpft, persönlicher Aufhänger nötig.",
                   confidence: 80,
-                  tags: ["Kalt", "E-Mail erschöpft", "LinkedIn noch nicht versucht"]
+                  tags: ["Cold", "E-Mail erschöpft", "LinkedIn noch nicht versucht"]
                 })}
             />
         </div>

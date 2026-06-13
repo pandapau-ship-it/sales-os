@@ -23,7 +23,7 @@ import {
   MessageSquare
 } from 'lucide-react';
 import type { Customer, SherloqStatus } from '@/types';
-import { getHeatColor } from '@/lib/heatUtils';
+import HeatBadge from '@/components/panel-blocks/HeatBadge';
 import { ICPDonut } from '@/components/shared/ICPDonut';
 import CommunicationChain from '@/components/shared/CommunicationChain';
 
@@ -191,7 +191,6 @@ export default function ScreenFarming({
           </div>
 
           {customers.map((cust) => {
-            const heat = getHeatColor(cust.heatStatus);
             const isExpanded = expandedCustomerId === cust.id;
 
             return (
@@ -255,10 +254,7 @@ export default function ScreenFarming({
                     </div>
                     <div className="flex flex-col gap-1.5 w-[100px]">
                       <span className="text-[9px] font-semibold text-text-muted tracking-wider uppercase">HEAT</span>
-                      <div className={`px-2.5 py-1 rounded-[7px] text-[11px] font-medium border flex items-center gap-1.5 w-fit whitespace-nowrap ${heat.bg} ${heat.text} ${heat.border}`}>
-                        <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: heat.dot }} />
-                        {heat.label}
-                      </div>
+                      <HeatBadge status={cust.heatStatus} />
                     </div>
                   </div>
 

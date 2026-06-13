@@ -39,7 +39,8 @@ import FunnelAnalysis from '@/components/shared/FunnelAnalysis';
 import Avatar from '@/components/shared/Avatar';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import AddSdrLeadPanel from '@/components/features/hunter/AddSdrLeadPanel';
-import { getHeatColor } from '@/lib/heatUtils';
+import HeatBadge from '@/components/panel-blocks/HeatBadge';
+import StageBadge from '@/components/panel-blocks/StageBadge';
 import TaskDrawer from '@/components/shared/TaskDrawer';
 import { LinkedinSignalCard } from '@/components/shared/LinkedinSignalCard';
 import SignalActionDrawer from '@/components/shared/SignalActionDrawer';
@@ -321,7 +322,7 @@ export default function ScreenHunting({
             <HunterCard
               data={{
                 id: "ov-sarah", name: "Sarah Jenkins", jobTitle: "Head of Business Development", company: "CloudSphere", icpScore: 65, stageLabel: "Lead",
-                heat: { bgClass: "bg-[var(--signal-warn-bg)]", textClass: "text-[var(--icp-medium)] border-[var(--signal-warn-bg)]", label: t("hunter.heat.stable") },
+                heatStatus: "WARM",
                 timeLabel: t("hunter.common.ago", { label: "3 Tagen" }),
                 timeSubLabel: <span className="text-text-muted font-semibold">{t("hunter.common.newInPipeline")}</span>,
               }}
@@ -339,7 +340,7 @@ export default function ScreenHunting({
             <HunterCard
               data={{
                 id: "ov-marc", name: "Marc Levigne", jobTitle: "Sales Director France", company: "DataPulse Corp", icpScore: 41, stageLabel: "Follow-up",
-                heat: { bgClass: "bg-[var(--signal-info-bg)]", textClass: "text-[var(--signal-info-text)] border-[var(--signal-info-bg)]", label: t("hunter.heat.resting") },
+                heatStatus: "COLD",
                 timeLabel: t("hunter.common.ago", { label: "12 Tagen" }),
                 timeSubLabel: <>{t("hunter.common.daysInStage", { days: 12 })} <AlertTriangle className="w-3.5 h-3.5" strokeWidth={2.5} /></>,
               }}
@@ -364,7 +365,7 @@ export default function ScreenHunting({
             <HunterCard
               data={{
                 id: "ov-elena", name: "Elena Rostova", jobTitle: "Head of Operations", company: "Quantum Dynamics", icpScore: 55, stageLabel: "Onboarding",
-                heat: { bgClass: "bg-[var(--signal-info-bg)]", textClass: "text-[var(--signal-info-text)] border-[var(--signal-info-bg)]", label: t("hunter.heat.cold") },
+                heatStatus: "COLD",
                 timeLabel: t("hunter.common.ago", { label: "32 Tagen" }),
                 timeSubLabel: <>{t("hunter.common.daysInStage", { days: 32 })} <AlertTriangle className="w-3.5 h-3.5" strokeWidth={2.5} /></>,
               }}
@@ -380,7 +381,7 @@ export default function ScreenHunting({
                   daysInStage: 32, lastContactDays: 32, lastContactChannel: "Email",
                   lastConversationSentiment: "Letztes Gespräch: Neutral · seit 32 Tagen kein Kontakt",
                   aiRecommendation: "Reaktivierung über LinkedIn — E-Mail-Kanal erschöpft, persönlicher Aufhänger nötig.",
-                  confidence: 80, tags: ["Kalt", "E-Mail erschöpft", "LinkedIn noch nicht versucht"],
+                  confidence: 80, tags: ["Cold", "E-Mail erschöpft", "LinkedIn noch nicht versucht"],
                 }); }} className={ACTION_ROW.ctaSecondary}>{t("hunter.leadCard.startOutreach")}</button><button onClick={(e) => e.stopPropagation()} className={ACTION_ROW.ctaSecondary}>{t("hunter.common.snooze")}</button></div>
               </>}
             />
@@ -487,10 +488,7 @@ export default function ScreenHunting({
                     </div>
                     <div className="flex flex-col items-center justify-center w-[120px] relative h-full">
                       <span className="absolute -top-[14px] text-[10px] font-bold text-[var(--icon-muted)] tracking-wider uppercase">{t('hunter.common.heat')}</span>
-                      <div className={`px-3 py-1 rounded-full text-[12px] font-semibold border flex items-center gap-1.5 ${getHeatColor(lead.heatStatus).bg} ${getHeatColor(lead.heatStatus).text}`}>
-                        <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: getHeatColor(lead.heatStatus).dot }} />
-                        {getHeatColor(lead.heatStatus).label}
-                      </div>
+                      <HeatBadge status={lead.heatStatus} />
                     </div>
                   </div>
 
@@ -876,7 +874,6 @@ export default function ScreenHunting({
                   <span className="w-8" />
                 </div>
                 {pipelineDeals.map((lead) => {
-                  const heat = getHeatColor(lead.heatStatus);
                   return (
                     <div key={lead.id} className="grid grid-cols-[2.2fr_1.4fr_1.2fr_1fr_1.2fr_auto] gap-4 px-4 py-3 items-center border-b border-border-subtle last:border-0 hover:bg-app-bg transition-colors">
                       <div className="flex items-center gap-3 min-w-0">
@@ -887,19 +884,14 @@ export default function ScreenHunting({
                         </div>
                       </div>
                       <div className="min-w-0">
-                        <span className="inline-block px-2.5 py-1 rounded-full bg-app-bg text-text-body text-[11px] font-semibold border border-border truncate max-w-full">
-                          {STAGE_LABELS[lead.pipelineStage] ?? lead.pipelineStage}
-                        </span>
+                        <StageBadge stage={STAGE_LABELS[lead.pipelineStage] ?? lead.pipelineStage} />
                       </div>
                       <span className="text-[12px] text-text-body font-medium truncate">{ownerForLead(lead.id)}</span>
                       <span className="text-[12px] font-bold text-text-primary">
                         {lead.dealValue ? new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(lead.dealValue) : '—'}
                       </span>
                       <div className="min-w-0">
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border w-fit ${heat.bg} ${heat.text}`}>
-                          <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: heat.dot }} />
-                          {heat.label}
-                        </span>
+                        <HeatBadge status={lead.heatStatus} />
                       </div>
                       <button
                         onClick={() => setInfoPanelLead(lead)}

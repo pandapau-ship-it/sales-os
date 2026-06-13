@@ -7,7 +7,7 @@ import BrandLogo from "@/components/shared/BrandLogo";
 
 /**
  * ChatActionPanel — gemeinsame Basis für ALLE Action-Panels (Deal stagniert,
- * LinkedIn Signal, Kalt …). Identischer Aufbau, identisches Chat-Design, identische
+ * LinkedIn Signal, Cold …). Identischer Aufbau, identisches Chat-Design, identische
  * Breite (50vw) — pro Aktion nur anderer Inhalt (Banner, AI-Empfehlung, Entwurf, Aktionen).
  *
  * Aufbau:

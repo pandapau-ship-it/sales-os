@@ -38,7 +38,7 @@ interface FollowUpKaltCardProps {
 /**
  * FollowUpKaltCard — Follow-ups-Tab. Nutzt die geteilte HunterCard (einheitliche
  * Top-Row + Chevron-Kurzansicht + grüner Pfeil → Info-Panel) und liefert nur die
- * „Kalt"-Action-Row (Badge + Text + Start Outreach/Snooze) im Neu-in-Pipeline-Stil.
+ * Cold-Outreach-Action-Row (Badge + Text + Start Outreach/Snooze) im Neu-in-Pipeline-Stil.
  */
 export function FollowUpKaltCard({
   name,
@@ -87,11 +87,7 @@ export function FollowUpKaltCard({
     company: companyName,
     icpScore,
     stageLabel: stage,
-    heat: {
-      bgClass: "bg-[var(--signal-info-bg)]",
-      textClass: "text-[var(--color-info)] border-[var(--signal-info-bg)]",
-      label: "Cold",
-    },
+    heatStatus: "COLD",
     timeLabel: timeAgoLabel,
     timeSubLabel: (
       <>
@@ -134,7 +130,7 @@ export function FollowUpKaltCard({
     <>
       <div className="flex items-center gap-3 min-w-0">
         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--signal-info-bg)] text-[var(--signal-info-text)] text-[10px] font-bold uppercase tracking-wider shrink-0">
-          <Snowflake className="w-[11px] h-[11px]" /> Kalt
+          <Snowflake className="w-[11px] h-[11px]" /> Cold
         </span>
         <span className={ACTION_ROW.strongText}>
           Kontakt wird kalt. Letzter Kanal Email ohne Response. AI empfiehlt Kanalwechsel zu LinkedIn.

@@ -99,11 +99,7 @@ export function LinkedinSignalCard({
     avatarUrl,
     icpScore,
     stageLabel: stage,
-    heat: {
-      bgClass: "bg-[var(--signal-success-bg)]",
-      textClass: "text-[var(--icp-high)] border-[var(--signal-success-bg)]",
-      label: t("hunter.heat.active"),
-    },
+    heatStatus: "HOT",
     timeLabel: timeAgoLabel || timeAgo,
     timeSubLabel: t("hunter.common.hoursLeft", { hours: timeLeftHours }),
   };

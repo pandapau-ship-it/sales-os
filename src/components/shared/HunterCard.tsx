@@ -8,7 +8,11 @@ import {
 import Avatar from "@/components/shared/Avatar";
 import { ICPDonut } from "@/components/shared/ICPDonut";
 import CommunicationChain from "@/components/shared/CommunicationChain";
+import HeatBadge from "@/components/panel-blocks/HeatBadge";
+import StageBadge from "@/components/panel-blocks/StageBadge";
 import { CARD, ACTION_ROW } from "@/lib/componentBehavior";
+import type { HeatStatusKey } from "@/lib/constants";
+import type { HeatStatus } from "@/types";
 
 /** Einheitliche Kachel-Daten (Top-Row). */
 export interface HunterCardData {
@@ -19,7 +23,10 @@ export interface HunterCardData {
   avatarUrl?: string;
   icpScore: number;
   stageLabel: string;
-  heat: { bgClass: string; textClass: string; label: string };
+  /** Echter Heat-Status → zentrales HeatBadge. */
+  heatStatus?: HeatStatusKey | HeatStatus;
+  /** Legacy-/Sonder-Badge (z.B. Warnung „Stagniert") wenn kein echter Heat-Status. */
+  heat?: { bgClass: string; textClass: string; label: string };
   timeLabel: string;
   timeSubLabel?: ReactNode;
 }
@@ -104,14 +111,18 @@ export default function HunterCard({
           <div className={`hidden lg:flex items-center gap-4 px-4 ${CARD.divider} shrink-0`}>
             <div className="flex flex-col items-center justify-center w-[80px] relative h-full">
               <span className={CARD.miniLabel}>{t("hunter.common.stage")}</span>
-              <div className={CARD.stageBadge}>{data.stageLabel}</div>
+              <StageBadge stage={data.stageLabel} />
             </div>
             <div className="flex flex-col items-center justify-center w-[120px] relative h-full">
               <span className={CARD.miniLabel}>{t("hunter.common.heat")}</span>
-              <div className={`${CARD.heatBadge} ${data.heat.bgClass} ${data.heat.textClass}`}>
-                <span className="w-1.5 h-1.5 rounded-full bg-current shrink-0" />
-                {data.heat.label}
-              </div>
+              {data.heatStatus ? (
+                <HeatBadge status={data.heatStatus} />
+              ) : data.heat ? (
+                <div className={`${CARD.heatBadge} ${data.heat.bgClass} ${data.heat.textClass}`}>
+                  <span className="w-1.5 h-1.5 rounded-full bg-current shrink-0" />
+                  {data.heat.label}
+                </div>
+              ) : null}
             </div>
           </div>
 

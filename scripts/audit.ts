@@ -229,6 +229,28 @@ function checkHardcodedColors(): void {
       : 'Keine hardcodierten Farb-Klassen/Hex in .tsx — Dark-Mode-sicher.')
 }
 
+// ── Design: keine hardcodierten Heat-Labels (use <HeatBadge>) ───────────────
+// Alte Heat-Labels gehören nicht hardcodiert in .tsx — Heat läuft über
+// <HeatBadge status={...} /> (Quelle: HEAT_STATUS in lib/constants.ts).
+// "Aktiv" ist bewusst NICHT in der Liste: es ist auch ein legitimes Nicht-Heat-
+// Wort (Abo-/Task-/Sequence-Status „Aktiv" · „Aktiv seit"), CLAUDE.md schreibt
+// Subscription-Status „Aktiv" sogar vor. Ein Pauschalverbot bräche legitimen Code.
+
+function checkForbiddenHeatLabels(): void {
+  const files = walk(SRC, ['.tsx'])
+  const forbidden = /\b(Kalt|Stabil|Rückläufig|Ruhend|Hot|Lukewarm|Dead)\b/g
+  const offenders: string[] = []
+  for (const f of files) {
+    const hits = new Set<string>()
+    for (const m of read(f).matchAll(forbidden)) hits.add(m[1])
+    if (hits.size) offenders.push(`${rel(f)} (${[...hits].join(', ')})`)
+  }
+  add('Design: keine alten Heat-Labels', offenders.length ? 'FAIL' : 'PASS',
+    offenders.length
+      ? `Hardcodierte alte Heat-Labels — durch <HeatBadge status={...} /> ersetzen:\n        ${offenders.join('\n        ')}`
+      : 'Keine alten Heat-Labels in .tsx — Heat läuft über <HeatBadge>.')
+}
+
 // ── Run ──────────────────────────────────────────────────────────────────────
 
 checkDatabase()
@@ -241,6 +263,7 @@ checkAbstraction('email.ts', 'Emails → sendEmail()', /from\s+['"](resend|postm
 checkSupabaseAbstraction()
 checkNoEmojiBadges()
 checkHardcodedColors()
+checkForbiddenHeatLabels()
 
 // ── Report ───────────────────────────────────────────────────────────────────
 

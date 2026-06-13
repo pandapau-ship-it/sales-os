@@ -318,6 +318,15 @@ Rot ist AUSSCHLIESSLICH für Warnungen (Stagnation, überfällige Tasks, Fehler)
 Quelle: `src/lib/constants.ts` → `HEAT_STATUS` (Daten-Enum HOT/WARM/LUKEWARM/COLD/DEAD
 wird via `heatFor()` / `getHeatColor()` auf diese Labels + Farben gebrückt).
 
+### Badge-Regel (Pflicht, keine Ausnahmen)
+→ Badges/Pills: nie Border, nur leichter Hintergrund (10% opacity) + Dot + Text
+→ Heat: immer `<HeatBadge status={...} />` aus `panel-blocks/`
+→ Stage: immer `<StageBadge stage={...} />` aus `panel-blocks/`
+→ Border nur für: Buttons, Cards, Inputs — nie für Badges
+→ Hardcodierte alte Heat-Labels (Kalt/Stabil/Rückläufig/Ruhend/Hot/Lukewarm/Dead) in
+  `.tsx` werden vom `npm run audit` als **FAIL** markiert. (Ausnahme „Aktiv": auch
+  legitimes Nicht-Heat-Wort — Abo-/Task-Status —, daher nicht im Verbot.)
+
 **Icon-Auswahl für Status-Badges:**
 | Status | Icon | Farbe |
 |--------|------|-------|
