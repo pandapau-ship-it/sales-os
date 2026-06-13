@@ -38,6 +38,7 @@ import FunnelAnalysis from '@/components/shared/FunnelAnalysis';
 
 import Avatar from '@/components/shared/Avatar';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { Sheet, SheetContent } from '@/components/ui/sheet';
 import TaskDrawer from '@/components/shared/TaskDrawer';
 import { LinkedinSignalCard } from '@/components/shared/LinkedinSignalCard';
 import SignalActionDrawer from '@/components/shared/SignalActionDrawer';
@@ -1094,16 +1095,21 @@ export default function ScreenHunting({
         </div>
       )}
 
-      {/* QUICK ADD MODAL */}
-      {showAddModal && (
-        <div className="fixed inset-0 bg-scrim/35 backdrop-blur-xs flex items-center justify-center z-50 animate-fade-in">
-          <div className="w-full max-w-[460px] bg-app-surface rounded-[12px] border border-[var(--border)] p-6 shadow-2xl relative">
-            <h2 className="text-[15px] font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
+      {/* SDR Lead anlegen — Action-Side-Panel (Sheet drawer, 580px) */}
+      <Sheet open={showAddModal} onOpenChange={(o) => { if (!o) setShowAddModal(false); }}>
+        <SheetContent side="drawer" className="flex flex-col font-sans overflow-hidden p-0 bg-app-surface" style={{ width: 580, maxWidth: "95vw", minWidth: 480 }}>
+          <header className="h-[70px] px-6 border-b border-border flex items-center justify-between shrink-0 bg-app-surface z-30">
+            <div className="flex items-center gap-2">
               <Target className="w-5 h-5 text-[var(--sherloq-primary)]" />
-              {t('hunter.addModal.title')}
-            </h2>
-            
-            <form onSubmit={handleCreateLead} className="flex flex-col gap-3.5">
+              <h3 className="text-[15px] font-bold text-text-primary">{t('hunter.addModal.title')}</h3>
+            </div>
+            <button type="button" onClick={() => setShowAddModal(false)} aria-label={t('hunter.addModal.cancel')} className="w-8 h-8 rounded-full bg-app-bg flex items-center justify-center text-text-muted hover:text-text-primary transition-colors cursor-pointer">
+              <X className="w-4 h-4" />
+            </button>
+          </header>
+
+          <form onSubmit={handleCreateLead} className="flex-1 flex flex-col min-h-0">
+            <div className="flex-1 overflow-y-auto custom-scrollbar p-6 flex flex-col gap-4">
               <div>
                 <label className="text-[11px] text-[var(--text-muted)] font-semibold block mb-1">{t('hunter.addModal.fullName')}</label>
                 <input
@@ -1177,25 +1183,27 @@ export default function ScreenHunting({
                 </select>
               </div>
 
-              <div className="flex justify-end gap-2.5 mt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 bg-[var(--app-bg)] hover:bg-[var(--border)] text-[var(--text-body)] text-[12px] rounded-full cursor-pointer border border-[var(--border)]"
-                >
-                  {t('hunter.addModal.cancel')}
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 bg-[var(--sherloq-primary)] hover:bg-[var(--sherloq-primary)]/95 text-on-accent text-[12px] font-semibold rounded-full cursor-pointer shadow-xs"
-                >
-                  {t('hunter.addModal.create')}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+            </div>
+
+            <div className="shrink-0 border-t border-border-subtle p-4 flex items-center justify-end gap-2 bg-app-surface">
+              <button
+                type="button"
+                onClick={() => setShowAddModal(false)}
+                className="px-4 py-2 rounded-[10px] border border-border text-text-body text-[12px] font-bold hover:bg-app-bg transition-colors cursor-pointer"
+              >
+                {t('hunter.addModal.cancel')}
+              </button>
+              <button
+                type="submit"
+                className="px-5 py-2 rounded-[10px] text-on-accent text-[12px] font-bold shadow-sm hover:opacity-90 transition-opacity cursor-pointer"
+                style={{ background: "var(--sherloq-gradient)" }}
+              >
+                {t('hunter.addModal.create')}
+              </button>
+            </div>
+          </form>
+        </SheetContent>
+      </Sheet>
 
       {taskLead && (
         <TaskDrawer 
