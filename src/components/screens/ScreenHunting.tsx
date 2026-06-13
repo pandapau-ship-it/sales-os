@@ -9,8 +9,7 @@ import {
   Target,
   Mail, 
   MessageSquare, 
-  ArrowRight, 
-  Flame, 
+  ArrowRight,
   ChevronLeft,
   Plus,
   Briefcase,
@@ -88,6 +87,8 @@ export default function ScreenHunting({
   const [pipelineView, setPipelineView] = useState<'list' | 'kanban' | 'tasks'>('list');
   const [dealOwnerFilter, setDealOwnerFilter] = useState('all');
   const [stageFilter, setStageFilter] = useState('all');
+  // Task-Ansicht auf einen einzelnen Task fokussiert (aus Kanban-Pill heraus geöffnet).
+  const [focusedTask, setFocusedTask] = useState<'stagniert' | 'keine_task' | null>(null);
   const openTaskCount = 2; // Mock — Phase 3: COUNT(tasks WHERE status='open')
   // Listenansicht: Deals nach Owner + Stage gefiltert.
   const pipelineDeals = leads.filter((l) =>
@@ -657,7 +658,7 @@ export default function ScreenHunting({
             <div className="flex items-center gap-2">
               {/* Task-Liste-Button mit Anzahl offener Tasks → öffnet die Task-Ansicht */}
               <button
-                onClick={() => setPipelineView('tasks')}
+                onClick={() => { setFocusedTask(null); setPipelineView('tasks'); }}
                 className={`px-3.5 py-1.5 rounded-[10px] text-[13px] font-bold flex items-center gap-2 border transition-colors cursor-pointer ${
                   pipelineView === 'tasks'
                     ? 'bg-[var(--sherloq-primary)] text-on-accent border-[var(--sherloq-primary)]'
@@ -700,6 +701,12 @@ export default function ScreenHunting({
 
           {pipelineView === 'tasks' ? (
             <div className="flex flex-col gap-4 w-full pb-8">
+              {focusedTask && (
+                <button onClick={() => setFocusedTask(null)} className="text-[12px] font-bold text-[var(--sherloq-primary)] hover:underline flex items-center gap-1.5 w-fit cursor-pointer">
+                  <ArrowLeft className="w-3.5 h-3.5" /> Alle Tasks anzeigen
+                </button>
+              )}
+              {(!focusedTask || focusedTask === 'stagniert') && (
               <PipelineStagniertCard onSelectLead={setInfoPanelLead} onTaskAnlegen={() => setSelectedStagnatedPerson({
                 name: "Dr. Christian Brand",
                 company: "LogixFlow GmbH",
@@ -715,10 +722,13 @@ export default function ScreenHunting({
                 tags: ["Email erschöpft", "LinkedIn noch nicht versucht", "ICP Score hoch"],
                 confidence: 87
               })} />
+              )}
+              {(!focusedTask || focusedTask === 'keine_task') && (
               <PipelineKeineTaskCard onSelectLead={setInfoPanelLead} onTaskAnlegen={() => setSelectedNoTaskPerson({
                 name: "Sarah Jenkins",
                 company: "CloudSphere"
               })} />
+              )}
             </div>
           ) : pipelineView === 'kanban' ? (
             <div className="flex flex-col md:flex-row gap-4 overflow-x-auto pb-6 items-start min-h-[600px] w-full hide-scrollbar">
@@ -784,9 +794,10 @@ export default function ScreenHunting({
                     {isExpanded && (
                       <div className="flex flex-col gap-3">
                         {colLeads.map(lead => {
-                          let pill: any = null;
-                          if (lead.heatStatus === 'HOT') pill = { label: 'Signal Call', colorClass: 'text-[var(--signal-urgent-text)] bg-[var(--signal-urgent-bg)] border border-[var(--signal-urgent-bg)]', icon: <Flame className="w-3 h-3" /> };
-                          else if (lead.heatStatus === 'WARM') pill = { label: 'Demo Call', colorClass: 'text-[var(--signal-urgent-text)] bg-[var(--signal-urgent-bg)] border border-[var(--signal-urgent-bg)]', icon: <AlertTriangle className="w-3 h-3" /> };
+                          // Karten-Signal: stagnierter Deal oder fehlende Task (klickbar → Task-Liste).
+                          let pill: { label: string; task: 'stagniert' | 'keine_task'; colorClass: string; icon: any } | null = null;
+                          if (lead.heatStatus === 'HOT') pill = { label: 'Deal stagniert', task: 'stagniert', colorClass: 'text-[var(--signal-urgent-text)] bg-[var(--signal-urgent-bg)] border border-[var(--signal-urgent-bg)]', icon: <Clock className="w-3 h-3" /> };
+                          else if (lead.heatStatus === 'WARM') pill = { label: 'Task fehlt', task: 'keine_task', colorClass: 'text-[var(--signal-warn-text)] bg-[var(--signal-warn-bg)] border border-[var(--signal-warn-bg)]', icon: <AlertTriangle className="w-3 h-3" /> };
                           
                           return (
                             <div key={lead.id} className="bg-app-surface rounded-[12px] p-4 shadow-[var(--shadow-card)] hover:shadow-md transition-all duration-300 relative group">
@@ -810,10 +821,14 @@ export default function ScreenHunting({
                               
                               <div className="flex justify-between items-center mt-2 pt-2">
                                 {pill ? (
-                                  <div className={`px-2.5 py-1 rounded-full text-[10px] font-bold flex items-center gap-1.5 ${pill.colorClass}`}>
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); setFocusedTask(pill!.task); setPipelineView('tasks'); }}
+                                    className={`px-2.5 py-1 rounded-full text-[10px] font-bold flex items-center gap-1.5 cursor-pointer hover:opacity-90 transition-opacity ${pill.colorClass}`}
+                                  >
                                     {pill.icon}
                                     <span>{pill.label}</span>
-                                  </div>
+                                    <ArrowRight className="w-3 h-3" />
+                                  </button>
                                 ) : <div />}
                                 
                                 <div className="flex items-center gap-2">
