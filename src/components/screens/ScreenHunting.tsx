@@ -89,6 +89,8 @@ export default function ScreenHunting({
   const [stageFilter, setStageFilter] = useState('all');
   // Task-Ansicht auf einen einzelnen Task fokussiert (aus Kanban-Pill heraus geöffnet).
   const [focusedTask, setFocusedTask] = useState<'stagniert' | 'keine_task' | null>(null);
+  // Pro Kanban-Spalte: nur Karten mit Action-Bedarf zeigen (Toggle über die Action-Badge).
+  const [actionFilterCols, setActionFilterCols] = useState<Record<string, boolean>>({});
   const openTaskCount = 2; // Mock — Phase 3: COUNT(tasks WHERE status='open')
   // Listenansicht: Deals nach Owner + Stage gefiltert.
   const pipelineDeals = leads.filter((l) =>
@@ -744,6 +746,8 @@ export default function ScreenHunting({
                 const isExpanded = expandedCols[col.id];
                 const actionsCount = colLeads.filter(l => l.heatStatus === 'HOT' || l.heatStatus === 'WARM').length;
                 const totalValue = colLeads.reduce((sum, l) => sum + (l.dealValue || 0), 0);
+                const actionActive = !!actionFilterCols[col.id];
+                const displayLeads = actionActive ? colLeads.filter(l => l.heatStatus === 'HOT' || l.heatStatus === 'WARM') : colLeads;
 
                 return (
                   <div key={col.id} className="flex-1 min-w-[290px] w-[290px] max-w-[290px] flex flex-col h-fit transition-all duration-300 relative">
@@ -777,10 +781,20 @@ export default function ScreenHunting({
                       <div className="mt-4 flex justify-between items-center border-t border-border-subtle pt-3">
                         <span className="text-[11px] text-text-muted font-medium">{t('hunter.common.status')}</span>
                         {actionsCount > 0 ? (
-                          <div className="bg-app-surface text-[var(--signal-urgent-text)] px-3 py-1 rounded-full text-[11px] font-bold flex items-center gap-1.5 shadow-sm border border-[var(--signal-urgent-bg)]">
-                            <div className="w-1.5 h-1.5 rounded-full bg-[var(--icp-low)]"></div>
+                          <button
+                            onClick={() => {
+                              setActionFilterCols(prev => ({ ...prev, [col.id]: !prev[col.id] }));
+                              setExpandedCols(prev => ({ ...prev, [col.id]: true }));
+                            }}
+                            className={`px-3 py-1 rounded-full text-[11px] font-bold flex items-center gap-1.5 shadow-sm border transition-colors cursor-pointer ${
+                              actionActive
+                                ? 'bg-[var(--signal-urgent-text)] text-on-accent border-[var(--signal-urgent-text)]'
+                                : 'bg-app-surface text-[var(--signal-urgent-text)] border-[var(--signal-urgent-bg)] hover:bg-[var(--signal-urgent-bg)]'
+                            }`}
+                          >
+                            <div className={`w-1.5 h-1.5 rounded-full ${actionActive ? 'bg-on-accent' : 'bg-[var(--icp-low)]'}`}></div>
                             {actionsCount} {actionsCount !== 1 ? t('hunter.pipeline.actionsPlural') : t('hunter.pipeline.actions')}
-                          </div>
+                          </button>
                         ) : (
                           <div className="bg-app-surface text-[var(--icp-high)] px-3 py-1 rounded-full text-[11px] font-bold flex items-center gap-1.5 shadow-sm border border-[var(--icp-high)]/20">
                             <CheckCircle2 className="w-3.5 h-3.5" />
@@ -793,7 +807,7 @@ export default function ScreenHunting({
                     {/* Cards List (Only if expanded) */}
                     {isExpanded && (
                       <div className="flex flex-col gap-3">
-                        {colLeads.map(lead => {
+                        {displayLeads.map(lead => {
                           // Karten-Signal: stagnierter Deal oder fehlende Task (klickbar → Task-Liste).
                           let pill: { label: string; task: 'stagniert' | 'keine_task'; colorClass: string; icon: any } | null = null;
                           if (lead.heatStatus === 'HOT') pill = { label: 'Deal stagniert', task: 'stagniert', colorClass: 'text-[var(--signal-urgent-text)] bg-[var(--signal-urgent-bg)] border border-[var(--signal-urgent-bg)]', icon: <Clock className="w-3 h-3" /> };
