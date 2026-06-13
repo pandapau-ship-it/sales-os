@@ -304,7 +304,6 @@ export default function AddSdrLeadPanel({ open, onClose, onAdd }: AddSdrLeadPane
             <div>
               <label className={LABEL}>Notizen</label>
               <textarea placeholder="Kontext, nächste Schritte, Hinweise…" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} className="w-full text-[12px] font-sans leading-relaxed p-3 bg-app-bg border border-border focus:border-[var(--sherloq-primary)] rounded-[10px] focus:outline-none resize-none transition-colors placeholder-[var(--text-muted)]" />
-              <p className="text-[10px] text-text-muted mt-1">Lead-Heat &amp; KI-Kurzakte werden automatisch vom System ergänzt.</p>
             </div>
           </section>
 
