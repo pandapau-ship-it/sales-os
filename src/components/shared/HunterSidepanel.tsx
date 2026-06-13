@@ -2,12 +2,15 @@ import { useState, useEffect } from 'react';
 import {
   ArrowUpRight, X, Mail, Phone, Globe, AlertTriangle, Clock, Check,
   Zap, Briefcase, Calendar, ChevronDown, Pencil, Trash2, Save, Plus,
-  StickyNote
+  StickyNote, Copy
 } from 'lucide-react';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
+import {
+  Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle,
+} from '@/components/ui/dialog';
 import LinkedinIcon from '@/components/shared/LinkedinIcon';
 import BrandLogo from '@/components/shared/BrandLogo';
 
@@ -29,43 +32,68 @@ const DEFAULT_KURZAKTE = [
 ];
 
 /**
- * EditableInline — einzeiliges Inline-Edit für nicht-systemvorgegebene Felder.
- * Stift → Eingabe + Speichern/Abbrechen (Enter speichert, Escape bricht ab).
+ * EditableInline — Anzeige eines nicht-systemvorgegebenen Felds (Kontaktdaten).
+ * Hover: Inhalt wird dunkelgrün + Copy- und Stift-Icon erscheinen.
+ *  - Copy  → kopiert den Wert wirklich in die Zwischenablage (kurzes Check-Feedback).
+ *  - Stift → öffnet ein kleines shadcn-Dialog-Popup mit Eingabefeld + Speichern/Abbrechen.
  */
 function EditableInline({
-  value, onSave, type = 'text',
-}: { value: string; onSave: (v: string) => void; type?: string }) {
-  const [editing, setEditing] = useState(false);
+  value, label, onSave, onCopy, type = 'text',
+}: { value: string; label: string; onSave: (v: string) => void; onCopy: () => void; type?: string }) {
+  const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState(value);
-  const start = () => { setDraft(value); setEditing(true); };
-  const save = () => { onSave(draft.trim()); setEditing(false); };
+  const [copied, setCopied] = useState(false);
 
-  if (editing) {
-    return (
-      <span className="inline-flex items-center gap-1">
-        <input
-          autoFocus
-          type={type}
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') { e.preventDefault(); save(); }
-            if (e.key === 'Escape') { e.preventDefault(); setEditing(false); }
-          }}
-          className="bg-app-bg border border-[var(--sherloq-primary)] rounded-[7px] px-1.5 py-0.5 text-[12px] text-text-primary outline-none w-[150px] max-w-[55vw]"
-        />
-        <button onClick={save} aria-label="Speichern" className="text-[var(--sherloq-primary)] hover:opacity-80 cursor-pointer shrink-0"><Check className="w-3.5 h-3.5" /></button>
-        <button onClick={() => setEditing(false)} aria-label="Abbrechen" className="text-text-muted hover:text-text-primary cursor-pointer shrink-0"><X className="w-3.5 h-3.5" /></button>
-      </span>
-    );
-  }
+  const startEdit = () => { setDraft(value); setOpen(true); };
+  const save = () => { onSave(draft.trim()); setOpen(false); };
+  const copy = async () => {
+    try { await navigator.clipboard.writeText(value); } catch { /* clipboard nicht verfügbar */ }
+    setCopied(true);
+    onCopy();
+    setTimeout(() => setCopied(false), 1500);
+  };
+
   return (
-    <span className="inline-flex items-center gap-1 group/edit">
-      <span className="truncate">{value}</span>
-      <button onClick={start} aria-label="Bearbeiten" className="opacity-0 group-hover/edit:opacity-100 transition-opacity text-text-muted hover:text-[var(--sherloq-primary)] cursor-pointer shrink-0">
-        <Pencil className="w-3 h-3" />
-      </button>
-    </span>
+    <>
+      <span className="inline-flex items-center gap-1 group/edit cursor-default">
+        <span className="truncate transition-colors group-hover/edit:text-[var(--sherloq-primary)] group-hover/edit:font-semibold">
+          {value}
+        </span>
+        <button onClick={copy} aria-label="Kopieren" className="opacity-0 group-hover/edit:opacity-100 transition-opacity text-text-muted hover:text-[var(--sherloq-primary)] cursor-pointer shrink-0">
+          {copied ? <Check className="w-3 h-3 text-[var(--sherloq-primary)]" /> : <Copy className="w-3 h-3" />}
+        </button>
+        <button onClick={startEdit} aria-label="Bearbeiten" className="opacity-0 group-hover/edit:opacity-100 transition-opacity text-text-muted hover:text-[var(--sherloq-primary)] cursor-pointer shrink-0">
+          <Pencil className="w-3 h-3" />
+        </button>
+      </span>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="sm:max-w-[400px] rounded-[16px]">
+          <DialogHeader>
+            <DialogTitle className="text-[15px] font-bold text-text-primary">{label} bearbeiten</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-1.5 py-1">
+            <label className="text-[10px] font-extrabold text-text-muted uppercase tracking-widest">{label}</label>
+            <input
+              autoFocus
+              type={type}
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); save(); } }}
+              className="w-full bg-app-bg border border-border rounded-[10px] px-3 py-2.5 text-[13px] text-text-primary outline-none focus:border-[var(--sherloq-primary)] transition-colors"
+            />
+          </div>
+          <DialogFooter className="gap-2">
+            <button onClick={() => setOpen(false)} className="px-4 py-2 rounded-[10px] border border-border text-text-body text-[12px] font-bold hover:bg-app-bg transition-colors cursor-pointer">
+              Abbrechen
+            </button>
+            <button onClick={save} className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-[10px] text-on-accent text-[12px] font-bold shadow-sm hover:opacity-90 transition-opacity cursor-pointer" style={{ background: 'var(--sherloq-gradient)' }}>
+              <Save className="w-3.5 h-3.5" /> Speichern
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 
@@ -209,22 +237,22 @@ export default function HunterSidepanel({ person: personProp, onClose }: { perso
         <div className="bg-app-surface border border-border-subtle rounded-full px-5 py-3 mt-10 flex items-center justify-between gap-3 text-[12px] text-text-muted shadow-sm overflow-x-auto">
           <span className="flex items-center gap-1.5 min-w-0">
             <Mail className="w-[13px] h-[13px] text-text-muted shrink-0" />
-            <EditableInline type="email" value={contact.email} onSave={(v) => { setContact((c) => ({ ...c, email: v })); showToast('E-Mail gespeichert'); }} />
+            <EditableInline label="E-Mail" type="email" value={contact.email} onSave={(v) => { setContact((c) => ({ ...c, email: v })); showToast('E-Mail gespeichert'); }} onCopy={() => showToast('E-Mail kopiert')} />
           </span>
           <span className="h-4 w-px bg-border shrink-0"></span>
           <span className="flex items-center gap-1.5 shrink-0">
             <Phone className="w-[13px] h-[13px] text-text-muted" />
-            <EditableInline type="tel" value={contact.phone} onSave={(v) => { setContact((c) => ({ ...c, phone: v })); showToast('Telefon gespeichert'); }} />
+            <EditableInline label="Telefon" type="tel" value={contact.phone} onSave={(v) => { setContact((c) => ({ ...c, phone: v })); showToast('Telefon gespeichert'); }} onCopy={() => showToast('Telefon kopiert')} />
           </span>
           <span className="h-4 w-px bg-border shrink-0"></span>
           <span className="flex items-center gap-1.5 shrink-0">
             <LinkedinIcon className="w-[13px] h-[13px] text-text-muted" />
-            <EditableInline value={contact.linkedin} onSave={(v) => { setContact((c) => ({ ...c, linkedin: v })); showToast('LinkedIn gespeichert'); }} />
+            <EditableInline label="LinkedIn" value={contact.linkedin} onSave={(v) => { setContact((c) => ({ ...c, linkedin: v })); showToast('LinkedIn gespeichert'); }} onCopy={() => showToast('LinkedIn kopiert')} />
           </span>
           <span className="h-4 w-px bg-border shrink-0"></span>
           <span className="flex items-center gap-1.5 shrink-0">
             <Globe className="w-[13px] h-[13px] text-text-muted" />
-            <EditableInline value={contact.web} onSave={(v) => { setContact((c) => ({ ...c, web: v })); showToast('Webadresse gespeichert'); }} />
+            <EditableInline label="Webadresse" value={contact.web} onSave={(v) => { setContact((c) => ({ ...c, web: v })); showToast('Webadresse gespeichert'); }} onCopy={() => showToast('Webadresse kopiert')} />
           </span>
         </div>
 
