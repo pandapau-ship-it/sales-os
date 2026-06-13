@@ -32,6 +32,7 @@ export const SequenceLeadCards = ({ onOutreachClick, onSelectLead }: { onOutreac
             />
             <FollowUpKaltCard
                 onSelectLead={onSelectLead}
+                initialSnooze={{ count: 2, activeDays: 3 }}
                 name="Marc Levigne"
                 role="Sales Director France, DataPulse Corp"
                 avatarInitials="ML"
@@ -58,6 +59,7 @@ export const SequenceLeadCards = ({ onOutreachClick, onSelectLead }: { onOutreac
             />
             <FollowUpKaltCard
                 onSelectLead={onSelectLead}
+                initialSnooze={{ count: 3, activeDays: null }}
                 name="Elena Rostova"
                 role="Head of Operations, Quantum Dynamics"
                 avatarInitials="ER"
