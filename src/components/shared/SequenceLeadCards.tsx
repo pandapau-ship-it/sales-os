@@ -44,6 +44,17 @@ export const SequenceLeadCards = ({ onOutreachClick, onSelectLead }: { onOutreac
                 timeAgoLabel="vor 8 Tagen"
                 aiRecommendation="Demo Follow-up Multichannel"
                 generatedMessage="LinkedIn DM due today."
+                onOutreachClick={() => onOutreachClick?.({
+                  name: "Marc Levigne",
+                  company: "DataPulse Corp",
+                  daysInStage: 8,
+                  lastContactDays: 8,
+                  lastContactChannel: "Email",
+                  lastConversationSentiment: "Letztes Gespräch: Neutral · Demo offen · kein konkreter Next Step",
+                  aiRecommendation: "Multichannel-Nachfass: kurzer LinkedIn-Touch mit Bezug auf die Demo, danach E-Mail mit CTA.",
+                  confidence: 71,
+                  tags: ["Follow-up offen", "Multichannel sinnvoll"]
+                })}
             />
             <FollowUpKaltCard
                 onSelectLead={onSelectLead}
@@ -59,6 +70,17 @@ export const SequenceLeadCards = ({ onOutreachClick, onSelectLead }: { onOutreac
                 timeAgoLabel="vor 32 Tagen"
                 aiRecommendation="Channel switch to LinkedIn recommended."
                 generatedMessage="Contact is getting cold."
+                onOutreachClick={() => onOutreachClick?.({
+                  name: "Elena Rostova",
+                  company: "Quantum Dynamics",
+                  daysInStage: 32,
+                  lastContactDays: 32,
+                  lastContactChannel: "Email",
+                  lastConversationSentiment: "Letztes Gespräch: Neutral · seit 32 Tagen kein Kontakt",
+                  aiRecommendation: "Reaktivierung über LinkedIn — E-Mail-Kanal erschöpft, persönlicher Aufhänger nötig.",
+                  confidence: 80,
+                  tags: ["Kalt", "E-Mail erschöpft", "LinkedIn noch nicht versucht"]
+                })}
             />
         </div>
     );
