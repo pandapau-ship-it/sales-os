@@ -354,7 +354,7 @@ export default function ScreenHunting({
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--signal-warn-bg)] text-[var(--icp-medium)] text-[10px] font-bold uppercase tracking-wider shrink-0"><AlertTriangle className="w-[11px] h-[11px]" /> {t("hunter.leadCard.noTask")}</span>
                   <span className={ACTION_ROW.strongText}>{t("hunter.leadCard.noTaskHint")}</span>
                 </div>
-                <button onClick={(e) => { e.stopPropagation(); setSelectedNoTaskPerson({ name: "Sarah Jenkins", company: "CloudSphere", avatarInitials: "SJ", avatarBg: "bg-[var(--icp-medium)]" }); }} className={ACTION_ROW.ctaSecondary}>{t("hunter.leadCard.createTask")}</button>
+                <button onClick={(e) => { e.stopPropagation(); setSelectedNoTaskPerson({ name: "Sarah Jenkins", company: "CloudSphere" }); }} className={ACTION_ROW.ctaSecondary}>{t("hunter.leadCard.createTask")}</button>
               </>}
             />
 
@@ -676,9 +676,7 @@ export default function ScreenHunting({
               })} />
               <PipelineKeineTaskCard onSelectLead={setInfoPanelLead} onTaskAnlegen={() => setSelectedNoTaskPerson({
                 name: "Sarah Jenkins",
-                company: "CloudSphere",
-                avatarInitials: "SJ",
-                avatarBg: "bg-[var(--icp-medium)]"
+                company: "CloudSphere"
               })} />
             </div>
           ) : (
@@ -868,8 +866,6 @@ export default function ScreenHunting({
             onOpenInfo={setInfoPanelLead}
             onActNow={setSelectedSignal}
             role="VP of Sales"
-            avatarInitials="SJ"
-            avatarBg="bg-[var(--icp-medium)]"
             companyInitials="CS"
             companyName="CloudSphere"
             stage="Trial"
@@ -889,8 +885,6 @@ export default function ScreenHunting({
             onOpenInfo={setInfoPanelLead}
             onActNow={setSelectedSignal}
             role="CPO"
-            avatarInitials="ML"
-            avatarBg="bg-[var(--signal-info-text)]"
             companyInitials="DP"
             companyName="DataPulse Corp"
             stage="Proposal"
@@ -909,8 +903,6 @@ export default function ScreenHunting({
             onOpenInfo={setInfoPanelLead}
             onActNow={setSelectedSignal}
             role="Head of SDR"
-            avatarInitials="ER"
-            avatarBg="bg-[var(--accent-purple)]"
             companyInitials="QD"
             companyName="Quantum Dynamics"
             stage="Cold"
@@ -929,8 +921,6 @@ export default function ScreenHunting({
             onOpenInfo={setInfoPanelLead}
             onActNow={setSelectedSignal}
             role="CEO"
-            avatarInitials="CB"
-            avatarBg="bg-[var(--icp-high)]"
             companyInitials="NX"
             companyName="Nexus"
             stage="Active"

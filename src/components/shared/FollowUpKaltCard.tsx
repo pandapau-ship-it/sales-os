@@ -7,7 +7,6 @@ interface FollowUpKaltCardProps {
   name: string;
   role: string;
   avatarInitials: string;
-  avatarBg: string;
   companyInitials: string;
   companyName: string;
   companyBg: string;

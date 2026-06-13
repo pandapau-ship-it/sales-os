@@ -11,8 +11,6 @@ interface LinkedinSignalCardProps {
   name: string;
   role: string;
   avatarUrl?: string;
-  avatarInitials?: string;
-  avatarBg?: string;
   companyInitials: string;
   companyName: string;
   stage?: string;

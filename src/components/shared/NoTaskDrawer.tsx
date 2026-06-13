@@ -9,8 +9,6 @@ import Avatar from "@/components/shared/Avatar";
 interface NoTaskPerson {
   name: string;
   company: string;
-  avatarInitials: string;
-  avatarBg: string;
 }
 
 export interface NoTaskDrawerProps {
