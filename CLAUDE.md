@@ -388,6 +388,28 @@ src/
 
 ---
 
+### Komponenten-Struktur (Pflicht)
+
+src/components/
+  ui/            ← shadcn Primitives — nie anfassen
+  panels/        ← Panel-Shells (nur Struktur, kein Inhalt)
+  panel-blocks/  ← Wiederverwendbare Inhalts-Blöcke
+  features/      ← Modul-spezifische Zusammensetzungen
+    hunter/
+    farmer/
+    ai-sdr/
+    mein-tag/
+
+Regeln:
+→ Neue Panel-Komponente? → panels/ + features/[modul]/
+→ Neuer Inhalts-Block? → panel-blocks/
+→ Nie Inhalts-Logik direkt in Panel-Shell
+→ Nie shadcn Primitives verändern
+→ Bestehende Komponente wird angefasst und liegt noch
+  in alter Struktur? → sofort miterledigen, nicht separat
+
+---
+
 ## Design Rules (Legacy — für Referenz)
 
 **Single source of truth for all visual decisions: `src/index.css`** (ersetzt `src/theme.ts`)
