@@ -281,9 +281,9 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
                         {t('hunter.drawers.noTask.descriptionOptional')}
                       </label>
                       <textarea
-                        rows={3}
+                        rows={5}
                         defaultValue="AI-Notiz: Demo war positiv. ROI-Dokument und konkretes Angebot als nächsten Schritt senden."
-                        className="w-full px-4 py-3 rounded-[10px] border border-border outline-none focus:border-[var(--sherloq-primary)] resize-none text-[13px] font-medium leading-relaxed"
+                        className="w-full px-4 py-3 rounded-[10px] border border-border outline-none focus:border-[var(--sherloq-primary)] resize-none text-[13px] font-medium leading-relaxed min-h-[120px]"
                       />
                     </div>
 
