@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import {
   ArrowUpRight, X, Mail, Phone, Globe, AlertTriangle, Clock, Check,
   Zap, Briefcase, Calendar, ChevronDown, Pencil, Trash2, Save, Plus,
-  StickyNote, Copy
+  StickyNote, Copy, Star
 } from 'lucide-react';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import {
@@ -20,10 +20,17 @@ const PIPELINE_STAGES = ['Backlog', 'Demo vereinbart', 'Follow-up offen', 'Onboa
 /** Mock-Defaults für die vom User editierbaren Felder (kein System-Wert). */
 const DEFAULT_CONTACT = {
   email: 'c.brand@logixflow.de',
-  phone: '+49 123 456789',
   linkedin: 'in/christianbrand',
   web: 'logixflow.de',
 };
+
+/** Mehrere Telefonnummern — Favorit erscheint inline, Rest im Popover. Reihenfolge stabil. */
+interface Phone { id: string; type: string; number: string; favorite: boolean }
+const DEFAULT_PHONES: Phone[] = [
+  { id: 'p1', type: 'Mobil', number: '+49 170 1234567', favorite: true },
+  { id: 'p2', type: 'Geschäftlich', number: '+49 89 9876543', favorite: false },
+  { id: 'p3', type: 'Privat', number: '+49 30 5551234', favorite: false },
+];
 const DEFAULT_KURZAKTE = [
   'Refactoring der Outreach-Struktur gestartet — sucht aktiv ein Tool zur Senkung der SDR Ramp-Up-Time.',
   'Persönlichkeit: analytisch & datengetrieben — reagiert auf klare ROI-Argumentation, wenig Smalltalk.',
@@ -104,6 +111,80 @@ function EditableInline({
 }
 
 /**
+ * PhoneField — mehrere Telefonnummern platzsparend. Inline nur der Favorit
+ * (Typ-Pill + Nummer), beim Hover ein leises „+N" + Chevron. Klick öffnet ein
+ * Popover (schwebt, kein Scrim) mit allen Nummern: Anrufen (tel:), Kopieren,
+ * Stern = Favorit. Reihenfolge bleibt stabil (kein Umsortieren beim Favorisieren).
+ * Verwaltung/Anlegen läuft später über die Vollansicht.
+ */
+function PhoneField({
+  phones, onSetFavorite, onCopy, onAdd,
+}: { phones: Phone[]; onSetFavorite: (id: string) => void; onCopy: () => void; onAdd: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const fav = phones.find((p) => p.favorite) ?? phones[0];
+  const others = phones.length - 1;
+  const telHref = (num: string) => `tel:${num.replace(/[^0-9+]/g, '')}`;
+
+  const copy = async (p: Phone) => {
+    try { await navigator.clipboard.writeText(p.number); } catch { /* clipboard nicht verfügbar */ }
+    setCopiedId(p.id);
+    onCopy();
+    setTimeout(() => setCopiedId(null), 1500);
+  };
+
+  if (!fav) return null;
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverAnchor asChild>
+        <span
+          onClick={() => setOpen(true)}
+          className="inline-flex items-center gap-1.5 group/phone cursor-pointer min-w-0"
+        >
+          <span className="px-1.5 py-0.5 rounded-[5px] bg-app-bg text-[9px] font-bold text-text-muted uppercase tracking-wide shrink-0">{fav.type}</span>
+          <span className="truncate transition-colors group-hover/phone:text-[var(--sherloq-primary)] group-hover/phone:font-semibold">{fav.number}</span>
+          {others > 0 && (
+            <span className="opacity-0 group-hover/phone:opacity-100 transition-opacity text-[10px] font-bold text-text-muted shrink-0">+{others}</span>
+          )}
+          <ChevronDown className="w-3 h-3 text-text-muted opacity-0 group-hover/phone:opacity-100 transition-opacity shrink-0" />
+        </span>
+      </PopoverAnchor>
+
+      <PopoverContent align="start" sideOffset={8} className="w-[300px] p-0 overflow-hidden">
+        <div className="px-4 py-2.5 border-b border-border-subtle text-[10px] font-extrabold text-text-muted uppercase tracking-widest">Telefon</div>
+        <div className="py-1">
+          {phones.map((p) => (
+            <div key={p.id} className="flex items-center gap-2 px-3 py-2 hover:bg-app-bg transition-colors">
+              <button
+                onClick={() => onSetFavorite(p.id)}
+                aria-label={p.favorite ? 'Favorit' : 'Als Favorit setzen'}
+                className="shrink-0 cursor-pointer"
+              >
+                <Star className={`w-3.5 h-3.5 transition-colors ${p.favorite ? 'fill-[var(--sherloq-primary)] text-[var(--sherloq-primary)]' : 'text-text-muted hover:text-[var(--sherloq-primary)]'}`} />
+              </button>
+              <div className="min-w-0 flex-1">
+                <div className="text-[9px] font-bold text-text-muted uppercase tracking-wide">{p.type}</div>
+                <a href={telHref(p.number)} className="block text-[13px] font-semibold text-text-body hover:text-[var(--sherloq-primary)] transition-colors truncate">{p.number}</a>
+              </div>
+              <a href={telHref(p.number)} aria-label="Anrufen" className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-text-muted hover:text-[var(--sherloq-primary)] hover:bg-app-surface transition-colors">
+                <Phone className="w-3.5 h-3.5" />
+              </a>
+              <button onClick={() => copy(p)} aria-label="Kopieren" className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-text-muted hover:text-[var(--sherloq-primary)] hover:bg-app-surface transition-colors cursor-pointer">
+                {copiedId === p.id ? <Check className="w-3.5 h-3.5 text-[var(--sherloq-primary)]" /> : <Copy className="w-3.5 h-3.5" />}
+              </button>
+            </div>
+          ))}
+        </div>
+        <button onClick={onAdd} className="w-full px-4 py-2.5 border-t border-border-subtle text-left text-[12px] font-bold text-[var(--sherloq-primary)] hover:bg-app-bg transition-colors cursor-pointer flex items-center gap-1.5">
+          <Plus className="w-3.5 h-3.5" /> Nummer hinzufügen
+        </button>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+/**
  * HunterSidepanel — Info Panel (§22.1, 820px). Nutzt dieselbe Sheet-„drawer"-Shell
  * wie CustomerDrawer / die Action-Panels: schwebendes, abgerundetes Panel rechts mit
  * identischer Slide-in/-out-Animation (kein Inline-Layout, überlagert die Liste).
@@ -118,6 +199,7 @@ export default function HunterSidepanel({ person: personProp, onClose }: { perso
   // Vom User editierbare Felder (kein System-Wert) — lokaler Mock-State.
   const [stage, setStage] = useState<string>('');
   const [contact, setContact] = useState(DEFAULT_CONTACT);
+  const [phones, setPhones] = useState<Phone[]>(DEFAULT_PHONES);
   const [kurzakte, setKurzakte] = useState<string[]>(DEFAULT_KURZAKTE);
   const [editingKurzakte, setEditingKurzakte] = useState(false);
   const [kurzakteDraft, setKurzakteDraft] = useState('');
@@ -130,6 +212,7 @@ export default function HunterSidepanel({ person: personProp, onClose }: { perso
       // Editierbare Felder beim Öffnen auf den Stand des Kontakts zurücksetzen.
       setStage(personProp.stage || 'Demo vereinbart');
       setContact(DEFAULT_CONTACT);
+      setPhones(DEFAULT_PHONES);
       setKurzakte(DEFAULT_KURZAKTE);
       setEditingKurzakte(false);
     }
@@ -248,7 +331,12 @@ export default function HunterSidepanel({ person: personProp, onClose }: { perso
           <span className="h-4 w-px bg-border shrink-0"></span>
           <span className="flex items-center gap-1.5 shrink-0">
             <Phone className="w-[13px] h-[13px] text-text-muted" />
-            <EditableInline label="Telefon" type="tel" value={contact.phone} onSave={(v) => { setContact((c) => ({ ...c, phone: v })); showToast('Telefon gespeichert'); }} onCopy={() => showToast('Telefon kopiert')} />
+            <PhoneField
+              phones={phones}
+              onSetFavorite={(id) => { setPhones((prev) => prev.map((p) => ({ ...p, favorite: p.id === id }))); showToast('Favorit-Nummer gesetzt'); }}
+              onCopy={() => showToast('Telefon kopiert')}
+              onAdd={() => showToast('Weitere Nummern verwaltest du in der Vollansicht')}
+            />
           </span>
           <span className="h-4 w-px bg-border shrink-0"></span>
           <span className="flex items-center gap-1.5 shrink-0">
