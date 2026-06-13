@@ -9,8 +9,8 @@ import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
 import {
-  Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle,
-} from '@/components/ui/dialog';
+  Popover, PopoverTrigger, PopoverContent, PopoverAnchor,
+} from '@/components/ui/popover';
 import LinkedinIcon from '@/components/shared/LinkedinIcon';
 import BrandLogo from '@/components/shared/BrandLogo';
 
@@ -35,16 +35,17 @@ const DEFAULT_KURZAKTE = [
  * EditableInline — Anzeige eines nicht-systemvorgegebenen Felds (Kontaktdaten).
  * Hover: Inhalt wird dunkelgrün + Copy- und Stift-Icon erscheinen.
  *  - Copy  → kopiert den Wert wirklich in die Zwischenablage (kurzes Check-Feedback).
- *  - Stift → öffnet ein kleines shadcn-Dialog-Popup mit Eingabefeld + Speichern/Abbrechen.
+ *  - Stift → öffnet ein Popover (schwebt über dem Feld, KEIN abgedunkelter Hintergrund)
+ *            mit Eingabefeld + Speichern/Abbrechen.
+ *  - href  → Wert wird als Hyperlink gerendert (neuer Tab, neutrale Farbe, nicht blau).
  */
 function EditableInline({
-  value, label, onSave, onCopy, type = 'text',
-}: { value: string; label: string; onSave: (v: string) => void; onCopy: () => void; type?: string }) {
+  value, label, onSave, onCopy, type = 'text', href,
+}: { value: string; label: string; onSave: (v: string) => void; onCopy: () => void; type?: string; href?: string }) {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState(value);
   const [copied, setCopied] = useState(false);
 
-  const startEdit = () => { setDraft(value); setOpen(true); };
   const save = () => { onSave(draft.trim()); setOpen(false); };
   const copy = async () => {
     try { await navigator.clipboard.writeText(value); } catch { /* clipboard nicht verfügbar */ }
@@ -53,47 +54,52 @@ function EditableInline({
     setTimeout(() => setCopied(false), 1500);
   };
 
-  return (
-    <>
-      <span className="inline-flex items-center gap-1 group/edit cursor-default">
-        <span className="truncate transition-colors group-hover/edit:text-[var(--sherloq-primary)] group-hover/edit:font-semibold">
-          {value}
-        </span>
-        <button onClick={copy} aria-label="Kopieren" className="opacity-0 group-hover/edit:opacity-100 transition-opacity text-text-muted hover:text-[var(--sherloq-primary)] cursor-pointer shrink-0">
-          {copied ? <Check className="w-3 h-3 text-[var(--sherloq-primary)]" /> : <Copy className="w-3 h-3" />}
-        </button>
-        <button onClick={startEdit} aria-label="Bearbeiten" className="opacity-0 group-hover/edit:opacity-100 transition-opacity text-text-muted hover:text-[var(--sherloq-primary)] cursor-pointer shrink-0">
-          <Pencil className="w-3 h-3" />
-        </button>
-      </span>
+  const valueClass = "truncate transition-colors text-text-muted group-hover/edit:text-[var(--sherloq-primary)] group-hover/edit:font-semibold";
 
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-[400px] rounded-[16px]">
-          <DialogHeader>
-            <DialogTitle className="text-[15px] font-bold text-text-primary">{label} bearbeiten</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-1.5 py-1">
-            <label className="text-[10px] font-extrabold text-text-muted uppercase tracking-widest">{label}</label>
-            <input
-              autoFocus
-              type={type}
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); save(); } }}
-              className="w-full bg-app-bg border border-border rounded-[10px] px-3 py-2.5 text-[13px] text-text-primary outline-none focus:border-[var(--sherloq-primary)] transition-colors"
-            />
-          </div>
-          <DialogFooter className="gap-2">
-            <button onClick={() => setOpen(false)} className="px-4 py-2 rounded-[10px] border border-border text-text-body text-[12px] font-bold hover:bg-app-bg transition-colors cursor-pointer">
-              Abbrechen
+  return (
+    <Popover open={open} onOpenChange={(o) => { if (o) setDraft(value); setOpen(o); }}>
+      <PopoverAnchor asChild>
+        <span className="inline-flex items-center gap-1 group/edit cursor-default">
+          {href ? (
+            <a href={href} target="_blank" rel="noopener noreferrer" className={`${valueClass} hover:underline cursor-pointer`}>
+              {value}
+            </a>
+          ) : (
+            <span className={valueClass}>{value}</span>
+          )}
+          <button onClick={copy} aria-label="Kopieren" className="opacity-0 group-hover/edit:opacity-100 transition-opacity text-text-muted hover:text-[var(--sherloq-primary)] cursor-pointer shrink-0">
+            {copied ? <Check className="w-3 h-3 text-[var(--sherloq-primary)]" /> : <Copy className="w-3 h-3" />}
+          </button>
+          <PopoverTrigger asChild>
+            <button aria-label="Bearbeiten" className="opacity-0 group-hover/edit:opacity-100 transition-opacity text-text-muted hover:text-[var(--sherloq-primary)] cursor-pointer shrink-0">
+              <Pencil className="w-3 h-3" />
             </button>
-            <button onClick={save} className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-[10px] text-on-accent text-[12px] font-bold shadow-sm hover:opacity-90 transition-opacity cursor-pointer" style={{ background: 'var(--sherloq-gradient)' }}>
-              <Save className="w-3.5 h-3.5" /> Speichern
-            </button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </>
+          </PopoverTrigger>
+        </span>
+      </PopoverAnchor>
+
+      <PopoverContent align="start" sideOffset={8} className="w-[300px] space-y-3">
+        <div className="space-y-1.5">
+          <label className="text-[10px] font-extrabold text-text-muted uppercase tracking-widest">{label}</label>
+          <input
+            autoFocus
+            type={type}
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); save(); } }}
+            className="w-full bg-app-bg border border-border rounded-[10px] px-3 py-2.5 text-[13px] text-text-primary outline-none focus:border-[var(--sherloq-primary)] transition-colors"
+          />
+        </div>
+        <div className="flex items-center justify-end gap-2">
+          <button onClick={() => setOpen(false)} className="px-3.5 py-1.5 rounded-[10px] border border-border text-text-body text-[12px] font-bold hover:bg-app-bg transition-colors cursor-pointer">
+            Abbrechen
+          </button>
+          <button onClick={save} className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-[10px] text-on-accent text-[12px] font-bold shadow-sm hover:opacity-90 transition-opacity cursor-pointer" style={{ background: 'var(--sherloq-gradient)' }}>
+            <Save className="w-3.5 h-3.5" /> Speichern
+          </button>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }
 
@@ -247,12 +253,12 @@ export default function HunterSidepanel({ person: personProp, onClose }: { perso
           <span className="h-4 w-px bg-border shrink-0"></span>
           <span className="flex items-center gap-1.5 shrink-0">
             <LinkedinIcon className="w-[13px] h-[13px] text-text-muted" />
-            <EditableInline label="LinkedIn" value={contact.linkedin} onSave={(v) => { setContact((c) => ({ ...c, linkedin: v })); showToast('LinkedIn gespeichert'); }} onCopy={() => showToast('LinkedIn kopiert')} />
+            <EditableInline label="LinkedIn" value={contact.linkedin} href={`https://www.linkedin.com/${contact.linkedin.replace(/^\/+/, '')}`} onSave={(v) => { setContact((c) => ({ ...c, linkedin: v })); showToast('LinkedIn gespeichert'); }} onCopy={() => showToast('LinkedIn kopiert')} />
           </span>
           <span className="h-4 w-px bg-border shrink-0"></span>
           <span className="flex items-center gap-1.5 shrink-0">
             <Globe className="w-[13px] h-[13px] text-text-muted" />
-            <EditableInline label="Webadresse" value={contact.web} onSave={(v) => { setContact((c) => ({ ...c, web: v })); showToast('Webadresse gespeichert'); }} onCopy={() => showToast('Webadresse kopiert')} />
+            <EditableInline label="Webadresse" value={contact.web} href={`https://${contact.web.replace(/^https?:\/\//, '')}`} onSave={(v) => { setContact((c) => ({ ...c, web: v })); showToast('Webadresse gespeichert'); }} onCopy={() => showToast('Webadresse kopiert')} />
           </span>
         </div>
 
