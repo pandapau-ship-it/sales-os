@@ -67,8 +67,8 @@ export function FollowUpKaltCard({
     stageLabel: stage,
     heat: {
       bgClass: "bg-[var(--signal-info-bg)]",
-      textClass: "text-[var(--signal-info-text)] border-[var(--signal-info-bg)]",
-      label: "Kalt",
+      textClass: "text-[var(--color-info)] border-[var(--signal-info-bg)]",
+      label: "Cold",
     },
     timeLabel: timeAgoLabel,
     timeSubLabel: (

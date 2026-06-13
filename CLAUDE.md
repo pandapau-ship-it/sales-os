@@ -303,13 +303,20 @@ NIEMALS Emojis in Badges (✅ ✖️ 🆕 ⌛ etc.) — immer Lucide-Icons.
 </div>
 ```
 
-Heat-Badges (HOT/WARM/LUKEWARM/COLD) verwenden `●` CSS-Dot statt Icon:
+Heat-Badges verwenden einen farbigen **Dot-Kreis** (gerendertes `<span>`, **kein `●`/`•` Zeichen**):
 ```tsx
 <div className={`... ${heat.bg} ${heat.text} ${heat.border}`}>
-  <span style={{ color: heat.dot, fontSize: 8, lineHeight: 1 }}>●</span>
+  <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: heat.dot }} />
   {heat.label}
 </div>
 ```
+
+**Heat-Status Labels (kanonisch, nie ändern ohne Entscheidung):**
+Engaged (0–3T) · Warm (4–7T) · Cooling (8–14T) · Cold (15–30T) · Gone (31+T)
+Farben: Grün · Gelb · Orange · Blau · Grau
+Rot ist AUSSCHLIESSLICH für Warnungen (Stagnation, überfällige Tasks, Fehler)
+Quelle: `src/lib/constants.ts` → `HEAT_STATUS` (Daten-Enum HOT/WARM/LUKEWARM/COLD/DEAD
+wird via `heatFor()` / `getHeatColor()` auf diese Labels + Farben gebrückt).
 
 **Icon-Auswahl für Status-Badges:**
 | Status | Icon | Farbe |

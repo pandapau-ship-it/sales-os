@@ -128,11 +128,11 @@
       "kiKurzakte": "KI Kurzakte"
     },
     "heat": {
-      "active": "Aktiv",
-      "stable": "Stabil",
-      "declining": "Rückläufig",
-      "resting": "Ruhend",
-      "inactive": "Inaktiv",
+      "active": "Engaged",
+      "stable": "Warm",
+      "declining": "Cooling",
+      "resting": "Cold",
+      "inactive": "Gone",
       "cold": "Kalt",
       "stagnated": "Stagniert"
     },

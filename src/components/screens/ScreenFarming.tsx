@@ -256,7 +256,7 @@ export default function ScreenFarming({
                     <div className="flex flex-col gap-1.5 w-[100px]">
                       <span className="text-[9px] font-semibold text-text-muted tracking-wider uppercase">HEAT</span>
                       <div className={`px-2.5 py-1 rounded-[7px] text-[11px] font-medium border flex items-center gap-1.5 w-fit whitespace-nowrap ${heat.bg} ${heat.text} ${heat.border}`}>
-                        <span style={{ color: heat.dot, fontSize: 8, lineHeight: 1 }}>●</span>
+                        <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: heat.dot }} />
                         {heat.label}
                       </div>
                     </div>

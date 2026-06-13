@@ -109,7 +109,8 @@ export default function HunterCard({
             <div className="flex flex-col items-center justify-center w-[120px] relative h-full">
               <span className={CARD.miniLabel}>{t("hunter.common.heat")}</span>
               <div className={`${CARD.heatBadge} ${data.heat.bgClass} ${data.heat.textClass}`}>
-                ● {data.heat.label}
+                <span className="w-1.5 h-1.5 rounded-full bg-current shrink-0" />
+                {data.heat.label}
               </div>
             </div>
           </div>

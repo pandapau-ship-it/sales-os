@@ -64,6 +64,13 @@
   --signal-cold-text:   #0369A1;
   --signal-teal-bg:     #F0FAFA;
   --signal-teal-text:   #155E5C;
+  /* Heat-Status Farben — Quelle: HEAT_STATUS in src/lib/constants.ts.
+     Rot bleibt ausschließlich für Warnungen (Stagnation, überfällige Tasks). */
+  --color-success:      #15803D;
+  --color-warning-soft: #CA8A04;
+  --color-warning:      #EA580C;
+  --color-info:         #2563EB;
+  --color-muted:        #6B7280;
 
   /* Extended UI Tokens */
   --sherloq-dark:    #064E3B;  /* selected checkbox, deepest CTA */
@@ -162,6 +169,10 @@
   --signal-info-bg:     #17263A; --signal-info-text:   #60A5FA;
   --signal-cold-bg:     #16283A; --signal-cold-text:   #38BDF8;
   --signal-teal-bg:     #12302F; --signal-teal-text:   #2DD4BF;
+  /* Heat-Status Farben (Dark) */
+  --color-success:      #4ADE80; --color-warning-soft: #FACC15;
+  --color-warning:      #FB923C; --color-info:         #60A5FA;
+  --color-muted:        #9CA3AF;
 
   /* Extended UI Tokens */
   --sherloq-dark:    #34A3A0;
@@ -249,7 +260,7 @@
   --color-primary-foreground:    #FFFFFF;
   --color-secondary:             var(--app-bg);
   --color-secondary-foreground:  var(--text-primary);
-  --color-muted:                 var(--app-bg);
+  /* --color-muted ist Heat-„Gone"-Grau (siehe :root) — bg-muted-Utility ungenutzt. */
   --color-muted-foreground:      var(--text-muted);
   --color-accent:                var(--app-bg);
   --color-accent-foreground:     var(--text-primary);

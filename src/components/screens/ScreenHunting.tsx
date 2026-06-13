@@ -27,7 +27,7 @@ import {
   TrendingUp,
   X
 } from 'lucide-react';
-import type { Lead, HeatStatus } from '@/types';
+import type { Lead } from '@/types';
 import { ICPDonut } from '@/components/shared/ICPDonut';
 import CommunicationChain from '@/components/shared/CommunicationChain';
 import { SequenceLeadCards } from '@/components/shared/SequenceLeadCards';
@@ -39,6 +39,7 @@ import FunnelAnalysis from '@/components/shared/FunnelAnalysis';
 import Avatar from '@/components/shared/Avatar';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import AddSdrLeadPanel from '@/components/features/hunter/AddSdrLeadPanel';
+import { getHeatColor } from '@/lib/heatUtils';
 import TaskDrawer from '@/components/shared/TaskDrawer';
 import { LinkedinSignalCard } from '@/components/shared/LinkedinSignalCard';
 import SignalActionDrawer from '@/components/shared/SignalActionDrawer';
@@ -151,15 +152,6 @@ export default function ScreenHunting({
     { id: 'pipeline', label: t('hunter.tabs.pipelineKanban'), count: null },
   ];
 
-  const getHeatColor = (status: HeatStatus) => {
-    switch (status) {
-      case 'HOT': return { bg: 'bg-[var(--signal-success-bg)]', text: 'text-[var(--icp-high)] border-[var(--signal-success-bg)]', emoji: `● ${t('hunter.heat.active')}` };
-      case 'WARM': return { bg: 'bg-[var(--signal-warn-bg)]', text: 'text-[var(--icp-medium)] border-[var(--signal-warn-bg)]', emoji: `● ${t('hunter.heat.stable')}` };
-      case 'LUKEWARM': return { bg: 'bg-[var(--signal-warn-bg)]', text: 'text-[var(--icp-medium)] border-[var(--signal-warn-bg)]', emoji: `● ${t('hunter.heat.declining')}` };
-      case 'COLD': return { bg: 'bg-[var(--signal-info-bg)]', text: 'text-[var(--signal-info-text)] border-[var(--signal-info-bg)]', emoji: `● ${t('hunter.heat.resting')}` };
-      default: return { bg: 'bg-[var(--app-bg)]', text: 'text-[var(--text-muted)] border-[var(--app-bg)]', emoji: `● ${t('hunter.heat.inactive')}` };
-    }
-  };
 
 
 
@@ -496,7 +488,8 @@ export default function ScreenHunting({
                     <div className="flex flex-col items-center justify-center w-[120px] relative h-full">
                       <span className="absolute -top-[14px] text-[10px] font-bold text-[var(--icon-muted)] tracking-wider uppercase">{t('hunter.common.heat')}</span>
                       <div className={`px-3 py-1 rounded-full text-[12px] font-semibold border flex items-center gap-1.5 ${getHeatColor(lead.heatStatus).bg} ${getHeatColor(lead.heatStatus).text}`}>
-                        {getHeatColor(lead.heatStatus).emoji}
+                        <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: getHeatColor(lead.heatStatus).dot }} />
+                        {getHeatColor(lead.heatStatus).label}
                       </div>
                     </div>
                   </div>
@@ -904,7 +897,8 @@ export default function ScreenHunting({
                       </span>
                       <div className="min-w-0">
                         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border w-fit ${heat.bg} ${heat.text}`}>
-                          {heat.emoji}
+                          <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: heat.dot }} />
+                          {heat.label}
                         </span>
                       </div>
                       <button

@@ -150,7 +150,7 @@ export default function CustomerDrawer({
                   <div
                     className={`px-3 py-1.5 rounded-pill text-[12px] font-semibold flex items-center gap-1.5 border ${heatSettings.bg} ${heatSettings.text} ${heatSettings.border}`}
                   >
-                    <span style={{ color: heatSettings.dot, fontSize: 8, lineHeight: 1 }}>●</span>
+                    <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: heatSettings.dot }} />
                     {heatSettings.label}
                   </div>
                 </div>

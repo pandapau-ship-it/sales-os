@@ -32,7 +32,7 @@ export default function ContactColdDrawer({ person, onClose }: ContactColdDrawer
         const handle = `in/${person.name.toLowerCase().replace(/[^a-z ]/g, "").trim().split(/\s+/).join("")}`;
         return {
           person: { name: person.name, company: person.company, avatarUrl: person.avatarUrl },
-          headerBadge: { label: "Kalt", tone: "cold" },
+          headerBadge: { label: "Cold", tone: "cold" },
           statusDotTone: "cold",
           banner: {
             tone: "cold",
