@@ -482,9 +482,7 @@ export default function ScreenHunting({
                   <div className="hidden lg:flex items-center gap-4 px-4 border-l border-[var(--border-subtle)] shrink-0">
                     <div className="flex flex-col items-center justify-center w-[80px] relative h-full">
                       <span className="absolute -top-[14px] text-[10px] font-bold text-[var(--icon-muted)] tracking-wider uppercase">{t('hunter.common.stage')}</span>
-                      <div className="px-3 py-1 rounded-full bg-[var(--app-bg)] text-[var(--text-body)] text-[12px] font-semibold border border-[var(--border)]">
-                        {lead.pipelineStage === 'pipeline' ? 'Demo' : 'Lead'}
-                      </div>
+                      <StageBadge stage={lead.pipelineStage === 'pipeline' ? 'Demo' : 'Lead'} />
                     </div>
                     <div className="flex flex-col items-center justify-center w-[120px] relative h-full">
                       <span className="absolute -top-[14px] text-[10px] font-bold text-[var(--icon-muted)] tracking-wider uppercase">{t('hunter.common.heat')}</span>
