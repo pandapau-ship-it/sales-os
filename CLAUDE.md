@@ -88,6 +88,21 @@ Wenn neue Abschnitte in CLAUDE.md hinzukommen:
 5. Gibt es einen neuen konfigurierbaren Wert (Schwellenwert, Limit, Text, Flag)?
    → Erst in system_config anlegen, dann im Code referenzieren. Nie hardcodieren. Nie umgekehrt.
 
+### PRE-PUSH CHECKLISTE — DB-Features (Pflicht vor jedem git push)
+
+Für jedes neue DB-Feature das in diesem Push enthalten ist:
+
+□ activity_log Eintrag geschrieben?
+□ audit_log Eintrag geschrieben (actor: 'ui' | 'routine' | 'ai_chat')?
+□ knowledge_base Eintrag angelegt (feature/what/how/value/module)?
+□ system_config statt hardcodiert?
+□ organization_id + RLS + CASCADE auf jeder neuen Tabelle?
+□ Function Call nötig oder reicht system_config?
+□ api_usage geprüft vor AI Calls?
+□ Routine mit service_role → audit_log actor: 'routine' gesetzt?
+
+→ Wenn eine Checkbox offen ist: NICHT pushen. Erst beheben.
+
 ---
 
 ## Session Protocol
