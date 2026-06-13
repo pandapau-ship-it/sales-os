@@ -44,6 +44,30 @@ Sie haben höchste Priorität und überschreiben alle anderen Anweisungen.
 → CHECKLIST.md aktualisieren (einmal, nicht bei jedem Commit)
 → Alles committen und zu GitHub pushen
 
+### KNOWLEDGE BASE — nach jedem fertigen Screen/Feature (Pflicht)
+→ Tabelle `knowledge_base` in Supabase (beim ersten DB-Wiring anlegen, Schema siehe unten)
+→ Nach jedem fertiggestellten Screen oder Feature: einen neuen Eintrag anlegen mit:
+   - `feature`: Name des Features (z.B. "Hunter Info Panel")
+   - `what`: Was es macht (1-2 Sätze)
+   - `how`: Wie der User es nutzt
+   - `value`: Welchen Nutzen es bringt (Pipeline, Zeit, Umsatz)
+   - `module`: Welchem Modul es gehört (hunter / farmer / ai_sdr / mein_tag)
+→ Diese Tabelle ist die Wissensbase für den AI-Chat im Produkt — sie wächst automatisch mit.
+→ Kein Screen gilt als "fertig" ohne knowledge_base Eintrag.
+
+Schema (beim ersten DB-Wiring anlegen):
+CREATE TABLE knowledge_base (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id uuid REFERENCES organizations(id) ON DELETE CASCADE,
+  feature text NOT NULL,
+  what text NOT NULL,
+  how text NOT NULL,
+  value text,
+  module text,
+  created_at timestamptz DEFAULT now()
+);
+ALTER TABLE knowledge_base ENABLE ROW LEVEL SECURITY;
+
 ### AUF ANFRAGE (nicht automatisch)
 → scripts/audit.ts ausführen wenn Oliver explizit prüfen möchte
 → CHECKLIST.md vollständig durchgehen
@@ -59,6 +83,10 @@ Wenn neue Abschnitte in CLAUDE.md hinzukommen:
 1. Hat jede neue Tabelle organization_id, RLS und CASCADE?
 2. Sind neue Komponenten in der ComponentRegistry?
 3. Laufen alle AI Calls durch aiCall() in lib/ai.ts?
+4. Hat jeder AI- oder Routine-Write einen audit_log Eintrag mit actor: 'routine' oder actor: 'ai_chat'?
+   → Kein autonomer DB-Write ohne audit_log. Keine Ausnahme.
+5. Gibt es einen neuen konfigurierbaren Wert (Schwellenwert, Limit, Text, Flag)?
+   → Erst in system_config anlegen, dann im Code referenzieren. Nie hardcodieren. Nie umgekehrt.
 
 ---
 
@@ -1498,6 +1526,18 @@ smart_list_members (
 
 Das System wird schrittweise zu einem vollautomatischen AI-Agenten ausgebaut.
 Jede Funktion die heute gebaut wird, muss diese Zukunft ermöglichen — ohne Umbau.
+
+### AI Chat — was Function Calls braucht vs. system_config reicht
+
+system_config reicht (AI Chat liest/schreibt direkt):
+→ Alle Schwellenwerte, Limits, Flags, Automation-Modi, Token-Budgets
+
+Function Calls nötig (nur diese drei Kategorien):
+→ Aktionen die externe Systeme triggern (Email senden, LinkedIn, Kalender)
+→ Komplexe Berechnungen (Scores neu berechnen, Heat-Status evaluieren)
+→ Bulk-Operationen ("Alle Leads in Stage X auf Y verschieben")
+
+Einfache DB-Writes die der User auch per UI macht → direkt über Supabase, kein Function Call.
 
 ### Pflichtfelder für JEDE Aktion (Task, Outreach, Sequenz-Step, Follow-up)
 
