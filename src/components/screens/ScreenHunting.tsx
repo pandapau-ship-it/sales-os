@@ -38,7 +38,7 @@ import FunnelAnalysis from '@/components/shared/FunnelAnalysis';
 
 import Avatar from '@/components/shared/Avatar';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
-import { Sheet, SheetContent } from '@/components/ui/sheet';
+import AddSdrLeadPanel from '@/components/features/hunter/AddSdrLeadPanel';
 import TaskDrawer from '@/components/shared/TaskDrawer';
 import { LinkedinSignalCard } from '@/components/shared/LinkedinSignalCard';
 import SignalActionDrawer from '@/components/shared/SignalActionDrawer';
@@ -100,12 +100,6 @@ export default function ScreenHunting({
   
   // Local state for Quick Lead Adder Dialog
   const [showAddModal, setShowAddModal] = useState(false);
-  const [newLeadName, setNewLeadName] = useState('');
-  const [newLeadCompany, setNewLeadCompany] = useState('');
-  const [newLeadRole, setNewLeadRole] = useState('');
-  const [newLeadEmail, setNewLeadEmail] = useState('');
-  const [newLeadAka, setNewLeadAka] = useState('');
-  const [newLeadHeat, setNewLeadHeat] = useState<HeatStatus>('HOT');
 
   const [taskLead, setTaskLead] = useState<{name: string, company: string, initials: string, color: string} | null>(null);
   const [taskTitle] = useState('Erster Outreach empfohlen — LinkedIn DM');
@@ -147,42 +141,6 @@ export default function ScreenHunting({
     heatStatus: 'WARM', heatScore: 3, icpScore, lastActivity: '',
     pipelineStage: 'pipeline', signalsCount: 1, contactEmail: '',
   });
-
-  const handleCreateLead = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newLeadName || !newLeadCompany) return;
-
-    const newLead: Lead = {
-      id: `lead-new-${Date.now()}`,
-      person: {
-        id: `pers-new-${Date.now()}`,
-        name: newLeadName,
-        jobTitle: newLeadRole || 'Decision Maker',
-        company: newLeadCompany,
-        initials: newLeadName.split(' ').map(n => n[0]).join('').toUpperCase()
-      },
-      kurzakte: newLeadAka || 'Neu angelegter Lead für Outreach.',
-      fullTimeline: ['Gerade erstellt via Lead-Formular.'],
-      engagementChain: ['LINKEDIN'],
-      lastTouchpoints: [
-        { channel: 'LINKEDIN', date: 'vor 1 Min', sentiment: 'neutral', summary: 'Hinzugefügt' }
-      ],
-      heatStatus: newLeadHeat,
-      heatScore: newLeadHeat === 'HOT' ? 5 : newLeadHeat === 'WARM' ? 4 : 3,
-      lastActivity: 'Gerade eben',
-      pipelineStage: 'lead',
-      contactEmail: newLeadEmail || 'info@company.com'
-    };
-
-    onAddLead(newLead);
-    setShowAddModal(false);
-    // Reset
-    setNewLeadName('');
-    setNewLeadCompany('');
-    setNewLeadRole('');
-    setNewLeadEmail('');
-    setNewLeadAka('');
-  };
 
   const menuItems = [
     { id: 'overview', label: t('hunter.tabs.overview'), count: null },
@@ -1095,115 +1053,8 @@ export default function ScreenHunting({
         </div>
       )}
 
-      {/* SDR Lead anlegen — Action-Side-Panel (Sheet drawer, 580px) */}
-      <Sheet open={showAddModal} onOpenChange={(o) => { if (!o) setShowAddModal(false); }}>
-        <SheetContent side="drawer" className="flex flex-col font-sans overflow-hidden p-0 bg-app-surface" style={{ width: 580, maxWidth: "95vw", minWidth: 480 }}>
-          <header className="h-[70px] px-6 border-b border-border flex items-center justify-between shrink-0 bg-app-surface z-30">
-            <div className="flex items-center gap-2">
-              <Target className="w-5 h-5 text-[var(--sherloq-primary)]" />
-              <h3 className="text-[15px] font-bold text-text-primary">{t('hunter.addModal.title')}</h3>
-            </div>
-            <button type="button" onClick={() => setShowAddModal(false)} aria-label={t('hunter.addModal.cancel')} className="w-8 h-8 rounded-full bg-app-bg flex items-center justify-center text-text-muted hover:text-text-primary transition-colors cursor-pointer">
-              <X className="w-4 h-4" />
-            </button>
-          </header>
-
-          <form onSubmit={handleCreateLead} className="flex-1 flex flex-col min-h-0">
-            <div className="flex-1 overflow-y-auto custom-scrollbar p-6 flex flex-col gap-4">
-              <div>
-                <label className="text-[11px] text-[var(--text-muted)] font-semibold block mb-1">{t('hunter.addModal.fullName')}</label>
-                <input
-                  type="text"
-                  required
-                  placeholder={t('hunter.addModal.fullNamePlaceholder')}
-                  value={newLeadName}
-                  onChange={(e) => setNewLeadName(e.target.value)}
-                  className="w-full text-[12px] font-sans px-3.5 py-2.5 bg-[var(--app-bg)] border border-[var(--border)] focus:border-[var(--sherloq-primary)] rounded-[12px] focus:outline-none"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-[11px] text-[var(--text-muted)] font-semibold block mb-1">{t('hunter.addModal.company')}</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder={t('hunter.addModal.companyPlaceholder')}
-                    value={newLeadCompany}
-                    onChange={(e) => setNewLeadCompany(e.target.value)}
-                    className="w-full text-[12px] font-sans px-3.5 py-2.5 bg-[var(--app-bg)] border border-[var(--border)] focus:border-[var(--sherloq-primary)] rounded-[12px] focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="text-[11px] text-[var(--text-muted)] font-semibold block mb-1">{t('hunter.addModal.role')}</label>
-                  <input
-                    type="text"
-                    placeholder={t('hunter.addModal.rolePlaceholder')}
-                    value={newLeadRole}
-                    onChange={(e) => setNewLeadRole(e.target.value)}
-                    className="w-full text-[12px] font-sans px-3.5 py-2.5 bg-[var(--app-bg)] border border-[var(--border)] focus:border-[var(--sherloq-primary)] rounded-[12px] focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-[11px] text-[var(--text-muted)] font-semibold block mb-1">{t('hunter.addModal.email')}</label>
-                <input
-                  type="email"
-                  placeholder={t('hunter.addModal.emailPlaceholder')}
-                  value={newLeadEmail}
-                  onChange={(e) => setNewLeadEmail(e.target.value)}
-                  className="w-full text-[12px] font-sans px-3.5 py-2.5 bg-[var(--app-bg)] border border-[var(--border)] focus:border-[var(--sherloq-primary)] rounded-[12px] focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="text-[11px] text-[var(--text-muted)] font-semibold block mb-1">{t('hunter.addModal.kurzakte')}</label>
-                <textarea
-                  placeholder={t('hunter.addModal.kurzaktePlaceholder')}
-                  rows={2}
-                  value={newLeadAka}
-                  onChange={(e) => setNewLeadAka(e.target.value)}
-                  className="w-full text-[11px] font-mono leading-relaxed p-3 bg-[var(--app-bg)] border border-[var(--border)] focus:border-[var(--sherloq-primary)] rounded-[12px] focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="text-[11px] text-[var(--text-muted)] font-semibold block mb-1">{t('hunter.addModal.heatLevel')}</label>
-                <select
-                  value={newLeadHeat}
-                  onChange={(e) => setNewLeadHeat(e.target.value as HeatStatus)}
-                  className="w-full text-[12px] font-sans px-3.5 py-2.5 bg-[var(--app-bg)] border border-[var(--border)] focus:border-[var(--sherloq-primary)] rounded-[12px] focus:outline-none"
-                >
-                  <option value="HOT">● {t('hunter.heat.active')}</option>
-                  <option value="WARM">● {t('hunter.heat.stable')}</option>
-                  <option value="LUKEWARM">● {t('hunter.heat.declining')}</option>
-                  <option value="COLD">● {t('hunter.heat.resting')}</option>
-                  <option value="DEAD">● {t('hunter.heat.inactive')}</option>
-                </select>
-              </div>
-
-            </div>
-
-            <div className="shrink-0 border-t border-border-subtle p-4 flex items-center justify-end gap-2 bg-app-surface">
-              <button
-                type="button"
-                onClick={() => setShowAddModal(false)}
-                className="px-4 py-2 rounded-[10px] border border-border text-text-body text-[12px] font-bold hover:bg-app-bg transition-colors cursor-pointer"
-              >
-                {t('hunter.addModal.cancel')}
-              </button>
-              <button
-                type="submit"
-                className="px-5 py-2 rounded-[10px] text-on-accent text-[12px] font-bold shadow-sm hover:opacity-90 transition-opacity cursor-pointer"
-                style={{ background: "var(--sherloq-gradient)" }}
-              >
-                {t('hunter.addModal.create')}
-              </button>
-            </div>
-          </form>
-        </SheetContent>
-      </Sheet>
+      {/* SDR Lead anlegen — Action-Side-Panel (features/hunter/AddSdrLeadPanel) */}
+      <AddSdrLeadPanel open={showAddModal} onClose={() => setShowAddModal(false)} onAdd={onAddLead} />
 
       {taskLead && (
         <TaskDrawer 
