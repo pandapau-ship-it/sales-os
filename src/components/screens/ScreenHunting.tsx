@@ -361,6 +361,8 @@ export default function ScreenHunting({
                 commentText="Anze Voje postete über GTM Strategien für 2026 — Maja Voje antwortete und verknüpfte das Thema mit Sales Enablement."
                 quoteText="The first working week of 2026 is wrapping up..."
                 aiRecommendation="Idealer Zeitpunkt — Post-Thema passt direkt zu Sherloq. Maja ist gerade aktiv. Persönlichkeit Blau: sachlicher Einstieg mit konkretem Bezug zum Post."
+                onActNow={setSelectedSignal}
+                onOpenInfo={setInfoPanelLead}
               />
             </div>
 
