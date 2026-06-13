@@ -60,7 +60,6 @@ interface ScreenHuntingProps {
 
 export default function ScreenHunting({
   leads,
-  onSelectLead,
   onUpdateLeadStage,
   onAddLead,
   onSelectCommunication,
@@ -348,7 +347,7 @@ export default function ScreenHunting({
                 timeLabel: t("hunter.common.ago", { label: "3 Tagen" }),
                 timeSubLabel: <span className="text-text-muted font-semibold">{t("hunter.common.newInPipeline")}</span>,
               }}
-              onOpenInfo={() => onSelectLead(makeLead("ov-sarah", "Sarah Jenkins", "Head of Business Development", "CloudSphere", "SJ", 65))}
+              onOpenInfo={() => setInfoPanelLead(makeLead("ov-sarah", "Sarah Jenkins", "Head of Business Development", "CloudSphere", "SJ", 65))}
               statusDotClass="bg-[var(--icp-medium)]"
               actionRow={<>
                 <div className="flex items-center gap-3 min-w-0">
@@ -366,7 +365,7 @@ export default function ScreenHunting({
                 timeLabel: t("hunter.common.ago", { label: "12 Tagen" }),
                 timeSubLabel: <>{t("hunter.common.daysInStage", { days: 12 })} <AlertTriangle className="w-3.5 h-3.5" strokeWidth={2.5} /></>,
               }}
-              onOpenInfo={() => onSelectLead(makeLead("ov-marc", "Marc Levigne", "Sales Director France", "DataPulse Corp", "ML", 41))}
+              onOpenInfo={() => setInfoPanelLead(makeLead("ov-marc", "Marc Levigne", "Sales Director France", "DataPulse Corp", "ML", 41))}
               statusDotClass="bg-[var(--signal-info-text)]"
               actionRow={<>
                 <div className="flex items-center gap-3 min-w-0">
@@ -384,7 +383,7 @@ export default function ScreenHunting({
                 timeLabel: t("hunter.common.ago", { label: "32 Tagen" }),
                 timeSubLabel: <>{t("hunter.common.daysInStage", { days: 32 })} <AlertTriangle className="w-3.5 h-3.5" strokeWidth={2.5} /></>,
               }}
-              onOpenInfo={() => onSelectLead(makeLead("ov-elena", "Elena Rostova", "Head of Operations", "Quantum Dynamics", "ER", 55))}
+              onOpenInfo={() => setInfoPanelLead(makeLead("ov-elena", "Elena Rostova", "Head of Operations", "Quantum Dynamics", "ER", 55))}
               statusDotClass="bg-[var(--signal-info-text)]"
               actionRow={<>
                 <div className="flex items-center gap-3 min-w-0">
@@ -400,12 +399,12 @@ export default function ScreenHunting({
       )}
 
       {subTab === 'follow_ups' && (
-        <SequenceLeadCards onOutreachClick={(person) => setSelectedColdPerson(person)} onSelectLead={onSelectLead} />
+        <SequenceLeadCards onOutreachClick={(person) => setSelectedColdPerson(person)} onSelectLead={setInfoPanelLead} />
       )}
 
       {/* NEW LEADS VIEW */}
       {subTab === 'new_leads' && (
-        <NewInPipelineCards onSelectLead={onSelectLead} />
+        <NewInPipelineCards onSelectLead={setInfoPanelLead} />
       )}
 
       {/* 2. VIEW LEADS (LIST) */}
@@ -661,7 +660,7 @@ export default function ScreenHunting({
 
           {!isKanbanView ? (
             <div className="flex flex-col gap-4 w-full pb-8">
-              <PipelineStagniertCard onSelectLead={onSelectLead} onTaskAnlegen={() => setSelectedStagnatedPerson({
+              <PipelineStagniertCard onSelectLead={setInfoPanelLead} onTaskAnlegen={() => setSelectedStagnatedPerson({
                 name: "Dr. Christian Brand",
                 company: "LogixFlow GmbH",
                 avatarUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150",
@@ -676,7 +675,7 @@ export default function ScreenHunting({
                 tags: ["Email erschöpft", "LinkedIn noch nicht versucht", "ICP Score hoch"],
                 confidence: 87
               })} />
-              <PipelineKeineTaskCard onSelectLead={onSelectLead} onTaskAnlegen={() => setSelectedNoTaskPerson({
+              <PipelineKeineTaskCard onSelectLead={setInfoPanelLead} onTaskAnlegen={() => setSelectedNoTaskPerson({
                 name: "Sarah Jenkins",
                 company: "CloudSphere",
                 avatarInitials: "SJ",
@@ -846,7 +845,7 @@ export default function ScreenHunting({
             name="Maja Voje"
             selected={selectedSignalIds.includes("Maja Voje")}
             onToggleSelect={(e) => toggleSignalSelection("Maja Voje", e)}
-            onOpenInfo={onSelectLead}
+            onOpenInfo={setInfoPanelLead}
             onActNow={setSelectedSignal}
             role="GTM Strategist"
             avatarUrl="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=120&h=120"
@@ -867,7 +866,7 @@ export default function ScreenHunting({
             name="Sarah Jenkins"
             selected={selectedSignalIds.includes("Sarah Jenkins")}
             onToggleSelect={(e) => toggleSignalSelection("Sarah Jenkins", e)}
-            onOpenInfo={onSelectLead}
+            onOpenInfo={setInfoPanelLead}
             onActNow={setSelectedSignal}
             role="VP of Sales"
             avatarInitials="SJ"
@@ -888,7 +887,7 @@ export default function ScreenHunting({
             name="Marc Levigne"
             selected={selectedSignalIds.includes("Marc Levigne")}
             onToggleSelect={(e) => toggleSignalSelection("Marc Levigne", e)}
-            onOpenInfo={onSelectLead}
+            onOpenInfo={setInfoPanelLead}
             onActNow={setSelectedSignal}
             role="CPO"
             avatarInitials="ML"
@@ -908,7 +907,7 @@ export default function ScreenHunting({
             name="Elena Rostova"
             selected={selectedSignalIds.includes("Elena Rostova")}
             onToggleSelect={(e) => toggleSignalSelection("Elena Rostova", e)}
-            onOpenInfo={onSelectLead}
+            onOpenInfo={setInfoPanelLead}
             onActNow={setSelectedSignal}
             role="Head of SDR"
             avatarInitials="ER"
@@ -928,7 +927,7 @@ export default function ScreenHunting({
             name="Dr. Christian Brand"
             selected={selectedSignalIds.includes("Dr. Christian Brand")}
             onToggleSelect={(e) => toggleSignalSelection("Dr. Christian Brand", e)}
-            onOpenInfo={onSelectLead}
+            onOpenInfo={setInfoPanelLead}
             onActNow={setSelectedSignal}
             role="CEO"
             avatarInitials="CB"
