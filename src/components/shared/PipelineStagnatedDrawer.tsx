@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
-import { useTranslation } from "react-i18next";
-import { X, Clock, Sparkles, RotateCw, Send, Check } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { X, Clock, Sparkles, RotateCw, Send, Check, Pencil, ArrowUpRight } from "lucide-react";
 import { Sheet, SheetContent, SheetClose } from "@/components/ui/sheet";
 import Avatar from "@/components/shared/Avatar";
+import BrandLogo from "@/components/shared/BrandLogo";
 
 interface StagnatedPerson {
   name: string;
@@ -27,301 +27,311 @@ interface PipelineStagnatedDrawerProps {
   onTakeAction: (text: string) => void;
 }
 
-/**
- * PipelineStagnatedDrawer — gleiche Sheet-Shell wie Kontakt- & Signal-Panel
- * (slide-in von rechts, Radix-Overlay/Backdrop, custom-scrollbar, X/Backdrop/Escape),
- * Breite 580px. Inhalt/Design unverändert.
- */
-// Kanonische Stages (Spec §3.2). Kommen später aus settings.pipeline_stages —
-// bis zum DB-Wiring dokumentierter Fallback.
+/** Kanonische Stages (Spec §3.2) — kommen später aus settings.pipeline_stages. */
 const PIPELINE_STAGES = ["Backlog", "Demo vereinbart", "Follow-up offen", "Onboarding offen", "Free Trial", "Gewonnen"];
-
-/** Nächste Stage relativ zur aktuellen (lockerer Präfix-Match auf den Anzeigenamen). */
 function nextStageFor(current: string): string {
   const idx = PIPELINE_STAGES.findIndex((s) => s.toLowerCase().startsWith(current.trim().toLowerCase()));
   if (idx >= 0 && idx < PIPELINE_STAGES.length - 1) return PIPELINE_STAGES[idx + 1];
   return PIPELINE_STAGES[Math.min(Math.max(idx, 0) + 1, PIPELINE_STAGES.length - 1)];
 }
 
-export default function PipelineStagnatedDrawer({ person, onClose, onTakeAction }: PipelineStagnatedDrawerProps) {
-  const { t } = useTranslation();
+/** Chat-Nachrichten: AI-Text, AI-E-Mail-Entwurf (Karte mit Aktionen) oder User-Text. */
+type ChatMessage =
+  | { id: number; role: "ai"; kind: "text"; text: string }
+  | { id: number; role: "ai"; kind: "email"; to: string; subject: string; body: string }
+  | { id: number; role: "user"; kind: "text"; text: string };
 
+/**
+ * PipelineStagnatedDrawer — Action Panel (580px) für stagnierte Deals, als AI-Chat-Flow:
+ *   1. Oben fix: orangener „Deal stagniert"-Hinweis (Text wird später generiert) + ganz
+ *      kurze AI-Empfehlung (basiert auf Lead, bisherigem Verlauf, Sales-Wissen).
+ *   2. Darunter ein AI-Chat in unserem Design: bereits mit einem generierten E-Mail-Entwurf
+ *      als Karte (Empfänger + Aktions-Buttons „E-Mail senden" etc., Claude-Code-Stil).
+ *   3. Unten ein sticky Chat-Eingabefeld + Disclaimer — alles läuft über diesen Chat.
+ * Gleiche Sheet-„drawer"-Shell wie die übrigen Panels (Slide-in/-out, X/Backdrop/Escape).
+ */
+export default function PipelineStagnatedDrawer({ person, onClose, onTakeAction }: PipelineStagnatedDrawerProps) {
   // Inhalt aus gehaltener Kopie, damit das Panel während der Ausfahr-Animation gefüllt bleibt.
   const [display, setDisplay] = useState<StagnatedPerson | null>(person);
-  const [draftText, setDraftText] = useState("");
-  const [selectedStage, setSelectedStage] = useState("");
-  useEffect(() => {
-    if (person) {
-      setDisplay(person);
-      setDraftText(`Hi ${person.name.split(" ")[0]}, wollte kurz nachfassen — wie war der interne Stand nach unserem Demo?`);
-      setSelectedStage(nextStageFor(person.stageName));
-    }
-  }, [person]);
-
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState("");
   const [isRegenerating, setIsRegenerating] = useState(false);
-  const [showToast, setShowToast] = useState(false);
-  const [toastMessage, setToastMessage] = useState("");
-  const [userMessages, setUserMessages] = useState<{ text: string; role: "user" | "ai" }[]>([]);
+  const [editing, setEditing] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+  const msgEndRef = useRef<HTMLDivElement>(null);
+  const idRef = useRef(0);
+  const nextId = () => ++idRef.current;
 
-  const isOpen = person !== null;
   const s = display;
+  const isOpen = person !== null;
   const firstName = s?.name.split(" ")[0] ?? "";
-  const lastName = s?.name.split(" ").pop() ?? "";
+  const nextStage = s ? nextStageFor(s.stageName) : "";
 
-  const triggerToast = (msg: string) => {
-    setToastMessage(msg);
-    setShowToast(true);
-    setTimeout(() => setShowToast(false), 2400);
+  // Beim Öffnen: Chat mit AI-Intro + vorgefertigtem E-Mail-Entwurf seeden.
+  useEffect(() => {
+    if (!person) return;
+    setDisplay(person);
+    setEditing(false);
+    const fn = person.name.split(" ")[0];
+    const rcpt = `${person.name.toLowerCase().replace(/[^a-z ]/g, "").trim().split(/\s+/).join(".")}@${person.company.toLowerCase().replace(/[^a-z]/g, "")}.de`;
+    setMessages([
+      {
+        id: nextId(),
+        role: "ai",
+        kind: "text",
+        text: `Der Deal stagniert seit ${person.daysStagnated} Tagen in „${person.stageName}". Ich habe einen Reaktivierungs-Entwurf vorbereitet:`,
+      },
+      {
+        id: nextId(),
+        role: "ai",
+        kind: "email",
+        to: rcpt,
+        subject: "Kurzer Abgleich nach unserer Demo",
+        body: `Hi ${fn},\n\nnach unserer Demo ist es etwas ruhig geworden — ich wollte kurz nachfassen, ob das Thema BDR-Ramp-up bei euch intern noch Priorität hat.\n\nGerne teile ich einen kompakten ROI-Überblick, zugeschnitten auf euer Team. Hättest du diese Woche 15 Minuten für einen kurzen Austausch?\n\nViele Grüße`,
+      },
+      {
+        id: nextId(),
+        role: "ai",
+        kind: "text",
+        text: "Du kannst die E-Mail direkt senden, anpassen oder mir sagen, was ich ändern soll.",
+      },
+    ]);
+  }, [person]);
+
+  // Auto-Scroll ans Chat-Ende bei neuen Nachrichten.
+  useEffect(() => {
+    msgEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [messages]);
+
+  const showToast = (msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), 2200);
   };
-
-  /** Aktion ausführen → Toast → Panel automatisch schließen (Action-Panel-Verhalten §22.2). */
-  const actAndClose = (msg: string, extra?: () => void) => {
-    extra?.();
-    triggerToast(msg);
+  const actAndClose = (msg: string, body: string) => {
+    onTakeAction(body);
+    showToast(msg);
     setTimeout(() => onClose(), 1100);
   };
+
+  const updateEmailBody = (body: string) =>
+    setMessages((prev) => prev.map((m) => (m.kind === "email" ? { ...m, body } : m)));
 
   const handleRegenerate = () => {
     setIsRegenerating(true);
     setTimeout(() => {
-      setDraftText(`Hi ${firstName}, danke nochmal für die Demo. Mich interessiert, ob das Thema intern weiter priorisiert wird — hast du diese Woche 15 Minuten für einen kurzen Abgleich?`);
+      updateEmailBody(
+        `Hi ${firstName},\n\ndanke nochmal für die Demo. Mich interessiert, ob das Thema intern weiter priorisiert wird — hast du diese Woche 15 Minuten für einen kurzen Abgleich? Ich bringe einen konkreten ROI-Case mit.\n\nViele Grüße`,
+      );
       setIsRegenerating(false);
-      triggerToast(t('hunter.common.draftNeuGeneriert'));
+      showToast("Entwurf neu generiert");
     }, 700);
   };
 
-  const handleSendInstruction = () => {
-    if (!chatInput.trim()) return;
-
-    setUserMessages([...userMessages, { text: chatInput, role: "user" }]);
-
-    const lowered = chatInput.toLowerCase();
-    let newDraft = draftText;
-
-    if (lowered.includes("e-mail") || lowered.includes("email")) {
-      newDraft = `Betreff: Kurzer Abgleich nach unserer Demo\n\nHallo ${lastName},\n\nich wollte kurz nachfassen, wie der interne Stand nach unserer Demo ist. Gibt es diese Woche ein gutes Zeitfenster für einen kurzen Austausch?\n\nViele Grüße`;
-    } else if (lowered.includes("kürzer") || lowered.includes("kurz")) {
-      newDraft = `Hi ${firstName}, wie ist der interne Stand nach unserer Demo? Hast du diese Woche 15 Min für einen kurzen Abgleich?`;
-    } else if (lowered.includes("förmlicher")) {
-      newDraft = `Hallo Herr/Frau ${lastName}, ich wollte mich erkundigen, wie der interne Stand nach unserer Demo ist. Hätten Sie diese Woche 15 Minuten für einen kurzen Austausch?`;
-    }
-
-    setTimeout(() => {
-      setDraftText(newDraft);
-      setUserMessages(prev => [...prev, { text: "Klar — ich passe den Entwurf entsprechend an. Du kannst z. B. schreiben: 'kürzer', 'förmlicher', 'als E-Mail' oder 'mit konkretem CTA'.", role: "ai" }]);
-      triggerToast(t('hunter.common.instructionApplied'));
-    }, 500);
-
+  const handleSend = () => {
+    const text = chatInput.trim();
+    if (!text) return;
     setChatInput("");
+    setMessages((prev) => [...prev, { id: nextId(), role: "user", kind: "text", text }]);
+    // Mock-Antwort: einfache Befehle passen den Entwurf an, sonst Bestätigung.
+    const lowered = text.toLowerCase();
+    setTimeout(() => {
+      let reply = "Verstanden — ich passe den Entwurf an. Sag z. B. kürzer, förmlicher oder mit konkretem CTA.";
+      if (lowered.includes("kürzer") || lowered.includes("kurz")) {
+        updateEmailBody(`Hi ${firstName}, wie ist der interne Stand nach unserer Demo? Hast du diese Woche 15 Min für einen kurzen Abgleich?`);
+        reply = "Ich habe den Entwurf gekürzt.";
+      } else if (lowered.includes("förmlich")) {
+        updateEmailBody(`Sehr geehrte/r Frau/Herr ${s?.name.split(" ").pop()},\n\nich wollte mich erkundigen, wie der interne Stand nach unserer Demo ist. Hätten Sie diese Woche 15 Minuten für einen kurzen Austausch?\n\nMit freundlichen Grüßen`);
+        reply = "Ich habe den Ton förmlicher gemacht.";
+      }
+      setMessages((prev) => [...prev, { id: nextId(), role: "ai", kind: "text", text: reply }]);
+    }, 450);
   };
 
   return (
     <>
-      <Sheet open={isOpen} onOpenChange={(o) => { if (!o) onClose(); }}>
+      <Sheet open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
         <SheetContent side="drawer" className="flex flex-col font-sans overflow-hidden p-0 bg-app-surface" style={{ width: 580, maxWidth: "95vw" }}>
           {s && (
             <>
+              {/* HEADER */}
               <header className="h-[70px] px-6 border-b border-border flex items-center justify-between shrink-0 bg-app-surface z-30">
-                <div className="flex items-center gap-3">
-                  <div className="relative">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="relative shrink-0">
                     <Avatar name={s.name} src={s.avatarUrl} size={40} />
-                    <span className="absolute bottom-0 right-0 w-3 h-3 bg-[var(--signal-success-text)] border-2 border-[var(--surface)] rounded-full"></span>
+                    <span className="absolute bottom-0 right-0 w-3 h-3 bg-[var(--signal-urgent-text)] border-2 border-[var(--surface)] rounded-full"></span>
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <h3 className="text-[15px] font-bold text-text-primary leading-none">{s.name}</h3>
-                      <span className="px-2 py-0.5 rounded-full bg-[var(--signal-success-bg)] border border-[var(--signal-success-bg)] text-[var(--signal-success-text)] text-[9px] font-extrabold tracking-wide">
+                      <h3 className="text-[15px] font-bold text-text-primary leading-none truncate">{s.name}</h3>
+                      <span className="px-2 py-0.5 rounded-full bg-[var(--signal-success-bg)] border border-[var(--signal-success-bg)] text-[var(--signal-success-text)] text-[9px] font-extrabold tracking-wide shrink-0">
                         ICP: {s.icpScore}
                       </span>
                     </div>
-                    <p className="text-[11px] font-medium text-text-muted mt-1">{s.company}</p>
+                    <p className="text-[11px] font-medium text-text-muted mt-1 truncate">{s.company}</p>
                   </div>
                 </div>
                 <SheetClose asChild>
-                  <button className="w-8 h-8 rounded-full bg-app-bg flex items-center justify-center text-text-muted hover:text-text-primary transition-colors cursor-pointer">
+                  <button className="w-8 h-8 rounded-full bg-app-bg flex items-center justify-center text-text-muted hover:text-text-primary transition-colors cursor-pointer shrink-0">
                     <X className="w-4 h-4" />
                   </button>
                 </SheetClose>
               </header>
 
-              {/* SCROLLABLE CONTENT — custom-scrollbar wie Kontakt-Panel */}
-              <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-app-surface custom-scrollbar">
-
-                {/* Alert Section */}
-                <section className="space-y-2">
-                  <span className="text-[10px] font-bold text-[var(--signal-urgent-text)] uppercase tracking-widest flex items-center gap-1.5">
-                    <Clock className="w-3 h-3" /> {t('hunter.drawers.stagnated.dealStagnated')}
-                  </span>
-                  <div className="p-4 bg-[var(--signal-urgent-bg)] border border-[var(--signal-urgent-bg)] rounded-xl text-[13px] text-[var(--signal-urgent-text)] font-medium leading-relaxed">
-                    {t('hunter.drawers.stagnated.context', { days: s.daysStagnated, stage: s.stageName, lastContactDays: s.lastContactDays })}
-                    <div className="mt-2 text-[11px] font-bold opacity-80">{t('hunter.drawers.stagnated.arrProbability', { arr: s.arr, probability: s.probability })}</div>
+              {/* FIX OBEN: Stagniert-Hinweis + kurze AI-Empfehlung */}
+              <div className="px-6 pt-4 pb-4 space-y-3 shrink-0 border-b border-border-subtle bg-app-surface">
+                {/* Orangener Hinweis — Text wird später serverseitig generiert
+                    (score_deal_health: daysStagnated/stageName/last_contacted_at). */}
+                <div className="p-3.5 bg-[var(--signal-urgent-bg)] border border-[var(--signal-urgent-bg)] rounded-[12px]">
+                  <div className="flex items-center gap-1.5 text-[10px] font-extrabold text-[var(--signal-urgent-text)] uppercase tracking-widest">
+                    <Clock className="w-3 h-3" /> Deal stagniert
                   </div>
-                </section>
+                  <p className="text-[13px] text-[var(--signal-urgent-text)] font-semibold leading-relaxed mt-1">
+                    {s.daysStagnated} Tage in „{s.stageName}" · seit {s.lastContactDays} Tagen kein Kontakt
+                  </p>
+                </div>
 
-                {/* AI Recommendation Section */}
-                <section className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-bold text-[var(--sherloq-primary)] uppercase tracking-widest flex items-center gap-1.5">
-                      <Sparkles className="w-3 h-3" /> {t('hunter.common.aiRecommends')}
+                {/* AI-Empfehlung — ganz kurz, basiert auf Lead + Verlauf + Sales-Wissen */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="flex items-center gap-1.5 text-[10px] font-extrabold text-[var(--sherloq-primary)] uppercase tracking-widest">
+                      <Sparkles className="w-3 h-3" /> AI-Empfehlung
                     </span>
-                    <span className="px-2 py-0.5 rounded-full bg-[var(--signal-success-bg)] text-[var(--signal-success-text)] text-[9px] font-bold border border-[var(--signal-success-bg)]">
-                      {t('hunter.common.confidence', { n: s.confidence })}
+                    <span className="px-2 py-0.5 rounded-full bg-[var(--signal-success-bg)] text-[var(--signal-success-text)] text-[9px] font-extrabold">
+                      {s.confidence}% sicher
                     </span>
                   </div>
-                  <div className="p-4 bg-[var(--signal-teal-bg)] border border-[var(--signal-teal-bg)]/50 rounded-xl space-y-3">
-                    <p className="text-[13px] text-[var(--sherloq-primary)] font-medium leading-relaxed">
-                      {s.aiRecommendation}
-                    </p>
-                    <div className="text-[11px] text-[var(--sherloq-primary)]/70 font-semibold italic">
-                      “{s.aiInsight}”
-                    </div>
-                    <div className="flex gap-2 flex-wrap">
-                      {s.tags.map((tag, idx) => (
-                        <span key={idx} className="px-2.5 py-1 rounded-full bg-app-surface border border-[var(--sherloq-primary)]/10 text-[var(--sherloq-primary)] text-[10px] font-bold">
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </section>
+                  <p className="text-[13px] text-text-body font-medium leading-relaxed">{s.aiRecommendation}</p>
+                </div>
+              </div>
 
-                {/* Stage wechseln zu — Pills (nächste Stage vorausgewählt) §4.2 */}
-                <section className="space-y-2">
-                  <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest block">
-                    {t('hunter.drawers.stagnated.changeStageTo')}
-                  </span>
-                  <div className="flex gap-2 flex-wrap">
-                    {PIPELINE_STAGES.map((stage) => (
-                      <button
-                        key={stage}
-                        onClick={() => setSelectedStage(stage)}
-                        className={`px-3.5 py-2 rounded-full border text-[11px] font-extrabold transition-all cursor-pointer ${
-                          selectedStage === stage
-                            ? 'bg-[var(--sherloq-primary)] text-on-accent border-[var(--sherloq-primary)] shadow-[0_2px_8px_rgba(23,82,83,0.12)]'
-                            : 'bg-app-surface border-border text-text-muted hover:border-border-strong'
-                        }`}
-                      >
-                        {stage}
-                      </button>
-                    ))}
-                  </div>
-                </section>
-
-                {/* Composer Section */}
-                <section className="space-y-2">
-                  <div className="flex items-center justify-between text-[10px] font-bold text-text-muted uppercase tracking-widest">
-                    <span>{t('hunter.drawers.stagnated.kiAntwortEntwurf')}</span>
-                    <button onClick={handleRegenerate} className="text-[var(--sherloq-primary)] hover:underline flex items-center gap-1 font-extrabold cursor-pointer">
-                      <RotateCw className={`w-3 h-3 ${isRegenerating ? "animate-spin" : ""}`} /> {t('hunter.common.regenerate')}
-                    </button>
-                  </div>
-
-                  <div className="bg-app-surface rounded-[18px] border border-border shadow-sm overflow-hidden flex flex-col">
-                    <div className="px-4 py-3 bg-[var(--sherloq-primary)] text-on-accent text-[12px] flex items-center justify-between">
-                      <span className="font-extrabold flex items-center gap-2">
-                        <Sparkles className="w-3.5 h-3.5 fill-current" /> {t('hunter.drawers.stagnated.composerHeader')}
-                      </span>
-                      <span className="text-[10px] font-bold uppercase tracking-wider bg-on-accent/20 px-2 py-1 rounded-lg">{t('hunter.common.autoDraft')}</span>
-                    </div>
-
-                    <div className="bg-[var(--border-subtle)] min-h-[430px] p-4 flex flex-col gap-4">
-                      <div className="flex items-start gap-2 max-w-[96%]">
-                        <div className="w-7 h-7 rounded-full bg-[var(--sherloq-primary)] text-on-accent flex items-center justify-center shrink-0 shadow-sm">
-                          <Sparkles className="w-3.5 h-3.5 fill-current" />
+              {/* AI-CHAT (scrollbar) */}
+              <div className="flex-1 overflow-y-auto custom-scrollbar bg-app-bg px-5 py-5 space-y-4">
+                {messages.map((m) => {
+                  if (m.role === "user") {
+                    return (
+                      <div key={m.id} className="flex justify-end">
+                        <div className="max-w-[82%] bg-[var(--signal-info-bg)] text-text-primary rounded-2xl rounded-tr-md px-3.5 py-2 text-[13px] font-medium leading-relaxed shadow-sm">
+                          {m.text}
                         </div>
-                        <div className="flex-1">
-                          <div className="mb-1 text-[10px] font-bold uppercase tracking-wider text-text-muted">{t('hunter.common.sherloqSuggestion')}</div>
-                          <div className="bg-app-surface border border-border text-text-primary p-4 rounded-2xl rounded-tl-md shadow-sm leading-relaxed">
-                            <textarea
-                              value={draftText}
-                              onChange={(e) => setDraftText(e.target.value)}
-                              className="w-full min-h-[220px] bg-transparent resize-none outline-none text-[13px] font-medium leading-relaxed text-text-primary border-none scrollbar-none"
-                            />
+                      </div>
+                    );
+                  }
+                  // AI-Nachricht (Text oder E-Mail-Karte) — mit Sparkles-Avatar.
+                  return (
+                    <div key={m.id} className="flex items-start gap-2.5">
+                      <div className="w-7 h-7 rounded-full bg-[var(--sherloq-primary)] text-on-accent flex items-center justify-center shrink-0 shadow-sm mt-0.5">
+                        <Sparkles className="w-3.5 h-3.5 fill-current" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        {m.kind === "text" ? (
+                          <p className="text-[13px] text-text-body leading-relaxed pt-1">{m.text}</p>
+                        ) : (
+                          // E-Mail-Entwurf als Karte (Claude-Code-Stil) mit Aktionen.
+                          <div className="rounded-[12px] border border-border bg-app-surface shadow-[var(--shadow-card)] overflow-hidden">
+                            <div className="px-4 py-2.5 bg-app-bg border-b border-border flex items-center justify-between gap-2">
+                              <span className="flex items-center gap-2 text-[11px] font-bold text-text-muted uppercase tracking-wider min-w-0">
+                                <BrandLogo name="outlook" tile className="w-5 h-5 rounded-[5px] shrink-0" />
+                                <span className="truncate">E-Mail-Entwurf</span>
+                              </span>
+                              <button
+                                onClick={() => setEditing((v) => !v)}
+                                aria-label="Bearbeiten"
+                                className={`shrink-0 w-7 h-7 rounded-full flex items-center justify-center transition-colors cursor-pointer ${editing ? "bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)]" : "text-text-muted hover:text-text-primary hover:bg-app-surface"}`}
+                              >
+                                <Pencil className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                            <div className="p-4 space-y-2">
+                              <div className="flex gap-2 text-[12px]">
+                                <span className="text-text-muted w-12 shrink-0">An</span>
+                                <span className="font-semibold text-text-body truncate">{m.to}</span>
+                              </div>
+                              <div className="flex gap-2 text-[12px]">
+                                <span className="text-text-muted w-12 shrink-0">Betreff</span>
+                                <span className="font-semibold text-text-body truncate">{m.subject}</span>
+                              </div>
+                              <div className="border-t border-border-subtle pt-2.5">
+                                {editing ? (
+                                  <textarea
+                                    value={m.body}
+                                    onChange={(e) => updateEmailBody(e.target.value)}
+                                    rows={8}
+                                    className="w-full bg-app-bg border border-[var(--sherloq-primary)] rounded-[10px] p-3 text-[13px] text-text-primary leading-relaxed outline-none resize-none scrollbar-none"
+                                  />
+                                ) : (
+                                  <p className="text-[13px] text-text-body leading-relaxed whitespace-pre-wrap">{m.body}</p>
+                                )}
+                              </div>
+                            </div>
+                            <div className="px-4 py-3 border-t border-border flex items-center gap-2 flex-wrap bg-app-surface">
+                              <button
+                                onClick={() => actAndClose("E-Mail gesendet", m.body)}
+                                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-[10px] text-on-accent text-[12px] font-bold shadow-sm hover:scale-[1.02] transition-transform cursor-pointer"
+                                style={{ background: "var(--sherloq-gradient)" }}
+                              >
+                                <Send className="w-3.5 h-3.5" /> E-Mail senden
+                              </button>
+                              <button
+                                onClick={() => actAndClose(`Gesendet · Stage → ${nextStage}`, m.body)}
+                                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-[10px] bg-app-surface border border-border text-text-body text-[12px] font-bold hover:bg-app-bg transition-colors cursor-pointer"
+                              >
+                                <ArrowUpRight className="w-3.5 h-3.5" /> Senden + Stage → {nextStage}
+                              </button>
+                              <button
+                                onClick={handleRegenerate}
+                                aria-label="Neu generieren"
+                                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-[10px] bg-app-surface border border-border text-text-muted text-[12px] font-bold hover:bg-app-bg transition-colors cursor-pointer"
+                              >
+                                <RotateCw className={`w-3.5 h-3.5 ${isRegenerating ? "animate-spin" : ""}`} />
+                              </button>
+                            </div>
                           </div>
-                          <div className="flex justify-between mt-2 px-1 text-[10px] text-text-muted font-bold uppercase">
-                            <span>{t('hunter.common.draftFromSherloqToday')}</span>
-                            <span>{t('hunter.common.charsOf300', { count: draftText.length })}</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {userMessages.map((msg, idx) => (
-                        <div key={idx} className={`${msg.role === "user" ? "self-end max-w-[82%]" : "flex items-start gap-2 max-w-[96%]"}`}>
-                          {msg.role === "user" ? (
-                            <>
-                              <div className="mb-1 text-right text-[10px] font-bold uppercase tracking-wider text-text-muted">{t('hunter.common.you')}</div>
-                              <div className="bg-[var(--signal-info-bg)] border border-[var(--signal-info-bg)] text-text-primary p-3 rounded-2xl rounded-tr-md shadow-sm text-[13px] font-medium leading-relaxed">
-                                {msg.text}
-                              </div>
-                            </>
-                          ) : (
-                            <>
-                              <div className="w-7 h-7 rounded-full bg-[var(--sherloq-primary)] text-on-accent flex items-center justify-center shrink-0 shadow-sm">
-                                <Sparkles className="w-3.5 h-3.5 fill-current" />
-                              </div>
-                              <div className="flex-1">
-                                <div className="mb-1 text-[10px] font-bold uppercase tracking-wider text-text-muted">{t('hunter.common.sherloqAi')}</div>
-                                <div className="bg-app-surface border border-border text-text-primary p-3 rounded-2xl rounded-tl-md shadow-sm text-[13px] font-medium leading-relaxed">
-                                  {msg.text}
-                                </div>
-                              </div>
-                            </>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="p-3 bg-app-surface border-t border-border">
-                      <div className="flex items-end gap-2 bg-app-bg border border-border rounded-2xl px-3 py-2 focus-within:border-[var(--sherloq-primary)] focus-within:bg-app-surface transition-all">
-                        <textarea
-                          rows={1}
-                          placeholder={t('hunter.common.instructAiPlaceholder')}
-                          className="flex-1 bg-transparent resize-none outline-none text-[12px] font-medium leading-relaxed text-text-body placeholder-[var(--text-muted)] min-h-[32px] max-h-[96px] scrollbar-none"
-                          value={chatInput}
-                          onChange={(e) => setChatInput(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' && !e.shiftKey) {
-                              e.preventDefault();
-                              handleSendInstruction();
-                            }
-                          }}
-                        />
-                        <button onClick={handleSendInstruction} className="w-8 h-8 rounded-full bg-[var(--sherloq-primary)] hover:bg-[var(--sherloq-primary)] text-on-accent flex items-center justify-center shrink-0 transition-colors cursor-pointer">
-                          <Send className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                      <div className="flex justify-between items-center mt-2 px-1 text-[10px] text-text-muted font-bold">
-                        <span>{t('hunter.drawers.stagnated.aiHint')}</span>
-                        <span>{t('hunter.common.enterToSend')}</span>
+                        )}
                       </div>
                     </div>
-                  </div>
-                </section>
+                  );
+                })}
+                <div ref={msgEndRef} />
+              </div>
 
-                <section className="space-y-2 pt-2">
+              {/* CHAT-EINGABE (sticky) + Disclaimer */}
+              <div className="shrink-0 border-t border-border bg-app-surface px-4 pt-3 pb-3">
+                <div className="flex items-end gap-2 bg-app-bg border border-border rounded-[14px] px-3 py-2 focus-within:border-[var(--sherloq-primary)] focus-within:bg-app-surface transition-all">
+                  <textarea
+                    rows={1}
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSend();
+                      }
+                    }}
+                    placeholder={`Sherloq zu ${firstName} fragen…`}
+                    className="flex-1 bg-transparent resize-none outline-none text-[13px] font-medium leading-relaxed text-text-body placeholder-[var(--text-muted)] min-h-[28px] max-h-[96px] scrollbar-none py-1"
+                  />
                   <button
-                    onClick={() => actAndClose(t('hunter.drawers.stagnated.toastSavedStageChanged', { stage: selectedStage }), () => onTakeAction(draftText))}
-                    className="w-full py-3 text-on-accent rounded-full text-[13px] font-bold shadow-md hover:scale-[1.01] transition-transform cursor-pointer"
+                    onClick={handleSend}
+                    aria-label="Senden"
+                    className="w-9 h-9 rounded-full text-on-accent flex items-center justify-center shrink-0 hover:scale-105 transition-transform cursor-pointer shadow-sm"
                     style={{ background: "var(--sherloq-gradient)" }}
                   >
-                    {t('hunter.drawers.stagnated.saveAndChangeStage')}
+                    <Send className="w-4 h-4" />
                   </button>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button onClick={() => actAndClose(t('hunter.drawers.stagnated.toastTaskSaved'))} className="py-2.5 bg-app-surface border border-border rounded-full text-[11px] font-bold text-text-body hover:bg-app-bg cursor-pointer transition-colors">{t('hunter.drawers.stagnated.onlySaveTask')}</button>
-                    <button onClick={() => actAndClose(t('hunter.drawers.stagnated.toastIgnored'))} className="py-2.5 bg-app-surface border border-border rounded-full text-[11px] font-bold text-text-body hover:bg-app-bg cursor-pointer transition-colors">{t('hunter.common.ignore')}</button>
-                  </div>
-                </section>
+                </div>
+                <p className="text-[10px] text-text-muted text-center mt-2">
+                  Sherloq AI kann Fehler machen — wichtige Infos bitte prüfen.
+                </p>
               </div>
             </>
           )}
         </SheetContent>
       </Sheet>
 
-      {showToast && (
+      {toast && (
         <div className="fixed bottom-6 right-6 z-[120] bg-inverse-surface text-on-accent px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2 animate-fade-in">
-          <Check className="w-4 h-4 text-emerald-400" />
-          <span className="text-xs font-semibold">{toastMessage}</span>
+          <Check className="w-4 h-4 text-[var(--signal-success-text)]" />
+          <span className="text-xs font-semibold">{toast}</span>
         </div>
       )}
     </>
