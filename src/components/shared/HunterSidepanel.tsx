@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/popover';
 import LinkedinIcon from '@/components/shared/LinkedinIcon';
 import BrandLogo from '@/components/shared/BrandLogo';
+import Avatar from '@/components/shared/Avatar';
 
 /** Kanonische Default-Stages (Spec §3.2) — bis zum DB-Wiring dokumentierter Fallback. */
 const PIPELINE_STAGES = ['Backlog', 'Demo vereinbart', 'Follow-up offen', 'Onboarding offen', 'Free Trial', 'Gewonnen'];
@@ -279,11 +280,7 @@ export default function HunterSidepanel({ person: personProp, onClose }: { perso
       <header className="p-7 pb-0 bg-app-surface items-start relative z-10 border-b border-border-subtle shrink-0">
         <div className="flex items-start justify-between gap-6">
           <div className="flex items-center gap-4 min-w-0">
-            <div className="relative shrink-0">
-              <div className="w-16 h-16 rounded-full bg-[var(--signal-teal-bg)] flex items-center justify-center text-[var(--sherloq-primary)] text-xl font-bold shadow-sm">
-                {person.initials || "CB"}
-              </div>
-            </div>
+            <Avatar name={person.name || "Christian Brand"} src={person.avatarUrl} size={64} className="shadow-sm" />
 
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">

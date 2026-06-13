@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Calendar, X, Mail, Link2, Phone, Video, MessageCircle, AlertTriangle } from "lucide-react";
+import Avatar from "@/components/shared/Avatar";
 
 interface TaskDrawerProps {
   person: any;
@@ -47,15 +48,7 @@ export default function TaskDrawer({
             <div className="flex flex-col gap-6 mb-8 pr-12">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="relative">
-                    {person.person.avatarUrl ? (
-                      <img src={person.person.avatarUrl} alt={person.person.name} className="w-16 h-16 rounded-[20px] object-cover shadow-sm" />
-                    ) : (
-                      <div className="w-16 h-16 rounded-[20px] bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)] flex items-center justify-center font-sans font-bold text-[22px] shadow-sm">
-                        {person.person.initials}
-                      </div>
-                    )}
-                  </div>
+                  <Avatar name={person.person.name} src={person.person.avatarUrl} size={64} radius={20} className="shadow-sm" />
                   <div className="flex flex-col justify-center">
                     <div className="flex items-center gap-3">
                       <h2 className="text-[20px] font-extrabold text-[var(--text-primary)] font-sans tracking-tight leading-none">{person.person.name}</h2>

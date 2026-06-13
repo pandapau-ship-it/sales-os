@@ -4,6 +4,7 @@ import { AlertTriangle, X, Sparkles, ClipboardList, Mail, Phone, Calendar, Check
 import { Sheet, SheetContent, SheetClose } from "@/components/ui/sheet";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import LinkedinIcon from "@/components/shared/LinkedinIcon";
+import Avatar from "@/components/shared/Avatar";
 
 interface NoTaskPerson {
   name: string;
@@ -93,11 +94,7 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
               {/* HEADER */}
               <header className="h-[74px] px-6 border-b border-border flex items-center justify-between shrink-0 bg-app-surface z-30">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="relative shrink-0">
-                    <div className="w-11 h-11 rounded-full bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)] flex items-center justify-center font-extrabold text-[15px] shadow-sm">
-                      {s.avatarInitials || "SJ"}
-                    </div>
-                  </div>
+                  <Avatar name={s.name || "Sarah Jenkins"} size={44} className="shadow-sm" />
 
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">

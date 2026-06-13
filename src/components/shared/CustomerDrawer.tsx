@@ -27,6 +27,7 @@ import {
 import type { Lead, Customer } from "@/types";
 import { getHeatColor } from "@/lib/heatUtils";
 import BrandLogo from "@/components/shared/BrandLogo";
+import Avatar from "@/components/shared/Avatar";
 
 interface CustomerDrawerProps {
   person: Lead | Customer | null;
@@ -103,11 +104,7 @@ export default function CustomerDrawer({
             {/* Header Area */}
             <div className="flex items-center justify-between mb-2 mt-4 pr-12">
               <div className="flex items-center gap-4">
-                <div className="relative">
-                  <div className="w-14 h-14 rounded-[14px] bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)] flex items-center justify-center font-sans font-bold text-[20px]">
-                    {person.person.initials}
-                  </div>
-                </div>
+                <Avatar name={person.person.name} src={person.person.avatarUrl} size={56} radius={14} />
 
                 <div className="flex flex-col justify-center">
                   <div className="flex items-center gap-3">
