@@ -1,12 +1,13 @@
 /**
  * AddSdrLeadPanel — Action-Side-Panel (580px) zum Anlegen eines SDR-Leads.
  * Felder: Anrede · Vorname/Nachname (getrennt) · Rolle (Combobox, frei) ·
- * Unternehmen (mit Bestands-Suche) · E-Mail · LinkedIn · Quelle · Telefonnummern
- * (Mobil/Geschäftlich/Privat, wie im Hunter-Panel) · Notizen.
+ * Unternehmen (mit Bestands-Suche) · E-Mail · LinkedIn · Telefonnummern · Owner ·
+ * Quelle · Pipeline-Stage · Notizen · optionaler Deal (Wert, Owner, ARR/MRR, Abschluss).
+ * Pflicht: Vorname, Nachname, E-Mail, Owner. Stage ↔ Deal sind gekoppelt (beide o. keins).
  * NICHT erfasst: Lead-Heat (System berechnet) & KI-Kurzakte (KI befüllt nachträglich).
  */
 import { useState } from "react";
-import { Target, X, Check, Phone, Star, Plus, Trash2, Mail, Search, Building2, Briefcase, Euro, Calendar } from "lucide-react";
+import { Target, X, Check, Phone, Star, Plus, Trash2, Mail, Search, Building2, Briefcase, Euro, Calendar, Info } from "lucide-react";
 import ActionPanel from "@/components/panels/ActionPanel";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import LinkedinIcon from "@/components/shared/LinkedinIcon";
@@ -31,9 +32,12 @@ const STAGES: { id: Lead["pipelineStage"]; label: string }[] = [
   { id: "sequence", label: "Onboarding offen" },
   { id: "trial", label: "Free Trial" },
 ];
+const OWNERS = ["Oliver Sand", "Lena Brandt", "Marc Vogel"];
 
 const FIELD =
   "w-full text-[12px] font-sans px-3.5 py-2.5 bg-app-bg border border-border focus:border-[var(--sherloq-primary)] rounded-[10px] focus:outline-none transition-colors placeholder-[var(--text-muted)]";
+const FIELD_SURFACE =
+  "w-full text-[12px] font-sans px-3.5 py-2.5 bg-app-surface border border-border focus:border-[var(--sherloq-primary)] rounded-[10px] focus:outline-none transition-colors placeholder-[var(--text-muted)]";
 const LABEL = "text-[11px] text-text-muted font-semibold block mb-1";
 const Req = () => <span className="text-[var(--signal-danger-text)]"> *</span>;
 
@@ -56,12 +60,15 @@ export default function AddSdrLeadPanel({ open, onClose, onAdd }: AddSdrLeadPane
   const [linkedin, setLinkedin] = useState("");
   const [source, setSource] = useState("Manuell");
   const [phones, setPhones] = useState<PhoneRow[]>([{ id: 1, type: "Mobil", number: "", favorite: true }]);
+  const [owner, setOwner] = useState("");
   const [stage, setStage] = useState<string>("");
   const [notes, setNotes] = useState("");
   // Optionaler Deal
   const [showDeal, setShowDeal] = useState(false);
-  const [dealName, setDealName] = useState("");
   const [dealValue, setDealValue] = useState("");
+  const [dealOwner, setDealOwner] = useState("");
+  const [dealArr, setDealArr] = useState("");
+  const [dealMrr, setDealMrr] = useState("");
   const [dealClose, setDealClose] = useState("");
 
   const companyMatches = company.trim().length >= 1
@@ -71,9 +78,9 @@ export default function AddSdrLeadPanel({ open, onClose, onAdd }: AddSdrLeadPane
 
   const reset = () => {
     setAnrede(""); setVorname(""); setNachname(""); setRole(""); setCompany("");
-    setEmail(""); setLinkedin(""); setSource("Manuell"); setStage("");
+    setEmail(""); setLinkedin(""); setSource("Manuell"); setOwner(""); setStage("");
     setPhones([{ id: 1, type: "Mobil", number: "", favorite: true }]); setNotes("");
-    setShowDeal(false); setDealName(""); setDealValue(""); setDealClose("");
+    setShowDeal(false); setDealValue(""); setDealOwner(""); setDealArr(""); setDealMrr(""); setDealClose("");
   };
   const close = () => onClose();
 
@@ -89,7 +96,15 @@ export default function AddSdrLeadPanel({ open, onClose, onAdd }: AddSdrLeadPane
   const patchPhone = (id: number, key: "type" | "number", val: string) =>
     setPhones((p) => p.map((x) => (x.id === id ? { ...x, [key]: val } : x)));
 
-  const canSubmit = Boolean(vorname.trim() && nachname.trim() && email.trim());
+  // Pipeline-Stage und Deal gehören zusammen: entweder beide oder keins.
+  const couplingOk = (stage !== "") === showDeal;
+  const canSubmit = Boolean(vorname.trim() && nachname.trim() && email.trim() && owner && couplingOk);
+  const couplingHint =
+    stage !== "" && !showDeal
+      ? "Du hast eine Pipeline-Stage gewählt — leg jetzt noch den passenden Deal an, dann ist alles startklar."
+      : showDeal && stage === ""
+        ? "Fast geschafft — wähle oben die Pipeline-Stage, in der dieser Deal starten soll, dann kannst du speichern."
+        : null;
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -278,6 +293,17 @@ export default function AddSdrLeadPanel({ open, onClose, onAdd }: AddSdrLeadPane
             <p className="text-[10px] font-bold uppercase tracking-wider text-text-muted">Einordnung</p>
             <div className="grid grid-cols-2 gap-3">
               <div>
+                <label className={LABEL}>Owner<Req /></label>
+                <Select value={owner || undefined} onValueChange={setOwner}>
+                  <SelectTrigger className="w-full rounded-[10px] border-border bg-app-bg text-[12px] font-semibold text-text-primary">
+                    <SelectValue placeholder="Zuständig…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {OWNERS.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
                 <label className={LABEL}>Quelle</label>
                 <Select value={source} onValueChange={setSource}>
                   <SelectTrigger className="w-full rounded-[10px] border-border bg-app-bg text-[12px] font-semibold text-text-primary">
@@ -288,18 +314,18 @@ export default function AddSdrLeadPanel({ open, onClose, onAdd }: AddSdrLeadPane
                   </SelectContent>
                 </Select>
               </div>
-              <div>
-                <label className={LABEL}>Pipeline-Stage</label>
-                <Select value={stage || "none"} onValueChange={(v) => setStage(v === "none" ? "" : v)}>
-                  <SelectTrigger className="w-full rounded-[10px] border-border bg-app-bg text-[12px] font-semibold text-text-primary">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none"><span className="text-text-muted">— Keine Stage</span></SelectItem>
-                    {STAGES.map((s) => <SelectItem key={s.id} value={s.id}>{s.label}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
+            </div>
+            <div>
+              <label className={LABEL}>Pipeline-Stage</label>
+              <Select value={stage || "none"} onValueChange={(v) => setStage(v === "none" ? "" : v)}>
+                <SelectTrigger className="w-full rounded-[10px] border-border bg-app-bg text-[12px] font-semibold text-text-primary">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none"><span className="text-text-muted">— Keine Stage</span></SelectItem>
+                  {STAGES.map((s) => <SelectItem key={s.id} value={s.id}>{s.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <label className={LABEL}>Notizen</label>
@@ -325,31 +351,63 @@ export default function AddSdrLeadPanel({ open, onClose, onAdd }: AddSdrLeadPane
                     <Trash2 className="w-3.5 h-3.5" /> entfernen
                   </button>
                 </div>
-                <div>
-                  <label className={LABEL}>Deal-Name</label>
-                  <input type="text" placeholder="z. B. LogixFlow — Enterprise" value={dealName} onChange={(e) => setDealName(e.target.value)} className="w-full text-[12px] font-sans px-3.5 py-2.5 bg-app-surface border border-border focus:border-[var(--sherloq-primary)] rounded-[10px] focus:outline-none transition-colors placeholder-[var(--text-muted)]" />
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className={LABEL}>Wert / Betrag</label>
+                    <div className="relative">
+                      <Euro className="w-3.5 h-3.5 text-text-muted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      <input type="number" min="0" step="100" placeholder="25000" value={dealValue} onChange={(e) => setDealValue(e.target.value)} className={`${FIELD_SURFACE} pl-9`} />
+                    </div>
+                  </div>
+                  <div>
+                    <label className={LABEL}>Owner</label>
+                    <Select value={dealOwner || undefined} onValueChange={setDealOwner}>
+                      <SelectTrigger className="w-full rounded-[10px] border-border bg-app-surface text-[12px]">
+                        <SelectValue placeholder="Zuständig…" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {OWNERS.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className={LABEL}>Wert</label>
+                    <label className={LABEL}>ARR <span className="font-normal text-text-muted">(optional)</span></label>
                     <div className="relative">
                       <Euro className="w-3.5 h-3.5 text-text-muted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                      <input type="number" min="0" step="100" placeholder="25000" value={dealValue} onChange={(e) => setDealValue(e.target.value)} className="w-full text-[12px] font-sans pl-9 pr-3.5 py-2.5 bg-app-surface border border-border focus:border-[var(--sherloq-primary)] rounded-[10px] focus:outline-none transition-colors placeholder-[var(--text-muted)]" />
+                      <input type="number" min="0" step="100" placeholder="12000" value={dealArr} onChange={(e) => setDealArr(e.target.value)} className={`${FIELD_SURFACE} pl-9`} />
                     </div>
                   </div>
                   <div>
-                    <label className={LABEL}>Abschluss (erwartet)</label>
+                    <label className={LABEL}>MRR <span className="font-normal text-text-muted">(optional)</span></label>
                     <div className="relative">
-                      <Calendar className="w-3.5 h-3.5 text-text-muted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                      <input type="date" value={dealClose} onChange={(e) => setDealClose(e.target.value)} className="w-full text-[12px] font-sans pl-9 pr-3 py-2.5 bg-app-surface border border-border focus:border-[var(--sherloq-primary)] rounded-[10px] focus:outline-none transition-colors text-text-body" />
+                      <Euro className="w-3.5 h-3.5 text-text-muted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      <input type="number" min="0" step="100" placeholder="1000" value={dealMrr} onChange={(e) => setDealMrr(e.target.value)} className={`${FIELD_SURFACE} pl-9`} />
                     </div>
                   </div>
                 </div>
-                <p className="text-[10px] text-text-muted">Stage übernimmt die oben gewählte Pipeline-Stage.</p>
+                <div>
+                  <label className={LABEL}>Abschluss-Datum (erwartet)</label>
+                  <div className="relative">
+                    <Calendar className="w-3.5 h-3.5 text-text-muted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input type="date" value={dealClose} onChange={(e) => setDealClose(e.target.value)} className={`${FIELD_SURFACE} pl-9 pr-3 text-text-body`} />
+                  </div>
+                </div>
               </div>
             )}
           </section>
         </div>
+
+        {/* Positiver Kopplungs-Hinweis (Stage ↔ Deal) */}
+        {couplingHint && (
+          <div className="shrink-0 px-4 pt-3">
+            <div className="flex items-start gap-2 p-3 rounded-[10px] bg-[var(--signal-info-bg)] border border-[var(--signal-info-bg)]">
+              <Info className="w-4 h-4 shrink-0 mt-px text-[var(--signal-info-text)]" />
+              <p className="text-[11px] font-semibold leading-relaxed text-[var(--signal-info-text)]">{couplingHint}</p>
+            </div>
+          </div>
+        )}
 
         {/* FOOTER */}
         <div className="shrink-0 border-t border-border-subtle p-4 flex items-center justify-end gap-2 bg-app-surface">
