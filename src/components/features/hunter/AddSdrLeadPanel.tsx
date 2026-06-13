@@ -6,7 +6,7 @@
  * NICHT erfasst: Lead-Heat (System berechnet) & KI-Kurzakte (KI befüllt nachträglich).
  */
 import { useState } from "react";
-import { Target, X, Check, Phone, Star, Plus, Trash2, Mail, Search, Building2 } from "lucide-react";
+import { Target, X, Check, Phone, Star, Plus, Trash2, Mail, Search, Building2, Briefcase, Euro, Calendar } from "lucide-react";
 import ActionPanel from "@/components/panels/ActionPanel";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import LinkedinIcon from "@/components/shared/LinkedinIcon";
@@ -24,10 +24,18 @@ const ROLE_SUGGESTIONS = [
 const SOURCES = ["Manuell", "LinkedIn", "Sherloq Signal", "Empfehlung", "Event", "Website", "Kaltakquise"];
 const ANREDEN = ["Herr", "Frau", "Divers"];
 const PHONE_TYPES = ["Mobil", "Geschäftlich", "Privat"];
+const STAGES: { id: Lead["pipelineStage"]; label: string }[] = [
+  { id: "lead", label: "Backlog" },
+  { id: "pipeline", label: "Demo vereinbart" },
+  { id: "signal", label: "Follow-up offen" },
+  { id: "sequence", label: "Onboarding offen" },
+  { id: "trial", label: "Free Trial" },
+];
 
 const FIELD =
   "w-full text-[12px] font-sans px-3.5 py-2.5 bg-app-bg border border-border focus:border-[var(--sherloq-primary)] rounded-[10px] focus:outline-none transition-colors placeholder-[var(--text-muted)]";
 const LABEL = "text-[11px] text-text-muted font-semibold block mb-1";
+const Req = () => <span className="text-[var(--signal-danger-text)]"> *</span>;
 
 interface PhoneRow { id: number; type: string; number: string; favorite: boolean; }
 
@@ -48,7 +56,13 @@ export default function AddSdrLeadPanel({ open, onClose, onAdd }: AddSdrLeadPane
   const [linkedin, setLinkedin] = useState("");
   const [source, setSource] = useState("Manuell");
   const [phones, setPhones] = useState<PhoneRow[]>([{ id: 1, type: "Mobil", number: "", favorite: true }]);
+  const [stage, setStage] = useState<string>("");
   const [notes, setNotes] = useState("");
+  // Optionaler Deal
+  const [showDeal, setShowDeal] = useState(false);
+  const [dealName, setDealName] = useState("");
+  const [dealValue, setDealValue] = useState("");
+  const [dealClose, setDealClose] = useState("");
 
   const companyMatches = company.trim().length >= 1
     ? EXISTING_COMPANIES.filter((c) => c.toLowerCase().includes(company.trim().toLowerCase()) && c.toLowerCase() !== company.trim().toLowerCase())
@@ -57,8 +71,9 @@ export default function AddSdrLeadPanel({ open, onClose, onAdd }: AddSdrLeadPane
 
   const reset = () => {
     setAnrede(""); setVorname(""); setNachname(""); setRole(""); setCompany("");
-    setEmail(""); setLinkedin(""); setSource("Manuell");
+    setEmail(""); setLinkedin(""); setSource("Manuell"); setStage("");
     setPhones([{ id: 1, type: "Mobil", number: "", favorite: true }]); setNotes("");
+    setShowDeal(false); setDealName(""); setDealValue(""); setDealClose("");
   };
   const close = () => onClose();
 
@@ -74,12 +89,12 @@ export default function AddSdrLeadPanel({ open, onClose, onAdd }: AddSdrLeadPane
   const patchPhone = (id: number, key: "type" | "number", val: string) =>
     setPhones((p) => p.map((x) => (x.id === id ? { ...x, [key]: val } : x)));
 
-  const canSubmit = (vorname.trim() && nachname.trim()) || linkedin.trim();
+  const canSubmit = Boolean(vorname.trim() && nachname.trim() && email.trim());
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!canSubmit) return;
-    const fullName = [vorname.trim(), nachname.trim()].filter(Boolean).join(" ") || linkedin.trim();
+    const fullName = [vorname.trim(), nachname.trim()].filter(Boolean).join(" ");
     const id = `lead-new-${Date.now()}`;
     const lead: Lead = {
       id,
@@ -97,8 +112,9 @@ export default function AddSdrLeadPanel({ open, onClose, onAdd }: AddSdrLeadPane
       heatStatus: "WARM", // Heat wird vom System berechnet – Default neutral
       heatScore: 3,
       lastActivity: "Gerade eben",
-      pipelineStage: "lead",
-      contactEmail: email.trim() || "—",
+      pipelineStage: (stage || "lead") as Lead["pipelineStage"],
+      contactEmail: email.trim(),
+      dealValue: showDeal && dealValue ? Number(dealValue) : undefined,
     };
     onAdd(lead);
     reset();
@@ -138,11 +154,11 @@ export default function AddSdrLeadPanel({ open, onClose, onAdd }: AddSdrLeadPane
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className={LABEL}>Vorname</label>
+                  <label className={LABEL}>Vorname<Req /></label>
                   <input type="text" placeholder="Christian" value={vorname} onChange={(e) => setVorname(e.target.value)} className={FIELD} />
                 </div>
                 <div>
-                  <label className={LABEL}>Nachname</label>
+                  <label className={LABEL}>Nachname<Req /></label>
                   <input type="text" placeholder="Brand" value={nachname} onChange={(e) => setNachname(e.target.value)} className={FIELD} />
                 </div>
               </div>
@@ -203,7 +219,7 @@ export default function AddSdrLeadPanel({ open, onClose, onAdd }: AddSdrLeadPane
           <section className="flex flex-col gap-3">
             <p className="text-[10px] font-bold uppercase tracking-wider text-text-muted">Kontakt</p>
             <div>
-              <label className={LABEL}>E-Mail</label>
+              <label className={LABEL}>E-Mail<Req /></label>
               <div className="relative">
                 <Mail className="w-3.5 h-3.5 text-text-muted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <input type="email" placeholder="c.brand@firma.de" value={email} onChange={(e) => setEmail(e.target.value)} className={`${FIELD} pl-9`} />
@@ -260,22 +276,79 @@ export default function AddSdrLeadPanel({ open, onClose, onAdd }: AddSdrLeadPane
           {/* META */}
           <section className="flex flex-col gap-3">
             <p className="text-[10px] font-bold uppercase tracking-wider text-text-muted">Einordnung</p>
-            <div>
-              <label className={LABEL}>Quelle</label>
-              <Select value={source} onValueChange={setSource}>
-                <SelectTrigger className="w-full rounded-[10px] border-border bg-app-bg text-[12px] font-semibold text-text-primary">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {SOURCES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                </SelectContent>
-              </Select>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className={LABEL}>Quelle</label>
+                <Select value={source} onValueChange={setSource}>
+                  <SelectTrigger className="w-full rounded-[10px] border-border bg-app-bg text-[12px] font-semibold text-text-primary">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SOURCES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className={LABEL}>Pipeline-Stage</label>
+                <Select value={stage || "none"} onValueChange={(v) => setStage(v === "none" ? "" : v)}>
+                  <SelectTrigger className="w-full rounded-[10px] border-border bg-app-bg text-[12px] font-semibold text-text-primary">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none"><span className="text-text-muted">— Keine Stage</span></SelectItem>
+                    {STAGES.map((s) => <SelectItem key={s.id} value={s.id}>{s.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             <div>
               <label className={LABEL}>Notizen</label>
               <textarea placeholder="Kontext, nächste Schritte, Hinweise…" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} className="w-full text-[12px] font-sans leading-relaxed p-3 bg-app-bg border border-border focus:border-[var(--sherloq-primary)] rounded-[10px] focus:outline-none resize-none transition-colors placeholder-[var(--text-muted)]" />
               <p className="text-[10px] text-text-muted mt-1">Lead-Heat &amp; KI-Kurzakte werden automatisch vom System ergänzt.</p>
             </div>
+          </section>
+
+          {/* DEAL (optional) */}
+          <section className="flex flex-col gap-3">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-text-muted">Deal</p>
+            {!showDeal ? (
+              <button type="button" onClick={() => setShowDeal(true)} className="w-full flex items-center justify-center gap-2 py-3 rounded-[10px] border border-dashed border-border text-[12px] font-semibold text-[var(--sherloq-primary)] hover:bg-app-bg transition-colors cursor-pointer">
+                <Briefcase className="w-4 h-4" /> Deal anlegen
+              </button>
+            ) : (
+              <div className="rounded-[12px] border border-border bg-app-bg p-4 flex flex-col gap-3 animate-fade-in">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Briefcase className="w-4 h-4 text-[var(--sherloq-primary)]" />
+                    <span className="text-[12px] font-bold text-text-primary">Neuer Deal</span>
+                  </div>
+                  <button type="button" onClick={() => setShowDeal(false)} aria-label="Deal entfernen" className="text-[11px] font-semibold text-text-muted hover:text-[var(--signal-danger-text)] transition-colors cursor-pointer inline-flex items-center gap-1">
+                    <Trash2 className="w-3.5 h-3.5" /> entfernen
+                  </button>
+                </div>
+                <div>
+                  <label className={LABEL}>Deal-Name</label>
+                  <input type="text" placeholder="z. B. LogixFlow — Enterprise" value={dealName} onChange={(e) => setDealName(e.target.value)} className="w-full text-[12px] font-sans px-3.5 py-2.5 bg-app-surface border border-border focus:border-[var(--sherloq-primary)] rounded-[10px] focus:outline-none transition-colors placeholder-[var(--text-muted)]" />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className={LABEL}>Wert</label>
+                    <div className="relative">
+                      <Euro className="w-3.5 h-3.5 text-text-muted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      <input type="number" min="0" step="100" placeholder="25000" value={dealValue} onChange={(e) => setDealValue(e.target.value)} className="w-full text-[12px] font-sans pl-9 pr-3.5 py-2.5 bg-app-surface border border-border focus:border-[var(--sherloq-primary)] rounded-[10px] focus:outline-none transition-colors placeholder-[var(--text-muted)]" />
+                    </div>
+                  </div>
+                  <div>
+                    <label className={LABEL}>Abschluss (erwartet)</label>
+                    <div className="relative">
+                      <Calendar className="w-3.5 h-3.5 text-text-muted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      <input type="date" value={dealClose} onChange={(e) => setDealClose(e.target.value)} className="w-full text-[12px] font-sans pl-9 pr-3 py-2.5 bg-app-surface border border-border focus:border-[var(--sherloq-primary)] rounded-[10px] focus:outline-none transition-colors text-text-body" />
+                    </div>
+                  </div>
+                </div>
+                <p className="text-[10px] text-text-muted">Stage übernimmt die oben gewählte Pipeline-Stage.</p>
+              </div>
+            )}
           </section>
         </div>
 
