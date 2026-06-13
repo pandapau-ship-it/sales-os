@@ -104,7 +104,7 @@ export default function CustomerDrawer({
             <div className="flex items-center justify-between mb-2 mt-4 pr-12">
               <div className="flex items-center gap-4">
                 <div className="relative">
-                  <div className="w-14 h-14 rounded-[14px] bg-sherloq-primary text-on-accent flex items-center justify-center font-sans font-bold text-[20px]">
+                  <div className="w-14 h-14 rounded-[14px] bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)] flex items-center justify-center font-sans font-bold text-[20px]">
                     {person.person.initials}
                   </div>
                 </div>

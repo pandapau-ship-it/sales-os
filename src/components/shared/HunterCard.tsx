@@ -55,7 +55,6 @@ export default function HunterCard({
   actionRow,
   selected = false,
   onToggleSelect,
-  statusDotClass = "bg-[var(--signal-info-text)]",
 }: HunterCardProps) {
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
@@ -83,7 +82,6 @@ export default function HunterCard({
           <div className={`flex items-center gap-4 flex-1 min-w-0 transition-all duration-300 ${onToggleSelect ? "ml-0 group-hover:ml-8" : ""}`}>
             <div className="relative shrink-0">
               <Avatar name={data.name} src={data.avatarUrl} size={CARD.avatarSize} />
-              <div className={`${CARD.statusDot} ${statusDotClass}`}></div>
             </div>
             <div className="flex flex-col min-w-0">
               <span className={CARD.name}>{data.name}</span>

@@ -463,7 +463,6 @@ export default function ScreenHunting({
                   <div className="flex items-center gap-4 flex-1 min-w-0 ml-0 group-hover:ml-8 transition-all duration-300">
                     <div className="relative shrink-0">
                       <Avatar name={lead.person.name} src={lead.person.avatarUrl} size={40} />
-                      <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-[var(--signal-info-text)] border-2 border-[var(--surface)] rounded-full"></div>
                     </div>
                     <div className="flex flex-col min-w-0">
                       <span className="text-[14px] font-bold text-[var(--text-primary)] font-sans">{lead.person.name}</span>

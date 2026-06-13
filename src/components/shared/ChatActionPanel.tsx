@@ -158,7 +158,6 @@ export default function ChatActionPanel({ open, config, onClose }: ChatActionPan
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="relative shrink-0">
                     <Avatar name={s.person.name} src={s.person.avatarUrl} size={40} />
-                    <span className="absolute bottom-0 right-0 w-3 h-3 border-2 border-[var(--surface)] rounded-full" style={{ background: TONE[s.statusDotTone].text }}></span>
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">

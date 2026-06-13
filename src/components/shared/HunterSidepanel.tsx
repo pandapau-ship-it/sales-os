@@ -283,7 +283,6 @@ export default function HunterSidepanel({ person: personProp, onClose }: { perso
               <div className="w-16 h-16 rounded-full bg-[var(--signal-teal-bg)] flex items-center justify-center text-[var(--sherloq-primary)] text-xl font-bold shadow-sm">
                 {person.initials || "CB"}
               </div>
-              <span className="absolute bottom-0.5 right-0.5 w-4 h-4 bg-[var(--signal-success-text)] border-2 border-[var(--surface)] rounded-full"></span>
             </div>
 
             <div className="min-w-0">

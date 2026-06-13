@@ -51,11 +51,10 @@ export default function TaskDrawer({
                     {person.person.avatarUrl ? (
                       <img src={person.person.avatarUrl} alt={person.person.name} className="w-16 h-16 rounded-[20px] object-cover shadow-sm" />
                     ) : (
-                      <div className="w-16 h-16 rounded-[20px] bg-[var(--sherloq-primary)] text-on-accent flex items-center justify-center font-sans font-bold text-[22px] shadow-sm">
+                      <div className="w-16 h-16 rounded-[20px] bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)] flex items-center justify-center font-sans font-bold text-[22px] shadow-sm">
                         {person.person.initials}
                       </div>
                     )}
-                    <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-[var(--signal-info-text)] border-2 border-[var(--surface)] rounded-full" />
                   </div>
                   <div className="flex flex-col justify-center">
                     <div className="flex items-center gap-3">

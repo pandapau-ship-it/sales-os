@@ -94,10 +94,9 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
               <header className="h-[74px] px-6 border-b border-border flex items-center justify-between shrink-0 bg-app-surface z-30">
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="relative shrink-0">
-                    <div className={`w-11 h-11 rounded-full text-on-accent flex items-center justify-center font-extrabold text-[15px] shadow-sm ${s.avatarBg || "bg-[var(--icp-medium)]"}`}>
+                    <div className="w-11 h-11 rounded-full bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)] flex items-center justify-center font-extrabold text-[15px] shadow-sm">
                       {s.avatarInitials || "SJ"}
                     </div>
-                    <span className="absolute bottom-0 right-0 w-3 h-3 bg-[var(--signal-warn-text)] border-2 border-[var(--surface)] rounded-full"></span>
                   </div>
 
                   <div className="min-w-0">
