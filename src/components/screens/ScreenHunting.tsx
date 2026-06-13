@@ -76,7 +76,6 @@ export default function ScreenHunting({
   onUpdateLeadStage,
   onAddLead,
   onSelectCommunication,
-  onOpenCopilot
 }: ScreenHuntingProps) {
   const { t } = useTranslation();
   const [subTab, setSubTab] = useState<'overview' | 'new_leads' | 'leads' | 'pipeline' | 'signals' | 'sequences' | 'follow_ups'>('leads');
@@ -398,7 +397,14 @@ export default function ScreenHunting({
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--signal-urgent-bg)] text-[var(--icp-low)] text-[10px] font-bold uppercase tracking-wider shrink-0"><Clock className="w-[11px] h-[11px]" /> {t("hunter.leadCard.stagnated")}</span>
                   <span className={ACTION_ROW.strongText}>{t("hunter.leadCard.stagnatedHint")}</span>
                 </div>
-                <button onClick={(e) => { e.stopPropagation(); onOpenCopilot?.("marc"); }} className={ACTION_ROW.ctaSecondary}>{t("hunter.leadCard.nextStep")}</button>
+                <button onClick={(e) => { e.stopPropagation(); setSelectedStagnatedPerson({
+                  name: "Marc Levigne", company: "DataPulse Corp", icpScore: 41,
+                  daysStagnated: 12, stageName: "Follow-up offen", lastContactDays: 12,
+                  arr: "8.000€", probability: "50%",
+                  aiRecommendation: "Kanalwechsel empfehlen — nach 12 Tagen ohne Reaktion ein kurzer, konkreter Nachfass mit klarem CTA.",
+                  aiInsight: "Follow-up offen seit 12 Tagen · letzter Kontakt ohne Antwort",
+                  tags: ["Follow-up überfällig", "Kanalwechsel sinnvoll"], confidence: 76,
+                }); }} className={ACTION_ROW.ctaSecondary}>{t("hunter.leadCard.nextStep")}</button>
               </>}
             />
 
@@ -416,7 +422,13 @@ export default function ScreenHunting({
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--signal-info-bg)] text-[var(--signal-info-text)] text-[10px] font-bold uppercase tracking-wider shrink-0"><PenTool className="w-[11px] h-[11px]" /> {t("hunter.leadCard.cold")}</span>
                   <span className={ACTION_ROW.strongText}>{t("hunter.leadCard.coldHint")}</span>
                 </div>
-                <div className="flex items-center gap-2 shrink-0"><button onClick={(e) => { e.stopPropagation(); onOpenCopilot?.("elena"); }} className={ACTION_ROW.ctaSecondary}>{t("hunter.leadCard.startOutreach")}</button><button onClick={(e) => e.stopPropagation()} className={ACTION_ROW.ctaSecondary}>{t("hunter.common.snooze")}</button></div>
+                <div className="flex items-center gap-2 shrink-0"><button onClick={(e) => { e.stopPropagation(); setSelectedColdPerson({
+                  name: "Elena Rostova", company: "Quantum Dynamics",
+                  daysInStage: 32, lastContactDays: 32, lastContactChannel: "Email",
+                  lastConversationSentiment: "Letztes Gespräch: Neutral · seit 32 Tagen kein Kontakt",
+                  aiRecommendation: "Reaktivierung über LinkedIn — E-Mail-Kanal erschöpft, persönlicher Aufhänger nötig.",
+                  confidence: 80, tags: ["Kalt", "E-Mail erschöpft", "LinkedIn noch nicht versucht"],
+                }); }} className={ACTION_ROW.ctaSecondary}>{t("hunter.leadCard.startOutreach")}</button><button onClick={(e) => e.stopPropagation()} className={ACTION_ROW.ctaSecondary}>{t("hunter.common.snooze")}</button></div>
               </>}
             />
 
