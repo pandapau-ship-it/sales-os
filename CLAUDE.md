@@ -105,6 +105,20 @@ Für jedes neue DB-Feature das in diesem Push enthalten ist:
 
 ---
 
+## SETUP — Nach jedem Clone einmalig ausführen
+
+```sh
+cp scripts/pre-push-hook.sh .git/hooks/pre-push
+chmod +x .git/hooks/pre-push
+```
+
+→ Ab dann läuft die DB-Checkliste automatisch vor jedem `git push`.
+(`.git/hooks/` ist nicht versioniert — der Hook muss pro Klon einmal aktiviert werden.
+Am Terminal kommt der j/n-Prompt und blockt bei „n"; ohne Terminal — automatisierter
+Push durch Claude Code / CI — wird die Checkliste nur angezeigt, nicht blockiert.)
+
+---
+
 ## Session Protocol
 
 **At the start of every session:**
