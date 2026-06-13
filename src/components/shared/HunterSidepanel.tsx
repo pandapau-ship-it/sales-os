@@ -125,7 +125,6 @@ function PhoneField({
   const [editId, setEditId] = useState<string | null>(null);
   const [draft, setDraft] = useState('');
   const fav = phones.find((p) => p.favorite) ?? phones[0];
-  const others = phones.length - 1;
   const telHref = (num: string) => `tel:${num.replace(/[^0-9+]/g, '')}`;
 
   const copy = async (p: Phone) => {
@@ -141,18 +140,17 @@ function PhoneField({
 
   return (
     <Popover open={open} onOpenChange={(o) => { setOpen(o); if (!o) setEditId(null); }}>
-      <span className="inline-flex items-center gap-1 group/phone min-w-0">
-        {/* Favorit inline — Klick öffnet die Liste */}
+      <span className="inline-flex items-center gap-1.5 group/phone min-w-0">
+        {/* Typ-Pill = Trigger: Klick zeigt die anderen Nummern in der Vorschau */}
         <PopoverTrigger asChild>
-          <span className="inline-flex items-center gap-1.5 cursor-pointer min-w-0">
-            <span className="px-1.5 py-0.5 rounded-[5px] bg-app-bg text-[9px] font-bold text-text-muted uppercase tracking-wide shrink-0">{fav.type}</span>
-            <span className="truncate transition-colors group-hover/phone:text-[var(--sherloq-primary)] group-hover/phone:font-semibold">{fav.number}</span>
-            {others > 0 && (
-              <span className="opacity-0 group-hover/phone:opacity-100 transition-opacity text-[10px] font-bold text-text-muted shrink-0">+{others}</span>
-            )}
-            <ChevronDown className="w-3 h-3 text-text-muted opacity-0 group-hover/phone:opacity-100 transition-opacity shrink-0" />
-          </span>
+          <button
+            aria-label="Weitere Nummern anzeigen"
+            className="px-1.5 py-0.5 rounded-[5px] bg-app-bg text-[9px] font-bold text-text-muted uppercase tracking-wide shrink-0 hover:bg-[var(--signal-teal-bg)] hover:text-[var(--sherloq-primary)] transition-colors cursor-pointer"
+          >
+            {fav.type}
+          </button>
         </PopoverTrigger>
+        <span className="truncate transition-colors group-hover/phone:text-[var(--sherloq-primary)] group-hover/phone:font-semibold">{fav.number}</span>
         {/* Inline Copy + Edit für den Favoriten (wie die übrigen Felder) */}
         <button onClick={() => copy(fav)} aria-label="Kopieren" className="opacity-0 group-hover/phone:opacity-100 transition-opacity text-text-muted hover:text-[var(--sherloq-primary)] cursor-pointer shrink-0">
           {copiedId === fav.id ? <Check className="w-3 h-3 text-[var(--sherloq-primary)]" /> : <Copy className="w-3 h-3" />}
@@ -360,7 +358,7 @@ export default function HunterSidepanel({ person: personProp, onClose }: { perso
           </div>
         </div>
 
-        <div className="bg-app-surface border border-border-subtle rounded-full px-5 py-3 mt-10 flex items-center justify-between gap-3 text-[12px] text-text-muted shadow-sm overflow-x-auto">
+        <div className="bg-app-surface border border-border-subtle rounded-full px-5 py-3 mt-10 flex items-center justify-between gap-3 text-[12px] text-text-muted shadow-sm">
           <span className="flex items-center gap-1.5 min-w-0">
             <Mail className="w-[13px] h-[13px] text-text-muted shrink-0" />
             <EditableInline label="E-Mail" type="email" value={contact.email} onSave={(v) => { setContact((c) => ({ ...c, email: v })); showToast('E-Mail gespeichert'); }} onCopy={() => showToast('E-Mail kopiert')} />
