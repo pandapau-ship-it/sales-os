@@ -19,7 +19,9 @@ const PopoverContent = React.forwardRef<
       align={align}
       sideOffset={sideOffset}
       className={cn(
-        "z-[130] w-72 rounded-[12px] border border-border bg-app-surface p-4 text-text-primary shadow-[var(--shadow-dropdown)] outline-none",
+        // pointer-events-auto: Popover wird per Portal außerhalb des modalen Sheets gerendert,
+        // das body auf pointer-events:none setzt — ohne dies werden Klicks im Popover geschluckt.
+        "pointer-events-auto z-[130] w-72 rounded-[12px] border border-border bg-app-surface p-4 text-text-primary shadow-[var(--shadow-dropdown)] outline-none",
         "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
         className
       )}
