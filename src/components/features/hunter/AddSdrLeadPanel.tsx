@@ -1,11 +1,14 @@
 /**
  * AddSdrLeadPanel — Side-Panel zum Anlegen eines SDR-Leads (Design).
  * Shell: panels/ActionPanel (50vw Sheet „drawer"). Nur Tokens aus index.css.
+ * Progressive Disclosure:
+ *   Stufe 1 (immer sichtbar, Pflicht): Vorname/Nachname · E-Mail ODER LinkedIn · Firma
+ *   Stufe 2 (aufklappbar): Anrede · Rolle · Telefon · Owner · Quelle · Stage · Notizen
+ *   Stufe 3 (optional): „+ Deal hinzufügen" → NewDealCard
  * Komponiert aus panel-blocks/: PanelField · PhoneNumbersField · NewDealCard.
- * Pflicht: Vorname, Nachname, E-Mail, Owner. Speichern → Toast „Lead angelegt ✓".
  */
 import { useState } from "react";
-import { Target, X, Search, Mail, Info, Check, Briefcase } from "lucide-react";
+import { Target, X, Search, Mail, Info, Check, ChevronDown, Plus } from "lucide-react";
 import ActionPanel from "@/components/panels/ActionPanel";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import LinkedinIcon from "@/components/shared/LinkedinIcon";
@@ -40,35 +43,34 @@ interface AddSdrLeadPanelProps {
 export default function AddSdrLeadPanel({ open, onClose, onAdd }: AddSdrLeadPanelProps) {
   const { toast } = useToast();
 
-  // Person
-  const [anrede, setAnrede] = useState("");
+  // Stufe 1 (Pflicht)
   const [vorname, setVorname] = useState("");
   const [nachname, setNachname] = useState("");
-  const [role, setRole] = useState("");
-  // Unternehmen
-  const [company, setCompany] = useState("");
-  // Kontakt
   const [email, setEmail] = useState("");
   const [linkedin, setLinkedin] = useState("");
+  const [company, setCompany] = useState("");
+  // Stufe 2 (aufklappbar)
+  const [showMore, setShowMore] = useState(false);
+  const [anrede, setAnrede] = useState("");
+  const [role, setRole] = useState("");
   const [phones, setPhones] = useState<PhoneRow[]>([{ id: 1, type: "Mobil", number: "", primary: true }]);
-  // Einordnung
   const [owner, setOwner] = useState("");
   const [source, setSource] = useState("Manuell");
   const [stage, setStage] = useState("");
   const [notes, setNotes] = useState("");
-  // Deal
-  const [showDeal, setShowDeal] = useState(true);
+  // Stufe 3 (optionaler Deal)
+  const [showDeal, setShowDeal] = useState(false);
   const [deal, setDeal] = useState<DealDraft>(EMPTY_DEAL);
 
   const reset = () => {
-    setAnrede(""); setVorname(""); setNachname(""); setRole(""); setCompany("");
-    setEmail(""); setLinkedin(""); setPhones([{ id: 1, type: "Mobil", number: "", primary: true }]);
+    setVorname(""); setNachname(""); setEmail(""); setLinkedin(""); setCompany("");
+    setShowMore(false); setAnrede(""); setRole(""); setPhones([{ id: 1, type: "Mobil", number: "", primary: true }]);
     setOwner(""); setSource("Manuell"); setStage(""); setNotes("");
-    setShowDeal(true); setDeal(EMPTY_DEAL);
+    setShowDeal(false); setDeal(EMPTY_DEAL);
   };
 
-  const canSubmit = Boolean(vorname.trim() && nachname.trim() && email.trim() && owner);
-  const stageHint = stage === ""; // Hinweis sichtbar, solange keine Stage gewählt
+  const canSubmit = Boolean(vorname.trim() && nachname.trim() && (email.trim() || linkedin.trim()) && company.trim());
+  const dealHint = stage !== "" && !showDeal; // Stage gewählt, aber noch kein Deal
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,7 +81,7 @@ export default function AddSdrLeadPanel({ open, onClose, onAdd }: AddSdrLeadPane
         id: `pers-new-${Date.now()}`,
         name: `${vorname.trim()} ${nachname.trim()}`.trim(),
         jobTitle: role.trim() || "Decision Maker",
-        company: company.trim() || "—",
+        company: company.trim(),
         initials: [vorname[0], nachname[0]].filter(Boolean).join("").toUpperCase() || "?",
       },
       kurzakte: "",
@@ -90,7 +92,7 @@ export default function AddSdrLeadPanel({ open, onClose, onAdd }: AddSdrLeadPane
       heatScore: 3,
       lastActivity: "Gerade eben",
       pipelineStage: (stage || "lead") as Lead["pipelineStage"],
-      contactEmail: email.trim(),
+      contactEmail: email.trim() || linkedin.trim(),
       dealValue: showDeal && deal.value ? Number(deal.value) : undefined,
     });
     toast("Lead angelegt ✓");
@@ -114,37 +116,36 @@ export default function AddSdrLeadPanel({ open, onClose, onAdd }: AddSdrLeadPane
       <form onSubmit={submit} className="flex-1 flex flex-col min-h-0">
         <div className="flex-1 overflow-y-auto custom-scrollbar p-6 flex flex-col gap-6">
 
-          {/* PERSON */}
+          {/* STUFE 1 — Pflicht, immer sichtbar */}
           <section className="flex flex-col gap-3">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-text-muted">Person</p>
-            <div className="grid grid-cols-[120px_1fr] gap-3">
-              <PanelField label="Anrede">
-                <Select value={anrede || "none"} onValueChange={(v) => setAnrede(v === "none" ? "" : v)}>
-                  <SelectTrigger className={TRIGGER}><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none"><span className="text-text-muted">—</span></SelectItem>
-                    {ANREDEN.map((a) => <SelectItem key={a} value={a}>{a}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+            <div className="grid grid-cols-2 gap-3">
+              <PanelField label="Vorname" required>
+                <input type="text" placeholder="Christian" value={vorname} onChange={(e) => setVorname(e.target.value)} className={FIELD} />
               </PanelField>
-              <div className="grid grid-cols-2 gap-3">
-                <PanelField label="Vorname" required>
-                  <input type="text" placeholder="Christian" value={vorname} onChange={(e) => setVorname(e.target.value)} className={FIELD} />
-                </PanelField>
-                <PanelField label="Nachname" required>
-                  <input type="text" placeholder="Brand" value={nachname} onChange={(e) => setNachname(e.target.value)} className={FIELD} />
-                </PanelField>
+              <PanelField label="Nachname" required>
+                <input type="text" placeholder="Brand" value={nachname} onChange={(e) => setNachname(e.target.value)} className={FIELD} />
+              </PanelField>
+            </div>
+
+            {/* E-Mail ODER LinkedIn — eines genügt */}
+            <div>
+              <label className="text-[11px] text-text-muted font-semibold block mb-1">
+                E-Mail oder LinkedIn<span className="text-[var(--signal-danger-text)]"> *</span>
+                <span className="font-normal text-text-muted"> — eines genügt</span>
+              </label>
+              <div className="flex flex-col gap-2">
+                <div className="relative">
+                  <Mail className="w-3.5 h-3.5 text-text-muted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <input type="email" placeholder="c.brand@firma.de" value={email} onChange={(e) => setEmail(e.target.value)} className={`${FIELD} pl-9`} />
+                </div>
+                <div className="relative">
+                  <LinkedinIcon className="w-3.5 h-3.5 text-text-muted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <input type="text" placeholder="linkedin.com/in/..." value={linkedin} onChange={(e) => setLinkedin(e.target.value)} className={`${FIELD} pl-9`} />
+                </div>
               </div>
             </div>
-            <PanelField label="Rolle">
-              <input type="text" placeholder="z.B. VP Sales (frei wählbar)" value={role} onChange={(e) => setRole(e.target.value)} className={FIELD} />
-            </PanelField>
-          </section>
 
-          {/* UNTERNEHMEN */}
-          <section className="flex flex-col gap-3">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-text-muted">Unternehmen</p>
-            <PanelField label="Firma">
+            <PanelField label="Firma" required>
               <div className="relative">
                 <Search className="w-3.5 h-3.5 text-text-muted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <input type="text" placeholder="Firma suchen oder neu eingeben..." value={company} onChange={(e) => setCompany(e.target.value)} className={`${FIELD} pl-9`} />
@@ -152,77 +153,86 @@ export default function AddSdrLeadPanel({ open, onClose, onAdd }: AddSdrLeadPane
             </PanelField>
           </section>
 
-          {/* KONTAKT */}
-          <section className="flex flex-col gap-3">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-text-muted">Kontakt</p>
-            <PanelField label="E-Mail" required>
-              <div className="relative">
-                <Mail className="w-3.5 h-3.5 text-text-muted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                <input type="email" placeholder="c.brand@firma.de" value={email} onChange={(e) => setEmail(e.target.value)} className={`${FIELD} pl-9`} />
-              </div>
-            </PanelField>
-            <PanelField label="LinkedIn-URL">
-              <div className="relative">
-                <LinkedinIcon className="w-3.5 h-3.5 text-text-muted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                <input type="text" placeholder="linkedin.com/in/..." value={linkedin} onChange={(e) => setLinkedin(e.target.value)} className={`${FIELD} pl-9`} />
-              </div>
-            </PanelField>
-            <PanelField label="Telefonnummern">
-              <PhoneNumbersField value={phones} onChange={setPhones} />
-            </PanelField>
-          </section>
+          {/* STUFE 2 — aufklappbar */}
+          <div className="flex flex-col">
+            <button type="button" onClick={() => setShowMore((v) => !v)} className="self-start inline-flex items-center gap-1.5 text-[12px] font-semibold text-[var(--sherloq-primary)] hover:opacity-80 transition-opacity cursor-pointer">
+              <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${showMore ? "rotate-180" : ""}`} />
+              Weitere Details
+            </button>
+            <div className={`grid transition-all duration-300 ease-out ${showMore ? "grid-rows-[1fr] opacity-100 mt-4" : "grid-rows-[0fr] opacity-0"}`}>
+              <div className="overflow-hidden">
+                <div className="flex flex-col gap-5">
+                  <div className="grid grid-cols-[120px_1fr] gap-3">
+                    <PanelField label="Anrede">
+                      <Select value={anrede || "none"} onValueChange={(v) => setAnrede(v === "none" ? "" : v)}>
+                        <SelectTrigger className={TRIGGER}><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none"><span className="text-text-muted">—</span></SelectItem>
+                          {ANREDEN.map((a) => <SelectItem key={a} value={a}>{a}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </PanelField>
+                    <PanelField label="Rolle">
+                      <input type="text" placeholder="z.B. VP Sales (frei wählbar)" value={role} onChange={(e) => setRole(e.target.value)} className={FIELD} />
+                    </PanelField>
+                  </div>
 
-          {/* EINORDNUNG */}
-          <section className="flex flex-col gap-3">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-text-muted">Einordnung</p>
-            <div className="grid grid-cols-2 gap-3">
-              <PanelField label="Owner" required>
-                <Select value={owner || undefined} onValueChange={setOwner}>
-                  <SelectTrigger className={TRIGGER}><SelectValue placeholder="Zuständig…" /></SelectTrigger>
-                  <SelectContent>{OWNERS.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
-                </Select>
-              </PanelField>
-              <PanelField label="Quelle">
-                <Select value={source} onValueChange={setSource}>
-                  <SelectTrigger className={TRIGGER}><SelectValue /></SelectTrigger>
-                  <SelectContent>{SOURCES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
-                </Select>
-              </PanelField>
+                  <PanelField label="Telefonnummern">
+                    <PhoneNumbersField value={phones} onChange={setPhones} />
+                  </PanelField>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <PanelField label="Owner">
+                      <Select value={owner || undefined} onValueChange={setOwner}>
+                        <SelectTrigger className={TRIGGER}><SelectValue placeholder="Zuständig…" /></SelectTrigger>
+                        <SelectContent>{OWNERS.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
+                      </Select>
+                    </PanelField>
+                    <PanelField label="Quelle">
+                      <Select value={source} onValueChange={setSource}>
+                        <SelectTrigger className={TRIGGER}><SelectValue /></SelectTrigger>
+                        <SelectContent>{SOURCES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+                      </Select>
+                    </PanelField>
+                  </div>
+
+                  <PanelField label="Pipeline-Stage">
+                    <Select value={stage || "none"} onValueChange={(v) => setStage(v === "none" ? "" : v)}>
+                      <SelectTrigger className={TRIGGER}><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none"><span className="text-text-muted">— Keine Stage</span></SelectItem>
+                        {STAGES.map((s) => <SelectItem key={s.id} value={s.id}>{s.label}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </PanelField>
+
+                  <PanelField label="Notizen">
+                    <textarea rows={3} placeholder="Kontext, nächste Schritte, Hinweise..." value={notes} onChange={(e) => setNotes(e.target.value)} className="w-full text-[13px] font-sans leading-relaxed p-3 bg-app-bg border border-border focus:border-[var(--sherloq-primary)] rounded-[10px] focus:outline-none resize-none transition-colors placeholder-[var(--text-muted)]" />
+                  </PanelField>
+                </div>
+              </div>
             </div>
-            <PanelField label="Pipeline-Stage">
-              <Select value={stage || "none"} onValueChange={(v) => setStage(v === "none" ? "" : v)}>
-                <SelectTrigger className={TRIGGER}><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none"><span className="text-text-muted">— Keine Stage</span></SelectItem>
-                  {STAGES.map((s) => <SelectItem key={s.id} value={s.id}>{s.label}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </PanelField>
-            <PanelField label="Notizen">
-              <textarea rows={3} placeholder="Kontext, nächste Schritte, Hinweise..." value={notes} onChange={(e) => setNotes(e.target.value)} className="w-full text-[13px] font-sans leading-relaxed p-3 bg-app-bg border border-border focus:border-[var(--sherloq-primary)] rounded-[10px] focus:outline-none resize-none transition-colors placeholder-[var(--text-muted)]" />
-            </PanelField>
-          </section>
+          </div>
 
-          {/* DEAL */}
+          {/* STUFE 3 — optionaler Deal */}
           <section className="flex flex-col gap-3">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-text-muted">Deal</p>
             {showDeal ? (
               <NewDealCard deal={deal} onChange={(p) => setDeal((d) => ({ ...d, ...p }))} owners={OWNERS} onRemove={() => setShowDeal(false)} />
             ) : (
-              <button type="button" onClick={() => setShowDeal(true)} className="w-full flex items-center justify-center gap-2 py-3 rounded-[10px] border border-dashed border-border text-[12px] font-semibold text-[var(--sherloq-primary)] hover:bg-app-bg transition-colors cursor-pointer">
-                <Briefcase className="w-4 h-4" /> Deal anlegen
+              <button type="button" onClick={() => setShowDeal(true)} className="w-full flex items-center justify-center gap-2 py-3 rounded-[10px] border border-[var(--sherloq-primary)] text-[12px] font-bold text-[var(--sherloq-primary)] hover:bg-[var(--signal-teal-bg)] transition-colors cursor-pointer">
+                <Plus className="w-4 h-4" /> Deal hinzufügen
               </button>
             )}
           </section>
         </div>
 
-        {/* HINWEIS-BANNER (über Footer) */}
-        {stageHint && (
+        {/* HINWEIS-BANNER — Stage gewählt, aber kein Deal */}
+        {dealHint && (
           <div className="shrink-0 px-4 pt-3">
             <div className="flex items-start gap-2 p-3 rounded-[10px] bg-[var(--signal-info-bg)] border border-[var(--signal-info-bg)]">
               <Info className="w-4 h-4 shrink-0 mt-px text-[var(--signal-teal-text)]" />
               <p className="text-[11px] font-semibold leading-relaxed text-[var(--signal-teal-text)]">
-                Fast geschafft — wähle oben die Pipeline-Stage, in der dieser Deal starten soll, dann kannst du speichern.
+                Fast geschafft — füge einen Deal hinzu oder speichere ohne Deal.
               </p>
             </div>
           </div>
