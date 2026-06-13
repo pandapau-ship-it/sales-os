@@ -150,7 +150,7 @@ export default function PipelineStagnatedDrawer({ person, onClose, onTakeAction 
   return (
     <>
       <Sheet open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
-        <SheetContent side="drawer" className="flex flex-col font-sans overflow-hidden p-0 bg-app-surface" style={{ width: 580, maxWidth: "95vw" }}>
+        <SheetContent side="drawer" className="flex flex-col font-sans overflow-hidden p-0 bg-app-surface" style={{ width: "50vw", maxWidth: "95vw", minWidth: 480 }}>
           {s && (
             <>
               {/* HEADER */}
