@@ -183,7 +183,7 @@ export default function ScreenHunting({
               key={item.id}
               onClick={() => setSubTab(item.id as any)}
               style={isActive ? { background: NAV.activeBg } : undefined}
-              className={`${NAV.tab} ${NAV.radius} ${isActive ? NAV.active : NAV.inactive}`}
+              className={`${NAV.subTab} ${NAV.radius} ${isActive ? NAV.active : NAV.inactive}`}
             >
               <span>{item.label}</span>
               {item.count !== null && (

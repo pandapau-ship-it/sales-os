@@ -15,8 +15,10 @@ export const NAV = {
   surface: "bg-app-surface shadow-[var(--shadow-card)]",
   /** Innen-Layout horizontaler Nav-Container. */
   container: "flex items-center gap-1 p-1 w-fit",
-  /** Tab-Geometrie + Typografie (horizontale Navs). */
+  /** Tab-Geometrie Top-Nav (groß). */
   tab: "px-[21px] py-[11px] text-[14px] font-medium transition-all cursor-pointer flex items-center gap-2",
+  /** Tab-Geometrie Sub-Navs (kompakter, proportional). */
+  subTab: "px-4 py-1.5 text-[12px] font-medium transition-all cursor-pointer flex items-center gap-1.5",
   /** Aktiv-Hintergrund (Brand-Gradient) — als style={{ background: NAV.activeBg }} setzen. */
   activeBg: "var(--sherloq-gradient)",
   /** Aktiver Tab (Text + Schatten; Hintergrund via activeBg). */

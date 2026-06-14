@@ -87,7 +87,7 @@ export default function Sidebar() {
 
   return (
     <TooltipProvider delayDuration={300}>
-      <aside className="w-[56px] min-w-[56px] h-[calc(100vh-80px)] bg-app-surface rounded-[16px] shadow-card flex flex-col items-center py-4 select-none sticky top-[68px] ml-4 z-20">
+      <aside className={`w-[56px] min-w-[56px] h-[calc(100vh-80px)] ${NAV.surface} ${NAV.radius} flex flex-col items-center py-4 select-none sticky top-[68px] ml-4 z-20`}>
         {/* Screens */}
         <div className="flex flex-col gap-2 items-center">{screens.map(renderIcon)}</div>
 
