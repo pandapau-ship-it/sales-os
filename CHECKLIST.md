@@ -309,6 +309,7 @@
 - [ ] `update_field()` Fallback (Permission-Check) · `query_contacts()` · `generate_message()`
 - [ ] Cmd+Enter-Overlay überall · strikt getrennt von Cmd+K · respektiert Rollen/Rechte · audit_log
 - [ ] Langfuse: Prompts in UI (kein Code-Deploy), Tracing, Token→Credits, Labels production/staging/Mandant, EU-Region (DSGVO)
+- [ ] **Guardrails & Restriktionen (Pflicht vor Live)** — Secrets nie in Prompt/Antwort/Logs (+ Output-Filter) · kein Code/System-Prompt offenlegen · harte Mandanten-Isolation · Prompt-Injection-Resistenz · nur Function-Allowlist + `checkPermission()` · PII/DSGVO-Redaction · Refusal ohne Detail-Leak + audit_log · Red-Team-Testsatz grün (→ CLAUDE.md §9 „Guardrails & Restriktionen")
 
 ### Adaptives Lernen (Feedback & Präferenzen)
 - [ ] Tabellen: `ai_feedback` (append-only) + `ai_preferences` (1 Zeile pro user×scope)
