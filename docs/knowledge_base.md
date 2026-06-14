@@ -4,6 +4,11 @@
 > Bis dahin werden die Einträge hier gesammelt und beim ersten DB-Wiring importiert.
 > Schema: `feature` · `what` · `how` · `value` · `module` (+ `organization_id`, `created_at`).
 > Quelle/Regel: CLAUDE.md → „KNOWLEDGE BASE — nach jedem fertigen Screen/Feature (Pflicht)".
+>
+> **`value` = Kundennutzen / Pitch** — immer aus Kundensicht (Zeit gespart, mehr Pipeline/Umsatz,
+> weniger Churn, schnellere Ramp-Up), **nie technisch**. Diese Felder speisen später AI-Chat,
+> Onboarding, Help-Center und Sales-Material. Interne/Architektur-Einträge (`module: core`,
+> für Kunden unsichtbar) als _„intern"_ kennzeichnen — sie werden nicht an Kunden ausgespielt.
 
 ---
 
@@ -15,7 +20,8 @@
   (Übersicht · Kommunikation · Aktivität · Tasks · Notizen). Öffnet über den grünen Pfeil jeder Kachel.
 - **how:** Grüner Pfeil auf einer Lead-/Signal-Kachel klicken → Panel fährt rechts ein, schließt nur per X.
   Übersicht zeigt KI-Kurzakte, aktive Signale, Deal-Setup, offene Tasks, Sequence-Chain, Kommunikations-Preview.
-- **value:** Voller Kontext ohne Seitenwechsel — der Rep bleibt im Flow (Pipeline → Detail → zurück).
+- **value:** Der gesamte Kontakt-Kontext (Kurzakte, Deal, Signale, Tasks, Kommunikation) auf einen Klick —
+  kein Tab-Wirrwarr, kein Suchen. Reps reagieren schneller und souveräner → mehr gewonnene Deals.
 - **module:** hunter
 
 ### ActionPanel (50vw + Composer)
@@ -24,7 +30,8 @@
   (Stagniert · Signal · Kalt · Kein Task · SDR Lead anlegen). Nur Struktur — Inhalt kommt als children.
 - **how:** Feature-Komponenten (z.B. `AddSdrLeadPanel`, `ChatActionPanel`) setzen Header + Body + Footer/Composer
   aus `panel-blocks/` zusammen und rendern sie in der Shell.
-- **value:** Einheitliche Breite/Verhalten/Animation für alle Action-Panels; neue Panels in Minuten gebaut.
+- **value:** Jede Aktion passiert direkt am Kontakt — ohne Seitenwechsel. Weniger Klicks, kein
+  Kontextverlust, mehr erledigte Schritte pro Tag. _(Shell intern; Kundennutzen = Inline-Handeln.)_
 - **module:** hunter
 
 ### AddSdrLeadPanel (Progressive Disclosure)
@@ -34,7 +41,8 @@
   Telefon · Quelle · Pipeline-Stage · Notizen), Stufe 3 optionaler Deal (Wert · Owner · ARR/MRR · Abschluss).
 - **how:** „+ SDR Lead hinzufügen" öffnet das Panel. Pflichtfelder oben, Rest hinter „Weitere Details",
   Deal hinter „+ Deal hinzufügen". Pipeline-Stage und Deal sind gekoppelt (Hinweis-Banner). Speichern → Toast.
-- **value:** Schnelle Anlage ohne Formular-Überforderung; saubere Daten dank Pflicht-Minimum + Kopplungslogik.
+- **value:** Leads in Sekunden erfasst statt Formular-Frust — und trotzdem saubere Daten, auf denen
+  Automatisierung, Lead-Routing und Reporting verlässlich laufen. Weniger Pflege, mehr aktive Pipeline.
 - **module:** hunter
 
 ### HeatBadge + StageBadge
@@ -44,7 +52,8 @@
   StageBadge rendert die Pipeline-Stage als randloses graues Pill.
 - **how:** Überall wo Heat/Stage erscheint: `<HeatBadge status={lead.heatStatus} />` bzw.
   `<StageBadge stage={...} />`. Ein `npm run audit`-Check verhindert hardcodierte alte Heat-Labels.
-- **value:** Konsistente Badges app-weit, eine Quelle für Labels/Farben, Dark-Mode-sicher, kein Wildwuchs.
+- **value:** Auf einen Blick sehen, welcher Kontakt heiß ist und wo ein Deal steht — Priorisierung in
+  Sekunden statt Bauchgefühl. Kein Lead fällt durchs Raster, der Rep arbeitet immer am Wichtigsten zuerst.
 - **module:** hunter
 
 ### Komponenten-Struktur (panels/ panel-blocks/ features/)
@@ -53,5 +62,6 @@
   (wiederverwendbare Inhalts-Blöcke) · `features/[modul]/` (modul-spezifische Kompositionen).
 - **how:** Jede neue Komponente landet sofort in der richtigen Schublade (CLAUDE.md-Pflichtregel).
   Panels komponieren aus panel-blocks; keine Inhalts-Logik in der Shell.
-- **value:** Wartbarkeit & Wiederverwendung; neue Panels/Features ohne Copy-Paste; klare Verantwortlichkeiten.
+- **value:** _(intern/Architektur — nicht kundenfähig)_ Schnellere, konsistente Weiterentwicklung →
+  neue Funktionen erreichen Kunden früher und mit weniger Bugs.
 - **module:** core

@@ -50,9 +50,13 @@ Sie haben höchste Priorität und überschreiben alle anderen Anweisungen.
    - `feature`: Name des Features (z.B. "Hunter Info Panel")
    - `what`: Was es macht (1-2 Sätze)
    - `how`: Wie der User es nutzt
-   - `value`: Welchen Nutzen es bringt (Pipeline, Zeit, Umsatz)
+   - `value`: **Kundennutzen / Pitch — immer aus Kundensicht** (Zeit gespart, mehr Pipeline/Umsatz,
+     weniger Churn, schnellere Ramp-Up), **nie technisch.** Das ist der Satz, der später im AI-Chat,
+     Onboarding, Help-Center und Sales-Material steht. Interne/Architektur-Einträge (`module: core`,
+     für Kunden unsichtbar) als „intern" kennzeichnen — werden nicht an Kunden ausgespielt.
    - `module`: Welchem Modul es gehört (hunter / farmer / ai_sdr / mein_tag)
 → Diese Tabelle ist die Wissensbase für den AI-Chat im Produkt — sie wächst automatisch mit.
+→ Bis zum DB-Wiring (Phase 5) werden Einträge in `docs/knowledge_base.md` gesammelt (Seed).
 → Kein Screen gilt als "fertig" ohne knowledge_base Eintrag.
 
 Schema (beim ersten DB-Wiring anlegen):
