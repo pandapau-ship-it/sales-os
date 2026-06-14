@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import type { ReactNode } from "react";
 import { X, Sparkles, RotateCw, Send, Check, Pencil } from "lucide-react";
+import ErledigtAction from "@/components/panel-blocks/ErledigtAction";
 import { Sheet, SheetContent, SheetClose } from "@/components/ui/sheet";
 import Avatar from "@/components/shared/Avatar";
 import BrandLogo from "@/components/shared/BrandLogo";
@@ -197,6 +198,9 @@ export default function ChatActionPanel({ open, config, onClose }: ChatActionPan
                     </span>
                   </div>
                   <p className="text-[13px] text-text-body font-medium leading-relaxed">{s.recommendation.text}</p>
+                  <div className="flex justify-end mt-2.5">
+                    <ErledigtAction onDone={onClose} />
+                  </div>
                 </div>
               </div>
 
