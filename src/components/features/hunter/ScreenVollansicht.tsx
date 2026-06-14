@@ -57,7 +57,7 @@ const KOMM_AKTIONEN = [
   { icon: <span className="font-bold text-[17px]">in</span>, label: "LinkedIn DM" },
 ];
 
-export default function ScreenVollansicht() {
+export default function ScreenVollansicht({ onClose }: { onClose?: () => void }) {
   const [activeTab, setActiveTab] = useState("Uebersicht");
 
   return (
@@ -120,7 +120,7 @@ export default function ScreenVollansicht() {
               </div>
             </div>
 
-            <button className="w-10 h-10 flex items-center justify-center rounded-full bg-app-surface border border-[var(--border-strong)] text-[var(--text-muted)] hover:bg-[var(--app-bg)] transition-colors shadow-sm ml-6">
+            <button onClick={onClose} className="w-10 h-10 flex items-center justify-center rounded-full bg-app-surface border border-[var(--border-strong)] text-[var(--text-muted)] hover:bg-[var(--app-bg)] transition-colors shadow-sm ml-6">
               <X size={20} />
             </button>
           </div>
