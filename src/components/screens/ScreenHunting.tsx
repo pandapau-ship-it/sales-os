@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 import type { Lead } from '@/types';
 import { ICPDonut } from '@/components/shared/ICPDonut';
+import { NAV } from '@/lib/navBehavior';
 import CommunicationChain from '@/components/shared/CommunicationChain';
 import { SequenceLeadCards } from '@/components/shared/SequenceLeadCards';
 import NewInPipelineCards from '@/components/shared/NewInPipelineCards';
@@ -174,23 +175,19 @@ export default function ScreenHunting({
       </div>
 
       {/* Sub-Navigation (Section 12) */}
-      <div className="flex gap-1 p-1 bg-app-surface rounded-[12px] shadow-[var(--shadow-card)] w-fit items-center">
+      <div className={`${NAV.container} ${NAV.surface} ${NAV.radius}`}>
         {menuItems.map((item) => {
           const isActive = subTab === item.id;
           return (
             <button
               key={item.id}
               onClick={() => setSubTab(item.id as any)}
-              style={isActive ? { background: "var(--sherloq-gradient)" } : undefined}
-              className={`px-4.5 py-1.5 text-[12px] font-medium transition-all rounded-[9px] cursor-pointer flex items-center gap-1.5 ${
-                isActive
-                  ? 'text-on-accent shadow-sm'
-                  : 'text-[var(--text-body)] hover:bg-[var(--app-bg)] hover:text-[var(--text-primary)]'
-              }`}
+              style={isActive ? { background: NAV.activeBg } : undefined}
+              className={`${NAV.tab} ${NAV.radius} ${isActive ? NAV.active : NAV.inactive}`}
             >
               <span>{item.label}</span>
               {item.count !== null && (
-                <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-[5px] ${isActive ? 'bg-app-surface text-[var(--sherloq-primary)]' : 'bg-[var(--border)] text-[var(--text-body)]'}`}>
+                <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-[5px] ${isActive ? NAV.badgeActive : NAV.badgeInactive}`}>
                   {item.count}
                 </span>
               )}

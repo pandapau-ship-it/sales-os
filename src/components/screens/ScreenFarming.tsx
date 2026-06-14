@@ -25,6 +25,7 @@ import {
 import type { Customer, SherloqStatus } from '@/types';
 import HeatBadge from '@/components/panel-blocks/HeatBadge';
 import { ICPDonut } from '@/components/shared/ICPDonut';
+import { NAV } from '@/lib/navBehavior';
 import CommunicationChain from '@/components/shared/CommunicationChain';
 
 interface ScreenFarmingProps {
@@ -87,22 +88,19 @@ export default function ScreenFarming({
       </div>
 
       {/* Sub-Navigation (Section 12) */}
-      <div className="flex gap-1 p-1 bg-app-surface rounded-[12px] w-fit items-center">
+      <div className={`${NAV.container} ${NAV.surface} ${NAV.radius}`}>
         {menuItems.map((item) => {
           const isActive = subTab === item.id;
           return (
             <button
               key={item.id}
               onClick={() => setSubTab(item.id as any)}
-              className={`px-3.5 py-1.5 text-[12px] font-medium transition-all rounded-[9px] cursor-pointer flex items-center gap-1.5 ${
-                isActive
-                  ? 'bg-sherloq-primary text-on-accent'
-                  : 'text-text-body hover:bg-app-bg hover:text-text-primary'
-              }`}
+              style={isActive ? { background: NAV.activeBg } : undefined}
+              className={`${NAV.tab} ${NAV.radius} ${isActive ? NAV.active : NAV.inactive}`}
             >
               <span>{item.label}</span>
               {item.count !== undefined && (
-                <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-[5px] ${isActive ? 'bg-on-accent/20 text-on-accent' : 'bg-border text-text-muted'}`}>
+                <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-[5px] ${isActive ? NAV.badgeActive : NAV.badgeInactive}`}>
                   {item.count}
                 </span>
               )}

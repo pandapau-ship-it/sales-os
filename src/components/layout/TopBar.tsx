@@ -11,6 +11,7 @@ import { useRef, useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Sun, Bot, Target, Sprout } from "lucide-react";
+import { NAV } from "@/lib/navBehavior";
 
 interface TopBarProps {
   onOpenCommandPalette: () => void;
@@ -68,8 +69,8 @@ export default function TopBar({ onOpenCommandPalette }: TopBarProps) {
 
       {/* Nav (absolut zentriert) */}
       <nav
-        style={{ background: "var(--surface)", borderRadius: 9999, padding: 3 }}
-        className="absolute left-1/2 -translate-x-1/2 flex items-center gap-0.5 shadow-nav"
+        style={{ padding: 3 }}
+        className={`absolute left-1/2 -translate-x-1/2 flex items-center gap-0.5 ${NAV.surface} ${NAV.radius}`}
       >
         {slider.ready && (
           <div
@@ -79,7 +80,7 @@ export default function TopBar({ onOpenCommandPalette }: TopBarProps) {
               bottom: 3,
               left: slider.left,
               width: slider.width,
-              background: "var(--sherloq-gradient)",
+              background: NAV.activeBg,
               borderRadius: 9999,
               transition: "left 200ms cubic-bezier(0.4,0,0.2,1), width 200ms cubic-bezier(0.4,0,0.2,1)",
               pointerEvents: "none",
@@ -95,10 +96,8 @@ export default function TopBar({ onOpenCommandPalette }: TopBarProps) {
                 buttonRefs.current[index] = el;
               }}
               onClick={() => navigate(`/app/${item.route}`)}
-              style={{ color: active ? "white" : "var(--text-body)", borderRadius: 9999, position: "relative", zIndex: 1 }}
-              className={`flex items-center gap-2 px-[21px] py-[11px] text-[14px] font-medium cursor-pointer transition-colors duration-150${
-                !active ? " hover:bg-[var(--app-bg)]" : ""
-              }`}
+              style={{ position: "relative", zIndex: 1 }}
+              className={`${NAV.tab} ${NAV.radius} ${active ? "text-on-accent" : NAV.inactive}`}
             >
               {item.icon}
               <span>{t(item.labelKey)}</span>

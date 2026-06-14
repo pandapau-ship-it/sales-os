@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useTheme } from "@/hooks/useTheme";
 import { useModules, type ModuleKey } from "@/hooks/useModules";
+import { NAV } from "@/lib/navBehavior";
 
 interface NavIcon {
   route: string;
@@ -73,12 +74,8 @@ export default function Sidebar() {
             onClick={() => navigate(`/app/${item.route}`)}
             aria-label={t(item.labelKey)}
             aria-current={active ? "page" : undefined}
-            style={active ? { background: "var(--sherloq-gradient)" } : undefined}
-            className={`w-[40px] h-[40px] rounded-[10px] flex items-center justify-center transition-all duration-200 cursor-pointer ${
-              active
-                ? "text-on-accent shadow-brand"
-                : "text-text-muted hover:bg-app-bg hover:text-text-primary"
-            }`}
+            style={active ? { background: NAV.activeBg } : undefined}
+            className={`w-[40px] h-[40px] ${NAV.radius} ${NAV.iconBtn} ${active ? NAV.activeIcon : NAV.inactiveIcon}`}
           >
             {item.icon}
           </button>

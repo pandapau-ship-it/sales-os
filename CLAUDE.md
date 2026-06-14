@@ -353,6 +353,14 @@ wird via `heatFor()` / `getHeatColor()` auf diese Labels + Farben gebrückt).
 ```
 **Top-Nav** (primäre Sektions-Pills): Container + aktiver Pill `rounded-full` (Sliding-Pill, Brand-Gradient).
 
+**Navigationsleisten = EINE Stil-Quelle: `src/lib/navBehavior.ts` → `NAV` (Pflicht).**
+Top-Nav (`layout/TopBar`), alle Sub-Navs (`ScreenHunting`/`ScreenFarming`/künftige) UND die linke
+Sidebar (`layout/Sidebar`) lesen ihre Stile aus `NAV` (`radius` · `surface` · `tab` · `activeBg` ·
+`active`/`inactive` · `iconBtn` · `activeIcon`/`inactiveIcon` · Badges). **Einmal in `NAV` ändern →
+überall angepasst.** Nie Nav-Stile (Radius/Farbe/Aktiv-Gradient/Padding) pro Komponente hardcoden —
+analog `CARD`/`ACTION_ROW` in `componentBehavior.ts`. Aktiv-Hintergrund (Gradient) via
+`style={{ background: NAV.activeBg }}`.
+
 **Design-Uploads — Übersetzungsregel:**
 Wenn ein Figma/Screenshot-Design hochgeladen wird:
 1. Fremde Radius-Werte → nächstliegender Wert aus Radius-Hierarchie oben
