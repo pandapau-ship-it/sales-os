@@ -35,6 +35,15 @@
 - [x] **Heat-Status neu** — Engaged/Warm/Cooling/Cold/Gone zentral in `lib/constants.ts` (`HEAT_STATUS`), Farb-Tokens Light+Dark, app-weit ersetzt, Dot-Kreis statt `●` — *2026-06-14*
 - [x] **`HeatBadge` + `StageBadge`** (`panel-blocks/`) — kein Border, 10%-Hintergrund, Dot+Text; app-weit verdrahtet; Audit-Check „keine alten Heat-Labels"; CLAUDE.md Badge-Regel — *2026-06-14*
 - [x] **Snooze** — Regelwerk in CLAUDE.md; 3 Zustände interaktiv in Follow-up-Kacheln (Mock); Settings-Sektion `SnoozeSettings` (Design) — *2026-06-14*
+- [x] **Navigation zentralisiert** — `src/lib/navBehavior.ts` (`NAV`) für Top-Nav · Sub-Navs · Sidebar (einmal ändern → überall); Top-Nav `rounded-full`-Pills, +30px oben; CLAUDE.md-Regel + Radius-Hierarchie — *2026-06-14*
+- [x] **Erledigt-Aktion** — zentrale `panel-blocks/ErledigtAction` (Popover + RadioGroup + Notiz), einmal in `ChatActionPanel` → alle Action-Panels; shadcn `radio-group` ergänzt — *2026-06-14*
+- [x] **Popover-Fokus-Fix** — `ui/popover` `portal`-Prop; Eingaben in Popovern im Sheet tippbar (Kontaktfelder + Erledigt-Notiz); Audit-Check „Popover-Eingabe fokussierbar" + CLAUDE.md-Regel — *2026-06-14*
+- [x] **AI-Chat Guardrails** — CLAUDE.md §9 (Secrets/Code/Tenant, Injection, PII) + Red-Team-Gate (`npm run redteam`, Phase 7) — *2026-06-14*
+- [x] **knowledge_base** `value` = Kundennutzen/Pitch (Regel + Leitlinie + 5 Einträge umformuliert) — *2026-06-14*
+
+### Offen (neu heute)
+- [ ] **Vollansicht (Kontakt-Detail, Vollbild) neu bauen** — alter Entwurf verworfen/gelöscht (`bc46b49`); aus `panel-blocks/` komponieren, über ↗ im Info-Panel öffnen
+- [ ] AI-Chat **Red-Team-Gate** (`scripts/redteam-aichat.ts`, `npm run redteam`) bauen — Phase 7, vor Live
 
 ### Offen
 - [ ] Empty States für alle Hunter-Tabs (`EmptyState`-Komponente)

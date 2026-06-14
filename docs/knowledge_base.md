@@ -65,3 +65,27 @@
 - **value:** _(intern/Architektur — nicht kundenfähig)_ Schnellere, konsistente Weiterentwicklung →
   neue Funktionen erreichen Kunden früher und mit weniger Bugs.
 - **module:** core
+
+---
+
+## 2026-06-14 — SQL (beim DB-Wiring einspielen)
+
+```sql
+-- knowledge_base { feature, what, how, value, module }
+-- INSERT INTO knowledge_base (organization_id, feature, what, how, value, module) VALUES
+
+-- Erledigt-Aktion (Action-Panels)
+-- (:org, 'Erledigt-Aktion',
+--  'In jedem Action-Panel kannst du ein Signal als „bereits erledigt" markieren und festhalten, was du gemacht hast (Email/LinkedIn/Telefonat/Meeting/Anderes) + Notiz.',
+--  'Im Action-Panel bei der AI-Empfehlung auf „Bereits erledigt" klicken, Kanal wählen, optional Notiz tippen, bestätigen — Panel schließt, Eintrag landet in der Kurzakte.',
+--  'Erledigtes außerhalb des Tools fließt trotzdem in Kurzakte, Heat und Tagesfortschritt — kein Kontakt geht verloren, der Verlauf bleibt vollständig.',
+--  'hunter'),
+
+-- Navigations-Stil-Quelle (intern)
+-- (:org, 'Navigation (zentrale Stil-Quelle)',
+--  'Top-Nav, Sub-Navs und Sidebar teilen EINE Stilquelle (lib/navBehavior.ts → NAV).',
+--  'Entwickler ändern NAV an einer Stelle, alle Nav-Leisten passen sich automatisch an.',
+--  '(intern/Architektur — nicht kundenfähig) Konsistente, schnell anpassbare Navigation; weniger UI-Drift.',
+--  'core');
+```
+

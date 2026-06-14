@@ -16,6 +16,11 @@
 
 ## Offen — Nächste Session (Phase 2 Abschluss → Phase 3 DB)
 
+0. **Vollansicht (Kontakt-Detail, Vollbild) NEU bauen** — der erste Entwurf (`ScreenVollansicht`
+   + 13 `Voll*`-Blocks) wurde **bewusst verworfen und gelöscht** (Commit `bc46b49`). Neu aufbauen:
+   aus `panel-blocks/` komponieren (kein Inline-Block), Tokens-only, und über den **↗-Pfeil im
+   Info-Panel** öffnen (Verdrahtung war kurz da, ist zurückgebaut). Bestehende Atome bleiben:
+   `KontaktZeile`/`PanelTabs`/`HeatBadge`/`StageBadge`/`KiKurzakte`.
 1. **Snooze · Settings · AddSdrLeadPanel verdrahten** — aktuell reine UI/Mock. Beim DB-Wiring:
    Snooze-State + Limits aus `system_config` (`snooze_max_count`/`_days`/`_escalation_type`),
    `SnoozeSettings` schreibt echt, `AddSdrLeadPanel` legt Kontakt/Deal an (Edge Function).
@@ -33,6 +38,31 @@
 ---
 
 ## Completed
+
+### Phase 2 — Hunter-Screen (Branch `feature/phase-2-hunter`) — Session 2026-06-14 (Teil 2)
+
+Nav-Vereinheitlichung, Erledigt-Flow, Popover-Fokus-Fix, AI-Chat-Guardrails. Alles Mock/Design,
+**kein DB-Wiring**. Build grün · Audit 0 FAIL durchgehend.
+
+- [x] **Navigation zentralisiert** — neue Quelle `src/lib/navBehavior.ts` (`NAV`): Top-Nav,
+  Hunter-/Farmer-Sub-Nav **und** linke Sidebar lesen daraus (einmal ändern → überall). Top-Nav als
+  `rounded-full`-Pills (+30px Abstand oben, größere Schrift/Padding), Sub-Navs kompakt (`NAV.subTab`),
+  Sidebar-Leiste stärker abgerundet. CLAUDE.md-Regel + Radius-Hierarchie angepasst (Top-Nav = Pill).
+- [x] **Erledigt-Aktion** — zentrale `panel-blocks/ErledigtAction` (Button + shadcn Popover mit
+  RadioGroup „Was hast du gemacht?" + immer sichtbares Notizfeld). Einmal in `ChatActionPanel`
+  (bei der AI-Empfehlung) → erscheint in allen Action-Panels (Signal/Stagniert/Kalt). shadcn
+  `radio-group` ergänzt. Mock.
+- [x] **Popover-Fokus-Fix (systemweit)** — `ui/popover` bekam `portal`-Prop; Eingaben in Popovern
+  innerhalb modaler Sheets verlieren sonst den Fokus (Radix-Fokusfalle → kein Tippen). Kontaktfelder
+  (`EditableInline`/`PhoneField`) + Erledigt-Notiz auf `portal={false}`. **Neuer Audit-Check**
+  „Popover-Eingabe fokussierbar" (FAIL) + CLAUDE.md-Regel.
+- [x] **AI-Chat Guardrails & Restriktionen** dokumentiert (CLAUDE.md §9): Secrets/Code/Tenant nie
+  leaken, Prompt-Injection-Resistenz, Function-Allowlist, PII/DSGVO + **Red-Team-Gate**
+  (`npm run redteam`, Phase 7) als Merge-Gate. CHECKLIST-To-dos ergänzt.
+- [x] **knowledge_base** — `value`-Feld verpflichtend kundenorientiert/Pitch (CLAUDE.md-Regel +
+  `docs/knowledge_base.md` Leitlinie); 5 Bestands-Einträge umformuliert.
+- [~] **Vollansicht** — Token-Cleanup + panel-blocks-Komposition gebaut, dann **bewusst verworfen
+  und gelöscht** (wird neu gebaut, siehe Offen 0). Netto entfernt.
 
 ### Phase 2 — Hunter-Screen (Branch `feature/phase-2-hunter`) — Session 2026-06-14
 
