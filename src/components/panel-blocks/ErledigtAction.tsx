@@ -44,7 +44,7 @@ export default function ErledigtAction({ onDone }: { onDone?: () => void }) {
         </button>
       </PopoverTrigger>
 
-      <PopoverContent side="top" align="start" sideOffset={8} className="w-[300px] p-4 rounded-[12px]">
+      <PopoverContent portal={false} side="bottom" align="start" sideOffset={8} className="w-[300px] p-4 rounded-[12px]">
         <p className="text-[12px] font-bold text-text-primary mb-3">Was hast du gemacht?</p>
 
         <RadioGroup value={choice} onValueChange={setChoice} className="gap-2">
