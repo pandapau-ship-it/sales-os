@@ -96,7 +96,7 @@ export default function TopBar({ onOpenCommandPalette }: TopBarProps) {
               }}
               onClick={() => navigate(`/app/${item.route}`)}
               style={{ color: active ? "white" : "var(--text-body)", borderRadius: 9, position: "relative", zIndex: 1 }}
-              className={`flex items-center gap-2 px-4 py-1.5 text-[12px] font-medium cursor-pointer transition-colors duration-150${
+              className={`flex items-center gap-2 px-[21px] py-[16px] text-[14px] font-medium cursor-pointer transition-colors duration-150${
                 !active ? " hover:bg-[var(--app-bg)]" : ""
               }`}
             >
