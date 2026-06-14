@@ -198,7 +198,7 @@ export default function ChatActionPanel({ open, config, onClose }: ChatActionPan
                     </span>
                   </div>
                   <p className="text-[13px] text-text-body font-medium leading-relaxed">{s.recommendation.text}</p>
-                  <div className="flex justify-end mt-2.5">
+                  <div className="flex justify-start mt-2.5">
                     <ErledigtAction onDone={onClose} />
                   </div>
                 </div>

@@ -25,7 +25,7 @@ export default function ErledigtAction({ onDone }: { onDone?: () => void }) {
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [choice, setChoice] = useState("email");
-  const [other, setOther] = useState("");
+  const [note, setNote] = useState("");
 
   const confirm = () => {
     toast("Erledigt ✓ · In Kurzakte gespeichert");
@@ -40,11 +40,11 @@ export default function ErledigtAction({ onDone }: { onDone?: () => void }) {
           type="button"
           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] border border-[var(--icp-high)] text-[var(--icp-high)] text-[11px] font-bold hover:bg-[var(--signal-success-bg)] transition-colors cursor-pointer shrink-0"
         >
-          <CheckCircle2 className="w-3.5 h-3.5" /> Erledigt
+          <CheckCircle2 className="w-3.5 h-3.5" /> Bereits erledigt
         </button>
       </PopoverTrigger>
 
-      <PopoverContent side="top" align="end" sideOffset={8} className="w-[260px] p-4 rounded-[12px]">
+      <PopoverContent side="top" align="start" sideOffset={8} className="w-[300px] p-4 rounded-[12px]">
         <p className="text-[12px] font-bold text-text-primary mb-3">Was hast du gemacht?</p>
 
         <RadioGroup value={choice} onValueChange={setChoice} className="gap-2">
@@ -56,16 +56,17 @@ export default function ErledigtAction({ onDone }: { onDone?: () => void }) {
           ))}
         </RadioGroup>
 
-        {choice === "other" && (
-          <input
-            type="text"
-            autoFocus
-            value={other}
-            onChange={(e) => setOther(e.target.value)}
-            placeholder="Kurz beschreiben…"
-            className="mt-2.5 w-full text-[12px] font-sans px-3 py-2 bg-app-bg border border-border focus:border-[var(--sherloq-primary)] rounded-[10px] focus:outline-none transition-colors placeholder-[var(--text-muted)]"
+        {/* Notiz — immer verfügbar, egal welche Auswahl */}
+        <div className="mt-3">
+          <label className="text-[11px] font-semibold text-text-muted block mb-1">Notiz (optional)</label>
+          <textarea
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            rows={3}
+            placeholder="Was wurde besprochen / vereinbart?…"
+            className="w-full text-[12px] font-sans leading-relaxed px-3 py-2 bg-app-bg border border-border focus:border-[var(--sherloq-primary)] rounded-[10px] focus:outline-none resize-none transition-colors placeholder-[var(--text-muted)]"
           />
-        )}
+        </div>
 
         <div className="flex justify-end mt-3.5">
           <button
