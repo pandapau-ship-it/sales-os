@@ -16,15 +16,14 @@
 
 ## Offen — Nächste Session (Phase 2 Abschluss → Phase 3 DB)
 
-1. **Side Panels als Basis-Komponenten vereinheitlichen** — Info-Panel (820px) + Action-Panel
-   (580px) als wiederverwendbare Shells extrahieren (analog `HunterCard` für Karten). Die Drawer
-   nutzen bereits dieselbe `ui/sheet`-Shell, aber es fehlt eine gemeinsame Panel-Basis-Komponente.
-2. **PipelineStagnatedDrawer Spec-Flow** — Grundgerüst steht (Commit `6f81f83`); nur noch
-   Feinschliff/Review gegen §1.3/§4.2.
-3. **Empty States für alle Hunter-Tabs** — „Keine Signale heute" · „Noch keine Leads" ·
+1. **Snooze · Settings · AddSdrLeadPanel verdrahten** — aktuell reine UI/Mock. Beim DB-Wiring:
+   Snooze-State + Limits aus `system_config` (`snooze_max_count`/`_days`/`_escalation_type`),
+   `SnoozeSettings` schreibt echt, `AddSdrLeadPanel` legt Kontakt/Deal an (Edge Function).
+   `SnoozeSettings` ist noch **nicht gemountet** (kein Settings-Screen) — einhängen sobald da.
+2. **Empty States für alle Hunter-Tabs** — „Keine Signale heute" · „Noch keine Leads" ·
    „Keine offenen Follow-ups" · leere Kanban-Spalte „Keine Deals" (bestehende `EmptyState`-
    Komponente nutzen). Aktuell: **keine** Empty/Loading-States (alles Mock).
-4. **DB-Wiring (Phase 3 Start)** — Mock → echte Queries (`getDeals`/`getSignals`/
+3. **DB-Wiring (Phase 3 Start)** — Mock → echte Queries (`getDeals`/`getSignals`/
    `getPipelineSettings`), props → `organizationId`/`userId`, TanStack Query (bringt
    Skeleton/Loading automatisch), Realtime, Routing `HunterReference` → echtes `ScreenHunting`.
    Composer-`initialDraft` aus `messages` (`status='draft'`, via `generate_message()`).
@@ -34,6 +33,32 @@
 ---
 
 ## Completed
+
+### Phase 2 — Hunter-Screen (Branch `feature/phase-2-hunter`) — Session 2026-06-14
+
+Komponenten-Struktur, AddSdrLeadPanel, Heat-System, Badges, Snooze. Alles Mock-Daten,
+**kein DB-Wiring**. Build grün · Audit 0 FAIL durchgehend.
+
+- [x] **Komponenten-Struktur** eingeführt + als CLAUDE.md-Pflicht verankert:
+  `panels/` (InfoPanel 820 · ActionPanel 50vw, reine Shells) · `panel-blocks/` (wiederverwendbare
+  Blöcke) · `features/[modul]/` (Kompositionen). „Jede neue Komponente sofort in die Struktur."
+- [x] **AddSdrLeadPanel** — „+ SDR Lead hinzufügen" von Popup → **Action-Side-Panel** (50vw)
+  neu gebaut, komponiert aus `panel-blocks/` (`PanelField` · `PhoneNumbersField` · `NewDealCard`).
+  **Progressive Disclosure** (Stufe 1 Pflicht: Owner·Vorname·Nachname·E-Mail/LinkedIn·Firma →
+  Stufe 2 „Weitere Details" → Stufe 3 optionaler Deal). Stage↔Deal-Kopplung mit Hinweis-Banner.
+- [x] **Heat-Status neu** — Labels Engaged/Warm/Cooling/Cold/Gone, zentral in
+  `src/lib/constants.ts` (`HEAT_STATUS` + Bridge `heatFor` vom Enum). Farb-Tokens
+  (`--color-success/-warning-soft/-warning/-info/-muted`, Light+Dark). App-weit ersetzt;
+  Dot-Kreis statt `●`. Rot bleibt ausschließlich Warnungen (Stagnation/überfällig).
+- [x] **`HeatBadge` + `StageBadge`** (`panel-blocks/`) — kein Border, Hintergrund 10% Opacity
+  (`color-mix`), Dot 8px + Text gleiche Farbe, `rounded-full`. App-weit verdrahtet (HunterCard,
+  Leads-/Pipeline-Tabelle, Übersicht, Farmer, CustomerDrawer). **Audit-Check** „keine alten
+  Heat-Labels" (Kalt/Stabil/Rückläufig/Ruhend/Hot/Lukewarm/Dead → FAIL; „Aktiv" bewusst
+  ausgenommen). **CLAUDE.md Badge-Regel** (kein Border für Badges).
+- [x] **Snooze** — Regelwerk + `system_config`-Keys in CLAUDE.md dokumentiert. 3 Zustände
+  **interaktiv** in den Follow-up-Kacheln (`FollowUpKaltCard`, Mock-State): Normal (Dropdown
+  Morgen/3T/1 Woche) → gesnoozed (gedimmt, Countdown, Reaktivieren, Zähler) → Limit (rote
+  Eskalation). Settings-Sektion `SnoozeSettings` (Design, noch nicht gemountet).
 
 ### Phase 2 — Hunter-Screen (Branch `feature/phase-2-hunter`) — Session 2026-06-12
 

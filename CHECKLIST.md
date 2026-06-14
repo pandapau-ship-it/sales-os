@@ -29,9 +29,14 @@
 - [x] PipelineStagnatedDrawer Spec-Flow (Stage-Pills + 3 Buttons)
 - [x] CLAUDE.md-Regel: Kacheln immer HunterCard · shadcn-Primitive bevorzugen
 - [x] **Dark Mode app-weit token-sicher** — alle hardcodierten Farben → Tokens; shadcn-Farbnamen in `@theme inline` gemappt; Enforcement via Audit-Check + CLAUDE.md-Regel
+- [x] **Komponenten-Struktur** eingeführt: `panels/` (InfoPanel 820 · ActionPanel 50vw) · `panel-blocks/` · `features/[modul]/` (CLAUDE.md-Pflichtregel) — *Session 2026-06-14*
+- [x] **Side Panels als Basis-Komponenten** abstrahiert: `panels/InfoPanel` (820) + `panels/ActionPanel` (50vw, Sheet-Shell) — *2026-06-14*
+- [x] **AddSdrLeadPanel** (Popup → Action-Side-Panel, Progressive Disclosure, Owner-Pflicht, Stage↔Deal-Kopplung; aus `panel-blocks/` komponiert) — *2026-06-14*
+- [x] **Heat-Status neu** — Engaged/Warm/Cooling/Cold/Gone zentral in `lib/constants.ts` (`HEAT_STATUS`), Farb-Tokens Light+Dark, app-weit ersetzt, Dot-Kreis statt `●` — *2026-06-14*
+- [x] **`HeatBadge` + `StageBadge`** (`panel-blocks/`) — kein Border, 10%-Hintergrund, Dot+Text; app-weit verdrahtet; Audit-Check „keine alten Heat-Labels"; CLAUDE.md Badge-Regel — *2026-06-14*
+- [x] **Snooze** — Regelwerk in CLAUDE.md; 3 Zustände interaktiv in Follow-up-Kacheln (Mock); Settings-Sektion `SnoozeSettings` (Design) — *2026-06-14*
 
 ### Offen
-- [ ] Side Panels als Basis-Komponenten (Info 820 / Action 580) abstrahieren
 - [ ] Empty States für alle Hunter-Tabs (`EmptyState`-Komponente)
 - [ ] Skeleton/Loading — kommt mit DB-Wiring via TanStack Query
 - [ ] Kanban-Mini-Karten angleichen (bauartbedingt separat)
