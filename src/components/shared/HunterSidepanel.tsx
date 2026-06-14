@@ -86,7 +86,7 @@ function EditableInline({
         </span>
       </PopoverAnchor>
 
-      <PopoverContent align="start" sideOffset={8} className="w-[300px] space-y-3">
+      <PopoverContent portal={false} align="start" sideOffset={8} className="w-[300px] space-y-3">
         <div className="space-y-1.5">
           <label className="text-[10px] font-extrabold text-text-muted uppercase tracking-widest">{label}</label>
           <input
@@ -161,7 +161,7 @@ function PhoneField({
         </button>
       </span>
 
-      <PopoverContent align="start" sideOffset={8} className="w-[320px] p-0 overflow-hidden">
+      <PopoverContent portal={false} align="start" sideOffset={8} className="w-[320px] p-0 overflow-hidden">
         <div className="px-4 py-2.5 border-b border-border-subtle text-[10px] font-extrabold text-text-muted uppercase tracking-widest">Telefon</div>
         <div className="py-1">
           {phones.map((p) => (

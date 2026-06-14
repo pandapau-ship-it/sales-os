@@ -146,6 +146,13 @@ Modals → **`dialog`** · Buttons → **`button`** · Tooltips → **`tooltip`*
 Ein natives `<select>`/`<button>` oder ein eigener `fixed`-Overlay statt `sheet` ist ein
 **Regelverstoß, kein Stilfrage**. Fehlt ein Primitiv: `npx shadcn add [component]`.
 
+**Eingabe-im-Popover-Regel (Pflicht — sonst kann man nicht tippen):**
+Ein `Popover` (oder Dropdown) mit `<input>`/`<textarea>` **innerhalb eines modalen Sheets/Dialogs**
+MUSS `<PopoverContent portal={false}>` setzen. Sonst rendert der Inhalt per Portal außerhalb des
+Sheets, die Radix-Dialog-**Fokusfalle** zieht den Fokus zurück → **Tippen unmöglich**. `portal={false}`
+hält den Inhalt im Fokus-Scope des Sheets. (Standard-Popover ohne Eingabe / außerhalb eines Sheets
+bleiben portaliert.) Erzwungen via `npm run audit` (Check „Popover-Eingabe fokussierbar" = **FAIL**).
+
 **Hunter-Kacheln (Profilkarten): IMMER `HunterCard` + `componentBehavior.ts` — niemals von Hand bauen.**
 Jede Profilkarte in Hunter (Übersicht, Signals, Neu in Pipeline, Leads, Follow-ups, Pipeline und
 ALLE künftigen) rendert über `src/components/shared/HunterCard.tsx`. Diese garantiert die einheitliche

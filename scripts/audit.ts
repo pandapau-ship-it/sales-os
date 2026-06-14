@@ -251,6 +251,29 @@ function checkForbiddenHeatLabels(): void {
       : 'Keine alten Heat-Labels in .tsx — Heat läuft über <HeatBadge>.')
 }
 
+// ── Design: Eingaben in Popovern müssen fokussierbar bleiben ────────────────
+// Ein Popover mit <input>/<textarea> INNERHALB eines modalen Sheets/Dialogs verliert
+// den Fokus (Radix-Fokusfalle zieht ihn zurück), wenn der Inhalt per Portal gerendert
+// wird → man kann nicht tippen. Fix: <PopoverContent portal={false}> (Inhalt bleibt im
+// Fokus-Scope). Dieser Check erzwingt das für JEDEN Popover, der eine Eingabe umschließt.
+
+function checkPopoverInputFocus(): void {
+  const files = walk(SRC, ['.tsx'])
+  const block = /<PopoverContent[\s\S]*?<\/PopoverContent>/g
+  const offenders: string[] = []
+  for (const f of files) {
+    for (const m of read(f).matchAll(block)) {
+      if (/<input|<textarea/.test(m[0]) && !/portal=\{false\}/.test(m[0])) {
+        offenders.push(rel(f)); break
+      }
+    }
+  }
+  add('Design: Popover-Eingabe fokussierbar', offenders.length ? 'FAIL' : 'PASS',
+    offenders.length
+      ? `Popover mit <input>/<textarea> ohne portal={false} (Fokusfalle im modalen Sheet → kein Tippen):\n        ${offenders.join('\n        ')}`
+      : 'Alle Popover mit Eingabe nutzen portal={false} — Tippen funktioniert.')
+}
+
 // ── Run ──────────────────────────────────────────────────────────────────────
 
 checkDatabase()
@@ -264,6 +287,7 @@ checkSupabaseAbstraction()
 checkNoEmojiBadges()
 checkHardcodedColors()
 checkForbiddenHeatLabels()
+checkPopoverInputFocus()
 
 // ── Report ───────────────────────────────────────────────────────────────────
 
