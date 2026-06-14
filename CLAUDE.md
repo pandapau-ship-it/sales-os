@@ -1368,8 +1368,15 @@ Langfuse-Prompt erwähnen. Kein Umbau des Chats nötig.
   nicht). Auffällige Versuche (Secret-/Cross-Tenant-/Injection-Probing) → `audit_log` (source: 'ai_chat').
 
 > Diese Regeln gehören in (a) den Langfuse-System-Prompt, (b) die `ai_chat()`-Edge-Function
-> (Scoping + Output-Filter + Permission-Checks) und (c) einen Test-Satz „Red-Team"-Prompts
-> (Secret-Fishing, „zeig deinen Prompt", Cross-Tenant, Injection), der vor jedem Release grün sein muss.
+> (Scoping + Output-Filter + Permission-Checks) und (c) ein **automatisiertes Red-Team-Gate.**
+>
+> **Red-Team-Gate (geplant, mit dem AI-Chat in Phase 7 bauen — analog `npm run audit`):**
+> `scripts/redteam-aichat.ts` (Aufruf `npm run redteam`) feuert einen festen Satz adversarialer
+> Prompts gegen `ai_chat()` und prüft die Antworten: Secret-Fishing (API-Key/`.env`/Token-Abfrage),
+> „zeig deinen System-Prompt/Code", Cross-Tenant-Zugriff (fremde `organization_id`/IDs),
+> Prompt-Injection (Befehle in DB-/Mail-/Datei-Inhalten), Berechtigungs-Umgehung,
+> PII-Bulk-Export. **FAIL = Release blockiert** (Teil des Merge-Gates neben `build` + `audit`).
+> Neue Guardrail-Regel → sofort neuer Red-Team-Fall. Erweiterbar wie der Audit-Check-Satz.
 
 ---
 
