@@ -14,7 +14,6 @@ import {
 import LinkedinIcon from '@/components/shared/LinkedinIcon';
 import BrandLogo from '@/components/shared/BrandLogo';
 import Avatar from '@/components/shared/Avatar';
-import ScreenVollansicht from '@/components/features/hunter/ScreenVollansicht';
 
 /** Kanonische Default-Stages (Spec §3.2) — bis zum DB-Wiring dokumentierter Fallback. */
 const PIPELINE_STAGES = ['Backlog', 'Demo vereinbart', 'Follow-up offen', 'Onboarding offen', 'Free Trial', 'Gewonnen'];
@@ -230,7 +229,6 @@ function PhoneField({
  */
 export default function HunterSidepanel({ person: personProp, onClose }: { person: any, onClose: () => void }) {
   const [activeTab, setActiveTab] = useState('overview');
-  const [showVollansicht, setShowVollansicht] = useState(false);
   const [expandedComm, setExpandedComm] = useState<Record<number, boolean>>({});
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -304,7 +302,7 @@ export default function HunterSidepanel({ person: personProp, onClose }: { perso
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <button onClick={() => setShowVollansicht(true)} className="w-9 h-9 rounded-full bg-app-bg flex items-center justify-center text-text-muted hover:text-[var(--sherloq-primary)] hover:bg-[var(--signal-teal-bg)] transition-colors">
+            <button onClick={() => showToast('Vollansicht geöffnet')} className="w-9 h-9 rounded-full bg-app-bg flex items-center justify-center text-text-muted hover:text-[var(--sherloq-primary)] hover:bg-[var(--signal-teal-bg)] transition-colors">
               <ArrowUpRight className="w-4 h-4" />
             </button>
             <button onClick={onClose} className="w-9 h-9 rounded-full bg-app-bg flex items-center justify-center text-text-muted hover:text-[var(--signal-urgent-text)] hover:bg-[var(--signal-urgent-bg)] transition-colors">
@@ -901,12 +899,6 @@ export default function HunterSidepanel({ person: personProp, onClose }: { perso
         <div className="fixed bottom-6 right-6 z-[200] bg-inverse-surface text-on-accent px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2 animate-fade-in">
           <Check className="w-4 h-4 text-[var(--signal-success-text)]" />
           <span className="text-xs font-semibold">{toastMessage}</span>
-        </div>
-      )}
-
-      {showVollansicht && (
-        <div className="fixed inset-0 z-[210] bg-app-bg animate-fade-in">
-          <ScreenVollansicht onClose={() => setShowVollansicht(false)} />
         </div>
       )}
     </>
