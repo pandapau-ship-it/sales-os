@@ -265,15 +265,18 @@ wird das Design in unser System übersetzt — nicht umgekehrt.
 |---|---|---|
 | Drawer, Modals | 16px | `rounded-[16px]` |
 | Cards, Panels | 12px | `rounded-[12px]` |
-| Nav-Container (Top-Nav & Sub-Nav) | 12px | `rounded-[12px]` |
-| Nav-Tabs (aktiv/inaktiv) | 9px | `rounded-[9px]` |
+| **Top-Nav** (primäre Sektions-Pills: Mein Tag·AI SDR·Hunter·Farmer) | Pill | `rounded-full` |
+| Sub-Nav-Container | 12px | `rounded-[12px]` |
+| Nav-Tabs (aktiv/inaktiv, Sub-Nav) | 9px | `rounded-[9px]` |
 | Buttons (primär/sekundär) | 10px | `rounded-[10px]` |
 | Badges, Pills | 7px | `rounded-[7px]` |
 | Count-Labels in Tabs | 5px | `rounded-[5px]` |
 | Avatare (Kontakte/Nutzer) | 9999px | `rounded-full` |
 | Status-Punkte | 9999px | `rounded-pill` |
 
-**Niemals:** `rounded-pill` für Nav-Container oder Nav-Tabs. `rounded-pill` nur für Status-Punkte, Checkboxen, Linien.
+**Top-Nav (primäre Sektions-Pills) = `rounded-full`** (Pill-Form wie der „+ SDR Lead hinzufügen"-CTA) —
+Entscheidung 2026-06-14, ersetzt die alte 12px-Regel für die Top-Nav. **Sub-Navs** bleiben bei
+`rounded-[12px]`-Container + `rounded-[9px]`-Tabs. `rounded-pill` sonst nur für Status-Punkte/Checkboxen/Linien.
 
 **Verhaltens-Konsistenz — gilt für ALLE Komponenten: „Gleiches Element = gleiches Verhalten, immer."**
 Wenn ein UI-Element (Kachel, Button, Badge, Panel …) an einer Stelle ein bestimmtes Verhalten hat
@@ -341,13 +344,14 @@ wird via `heatFor()` / `getHeatColor()` auf diese Labels + Farben gebrückt).
 | Warnung | `AlertTriangle` | `text-signal-warn` |
 | Signal / Hot | `Flame` | orange |
 
-**Nav-Muster (verbindlich für Top-Nav UND alle Sub-Navs):**
+**Nav-Muster — Sub-Navs** (Top-Nav ist `rounded-full`, siehe Radius-Hierarchie):
 ```tsx
-// Container: immer rounded-[12px], kein rounded-pill
+// Sub-Nav-Container: rounded-[12px]
 <div className="flex gap-1 p-1 bg-app-surface rounded-[12px] w-fit items-center">
-  // Tab: immer rounded-[9px], aktiv = bg-sherloq-primary text-white
+  // Sub-Nav-Tab: rounded-[9px], aktiv = bg-sherloq-primary text-white
   <button className={`px-3.5 py-1.5 text-[12px] font-medium rounded-[9px] ${isActive ? 'bg-sherloq-primary text-white' : 'text-text-body hover:bg-app-bg'}`}>
 ```
+**Top-Nav** (primäre Sektions-Pills): Container + aktiver Pill `rounded-full` (Sliding-Pill, Brand-Gradient).
 
 **Design-Uploads — Übersetzungsregel:**
 Wenn ein Figma/Screenshot-Design hochgeladen wird:

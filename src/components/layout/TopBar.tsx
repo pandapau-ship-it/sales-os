@@ -45,7 +45,7 @@ export default function TopBar({ onOpenCommandPalette }: TopBarProps) {
 
   return (
     <header
-      style={{ height: 56, background: "transparent", position: "sticky", top: 0, zIndex: 30 }}
+      style={{ height: 56, marginTop: 30, background: "transparent", position: "sticky", top: 0, zIndex: 30 }}
       className="px-6 flex items-center justify-between select-none relative"
     >
       {/* Logo */}
@@ -68,7 +68,7 @@ export default function TopBar({ onOpenCommandPalette }: TopBarProps) {
 
       {/* Nav (absolut zentriert) */}
       <nav
-        style={{ background: "var(--surface)", borderRadius: 12, padding: 3 }}
+        style={{ background: "var(--surface)", borderRadius: 9999, padding: 3 }}
         className="absolute left-1/2 -translate-x-1/2 flex items-center gap-0.5 shadow-nav"
       >
         {slider.ready && (
@@ -80,7 +80,7 @@ export default function TopBar({ onOpenCommandPalette }: TopBarProps) {
               left: slider.left,
               width: slider.width,
               background: "var(--sherloq-gradient)",
-              borderRadius: 9,
+              borderRadius: 9999,
               transition: "left 200ms cubic-bezier(0.4,0,0.2,1), width 200ms cubic-bezier(0.4,0,0.2,1)",
               pointerEvents: "none",
             }}
@@ -95,8 +95,8 @@ export default function TopBar({ onOpenCommandPalette }: TopBarProps) {
                 buttonRefs.current[index] = el;
               }}
               onClick={() => navigate(`/app/${item.route}`)}
-              style={{ color: active ? "white" : "var(--text-body)", borderRadius: 9, position: "relative", zIndex: 1 }}
-              className={`flex items-center gap-2 px-[21px] py-[16px] text-[14px] font-medium cursor-pointer transition-colors duration-150${
+              style={{ color: active ? "white" : "var(--text-body)", borderRadius: 9999, position: "relative", zIndex: 1 }}
+              className={`flex items-center gap-2 px-[21px] py-[11px] text-[14px] font-medium cursor-pointer transition-colors duration-150${
                 !active ? " hover:bg-[var(--app-bg)]" : ""
               }`}
             >
