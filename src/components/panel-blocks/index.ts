@@ -9,6 +9,7 @@ export { default as ActionComposer } from './ActionComposer';
 export { default as ActionFooter } from './ActionFooter';
 export { default as ActiveSequenceChain } from './ActiveSequenceChain';
 export { default as AktiveSignale } from './AktiveSignale';
+export { default as AktivitaetsVerlauf } from './AktivitaetsVerlauf';
 export { default as DealSetup } from './DealSetup';
 export { default as DetailField } from './DetailField';
 export { default as DetailPhoneList } from './DetailPhoneList';

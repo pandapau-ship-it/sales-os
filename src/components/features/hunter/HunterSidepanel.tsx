@@ -26,6 +26,7 @@ import KommunikationPreview from '@/components/panel-blocks/KommunikationPreview
 import OffeneTasks from '@/components/panel-blocks/OffeneTasks';
 import TasksListe from '@/components/panel-blocks/TasksListe';
 import KommunikationVerlauf from '@/components/panel-blocks/KommunikationVerlauf';
+import AktivitaetsVerlauf from '@/components/panel-blocks/AktivitaetsVerlauf';
 
 /** Kanonische Default-Stages (Spec §3.2) — bis zum DB-Wiring dokumentierter Fallback. */
 const PIPELINE_STAGES = ['Backlog', 'Demo vereinbart', 'Follow-up offen', 'Onboarding offen', 'Free Trial', 'Gewonnen'];
@@ -259,13 +260,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
         )}
 
         {activeTab === 'activity' && (
-          <div className="space-y-4 animate-fade-in">
-            <span className="text-[10px] font-extrabold text-text-muted uppercase tracking-widest pl-1">Historischer Zeitstrahl</span>
-            <div className="bg-app-surface rounded-[12px] p-8 border border-border shadow-sm text-center text-xs text-text-muted py-14">
-              <Clock className="w-7 h-7 mx-auto mb-3 text-icon-muted" />
-              Hier werden alle CRM-Aktivitäten aus HubSpot, Outlook und LinkedIn synchronisiert.
-            </div>
-          </div>
+          <AktivitaetsVerlauf />
         )}
 
         {activeTab === 'tasks' && (

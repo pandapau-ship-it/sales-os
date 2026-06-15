@@ -468,6 +468,7 @@ Alle prop-driven, Tokens-only, Dark-Mode automatisch.
 | `PanelTabs` | Tab-Navigation des Info-Panels (`tabs`/`active`/`onChange`) |
 | `TasksListe` | Tasks-Tab: alle Aufgaben mit Detail-Pills (Kanal/Fälligkeit/Priorität/Stage) + Bearbeiten/Löschen + „Neue Task" (`onAdd`/`onEdit`/`onDelete`) |
 | `KommunikationVerlauf` | Kommunikations-Tab: Touchpoints mit Marken-Kanal-Logo + aufklappbarem Volltext (Expand-State intern) — ≠ `KommunikationPreview` (Übersicht-Vorschau) |
+| `AktivitaetsVerlauf` | Aktivität-Tab: historischer Zeitstrahl (aktuell Empty-State, CRM-Sync folgt) |
 | `KontaktZeile` `KiKurzakte` `PanelHeader` `PanelField` `DealSetup` `NewDealCard` `ErledigtAction` `KommunikationPreview` `OffeneTasks` `ActiveSequenceChain` `AktiveSignale` `PanelFooter` `ActionFooter` `ActionComposer` `PhoneNumbersField` `HunterCard` `SignalRow` `FollowUpKaltCard` `PipelineStagniertCard` `PipelineKeineTaskCard` `LinkedinSignalCard` `NewInPipelineCards` `SequenceLeadCards` | weitere Blöcke (Panel-/Karten-/Formular-Komposition) |
 
 > Neuer panel-block → **sofort** in diese Tabelle **und** in `panel-blocks/index.ts` (Barrel) eintragen.
