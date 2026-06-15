@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import {
   ArrowUpRight, ArrowLeft, X, Mail, Phone, Globe, AlertTriangle, Clock, Check,
   Zap, Briefcase, Calendar, ChevronDown, Pencil, Trash2, Save, Plus,
-  StickyNote, Copy, Star
+  StickyNote, Copy, Star, User, Building2, Tag
 } from 'lucide-react';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import {
@@ -68,12 +68,12 @@ function EditableInline({
     <Popover open={open} onOpenChange={(o) => { if (o) setDraft(value); setOpen(o); }}>
       <PopoverAnchor asChild>
         <span className="inline-flex items-center gap-1 group/edit cursor-default">
-          {href ? (
+          {href && value ? (
             <a href={href} target="_blank" rel="noopener noreferrer" className={`${valueClass} hover:underline cursor-pointer`}>
               {value}
             </a>
           ) : (
-            <span className={valueClass}>{value}</span>
+            <span className={valueClass}>{value || '—'}</span>
           )}
           <button onClick={copy} aria-label="Kopieren" className="opacity-0 group-hover/edit:opacity-100 transition-opacity text-text-muted hover:text-[var(--sherloq-primary)] cursor-pointer shrink-0">
             {copied ? <Check className="w-3 h-3 text-[var(--sherloq-primary)]" /> : <Copy className="w-3 h-3" />}
@@ -227,8 +227,85 @@ function PhoneField({
  * `person = null` → geschlossen; Inhalt rendert aus einer gehaltenen Kopie, damit das
  * Panel während der Ausfahr-Animation nicht leer wird.
  */
+/** Dropdown-Optionen für die Detail-Felder (Vollansicht). Spiegeln die CRM-Felder
+ *  aus CLAUDE.md → „KONTAKTE / COMPANIES". Später aus settings/Enums geladen. */
+const ANREDE_OPTS = ['Herr', 'Frau', 'Divers'];
+const SENIORITY_OPTS = ['C-Level', 'VP', 'Director', 'Manager', 'IC', 'Founder'];
+const SPRACHE_OPTS = ['Deutsch', 'Englisch', 'Französisch', 'Spanisch', 'Andere'];
+const LAND_OPTS = ['Deutschland', 'Österreich', 'Schweiz', 'Andere'];
+const BRANCHE_OPTS = ['SaaS', 'Fintech', 'E-Commerce', 'Healthcare', 'Industrie', 'Andere'];
+const GROESSE_OPTS = ['1–10', '11–50', '51–200', '201–500', '500+'];
+const LEAD_STATUS_OPTS = ['Lead', 'Qualified Lead', 'Marketing Qualified Lead (MQL)', 'Sales Qualified Lead (SQL)', 'Customer', 'Churned'];
+
+const DEFAULT_DETAILS = {
+  anrede: 'Herr', vorname: 'Christian', nachname: 'Brand',
+  jobtitel: 'VP of Sales EMEA', seniority: 'VP', abteilung: 'Sales',
+  sprache: 'Deutsch', stadt: 'München', land: 'Deutschland', twitter: '',
+  firma: 'LogixFlow GmbH', branche: 'SaaS', groesse: '51–200',
+  domain: 'logixflow.de', firmaStadt: 'München', firmaLand: 'Deutschland',
+  leadStatus: 'Sales Qualified Lead (SQL)', icp: '87',
+  tags: 'Enterprise · ROI-Fokus · Outreach', owner: 'Oliver Prossi',
+  notiz: 'Budget-Freeze bis Q3 — der ROI-Case ist der Hebel. Demo lief sehr positiv, Abschluss ab Q4 realistisch.',
+};
+
+/**
+ * DetailField — ein Feld der Vollansicht (Label oben, Wert darunter).
+ *  - System (readonly): grauer Wert, kein Edit (CLAUDE.md: Systemfelder).
+ *  - options: Dropdown-Auswahl (Anrede, Seniority, Land …).
+ *  - sonst: Text inline editierbar (Popover) via EditableInline; leer → „—".
+ */
+function DetailField({
+  label, value, onSave, options, onSelect, system, href, type,
+}: { label: string; value: string; onSave?: (v: string) => void; options?: string[]; onSelect?: (v: string) => void; system?: boolean; href?: string; type?: string }) {
+  return (
+    <div className="min-w-0">
+      <div className="text-[10px] font-extrabold text-text-muted uppercase tracking-widest mb-1.5">{label}</div>
+      {system ? (
+        <div className="text-[13px] font-semibold text-text-muted truncate" title="Vom System vergeben">{value || '—'}</div>
+      ) : options ? (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-text-body hover:text-[var(--sherloq-primary)] transition-colors cursor-pointer group/sel max-w-full">
+              <span className="truncate">{value || '—'}</span>
+              <ChevronDown className="w-3.5 h-3.5 shrink-0 opacity-40 group-hover/sel:opacity-100 transition-opacity" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="w-56">
+            {options.map((o) => (
+              <DropdownMenuItem key={o} onClick={() => onSelect?.(o)} className="cursor-pointer text-[13px] font-semibold">
+                <span className={`w-1.5 h-1.5 rounded-full ${o === value ? 'bg-[var(--sherloq-primary)]' : 'bg-[var(--border-strong)]'}`} />
+                {o}
+                {o === value && <Check className="w-3.5 h-3.5 ml-auto text-[var(--sherloq-primary)]" />}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ) : (
+        <div className="text-[13px] font-semibold text-text-body">
+          <EditableInline label={label} value={value} type={type} href={href} onSave={(v) => onSave?.(v)} onCopy={() => {}} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** DetailSection — Karte mit Titel + responsivem Feld-Grid (1 oder 2 Spalten). */
+function DetailSection({ title, icon: Icon, cols = 2, children }: { title: string; icon: any; cols?: 1 | 2; children: any }) {
+  return (
+    <section className="bg-app-surface rounded-[12px] border border-border shadow-[var(--shadow-card)] p-6">
+      <div className="flex items-center gap-2 mb-5 text-[11px] font-bold uppercase tracking-wider text-text-muted">
+        <Icon className="w-4 h-4 text-[var(--sherloq-primary)]" />
+        {title}
+      </div>
+      <div className={`grid gap-x-8 gap-y-5 ${cols === 2 ? 'sm:grid-cols-2' : 'grid-cols-1'}`}>
+        {children}
+      </div>
+    </section>
+  );
+}
+
 export default function HunterSidepanel({ person: personProp, onClose, variant = 'panel' }: { person: any; onClose: () => void; variant?: 'panel' | 'full' }) {
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState(variant === 'full' ? 'details' : 'overview');
   const [showVollansicht, setShowVollansicht] = useState(false);
   const [expandedComm, setExpandedComm] = useState<Record<number, boolean>>({});
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -240,6 +317,8 @@ export default function HunterSidepanel({ person: personProp, onClose, variant =
   const [kurzakte, setKurzakte] = useState<string[]>(DEFAULT_KURZAKTE);
   const [editingKurzakte, setEditingKurzakte] = useState(false);
   const [kurzakteDraft, setKurzakteDraft] = useState('');
+  const [details, setDetails] = useState(DEFAULT_DETAILS);
+  const setDetail = (k: keyof typeof DEFAULT_DETAILS, v: string) => { setDetails((d) => ({ ...d, [k]: v })); showToast('Gespeichert'); };
 
   // Open-State von der Prop; Inhalt aus gehaltener Kopie (wie CustomerDrawer).
   const [display, setDisplay] = useState<any>(personProp);
@@ -252,6 +331,7 @@ export default function HunterSidepanel({ person: personProp, onClose, variant =
       setPhones(DEFAULT_PHONES);
       setKurzakte(DEFAULT_KURZAKTE);
       setEditingKurzakte(false);
+      setDetails(DEFAULT_DETAILS);
     }
   }, [personProp]);
   const isOpen = personProp !== null;
@@ -888,6 +968,71 @@ export default function HunterSidepanel({ person: personProp, onClose, variant =
         </>
   );
 
+  // Details-Tab (nur Vollansicht) — alle Kontakt-/Firmen-/CRM-Felder (CLAUDE.md → CRM FELDER),
+  // editierbar (Standard) bzw. readonly (System). Bündelt was bei „+ SDR Lead" erfassbar ist.
+  const phoneFav = phones.find((p) => p.favorite) ?? phones[0];
+  const phoneBiz = phones.find((p) => p.type === 'Geschäftlich') ?? phones[1];
+  const detailsContent = person && (
+    <div className="space-y-6 animate-fade-in">
+      <DetailSection title="Person" icon={User}>
+        <DetailField label="Anrede" value={details.anrede} options={ANREDE_OPTS} onSelect={(v) => setDetail('anrede', v)} />
+        <DetailField label="Sprache" value={details.sprache} options={SPRACHE_OPTS} onSelect={(v) => setDetail('sprache', v)} />
+        <DetailField label="Vorname" value={details.vorname} onSave={(v) => setDetail('vorname', v)} />
+        <DetailField label="Nachname" value={details.nachname} onSave={(v) => setDetail('nachname', v)} />
+        <DetailField label="Jobtitel" value={details.jobtitel} onSave={(v) => setDetail('jobtitel', v)} />
+        <DetailField label="Seniority" value={details.seniority} options={SENIORITY_OPTS} onSelect={(v) => setDetail('seniority', v)} />
+        <DetailField label="Abteilung" value={details.abteilung} onSave={(v) => setDetail('abteilung', v)} />
+        <DetailField label="Standort / Stadt" value={details.stadt} onSave={(v) => setDetail('stadt', v)} />
+        <DetailField label="Land" value={details.land} options={LAND_OPTS} onSelect={(v) => setDetail('land', v)} />
+        <DetailField label="E-Mail" type="email" value={contact.email} onSave={(v) => { setContact((c) => ({ ...c, email: v })); showToast('Gespeichert'); }} />
+        <DetailField label="Telefon" value={phoneFav?.number || ''} onSave={(v) => { if (phoneFav) setPhones((prev) => prev.map((p) => (p.id === phoneFav.id ? { ...p, number: v } : p))); showToast('Gespeichert'); }} />
+        <DetailField label="Mobil" value={phoneBiz?.number || ''} onSave={(v) => { if (phoneBiz) setPhones((prev) => prev.map((p) => (p.id === phoneBiz.id ? { ...p, number: v } : p))); showToast('Gespeichert'); }} />
+        <DetailField label="LinkedIn" value={contact.linkedin} href={`https://www.linkedin.com/${contact.linkedin.replace(/^\/+/, '')}`} onSave={(v) => { setContact((c) => ({ ...c, linkedin: v })); showToast('Gespeichert'); }} />
+        <DetailField label="Twitter / X" value={details.twitter} onSave={(v) => setDetail('twitter', v)} />
+        <DetailField label="Webadresse" value={contact.web} href={`https://${contact.web.replace(/^https?:\/\//, '')}`} onSave={(v) => { setContact((c) => ({ ...c, web: v })); showToast('Gespeichert'); }} />
+      </DetailSection>
+
+      <DetailSection title="Firma" icon={Building2}>
+        <DetailField label="Firma" value={details.firma} onSave={(v) => setDetail('firma', v)} />
+        <DetailField label="Branche" value={details.branche} options={BRANCHE_OPTS} onSelect={(v) => setDetail('branche', v)} />
+        <DetailField label="Unternehmensgröße" value={details.groesse} options={GROESSE_OPTS} onSelect={(v) => setDetail('groesse', v)} />
+        <DetailField label="Domain" value={details.domain} href={`https://${details.domain.replace(/^https?:\/\//, '')}`} onSave={(v) => setDetail('domain', v)} />
+        <DetailField label="Stadt / HQ" value={details.firmaStadt} onSave={(v) => setDetail('firmaStadt', v)} />
+        <DetailField label="Land" value={details.firmaLand} options={LAND_OPTS} onSelect={(v) => setDetail('firmaLand', v)} />
+      </DetailSection>
+
+      <DetailSection title="Klassifizierung" icon={Tag}>
+        <DetailField label="Lead Status" value={details.leadStatus} options={LEAD_STATUS_OPTS} onSelect={(v) => setDetail('leadStatus', v)} />
+        <DetailField label="ICP Score" value={details.icp} onSave={(v) => setDetail('icp', v)} />
+        <DetailField label="Owner" value={details.owner} onSave={(v) => setDetail('owner', v)} />
+        <DetailField label="Tags" value={details.tags} onSave={(v) => setDetail('tags', v)} />
+        <DetailField label="Contact Status" value="Pipeline" system />
+        <DetailField label="Lead-Quelle" value="Manuell" system />
+        <DetailField label="Heat Status" value="Aktiv" system />
+        <DetailField label="E-Mail verifiziert" value="Verifiziert" system />
+      </DetailSection>
+
+      <DetailSection title="System" icon={Clock}>
+        <DetailField label="Erstellt am" value="12. März 2026" system />
+        <DetailField label="Letzter Kontakt" value="vor 2 Tagen · E-Mail" system />
+        <DetailField label="Letzte Antwort" value="vor 5 Tagen" system />
+        <DetailField label="Enrichment-Quelle" value="Surfe" system />
+        <DetailField label="CRM ID" value="HS-48213" system />
+      </DetailSection>
+
+      <DetailSection title="Notizen" icon={StickyNote} cols={1}>
+        <textarea
+          value={details.notiz}
+          onChange={(e) => setDetails((d) => ({ ...d, notiz: e.target.value }))}
+          onBlur={() => showToast('Notiz gespeichert')}
+          rows={4}
+          placeholder="Kontext, nächste Schritte, Hinweise…"
+          className="w-full bg-app-bg border border-border focus:border-[var(--sherloq-primary)] rounded-[10px] p-3 text-[13px] text-text-primary leading-relaxed outline-none resize-none transition-colors placeholder-[var(--text-muted)]"
+        />
+      </DetailSection>
+    </div>
+  );
+
   const panelBtn = "px-3.5 py-2 border border-border hover:bg-app-bg text-text-body rounded-full text-[12px] font-bold flex-1 transition-colors shadow-sm cursor-pointer hover:-translate-y-0.5 flex items-center justify-center gap-1.5";
   const fullBtn = "px-4 py-2 border border-border hover:bg-app-bg text-text-body rounded-full text-[12px] font-bold transition-colors shadow-sm cursor-pointer hover:-translate-y-0.5 flex items-center justify-center gap-1.5";
 
@@ -925,51 +1070,66 @@ export default function HunterSidepanel({ person: personProp, onClose, variant =
     </>
   );
 
-  // Voll-Variante — echte Seite: fixe Topbar oben, darunter scrollt die gesamte Seite.
+  // Voll-Variante — echte Seite. Die gesamte Seite scrollt (ein Scroll-Container);
+  // nur Topbar und Tab-Leiste bleiben per sticky oben stehen. Kein Panel-Inner-Scroll.
+  const FULL_TABS = [
+    { id: 'details', label: 'Details' },
+    { id: 'overview', label: 'Übersicht' },
+    { id: 'communication', label: 'Kommunikation' },
+    { id: 'activity', label: 'Aktivität' },
+    { id: 'tasks', label: 'Tasks' },
+    { id: 'notes', label: 'Notizen' },
+  ];
   const fullBody = person && (
-    <div className="fixed inset-0 z-[120] bg-app-bg flex flex-col font-sans animate-fade-in">
-      {/* Fixe Topbar — bleibt beim Scrollen stehen */}
-      <div className="shrink-0 h-14 px-5 sm:px-8 bg-app-surface border-b border-border-subtle flex items-center justify-between gap-4 shadow-sm relative z-20">
+    <div className="fixed inset-0 z-[120] bg-app-bg font-sans overflow-y-auto custom-scrollbar animate-fade-in">
+      {/* Fixe Topbar — einziges dauerhaft sichtbares Element beim Scrollen */}
+      <div className="sticky top-0 z-30 h-14 px-5 sm:px-10 bg-app-surface border-b border-border-subtle flex items-center justify-between gap-4 shadow-sm">
         <div className="flex items-center gap-3 min-w-0">
           <button onClick={onClose} aria-label="Zurück" className="w-9 h-9 rounded-full bg-app-bg flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-border-subtle transition-colors shrink-0 cursor-pointer">
             <ArrowLeft className="w-4 h-4" />
           </button>
           <Avatar name={person?.name || "Christian Brand"} src={person?.avatarUrl} size={30} />
           <span className="text-[14px] font-extrabold text-text-primary truncate">{person?.name || "Dr. Christian Brand"}</span>
-          <span className="px-2.5 py-1 rounded-full bg-app-bg text-text-muted text-[11px] font-bold shrink-0 hidden sm:inline">{stage}</span>
         </div>
         <button onClick={onClose} aria-label="Schließen" className="w-9 h-9 rounded-full bg-app-bg flex items-center justify-center text-text-muted hover:text-[var(--signal-urgent-text)] hover:bg-[var(--signal-urgent-bg)] transition-colors shrink-0 cursor-pointer">
           <X className="w-4 h-4" />
         </button>
       </div>
 
-      {/* Scrollbereich — die ganze Seite scrollt */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar bg-app-bg">
-        <div className="max-w-[1080px] mx-auto px-5 sm:px-8 py-8 space-y-6">
-          {/* Hero — Identität · Status · Aktionen · Kontaktdaten */}
-          <div className="bg-app-surface rounded-[16px] border border-border shadow-[var(--shadow-card)] p-7 space-y-6">
-            <div className="flex items-start justify-between gap-6 flex-wrap">
-              {identityBlock}
-              <div className="flex items-start gap-7 shrink-0">
-                {statusBadgesInner}
-              </div>
-            </div>
-            <div className="flex items-center gap-2 flex-wrap">
-              {renderActions(fullBtn)}
-            </div>
-            {contactPill}
-          </div>
-
-          {/* Tabs — kleben unter der Topbar */}
-          <div className="sticky top-0 z-10 bg-app-bg pt-2">
-            {tabNav}
-          </div>
-
-          {/* Tab-Inhalt */}
-          <div>
-            {tabContent}
+      {/* Hero — direkt in die Seite integriert (keine weiße Kachel) */}
+      <div className="max-w-[1100px] mx-auto px-5 sm:px-10 pt-10 pb-7">
+        <div className="flex items-start justify-between gap-6 flex-wrap">
+          {identityBlock}
+          <div className="flex items-start gap-7 shrink-0">
+            {statusBadgesInner}
           </div>
         </div>
+        <div className="flex items-center gap-2 flex-wrap mt-7">
+          {renderActions(fullBtn)}
+        </div>
+      </div>
+
+      {/* Tabs — sticky unter der Topbar, über die volle Breite integriert */}
+      <div className="sticky top-14 z-20 bg-app-bg border-b border-border-subtle">
+        <nav className="max-w-[1100px] mx-auto px-5 sm:px-10 flex flex-nowrap gap-8 overflow-x-auto scrollbar-none">
+          {FULL_TABS.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`relative py-4 text-[13px] font-bold transition-colors shrink-0 ${activeTab === tab.id ? 'text-[var(--sherloq-primary)]' : 'text-text-muted hover:text-text-body'}`}
+            >
+              {tab.label}
+              {activeTab === tab.id && (
+                <div className="absolute left-0 right-0 bottom-0 bg-[var(--sherloq-primary)] rounded-t-full" style={{ height: '2px' }} />
+              )}
+            </button>
+          ))}
+        </nav>
+      </div>
+
+      {/* Inhalt — scrollt mit der Seite */}
+      <div className="max-w-[1100px] mx-auto px-5 sm:px-10 py-8">
+        {activeTab === 'details' ? detailsContent : tabContent}
       </div>
     </div>
   );
