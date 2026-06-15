@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import {
-  ArrowUpRight, ArrowLeft, X, Mail, Phone, Globe, AlertTriangle, Clock, Check,
+  ArrowUpRight, ArrowLeft, X, Mail, Phone, AlertTriangle, Clock, Check,
   Briefcase, Calendar, ChevronDown, Pencil, Trash2, Save, Plus,
   StickyNote, User, Building2, Tag, CheckCircle2
 } from 'lucide-react';
@@ -17,10 +17,9 @@ import StatusBadge from '@/components/panel-blocks/StatusBadge';
 import DetailField from '@/components/panel-blocks/DetailField';
 import DetailSection from '@/components/panel-blocks/DetailSection';
 import DetailPhoneList from '@/components/panel-blocks/DetailPhoneList';
-import EditableInline from '@/components/panel-blocks/EditableInline';
-import PhoneField from '@/components/panel-blocks/PhoneField';
 import PanelTabs from '@/components/panel-blocks/PanelTabs';
 import KiKurzakte from '@/components/panel-blocks/KiKurzakte';
+import KontaktZeile from '@/components/panel-blocks/KontaktZeile';
 
 /** Kanonische Default-Stages (Spec §3.2) — bis zum DB-Wiring dokumentierter Fallback. */
 const PIPELINE_STAGES = ['Backlog', 'Demo vereinbart', 'Follow-up offen', 'Onboarding offen', 'Free Trial', 'Gewonnen'];
@@ -205,34 +204,18 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
     </>
   );
 
+  const FIELD_LABEL: Record<'email' | 'linkedin' | 'web', string> = { email: 'E-Mail', linkedin: 'LinkedIn', web: 'Webadresse' };
   const contactPill = (
-    <div className="bg-app-surface border border-border-subtle rounded-full px-5 py-3 flex items-center justify-between gap-3 text-[12px] text-text-muted shadow-sm">
-      <span className="flex items-center gap-1.5 min-w-0">
-        <Mail className="w-[13px] h-[13px] text-text-muted shrink-0" />
-        <EditableInline label="E-Mail" type="email" value={contact.email} onSave={(v) => { setContact((c) => ({ ...c, email: v })); showToast('E-Mail gespeichert'); }} onCopy={() => showToast('E-Mail kopiert')} />
-      </span>
-      <span className="h-4 w-px bg-border shrink-0"></span>
-      <span className="flex items-center gap-1.5 shrink-0">
-        <Phone className="w-[13px] h-[13px] text-text-muted" />
-        <PhoneField
-          phones={phones}
-          onSetFavorite={(id) => { setPhones((prev) => prev.map((p) => ({ ...p, favorite: p.id === id }))); showToast('Favorit-Nummer gesetzt'); }}
-          onUpdateNumber={(id, number) => { setPhones((prev) => prev.map((p) => (p.id === id ? { ...p, number } : p))); showToast('Nummer gespeichert'); }}
-          onCopy={() => showToast('Telefon kopiert')}
-          onAdd={() => showToast('Weitere Nummer hinzugefügt')}
-        />
-      </span>
-      <span className="h-4 w-px bg-border shrink-0"></span>
-      <span className="flex items-center gap-1.5 shrink-0">
-        <LinkedinIcon className="w-[13px] h-[13px] text-text-muted" />
-        <EditableInline label="LinkedIn" value={contact.linkedin} href={`https://www.linkedin.com/${contact.linkedin.replace(/^\/+/, '')}`} onSave={(v) => { setContact((c) => ({ ...c, linkedin: v })); showToast('LinkedIn gespeichert'); }} onCopy={() => showToast('LinkedIn kopiert')} />
-      </span>
-      <span className="h-4 w-px bg-border shrink-0"></span>
-      <span className="flex items-center gap-1.5 shrink-0">
-        <Globe className="w-[13px] h-[13px] text-text-muted" />
-        <EditableInline label="Webadresse" value={contact.web} href={`https://${contact.web.replace(/^https?:\/\//, '')}`} onSave={(v) => { setContact((c) => ({ ...c, web: v })); showToast('Webadresse gespeichert'); }} onCopy={() => showToast('Webadresse kopiert')} />
-      </span>
-    </div>
+    <KontaktZeile
+      contact={contact}
+      phones={phones}
+      onSaveField={(f, v) => { setContact((c) => ({ ...c, [f]: v })); showToast(`${FIELD_LABEL[f]} gespeichert`); }}
+      onCopyField={(f) => showToast(`${FIELD_LABEL[f]} kopiert`)}
+      onSetFavorite={(id) => { setPhones((prev) => prev.map((p) => ({ ...p, favorite: p.id === id }))); showToast('Favorit-Nummer gesetzt'); }}
+      onUpdateNumber={(id, number) => { setPhones((prev) => prev.map((p) => (p.id === id ? { ...p, number } : p))); showToast('Nummer gespeichert'); }}
+      onCopyPhone={() => showToast('Telefon kopiert')}
+      onAddPhone={() => showToast('Weitere Nummer hinzugefügt')}
+    />
   );
 
   const tabNav = (
