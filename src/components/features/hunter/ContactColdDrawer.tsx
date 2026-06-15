@@ -1,6 +1,6 @@
 import { Snowflake, Send, Calendar } from "lucide-react";
-import ChatActionPanel from "@/components/shared/ChatActionPanel";
-import type { ChatActionConfig } from "@/components/shared/ChatActionPanel";
+import ChatActionPanel from "@/components/features/hunter/ChatActionPanel";
+import type { ChatActionConfig } from "@/components/features/hunter/ChatActionPanel";
 
 interface ColdPerson {
   name: string;

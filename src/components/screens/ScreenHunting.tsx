@@ -31,10 +31,10 @@ import type { Lead } from '@/types';
 import { ICPDonut } from '@/components/shared/ICPDonut';
 import { NAV } from '@/lib/navBehavior';
 import CommunicationChain from '@/components/shared/CommunicationChain';
-import { SequenceLeadCards } from '@/components/shared/SequenceLeadCards';
-import NewInPipelineCards from '@/components/shared/NewInPipelineCards';
-import { PipelineStagniertCard } from '@/components/shared/PipelineStagniertCard';
-import { PipelineKeineTaskCard } from '@/components/shared/PipelineKeineTaskCard';
+import { SequenceLeadCards } from '@/components/panel-blocks/SequenceLeadCards';
+import NewInPipelineCards from '@/components/panel-blocks/NewInPipelineCards';
+import { PipelineStagniertCard } from '@/components/panel-blocks/PipelineStagniertCard';
+import { PipelineKeineTaskCard } from '@/components/panel-blocks/PipelineKeineTaskCard';
 import FunnelAnalysis from '@/components/shared/FunnelAnalysis';
 
 import Avatar from '@/components/shared/Avatar';
@@ -42,16 +42,16 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@
 import AddSdrLeadPanel from '@/components/features/hunter/AddSdrLeadPanel';
 import HeatBadge from '@/components/panel-blocks/HeatBadge';
 import StageBadge from '@/components/panel-blocks/StageBadge';
-import TaskDrawer from '@/components/shared/TaskDrawer';
-import { LinkedinSignalCard } from '@/components/shared/LinkedinSignalCard';
-import SignalActionDrawer from '@/components/shared/SignalActionDrawer';
-import type { SignalActionData } from '@/components/shared/SignalActionDrawer';
-import HunterCard from '@/components/shared/HunterCard';
-import HunterSidepanel from '@/components/shared/HunterSidepanel';
+import TaskDrawer from '@/components/features/hunter/TaskDrawer';
+import { LinkedinSignalCard } from '@/components/panel-blocks/LinkedinSignalCard';
+import SignalActionDrawer from '@/components/features/hunter/SignalActionDrawer';
+import type { SignalActionData } from '@/components/features/hunter/SignalActionDrawer';
+import HunterCard from '@/components/panel-blocks/HunterCard';
+import HunterSidepanel from '@/components/features/hunter/HunterSidepanel';
 import { ACTION_ROW } from '@/lib/componentBehavior';
-import PipelineStagnatedDrawer from '@/components/shared/PipelineStagnatedDrawer';
-import ContactColdDrawer from '@/components/shared/ContactColdDrawer';
-import NoTaskDrawer from '@/components/shared/NoTaskDrawer';
+import PipelineStagnatedDrawer from '@/components/features/hunter/PipelineStagnatedDrawer';
+import ContactColdDrawer from '@/components/features/hunter/ContactColdDrawer';
+import NoTaskDrawer from '@/components/features/hunter/NoTaskDrawer';
 
 interface ScreenHuntingProps {
   leads: Lead[];
