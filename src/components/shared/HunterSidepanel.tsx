@@ -227,8 +227,9 @@ function PhoneField({
  * `person = null` → geschlossen; Inhalt rendert aus einer gehaltenen Kopie, damit das
  * Panel während der Ausfahr-Animation nicht leer wird.
  */
-export default function HunterSidepanel({ person: personProp, onClose }: { person: any, onClose: () => void }) {
+export default function HunterSidepanel({ person: personProp, onClose, variant = 'panel' }: { person: any; onClose: () => void; variant?: 'panel' | 'full' }) {
   const [activeTab, setActiveTab] = useState('overview');
+  const [showVollansicht, setShowVollansicht] = useState(false);
   const [expandedComm, setExpandedComm] = useState<Record<number, boolean>>({});
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -267,15 +268,7 @@ export default function HunterSidepanel({ person: personProp, onClose }: { perso
     }, 2200);
   };
 
-  return (
-    <>
-    <Sheet open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
-      <SheetContent
-        side="drawer"
-        className="flex flex-col font-sans overflow-hidden p-0 bg-app-surface"
-        style={{ width: 820, maxWidth: "95vw" }}
-      >
-        {person && (
+  const body = person && (
         <>
       <header className="p-7 pb-0 bg-app-surface items-start relative z-10 border-b border-border-subtle shrink-0">
         <div className="flex items-start justify-between gap-6">
@@ -302,9 +295,11 @@ export default function HunterSidepanel({ person: personProp, onClose }: { perso
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <button onClick={() => showToast('Vollansicht geöffnet')} className="w-9 h-9 rounded-full bg-app-bg flex items-center justify-center text-text-muted hover:text-[var(--sherloq-primary)] hover:bg-[var(--signal-teal-bg)] transition-colors">
-              <ArrowUpRight className="w-4 h-4" />
-            </button>
+            {variant !== 'full' && (
+              <button onClick={() => setShowVollansicht(true)} className="w-9 h-9 rounded-full bg-app-bg flex items-center justify-center text-text-muted hover:text-[var(--sherloq-primary)] hover:bg-[var(--signal-teal-bg)] transition-colors">
+                <ArrowUpRight className="w-4 h-4" />
+              </button>
+            )}
             <button onClick={onClose} className="w-9 h-9 rounded-full bg-app-bg flex items-center justify-center text-text-muted hover:text-[var(--signal-urgent-text)] hover:bg-[var(--signal-urgent-bg)] transition-colors">
               <X className="w-4 h-4" />
             </button>
@@ -891,15 +886,35 @@ export default function HunterSidepanel({ person: personProp, onClose }: { perso
         <button onClick={() => showToast('Notiz Aktion gestartet')} className="px-3.5 py-2 border border-border hover:bg-app-bg text-text-body rounded-full text-[12px] font-bold flex-1 transition-colors shadow-sm cursor-pointer hover:-translate-y-0.5 flex items-center justify-center gap-1.5"><StickyNote className="w-3.5 h-3.5" /> Notiz</button>
       </footer>
         </>
-        )}
-      </SheetContent>
-    </Sheet>
+  );
+
+  return (
+    <>
+    {variant === 'full' ? (
+      <div className="fixed inset-0 z-[120] bg-app-surface flex flex-col font-sans overflow-hidden animate-fade-in">
+        {body}
+      </div>
+    ) : (
+      <Sheet open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
+        <SheetContent
+          side="drawer"
+          className="flex flex-col font-sans overflow-hidden p-0 bg-app-surface"
+          style={{ width: 820, maxWidth: "95vw" }}
+        >
+          {body}
+        </SheetContent>
+      </Sheet>
+    )}
 
       {toastMessage && (
         <div className="fixed bottom-6 right-6 z-[200] bg-inverse-surface text-on-accent px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2 animate-fade-in">
           <Check className="w-4 h-4 text-[var(--signal-success-text)]" />
           <span className="text-xs font-semibold">{toastMessage}</span>
         </div>
+      )}
+
+      {variant !== 'full' && showVollansicht && (
+        <HunterSidepanel person={display} onClose={() => setShowVollansicht(false)} variant="full" />
       )}
     </>
   );
