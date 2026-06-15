@@ -43,7 +43,7 @@ export default function DetailPhoneList({
               onClick={() => onSetFavorite(p.id)}
               aria-label="Als primäre Nummer markieren"
               title="Als primäre Nummer markieren"
-              className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center hover:bg-app-bg transition-colors cursor-pointer"
+              className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center hover:bg-app-surface transition-colors cursor-pointer"
             >
               <Star className={`w-[15px] h-[15px] ${p.favorite ? "text-[var(--sherloq-primary)]" : "text-text-muted"}`} fill={p.favorite ? "currentColor" : "none"} />
             </button>
@@ -86,7 +86,7 @@ export default function DetailPhoneList({
             )}
 
             <div className="flex items-center gap-0.5 opacity-0 group-hover/ph:opacity-100 transition-opacity shrink-0">
-              <button onClick={() => copy(p.number)} aria-label="Kopieren" className="w-7 h-7 rounded-md flex items-center justify-center text-text-muted hover:text-[var(--sherloq-primary)] hover:bg-app-bg transition-colors cursor-pointer">
+              <button onClick={() => copy(p.number)} aria-label="Kopieren" className="w-7 h-7 rounded-md flex items-center justify-center text-text-muted hover:text-[var(--sherloq-primary)] hover:bg-app-surface transition-colors cursor-pointer">
                 <Copy className="w-3.5 h-3.5" />
               </button>
               <button onClick={() => onRemove(p.id)} aria-label="Entfernen" className="w-7 h-7 rounded-md flex items-center justify-center text-text-muted hover:text-[var(--signal-urgent-text)] hover:bg-[var(--signal-urgent-bg)] transition-colors cursor-pointer">

@@ -20,19 +20,22 @@ export default function DetailSection({
 }: DetailSectionProps) {
   const [open, setOpen] = useState(!defaultCollapsed);
   return (
-    <section className="bg-app-surface rounded-[12px] border border-border border-l-[3px] border-l-[var(--sherloq-primary)] shadow-[var(--shadow-card)] overflow-hidden">
+    <section className="bg-app-surface rounded-[12px] border border-border shadow-[var(--shadow-card)] overflow-hidden">
       <button
         type="button"
         onClick={() => collapsible && setOpen((o) => !o)}
-        className={`w-full flex items-center gap-2 px-6 pt-5 ${open ? "pb-4" : "pb-5"} text-[11px] font-bold uppercase tracking-wider text-text-muted ${collapsible ? "cursor-pointer hover:text-text-body transition-colors" : "cursor-default"}`}
+        className={`w-full flex items-center gap-2 px-5 pt-4 ${open ? "pb-3" : "pb-4"} text-[11px] font-bold uppercase tracking-wider text-text-muted ${collapsible ? "cursor-pointer hover:text-text-body transition-colors" : "cursor-default"}`}
       >
         {Icon && <Icon className="w-4 h-4 text-[var(--sherloq-primary)]" />}
         {title}
         {collapsible && <ChevronDown className={`w-4 h-4 ml-auto transition-transform ${open ? "" : "-rotate-90"}`} />}
       </button>
       {open && (
-        <div className={`px-6 pb-6 grid gap-x-8 gap-y-5 ${cols === 2 ? "sm:grid-cols-2" : "grid-cols-1"}`}>
-          {children}
+        <div className="px-5 pb-5">
+          {/* Daten in dezenter grauer Innen-Kachel — bessere Lesbarkeit, gruppiert die Felder */}
+          <div className={`bg-app-bg rounded-[10px] p-5 grid gap-x-8 gap-y-5 ${cols === 2 ? "sm:grid-cols-2" : "grid-cols-1"}`}>
+            {children}
+          </div>
         </div>
       )}
     </section>
