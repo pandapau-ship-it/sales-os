@@ -466,6 +466,7 @@ Alle prop-driven, Tokens-only, Dark-Mode automatisch.
 | `EditableInline` | Inline-editierbares Kontaktfeld (820px-Panel): Hover → Copy + Stift, Stift öffnet Popover (`portal={false}`) mit Speichern/Abbrechen, optional `href`=Link |
 | `PhoneField` | Telefon-Feld (820px-Panel): inline nur Favorit (Typ-Pill + Nummer), Popover mit allen Nummern (Anrufen/Kopieren/Favorit/Bearbeiten + „Nummer hinzufügen") |
 | `PanelTabs` | Tab-Navigation des Info-Panels (`tabs`/`active`/`onChange`) |
+| `TasksListe` | Tasks-Tab: alle Aufgaben mit Detail-Pills (Kanal/Fälligkeit/Priorität/Stage) + Bearbeiten/Löschen + „Neue Task" (`onAdd`/`onEdit`/`onDelete`) |
 | `KontaktZeile` `KiKurzakte` `PanelHeader` `PanelField` `DealSetup` `NewDealCard` `ErledigtAction` `KommunikationPreview` `OffeneTasks` `ActiveSequenceChain` `AktiveSignale` `PanelFooter` `ActionFooter` `ActionComposer` `PhoneNumbersField` `HunterCard` `SignalRow` `FollowUpKaltCard` `PipelineStagniertCard` `PipelineKeineTaskCard` `LinkedinSignalCard` `NewInPipelineCards` `SequenceLeadCards` | weitere Blöcke (Panel-/Karten-/Formular-Komposition) |
 
 > Neuer panel-block → **sofort** in diese Tabelle **und** in `panel-blocks/index.ts` (Barrel) eintragen.

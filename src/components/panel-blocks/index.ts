@@ -32,6 +32,7 @@ export { default as PhoneNumbersField } from './PhoneNumbersField';
 export { default as SignalRow } from './SignalRow';
 export { default as StageBadge } from './StageBadge';
 export { default as StatusBadge } from './StatusBadge';
+export { default as TasksListe } from './TasksListe';
 
 // ── Named-Exports ──────────────────────────────────────────────────────────
 export { FollowUpKaltCard } from './FollowUpKaltCard';
