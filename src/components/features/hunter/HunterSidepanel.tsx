@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import {
   ArrowUpRight, ArrowLeft, X, Mail, Phone, Clock, Check,
-  ChevronDown, Pencil, Trash2, Save, Plus,
+  ChevronDown, Plus,
   StickyNote, User, Building2, Tag, CheckCircle2
 } from 'lucide-react';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
@@ -27,6 +27,7 @@ import OffeneTasks from '@/components/panel-blocks/OffeneTasks';
 import TasksListe from '@/components/panel-blocks/TasksListe';
 import KommunikationVerlauf from '@/components/panel-blocks/KommunikationVerlauf';
 import AktivitaetsVerlauf from '@/components/panel-blocks/AktivitaetsVerlauf';
+import NotizenListe from '@/components/panel-blocks/NotizenListe';
 
 /** Kanonische Default-Stages (Spec §3.2) — bis zum DB-Wiring dokumentierter Fallback. */
 const PIPELINE_STAGES = ['Backlog', 'Demo vereinbart', 'Follow-up offen', 'Onboarding offen', 'Free Trial', 'Gewonnen'];
@@ -272,52 +273,12 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
         )}
 
         {activeTab === 'notes' && (
-          <div className="space-y-4 animate-fade-in">
-            <div className="flex justify-between items-center px-1">
-              <span className="text-[10px] font-extrabold text-text-muted uppercase tracking-widest">Notizen</span>
-              <button onClick={() => showToast('Neue Notiz angelegt')} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] bg-[var(--sherloq-primary)] text-on-accent text-[11px] font-bold shadow-sm hover:opacity-90 transition-opacity cursor-pointer">
-                <Plus className="w-3.5 h-3.5" /> Neue Notiz
-              </button>
-            </div>
-
-            <div className="space-y-3">
-              <div className="p-4 bg-app-surface border border-border rounded-[12px] shadow-sm group">
-                <div className="flex items-start justify-between gap-3">
-                  <span className="text-[10px] text-text-muted font-bold">12. Mai 2026 · Oliver Prossi</span>
-                  <div className="flex items-center gap-1 shrink-0">
-                    <button onClick={() => showToast('Notiz gespeichert')} aria-label="Speichern" className="w-7 h-7 rounded-full flex items-center justify-center text-text-muted hover:text-[var(--sherloq-primary)] hover:bg-app-bg transition-colors cursor-pointer">
-                      <Save className="w-3.5 h-3.5" />
-                    </button>
-                    <button onClick={() => showToast('Notiz bearbeiten')} aria-label="Ändern" className="w-7 h-7 rounded-full flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-app-bg transition-colors cursor-pointer">
-                      <Pencil className="w-3.5 h-3.5" />
-                    </button>
-                    <button onClick={() => showToast('Notiz gelöscht')} aria-label="Löschen" className="w-7 h-7 rounded-full flex items-center justify-center text-text-muted hover:text-[var(--signal-urgent-text)] hover:bg-[var(--signal-urgent-bg)] transition-colors cursor-pointer">
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-                <p className="text-[12px] text-text-body font-medium leading-relaxed mt-1.5">Thomas hat angedeutet, dass das Q3-Budget freigegeben wird.</p>
-              </div>
-
-              <div className="p-4 bg-app-surface border border-border rounded-[12px] shadow-sm group">
-                <div className="flex items-start justify-between gap-3">
-                  <span className="text-[10px] text-text-muted font-bold">03. April 2026 · Oliver Prossi</span>
-                  <div className="flex items-center gap-1 shrink-0">
-                    <button onClick={() => showToast('Notiz gespeichert')} aria-label="Speichern" className="w-7 h-7 rounded-full flex items-center justify-center text-text-muted hover:text-[var(--sherloq-primary)] hover:bg-app-bg transition-colors cursor-pointer">
-                      <Save className="w-3.5 h-3.5" />
-                    </button>
-                    <button onClick={() => showToast('Notiz bearbeiten')} aria-label="Ändern" className="w-7 h-7 rounded-full flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-app-bg transition-colors cursor-pointer">
-                      <Pencil className="w-3.5 h-3.5" />
-                    </button>
-                    <button onClick={() => showToast('Notiz gelöscht')} aria-label="Löschen" className="w-7 h-7 rounded-full flex items-center justify-center text-text-muted hover:text-[var(--signal-urgent-text)] hover:bg-[var(--signal-urgent-bg)] transition-colors cursor-pointer">
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-                <p className="text-[12px] text-text-body font-medium leading-relaxed mt-1.5">Demo lief hervorragend, Thomas war sehr engagiert.</p>
-              </div>
-            </div>
-          </div>
+          <NotizenListe
+            onAdd={() => showToast('Neue Notiz angelegt')}
+            onSave={() => showToast('Notiz gespeichert')}
+            onEdit={() => showToast('Notiz bearbeiten')}
+            onDelete={() => showToast('Notiz gelöscht')}
+          />
         )}
 
         </>

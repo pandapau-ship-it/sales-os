@@ -24,6 +24,7 @@ export { default as KommunikationVerlauf } from './KommunikationVerlauf';
 export { default as KontaktZeile } from './KontaktZeile';
 export { default as NewDealCard } from './NewDealCard';
 export { default as NewInPipelineCards } from './NewInPipelineCards';
+export { default as NotizenListe } from './NotizenListe';
 export { default as OffeneTasks } from './OffeneTasks';
 export { default as PanelField } from './PanelField';
 export { default as PanelFooter } from './PanelFooter';
