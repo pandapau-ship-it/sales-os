@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import {
-  ArrowUpRight, X, Mail, Phone, Globe, AlertTriangle, Clock, Check,
+  ArrowUpRight, ArrowLeft, X, Mail, Phone, Globe, AlertTriangle, Clock, Check,
   Zap, Briefcase, Calendar, ChevronDown, Pencil, Trash2, Save, Plus,
   StickyNote, Copy, Star
 } from 'lucide-react';
@@ -268,138 +268,146 @@ export default function HunterSidepanel({ person: personProp, onClose, variant =
     }, 2200);
   };
 
-  const body = person && (
+  // Aktions-Buttons (Task/Mail/LinkedIn/Notiz) — einmal definiert, je Layout anders gerendert.
+  const ACTIONS = [
+    { icon: Plus, label: 'Task', toast: 'Task Aktion gestartet' },
+    { icon: Mail, label: 'Mail', toast: 'Mail Aktion gestartet' },
+    { icon: LinkedinIcon, label: 'LinkedIn', toast: 'LinkedIn Aktion gestartet' },
+    { icon: StickyNote, label: 'Notiz', toast: 'Notiz Aktion gestartet' },
+  ];
+  const renderActions = (btnClass: string) =>
+    ACTIONS.map((a) => {
+      const Icon = a.icon;
+      return (
+        <button key={a.label} onClick={() => showToast(a.toast)} className={btnClass}>
+          <Icon className="w-3.5 h-3.5" /> {a.label}
+        </button>
+      );
+    });
+
+  // Wiederverwendbare Inhalts-Fragmente — identisch in Panel (820px) und Vollansicht (Seite).
+  const identityBlock = (
+    <div className="flex items-center gap-4 min-w-0">
+      <Avatar name={person?.name || "Christian Brand"} src={person?.avatarUrl} size={64} className="shadow-sm" />
+      <div className="min-w-0">
+        <div className="flex items-center gap-2 flex-wrap">
+          <h1 className="text-[20px] font-extrabold text-text-primary leading-tight">
+            {person?.name || "Dr. Christian Brand"}
+          </h1>
+          <span className="px-2.5 py-1 rounded-full bg-[var(--signal-success-bg)] border border-[var(--signal-success-bg)] text-[var(--signal-success-text)] text-[10px] font-extrabold">
+            ICP: 87
+          </span>
+        </div>
+        <div className="flex items-center gap-2 text-[12px] font-semibold text-text-muted mt-2 leading-none flex-wrap">
+          <span>{person?.title || "VP of Sales EMEA"}</span>
+          <span className="text-icon-muted">•</span>
+          <span className="px-1.5 py-0.5 rounded bg-[var(--text-primary)] text-on-accent text-[9px] font-bold">L</span>
+          <span className="font-semibold text-text-body">{person?.company || "LogixFlow GmbH"}</span>
+        </div>
+      </div>
+    </div>
+  );
+
+  const statusBadgesInner = (
+    <>
+      <div className="flex flex-col items-center">
+        <span className="text-[9px] font-extrabold text-text-muted uppercase tracking-widest mb-2">Status</span>
+        <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--signal-success-bg)] text-[var(--signal-success-text)] text-[12px] font-extrabold leading-none">
+          <span className="w-2 h-2 rounded-full bg-[var(--signal-success-text)]"></span>
+          Aktiv
+        </span>
+      </div>
+
+      <div className="flex flex-col items-center">
+        <span className="text-[9px] font-extrabold text-text-muted uppercase tracking-widest mb-2">Heat</span>
+        <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--signal-success-bg)] text-[var(--signal-success-text)] text-[12px] font-extrabold leading-none">
+          <span className="w-2.5 h-2.5 rounded-full bg-[var(--icp-high)] opacity-90 shadow-sm"></span>
+          Aktiv
+        </span>
+      </div>
+
+      <div className="flex flex-col items-center">
+        <span className="text-[9px] font-extrabold text-text-muted uppercase tracking-widest mb-2">Stage</span>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="px-4 py-1.5 rounded-full bg-app-surface border border-border text-text-body text-[12px] font-extrabold leading-none shadow-sm hover:border-[var(--sherloq-primary)] hover:text-[var(--sherloq-primary)] transition-colors cursor-pointer flex items-center gap-1.5">
+              {stage}
+              <ChevronDown className="w-3.5 h-3.5" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            {PIPELINE_STAGES.map((s) => (
+              <DropdownMenuItem
+                key={s}
+                onClick={() => { setStage(s); showToast(`Stage geändert zu „${s}"`); }}
+                className="cursor-pointer text-[13px] font-semibold"
+              >
+                <span className={`w-1.5 h-1.5 rounded-full ${s === stage ? 'bg-[var(--sherloq-primary)]' : 'bg-[var(--border-strong)]'}`} />
+                {s}
+                {s === stage && <Check className="w-3.5 h-3.5 ml-auto text-[var(--sherloq-primary)]" />}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </>
+  );
+
+  const contactPill = (
+    <div className="bg-app-surface border border-border-subtle rounded-full px-5 py-3 flex items-center justify-between gap-3 text-[12px] text-text-muted shadow-sm">
+      <span className="flex items-center gap-1.5 min-w-0">
+        <Mail className="w-[13px] h-[13px] text-text-muted shrink-0" />
+        <EditableInline label="E-Mail" type="email" value={contact.email} onSave={(v) => { setContact((c) => ({ ...c, email: v })); showToast('E-Mail gespeichert'); }} onCopy={() => showToast('E-Mail kopiert')} />
+      </span>
+      <span className="h-4 w-px bg-border shrink-0"></span>
+      <span className="flex items-center gap-1.5 shrink-0">
+        <Phone className="w-[13px] h-[13px] text-text-muted" />
+        <PhoneField
+          phones={phones}
+          onSetFavorite={(id) => { setPhones((prev) => prev.map((p) => ({ ...p, favorite: p.id === id }))); showToast('Favorit-Nummer gesetzt'); }}
+          onUpdateNumber={(id, number) => { setPhones((prev) => prev.map((p) => (p.id === id ? { ...p, number } : p))); showToast('Nummer gespeichert'); }}
+          onCopy={() => showToast('Telefon kopiert')}
+          onAdd={() => showToast('Weitere Nummer hinzugefügt')}
+        />
+      </span>
+      <span className="h-4 w-px bg-border shrink-0"></span>
+      <span className="flex items-center gap-1.5 shrink-0">
+        <LinkedinIcon className="w-[13px] h-[13px] text-text-muted" />
+        <EditableInline label="LinkedIn" value={contact.linkedin} href={`https://www.linkedin.com/${contact.linkedin.replace(/^\/+/, '')}`} onSave={(v) => { setContact((c) => ({ ...c, linkedin: v })); showToast('LinkedIn gespeichert'); }} onCopy={() => showToast('LinkedIn kopiert')} />
+      </span>
+      <span className="h-4 w-px bg-border shrink-0"></span>
+      <span className="flex items-center gap-1.5 shrink-0">
+        <Globe className="w-[13px] h-[13px] text-text-muted" />
+        <EditableInline label="Webadresse" value={contact.web} href={`https://${contact.web.replace(/^https?:\/\//, '')}`} onSave={(v) => { setContact((c) => ({ ...c, web: v })); showToast('Webadresse gespeichert'); }} onCopy={() => showToast('Webadresse kopiert')} />
+      </span>
+    </div>
+  );
+
+  const tabNav = (
+    <nav className="flex flex-nowrap border-b border-border-subtle gap-7 overflow-x-auto scrollbar-none w-full">
+      {[
+        { id: 'overview', label: 'Übersicht' },
+        { id: 'communication', label: 'Kommunikation' },
+        { id: 'activity', label: 'Aktivität' },
+        { id: 'tasks', label: 'Tasks' },
+        { id: 'notes', label: 'Notizen' }
+      ].map(tab => (
+        <button
+          key={tab.id}
+          onClick={() => setActiveTab(tab.id)}
+          className={`relative pb-3 text-xs font-bold transition-all shrink-0 ${activeTab === tab.id ? 'text-[var(--sherloq-primary)]' : 'text-text-muted hover:text-text-body'}`}
+        >
+          {tab.label}
+          {activeTab === tab.id && (
+            <div className="absolute left-0 right-0 bottom-0 bg-[var(--sherloq-primary)] rounded-t-full" style={{ height: '2px' }} />
+          )}
+        </button>
+      ))}
+    </nav>
+  );
+
+  const tabContent = person && (
         <>
-      <header className="p-7 pb-0 bg-app-surface items-start relative z-10 border-b border-border-subtle shrink-0">
-        <div className="flex items-start justify-between gap-6">
-          <div className="flex items-center gap-4 min-w-0">
-            <Avatar name={person.name || "Christian Brand"} src={person.avatarUrl} size={64} className="shadow-sm" />
-
-            <div className="min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-[20px] font-extrabold text-text-primary leading-tight">
-                  {person.name || "Dr. Christian Brand"}
-                </h1>
-                <span className="px-2.5 py-1 rounded-full bg-[var(--signal-success-bg)] border border-[var(--signal-success-bg)] text-[var(--signal-success-text)] text-[10px] font-extrabold">
-                  ICP: 87
-                </span>
-              </div>
-
-              <div className="flex items-center gap-2 text-[12px] font-semibold text-text-muted mt-2 leading-none flex-wrap">
-                <span>{person.title || "VP of Sales EMEA"}</span>
-                <span className="text-icon-muted">•</span>
-                <span className="px-1.5 py-0.5 rounded bg-[var(--text-primary)] text-on-accent text-[9px] font-bold">L</span>
-                <span className="font-semibold text-text-body">{person.company || "LogixFlow GmbH"}</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 shrink-0">
-            {variant !== 'full' && (
-              <button onClick={() => setShowVollansicht(true)} className="w-9 h-9 rounded-full bg-app-bg flex items-center justify-center text-text-muted hover:text-[var(--sherloq-primary)] hover:bg-[var(--signal-teal-bg)] transition-colors">
-                <ArrowUpRight className="w-4 h-4" />
-              </button>
-            )}
-            <button onClick={onClose} className="w-9 h-9 rounded-full bg-app-bg flex items-center justify-center text-text-muted hover:text-[var(--signal-urgent-text)] hover:bg-[var(--signal-urgent-bg)] transition-colors">
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-
-        <div className="absolute top-[58px] right-[58px] flex items-start gap-7 hidden md:flex">
-          <div className="flex flex-col items-center">
-            <span className="text-[9px] font-extrabold text-text-muted uppercase tracking-widest mb-2">Status</span>
-            <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--signal-success-bg)] text-[var(--signal-success-text)] text-[12px] font-extrabold leading-none">
-              <span className="w-2 h-2 rounded-full bg-[var(--signal-success-text)]"></span>
-              Aktiv
-            </span>
-          </div>
-
-          <div className="flex flex-col items-center">
-            <span className="text-[9px] font-extrabold text-text-muted uppercase tracking-widest mb-2">Heat</span>
-            <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--signal-success-bg)] text-[var(--signal-success-text)] text-[12px] font-extrabold leading-none">
-              <span className="w-2.5 h-2.5 rounded-full bg-[var(--icp-high)] opacity-90 shadow-sm"></span>
-              Aktiv
-            </span>
-          </div>
-
-          <div className="flex flex-col items-center">
-            <span className="text-[9px] font-extrabold text-text-muted uppercase tracking-widest mb-2">Stage</span>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="px-4 py-1.5 rounded-full bg-app-surface border border-border text-text-body text-[12px] font-extrabold leading-none shadow-sm hover:border-[var(--sherloq-primary)] hover:text-[var(--sherloq-primary)] transition-colors cursor-pointer flex items-center gap-1.5">
-                  {stage}
-                  <ChevronDown className="w-3.5 h-3.5" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                {PIPELINE_STAGES.map((s) => (
-                  <DropdownMenuItem
-                    key={s}
-                    onClick={() => { setStage(s); showToast(`Stage geändert zu „${s}"`); }}
-                    className="cursor-pointer text-[13px] font-semibold"
-                  >
-                    <span className={`w-1.5 h-1.5 rounded-full ${s === stage ? 'bg-[var(--sherloq-primary)]' : 'bg-[var(--border-strong)]'}`} />
-                    {s}
-                    {s === stage && <Check className="w-3.5 h-3.5 ml-auto text-[var(--sherloq-primary)]" />}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
-
-        <div className="bg-app-surface border border-border-subtle rounded-full px-5 py-3 mt-10 flex items-center justify-between gap-3 text-[12px] text-text-muted shadow-sm">
-          <span className="flex items-center gap-1.5 min-w-0">
-            <Mail className="w-[13px] h-[13px] text-text-muted shrink-0" />
-            <EditableInline label="E-Mail" type="email" value={contact.email} onSave={(v) => { setContact((c) => ({ ...c, email: v })); showToast('E-Mail gespeichert'); }} onCopy={() => showToast('E-Mail kopiert')} />
-          </span>
-          <span className="h-4 w-px bg-border shrink-0"></span>
-          <span className="flex items-center gap-1.5 shrink-0">
-            <Phone className="w-[13px] h-[13px] text-text-muted" />
-            <PhoneField
-              phones={phones}
-              onSetFavorite={(id) => { setPhones((prev) => prev.map((p) => ({ ...p, favorite: p.id === id }))); showToast('Favorit-Nummer gesetzt'); }}
-              onUpdateNumber={(id, number) => { setPhones((prev) => prev.map((p) => (p.id === id ? { ...p, number } : p))); showToast('Nummer gespeichert'); }}
-              onCopy={() => showToast('Telefon kopiert')}
-              onAdd={() => showToast('Weitere Nummern verwaltest du in der Vollansicht')}
-            />
-          </span>
-          <span className="h-4 w-px bg-border shrink-0"></span>
-          <span className="flex items-center gap-1.5 shrink-0">
-            <LinkedinIcon className="w-[13px] h-[13px] text-text-muted" />
-            <EditableInline label="LinkedIn" value={contact.linkedin} href={`https://www.linkedin.com/${contact.linkedin.replace(/^\/+/, '')}`} onSave={(v) => { setContact((c) => ({ ...c, linkedin: v })); showToast('LinkedIn gespeichert'); }} onCopy={() => showToast('LinkedIn kopiert')} />
-          </span>
-          <span className="h-4 w-px bg-border shrink-0"></span>
-          <span className="flex items-center gap-1.5 shrink-0">
-            <Globe className="w-[13px] h-[13px] text-text-muted" />
-            <EditableInline label="Webadresse" value={contact.web} href={`https://${contact.web.replace(/^https?:\/\//, '')}`} onSave={(v) => { setContact((c) => ({ ...c, web: v })); showToast('Webadresse gespeichert'); }} onCopy={() => showToast('Webadresse kopiert')} />
-          </span>
-        </div>
-
-        <nav className="flex flex-nowrap border-b border-border-subtle mt-6 gap-7 overflow-x-auto scrollbar-none w-full">
-          {[
-            { id: 'overview', label: 'Übersicht' },
-            { id: 'communication', label: 'Kommunikation' },
-            { id: 'activity', label: 'Aktivität' },
-            { id: 'tasks', label: 'Tasks' },
-            { id: 'notes', label: 'Notizen' }
-          ].map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`relative pb-3 text-xs font-bold transition-all shrink-0 ${activeTab === tab.id ? 'text-[var(--sherloq-primary)]' : 'text-text-muted hover:text-text-body'}`}
-            >
-              {tab.label}
-              {activeTab === tab.id && (
-                <div className="absolute left-0 right-0 bottom-0 bg-[var(--sherloq-primary)] rounded-t-full" style={{ height: '2px' }} />
-              )}
-            </button>
-          ))}
-        </nav>
-      </header>
-
-      <main className="flex-1 overflow-y-auto p-7 space-y-7 bg-app-bg custom-scrollbar pb-28">
 
         {activeTab === 'overview' && (
           <div className="space-y-7 animate-fade-in">
@@ -877,31 +885,105 @@ export default function HunterSidepanel({ person: personProp, onClose, variant =
           </div>
         )}
 
+        </>
+  );
+
+  const panelBtn = "px-3.5 py-2 border border-border hover:bg-app-bg text-text-body rounded-full text-[12px] font-bold flex-1 transition-colors shadow-sm cursor-pointer hover:-translate-y-0.5 flex items-center justify-center gap-1.5";
+  const fullBtn = "px-4 py-2 border border-border hover:bg-app-bg text-text-body rounded-full text-[12px] font-bold transition-colors shadow-sm cursor-pointer hover:-translate-y-0.5 flex items-center justify-center gap-1.5";
+
+  // Panel-Variante — 820px Sheet (Layout unverändert).
+  const panelBody = person && (
+    <>
+      <header className="p-7 pb-0 bg-app-surface items-start relative z-10 border-b border-border-subtle shrink-0">
+        <div className="flex items-start justify-between gap-6">
+          {identityBlock}
+          <div className="flex items-center gap-2 shrink-0">
+            <button onClick={() => setShowVollansicht(true)} className="w-9 h-9 rounded-full bg-app-bg flex items-center justify-center text-text-muted hover:text-[var(--sherloq-primary)] hover:bg-[var(--signal-teal-bg)] transition-colors">
+              <ArrowUpRight className="w-4 h-4" />
+            </button>
+            <button onClick={onClose} className="w-9 h-9 rounded-full bg-app-bg flex items-center justify-center text-text-muted hover:text-[var(--signal-urgent-text)] hover:bg-[var(--signal-urgent-bg)] transition-colors">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        <div className="absolute top-[58px] right-[58px] flex items-start gap-7 hidden md:flex">
+          {statusBadgesInner}
+        </div>
+
+        <div className="mt-10">{contactPill}</div>
+        <div className="mt-6">{tabNav}</div>
+      </header>
+
+      <main className="flex-1 overflow-y-auto p-7 space-y-7 bg-app-bg custom-scrollbar pb-28">
+        {tabContent}
       </main>
 
       <footer className="p-4 border-t border-border-subtle bg-app-surface shrink-0 flex items-center justify-between gap-2 shadow-sm relative z-10">
-        <button onClick={() => showToast('Task Aktion gestartet')} className="px-3.5 py-2 border border-border hover:bg-app-bg text-text-body rounded-full text-[12px] font-bold flex-1 transition-colors shadow-sm cursor-pointer hover:-translate-y-0.5 flex items-center justify-center gap-1.5"><Plus className="w-3.5 h-3.5" /> Task</button>
-        <button onClick={() => showToast('Mail Aktion gestartet')} className="px-3.5 py-2 border border-border hover:bg-app-bg text-text-body rounded-full text-[12px] font-bold flex-1 transition-colors shadow-sm cursor-pointer hover:-translate-y-0.5 flex items-center justify-center gap-1.5"><Mail className="w-3.5 h-3.5" /> Mail</button>
-        <button onClick={() => showToast('LinkedIn Aktion gestartet')} className="px-3.5 py-2 border border-border hover:bg-app-bg text-text-body rounded-full text-[12px] font-bold flex-1 transition-colors shadow-sm cursor-pointer hover:-translate-y-0.5 flex items-center justify-center gap-1.5"><LinkedinIcon className="w-3.5 h-3.5" /> LinkedIn</button>
-        <button onClick={() => showToast('Notiz Aktion gestartet')} className="px-3.5 py-2 border border-border hover:bg-app-bg text-text-body rounded-full text-[12px] font-bold flex-1 transition-colors shadow-sm cursor-pointer hover:-translate-y-0.5 flex items-center justify-center gap-1.5"><StickyNote className="w-3.5 h-3.5" /> Notiz</button>
+        {renderActions(panelBtn)}
       </footer>
-        </>
+    </>
+  );
+
+  // Voll-Variante — echte Seite: fixe Topbar oben, darunter scrollt die gesamte Seite.
+  const fullBody = person && (
+    <div className="fixed inset-0 z-[120] bg-app-bg flex flex-col font-sans animate-fade-in">
+      {/* Fixe Topbar — bleibt beim Scrollen stehen */}
+      <div className="shrink-0 h-14 px-5 sm:px-8 bg-app-surface border-b border-border-subtle flex items-center justify-between gap-4 shadow-sm relative z-20">
+        <div className="flex items-center gap-3 min-w-0">
+          <button onClick={onClose} aria-label="Zurück" className="w-9 h-9 rounded-full bg-app-bg flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-border-subtle transition-colors shrink-0 cursor-pointer">
+            <ArrowLeft className="w-4 h-4" />
+          </button>
+          <Avatar name={person?.name || "Christian Brand"} src={person?.avatarUrl} size={30} />
+          <span className="text-[14px] font-extrabold text-text-primary truncate">{person?.name || "Dr. Christian Brand"}</span>
+          <span className="px-2.5 py-1 rounded-full bg-app-bg text-text-muted text-[11px] font-bold shrink-0 hidden sm:inline">{stage}</span>
+        </div>
+        <button onClick={onClose} aria-label="Schließen" className="w-9 h-9 rounded-full bg-app-bg flex items-center justify-center text-text-muted hover:text-[var(--signal-urgent-text)] hover:bg-[var(--signal-urgent-bg)] transition-colors shrink-0 cursor-pointer">
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+
+      {/* Scrollbereich — die ganze Seite scrollt */}
+      <div className="flex-1 overflow-y-auto custom-scrollbar bg-app-bg">
+        <div className="max-w-[1080px] mx-auto px-5 sm:px-8 py-8 space-y-6">
+          {/* Hero — Identität · Status · Aktionen · Kontaktdaten */}
+          <div className="bg-app-surface rounded-[16px] border border-border shadow-[var(--shadow-card)] p-7 space-y-6">
+            <div className="flex items-start justify-between gap-6 flex-wrap">
+              {identityBlock}
+              <div className="flex items-start gap-7 shrink-0">
+                {statusBadgesInner}
+              </div>
+            </div>
+            <div className="flex items-center gap-2 flex-wrap">
+              {renderActions(fullBtn)}
+            </div>
+            {contactPill}
+          </div>
+
+          {/* Tabs — kleben unter der Topbar */}
+          <div className="sticky top-0 z-10 bg-app-bg pt-2">
+            {tabNav}
+          </div>
+
+          {/* Tab-Inhalt */}
+          <div>
+            {tabContent}
+          </div>
+        </div>
+      </div>
+    </div>
   );
 
   return (
     <>
-    {variant === 'full' ? (
-      <div className="fixed inset-0 z-[120] bg-app-surface flex flex-col font-sans overflow-hidden animate-fade-in">
-        {body}
-      </div>
-    ) : (
+    {variant === 'full' ? fullBody : (
       <Sheet open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
         <SheetContent
           side="drawer"
           className="flex flex-col font-sans overflow-hidden p-0 bg-app-surface"
           style={{ width: 820, maxWidth: "95vw" }}
         >
-          {body}
+          {panelBody}
         </SheetContent>
       </Sheet>
     )}
