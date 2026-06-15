@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import {
   ArrowUpRight, ArrowLeft, X, Mail, Phone, Globe, AlertTriangle, Clock, Check,
-  Zap, Briefcase, Calendar, ChevronDown, Pencil, Trash2, Save, Plus,
+  Briefcase, Calendar, ChevronDown, Pencil, Trash2, Save, Plus,
   StickyNote, User, Building2, Tag, CheckCircle2
 } from 'lucide-react';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
@@ -20,6 +20,7 @@ import DetailPhoneList from '@/components/panel-blocks/DetailPhoneList';
 import EditableInline from '@/components/panel-blocks/EditableInline';
 import PhoneField from '@/components/panel-blocks/PhoneField';
 import PanelTabs from '@/components/panel-blocks/PanelTabs';
+import KiKurzakte from '@/components/panel-blocks/KiKurzakte';
 
 /** Kanonische Default-Stages (Spec §3.2) — bis zum DB-Wiring dokumentierter Fallback. */
 const PIPELINE_STAGES = ['Backlog', 'Demo vereinbart', 'Follow-up offen', 'Onboarding offen', 'Free Trial', 'Gewonnen'];
@@ -89,8 +90,6 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
   const [contact, setContact] = useState(DEFAULT_CONTACT);
   const [phones, setPhones] = useState<Phone[]>(DEFAULT_PHONES);
   const [kurzakte, setKurzakte] = useState<string[]>(DEFAULT_KURZAKTE);
-  const [editingKurzakte, setEditingKurzakte] = useState(false);
-  const [kurzakteDraft, setKurzakteDraft] = useState('');
   const [details, setDetails] = useState(DEFAULT_DETAILS);
   const setDetail = (k: keyof typeof DEFAULT_DETAILS, v: string) => { setDetails((d) => ({ ...d, [k]: v })); showToast('Gespeichert'); };
 
@@ -104,7 +103,6 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
       setContact(DEFAULT_CONTACT);
       setPhones(DEFAULT_PHONES);
       setKurzakte(DEFAULT_KURZAKTE);
-      setEditingKurzakte(false);
       setDetails(DEFAULT_DETAILS);
     }
   }, [personProp]);
@@ -256,55 +254,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
 
         {activeTab === 'overview' && (
           <div className="space-y-7 animate-fade-in">
-            {/* KI Kurzakte — Bullet-Design + manuell editierbar (Stift) */}
-            <div className="bg-app-surface rounded-[12px] p-5 border border-border shadow-[var(--shadow-card)]">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2 text-[11px] font-bold font-mono text-[var(--sherloq-primary)] uppercase tracking-wider">
-                  <Zap className="w-4 h-4" /> KI Kurzakte
-                </div>
-                {!editingKurzakte && (
-                  <button onClick={() => { setKurzakteDraft(kurzakte.join('\n')); setEditingKurzakte(true); }} aria-label="Bearbeiten" className="text-text-muted hover:text-[var(--sherloq-primary)] transition-colors cursor-pointer">
-                    <Pencil className="w-3.5 h-3.5" />
-                  </button>
-                )}
-              </div>
-
-              {editingKurzakte ? (
-                <div className="space-y-2">
-                  <textarea
-                    autoFocus
-                    value={kurzakteDraft}
-                    onChange={(e) => setKurzakteDraft(e.target.value)}
-                    rows={6}
-                    placeholder="Ein Stichpunkt pro Zeile"
-                    className="w-full bg-app-bg border border-[var(--sherloq-primary)] rounded-[10px] p-3 text-[13px] text-text-primary leading-relaxed outline-none resize-none scrollbar-none"
-                  />
-                  <div className="flex items-center justify-end gap-2">
-                    <button onClick={() => setEditingKurzakte(false)} className="px-3 py-1.5 rounded-[10px] border border-border text-text-body text-[11px] font-bold hover:bg-app-bg transition-colors cursor-pointer">Abbrechen</button>
-                    <button
-                      onClick={() => {
-                        const lines = kurzakteDraft.split('\n').map((l) => l.trim()).filter(Boolean);
-                        setKurzakte(lines);
-                        setEditingKurzakte(false);
-                        showToast('KI Kurzakte gespeichert');
-                      }}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] bg-[var(--sherloq-primary)] text-on-accent text-[11px] font-bold hover:opacity-90 transition-opacity cursor-pointer"
-                    >
-                      <Save className="w-3.5 h-3.5" /> Speichern
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <ul className="flex flex-col gap-3 text-[13px] text-text-body leading-relaxed">
-                  {kurzakte.map((line, i) => (
-                    <li key={i} className="flex items-start gap-2.5">
-                      <span className="w-1.5 h-1.5 bg-[var(--sherloq-primary)] rounded-full mt-1.5 shrink-0" />
-                      {line}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
+            <KiKurzakte items={kurzakte} onSave={(lines) => { setKurzakte(lines); showToast('KI Kurzakte gespeichert'); }} />
 
             {/* Aktive Signale — zeigt künftig NUR real vorhandene Signale; jede Zeile ist
                 mit ihrer konkreten Aufgabe verlinkt und öffnet das passende Action-Panel. */}
