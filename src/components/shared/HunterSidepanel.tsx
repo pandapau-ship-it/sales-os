@@ -255,22 +255,37 @@ const DEFAULT_DETAILS = {
  *  - sonst: Text inline editierbar (Popover) via EditableInline; leer → „—".
  */
 function DetailField({
-  label, value, onSave, options, onSelect, system, href, type,
-}: { label: string; value: string; onSave?: (v: string) => void; options?: string[]; onSelect?: (v: string) => void; system?: boolean; href?: string; type?: string }) {
-  return (
-    <div className="min-w-0">
-      <div className="text-[10px] font-extrabold text-text-muted uppercase tracking-widest mb-1.5">{label}</div>
-      {system ? (
-        <div className="text-[13px] font-semibold text-text-muted truncate" title="Vom System vergeben">{value || '—'}</div>
-      ) : options ? (
+  label, value, onSave, options, onSelect, system, href, type = 'text', placeholder,
+}: { label: string; value: string; onSave?: (v: string) => void; options?: string[]; onSelect?: (v: string) => void; system?: boolean; href?: string; type?: string; placeholder?: string }) {
+  const [draft, setDraft] = useState(value);
+  useEffect(() => { setDraft(value); }, [value]);
+  const filled = value.trim().length > 0;
+  // Befüllte Felder heben sich ab (gefüllte Box + kräftiger Text); leere bleiben flach.
+  const box = "w-full rounded-[9px] border px-3 py-2 text-[13px] outline-none transition-all";
+  const filledLook = "bg-app-bg border-border text-text-primary font-semibold";
+  const emptyLook = "bg-transparent border-border-subtle text-text-body";
+
+  if (system) {
+    return (
+      <div className="min-w-0">
+        <label className="block text-[10px] font-extrabold text-text-muted uppercase tracking-widest mb-1.5">{label}</label>
+        <div className={`${box} border-transparent bg-app-bg text-text-muted font-medium truncate cursor-default`} title="Vom System vergeben">{value || '—'}</div>
+      </div>
+    );
+  }
+
+  if (options) {
+    return (
+      <div className="min-w-0">
+        <label className="block text-[10px] font-extrabold text-text-muted uppercase tracking-widest mb-1.5">{label}</label>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-text-body hover:text-[var(--sherloq-primary)] transition-colors cursor-pointer group/sel max-w-full">
-              <span className="truncate">{value || '—'}</span>
-              <ChevronDown className="w-3.5 h-3.5 shrink-0 opacity-40 group-hover/sel:opacity-100 transition-opacity" />
+            <button className={`${box} flex items-center justify-between gap-2 cursor-pointer text-left ${filled ? filledLook : emptyLook} hover:border-[var(--sherloq-primary)]`}>
+              <span className="truncate">{value || placeholder || '—'}</span>
+              <ChevronDown className="w-3.5 h-3.5 shrink-0 text-text-muted" />
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-56">
+          <DropdownMenuContent align="start" className="w-60">
             {options.map((o) => (
               <DropdownMenuItem key={o} onClick={() => onSelect?.(o)} className="cursor-pointer text-[13px] font-semibold">
                 <span className={`w-1.5 h-1.5 rounded-full ${o === value ? 'bg-[var(--sherloq-primary)]' : 'bg-[var(--border-strong)]'}`} />
@@ -280,11 +295,29 @@ function DetailField({
             ))}
           </DropdownMenuContent>
         </DropdownMenu>
-      ) : (
-        <div className="text-[13px] font-semibold text-text-body">
-          <EditableInline label={label} value={value} type={type} href={href} onSave={(v) => onSave?.(v)} onCopy={() => {}} />
-        </div>
-      )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-w-0">
+      <label className="block text-[10px] font-extrabold text-text-muted uppercase tracking-widest mb-1.5">{label}</label>
+      <div className="relative group/df">
+        <input
+          type={type}
+          value={draft}
+          placeholder={placeholder || '—'}
+          onChange={(e) => setDraft(e.target.value)}
+          onBlur={() => { if (draft.trim() !== value.trim()) onSave?.(draft.trim()); }}
+          onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }}
+          className={`${box} placeholder-[var(--text-muted)] hover:border-[var(--sherloq-primary)] focus:border-[var(--sherloq-primary)] focus:bg-app-surface ${filled ? filledLook : emptyLook} ${href && filled ? 'pr-9' : ''}`}
+        />
+        {href && filled && (
+          <a href={href} target="_blank" rel="noopener noreferrer" aria-label="Öffnen" className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted hover:text-[var(--sherloq-primary)] transition-colors">
+            <ArrowUpRight className="w-3.5 h-3.5" />
+          </a>
+        )}
+      </div>
     </div>
   );
 }
@@ -304,7 +337,7 @@ function DetailSection({ title, icon: Icon, cols = 2, children }: { title: strin
   );
 }
 
-export default function HunterSidepanel({ person: personProp, onClose, variant = 'panel' }: { person: any; onClose: () => void; variant?: 'panel' | 'full' }) {
+export default function HunterSidepanel({ person: personProp, onClose, onExit, variant = 'panel' }: { person: any; onClose: () => void; onExit?: () => void; variant?: 'panel' | 'full' }) {
   const [activeTab, setActiveTab] = useState(variant === 'full' ? 'details' : 'overview');
   const [showVollansicht, setShowVollansicht] = useState(false);
   const [expandedComm, setExpandedComm] = useState<Record<number, boolean>>({});
@@ -1081,23 +1114,19 @@ export default function HunterSidepanel({ person: personProp, onClose, variant =
     { id: 'notes', label: 'Notizen' },
   ];
   const fullBody = person && (
-    <div className="fixed inset-0 z-[120] bg-app-bg font-sans overflow-y-auto custom-scrollbar animate-fade-in">
-      {/* Fixe Topbar — einziges dauerhaft sichtbares Element beim Scrollen */}
-      <div className="sticky top-0 z-30 h-14 px-5 sm:px-10 bg-app-surface border-b border-border-subtle flex items-center justify-between gap-4 shadow-sm">
-        <div className="flex items-center gap-3 min-w-0">
-          <button onClick={onClose} aria-label="Zurück" className="w-9 h-9 rounded-full bg-app-bg flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-border-subtle transition-colors shrink-0 cursor-pointer">
-            <ArrowLeft className="w-4 h-4" />
-          </button>
-          <Avatar name={person?.name || "Christian Brand"} src={person?.avatarUrl} size={30} />
-          <span className="text-[14px] font-extrabold text-text-primary truncate">{person?.name || "Dr. Christian Brand"}</span>
-        </div>
-        <button onClick={onClose} aria-label="Schließen" className="w-9 h-9 rounded-full bg-app-bg flex items-center justify-center text-text-muted hover:text-[var(--signal-urgent-text)] hover:bg-[var(--signal-urgent-bg)] transition-colors shrink-0 cursor-pointer">
-          <X className="w-4 h-4" />
+    <div className="fixed inset-0 z-[120] bg-app-bg font-sans overflow-y-auto animate-fade-in">
+      {/* Steuer-Zeile — ← zurück zum Panel, ✕ schließt ganz. Kein Balken, scrollt mit. */}
+      <div className="max-w-[1100px] mx-auto px-5 sm:px-10 pt-5 flex items-center justify-between">
+        <button onClick={onClose} aria-label="Zurück" className="w-9 h-9 rounded-full flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-app-surface transition-colors cursor-pointer">
+          <ArrowLeft className="w-[18px] h-[18px]" />
+        </button>
+        <button onClick={() => (onExit ?? onClose)()} aria-label="Schließen" className="w-9 h-9 rounded-full flex items-center justify-center text-text-muted hover:text-[var(--signal-urgent-text)] hover:bg-app-surface transition-colors cursor-pointer">
+          <X className="w-[18px] h-[18px]" />
         </button>
       </div>
 
-      {/* Hero — direkt in die Seite integriert (keine weiße Kachel) */}
-      <div className="max-w-[1100px] mx-auto px-5 sm:px-10 pt-10 pb-7">
+      {/* Hero — randlos direkt in die Seite integriert (keine Kachel) */}
+      <div className="max-w-[1100px] mx-auto px-5 sm:px-10 pt-3 pb-7">
         <div className="flex items-start justify-between gap-6 flex-wrap">
           {identityBlock}
           <div className="flex items-start gap-7 shrink-0">
@@ -1109,8 +1138,8 @@ export default function HunterSidepanel({ person: personProp, onClose, variant =
         </div>
       </div>
 
-      {/* Tabs — sticky unter der Topbar, über die volle Breite integriert */}
-      <div className="sticky top-14 z-20 bg-app-bg border-b border-border-subtle">
+      {/* Tabs — sticky am oberen Rand, über die volle Breite */}
+      <div className="sticky top-0 z-20 bg-app-bg border-b border-border-subtle">
         <nav className="max-w-[1100px] mx-auto px-5 sm:px-10 flex flex-nowrap gap-8 overflow-x-auto scrollbar-none">
           {FULL_TABS.map((tab) => (
             <button
@@ -1137,7 +1166,7 @@ export default function HunterSidepanel({ person: personProp, onClose, variant =
   return (
     <>
     {variant === 'full' ? fullBody : (
-      <Sheet open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
+      <Sheet open={isOpen && !showVollansicht} onOpenChange={(open) => { if (!open && !showVollansicht) onClose(); }}>
         <SheetContent
           side="drawer"
           className="flex flex-col font-sans overflow-hidden p-0 bg-app-surface"
@@ -1156,7 +1185,7 @@ export default function HunterSidepanel({ person: personProp, onClose, variant =
       )}
 
       {variant !== 'full' && showVollansicht && (
-        <HunterSidepanel person={display} onClose={() => setShowVollansicht(false)} variant="full" />
+        <HunterSidepanel person={display} onClose={() => setShowVollansicht(false)} onExit={onClose} variant="full" />
       )}
     </>
   );
