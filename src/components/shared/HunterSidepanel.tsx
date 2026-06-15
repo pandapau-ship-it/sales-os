@@ -1003,8 +1003,25 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
 
   // Details-Tab (nur Vollansicht) — alle Kontakt-/Firmen-/CRM-Felder (CLAUDE.md → CRM FELDER),
   // editierbar (Standard) bzw. readonly (System). Bündelt was bei „+ SDR Lead" erfassbar ist.
-  const phoneFav = phones.find((p) => p.favorite) ?? phones[0];
-  const phoneBiz = phones.find((p) => p.type === 'Geschäftlich') ?? phones[1];
+  const PHONE_TYPES = ['Mobil', 'Geschäftlich', 'Privat', 'Weitere'];
+  const addPhone = () => {
+    setPhones((prev) => {
+      const maxId = prev.reduce((m, p) => Math.max(m, parseInt(p.id.replace(/\D/g, '')) || 0), 0);
+      return [...prev, { id: 'p' + (maxId + 1), type: 'Weitere', number: '', favorite: prev.length === 0 }];
+    });
+    showToast('Nummer hinzugefügt');
+  };
+  const setFavoritePhone = (id: string) => { setPhones((prev) => prev.map((p) => ({ ...p, favorite: p.id === id }))); showToast('Favorit-Nummer gesetzt'); };
+  const updatePhone = (id: string, patch: Partial<Phone>) => setPhones((prev) => prev.map((p) => (p.id === id ? { ...p, ...patch } : p)));
+  const removePhone = (id: string) => {
+    setPhones((prev) => {
+      let next = prev.filter((p) => p.id !== id);
+      if (next.length && !next.some((p) => p.favorite)) next = next.map((p, i) => (i === 0 ? { ...p, favorite: true } : p));
+      return next;
+    });
+    showToast('Nummer entfernt');
+  };
+  const copyPhone = async (num: string) => { try { await navigator.clipboard.writeText(num); } catch { /* clipboard n/a */ } showToast('Telefon kopiert'); };
   const detailsContent = person && (
     <div className="space-y-6 animate-fade-in">
       <DetailSection title="Person" icon={User}>
@@ -1018,9 +1035,58 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
         <DetailField label="Standort / Stadt" value={details.stadt} onSave={(v) => setDetail('stadt', v)} />
         <DetailField label="Land" value={details.land} options={LAND_OPTS} onSelect={(v) => setDetail('land', v)} />
         <DetailField label="E-Mail" type="email" value={contact.email} onSave={(v) => { setContact((c) => ({ ...c, email: v })); showToast('Gespeichert'); }} />
-        <DetailField label="Telefon" value={phoneFav?.number || ''} onSave={(v) => { if (phoneFav) setPhones((prev) => prev.map((p) => (p.id === phoneFav.id ? { ...p, number: v } : p))); showToast('Gespeichert'); }} />
-        <DetailField label="Mobil" value={phoneBiz?.number || ''} onSave={(v) => { if (phoneBiz) setPhones((prev) => prev.map((p) => (p.id === phoneBiz.id ? { ...p, number: v } : p))); showToast('Gespeichert'); }} />
         <DetailField label="LinkedIn" value={contact.linkedin} href={`https://www.linkedin.com/${contact.linkedin.replace(/^\/+/, '')}`} onSave={(v) => { setContact((c) => ({ ...c, linkedin: v })); showToast('Gespeichert'); }} />
+
+        {/* Telefonnummern — Favorit (★), Typ, alle editierbar, hinzufügen/entfernen (wie im Panel) */}
+        <div className="sm:col-span-2">
+          <div className="flex items-center justify-between mb-2">
+            <label className="text-[10px] font-extrabold text-text-muted uppercase tracking-widest">Telefonnummern</label>
+            <button onClick={addPhone} className="inline-flex items-center gap-1 text-[11px] font-bold text-[var(--sherloq-primary)] hover:opacity-80 transition-opacity cursor-pointer">
+              <Plus className="w-3.5 h-3.5" /> Nummer hinzufügen
+            </button>
+          </div>
+          <div className="space-y-2">
+            {phones.length === 0 && <div className="text-[13px] text-text-muted">Keine Nummer hinterlegt.</div>}
+            {phones.map((p) => (
+              <div key={p.id} className="flex items-center gap-2">
+                <button onClick={() => setFavoritePhone(p.id)} aria-label="Als Favorit setzen" title="Als Favorit setzen" className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center hover:bg-app-bg transition-colors cursor-pointer">
+                  <Star className={`w-[15px] h-[15px] ${p.favorite ? 'fill-[var(--sherloq-primary)] text-[var(--sherloq-primary)]' : 'text-text-muted'}`} />
+                </button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="shrink-0 w-[124px] rounded-[9px] border border-border-subtle bg-transparent px-3 py-2 text-[12px] font-bold text-text-body flex items-center justify-between gap-1 hover:border-[var(--sherloq-primary)] transition-colors cursor-pointer">
+                      <span className="truncate">{p.type}</span>
+                      <ChevronDown className="w-3.5 h-3.5 shrink-0 text-text-muted" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-44">
+                    {PHONE_TYPES.map((t) => (
+                      <DropdownMenuItem key={t} onClick={() => updatePhone(p.id, { type: t })} className="cursor-pointer text-[13px] font-semibold">
+                        <span className={`w-1.5 h-1.5 rounded-full ${t === p.type ? 'bg-[var(--sherloq-primary)]' : 'bg-[var(--border-strong)]'}`} />
+                        {t}
+                        {t === p.type && <Check className="w-3.5 h-3.5 ml-auto text-[var(--sherloq-primary)]" />}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <input
+                  type="tel"
+                  value={p.number}
+                  placeholder="+49 …"
+                  onChange={(e) => updatePhone(p.id, { number: e.target.value })}
+                  onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }}
+                  className={`flex-1 min-w-0 rounded-[9px] border px-3 py-2 text-[13px] outline-none transition-all placeholder-[var(--text-muted)] hover:border-[var(--sherloq-primary)] focus:border-[var(--sherloq-primary)] focus:bg-app-surface ${p.number ? 'bg-app-bg border-border text-text-primary font-semibold' : 'bg-transparent border-border-subtle text-text-body'}`}
+                />
+                <button onClick={() => copyPhone(p.number)} aria-label="Kopieren" className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-text-muted hover:text-[var(--sherloq-primary)] hover:bg-app-bg transition-colors cursor-pointer">
+                  <Copy className="w-[15px] h-[15px]" />
+                </button>
+                <button onClick={() => removePhone(p.id)} aria-label="Entfernen" className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-text-muted hover:text-[var(--signal-urgent-text)] hover:bg-[var(--signal-urgent-bg)] transition-colors cursor-pointer">
+                  <Trash2 className="w-[15px] h-[15px]" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
         <DetailField label="Twitter / X" value={details.twitter} onSave={(v) => setDetail('twitter', v)} />
         <DetailField label="Webadresse" value={contact.web} href={`https://${contact.web.replace(/^https?:\/\//, '')}`} onSave={(v) => { setContact((c) => ({ ...c, web: v })); showToast('Gespeichert'); }} />
       </DetailSection>
