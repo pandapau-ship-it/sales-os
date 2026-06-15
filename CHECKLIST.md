@@ -40,9 +40,12 @@
 - [x] **Popover-Fokus-Fix** — `ui/popover` `portal`-Prop; Eingaben in Popovern im Sheet tippbar (Kontaktfelder + Erledigt-Notiz); Audit-Check „Popover-Eingabe fokussierbar" + CLAUDE.md-Regel — *2026-06-14*
 - [x] **AI-Chat Guardrails** — CLAUDE.md §9 (Secrets/Code/Tenant, Injection, PII) + Red-Team-Gate (`npm run redteam`, Phase 7) — *2026-06-14*
 - [x] **knowledge_base** `value` = Kundennutzen/Pitch (Regel + Leitlinie + 5 Einträge umformuliert) — *2026-06-14*
+- [x] **Vollansicht (Kontakt-Detail, Vollbild)** — `HunterSidepanel` `variant="full"`: echte Seite (ein Scroll-Container, native Scrollbar, sticky Tabs, Hero integriert), über ↗ im Info-Panel; ← zurück zum Panel, ✕ schließt (`onExit`) — *2026-06-15*
+- [x] **Details-Tab (Vollansicht)** — alle CRM-Felder (Person/Firma/Klassifizierung/System/Notizen); Read-Mode + Inline-Edit (kein Popup) + Copy + System-Status als Badges; Kontaktdaten in grauer Sub-Kachel — *2026-06-15*
+- [x] **Neue panel-blocks** — `DetailField` · `DetailSection` · `StatusBadge` · `DetailPhoneList` (global, prop-driven, Tokens-only) — *2026-06-15*
 
 ### Offen (neu heute)
-- [ ] **Vollansicht (Kontakt-Detail, Vollbild) neu bauen** — alter Entwurf verworfen/gelöscht (`bc46b49`); aus `panel-blocks/` komponieren, über ↗ im Info-Panel öffnen
+- [ ] **Vollansicht — restliche Tabs aufwerten** (Übersicht/Kommunikation/Aktivität/Tasks/Notizen; aktuell 1:1 aus dem Panel)
 - [ ] AI-Chat **Red-Team-Gate** (`scripts/redteam-aichat.ts`, `npm run redteam`) bauen — Phase 7, vor Live
 
 ### Offen

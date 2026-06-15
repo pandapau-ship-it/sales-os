@@ -450,6 +450,38 @@ Regeln:
   richtigen Ordner-Struktur (panels/ · panel-blocks/ · features/[modul]/).
   Keine Ausnahme. Auch nicht "erstmal schnell" in components/ root.
 
+### Verfügbare panel-blocks (`src/components/panel-blocks/`)
+
+Vor dem Bau eines neuen Inhalts-Blocks zuerst hier prüfen — wiederverwenden statt neu bauen.
+Alle prop-driven, Tokens-only, Dark-Mode automatisch.
+
+| Block | Zweck |
+|---|---|
+| `HeatBadge` | Heat-Status-Pill (Engaged…Gone), Dot+Text, 10%-Tint — Quelle `HEAT_STATUS` |
+| `StageBadge` | Pipeline-Stage als graues Text-Pill |
+| `StatusBadge` | Generisches Status-Badge (Tone success/warn/urgent/info/teal/muted, Icon ODER Dot) — z.B. „E-Mail verifiziert" |
+| `DetailField` | Profil-Feld (Read-Mode): Wert ohne Rahmen, Klick/Stift → **Inline-Edit direkt im Feld** (kein Popup), `options`=Dropdown, `copyable`=Copy-Icon+`onCopy`, `href`=Link, `readonly`=System grau, leer → „+ Hinzufügen" |
+| `DetailSection` | Profil-Sektion (weiße Karte, Titel + Icon, optional `collapsible`/`defaultCollapsed`, 1/2-Spalten-Grid) |
+| `DetailPhoneList` | Mehrere Telefonnummern: Favorit-Stern, Typ je Nummer, Inline-Edit, Copy/Löschen, „+ hinzufügen" (neue Zeile auto-fokussiert, leer→verworfen) |
+| `KontaktZeile` `PanelTabs` `KiKurzakte` `PanelHeader` `PanelField` `DealSetup` `NewDealCard` `ErledigtAction` `KommunikationPreview` `OffeneTasks` `ActiveSequenceChain` `AktiveSignale` `PanelFooter` `ActionFooter` `ActionComposer` `PhoneNumbersField` | bestehende Blöcke (Panel/Formular-Komposition) |
+
+> Neuer panel-block → **sofort** in diese Tabelle eintragen.
+
+### Vollansicht / Kontakt-Detail (Entscheidung 2026-06-15)
+
+- Die **Kontakt-Vollansicht** ist **kein** eigener `ScreenVollansicht` (alter Entwurf verworfen),
+  sondern `shared/HunterSidepanel` mit Prop **`variant: 'panel' | 'full'`** — gleicher Body, andere
+  Hülle. `variant='full'` = echte Seite (ein Scroll-Container, **native Scrollbar**, sticky Tabs,
+  Hero randlos integriert — **keine** weiße Hero-Kachel). Geöffnet über ↗ im 820px-Info-Panel;
+  ← geht zurück zum Panel (Sheet wird ausgeblendet), ✕ schließt ganz (`onExit`).
+  (Optional später: in eine eigene `features/hunter/`-Komposition herauslösen.)
+- **Details-Tab** (nur Vollansicht) zeigt alle CRM-Felder (→ CRM FELDER) im **Read-Mode**:
+  Werte ohne Input-Rahmen, **Inline-Edit direkt im Feld** (kein Bearbeiten-Popup wie im Panel),
+  leere Felder als „+ Hinzufügen". System-Status (Heat/Contact/Verifiziert) als **read-only Badges**,
+  nicht als Eingabefelder. Copy-Icon bei E-Mail/Telefon/LinkedIn/Web (+ Toast „Kopiert ✓").
+- **Kein farbiger Akzent-Border** (z.B. teal links) an Detail-Karten — wirkt „nach AI". Gruppierung
+  rein über Spacing + dezente graue Sub-Kachel (`bg-app-bg`) **nur** um den Kontakt-Datenblock.
+
 ---
 
 ## Design Rules (Legacy — für Referenz)

@@ -16,11 +16,12 @@
 
 ## Offen — Nächste Session (Phase 2 Abschluss → Phase 3 DB)
 
-0. **Vollansicht (Kontakt-Detail, Vollbild) NEU bauen** — der erste Entwurf (`ScreenVollansicht`
-   + 13 `Voll*`-Blocks) wurde **bewusst verworfen und gelöscht** (Commit `bc46b49`). Neu aufbauen:
-   aus `panel-blocks/` komponieren (kein Inline-Block), Tokens-only, und über den **↗-Pfeil im
-   Info-Panel** öffnen (Verdrahtung war kurz da, ist zurückgebaut). Bestehende Atome bleiben:
-   `KontaktZeile`/`PanelTabs`/`HeatBadge`/`StageBadge`/`KiKurzakte`.
+0. **Vollansicht — restliche Tabs aufwerten** — Grundgerüst (echte Seite) + **Details-Tab**
+   sind fertig (2026-06-15, `HunterSidepanel` `variant="full"`, geöffnet über ↗ im Info-Panel).
+   Offen: Tabs **Übersicht/Kommunikation/Aktivität/Tasks/Notizen** für die Vollseite aufwerten
+   (aktuell 1:1 aus dem 820px-Panel übernommen). Details-Tab-Felder beim DB-Wiring an echte
+   `contacts`/`companies`-Felder hängen (CRM-Felddefinition). Optional später: Vollansicht aus
+   `shared/HunterSidepanel` in eine eigene `features/hunter/`-Komposition herauslösen.
 1. **Snooze · Settings · AddSdrLeadPanel verdrahten** — aktuell reine UI/Mock. Beim DB-Wiring:
    Snooze-State + Limits aus `system_config` (`snooze_max_count`/`_days`/`_escalation_type`),
    `SnoozeSettings` schreibt echt, `AddSdrLeadPanel` legt Kontakt/Deal an (Edge Function).
@@ -38,6 +39,30 @@
 ---
 
 ## Completed
+
+### Phase 2 — Hunter-Vollansicht (Branch `feature/phase-2-hunter`) — Session 2026-06-15
+
+Kontakt-**Vollansicht** als echte Seite + **Details-Tab** (Attio/Clay-Stil). Alles Mock/Design,
+**kein DB-Wiring**. Build grün · Audit 0 FAIL durchgehend.
+
+- [x] **Vollansicht über ↗** — `HunterSidepanel` bekam Prop `variant: 'panel' | 'full'`. Derselbe
+  Body (Fragmente `identityBlock`/`statusBadgesInner`/`contactPill`/`tabNav`/`tabContent`) rendert
+  als 820px-Sheet **oder** als Vollseite. ↗ oben rechts im Info-Panel öffnet die Vollseite; in der
+  Vollseite ist ↗ aus, ← geht zurück zum Panel (Sheet wird ausgeblendet), ✕ schließt ganz (`onExit`).
+- [x] **Echte-Seiten-Mechanik** — ein Scroll-Container (nativer Scrollbalken, kein Panel-Inner-Scroll);
+  Topbar-Leiste entfernt → dezente Steuer-Zeile (← / ✕); Tabs als seitenbreite **sticky** Leiste;
+  Hero (Avatar · Name · ICP · Status/Heat/Stage · Aktionen) randlos in die Seite integriert.
+- [x] **Details-Tab** (nur Vollansicht, neuer erster Tab) — alle Kontakt-/Firmen-/CRM-Felder
+  (CLAUDE.md → CRM FELDER): Person · Firma · Klassifizierung · Notizen · System (zusammengeklappt).
+  **Read-Mode** als Standard (Werte ohne Rahmen), Klick/Stift → **Inline-Edit direkt im Feld**
+  (kein Popup, Escape bricht ab), leere Felder → „+ Hinzufügen"-Link. **Copy** bei
+  E-Mail/LinkedIn/Web/Domain (+ Toast „Kopiert ✓"). System-Status als **read-only Badges**
+  (`HeatBadge`/`StageBadge`/`StatusBadge`). Kontaktdaten in dezenter grauer Sub-Kachel.
+- [x] **Telefon-Management** (`DetailPhoneList`) — mehrere Nummern, Favorit-Stern (primär), Typ je
+  Nummer, Inline-Edit, Copy + Löschen, „+ Nummer hinzufügen" (neue Zeile auto-fokussiert; bleibt sie
+  leer → beim Wegklicken automatisch verworfen).
+- [x] **4 neue panel-blocks** (global, prop-driven, Tokens-only, Dark-Mode automatisch):
+  `DetailField` · `DetailSection` · `StatusBadge` · `DetailPhoneList`.
 
 ### Phase 2 — Hunter-Screen (Branch `feature/phase-2-hunter`) — Session 2026-06-14 (Teil 2)
 

@@ -89,3 +89,66 @@
 --  'core');
 ```
 
+---
+
+## 2026-06-15
+
+### Kontakt-Vollansicht (Vollbild-Profil)
+- **feature:** Kontakt-Vollansicht
+- **what:** Vollbild-Profilseite zu einem Kontakt — derselbe Inhalt wie das 820px-Info-Panel,
+  aber als ganze, scrollbare Seite mit Tabs (Details · Übersicht · Kommunikation · Aktivität · Tasks · Notizen).
+- **how:** Im Info-Panel oben rechts auf den ↗-Pfeil klicken → die Vollansicht öffnet sich.
+  ← bringt zurück ins Panel, ✕ schließt ganz. Die ganze Seite scrollt wie eine normale Website.
+- **value:** Der komplette Kontakt-Kontext auf einer ruhigen, übersichtlichen Seite — ideal für
+  Vorbereitung und Pflege. Mehr Platz, weniger Gedränge: der Rep findet alles schneller und arbeitet fokussierter.
+- **module:** hunter
+
+### Kontakt-Details (Read-Mode + Inline-Edit)
+- **feature:** Kontakt-Details-Tab
+- **what:** Alle Stamm-, Firmen- und CRM-Felder eines Kontakts auf einen Blick (Person · Firma ·
+  Klassifizierung · Notizen · System). Befüllte Werte stehen sauber lesbar da; System-Status
+  (Heat, Status, E-Mail verifiziert) erscheint als Badge.
+- **how:** Werte direkt anklicken und im Feld ändern (kein Extra-Fenster), leere Felder per
+  „+ Hinzufügen" füllen. Bei E-Mail/Telefon/LinkedIn/Web ein Klick aufs Copy-Icon kopiert den Wert.
+  Mehrere Telefonnummern mit Favorit-Stern, Hinzufügen und Löschen.
+- **value:** Kontaktdaten pflegen wie in einem modernen CRM (Attio/Clay) — schnell, ohne Formular-Frust,
+  alles inline. Saubere Daten sind die Basis für verlässliche Automatisierung, Personalisierung und Reporting.
+- **module:** hunter
+
+### Profil-Bausteine (intern)
+- **feature:** Detail-Bausteine (`DetailField` · `DetailSection` · `StatusBadge` · `DetailPhoneList`)
+- **what:** Wiederverwendbare panel-blocks für Profil-Ansichten (Read-Mode-Feld mit Inline-Edit/Copy,
+  Sektions-Karte, Status-Badge, Telefon-Liste).
+- **how:** Entwickler komponieren Detail-/Profilseiten aus diesen Blöcken statt Felder pro Seite neu zu bauen.
+- **value:** _(intern/Architektur — nicht kundenfähig)_ Konsistente, schnell baubare Detailansichten →
+  neue Felder/Objekte (Companies, Deals) erreichen Kunden früher und einheitlich.
+- **module:** core
+
+---
+
+## 2026-06-15 — SQL (beim DB-Wiring einspielen)
+
+```sql
+-- knowledge_base { feature, what, how, value, module }
+-- INSERT INTO knowledge_base (organization_id, feature, what, how, value, module) VALUES
+
+-- (:org, 'Kontakt-Vollansicht',
+--  'Vollbild-Profilseite zu einem Kontakt mit Tabs (Details/Übersicht/Kommunikation/Aktivität/Tasks/Notizen) — gleicher Inhalt wie das Info-Panel, als ganze scrollbare Seite.',
+--  'Im Info-Panel oben rechts auf den ↗-Pfeil klicken; ← zurück ins Panel, ✕ schließt. Die ganze Seite scrollt wie eine normale Website.',
+--  'Kompletter Kontakt-Kontext auf einer ruhigen, übersichtlichen Seite — mehr Platz, schneller alles im Blick, fokussierteres Arbeiten.',
+--  'hunter'),
+
+-- (:org, 'Kontakt-Details (Inline-Edit)',
+--  'Alle Stamm-/Firmen-/CRM-Felder auf einen Blick; befüllte Werte lesbar, System-Status (Heat/Status/verifiziert) als Badge.',
+--  'Wert anklicken und direkt im Feld ändern (kein Extra-Fenster), leere Felder per „+ Hinzufügen"; Copy-Icon bei E-Mail/Telefon/LinkedIn/Web; mehrere Telefonnummern mit Favorit-Stern.',
+--  'Kontaktpflege wie in einem modernen CRM — schnell, inline, ohne Formular-Frust. Saubere Daten als Basis für Automatisierung, Personalisierung und Reporting.',
+--  'hunter'),
+
+-- Profil-Bausteine (intern)
+-- (:org, 'Detail-Bausteine (panel-blocks)',
+--  'Wiederverwendbare Blöcke für Profilansichten: DetailField (Read-Mode + Inline-Edit + Copy), DetailSection, StatusBadge, DetailPhoneList.',
+--  'Entwickler komponieren Detailseiten aus diesen Blöcken statt Felder pro Seite neu zu bauen.',
+--  '(intern/Architektur — nicht kundenfähig) Konsistente, schnell baubare Detailansichten; neue Objekte (Companies/Deals) einheitlich und früher verfügbar.',
+--  'core');
+```
+
