@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import {
   ArrowUpRight, ArrowLeft, X, Mail, Phone, Globe, AlertTriangle, Clock, Check,
   Zap, Briefcase, Calendar, ChevronDown, Pencil, Trash2, Save, Plus,
-  StickyNote, Copy, Star, User, Building2, Tag
+  StickyNote, Copy, Star, User, Building2, Tag, CheckCircle2
 } from 'lucide-react';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import {
@@ -14,6 +14,12 @@ import {
 import LinkedinIcon from '@/components/shared/LinkedinIcon';
 import BrandLogo from '@/components/shared/BrandLogo';
 import Avatar from '@/components/shared/Avatar';
+import HeatBadge from '@/components/panel-blocks/HeatBadge';
+import StageBadge from '@/components/panel-blocks/StageBadge';
+import StatusBadge from '@/components/panel-blocks/StatusBadge';
+import DetailField from '@/components/panel-blocks/DetailField';
+import DetailSection from '@/components/panel-blocks/DetailSection';
+import DetailPhoneList from '@/components/panel-blocks/DetailPhoneList';
 
 /** Kanonische Default-Stages (Spec §3.2) — bis zum DB-Wiring dokumentierter Fallback. */
 const PIPELINE_STAGES = ['Backlog', 'Demo vereinbart', 'Follow-up offen', 'Onboarding offen', 'Free Trial', 'Gewonnen'];
@@ -248,94 +254,8 @@ const DEFAULT_DETAILS = {
   notiz: 'Budget-Freeze bis Q3 — der ROI-Case ist der Hebel. Demo lief sehr positiv, Abschluss ab Q4 realistisch.',
 };
 
-/**
- * DetailField — ein Feld der Vollansicht (Label oben, Wert darunter).
- *  - System (readonly): grauer Wert, kein Edit (CLAUDE.md: Systemfelder).
- *  - options: Dropdown-Auswahl (Anrede, Seniority, Land …).
- *  - sonst: Text inline editierbar (Popover) via EditableInline; leer → „—".
- */
-function DetailField({
-  label, value, onSave, options, onSelect, system, href, type = 'text', placeholder,
-}: { label: string; value: string; onSave?: (v: string) => void; options?: string[]; onSelect?: (v: string) => void; system?: boolean; href?: string; type?: string; placeholder?: string }) {
-  const [draft, setDraft] = useState(value);
-  useEffect(() => { setDraft(value); }, [value]);
-  const filled = value.trim().length > 0;
-  // Befüllte Felder heben sich ab (gefüllte Box + kräftiger Text); leere bleiben flach.
-  const box = "w-full rounded-[9px] border px-3 py-2 text-[13px] outline-none transition-all";
-  const filledLook = "bg-app-bg border-border text-text-primary font-semibold";
-  const emptyLook = "bg-transparent border-border-subtle text-text-body";
-
-  if (system) {
-    return (
-      <div className="min-w-0">
-        <label className="block text-[10px] font-extrabold text-text-muted uppercase tracking-widest mb-1.5">{label}</label>
-        <div className={`${box} border-transparent bg-app-bg text-text-muted font-medium truncate cursor-default`} title="Vom System vergeben">{value || '—'}</div>
-      </div>
-    );
-  }
-
-  if (options) {
-    return (
-      <div className="min-w-0">
-        <label className="block text-[10px] font-extrabold text-text-muted uppercase tracking-widest mb-1.5">{label}</label>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button className={`${box} flex items-center justify-between gap-2 cursor-pointer text-left ${filled ? filledLook : emptyLook} hover:border-[var(--sherloq-primary)]`}>
-              <span className="truncate">{value || placeholder || '—'}</span>
-              <ChevronDown className="w-3.5 h-3.5 shrink-0 text-text-muted" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-60">
-            {options.map((o) => (
-              <DropdownMenuItem key={o} onClick={() => onSelect?.(o)} className="cursor-pointer text-[13px] font-semibold">
-                <span className={`w-1.5 h-1.5 rounded-full ${o === value ? 'bg-[var(--sherloq-primary)]' : 'bg-[var(--border-strong)]'}`} />
-                {o}
-                {o === value && <Check className="w-3.5 h-3.5 ml-auto text-[var(--sherloq-primary)]" />}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-w-0">
-      <label className="block text-[10px] font-extrabold text-text-muted uppercase tracking-widest mb-1.5">{label}</label>
-      <div className="relative group/df">
-        <input
-          type={type}
-          value={draft}
-          placeholder={placeholder || '—'}
-          onChange={(e) => setDraft(e.target.value)}
-          onBlur={() => { if (draft.trim() !== value.trim()) onSave?.(draft.trim()); }}
-          onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }}
-          className={`${box} placeholder-[var(--text-muted)] hover:border-[var(--sherloq-primary)] focus:border-[var(--sherloq-primary)] focus:bg-app-surface ${filled ? filledLook : emptyLook} ${href && filled ? 'pr-9' : ''}`}
-        />
-        {href && filled && (
-          <a href={href} target="_blank" rel="noopener noreferrer" aria-label="Öffnen" className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted hover:text-[var(--sherloq-primary)] transition-colors">
-            <ArrowUpRight className="w-3.5 h-3.5" />
-          </a>
-        )}
-      </div>
-    </div>
-  );
-}
-
-/** DetailSection — Karte mit Titel + responsivem Feld-Grid (1 oder 2 Spalten). */
-function DetailSection({ title, icon: Icon, cols = 2, children }: { title: string; icon: any; cols?: 1 | 2; children: any }) {
-  return (
-    <section className="bg-app-surface rounded-[12px] border border-border shadow-[var(--shadow-card)] p-6">
-      <div className="flex items-center gap-2 mb-5 text-[11px] font-bold uppercase tracking-wider text-text-muted">
-        <Icon className="w-4 h-4 text-[var(--sherloq-primary)]" />
-        {title}
-      </div>
-      <div className={`grid gap-x-8 gap-y-5 ${cols === 2 ? 'sm:grid-cols-2' : 'grid-cols-1'}`}>
-        {children}
-      </div>
-    </section>
-  );
-}
+// DetailField · DetailSection · StatusBadge · DetailPhoneList → ausgelagert nach
+// src/components/panel-blocks/ (siehe Imports). Hier nur noch deren Komposition.
 
 export default function HunterSidepanel({ person: personProp, onClose, onExit, variant = 'panel' }: { person: any; onClose: () => void; onExit?: () => void; variant?: 'panel' | 'full' }) {
   const [activeTab, setActiveTab] = useState(variant === 'full' ? 'details' : 'overview');
@@ -1021,9 +941,8 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
     });
     showToast('Nummer entfernt');
   };
-  const copyPhone = async (num: string) => { try { await navigator.clipboard.writeText(num); } catch { /* clipboard n/a */ } showToast('Telefon kopiert'); };
   const detailsContent = person && (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-5 animate-fade-in">
       <DetailSection title="Person" icon={User}>
         <DetailField label="Anrede" value={details.anrede} options={ANREDE_OPTS} onSelect={(v) => setDetail('anrede', v)} />
         <DetailField label="Sprache" value={details.sprache} options={SPRACHE_OPTS} onSelect={(v) => setDetail('sprache', v)} />
@@ -1034,68 +953,29 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
         <DetailField label="Abteilung" value={details.abteilung} onSave={(v) => setDetail('abteilung', v)} />
         <DetailField label="Standort / Stadt" value={details.stadt} onSave={(v) => setDetail('stadt', v)} />
         <DetailField label="Land" value={details.land} options={LAND_OPTS} onSelect={(v) => setDetail('land', v)} />
-        <DetailField label="E-Mail" type="email" value={contact.email} onSave={(v) => { setContact((c) => ({ ...c, email: v })); showToast('Gespeichert'); }} />
-        <DetailField label="LinkedIn" value={contact.linkedin} href={`https://www.linkedin.com/${contact.linkedin.replace(/^\/+/, '')}`} onSave={(v) => { setContact((c) => ({ ...c, linkedin: v })); showToast('Gespeichert'); }} />
-
-        {/* Telefonnummern — Favorit (★), Typ, alle editierbar, hinzufügen/entfernen (wie im Panel) */}
-        <div className="sm:col-span-2">
-          <div className="flex items-center justify-between mb-2">
-            <label className="text-[10px] font-extrabold text-text-muted uppercase tracking-widest">Telefonnummern</label>
-            <button onClick={addPhone} className="inline-flex items-center gap-1 text-[11px] font-bold text-[var(--sherloq-primary)] hover:opacity-80 transition-opacity cursor-pointer">
-              <Plus className="w-3.5 h-3.5" /> Nummer hinzufügen
-            </button>
-          </div>
-          <div className="space-y-2">
-            {phones.length === 0 && <div className="text-[13px] text-text-muted">Keine Nummer hinterlegt.</div>}
-            {phones.map((p) => (
-              <div key={p.id} className="flex items-center gap-2">
-                <button onClick={() => setFavoritePhone(p.id)} aria-label="Als Favorit setzen" title="Als Favorit setzen" className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center hover:bg-app-bg transition-colors cursor-pointer">
-                  <Star className={`w-[15px] h-[15px] ${p.favorite ? 'fill-[var(--sherloq-primary)] text-[var(--sherloq-primary)]' : 'text-text-muted'}`} />
-                </button>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button className="shrink-0 w-[124px] rounded-[9px] border border-border-subtle bg-transparent px-3 py-2 text-[12px] font-bold text-text-body flex items-center justify-between gap-1 hover:border-[var(--sherloq-primary)] transition-colors cursor-pointer">
-                      <span className="truncate">{p.type}</span>
-                      <ChevronDown className="w-3.5 h-3.5 shrink-0 text-text-muted" />
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-44">
-                    {PHONE_TYPES.map((t) => (
-                      <DropdownMenuItem key={t} onClick={() => updatePhone(p.id, { type: t })} className="cursor-pointer text-[13px] font-semibold">
-                        <span className={`w-1.5 h-1.5 rounded-full ${t === p.type ? 'bg-[var(--sherloq-primary)]' : 'bg-[var(--border-strong)]'}`} />
-                        {t}
-                        {t === p.type && <Check className="w-3.5 h-3.5 ml-auto text-[var(--sherloq-primary)]" />}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                <input
-                  type="tel"
-                  value={p.number}
-                  placeholder="+49 …"
-                  onChange={(e) => updatePhone(p.id, { number: e.target.value })}
-                  onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }}
-                  className={`flex-1 min-w-0 rounded-[9px] border px-3 py-2 text-[13px] outline-none transition-all placeholder-[var(--text-muted)] hover:border-[var(--sherloq-primary)] focus:border-[var(--sherloq-primary)] focus:bg-app-surface ${p.number ? 'bg-app-bg border-border text-text-primary font-semibold' : 'bg-transparent border-border-subtle text-text-body'}`}
-                />
-                <button onClick={() => copyPhone(p.number)} aria-label="Kopieren" className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-text-muted hover:text-[var(--sherloq-primary)] hover:bg-app-bg transition-colors cursor-pointer">
-                  <Copy className="w-[15px] h-[15px]" />
-                </button>
-                <button onClick={() => removePhone(p.id)} aria-label="Entfernen" className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-text-muted hover:text-[var(--signal-urgent-text)] hover:bg-[var(--signal-urgent-bg)] transition-colors cursor-pointer">
-                  <Trash2 className="w-[15px] h-[15px]" />
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
         <DetailField label="Twitter / X" value={details.twitter} onSave={(v) => setDetail('twitter', v)} />
-        <DetailField label="Webadresse" value={contact.web} href={`https://${contact.web.replace(/^https?:\/\//, '')}`} onSave={(v) => { setContact((c) => ({ ...c, web: v })); showToast('Gespeichert'); }} />
+        <DetailField label="E-Mail" type="email" copyable value={contact.email} onCopy={() => showToast('Kopiert ✓')} onSave={(v) => { setContact((c) => ({ ...c, email: v })); showToast('Gespeichert'); }} />
+        <DetailField label="LinkedIn" copyable value={contact.linkedin} href={`https://www.linkedin.com/${contact.linkedin.replace(/^\/+/, '')}`} onCopy={() => showToast('Kopiert ✓')} onSave={(v) => { setContact((c) => ({ ...c, linkedin: v })); showToast('Gespeichert'); }} />
+        <DetailField label="Webadresse" copyable value={contact.web} href={`https://${contact.web.replace(/^https?:\/\//, '')}`} onCopy={() => showToast('Kopiert ✓')} onSave={(v) => { setContact((c) => ({ ...c, web: v })); showToast('Gespeichert'); }} />
+
+        <div className="sm:col-span-2">
+          <DetailPhoneList
+            phones={phones}
+            types={PHONE_TYPES}
+            onSetFavorite={setFavoritePhone}
+            onUpdate={updatePhone}
+            onAdd={addPhone}
+            onRemove={removePhone}
+            onCopy={() => showToast('Kopiert ✓')}
+          />
+        </div>
       </DetailSection>
 
       <DetailSection title="Firma" icon={Building2}>
         <DetailField label="Firma" value={details.firma} onSave={(v) => setDetail('firma', v)} />
         <DetailField label="Branche" value={details.branche} options={BRANCHE_OPTS} onSelect={(v) => setDetail('branche', v)} />
         <DetailField label="Unternehmensgröße" value={details.groesse} options={GROESSE_OPTS} onSelect={(v) => setDetail('groesse', v)} />
-        <DetailField label="Domain" value={details.domain} href={`https://${details.domain.replace(/^https?:\/\//, '')}`} onSave={(v) => setDetail('domain', v)} />
+        <DetailField label="Domain" copyable value={details.domain} href={`https://${details.domain.replace(/^https?:\/\//, '')}`} onCopy={() => showToast('Kopiert ✓')} onSave={(v) => setDetail('domain', v)} />
         <DetailField label="Stadt / HQ" value={details.firmaStadt} onSave={(v) => setDetail('firmaStadt', v)} />
         <DetailField label="Land" value={details.firmaLand} options={LAND_OPTS} onSelect={(v) => setDetail('firmaLand', v)} />
       </DetailSection>
@@ -1105,18 +985,20 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
         <DetailField label="ICP Score" value={details.icp} onSave={(v) => setDetail('icp', v)} />
         <DetailField label="Owner" value={details.owner} onSave={(v) => setDetail('owner', v)} />
         <DetailField label="Tags" value={details.tags} onSave={(v) => setDetail('tags', v)} />
-        <DetailField label="Contact Status" value="Pipeline" system />
-        <DetailField label="Lead-Quelle" value="Manuell" system />
-        <DetailField label="Heat Status" value="Aktiv" system />
-        <DetailField label="E-Mail verifiziert" value="Verifiziert" system />
-      </DetailSection>
 
-      <DetailSection title="System" icon={Clock}>
-        <DetailField label="Erstellt am" value="12. März 2026" system />
-        <DetailField label="Letzter Kontakt" value="vor 2 Tagen · E-Mail" system />
-        <DetailField label="Letzte Antwort" value="vor 5 Tagen" system />
-        <DetailField label="Enrichment-Quelle" value="Surfe" system />
-        <DetailField label="CRM ID" value="HS-48213" system />
+        {/* System-gesetzte Status → read-only Badges (keine Input-Felder) */}
+        <div className="min-w-0">
+          <div className="text-[10px] font-extrabold text-text-muted uppercase tracking-widest mb-1.5">Contact Status</div>
+          <StageBadge stage="Pipeline" />
+        </div>
+        <div className="min-w-0">
+          <div className="text-[10px] font-extrabold text-text-muted uppercase tracking-widest mb-1.5">Heat Status</div>
+          <HeatBadge status="engaged" />
+        </div>
+        <div className="min-w-0">
+          <div className="text-[10px] font-extrabold text-text-muted uppercase tracking-widest mb-1.5">E-Mail verifiziert</div>
+          <StatusBadge tone="success" icon={CheckCircle2} label="Verifiziert" />
+        </div>
       </DetailSection>
 
       <DetailSection title="Notizen" icon={StickyNote} cols={1}>
@@ -1126,8 +1008,18 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
           onBlur={() => showToast('Notiz gespeichert')}
           rows={4}
           placeholder="Kontext, nächste Schritte, Hinweise…"
-          className="w-full bg-app-bg border border-border focus:border-[var(--sherloq-primary)] rounded-[10px] p-3 text-[13px] text-text-primary leading-relaxed outline-none resize-none transition-colors placeholder-[var(--text-muted)]"
+          className="w-full bg-transparent border border-transparent hover:border-border focus:border-[var(--sherloq-primary)] focus:bg-app-surface rounded-[10px] p-3 text-[13px] text-text-primary leading-relaxed outline-none resize-none transition-colors placeholder-[var(--text-muted)]"
         />
+      </DetailSection>
+
+      {/* System-Felder ganz unten, zusammengeklappt by default */}
+      <DetailSection title="System" icon={Clock} collapsible defaultCollapsed>
+        <DetailField label="Lead-Quelle" value="Manuell" readonly />
+        <DetailField label="Erstellt am" value="12. März 2026" readonly />
+        <DetailField label="Letzter Kontakt" value="vor 2 Tagen · E-Mail" readonly />
+        <DetailField label="Letzte Antwort" value="vor 5 Tagen" readonly />
+        <DetailField label="Enrichment-Quelle" value="Surfe" readonly />
+        <DetailField label="CRM ID" value="HS-48213" readonly />
       </DetailSection>
     </div>
   );
