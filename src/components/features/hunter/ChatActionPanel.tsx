@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import type { ReactNode } from "react";
-import { X, Sparkles, RotateCw, Send, Check, Pencil } from "lucide-react";
+import { X, Sparkles, RotateCw, Check, Pencil } from "lucide-react";
 import ErledigtAction from "@/components/panel-blocks/ErledigtAction";
+import ActionComposer from "@/components/panel-blocks/ActionComposer";
+import ActionFooter from "@/components/panel-blocks/ActionFooter";
 import { Sheet, SheetContent, SheetClose } from "@/components/ui/sheet";
 import Avatar from "@/components/shared/Avatar";
 import BrandLogo from "@/components/shared/BrandLogo";
@@ -74,7 +76,6 @@ export default function ChatActionPanel({ open, config, onClose }: ChatActionPan
   const [display, setDisplay] = useState<ChatActionConfig | null>(config);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [body, setBody] = useState("");
-  const [chatInput, setChatInput] = useState("");
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [editing, setEditing] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
@@ -127,10 +128,7 @@ export default function ChatActionPanel({ open, config, onClose }: ChatActionPan
     }, 700);
   };
 
-  const handleSend = () => {
-    const text = chatInput.trim();
-    if (!text) return;
-    setChatInput("");
+  const handleSend = (text: string) => {
     setMessages((prev) => [...prev, { id: nextId(), role: "user", kind: "text", text }]);
     const lowered = text.toLowerCase();
     setTimeout(() => {
@@ -297,34 +295,9 @@ export default function ChatActionPanel({ open, config, onClose }: ChatActionPan
               </div>
 
               {/* CHAT-EINGABE (sticky) + Disclaimer */}
-              <div className="shrink-0 border-t border-border bg-app-surface px-4 pt-3 pb-3">
-                <div className="flex items-end gap-2 bg-app-bg border border-border rounded-[14px] px-3 py-2 focus-within:border-[var(--sherloq-primary)] focus-within:bg-app-surface transition-all">
-                  <textarea
-                    rows={1}
-                    value={chatInput}
-                    onChange={(e) => setChatInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && !e.shiftKey) {
-                        e.preventDefault();
-                        handleSend();
-                      }
-                    }}
-                    placeholder={`Sherloq zu ${firstName} fragen…`}
-                    className="flex-1 bg-transparent resize-none outline-none text-[13px] font-medium leading-relaxed text-text-body placeholder-[var(--text-muted)] min-h-[28px] max-h-[96px] scrollbar-none py-1"
-                  />
-                  <button
-                    onClick={handleSend}
-                    aria-label="Senden"
-                    className="w-9 h-9 rounded-full text-on-accent flex items-center justify-center shrink-0 hover:scale-105 transition-transform cursor-pointer shadow-sm"
-                    style={{ background: "var(--sherloq-gradient)" }}
-                  >
-                    <Send className="w-4 h-4" />
-                  </button>
-                </div>
-                <p className="text-[10px] text-text-muted text-center mt-2">
-                  Sherloq AI kann Fehler machen — wichtige Infos bitte prüfen.
-                </p>
-              </div>
+              <ActionFooter>
+                <ActionComposer placeholder={`Sherloq zu ${firstName} fragen…`} onSend={handleSend} />
+              </ActionFooter>
             </>
           )}
         </SheetContent>
