@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import {
-  ArrowUpRight, ArrowLeft, X, Mail, Phone, AlertTriangle, Clock, Check,
+  ArrowUpRight, ArrowLeft, X, Mail, Phone, Clock, Check,
   Briefcase, Calendar, ChevronDown, Pencil, Trash2, Save, Plus,
   StickyNote, User, Building2, Tag, CheckCircle2
 } from 'lucide-react';
@@ -24,6 +24,7 @@ import AktiveSignale from '@/components/panel-blocks/AktiveSignale';
 import DealSetup from '@/components/panel-blocks/DealSetup';
 import ActiveSequenceChain from '@/components/panel-blocks/ActiveSequenceChain';
 import KommunikationPreview from '@/components/panel-blocks/KommunikationPreview';
+import OffeneTasks from '@/components/panel-blocks/OffeneTasks';
 
 /** Kanonische Default-Stages (Spec §3.2) — bis zum DB-Wiring dokumentierter Fallback. */
 const PIPELINE_STAGES = ['Backlog', 'Demo vereinbart', 'Follow-up offen', 'Onboarding offen', 'Free Trial', 'Gewonnen'];
@@ -247,40 +248,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
 
             <DealSetup stage={stage} />
 
-            <div className="space-y-2">
-              <div className="flex justify-between items-center px-1">
-                <span className="text-[10px] font-extrabold text-text-muted uppercase tracking-widest">Offene Tasks</span>
-                <button onClick={() => showToast('Neue Task angelegt')} className="text-[11px] font-bold text-[var(--sherloq-primary)] hover:underline cursor-pointer">
-                  + Task hinzufügen
-                </button>
-              </div>
-
-              <div className="space-y-3">
-                <div className="p-4 rounded-[12px] flex items-center justify-between bg-[var(--signal-urgent-bg)] border border-[var(--signal-urgent-bg)] shadow-sm">
-                  <div className="flex items-center gap-3">
-                    <input type="checkbox" className="accent-[var(--sherloq-primary)] w-4 h-4 cursor-pointer" />
-                    <div>
-                      <p className="text-xs font-bold text-[var(--signal-urgent-text)]">ROI-Dokument senden</p>
-                      <span className="text-[10px] font-semibold flex items-center gap-1.5 mt-1 text-[var(--signal-urgent-text)]">
-                        <AlertTriangle className="w-[10px] h-[10px]" /> Heute fällig · <Mail className="w-[11px] h-[11px]" /> Email
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="p-4 rounded-[12px] flex items-center justify-between bg-app-surface border border-border shadow-sm">
-                  <div className="flex items-center gap-3">
-                    <input type="checkbox" className="accent-[var(--sherloq-primary)] w-4 h-4 cursor-pointer" />
-                    <div>
-                      <p className="text-xs font-bold text-text-primary">Follow-up Call buchen</p>
-                      <span className="text-[10px] font-semibold flex items-center gap-1.5 mt-1 text-text-muted">
-                        In 3 Tagen · <Phone className="w-[11px] h-[11px]" /> Telefon
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <OffeneTasks onAdd={() => showToast('Neue Task angelegt')} />
 
             <ActiveSequenceChain />
 
