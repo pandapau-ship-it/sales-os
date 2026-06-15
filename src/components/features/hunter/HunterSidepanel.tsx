@@ -20,6 +20,10 @@ import DetailPhoneList from '@/components/panel-blocks/DetailPhoneList';
 import PanelTabs from '@/components/panel-blocks/PanelTabs';
 import KiKurzakte from '@/components/panel-blocks/KiKurzakte';
 import KontaktZeile from '@/components/panel-blocks/KontaktZeile';
+import AktiveSignale from '@/components/panel-blocks/AktiveSignale';
+import DealSetup from '@/components/panel-blocks/DealSetup';
+import ActiveSequenceChain from '@/components/panel-blocks/ActiveSequenceChain';
+import KommunikationPreview from '@/components/panel-blocks/KommunikationPreview';
 
 /** Kanonische Default-Stages (Spec §3.2) — bis zum DB-Wiring dokumentierter Fallback. */
 const PIPELINE_STAGES = ['Backlog', 'Demo vereinbart', 'Follow-up offen', 'Onboarding offen', 'Free Trial', 'Gewonnen'];
@@ -239,77 +243,9 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
           <div className="space-y-7 animate-fade-in">
             <KiKurzakte items={kurzakte} onSave={(lines) => { setKurzakte(lines); showToast('KI Kurzakte gespeichert'); }} />
 
-            {/* Aktive Signale — zeigt künftig NUR real vorhandene Signale; jede Zeile ist
-                mit ihrer konkreten Aufgabe verlinkt und öffnet das passende Action-Panel. */}
-            <div className="space-y-2">
-              <span className="text-[10px] font-extrabold text-text-muted uppercase tracking-widest pl-1">Aktive Signale</span>
-              <div className="space-y-3">
-                <div className="p-4 bg-[var(--signal-urgent-bg)] border border-[var(--signal-urgent-bg)] rounded-[12px] flex items-center justify-between text-xs text-[var(--signal-urgent-text)] font-semibold shadow-sm">
-                  <span className="flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4" />
-                    Stagniert — 8T in Stage Demo
-                  </span>
-                  <button onClick={() => showToast('Next Step geöffnet')} className="text-[var(--signal-urgent-text)] hover:underline font-bold">
-                    Next Step →
-                  </button>
-                </div>
+            <AktiveSignale onAction={(key) => { if (key === 'stagniert') showToast('Next Step geöffnet'); else if (key === 'keine_task') showToast('Task anlegen gestartet'); else setActiveTab('communication'); }} />
 
-                <div className="p-4 bg-[var(--signal-warn-bg)] border border-[var(--signal-warn-bg)] rounded-[12px] flex items-center justify-between text-xs text-[var(--signal-warn-text)] font-semibold shadow-sm">
-                  <span className="flex items-center gap-2">
-                    <Clock className="w-4 h-4" />
-                    Keine Task hinterlegt
-                  </span>
-                  <button onClick={() => showToast('Task anlegen gestartet')} className="text-[var(--signal-warn-text)] hover:underline font-bold">
-                    Task anlegen →
-                  </button>
-                </div>
-
-                <div className="p-4 bg-[var(--signal-info-bg)] border border-[var(--signal-info-bg)] rounded-[12px] flex items-center justify-between text-xs text-[var(--signal-info-text)] font-semibold shadow-sm">
-                  <span className="flex items-center gap-2">
-                    <LinkedinIcon className="w-4 h-4" />
-                    LinkedIn Signal — vor 2h
-                  </span>
-                  <button onClick={() => setActiveTab('communication')} className="text-[var(--signal-info-text)] hover:underline font-bold">
-                    Ansehen →
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Deal Setup — Master-Card-Stil wie „Deal Details" der aufklappbaren Kachel */}
-            <div className="bg-app-surface rounded-[12px] p-5 border border-border shadow-[var(--shadow-card)]">
-              <div className="flex items-center gap-2 text-[11px] font-bold font-mono text-text-muted uppercase tracking-wider mb-4">
-                <Briefcase className="w-4 h-4" /> Deal Setup
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-[12px]">
-                <div className="flex flex-col gap-1">
-                  <span className="text-text-muted font-mono text-[10px] uppercase tracking-wider">Stage</span>
-                  <span className="font-bold text-text-primary text-[14px]">{stage}</span>
-                </div>
-                <div className="flex flex-col gap-1">
-                  <span className="text-text-muted font-mono text-[10px] uppercase tracking-wider">Probability</span>
-                  <span className="font-bold text-text-primary text-[14px]">100%</span>
-                </div>
-                <div className="flex flex-col gap-1">
-                  <span className="text-text-muted font-mono text-[10px] uppercase tracking-wider">ARR</span>
-                  <span className="font-bold text-[var(--sherloq-primary)] text-[14px]">12.500 €</span>
-                </div>
-                <div className="flex flex-col gap-1">
-                  <span className="text-text-muted font-mono text-[10px] uppercase tracking-wider">MRR</span>
-                  <span className="font-bold text-text-primary text-[14px]">1.041 €</span>
-                </div>
-                <div className="flex flex-col gap-1">
-                  <span className="text-text-muted font-mono text-[10px] uppercase tracking-wider">Laufzeit</span>
-                  <span className="font-bold text-text-primary text-[14px]">12 Monate</span>
-                </div>
-                <div className="flex flex-col gap-1">
-                  <span className="text-text-muted font-mono text-[10px] uppercase tracking-wider">In Stage seit</span>
-                  <span className="font-bold text-[var(--icp-low)] text-[14px] flex items-center gap-1.5">
-                    8 Tage <AlertTriangle className="w-3 h-3" />
-                  </span>
-                </div>
-              </div>
-            </div>
+            <DealSetup stage={stage} />
 
             <div className="space-y-2">
               <div className="flex justify-between items-center px-1">
@@ -346,95 +282,9 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
               </div>
             </div>
 
-            <div className="space-y-2">
-              <div className="flex justify-between items-center px-1">
-                <span className="text-[10px] font-extrabold text-text-muted uppercase tracking-widest">Active Sequence</span>
-                <span className="text-[11px] font-bold text-[var(--sherloq-primary)]">Schritt 3 von 5</span>
-              </div>
+            <ActiveSequenceChain />
 
-              <div className="bg-app-surface rounded-[12px] p-6 border border-border shadow-sm flex items-start justify-between relative px-8">
-                <div className="absolute left-12 right-12 top-[42px] h-px bg-border z-0"></div>
-
-                <div className="flex flex-col items-center gap-2 relative z-10">
-                  <div className="w-9 h-9 rounded-full flex items-center justify-center bg-[var(--sherloq-primary)] text-on-accent shadow-sm">
-                    <Mail className="w-[14px] h-[14px]" />
-                  </div>
-                  <span className="text-[10px] font-bold text-text-muted">Mail</span>
-                </div>
-
-                <div className="flex flex-col items-center gap-2 relative z-10">
-                  <div className="w-9 h-9 rounded-full flex items-center justify-center bg-[var(--sherloq-primary)] text-on-accent shadow-sm">
-                    <LinkedinIcon className="w-[14px] h-[14px]" />
-                  </div>
-                  <span className="text-[10px] font-bold text-text-muted">LinkedIn</span>
-                </div>
-
-                <div className="flex flex-col items-center gap-2 relative z-10">
-                  <div className="w-9 h-9 rounded-full flex items-center justify-center bg-app-surface border-2 border-[var(--sherloq-primary)] text-[var(--sherloq-primary)] shadow-sm">
-                    <Phone className="w-[14px] h-[14px]" />
-                  </div>
-                  <span className="text-[10px] font-bold text-[var(--sherloq-primary)]">Telefon</span>
-                </div>
-
-                <div className="flex flex-col items-center gap-2 relative z-10">
-                  <div className="w-9 h-9 rounded-full flex items-center justify-center bg-app-surface border-2 border-dashed border-border text-icon-muted">
-                    <Mail className="w-[14px] h-[14px]" />
-                  </div>
-                  <span className="text-[10px] font-bold text-text-muted">Mail</span>
-                </div>
-
-                <div className="flex flex-col items-center gap-2 relative z-10">
-                  <div className="w-9 h-9 rounded-full flex items-center justify-center bg-app-surface border-2 border-dashed border-border text-icon-muted">
-                    <Calendar className="w-[14px] h-[14px]" />
-                  </div>
-                  <span className="text-[10px] font-bold text-text-muted">Termin</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex justify-between items-center px-1">
-                <span className="text-[10px] font-extrabold text-text-muted uppercase tracking-widest flex items-center gap-2">
-                  Kommunikation
-                  <span className="px-1.5 py-0.5 bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)] text-[8px] font-extrabold rounded-md uppercase">klickbar</span>
-                </span>
-                <button onClick={() => setActiveTab('communication')} className="text-[11px] font-bold text-[var(--sherloq-primary)] hover:underline cursor-pointer">
-                  Alle anzeigen →
-                </button>
-              </div>
-
-              <div className="bg-app-surface rounded-[12px] p-5 border border-border shadow-sm divide-y divide-[var(--border-subtle)]">
-                <div className="py-3 first:pt-0">
-                  <div className="flex items-start gap-4">
-                    <BrandLogo name="teams" className="w-11 h-11 shrink-0 rounded-[12px] shadow-sm" tile />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <h4 className="text-[14px] font-bold text-text-primary leading-tight">Discovery Call & Demo</h4>
-                        <span className="text-[11px] font-medium text-text-muted">vor 5 Tagen</span>
-                      </div>
-                      <p className="text-[12px] text-text-muted font-medium leading-relaxed truncate mt-1">
-                        Kunde zeigte starkes Interesse an Feature Y, Budget-Freeze bis Q3 angesprochen...
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="py-3 last:pb-0">
-                  <div className="flex items-start gap-4">
-                    <BrandLogo name="outlook" className="w-11 h-11 shrink-0 rounded-[12px] shadow-sm" tile />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <h4 className="text-[14px] font-bold text-text-primary leading-tight">Angebot gesendet: ROI-Dokument</h4>
-                        <span className="text-[11px] font-medium text-text-muted">vor 8 Tagen</span>
-                      </div>
-                      <p className="text-[12px] text-text-muted font-medium leading-relaxed truncate mt-1">
-                        Hallo Max, anbei wie besprochen das ROI-Dokument für Sherloq Enterprise...
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <KommunikationPreview onShowAll={() => setActiveTab('communication')} />
 
           </div>
         )}
