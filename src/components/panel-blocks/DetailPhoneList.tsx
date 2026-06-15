@@ -6,7 +6,7 @@
  *  - Copy + Löschen pro Eintrag · „+ Nummer hinzufügen" unten.
  * Controlled/prop-driven — State lebt beim Aufrufer.
  */
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Star, Copy, Trash2, Plus, Check, ChevronDown, Phone } from "lucide-react";
 import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
@@ -26,6 +26,13 @@ export default function DetailPhoneList({
   onCopy: (num: string) => void;
 }) {
   const [editId, setEditId] = useState<string | null>(null);
+
+  // Neu hinzugefügte Nummer direkt zum Tippen fokussieren.
+  const prevLen = useRef(phones.length);
+  useEffect(() => {
+    if (phones.length > prevLen.current) setEditId(phones[phones.length - 1].id);
+    prevLen.current = phones.length;
+  }, [phones]);
 
   const copy = async (num: string) => {
     try { await navigator.clipboard.writeText(num); } catch { /* clipboard n/a */ }
@@ -73,19 +80,19 @@ export default function DetailPhoneList({
                 value={p.number}
                 placeholder="+49 …"
                 onChange={(e) => onUpdate(p.id, { number: e.target.value })}
-                onBlur={() => setEditId(null)}
+                onBlur={() => { setEditId(null); if (!p.number.trim()) onRemove(p.id); }}
                 onKeyDown={(e) => { if (e.key === "Enter" || e.key === "Escape") e.currentTarget.blur(); }}
-                className="flex-1 min-w-0 rounded-[8px] border border-[var(--sherloq-primary)] bg-app-surface px-2.5 py-1.5 text-[14px] font-semibold text-text-primary outline-none placeholder-[var(--text-muted)]"
+                className="w-[200px] max-w-full rounded-[8px] border border-[var(--sherloq-primary)] bg-app-surface px-2.5 py-1.5 text-[14px] font-semibold text-text-primary outline-none placeholder-[var(--text-muted)]"
               />
             ) : p.number ? (
-              <button onClick={() => setEditId(p.id)} className="flex-1 min-w-0 text-left text-[14px] font-semibold text-text-primary truncate hover:text-[var(--sherloq-primary)] transition-colors cursor-text">{p.number}</button>
+              <button onClick={() => setEditId(p.id)} className="text-left text-[14px] font-semibold text-text-primary truncate hover:text-[var(--sherloq-primary)] transition-colors cursor-text">{p.number}</button>
             ) : (
-              <button onClick={() => setEditId(p.id)} className="flex-1 inline-flex items-center gap-1 text-[13px] font-semibold text-[var(--sherloq-primary)] hover:opacity-80 transition-opacity cursor-pointer">
+              <button onClick={() => setEditId(p.id)} className="inline-flex items-center gap-1 text-[13px] font-semibold text-[var(--sherloq-primary)] hover:opacity-80 transition-opacity cursor-pointer">
                 <Phone className="w-3.5 h-3.5" /> Nummer eintragen
               </button>
             )}
 
-            <div className="flex items-center gap-0.5 opacity-0 group-hover/ph:opacity-100 transition-opacity shrink-0">
+            <div className="flex items-center gap-0.5 shrink-0">
               <button onClick={() => copy(p.number)} aria-label="Kopieren" className="w-7 h-7 rounded-md flex items-center justify-center text-text-muted hover:text-[var(--sherloq-primary)] hover:bg-app-surface transition-colors cursor-pointer">
                 <Copy className="w-3.5 h-3.5" />
               </button>

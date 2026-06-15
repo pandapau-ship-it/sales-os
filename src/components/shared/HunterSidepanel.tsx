@@ -929,7 +929,6 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
       const maxId = prev.reduce((m, p) => Math.max(m, parseInt(p.id.replace(/\D/g, '')) || 0), 0);
       return [...prev, { id: 'p' + (maxId + 1), type: 'Weitere', number: '', favorite: prev.length === 0 }];
     });
-    showToast('Nummer hinzugefügt');
   };
   const setFavoritePhone = (id: string) => { setPhones((prev) => prev.map((p) => ({ ...p, favorite: p.id === id }))); showToast('Favorit-Nummer gesetzt'); };
   const updatePhone = (id: string, patch: Partial<Phone>) => setPhones((prev) => prev.map((p) => (p.id === id ? { ...p, ...patch } : p)));
@@ -954,20 +953,25 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
         <DetailField label="Standort / Stadt" value={details.stadt} onSave={(v) => setDetail('stadt', v)} />
         <DetailField label="Land" value={details.land} options={LAND_OPTS} onSelect={(v) => setDetail('land', v)} />
         <DetailField label="Twitter / X" value={details.twitter} onSave={(v) => setDetail('twitter', v)} />
-        <DetailField label="E-Mail" type="email" copyable value={contact.email} onCopy={() => showToast('Kopiert ✓')} onSave={(v) => { setContact((c) => ({ ...c, email: v })); showToast('Gespeichert'); }} />
-        <DetailField label="LinkedIn" copyable value={contact.linkedin} href={`https://www.linkedin.com/${contact.linkedin.replace(/^\/+/, '')}`} onCopy={() => showToast('Kopiert ✓')} onSave={(v) => { setContact((c) => ({ ...c, linkedin: v })); showToast('Gespeichert'); }} />
-        <DetailField label="Webadresse" copyable value={contact.web} href={`https://${contact.web.replace(/^https?:\/\//, '')}`} onCopy={() => showToast('Kopiert ✓')} onSave={(v) => { setContact((c) => ({ ...c, web: v })); showToast('Gespeichert'); }} />
 
-        <div className="sm:col-span-2">
-          <DetailPhoneList
-            phones={phones}
-            types={PHONE_TYPES}
-            onSetFavorite={setFavoritePhone}
-            onUpdate={updatePhone}
-            onAdd={addPhone}
-            onRemove={removePhone}
-            onCopy={() => showToast('Kopiert ✓')}
-          />
+        {/* Kontaktdaten — in dezenter grauer Sub-Kachel (nur dieser Bereich grau) */}
+        <div className="sm:col-span-2 bg-app-bg rounded-[10px] p-5">
+          <div className="grid sm:grid-cols-2 gap-x-8 gap-y-5">
+            <DetailField label="E-Mail" type="email" copyable value={contact.email} onCopy={() => showToast('Kopiert ✓')} onSave={(v) => { setContact((c) => ({ ...c, email: v })); showToast('Gespeichert'); }} />
+            <DetailField label="LinkedIn" copyable value={contact.linkedin} href={`https://www.linkedin.com/${contact.linkedin.replace(/^\/+/, '')}`} onCopy={() => showToast('Kopiert ✓')} onSave={(v) => { setContact((c) => ({ ...c, linkedin: v })); showToast('Gespeichert'); }} />
+            <DetailField label="Webadresse" copyable value={contact.web} href={`https://${contact.web.replace(/^https?:\/\//, '')}`} onCopy={() => showToast('Kopiert ✓')} onSave={(v) => { setContact((c) => ({ ...c, web: v })); showToast('Gespeichert'); }} />
+          </div>
+          <div className="mt-5">
+            <DetailPhoneList
+              phones={phones}
+              types={PHONE_TYPES}
+              onSetFavorite={setFavoritePhone}
+              onUpdate={updatePhone}
+              onAdd={addPhone}
+              onRemove={removePhone}
+              onCopy={() => showToast('Kopiert ✓')}
+            />
+          </div>
         </div>
       </DetailSection>
 

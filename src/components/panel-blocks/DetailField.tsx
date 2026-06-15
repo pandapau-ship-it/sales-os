@@ -114,17 +114,17 @@ export default function DetailField({
     );
   }
 
-  // Read-Mode — Wert ohne Rahmen, Aktionen beim Hover.
+  // Read-Mode — Wert ohne Rahmen. Aktionen direkt dahinter (bei Copy-Feldern dauerhaft sichtbar).
   return (
     <div className="min-w-0 group/df">
       {Label}
-      <div className="flex items-center gap-1.5">
+      <div className="inline-flex items-center gap-1.5 max-w-full">
         {href ? (
           <a href={href} target="_blank" rel="noopener noreferrer" className="text-[14px] font-semibold text-text-primary hover:text-[var(--sherloq-primary)] hover:underline truncate transition-colors">{value}</a>
         ) : (
           <button onClick={() => { setDraft(value); setEditing(true); }} className="text-[14px] font-semibold text-text-primary text-left truncate hover:text-[var(--sherloq-primary)] transition-colors cursor-text">{value}</button>
         )}
-        <div className="flex items-center gap-0.5 opacity-0 group-hover/df:opacity-100 transition-opacity shrink-0">
+        <div className={`flex items-center gap-0.5 shrink-0 transition-opacity ${copyable ? "opacity-100" : "opacity-0 group-hover/df:opacity-100"}`}>
           {copyable && (
             <button onClick={copy} aria-label="Kopieren" className="w-6 h-6 rounded-md flex items-center justify-center text-text-muted hover:text-[var(--sherloq-primary)] hover:bg-app-surface transition-colors cursor-pointer">
               <Copy className="w-3.5 h-3.5" />

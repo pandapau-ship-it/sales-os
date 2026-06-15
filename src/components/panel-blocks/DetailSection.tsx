@@ -31,11 +31,8 @@ export default function DetailSection({
         {collapsible && <ChevronDown className={`w-4 h-4 ml-auto transition-transform ${open ? "" : "-rotate-90"}`} />}
       </button>
       {open && (
-        <div className="px-5 pb-5">
-          {/* Daten in dezenter grauer Innen-Kachel — bessere Lesbarkeit, gruppiert die Felder */}
-          <div className={`bg-app-bg rounded-[10px] p-5 grid gap-x-8 gap-y-5 ${cols === 2 ? "sm:grid-cols-2" : "grid-cols-1"}`}>
-            {children}
-          </div>
+        <div className={`px-5 pb-5 grid gap-x-8 gap-y-5 ${cols === 2 ? "sm:grid-cols-2" : "grid-cols-1"}`}>
+          {children}
         </div>
       )}
     </section>
