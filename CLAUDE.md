@@ -463,9 +463,13 @@ Alle prop-driven, Tokens-only, Dark-Mode automatisch.
 | `DetailField` | Profil-Feld (Read-Mode): Wert ohne Rahmen, Klick/Stift → **Inline-Edit direkt im Feld** (kein Popup), `options`=Dropdown, `copyable`=Copy-Icon+`onCopy`, `href`=Link, `readonly`=System grau, leer → „+ Hinzufügen" |
 | `DetailSection` | Profil-Sektion (weiße Karte, Titel + Icon, optional `collapsible`/`defaultCollapsed`, 1/2-Spalten-Grid) |
 | `DetailPhoneList` | Mehrere Telefonnummern: Favorit-Stern, Typ je Nummer, Inline-Edit, Copy/Löschen, „+ hinzufügen" (neue Zeile auto-fokussiert, leer→verworfen) |
-| `KontaktZeile` `PanelTabs` `KiKurzakte` `PanelHeader` `PanelField` `DealSetup` `NewDealCard` `ErledigtAction` `KommunikationPreview` `OffeneTasks` `ActiveSequenceChain` `AktiveSignale` `PanelFooter` `ActionFooter` `ActionComposer` `PhoneNumbersField` | bestehende Blöcke (Panel/Formular-Komposition) |
+| `EditableInline` | Inline-editierbares Kontaktfeld (820px-Panel): Hover → Copy + Stift, Stift öffnet Popover (`portal={false}`) mit Speichern/Abbrechen, optional `href`=Link |
+| `PhoneField` | Telefon-Feld (820px-Panel): inline nur Favorit (Typ-Pill + Nummer), Popover mit allen Nummern (Anrufen/Kopieren/Favorit/Bearbeiten + „Nummer hinzufügen") |
+| `PanelTabs` | Tab-Navigation des Info-Panels (`tabs`/`active`/`onChange`) |
+| `KontaktZeile` `KiKurzakte` `PanelHeader` `PanelField` `DealSetup` `NewDealCard` `ErledigtAction` `KommunikationPreview` `OffeneTasks` `ActiveSequenceChain` `AktiveSignale` `PanelFooter` `ActionFooter` `ActionComposer` `PhoneNumbersField` `HunterCard` `SignalRow` `FollowUpKaltCard` `PipelineStagniertCard` `PipelineKeineTaskCard` `LinkedinSignalCard` `NewInPipelineCards` `SequenceLeadCards` | weitere Blöcke (Panel-/Karten-/Formular-Komposition) |
 
-> Neuer panel-block → **sofort** in diese Tabelle eintragen.
+> Neuer panel-block → **sofort** in diese Tabelle **und** in `panel-blocks/index.ts` (Barrel) eintragen.
+> Gebündelter Import möglich: `import { HeatBadge, DetailField } from '@/components/panel-blocks'`.
 
 ### Vollansicht / Kontakt-Detail (Entscheidung 2026-06-15)
 
