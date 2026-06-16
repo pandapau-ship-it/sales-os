@@ -1,17 +1,23 @@
 /**
  * hunterMappers — DB-Zeilen → UI-Typen für den Hunter.
  *
- * Slice 1 (Leads-Tab, NUR Read): `contacts`-Zeile (org-gescoped, inkl. eingebettetem
- * Company-Namen) → `Lead` fürs Listing. Bewusst noch KEINE Heat-/Stage-Ableitung:
- * heatStatus/heatScore/pipelineStage sind Platzhalter — die echte Heat-Verdrahtung
- * kommt in Slice 2. Zeit-Felder werden in der Zeile (LeadListRow) ohnehin statisch
- * gerendert, daher hier leer.
+ * Slice 1+2 (Leads-Tab, NUR Read): `contacts`-Zeile (org-gescoped, inkl. eingebettetem
+ * Company-Namen) → `Lead` fürs Listing. heatStatus kommt jetzt echt aus der DB
+ * (Slice 2). pipelineStage bleibt Platzhalter (Stage gehört zu Deals, späterer Slice).
+ * Zeit-Felder werden in der Zeile (LeadListRow) ohnehin statisch gerendert, daher leer.
  */
 
 import type { Lead, HeatStatus } from "@/types";
 
-// Platzhalter bis Slice 2 (Heat). Nicht aus DB abgeleitet.
-const PLACEHOLDER_HEAT: HeatStatus = "WARM";
+// DB-Enum (deutsch) → UI-HeatStatus. 1:1, alle 5 Stufen abgedeckt. Label/Farbe
+// kommen via HEAT_KEY_BY_STATUS + HEAT_STATUS (heiss=Engaged/grün, tot=Gone/grau).
+const DB_HEAT_TO_UI: Record<string, HeatStatus> = {
+  heiss: "HOT",
+  warm: "WARM",
+  lauwarm: "LUKEWARM",
+  kalt: "COLD",
+  tot: "DEAD",
+};
 
 export function contactRowToLead(row: Record<string, any>): Lead {
   const name =
@@ -31,8 +37,8 @@ export function contactRowToLead(row: Record<string, any>): Lead {
     fullTimeline: [],
     engagementChain: [],
     lastTouchpoints: [],
-    heatStatus: PLACEHOLDER_HEAT, // Slice 2
-    heatScore: 0, // Slice 2
+    heatStatus: DB_HEAT_TO_UI[row.heat_status] ?? "DEAD", // null/unbekannt → Gone/grau (neutral)
+    heatScore: 0, // von HeatBadge nicht genutzt; out of scope
     icpScore: typeof row.icp_score === "number" ? row.icp_score : undefined,
     lastActivity: "",
     pipelineStage: "lead", // Platzhalter — Leads-Tab zeigt Stage „Lead"
