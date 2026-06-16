@@ -324,6 +324,16 @@ visuelles Rauschen, die Kachel bleibt ruhig. Umsetzung über die **einzige Quell
   nur die sekundären Datensatz-Aktionen (Edit/Löschen/Copy) sind hover-gated.
 - Bereits konform: `DetailField` · `EditableInline` · `PhoneField` (eigene benannte Groups).
 
+**Icon-Buttons — Hover-Tooltip Pflicht (verbindlich für ALLE Icon-only-Buttons):**
+Jeder Button, der **nur ein Icon** zeigt (Löschen, Erledigt, Kopieren, Bearbeiten, Favorit …),
+MUSS beim Hover einen Text anzeigen, der die Aktion benennt. Umsetzung über natives **`title`**
+(= derselbe Wert wie `aria-label`, das für Screenreader ohnehin gesetzt ist):
+```tsx
+<button aria-label="Löschen" title="Löschen" …><Trash2 … /></button>
+```
+- `title` und `aria-label` immer gleich halten · `aria-label` bleibt Pflicht (A11y), `title` ist der sichtbare Hover-Text.
+- Gilt für alle Icon-Aktionen in Kacheln, Zeilen, Toolbars, Panels.
+
 **Badge / Status-Pill Muster (verbindlich für ALLE Screens):**
 
 NIEMALS Emojis in Badges (✅ ✖️ 🆕 ⌛ etc.) — immer Lucide-Icons.

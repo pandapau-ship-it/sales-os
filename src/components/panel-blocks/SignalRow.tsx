@@ -57,7 +57,7 @@ export default function SignalRow({ signal, onAction, onClick }: SignalRowProps)
 
       <button
         onClick={() => onClick?.(signal.id)}
-        aria-label="Details"
+        aria-label="Details" title="Details"
         className="w-7 h-7 rounded-[9px] flex items-center justify-center text-text-muted hover:bg-app-bg hover:text-text-primary transition-colors shrink-0 cursor-pointer"
       >
         <ChevronRight className="w-4 h-4" />

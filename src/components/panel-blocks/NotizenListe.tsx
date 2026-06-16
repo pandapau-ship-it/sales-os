@@ -97,10 +97,10 @@ export default function NotizenListe({ onToast }: { onToast?: (msg: string) => v
               <span className="text-[10px] text-text-muted font-bold">{note.date} · {note.time} · {note.author}</span>
               {editingId !== note.id && (
                 <div className={`flex items-center gap-1 shrink-0 ${HOVER_ACTIONS}`}>
-                  <button onClick={() => { setEditingId(note.id); setEditDraft(note.text); }} aria-label="Bearbeiten" className="w-7 h-7 rounded-full flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-app-bg transition-colors cursor-pointer">
+                  <button onClick={() => { setEditingId(note.id); setEditDraft(note.text); }} aria-label="Bearbeiten" title="Bearbeiten" className="w-7 h-7 rounded-full flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-app-bg transition-colors cursor-pointer">
                     <Pencil className="w-3.5 h-3.5" />
                   </button>
-                  <button onClick={() => deleteNote(note.id)} aria-label="Löschen" className="w-7 h-7 rounded-full flex items-center justify-center text-text-muted hover:text-[var(--signal-urgent-text)] hover:bg-[var(--signal-urgent-bg)] transition-colors cursor-pointer">
+                  <button onClick={() => deleteNote(note.id)} aria-label="Löschen" title="Löschen" className="w-7 h-7 rounded-full flex items-center justify-center text-text-muted hover:text-[var(--signal-urgent-text)] hover:bg-[var(--signal-urgent-bg)] transition-colors cursor-pointer">
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>

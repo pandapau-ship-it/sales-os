@@ -39,7 +39,7 @@ export default function PhoneField({
         {/* Typ-Pill = Trigger: Klick zeigt die anderen Nummern in der Vorschau */}
         <PopoverTrigger asChild>
           <button
-            aria-label="Weitere Nummern anzeigen"
+            aria-label="Weitere Nummern anzeigen" title="Weitere Nummern anzeigen"
             className="px-1.5 py-0.5 rounded-[5px] bg-app-bg text-[9px] font-bold text-text-muted uppercase tracking-wide shrink-0 hover:bg-[var(--signal-teal-bg)] hover:text-[var(--sherloq-primary)] transition-colors cursor-pointer"
           >
             {fav.type}
@@ -47,10 +47,10 @@ export default function PhoneField({
         </PopoverTrigger>
         <span className="truncate transition-colors group-hover/phone:text-[var(--sherloq-primary)] group-hover/phone:font-semibold">{fav.number}</span>
         {/* Inline Copy + Edit für den Favoriten (wie die übrigen Felder) */}
-        <button onClick={() => copy(fav)} aria-label="Kopieren" className="opacity-0 group-hover/phone:opacity-100 transition-opacity text-text-muted hover:text-[var(--sherloq-primary)] cursor-pointer shrink-0">
+        <button onClick={() => copy(fav)} aria-label="Kopieren" title="Kopieren" className="opacity-0 group-hover/phone:opacity-100 transition-opacity text-text-muted hover:text-[var(--sherloq-primary)] cursor-pointer shrink-0">
           {copiedId === fav.id ? <Check className="w-3 h-3 text-[var(--sherloq-primary)]" /> : <Copy className="w-3 h-3" />}
         </button>
-        <button onClick={() => startEdit(fav)} aria-label="Bearbeiten" className="opacity-0 group-hover/phone:opacity-100 transition-opacity text-text-muted hover:text-[var(--sherloq-primary)] cursor-pointer shrink-0">
+        <button onClick={() => startEdit(fav)} aria-label="Bearbeiten" title="Bearbeiten" className="opacity-0 group-hover/phone:opacity-100 transition-opacity text-text-muted hover:text-[var(--sherloq-primary)] cursor-pointer shrink-0">
           <Pencil className="w-3 h-3" />
         </button>
       </span>
@@ -62,7 +62,7 @@ export default function PhoneField({
             <div key={p.id} className="flex items-center gap-2 px-3 py-2 hover:bg-app-bg transition-colors">
               <button
                 onClick={() => onSetFavorite(p.id)}
-                aria-label={p.favorite ? 'Favorit' : 'Als Favorit setzen'}
+                aria-label={p.favorite ? 'Favorit' : 'Als Favorit setzen'} title={p.favorite ? 'Favorit' : 'Als Favorit setzen'}
                 className="shrink-0 cursor-pointer"
               >
                 <Star className={`w-3.5 h-3.5 transition-colors ${p.favorite ? 'fill-[var(--sherloq-primary)] text-[var(--sherloq-primary)]' : 'text-text-muted hover:text-[var(--sherloq-primary)]'}`} />
@@ -87,18 +87,18 @@ export default function PhoneField({
               </div>
               {editId === p.id ? (
                 <>
-                  <button onClick={saveEdit} aria-label="Speichern" className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-[var(--sherloq-primary)] hover:bg-app-surface transition-colors cursor-pointer"><Check className="w-3.5 h-3.5" /></button>
-                  <button onClick={() => setEditId(null)} aria-label="Abbrechen" className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-app-surface transition-colors cursor-pointer"><X className="w-3.5 h-3.5" /></button>
+                  <button onClick={saveEdit} aria-label="Speichern" title="Speichern" className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-[var(--sherloq-primary)] hover:bg-app-surface transition-colors cursor-pointer"><Check className="w-3.5 h-3.5" /></button>
+                  <button onClick={() => setEditId(null)} aria-label="Abbrechen" title="Abbrechen" className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-app-surface transition-colors cursor-pointer"><X className="w-3.5 h-3.5" /></button>
                 </>
               ) : (
                 <>
-                  <a href={telHref(p.number)} aria-label="Anrufen" className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-text-muted hover:text-[var(--sherloq-primary)] hover:bg-app-surface transition-colors">
+                  <a href={telHref(p.number)} aria-label="Anrufen" title="Anrufen" className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-text-muted hover:text-[var(--sherloq-primary)] hover:bg-app-surface transition-colors">
                     <Phone className="w-3.5 h-3.5" />
                   </a>
-                  <button onClick={() => copy(p)} aria-label="Kopieren" className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-text-muted hover:text-[var(--sherloq-primary)] hover:bg-app-surface transition-colors cursor-pointer">
+                  <button onClick={() => copy(p)} aria-label="Kopieren" title="Kopieren" className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-text-muted hover:text-[var(--sherloq-primary)] hover:bg-app-surface transition-colors cursor-pointer">
                     {copiedId === p.id ? <Check className="w-3.5 h-3.5 text-[var(--sherloq-primary)]" /> : <Copy className="w-3.5 h-3.5" />}
                   </button>
-                  <button onClick={() => startEdit(p)} aria-label="Bearbeiten" className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-text-muted hover:text-[var(--sherloq-primary)] hover:bg-app-surface transition-colors cursor-pointer">
+                  <button onClick={() => startEdit(p)} aria-label="Bearbeiten" title="Bearbeiten" className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-text-muted hover:text-[var(--sherloq-primary)] hover:bg-app-surface transition-colors cursor-pointer">
                     <Pencil className="w-3.5 h-3.5" />
                   </button>
                 </>

@@ -13,13 +13,13 @@ export default function OffeneTasks({
 
   const Actions = () => (
     <div className={`flex items-center gap-1 shrink-0 ${HOVER_ACTIONS}`}>
-      <button onClick={(e) => { stop(e); onOpenTasks?.(); }} aria-label="Bearbeiten" className="w-7 h-7 rounded-full flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-app-surface transition-colors cursor-pointer">
+      <button onClick={(e) => { stop(e); onOpenTasks?.(); }} aria-label="Bearbeiten" title="Bearbeiten" className="w-7 h-7 rounded-full flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-app-surface transition-colors cursor-pointer">
         <Pencil className="w-3.5 h-3.5" />
       </button>
-      <button onClick={(e) => { stop(e); onToast?.("Task gelöscht"); }} aria-label="Löschen" className="w-7 h-7 rounded-full flex items-center justify-center text-text-muted hover:text-[var(--signal-urgent-text)] hover:bg-[var(--signal-urgent-bg)] transition-colors cursor-pointer">
+      <button onClick={(e) => { stop(e); onToast?.("Task gelöscht"); }} aria-label="Löschen" title="Löschen" className="w-7 h-7 rounded-full flex items-center justify-center text-text-muted hover:text-[var(--signal-urgent-text)] hover:bg-[var(--signal-urgent-bg)] transition-colors cursor-pointer">
         <Trash2 className="w-3.5 h-3.5" />
       </button>
-      <button onClick={(e) => { stop(e); onToast?.("Task erledigt ✓"); }} aria-label="Erledigt" className="w-7 h-7 rounded-full flex items-center justify-center text-text-muted hover:text-[var(--signal-success-text)] hover:bg-[var(--signal-success-bg)] transition-colors cursor-pointer">
+      <button onClick={(e) => { stop(e); onToast?.("Task erledigt ✓"); }} aria-label="Erledigt" title="Erledigt" className="w-7 h-7 rounded-full flex items-center justify-center text-text-muted hover:text-[var(--signal-success-text)] hover:bg-[var(--signal-success-bg)] transition-colors cursor-pointer">
         <Check className="w-4 h-4" strokeWidth={2.5} />
       </button>
     </div>

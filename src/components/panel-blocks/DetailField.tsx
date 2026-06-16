@@ -126,11 +126,11 @@ export default function DetailField({
         )}
         <div className={`flex items-center gap-0.5 shrink-0 transition-opacity ${copyable ? "opacity-100" : "opacity-0 group-hover/df:opacity-100"}`}>
           {copyable && (
-            <button onClick={copy} aria-label="Kopieren" className="w-6 h-6 rounded-md flex items-center justify-center text-text-muted hover:text-[var(--sherloq-primary)] hover:bg-app-surface transition-colors cursor-pointer">
+            <button onClick={copy} aria-label="Kopieren" title="Kopieren" className="w-6 h-6 rounded-md flex items-center justify-center text-text-muted hover:text-[var(--sherloq-primary)] hover:bg-app-surface transition-colors cursor-pointer">
               <Copy className="w-3.5 h-3.5" />
             </button>
           )}
-          <button onClick={() => { setDraft(value); setEditing(true); }} aria-label="Bearbeiten" className="w-6 h-6 rounded-md flex items-center justify-center text-text-muted hover:text-[var(--sherloq-primary)] hover:bg-app-surface transition-colors cursor-pointer">
+          <button onClick={() => { setDraft(value); setEditing(true); }} aria-label="Bearbeiten" title="Bearbeiten" className="w-6 h-6 rounded-md flex items-center justify-center text-text-muted hover:text-[var(--sherloq-primary)] hover:bg-app-surface transition-colors cursor-pointer">
             <Pencil className="w-3.5 h-3.5" />
           </button>
         </div>

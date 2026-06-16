@@ -136,10 +136,10 @@ export default function TasksListe({ onToast }: { onToast?: (msg: string) => voi
                   </div>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
-                  <button onClick={(e) => { e.stopPropagation(); setEditing(task.id); }} aria-label={t("hunter.drawers.noTask.editTask")} className={`w-8 h-8 rounded-full flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-app-bg cursor-pointer ${HOVER_ACTIONS}`}>
+                  <button onClick={(e) => { e.stopPropagation(); setEditing(task.id); }} aria-label={t("hunter.drawers.noTask.editTask")} title={t("hunter.drawers.noTask.editTask")} className={`w-8 h-8 rounded-full flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-app-bg cursor-pointer ${HOVER_ACTIONS}`}>
                     <Pencil className="w-3.5 h-3.5" />
                   </button>
-                  <button onClick={(e) => { e.stopPropagation(); onToast?.("Task gelöscht"); }} aria-label="Löschen" className={`w-8 h-8 rounded-full flex items-center justify-center text-text-muted hover:text-[var(--signal-urgent-text)] hover:bg-[var(--signal-urgent-bg)] cursor-pointer ${HOVER_ACTIONS}`}>
+                  <button onClick={(e) => { e.stopPropagation(); onToast?.("Task gelöscht"); }} aria-label="Löschen" title="Löschen" className={`w-8 h-8 rounded-full flex items-center justify-center text-text-muted hover:text-[var(--signal-urgent-text)] hover:bg-[var(--signal-urgent-bg)] cursor-pointer ${HOVER_ACTIONS}`}>
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
                   <ChevronDown className={`w-4 h-4 text-icon-muted transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />

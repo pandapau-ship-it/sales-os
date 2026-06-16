@@ -18,7 +18,7 @@ export default function KiKurzakte({ items, onSave }: { items: string[]; onSave:
           <Zap className="w-4 h-4" /> KI Kurzakte
         </div>
         {!editing && (
-          <button onClick={() => { setDraft(items.join('\n')); setEditing(true); }} aria-label="Bearbeiten" className={`text-text-muted hover:text-[var(--sherloq-primary)] cursor-pointer ${HOVER_ACTIONS}`}>
+          <button onClick={() => { setDraft(items.join('\n')); setEditing(true); }} aria-label="Bearbeiten" title="Bearbeiten" className={`text-text-muted hover:text-[var(--sherloq-primary)] cursor-pointer ${HOVER_ACTIONS}`}>
             <Pencil className="w-3.5 h-3.5" />
           </button>
         )}

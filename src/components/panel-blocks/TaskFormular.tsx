@@ -144,7 +144,7 @@ export default function TaskFormular({
                 <button
                   key={key}
                   onClick={() => setChannel(key)}
-                  aria-label={key}
+                  aria-label={key} title={key}
                   className={`w-10 h-10 rounded-[10px] flex items-center justify-center border transition-all cursor-pointer ${channel === key ? "bg-[var(--sherloq-primary)] text-on-accent border-transparent" : "bg-app-bg border-border text-text-muted hover:bg-app-bg"}`}
                 >
                   <Icon className="w-[18px] h-[18px]" />
@@ -202,7 +202,7 @@ export default function TaskFormular({
               <span className="text-[12px] font-bold text-text-body">{t("hunter.drawers.noTask.reminder")}</span>
               <button
                 onClick={toggleReminder}
-                aria-label={t("hunter.drawers.noTask.reminder")}
+                aria-label={t("hunter.drawers.noTask.reminder")} title={t("hunter.drawers.noTask.reminder")}
                 className={`w-11 h-6 rounded-full p-0.5 transition-colors cursor-pointer ${reminderActive ? "bg-[var(--sherloq-primary)]" : "bg-border"}`}
               >
                 <span className={`block w-5 h-5 rounded-full bg-app-surface shadow-sm transition-transform ${reminderActive ? "translate-x-[20px]" : "translate-x-0"}`} />

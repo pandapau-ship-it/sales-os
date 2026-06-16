@@ -39,11 +39,11 @@ export default function EditableInline({
           ) : (
             <span className={valueClass}>{value || '—'}</span>
           )}
-          <button onClick={copy} aria-label="Kopieren" className="opacity-0 group-hover/edit:opacity-100 transition-opacity text-text-muted hover:text-[var(--sherloq-primary)] cursor-pointer shrink-0">
+          <button onClick={copy} aria-label="Kopieren" title="Kopieren" className="opacity-0 group-hover/edit:opacity-100 transition-opacity text-text-muted hover:text-[var(--sherloq-primary)] cursor-pointer shrink-0">
             {copied ? <Check className="w-3 h-3 text-[var(--sherloq-primary)]" /> : <Copy className="w-3 h-3" />}
           </button>
           <PopoverTrigger asChild>
-            <button aria-label="Bearbeiten" className="opacity-0 group-hover/edit:opacity-100 transition-opacity text-text-muted hover:text-[var(--sherloq-primary)] cursor-pointer shrink-0">
+            <button aria-label="Bearbeiten" title="Bearbeiten" className="opacity-0 group-hover/edit:opacity-100 transition-opacity text-text-muted hover:text-[var(--sherloq-primary)] cursor-pointer shrink-0">
               <Pencil className="w-3 h-3" />
             </button>
           </PopoverTrigger>

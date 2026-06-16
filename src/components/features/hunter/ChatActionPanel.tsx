@@ -230,7 +230,7 @@ export default function ChatActionPanel({ open, config, onClose }: ChatActionPan
                               </span>
                               <button
                                 onClick={() => setEditing((v) => !v)}
-                                aria-label="Bearbeiten"
+                                aria-label="Bearbeiten" title="Bearbeiten"
                                 className={`shrink-0 w-7 h-7 rounded-full flex items-center justify-center transition-colors cursor-pointer ${editing ? "bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)]" : "text-text-muted hover:text-text-primary hover:bg-app-surface"}`}
                               >
                                 <Pencil className="w-3.5 h-3.5" />
@@ -277,7 +277,7 @@ export default function ChatActionPanel({ open, config, onClose }: ChatActionPan
                               ))}
                               <button
                                 onClick={handleRegenerate}
-                                aria-label="Neu generieren"
+                                aria-label="Neu generieren" title="Neu generieren"
                                 className="inline-flex items-center gap-1.5 px-3 py-2 rounded-[10px] bg-app-surface border border-border text-text-muted text-[12px] font-bold hover:bg-app-bg transition-colors cursor-pointer"
                               >
                                 <RotateCw className={`w-3.5 h-3.5 ${isRegenerating ? "animate-spin" : ""}`} />
