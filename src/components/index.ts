@@ -43,3 +43,4 @@ export { default as EmptyState } from './shared/EmptyState';
 export * from './shared/ICPDonut';
 export { default as LinkedinIcon } from './shared/LinkedinIcon';
 export * from './shared/Toast';
+export { default as TooltipLayer } from './shared/TooltipLayer';

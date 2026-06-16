@@ -45,16 +45,22 @@
 - [x] **Vollansicht (Kontakt-Detail, Vollbild)** — `HunterSidepanel` `variant="full"`: echte Seite (ein Scroll-Container, native Scrollbar, sticky Tabs, Hero integriert), über ↗ im Info-Panel; ← zurück zum Panel, ✕ schließt (`onExit`) — *2026-06-15*
 - [x] **Details-Tab (Vollansicht)** — alle CRM-Felder (Person/Firma/Klassifizierung/System/Notizen); Read-Mode + Inline-Edit (kein Popup) + Copy + System-Status als Badges; Kontaktdaten in grauer Sub-Kachel — *2026-06-15*
 - [x] **Neue panel-blocks** — `DetailField` · `DetailSection` · `StatusBadge` · `DetailPhoneList` (global, prop-driven, Tokens-only) — *2026-06-15*
+- [x] **Info-Panel-Tabs ausgebaut** — Kommunikation = vertikaler Zeitstrahl (medium-spezifisch) · Aktivität = System-Feed · Tasks (aufklappbar, Edit/Löschen on-hover, `TaskFormular`) · Notizen (Composer + Datum/Uhrzeit) · **neuer Deal-Tab** (`DealsListe`) — *2026-06-16*
+- [x] **Footer-Quick-Actions verdrahtet** — Task/Mail/Deal/Notiz öffnen ihr Anlege-Panel (LinkedIn→Deal; Mail = `MailComposer`) — *2026-06-16*
+- [x] **Deals: Deal-Name + Produktauswahl** (`DealDraft` + `name`/`product`; `NewDealCard` Dropdown `DEAL_PRODUCTS` + „Eigenes Produkt…"); Anzeige in DealsListe/DealSetup — *2026-06-16*
+- [x] **Empty States für alle Hunter-Tabs** — Leads(+Button) · Signals · Follow-ups · Neu in Pipeline · leere Kanban-Spalte(+„Deal anlegen"); `shared/EmptyState` (description optional) — *2026-06-16*
+- [x] **Globale Regel: Hover-Aktionen** (Edit/Löschen/Copy nur bei Hover — `HOVER_ACTIONS`) — *2026-06-16*
+- [x] **Globale Regel: Icon-Tooltips** (`shared/TooltipLayer` + `data-tip`, portal/sofort) — *2026-06-16*
+- [x] **Neue panel-blocks** — `TaskFormular` · `DealsListe` · `MailComposer` (+ `shared/TooltipLayer`); `npm run audit` um Inline-Code-Check erweitert — *2026-06-16*
 
 ### Offen (neu heute)
-- [ ] **Vollansicht — restliche Tabs aufwerten** (Übersicht/Kommunikation/Aktivität/Tasks/Notizen; aktuell 1:1 aus dem Panel)
+- [ ] **Vollansicht — vollseiten-spezifisches Layout/Spacing der Tabs** (Inhalte aufgewertet; nur Voll-Layout offen)
 - [ ] AI-Chat **Red-Team-Gate** (`scripts/redteam-aichat.ts`, `npm run redteam`) bauen — Phase 7, vor Live
 
 ### Offen
-- [ ] Empty States für alle Hunter-Tabs (`EmptyState`-Komponente)
 - [ ] Skeleton/Loading — kommt mit DB-Wiring via TanStack Query
 - [ ] Kanban-Mini-Karten angleichen (bauartbedingt separat)
-- [ ] DB-Wiring: Mock → `getDeals`/`getSignals`/`getPipelineSettings`, Realtime, Routing → echtes ScreenHunting
+- [ ] DB-Wiring: Mock → `getDeals`/`getSignals`/`getPipelineSettings`, Realtime, Routing → echtes ScreenHunting; Deal-Felder `name`/`product` + Produktkatalog aus `system_config`
 
 ---
 

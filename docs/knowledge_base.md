@@ -165,3 +165,65 @@
 --  'core');
 ```
 
+
+---
+
+## 2026-06-16 (Teil 2) — SQL (beim DB-Wiring einspielen)
+
+```sql
+-- Kommunikations-Zeitstrahl (Kontakt Info-Panel)
+-- (:org, 'Kommunikations-Verlauf',
+--  'Vertikaler Zeitstrahl aller Touchpoints (Mail, LinkedIn, Anruf, Meeting, Notiz) — direkt aufgeklappt, jede Station in der Optik ihres Mediums.',
+--  'Im Kontakt-Panel den Tab „Kommunikation" öffnen; jede Nachricht ist mit Richtung, Sentiment und Volltext sichtbar.',
+--  'Der Vertriebler sieht die gesamte Beziehung auf einen Blick und spart das Zusammensuchen aus Mail/LinkedIn — schnellere, fundiertere nächste Schritte.',
+--  'hunter');
+
+-- Aktivitäts-Verlauf (Kontakt Info-Panel)
+-- (:org, 'Aktivitäts-Verlauf',
+--  'System-Feed aller Aktionen am Datensatz: Deal angelegt (mit Betrag/Stage), Stage-Wechsel, Task an/erledigt, Heat-Wechsel, in Sequenz aufgenommen, Kontakt angelegt — je mit Akteur und Datum.',
+--  'Tab „Aktivität" im Kontakt-Panel.',
+--  'Lückenlose Nachvollziehbarkeit, wer wann was getan hat — Vertrauen, Audit und schnelleres Onboarding neuer Team-Mitglieder auf einen Account.',
+--  'hunter');
+
+-- Tasks im Kontakt-Panel
+-- (:org, 'Aufgaben am Kontakt',
+--  'Aufgaben pro Kontakt als aufklappbare Karten mit allen Details; Anlegen/Bearbeiten über eine fokussierte Task-Maske, Erledigen/Löschen direkt an der Karte.',
+--  'Tab „Tasks"; „Neue Task" oder Stift an einer Karte; aus der Übersicht öffnet der Stift den Task direkt im Bearbeiten-Modus.',
+--  'Kein Deal ohne nächsten Schritt — Follow-ups gehen nicht verloren, mehr Abschlüsse pro Pipeline.',
+--  'hunter');
+
+-- Notizen mit Zeitstempel
+-- (:org, 'Notizen am Kontakt',
+--  'Manuelle Notizen je Kontakt mit Datum, Uhrzeit und Autor; Anlegen über Inline-Composer, Bearbeiten direkt in der Karte.',
+--  'Tab „Notizen" → „Neue Notiz" schreiben und speichern.',
+--  'Wissen bleibt am Kontakt statt in Köpfen/Chats — bei Übergaben und Reaktivierungen sofort verfügbar.',
+--  'hunter');
+
+-- Deal-Verwaltung im Kontakt-Panel
+-- (:org, 'Deals am Kontakt',
+--  'Alle Deals eines Kontakts (Name, Produkt, Wert, Owner, Stage, ARR/MRR, Abschlussdatum) gelistet; neue Deals über ein Formular mit Produktauswahl (Katalog + eigenes Produkt) und Deal-Namen.',
+--  'Tab „Deals" → „Neuer Deal"; aus der Übersicht führt der Stift direkt in den Deal-Bearbeiten-Modus.',
+--  'Pipeline-Werte und Produkte sauber erfasst — präzisere Forecasts und schnelleres Deal-Handling direkt am Kontakt.',
+--  'hunter');
+
+-- Mail direkt aus dem Kontakt
+-- (:org, 'E-Mail aus dem Kontakt',
+--  'Schlanke „Neue E-Mail"-Maske (An/Betreff/Nachricht) direkt im Kontakt-Panel, Empfänger vorbefüllt.',
+--  'Im Panel-Footer auf „Mail" klicken — der Composer öffnet im Kommunikations-Tab.',
+--  'Outreach ohne Toolwechsel — der Vertriebler bleibt im Kontext und antwortet schneller.',
+--  'hunter');
+
+-- Leere Zustände (Empty States)
+-- (:org, 'Klare Leerzustände',
+--  'Jeder Hunter-Tab zeigt bei leerer Liste einen hilfreichen Hinweis mit der nächsten Aktion (z.B. „Noch keine Leads" + „SDR Lead hinzufügen", leere Pipeline-Spalte + „Deal anlegen").',
+--  'Erscheint automatisch, sobald eine Liste/Spalte leer ist.',
+--  'Neue Nutzer wissen sofort, was zu tun ist — schnellere Aktivierung, weniger Verwirrung beim Start.',
+--  'hunter');
+
+-- Hover-Tooltips für Icons (intern/UX)
+-- (:org, 'Icon-Tooltips & Hover-Aktionen',
+--  'Aktions-Icons (Bearbeiten/Löschen/Erledigt/Kopieren) erscheinen erst beim Hover und zeigen sofort einen Tooltip mit ihrer Bedeutung.',
+--  'Mit der Maus über eine Kachel/ein Icon fahren.',
+--  '(intern/UX) Aufgeräumtere Oberfläche und bessere Verständlichkeit — weniger Fehlklicks, schnelleres Arbeiten.',
+--  'core');
+```

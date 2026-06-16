@@ -18,21 +18,22 @@
 
 0. **Vollansicht — restliche Tabs aufwerten** — Grundgerüst (echte Seite) + **Details-Tab**
    sind fertig (2026-06-15, `HunterSidepanel` `variant="full"`, geöffnet über ↗ im Info-Panel).
-   Offen: Tabs **Übersicht/Kommunikation/Aktivität/Tasks/Notizen** für die Vollseite aufwerten
-   (aktuell 1:1 aus dem 820px-Panel übernommen). Details-Tab-Felder beim DB-Wiring an echte
-   `contacts`/`companies`-Felder hängen (CRM-Felddefinition). Optional später: Vollansicht aus
-   `shared/HunterSidepanel` in eine eigene `features/hunter/`-Komposition herauslösen.
+   Offen: nur noch das **vollseiten-spezifische** Layout/Spacing der Tabs — die Tab-**Inhalte**
+   wurden 2026-06-16 (Teil 2) stark aufgewertet (Kommunikation = vertikaler Zeitstrahl, Aktivität =
+   System-Feed, Tasks/Notizen/Deals mit Anlegen/Bearbeiten, neuer **Deal-Tab**). Details-Tab-Felder
+   beim DB-Wiring an echte `contacts`/`companies`-Felder hängen (CRM-Felddefinition). Optional später:
+   Vollansicht aus `shared/HunterSidepanel` in eine eigene `features/hunter/`-Komposition herauslösen.
 1. **Snooze · Settings · AddSdrLeadPanel verdrahten** — aktuell reine UI/Mock. Beim DB-Wiring:
    Snooze-State + Limits aus `system_config` (`snooze_max_count`/`_days`/`_escalation_type`),
    `SnoozeSettings` schreibt echt, `AddSdrLeadPanel` legt Kontakt/Deal an (Edge Function).
    `SnoozeSettings` ist noch **nicht gemountet** (kein Settings-Screen) — einhängen sobald da.
-2. **Empty States für alle Hunter-Tabs** — „Keine Signale heute" · „Noch keine Leads" ·
-   „Keine offenen Follow-ups" · leere Kanban-Spalte „Keine Deals" (bestehende `EmptyState`-
-   Komponente nutzen). Aktuell: **keine** Empty/Loading-States (alles Mock).
-3. **DB-Wiring (Phase 3 Start)** — Mock → echte Queries (`getDeals`/`getSignals`/
+2. **DB-Wiring (Phase 3 Start)** — Mock → echte Queries (`getDeals`/`getSignals`/
    `getPipelineSettings`), props → `organizationId`/`userId`, TanStack Query (bringt
    Skeleton/Loading automatisch), Realtime, Routing `HunterReference` → echtes `ScreenHunting`.
    Composer-`initialDraft` aus `messages` (`status='draft'`, via `generate_message()`).
+   Deal-Felder Name/Produkt → `deals.name`/`deals.product`; Produktkatalog (`DEAL_PRODUCTS`) aus
+   `system_config`. Mock-Listen (Tasks/Notizen/Deals/Kommunikation/Aktivität) → echte Tabellen;
+   die Blöcke sind bereits datengetrieben (`*Item`-Typen + Default-Mock).
 
 > **PR #12** (Draft) vorbereiten, aber **NICHT mergen** — auf Freigabe warten.
 
@@ -63,6 +64,41 @@ Change (Markup byte-identisch), kein DB-Wiring. Build · Audit · Structure-Chec
   · `PersonalityBadge` → `panel-blocks/` (künftiger Block) · `BrandIcons` als legitimes shared-Util.
 - [x] **`npm run structure-check`** (`scripts/structure-check.sh`) — FAIL bei falsch platzierten
   `shared/`-Komponenten; im **Pre-Push-Hook** nach der DB-Checkliste; Teil des Merge-Gates. CLAUDE.md ergänzt.
+
+### Phase 2 — Hunter Info-Panel: Tabs, Deals, Footer, globale Regeln (Branch `feature/phase-2-hunter`) — Session 2026-06-16 (Teil 2)
+
+UI-Ausbau des Hunter Info-Panels + zwei globale Regeln. Reine UI/Mock (kein DB-Wiring). Alle Blöcke
+**datengetrieben** (`*Item`-Typen + Default-Mock) → System spielt echte Daten später 1:1 ein.
+Build · Audit · Structure-Check durchgehend grün.
+
+- [x] **Kommunikation-Tab** → vertikaler **Zeitstrahl** (grüne Verbindungslinie, direkt aufgeklappt),
+  medium-spezifische Karten (Mail/LinkedIn/Call/Meeting/Notiz). Karten einheitlich weiß (`bg-app-surface`).
+- [x] **Aktivität-Tab** → System-**Aktivitäts-Feed** (Deal angelegt mit Kurzinfo+Datum, Stage-Wechsel,
+  Task an/erledigt, Heat, Sequenz, Kontakt angelegt) mit Akteur — ab Tag 1 aus `activity_log` abbildbar.
+- [x] **Tasks-Tab** → Checkbox raus · aufklappbare Read-Only-Details · Bearbeiten/Löschen on-hover ·
+  Bearbeiten/Neu öffnet neuen Block **`TaskFormular`** (Maske ohne Kontext-/KI-Meldungen).
+  `TaskAnlegenForm` (NoTaskDrawer) nutzt jetzt denselben `TaskFormular` → eine Quelle.
+- [x] **Notizen-Tab** → Speicher-Icon raus · Inline-Composer („Neue Notiz") · Inline-Edit ·
+  Datum **+ Uhrzeit** + Autor je Notiz.
+- [x] **Deal-Tab (neu)** → Block **`DealsListe`** (listet Deals, Bearbeiten/Löschen on-hover) +
+  „Neuer Deal" über das geteilte `NewDealCard`-Formular.
+- [x] **Übersicht** interaktiv — Deal-Karte (`DealSetup`): Hover-Edit → Deal-Tab im Edit; Count-Badge
+  bei mehreren Deals. Tasks (`OffeneTasks`): Checkbox raus, Hover-Aktionen (Edit/Löschen/Erledigt),
+  Klick → Tasks-Tab, Bearbeiten öffnet den Task direkt im Edit.
+- [x] **Footer-Quick-Actions** — LinkedIn → **Deal**; jeder Button öffnet sein Anlege-Panel
+  (Task/Deal/Notiz in ihrem Tab, **Mail** = neuer Block `MailComposer` im Kommunikation-Tab).
+- [x] **Deals global erweitert** — `DealDraft` + `name` + `product`; `NewDealCard` mit Deal-Name-Feld
+  + Produkt-Dropdown (`DEAL_PRODUCTS` + „Eigenes Produkt…"). Anzeige mitgezogen (DealsListe-Karten,
+  DealSetup). *Pipeline (ScreenHunting) nutzt lead-gebundenen `dealValue` — separater Mock, unberührt.*
+- [x] **Empty States für alle Hunter-Tabs** (ScreenHunting) — Leads (+Button), Signals, Follow-ups,
+  Neu in Pipeline, leere Kanban-Spalte (+„Deal anlegen"). `shared/EmptyState` (description optional).
+- [x] **Globale Regel: Hover-Aktionen** — Edit/Löschen/Copy nur bei Hover (`HOVER_ACTIONS` in
+  `lib/componentBehavior.ts`); app-weit angewandt + in CLAUDE.md verankert.
+- [x] **Globale Regel: Icon-Tooltips** — neuer `shared/TooltipLayer` (portal, sofort, getönt) +
+  `data-tip` auf allen Icon-Buttons; in App.tsx gemountet, in CLAUDE.md verankert.
+- [x] **Neue panel-blocks:** `TaskFormular` · `DealsListe` · `MailComposer` (+ `shared/TooltipLayer`) —
+  in Barrel + CLAUDE-Tabelle. **`npm run audit` um Inline-Code-Check erweitert** (warnt bei >20-Z.-
+  JSX-Blöcken in features/screens, die einen panel-block duplizieren).
 
 ### Phase 2 — Hunter-Vollansicht (Branch `feature/phase-2-hunter`) — Session 2026-06-15
 
