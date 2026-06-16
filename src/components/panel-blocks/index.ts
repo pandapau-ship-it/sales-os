@@ -25,6 +25,8 @@ export { default as KpiCard } from './KpiCard';
 export { default as LeadListRow } from './LeadListRow';
 export { default as TaskAnlegenForm } from './TaskAnlegenForm';
 export { default as TaskEntwurfForm } from './TaskEntwurfForm';
+export { default as TaskFormular } from './TaskFormular';
+export type { TaskFormInitial } from './TaskFormular';
 export { default as KontaktZeile } from './KontaktZeile';
 export { default as NewDealCard } from './NewDealCard';
 export { default as NewInPipelineCards } from './NewInPipelineCards';

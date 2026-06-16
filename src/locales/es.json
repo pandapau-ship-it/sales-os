@@ -356,7 +356,8 @@
         "toastReminderOn": "Erinnerung aktiviert",
         "toastReminderOff": "Erinnerung deaktiviert",
         "toastSaved": "Task gespeichert",
-        "toastCancelled": "Abgebrochen"
+        "toastCancelled": "Abgebrochen",
+        "editTask": "Editar tarea"
       },
       "task": {
         "channel": "Kanal",

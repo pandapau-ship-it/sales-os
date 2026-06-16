@@ -248,11 +248,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
         )}
 
         {activeTab === 'tasks' && (
-          <TasksListe
-            onAdd={() => showToast('Neue Task angelegt')}
-            onEdit={() => showToast('Task bearbeiten')}
-            onDelete={() => showToast('Task gelöscht')}
-          />
+          <TasksListe onToast={showToast} />
         )}
 
         {activeTab === 'notes' && (
