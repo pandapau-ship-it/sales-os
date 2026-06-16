@@ -490,7 +490,7 @@ Alle prop-driven, Tokens-only, Dark-Mode automatisch.
 | `TaskFormular` | Generische Task-Maske (Anlegen + Bearbeiten) — **nur das Formular**, ohne Kontext-/KI-Meldungen (Optik wie TaskAnlegenForm BLOCK 3); `mode`/`initial`/`onSave`/`onClose`/`onToast` |
 | `KommunikationVerlauf` | Kommunikations-Tab: Touchpoints mit Marken-Kanal-Logo + aufklappbarem Volltext (Expand-State intern) — ≠ `KommunikationPreview` (Übersicht-Vorschau) |
 | `AktivitaetsVerlauf` | Aktivität-Tab: historischer Zeitstrahl (aktuell Empty-State, CRM-Sync folgt) |
-| `NotizenListe` | Notizen-Tab: manuelle Notizen (Datum/Autor + Speichern/Bearbeiten/Löschen) + „Neue Notiz" (`onAdd`/`onSave`/`onEdit`/`onDelete`) |
+| `NotizenListe` | Notizen-Tab: manuelle Notizen (Datum + Uhrzeit + Autor); „Neue Notiz" → Inline-Composer, Bearbeiten inline, Löschen/Bearbeiten on-hover; datengetrieben (`NotizItem`) (`onToast`) |
 | `PersonalityBadge` | Persönlichkeitsprofil-Pill (3 Dimensionen) — für künftiges Persönlichkeits-Feature (ab Confidence ≥ 60 %) |
 | `KpiCard` | KPI-Kachel (Hunter-Übersicht): Titel + Icon-Box · große Zahl · Subtitle/Trend (Icon/Farben/Subtitle als Node) |
 | `LeadListRow` | Lead-Listenzeile (Hunter „Leads"): Top-Row (Avatar/ICP/Company/Stage/Heat/Zeit/Pfeil) + aufklappbar (KI-Kurzakte · Deal · Aktionen · Communication Chain); prop-driven (`isExpanded`/`selected`/`onToggleExpand`/`onToggleSelect`/`onOpenInfo`/`onSelectCommunication`) |

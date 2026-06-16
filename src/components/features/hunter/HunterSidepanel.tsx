@@ -252,12 +252,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
         )}
 
         {activeTab === 'notes' && (
-          <NotizenListe
-            onAdd={() => showToast('Neue Notiz angelegt')}
-            onSave={() => showToast('Notiz gespeichert')}
-            onEdit={() => showToast('Notiz bearbeiten')}
-            onDelete={() => showToast('Notiz gelöscht')}
-          />
+          <NotizenListe onToast={showToast} />
         )}
 
         </>
