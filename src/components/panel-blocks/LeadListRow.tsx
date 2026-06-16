@@ -7,17 +7,17 @@
 import type { MouseEvent } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  Check, AlertTriangle, ChevronUp, ChevronDown, ArrowRight, Zap, Briefcase,
-  Target, Mail, CalendarCheck, MessageSquare,
+  Check, AlertTriangle, ChevronUp, ChevronDown, ArrowRight, Zap,
 } from "lucide-react";
 import Avatar from "@/components/shared/Avatar";
 import { ICPDonut } from "@/components/shared/ICPDonut";
 import CommunicationChain from "@/components/shared/CommunicationChain";
 import HeatBadge from './HeatBadge';
 import StageBadge from './StageBadge';
+import DealKurzinfo, { type DealCardAction } from './DealKurzinfo';
 
 export default function LeadListRow({
-  lead, isExpanded, selected, onToggleExpand, onToggleSelect, onOpenInfo, onSelectCommunication,
+  lead, isExpanded, selected, onToggleExpand, onToggleSelect, onOpenInfo, onAction, onSelectCommunication,
 }: {
   lead: any;
   isExpanded: boolean;
@@ -25,6 +25,7 @@ export default function LeadListRow({
   onToggleExpand: () => void;
   onToggleSelect: (e: MouseEvent) => void;
   onOpenInfo: () => void;
+  onAction?: (action: DealCardAction) => void;
   onSelectCommunication: any;
 }) {
   const { t } = useTranslation();
@@ -142,57 +143,9 @@ export default function LeadListRow({
               </ul>
             </div>
 
-            {/* Right Column (Deal Details & Aktionen) */}
+            {/* Right Column (Deal Details & Aktionen) — geteilter Block */}
             <div className="md:col-span-5 flex flex-col gap-5">
-              {/* Deal Details */}
-              <div className="bg-app-surface rounded-[12px] p-5 border border-[var(--border)]">
-                <div className="flex items-center gap-2 text-[11px] font-bold font-mono text-[var(--text-muted)] uppercase tracking-wider mb-4">
-                  <Briefcase className="w-4 h-4" /> {t('hunter.leadCard.dealDetails')}
-                </div>
-                <div className="grid grid-cols-2 gap-4 text-[12px]">
-                  <div className="flex flex-col gap-1">
-                    <span className="text-[var(--text-muted)] font-mono text-[10px] uppercase tracking-wider">{t('hunter.leadCard.volume')}</span>
-                    <span className="font-bold text-[var(--sherloq-primary)] text-[14px]">24.000 € ARR</span>
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <span className="text-[var(--text-muted)] font-mono text-[10px] uppercase tracking-wider">{t('hunter.leadCard.duration')}</span>
-                    <span className="font-bold text-[var(--text-primary)] text-[14px]">12 Monate</span>
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <span className="text-[var(--text-muted)] font-mono text-[10px] uppercase tracking-wider">{t('hunter.common.stage')}</span>
-                    <span className="font-bold text-[var(--icp-low)] text-[14px] flex items-center gap-1.5">
-                      Demo <span className="font-semibold text-[var(--icp-low)]"><AlertTriangle className="w-3 h-3" /> 8T</span>
-                    </span>
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <span className="text-[var(--text-muted)] font-mono text-[10px] uppercase tracking-wider">{t('hunter.leadCard.probability')}</span>
-                    <span className="font-bold text-[var(--text-primary)] text-[14px]">60%</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Aktionen */}
-              <div className="bg-app-surface rounded-[12px] p-5 border border-[var(--border)]">
-                <div className="flex items-center gap-2 text-[11px] font-bold font-mono text-[var(--text-muted)] uppercase tracking-wider mb-4">
-                  <Target className="w-4 h-4" /> {t('hunter.leadCard.actions')}
-                </div>
-                <div className="flex flex-col gap-3">
-                  <div className="flex items-center gap-2">
-                    <button className="flex-1 bg-app-surface border border-[var(--border)] text-[var(--text-body)] text-[12px] font-semibold py-2 rounded-[12px] hover:bg-[var(--app-bg)] transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
-                      <Mail className="w-3.5 h-3.5" /> {t('hunter.leadCard.mail')}
-                    </button>
-                    <button className="flex-1 bg-app-surface border border-[var(--border)] text-[var(--text-body)] text-[12px] font-semibold py-2 rounded-[12px] hover:bg-[var(--app-bg)] transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
-                      <CalendarCheck className="w-3.5 h-3.5" /> {t('hunter.leadCard.task')}
-                    </button>
-                    <button className="flex-1 bg-app-surface border border-[var(--border)] text-[var(--text-body)] text-[12px] font-semibold py-2 rounded-[12px] hover:bg-[var(--app-bg)] transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
-                      <ArrowRight className="w-3.5 h-3.5" /> {t('hunter.common.stage')}
-                    </button>
-                  </div>
-                  <button className="w-full bg-app-surface border border-[var(--border)] hover:bg-[var(--app-bg)] text-[var(--text-primary)] font-bold text-[13px] py-2.5 rounded-[12px] transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm">
-                    <MessageSquare className="w-4 h-4 text-[var(--sherloq-primary)]" /> {t('hunter.leadCard.startAiChat')}
-                  </button>
-                </div>
-              </div>
+              <DealKurzinfo stage="Demo vereinbart" company={lead.person.company} onAction={onAction} onOpenInfo={onOpenInfo} />
             </div>
           </div>
 

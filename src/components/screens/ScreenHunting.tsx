@@ -95,6 +95,8 @@ export default function ScreenHunting({
   const [selectedNoTaskPerson, setSelectedNoTaskPerson] = useState<any | null>(null);
   // Info-Panel (§22.1, 820px) — vorerst NUR im Leads-Tab inline rechts neben der Liste.
   const [infoPanelLead, setInfoPanelLead] = useState<Lead | null>(null);
+  // Karten-Aktion (Mail/Task/Chat) → Info-Panel öffnet direkt mit dieser Aktion.
+  const [infoPanelAction, setInfoPanelAction] = useState<'mail' | 'task' | 'chat' | null>(null);
 
   const toggleLeadSelection = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -383,6 +385,7 @@ export default function ScreenHunting({
                 onToggleExpand={() => setExpandedLeadId(isExpanded ? null : lead.id)}
                 onToggleSelect={(e) => toggleLeadSelection(lead.id, e)}
                 onOpenInfo={() => setInfoPanelLead(lead)}
+                onAction={(a) => { setInfoPanelAction(a); setInfoPanelLead(lead); }}
                 onSelectCommunication={onSelectCommunication}
               />
             );
@@ -879,7 +882,8 @@ export default function ScreenHunting({
           Immer gemountet für die Ausfahr-Animation; person=null → geschlossen. */}
       <HunterSidepanel
         person={infoPanelLead?.person ?? null}
-        onClose={() => setInfoPanelLead(null)}
+        initialAction={infoPanelAction}
+        onClose={() => { setInfoPanelLead(null); setInfoPanelAction(null); }}
       />
 
     </div>

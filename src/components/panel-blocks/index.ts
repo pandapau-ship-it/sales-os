@@ -28,6 +28,8 @@ export { default as TaskEntwurfForm } from './TaskEntwurfForm';
 export { default as TaskFormular } from './TaskFormular';
 export type { TaskFormInitial } from './TaskFormular';
 export { default as DealsListe } from './DealsListe';
+export { default as DealKurzinfo } from './DealKurzinfo';
+export type { DealCardAction } from './DealKurzinfo';
 export { default as MailComposer } from './MailComposer';
 export { default as KontaktZeile } from './KontaktZeile';
 export { default as NewDealCard } from './NewDealCard';

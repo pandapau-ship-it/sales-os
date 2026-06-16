@@ -68,7 +68,7 @@ const DEFAULT_DETAILS = {
 // DetailField · DetailSection · StatusBadge · DetailPhoneList → ausgelagert nach
 // src/components/panel-blocks/ (siehe Imports). Hier nur noch deren Komposition.
 
-export default function HunterSidepanel({ person: personProp, onClose, onExit, variant = 'panel' }: { person: any; onClose: () => void; onExit?: () => void; variant?: 'panel' | 'full' }) {
+export default function HunterSidepanel({ person: personProp, onClose, onExit, variant = 'panel', initialAction = null }: { person: any; onClose: () => void; onExit?: () => void; variant?: 'panel' | 'full'; initialAction?: 'mail' | 'task' | 'chat' | null }) {
   const [activeTab, setActiveTab] = useState(variant === 'full' ? 'details' : 'overview');
   // Aus der Übersicht „Deal/Task bearbeiten" → Ziel-Tab öffnet die Bearbeiten-Kachel direkt.
   const [dealsAutoEdit, setDealsAutoEdit] = useState(false);
@@ -99,8 +99,12 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
       setPhones(DEFAULT_PHONES);
       setKurzakte(DEFAULT_KURZAKTE);
       setDetails(DEFAULT_DETAILS);
+      // Karten-Aktion: Panel direkt mit der passenden Aktion öffnen.
+      if (initialAction === 'mail') { setCommCompose(true); setActiveTab('communication'); }
+      else if (initialAction === 'task') { setTasksAutoEditId('new'); setActiveTab('tasks'); }
+      else setActiveTab(variant === 'full' ? 'details' : 'overview');
     }
-  }, [personProp]);
+  }, [personProp, initialAction]); // eslint-disable-line react-hooks/exhaustive-deps
   const isOpen = personProp !== null;
   const person = display;
 
