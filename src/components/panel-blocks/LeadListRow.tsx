@@ -84,8 +84,8 @@ export default function LeadListRow({
         {/* Middle Stats (Simplified) */}
         <div className="hidden lg:flex items-center gap-4 px-4 border-l border-[var(--border-subtle)] shrink-0">
           <div className="flex flex-col items-center justify-center w-[80px] relative h-full">
-            <span className="absolute -top-[14px] text-[10px] font-bold text-[var(--icon-muted)] tracking-wider uppercase">{t('hunter.common.stage')}</span>
-            <StageBadge stage={lead.contactStatusLabel ?? 'Lead'} />
+            <span className="absolute -top-[14px] text-[10px] font-bold text-[var(--icon-muted)] tracking-wider uppercase">{t('hunter.leadCard.statusLabel')}</span>
+            {lead.contactStatusLabel && <StageBadge stage={lead.contactStatusLabel} />}
           </div>
           <div className="flex flex-col items-center justify-center w-[120px] relative h-full">
             <span className="absolute -top-[14px] text-[10px] font-bold text-[var(--icon-muted)] tracking-wider uppercase">{t('hunter.common.heat')}</span>
@@ -95,12 +95,14 @@ export default function LeadListRow({
 
         {/* Right Actions */}
         <div className="flex items-center gap-4 pl-4 border-l border-[var(--border-subtle)] shrink-0 justify-between md:justify-end">
+          {/* Zeit-Spalte: Wrapper bleibt als unsichtbarer Platzhalter (kein Layout-Sprung);
+              bei last_contacted_at=NULL wird nichts gerendert (kein „—"). */}
           <div className="flex flex-col items-end hidden sm:flex w-[130px]">
-            <span className="text-[14px] font-bold text-[var(--text-primary)] whitespace-nowrap">
-              {lastContactedDays === null
-                ? '—'
-                : t('hunter.common.ago', { label: t('hunter.common.daysAgo', { count: lastContactedDays }) })}
-            </span>
+            {lastContactedDays !== null && (
+              <span className="text-[14px] font-bold text-[var(--text-primary)] whitespace-nowrap">
+                {t('hunter.common.ago', { label: t('hunter.common.daysAgo', { count: lastContactedDays }) })}
+              </span>
+            )}
           </div>
           <div className="flex items-center gap-3 relative w-[90px] justify-end">
             <button className="w-8 h-8 flex items-center justify-center text-[var(--icon-muted)] hover:text-[var(--text-primary)] transition-colors rounded-full hover:bg-[var(--app-bg)]">

@@ -37,10 +37,16 @@
 
 > **PR #12** (Draft) vorbereiten, aber **NICHT mergen** — auf Freigabe warten.
 
-> **TODO (Rechte/Filter-Phase, offen):** Sollen `opt_out`/`archiviert`-Kontakte im
-> Hunter-Leads-Tab überhaupt erscheinen oder rausgefiltert werden? `opt_out` ist ein
-> Hard-Block (nie wieder Sequenz, Audit). Aktuell werden sie nur mit Label angezeigt
-> (Slice 3). Produktentscheidung vor Launch nötig. (Vermerk auch in `hunterMappers.ts`.)
+> **TODO (Lifecycle/Filter, offen — Vermerk auch in `hunterMappers.ts`):**
+> - **Lifecycle-Automatik:** automatische Übergänge des `contact_status` (z.B. Deal
+>   gewonnen → `kunde`, opt_out-Webhook → `opt_out`) als Edge-Function/Regel-Logik in
+>   der Automation-Phase. Heute werden die Lifecycle-Labels (Neu/Aktiv/In Pipeline/
+>   Kunde/Inaktiv/Opt-out) nur **angezeigt**, nicht gesetzt.
+> - **User-konfigurierbar:** Lifecycle-Labels später aus `settings` (Org-spezifisch)
+>   statt fester Map.
+> - **opt_out/archiviert-Filter:** Sollen diese Kontakte im Leads-Tab erscheinen oder
+>   rausgefiltert werden? `opt_out` = rechtlicher Hard-Block (nie wieder Sequenz, Audit).
+>   Aktuell mit eigenem Label sichtbar. Produktentscheidung vor Launch.
 
 ---
 

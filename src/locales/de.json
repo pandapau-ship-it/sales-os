@@ -155,6 +155,7 @@
       "avgDealValue": "Ø {{value}} Deal-Wert"
     },
     "leadCard": {
+      "statusLabel": "Status",
       "selected": "{{count}} {{noun}} ausgewählt",
       "leadSingular": "Lead",
       "leadPlural": "Leads",

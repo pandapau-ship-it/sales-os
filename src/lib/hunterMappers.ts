@@ -19,24 +19,26 @@ const DB_HEAT_TO_UI: Record<string, HeatStatus> = {
   tot: "DEAD",
 };
 
-// contacts.contact_status → DE-Stage-Label (Leads-Zeile). Kontakt-Lifecycle, nicht
-// Deal-Stage (die lebt auf deals, gehört in den Pipeline-Slice).
-// TODO (Rechte/Filter-Phase, NICHT jetzt): opt_out ist ein Hard-Block (nie wieder
-// Sequenz, Audit); offene Produktfrage, ob opt_out/archiviert im Leads-Tab
-// überhaupt erscheinen oder rausgefiltert werden. Aktuell nur angezeigt. [[leads-tab-read]]
+// contacts.contact_status → Lifecycle-Status-Label (Leads-Zeile, Klartext).
+// Kontakt-Lifecycle, NICHT Deal-Stage (die lebt auf deals → Pipeline-Slice).
+// opt_out bleibt eigener Zustand (rechtlicher Hard-Block, nie zu „Inaktiv" verschmelzen).
+// Unbekannt/null → kein Label (Badge wird nicht gerendert).
+// TODO (Automation-/Settings-Phase, NICHT jetzt): (a) automatische Lifecycle-Übergänge
+// (z.B. Deal gewonnen → kunde) als Edge-Function/Regel; (b) Labels user-konfigurierbar
+// in settings; (c) opt_out/archiviert-Filter im Leads-Tab klären. [[leads-tab-read]]
 const CONTACT_STATUS_LABEL: Record<string, string> = {
-  ohne_campaign: "Ohne Kampagne",
-  in_campaign: "In Kampagne",
-  pipeline: "Pipeline",
+  ohne_campaign: "Neu",
+  in_campaign: "Aktiv",
+  pipeline: "In Pipeline",
   kunde: "Kunde",
-  archiviert: "Archiviert",
+  archiviert: "Inaktiv",
   opt_out: "Opt-out",
 };
 
 // Lead + Leads-Zeilen-spezifische Anzeigefelder (LeadListRow liest `lead: any`).
 export type LeadRow = Lead & {
-  contactStatusLabel: string; // contact_status → DE-Label (Stage-Badge)
-  lastContactedAt: string | null; // ISO oder null → Zeile zeigt „—"
+  contactStatusLabel?: string; // contact_status → Lifecycle-Label; undefined → kein Badge
+  lastContactedAt: string | null; // ISO oder null → Zeit-Spalte rendert nichts
 };
 
 export function contactRowToLead(row: Record<string, any>): LeadRow {
@@ -64,7 +66,7 @@ export function contactRowToLead(row: Record<string, any>): LeadRow {
     pipelineStage: "lead", // Platzhalter (Deal-Stage gehört in den Pipeline-Slice)
     signalsCount: 0,
     contactEmail: row.email ?? "",
-    contactStatusLabel: CONTACT_STATUS_LABEL[row.contact_status] ?? "—", // null/unbekannt → „—"
+    contactStatusLabel: CONTACT_STATUS_LABEL[row.contact_status], // unbekannt → undefined (kein Badge)
     lastContactedAt: row.last_contacted_at ?? null,
   };
 }
