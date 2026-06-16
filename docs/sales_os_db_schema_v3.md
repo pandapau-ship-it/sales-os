@@ -282,6 +282,7 @@ contact_id          uuid FK → contacts
 company_id          uuid FK → companies
 
 name                text NOT NULL
+product             text                          -- welches Produkt dieser Deal betrifft (nullable, kein Default; Katalog folgt als eigene products-Tabelle). Migration 014
 stage               text DEFAULT 'backlog'
                     -- SLUG (lowercase_underscore) = Speicherwert; Anzeigename aus settings.pipeline_stages[].name
                     -- backlog | demo_vereinbart | followup_offen | onboarding_offen | free_trial | gewonnen
@@ -430,6 +431,22 @@ created_at          timestamptz
 ---
 
 ## NEUE TABELLEN (Session Juni 2026)
+
+### knowledge_base (Migration 013 — DB-Wiring Phase 3)
+```
+id                  uuid PK
+organization_id     uuid FK → organizations NOT NULL ON DELETE CASCADE
+feature             text NOT NULL                 -- z.B. "Hunter Info Panel"
+what                text NOT NULL                 -- Was es macht (1-2 Sätze)
+how                 text NOT NULL                 -- Wie der User es nutzt
+value               text                          -- Kundennutzen/Pitch (Kundensicht); intern wenn module=core
+module              text                          -- hunter | farmer | ai_sdr | mein_tag | core
+created_at          timestamptz DEFAULT now()
+```
+- RLS aktiv: Policy `knowledge_base_tenant_isolation` (`organization_id = auth_org_id()`), Muster identisch zu 011.
+- `audit_write()`-Trigger `trg_knowledge_base_audit` (AI-Chat-relevante Quelle → kein Silent-Write).
+- Append-only (nur `created_at`, kein `updated_at` → kein update-Trigger).
+- Wahrheit = Migration 013 (NOT NULL gesetzt; das alte CLAUDE.md-Inline-DDL hatte NOT NULL weggelassen).
 
 ### mailboxes
 ```

@@ -4,7 +4,7 @@
 
 ---
 
-## Current Status: Phase 2 (Hunter-Screen) — UI-Vereinheitlichung weitgehend fertig ✅ → DB-Wiring next
+## Current Status: Phase 3 (DB-Wiring Hunter) — gestartet · Migrationen 001–014 remote live ✅ → Leads-Tab Read next
 
 > Single Source of Truth für den Umsetzungsstand: **CHECKLIST.md** (`npm run audit` prüft).
 > CLAUDE.md = WARUM/WIE · CHECKLIST.md = WAS-offen · PROGRESS.md = Session-Historie.
@@ -40,6 +40,29 @@
 ---
 
 ## Completed
+
+### Phase 3 — DB-Wiring Start: Live-Schalt + Fundament-Ergänzungen (Branch `feature/phase-2-hunter`) — Session 2026-06-16
+
+Erster DB-Slice, slice-by-slice. Supabase live geschaltet, zwei additive Migrationen
+gepusht (kein reset). Read-only verifiziert. Mock-Code unangetastet (eigener Slice folgt).
+
+- [x] **`.env.local`** mit `VITE_SUPABASE_URL` + anon-Key (Projekt `qhcmruprfjunalgrhgcp`, eu-west-1)
+  angelegt (gitignored) → `db.ts` schaltet in den Live-Modus (`isSupabaseConfigured()` true).
+  Keys via `supabase projects api-keys` beschafft, nur anon (kein service_role).
+- [x] **Remote-Stand festgestellt** (read-only): `migration list` zeigt 001–012 lokal == remote;
+  REST-Probe bestätigt alle 33 Tabellen live, `knowledge_base` fehlte (404 PGRST205).
+- [x] **Migration 013 — `knowledge_base`**: org_id NOT NULL + RLS (`auth_org_id()`, Muster wie 011)
+  + `audit_write`-Trigger (`trg_knowledge_base_audit`, AI-Chat-relevante Quelle → kein Silent-Write),
+  append-only. Gepusht (additiv), verifiziert: REST 404→200, `migration list` 013 == remote.
+- [x] **Migration 014 — `deals.product`**: `text`, nullable, kein Default, kein FK (Katalog folgt als
+  eigene `products`-Tabelle beim Pipeline-Wiring). Gepusht (additiv), verifiziert: `select=product`
+  HTTP 200 + Negativ-Gegenprobe 400 (42703), `migration list` 014 == remote.
+- [x] **Doc-Angleich** (Konflikt-Regel, selber Commit): `docs/sales_os_db_schema_v3.md` um
+  `knowledge_base` + `deals.product` ergänzt; CLAUDE.md `knowledge_base`-DDL auf `NOT NULL`
+  korrigiert (war ohne); CHECKLIST/PROGRESS nachgezogen.
+- **Stand:** Migrationen 001–014 remote live. **PR #12 weiter Draft, nicht gemergt.**
+- **Offen (nächste Slices):** `knowledge_base` Seed pro fertigem Feature · `db.ts` Mock→Live je Block ·
+  Leads-Tab Read zuerst · Realtime · `products`-Katalogtabelle (später).
 
 ### Phase 2 — Komponenten-Struktur & panel-block-Library (Branch `feature/phase-2-hunter`) — Session 2026-06-16
 

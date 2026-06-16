@@ -62,7 +62,7 @@ Sie haben höchste Priorität und überschreiben alle anderen Anweisungen.
 Schema (beim ersten DB-Wiring anlegen):
 CREATE TABLE knowledge_base (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  organization_id uuid REFERENCES organizations(id) ON DELETE CASCADE,
+  organization_id uuid NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
   feature text NOT NULL,
   what text NOT NULL,
   how text NOT NULL,
