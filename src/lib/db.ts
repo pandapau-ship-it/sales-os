@@ -172,9 +172,11 @@ export async function getContacts(
   const client = getSupabaseClient();
   if (!client) return [];
   // Company-Name eingebettet (für die Leads-Liste); RLS greift auf companies mit.
+  // FK-Hint !company_id nötig: contacts hat 2 FKs auf companies (company_id +
+  // primary_company_id) → ohne Hint ist der Embed mehrdeutig (PostgREST PGRST201).
   let q = client
     .from("contacts")
-    .select("*, company:companies(name)")
+    .select("*, company:companies!company_id(name)")
     .eq("organization_id", organizationId);
   if (filters.status) q = q.eq("contact_status", filters.status);
   if (filters.heatStatus) q = q.eq("heat_status", filters.heatStatus);
