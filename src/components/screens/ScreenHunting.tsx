@@ -47,6 +47,7 @@ import { LinkedinSignalCard } from '@/components/panel-blocks/LinkedinSignalCard
 import SignalActionDrawer from '@/components/features/hunter/SignalActionDrawer';
 import type { SignalActionData } from '@/components/features/hunter/SignalActionDrawer';
 import HunterCard from '@/components/panel-blocks/HunterCard';
+import KpiCard from '@/components/panel-blocks/KpiCard';
 import HunterSidepanel from '@/components/features/hunter/HunterSidepanel';
 import { ACTION_ROW } from '@/lib/componentBehavior';
 import PipelineStagnatedDrawer from '@/components/features/hunter/PipelineStagnatedDrawer';
@@ -203,88 +204,48 @@ export default function ScreenHunting({
           <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
             
             {/* KPI Card 1: Pipeline-Wert */}
-            <div className="bg-app-surface rounded-[12px] p-6 shadow-[var(--shadow-card)] flex flex-col justify-between h-[160px] hover:shadow-md transition-shadow relative">
-              <div className="flex justify-between items-start">
-                <span className="text-[12px] font-bold text-text-muted uppercase tracking-widest">
-                  {t('hunter.overview.pipelineValue')}
-                </span>
-                <div className="w-8 h-8 rounded-[12px] bg-[var(--signal-success-bg)] text-[var(--sherloq-primary)] flex items-center justify-center shrink-0">
-                  <TrendingUp size={16} strokeWidth={2.5} />
-                </div>
-              </div>
-
-              <div>
-                <div className="text-[32px] font-extrabold text-text-primary tracking-tighter leading-none mb-1">
-                  € 284.500
-                </div>
-                <div className="text-[11px] font-semibold text-[var(--signal-success-text)] flex items-center gap-1.5">
-                  <span><TrendingUp className="w-3 h-3" /> {t('hunter.overview.pipelineValueTrend')}</span>
-                </div>
-              </div>
-            </div>
+            <KpiCard
+              title={t('hunter.overview.pipelineValue')}
+              icon={<TrendingUp size={16} strokeWidth={2.5} />}
+              iconClass="bg-[var(--signal-success-bg)] text-[var(--sherloq-primary)]"
+              value="€ 284.500"
+              valueClass="text-text-primary"
+              subtitleClass="text-[11px] font-semibold text-[var(--signal-success-text)] flex items-center gap-1.5"
+              subtitle={<span><TrendingUp className="w-3 h-3" /> {t('hunter.overview.pipelineValueTrend')}</span>}
+            />
 
             {/* KPI Card 2: Deals in Gefahr */}
-            <div className="bg-app-surface rounded-[12px] p-6 shadow-[var(--shadow-card)] flex flex-col justify-between h-[160px] hover:shadow-md transition-shadow relative">
-              <div className="flex justify-between items-start">
-                <span className="text-[12px] font-bold text-text-muted uppercase tracking-widest">
-                  {t('hunter.overview.dealsAtRisk')}
-                </span>
-                <div className="w-8 h-8 rounded-[12px] bg-[var(--signal-urgent-bg)] text-[var(--signal-urgent-text)] flex items-center justify-center shrink-0">
-                  <AlertTriangle size={16} strokeWidth={2.5} />
-                </div>
-              </div>
-
-              <div>
-                <div className="text-[32px] font-extrabold text-[var(--signal-urgent-text)] tracking-tighter leading-none mb-1">
-                  4
-                </div>
-                <div className="text-[11px] font-semibold text-text-muted">
-                  {t('hunter.overview.stagnatedOver7Days')}
-                </div>
-              </div>
-            </div>
+            <KpiCard
+              title={t('hunter.overview.dealsAtRisk')}
+              icon={<AlertTriangle size={16} strokeWidth={2.5} />}
+              iconClass="bg-[var(--signal-urgent-bg)] text-[var(--signal-urgent-text)]"
+              value="4"
+              valueClass="text-[var(--signal-urgent-text)]"
+              subtitleClass="text-[11px] font-semibold text-text-muted"
+              subtitle={t('hunter.overview.stagnatedOver7Days')}
+            />
 
             {/* KPI Card 3: Heisse Signale */}
-            <div className="bg-app-surface rounded-[12px] p-6 shadow-[var(--shadow-card)] flex flex-col justify-between h-[160px] hover:shadow-md transition-shadow relative">
-              <div className="flex justify-between items-start">
-                <span className="text-[12px] font-bold text-text-muted uppercase tracking-widest">
-                  {t('hunter.overview.hotSignals')}
-                </span>
-                <div className="w-8 h-8 rounded-[12px] bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)] flex items-center justify-center shrink-0">
-                  <Zap size={16} strokeWidth={2.5} />
-                </div>
-              </div>
-
-              <div>
-                <div className="text-[32px] font-extrabold text-[var(--sherloq-primary)] tracking-tighter leading-none mb-1">
-                  7
-                </div>
-                <div className="text-[11px] font-semibold text-text-muted">
-                  {t('hunter.overview.activeSignalsToday')}
-                </div>
-              </div>
-            </div>
+            <KpiCard
+              title={t('hunter.overview.hotSignals')}
+              icon={<Zap size={16} strokeWidth={2.5} />}
+              iconClass="bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)]"
+              value="7"
+              valueClass="text-[var(--sherloq-primary)]"
+              subtitleClass="text-[11px] font-semibold text-text-muted"
+              subtitle={t('hunter.overview.activeSignalsToday')}
+            />
 
             {/* KPI Card 4: Follow-ups heute */}
-            <div className="bg-app-surface rounded-[12px] p-6 shadow-[var(--shadow-card)] flex flex-col justify-between h-[160px] hover:shadow-md transition-shadow relative">
-              <div className="flex justify-between items-start">
-                <span className="text-[12px] font-bold text-text-muted uppercase tracking-widest">
-                  {t('hunter.overview.followUpsToday')}
-                </span>
-                <div className="w-8 h-8 rounded-[12px] bg-[var(--signal-info-bg)] text-[var(--signal-info-text)] flex items-center justify-center shrink-0">
-                  <Clock size={16} strokeWidth={2.5} />
-                </div>
-              </div>
-
-              <div>
-                <div className="text-[32px] font-extrabold text-text-primary tracking-tighter leading-none mb-1">
-                  5
-                </div>
-                <div className="text-[11px] font-semibold text-text-muted">
-                  {t('hunter.overview.dueBy1800')}
-                </div>
-              </div>
-            </div>
+            <KpiCard
+              title={t('hunter.overview.followUpsToday')}
+              icon={<Clock size={16} strokeWidth={2.5} />}
+              iconClass="bg-[var(--signal-info-bg)] text-[var(--signal-info-text)]"
+              value="5"
+              valueClass="text-text-primary"
+              subtitleClass="text-[11px] font-semibold text-text-muted"
+              subtitle={t('hunter.overview.dueBy1800')}
+            />
 
           </div>
 

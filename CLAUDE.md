@@ -480,6 +480,9 @@ Alle prop-driven, Tokens-only, Dark-Mode automatisch.
 | `AktivitaetsVerlauf` | Aktivität-Tab: historischer Zeitstrahl (aktuell Empty-State, CRM-Sync folgt) |
 | `NotizenListe` | Notizen-Tab: manuelle Notizen (Datum/Autor + Speichern/Bearbeiten/Löschen) + „Neue Notiz" (`onAdd`/`onSave`/`onEdit`/`onDelete`) |
 | `PersonalityBadge` | Persönlichkeitsprofil-Pill (3 Dimensionen) — für künftiges Persönlichkeits-Feature (ab Confidence ≥ 60 %) |
+| `KpiCard` | KPI-Kachel (Hunter-Übersicht): Titel + Icon-Box · große Zahl · Subtitle/Trend (Icon/Farben/Subtitle als Node) |
+| `TaskAnlegenForm` | „Keine Task"-Formular (Header + Task-Form) — Inhalt des `NoTaskDrawer` (Sheet 50vw); `person`/`onClose`/`onToast` |
+| `TaskEntwurfForm` | Task-Entwurf (Header + Kontakt-Bar + Kanal/Titel/AI-Entwurf/Priorität + Speichern) — Inhalt des `TaskDrawer` (850px-Overlay) |
 | `KontaktZeile` `KiKurzakte` `PanelHeader` `PanelField` `DealSetup` `NewDealCard` `ErledigtAction` `KommunikationPreview` `OffeneTasks` `ActiveSequenceChain` `AktiveSignale` `PanelFooter` `ActionFooter` `ActionComposer` `PhoneNumbersField` `HunterCard` `SignalRow` `FollowUpKaltCard` `PipelineStagniertCard` `PipelineKeineTaskCard` `LinkedinSignalCard` `NewInPipelineCards` `SequenceLeadCards` | weitere Blöcke (Panel-/Karten-/Formular-Komposition) |
 
 > Neuer panel-block → **sofort** in diese Tabelle **und** in `panel-blocks/index.ts` (Barrel) eintragen.
