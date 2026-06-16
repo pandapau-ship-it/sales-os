@@ -5,7 +5,7 @@
  * Löschen on-hover (HOVER_ACTIONS). Datengetrieben (DealItem) + Default-Mock — das System
  * spielt echte Deals später 1:1 ein. Tokens-only.
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Plus, Briefcase, Pencil, Trash2, Check } from "lucide-react";
 import { HOVER_ACTIONS } from "@/lib/componentBehavior";
 import StageBadge from "./StageBadge";
@@ -17,6 +17,7 @@ const OWNERS = ["Oliver Sand", "Lena Brandt", "Marc Vogel"];
 
 const DEFAULT_DEALS: DealItem[] = [
   { id: "d1", value: "24000", owner: "Oliver Sand", arr: "24000", mrr: "2000", close: "2026-09-30", stage: "Demo vereinbart" },
+  { id: "d2", value: "8000", owner: "Lena Brandt", arr: "8000", mrr: "700", close: "2026-12-15", stage: "Free Trial" },
 ];
 
 const emptyDraft = (): DealDraft => ({ value: "", owner: "", arr: "", mrr: "", close: "" });
@@ -25,11 +26,20 @@ const fmtDate = (d: string) => (d ? new Date(d).toLocaleDateString("de-DE", { da
 
 let seq = 0;
 
-export default function DealsListe({ onToast }: { onToast?: (msg: string) => void }) {
+export default function DealsListe({
+  onToast, autoEdit = false, onAutoEditConsumed,
+}: { onToast?: (msg: string) => void; autoEdit?: boolean; onAutoEditConsumed?: () => void }) {
   const [deals, setDeals] = useState<DealItem[]>(DEFAULT_DEALS);
-  const [creating, setCreating] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [draft, setDraft] = useState<DealDraft>(emptyDraft());
+  // autoEdit (aus der Übersicht): ersten Deal direkt in der Bearbeiten-Kachel öffnen.
+  const first = DEFAULT_DEALS[0];
+  const [creating, setCreating] = useState<boolean>(autoEdit && !!first);
+  const [editingId, setEditingId] = useState<string | null>(autoEdit && first ? first.id : null);
+  const [draft, setDraft] = useState<DealDraft>(
+    autoEdit && first ? { value: first.value, owner: first.owner, arr: first.arr, mrr: first.mrr, close: first.close } : emptyDraft(),
+  );
+
+  // autoEdit nur beim Eintritt anwenden, dann im Parent zurücksetzen.
+  useEffect(() => { if (autoEdit) onAutoEditConsumed?.(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const openNew = () => { setEditingId(null); setDraft(emptyDraft()); setCreating(true); };
   const openEdit = (d: DealItem) => {

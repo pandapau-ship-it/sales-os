@@ -1,13 +1,38 @@
 /**
- * DealSetup — Deal-Kennzahlen-Grid (Master-Card-Stil). Extrahiert aus shared/HunterSidepanel.tsx.
+ * DealSetup — Deal-Kennzahlen-Grid (Master-Card-Stil) für die Übersicht.
+ * Hover → Bearbeiten-Stift (führt in den Deal-Tab mit offener Bearbeiten-Kachel, `onEdit`).
+ * Bei mehreren Deals: Count-Badge neben der Überschrift → `onOpenDeals` (Deal-Tab).
  */
-import { AlertTriangle, Briefcase } from "lucide-react";
+import { AlertTriangle, Briefcase, Pencil } from "lucide-react";
+import { HOVER_ACTIONS } from "@/lib/componentBehavior";
 
-export default function DealSetup({ stage = "Demo vereinbart" }: { stage?: string }) {
+export default function DealSetup({
+  stage = "Demo vereinbart", count = 1, onEdit, onOpenDeals,
+}: { stage?: string; count?: number; onEdit?: () => void; onOpenDeals?: () => void }) {
   return (
-    <div className="bg-app-surface rounded-[12px] p-5 border border-border shadow-[var(--shadow-card)]">
-      <div className="flex items-center gap-2 text-[11px] font-bold font-mono text-text-muted uppercase tracking-wider mb-4">
-        <Briefcase className="w-4 h-4" /> Deal Setup
+    <div className="group bg-app-surface rounded-[12px] p-5 border border-border shadow-[var(--shadow-card)]">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2 text-[11px] font-bold font-mono text-text-muted uppercase tracking-wider">
+          <Briefcase className="w-4 h-4" /> Deal Setup
+          {count > 1 && (
+            <button
+              onClick={onOpenDeals}
+              title="Alle Deals ansehen"
+              className="ml-1 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1.5 rounded-full bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)] text-[10px] font-extrabold cursor-pointer hover:opacity-80 transition-opacity"
+            >
+              {count}
+            </button>
+          )}
+        </div>
+        {onEdit && (
+          <button
+            onClick={onEdit}
+            aria-label="Deal bearbeiten"
+            className={`w-7 h-7 rounded-full flex items-center justify-center text-text-muted hover:text-[var(--sherloq-primary)] hover:bg-app-bg transition-colors cursor-pointer ${HOVER_ACTIONS}`}
+          >
+            <Pencil className="w-3.5 h-3.5" />
+          </button>
+        )}
       </div>
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-[12px]">
         <div className="flex flex-col gap-1">

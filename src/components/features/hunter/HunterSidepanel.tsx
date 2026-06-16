@@ -71,6 +71,8 @@ const DEFAULT_DETAILS = {
 
 export default function HunterSidepanel({ person: personProp, onClose, onExit, variant = 'panel' }: { person: any; onClose: () => void; onExit?: () => void; variant?: 'panel' | 'full' }) {
   const [activeTab, setActiveTab] = useState(variant === 'full' ? 'details' : 'overview');
+  // Aus der Übersicht „Deal bearbeiten" → Deal-Tab öffnet die Bearbeiten-Kachel direkt.
+  const [dealsAutoEdit, setDealsAutoEdit] = useState(false);
   const [showVollansicht, setShowVollansicht] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -229,9 +231,18 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
 
             <AktiveSignale onAction={(key) => { if (key === 'stagniert') showToast('Next Step geöffnet'); else if (key === 'keine_task') showToast('Task anlegen gestartet'); else setActiveTab('communication'); }} />
 
-            <DealSetup stage={stage} />
+            <DealSetup
+              stage={stage}
+              count={2}
+              onEdit={() => { setDealsAutoEdit(true); setActiveTab('deals'); }}
+              onOpenDeals={() => setActiveTab('deals')}
+            />
 
-            <OffeneTasks onAdd={() => showToast('Neue Task angelegt')} />
+            <OffeneTasks
+              onAdd={() => showToast('Neue Task angelegt')}
+              onOpenTasks={() => setActiveTab('tasks')}
+              onToast={showToast}
+            />
 
             <ActiveSequenceChain />
 
@@ -253,7 +264,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
         )}
 
         {activeTab === 'deals' && (
-          <DealsListe onToast={showToast} />
+          <DealsListe onToast={showToast} autoEdit={dealsAutoEdit} onAutoEditConsumed={() => setDealsAutoEdit(false)} />
         )}
 
         {activeTab === 'notes' && (
