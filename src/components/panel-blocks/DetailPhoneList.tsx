@@ -92,7 +92,7 @@ export default function DetailPhoneList({
               </button>
             )}
 
-            <div className="flex items-center gap-0.5 shrink-0">
+            <div className="flex items-center gap-0.5 shrink-0 opacity-0 group-hover/ph:opacity-100 focus-within:opacity-100 transition">
               <button onClick={() => copy(p.number)} aria-label="Kopieren" className="w-7 h-7 rounded-md flex items-center justify-center text-text-muted hover:text-[var(--sherloq-primary)] hover:bg-app-surface transition-colors cursor-pointer">
                 <Copy className="w-3.5 h-3.5" />
               </button>

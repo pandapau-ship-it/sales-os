@@ -4,6 +4,7 @@
  * Kanonischer Stand aus features/hunter/HunterSidepanel.tsx. Prop-driven (Toasts beim Aufrufer).
  */
 import { Plus, Save, Pencil, Trash2 } from "lucide-react";
+import { HOVER_ACTIONS } from "@/lib/componentBehavior";
 
 export default function NotizenListe({
   onAdd, onSave, onEdit, onDelete,
@@ -21,7 +22,7 @@ export default function NotizenListe({
         <div className="p-4 bg-app-surface border border-border rounded-[12px] shadow-sm group">
           <div className="flex items-start justify-between gap-3">
             <span className="text-[10px] text-text-muted font-bold">12. Mai 2026 · Oliver Prossi</span>
-            <div className="flex items-center gap-1 shrink-0">
+            <div className={`flex items-center gap-1 shrink-0 ${HOVER_ACTIONS}`}>
               <button onClick={onSave} aria-label="Speichern" className="w-7 h-7 rounded-full flex items-center justify-center text-text-muted hover:text-[var(--sherloq-primary)] hover:bg-app-bg transition-colors cursor-pointer">
                 <Save className="w-3.5 h-3.5" />
               </button>
@@ -39,7 +40,7 @@ export default function NotizenListe({
         <div className="p-4 bg-app-surface border border-border rounded-[12px] shadow-sm group">
           <div className="flex items-start justify-between gap-3">
             <span className="text-[10px] text-text-muted font-bold">03. April 2026 · Oliver Prossi</span>
-            <div className="flex items-center gap-1 shrink-0">
+            <div className={`flex items-center gap-1 shrink-0 ${HOVER_ACTIONS}`}>
               <button onClick={onSave} aria-label="Speichern" className="w-7 h-7 rounded-full flex items-center justify-center text-text-muted hover:text-[var(--sherloq-primary)] hover:bg-app-bg transition-colors cursor-pointer">
                 <Save className="w-3.5 h-3.5" />
               </button>

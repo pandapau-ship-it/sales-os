@@ -5,19 +5,20 @@
  */
 import { useState } from "react";
 import { Zap, Pencil, Save } from "lucide-react";
+import { HOVER_ACTIONS } from "@/lib/componentBehavior";
 
 export default function KiKurzakte({ items, onSave }: { items: string[]; onSave: (items: string[]) => void }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState("");
 
   return (
-    <div className="bg-app-surface rounded-[12px] p-5 border border-border shadow-[var(--shadow-card)]">
+    <div className="group bg-app-surface rounded-[12px] p-5 border border-border shadow-[var(--shadow-card)]">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2 text-[11px] font-bold font-mono text-[var(--sherloq-primary)] uppercase tracking-wider">
           <Zap className="w-4 h-4" /> KI Kurzakte
         </div>
         {!editing && (
-          <button onClick={() => { setDraft(items.join('\n')); setEditing(true); }} aria-label="Bearbeiten" className="text-text-muted hover:text-[var(--sherloq-primary)] transition-colors cursor-pointer">
+          <button onClick={() => { setDraft(items.join('\n')); setEditing(true); }} aria-label="Bearbeiten" className={`text-text-muted hover:text-[var(--sherloq-primary)] cursor-pointer ${HOVER_ACTIONS}`}>
             <Pencil className="w-3.5 h-3.5" />
           </button>
         )}

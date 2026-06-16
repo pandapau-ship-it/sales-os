@@ -4,6 +4,7 @@
  */
 import { Phone, Star, Plus, Trash2 } from "lucide-react";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { HOVER_ACTIONS } from "@/lib/componentBehavior";
 
 export interface PhoneRow { id: number; type: string; number: string; primary: boolean; }
 const TYPES = ["Mobil", "Büro", "Direkt"];
@@ -27,7 +28,7 @@ export default function PhoneNumbersField({
   return (
     <div className="flex flex-col gap-2">
       {value.map((ph) => (
-        <div key={ph.id} className="flex items-center gap-2">
+        <div key={ph.id} className="group flex items-center gap-2">
           <button type="button" onClick={() => setPrimary(ph.id)} aria-label="Primär markieren"
             className={`w-9 h-9 shrink-0 rounded-[10px] border flex items-center justify-center transition-colors cursor-pointer ${ph.primary ? "border-[var(--sherloq-primary)] bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)]" : "border-border text-text-muted hover:text-text-body"}`}>
             <Star className="w-3.5 h-3.5" fill={ph.primary ? "currentColor" : "none"} />
@@ -43,7 +44,7 @@ export default function PhoneNumbersField({
             <input type="tel" placeholder="+49 170 ..." value={ph.number} onChange={(e) => patch(ph.id, "number", e.target.value)} className={`${FIELD} pl-9`} />
           </div>
           {value.length > 1 && (
-            <button type="button" onClick={() => remove(ph.id)} aria-label="Nummer entfernen" className="w-9 h-9 shrink-0 rounded-[10px] text-text-muted hover:text-[var(--signal-danger-text)] hover:bg-app-bg flex items-center justify-center transition-colors cursor-pointer">
+            <button type="button" onClick={() => remove(ph.id)} aria-label="Nummer entfernen" className={`w-9 h-9 shrink-0 rounded-[10px] text-text-muted hover:text-[var(--signal-danger-text)] hover:bg-app-bg flex items-center justify-center cursor-pointer ${HOVER_ACTIONS}`}>
               <Trash2 className="w-3.5 h-3.5" />
             </button>
           )}

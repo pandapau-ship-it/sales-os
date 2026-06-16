@@ -313,6 +313,17 @@ kein Feature. Bei neuem Verhalten: zuerst prüfen, ob das Element woanders schon
 | Buttons (primär) | ❌ Nein | Fill reicht |
 | Expanded-Content-Bereiche | ✅ Ja — `border-t border-[#F1F3F5]` | Trenner, kein Kasten |
 
+**Hover-Aktionen — Edit / Löschen / Copy nur bei Hover (verbindlich für ALLE Kacheln):**
+Bearbeiten-, Löschen- und Copy-Buttons in einer Kachel/Zeile sind **standardmäßig unsichtbar**
+und erscheinen erst beim **Hover über die Kachel** (Tastatur: via `focus-within`). Reduziert
+visuelles Rauschen, die Kachel bleibt ruhig. Umsetzung über die **einzige Quelle**
+`HOVER_ACTIONS` in `src/lib/componentBehavior.ts`:
+- Kachel/Zeile trägt `group` · Button **oder** Button-Container bekommt `${HOVER_ACTIONS}`.
+- Bei verschachtelten/benannten Groups: `opacity-0 group-hover/<name>:opacity-100 focus-within:opacity-100 transition`.
+- **Immer sichtbar bleiben:** Aufklapp-Chevron, primäre CTAs (z.B. „Neue Task"), Status-Badges —
+  nur die sekundären Datensatz-Aktionen (Edit/Löschen/Copy) sind hover-gated.
+- Bereits konform: `DetailField` · `EditableInline` · `PhoneField` (eigene benannte Groups).
+
 **Badge / Status-Pill Muster (verbindlich für ALLE Screens):**
 
 NIEMALS Emojis in Badges (✅ ✖️ 🆕 ⌛ etc.) — immer Lucide-Icons.

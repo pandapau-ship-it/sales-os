@@ -66,6 +66,17 @@ export const CARD = {
     "absolute -left-3 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center w-[22px] h-[22px] rounded-md z-10 cursor-pointer",
 } as const;
 
+/**
+ * HOVER_ACTIONS — GLOBALE REGEL: Edit-/Löschen-/Copy-Buttons in Kacheln/Zeilen sind
+ * standardmäßig unsichtbar und erscheinen erst beim Hover über die Kachel (Tastatur:
+ * via focus-within). Voraussetzung: die Kachel trägt `group`. Auf den Button ODER den
+ * Button-Container anwenden. Bei benannten Groups stattdessen die Variante
+ * `opacity-0 group-hover/<name>:opacity-100 focus-within:opacity-100 transition` nutzen.
+ * `transition` (statt transition-opacity) deckt zugleich die Hover-Farbwechsel ab.
+ */
+export const HOVER_ACTIONS =
+  "opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition" as const;
+
 /** Action-Row-Vorgaben ("Neu in Pipeline" ist die Referenz). */
 export const ACTION_ROW = {
   /** Voll-breite Zeile unterhalb des Bodys. */
