@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import LinkedinIcon from '@/components/shared/LinkedinIcon';
 import Avatar from '@/components/shared/Avatar';
-import { ActiveSequenceChain, AktiveSignale, AktivitaetsVerlauf, DealSetup, DetailField, DetailPhoneList, DetailSection, HeatBadge, KiKurzakte, KommunikationPreview, KommunikationVerlauf, KontaktZeile, NotizenListe, OffeneTasks, PanelTabs, StageBadge, StatusBadge, TasksListe } from '@/components';
+import { ActiveSequenceChain, AktiveSignale, AktivitaetsVerlauf, DealSetup, DealsListe, DetailField, DetailPhoneList, DetailSection, HeatBadge, KiKurzakte, KommunikationPreview, KommunikationVerlauf, KontaktZeile, NotizenListe, OffeneTasks, PanelTabs, StageBadge, StatusBadge, TasksListe } from '@/components';
 
 /** Kanonische Default-Stages (Spec §3.2) — bis zum DB-Wiring dokumentierter Fallback. */
 const PIPELINE_STAGES = ['Backlog', 'Demo vereinbart', 'Follow-up offen', 'Onboarding offen', 'Free Trial', 'Gewonnen'];
@@ -212,6 +212,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
         { id: 'communication', label: 'Kommunikation' },
         { id: 'activity', label: 'Aktivität' },
         { id: 'tasks', label: 'Tasks' },
+        { id: 'deals', label: 'Deals' },
         { id: 'notes', label: 'Notizen' },
       ]}
       active={activeTab}
@@ -249,6 +250,10 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
 
         {activeTab === 'tasks' && (
           <TasksListe onToast={showToast} />
+        )}
+
+        {activeTab === 'deals' && (
+          <DealsListe onToast={showToast} />
         )}
 
         {activeTab === 'notes' && (
@@ -410,6 +415,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
     { id: 'communication', label: 'Kommunikation' },
     { id: 'activity', label: 'Aktivität' },
     { id: 'tasks', label: 'Tasks' },
+    { id: 'deals', label: 'Deals' },
     { id: 'notes', label: 'Notizen' },
   ];
   const fullBody = person && (
