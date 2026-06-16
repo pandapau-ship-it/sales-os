@@ -22,6 +22,7 @@ export { default as KiKurzakte } from './KiKurzakte';
 export { default as KommunikationPreview } from './KommunikationPreview';
 export { default as KommunikationVerlauf } from './KommunikationVerlauf';
 export { default as KpiCard } from './KpiCard';
+export { default as LeadListRow } from './LeadListRow';
 export { default as TaskAnlegenForm } from './TaskAnlegenForm';
 export { default as TaskEntwurfForm } from './TaskEntwurfForm';
 export { default as KontaktZeile } from './KontaktZeile';
