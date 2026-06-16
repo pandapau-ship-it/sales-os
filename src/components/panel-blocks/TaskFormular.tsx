@@ -1,10 +1,9 @@
 /**
  * TaskFormular — generische Task-Maske (Anlegen + Bearbeiten): NUR das Formular,
- * keine Kontext-/KI-Meldungen. Optik identisch zum Task-Formular-Card im Panel
- * (vgl. TaskAnlegenForm BLOCK 3) — Header + Titel/Kontakt/Deal/Kanal/Beschreibung/
- * Fälligkeit/Priorität/Zuständig/Erinnerung + Speichern/Abbrechen. Self-contained
- * State aus `initial`. Prop-driven (onSave/onClose, optional onToast). Tokens-only,
- * reused die bestehenden i18n-Keys (hunter.drawers.noTask.*).
+ * keine Kontext-/KI-Meldungen. Größen/Token nach House-Style (vgl. AddSdrLeadPanel +
+ * PanelField): Header 15px/bold, Feld-Labels 11px/semibold, Inputs px-3.5 py-2.5 auf
+ * bg-app-bg, Buttons rounded-[10px]. Self-contained State aus `initial`. Prop-driven
+ * (onSave/onClose, optional onToast). Tokens-only, reused i18n-Keys (hunter.drawers.noTask.*).
  */
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -25,6 +24,11 @@ export interface TaskFormInitial {
   reminderDate?: string;
   reminderTime?: string;
 }
+
+// House-Style-Klassen (wie AddSdrLeadPanel: FIELD/TRIGGER-Konstanten).
+const LABEL = "text-[11px] font-semibold text-text-muted";
+const INPUT =
+  "w-full px-3.5 py-2.5 rounded-[10px] border border-border bg-app-bg outline-none focus:border-[var(--sherloq-primary)] transition-colors text-[13px] font-semibold";
 
 const plusDays = (n: number) => {
   const d = new Date();
@@ -82,7 +86,7 @@ export default function TaskFormular({
         <div className="px-5 py-4 flex items-center justify-between border-b border-border-subtle">
           <div className="flex items-center gap-2">
             <ClipboardList className="w-4 h-4 text-[var(--sherloq-primary)]" />
-            <h2 className="text-[16px] font-semibold text-text-primary">
+            <h2 className="text-[15px] font-bold text-text-primary">
               {mode === "edit" ? t("hunter.drawers.noTask.editTask") : t("hunter.drawers.noTask.newTask")}
             </h2>
           </div>
@@ -96,31 +100,31 @@ export default function TaskFormular({
         <div className="p-5 space-y-5">
           {/* Titel */}
           <div className="space-y-1.5">
-            <label className="text-[12px] font-bold text-text-muted">{t("hunter.drawers.noTask.whatToDo")}</label>
+            <label className={LABEL}>{t("hunter.drawers.noTask.whatToDo")}</label>
             <input
               type="text"
               value={title}
               onChange={(e) => { setTitle(e.target.value); if (isError) setIsError(false); }}
               placeholder={t("hunter.drawers.noTask.taskTitlePlaceholder")}
-              className={`w-full px-4 py-3 rounded-[10px] border outline-none transition-all focus:border-[var(--sherloq-primary)] text-[13px] font-semibold ${isError ? "border-[var(--signal-warn-bg)] bg-[var(--signal-warn-bg)]" : "border-border"}`}
+              className={`w-full px-3.5 py-2.5 rounded-[10px] border outline-none transition-colors focus:border-[var(--sherloq-primary)] text-[13px] font-semibold ${isError ? "border-[var(--signal-warn-text)] bg-[var(--signal-warn-bg)]" : "border-border bg-app-bg"}`}
             />
           </div>
 
           {/* Kontakt & Deal */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-[12px] font-bold text-text-muted">{t("hunter.drawers.noTask.contact")}</label>
+              <label className={LABEL}>{t("hunter.drawers.noTask.contact")}</label>
               <input
                 type="text"
                 value={initial.contact ?? "Sarah Jenkins"}
                 readOnly
-                className="w-full px-4 py-2.5 rounded-[10px] border border-border outline-none bg-app-bg cursor-not-allowed text-[13px] font-semibold text-text-muted"
+                className={`${INPUT} cursor-not-allowed text-text-muted`}
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-[12px] font-bold text-text-muted">{t("hunter.drawers.noTask.deal")}</label>
+              <label className={LABEL}>{t("hunter.drawers.noTask.deal")}</label>
               <Select defaultValue={initial.deal ?? "demo"}>
-                <SelectTrigger className="w-full px-4 py-2.5 rounded-[10px] border-border bg-app-surface text-[13px] font-semibold text-text-primary">
+                <SelectTrigger className="w-full px-3.5 py-2.5 rounded-[10px] border-border bg-app-bg text-[13px] font-semibold text-text-primary">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -134,7 +138,7 @@ export default function TaskFormular({
 
           {/* Kanal */}
           <div className="space-y-2">
-            <label className="text-[12px] font-bold text-text-muted">{t("hunter.drawers.noTask.channel")}</label>
+            <label className={LABEL}>{t("hunter.drawers.noTask.channel")}</label>
             <div className="flex gap-2">
               {CHANNELS.map(({ key, Icon }) => (
                 <button
@@ -151,35 +155,26 @@ export default function TaskFormular({
 
           {/* Beschreibung */}
           <div className="space-y-1.5">
-            <label className="text-[12px] font-bold text-text-muted">{t("hunter.drawers.noTask.descriptionOptional")}</label>
+            <label className={LABEL}>{t("hunter.drawers.noTask.descriptionOptional")}</label>
             <textarea
               rows={5}
               defaultValue={initial.description ?? ""}
-              className="w-full px-4 py-3 rounded-[10px] border border-border outline-none focus:border-[var(--sherloq-primary)] resize-none text-[13px] font-medium leading-relaxed min-h-[120px]"
+              className="w-full px-3.5 py-3 rounded-[10px] border border-border bg-app-bg outline-none focus:border-[var(--sherloq-primary)] transition-colors resize-none text-[13px] font-medium leading-relaxed min-h-[120px]"
             />
           </div>
 
           {/* Settings Grid */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-[12px] font-bold text-text-muted">{t("hunter.drawers.noTask.dueDate")}</label>
-              <input
-                type="date"
-                value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-[10px] border border-border outline-none text-[13px] font-semibold"
-              />
+              <label className={LABEL}>{t("hunter.drawers.noTask.dueDate")}</label>
+              <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className={INPUT} />
             </div>
             <div className="space-y-1.5">
-              <label className="text-[12px] font-bold text-text-muted">{t("hunter.drawers.noTask.time")}</label>
-              <input
-                type="time"
-                defaultValue={initial.dueTime ?? "09:00"}
-                className="w-full px-4 py-2.5 rounded-[10px] border border-border outline-none text-[13px] font-semibold"
-              />
+              <label className={LABEL}>{t("hunter.drawers.noTask.time")}</label>
+              <input type="time" defaultValue={initial.dueTime ?? "09:00"} className={INPUT} />
             </div>
             <div className="space-y-1.5">
-              <label className="text-[12px] font-bold text-text-muted">{t("hunter.drawers.noTask.priority")}</label>
+              <label className={LABEL}>{t("hunter.drawers.noTask.priority")}</label>
               <div className="flex gap-1.5">
                 {PRIORITIES.map((p) => (
                   <button
@@ -193,7 +188,7 @@ export default function TaskFormular({
               </div>
             </div>
             <div className="space-y-1.5">
-              <label className="text-[12px] font-bold text-text-muted">{t("hunter.drawers.noTask.assignee")}</label>
+              <label className={LABEL}>{t("hunter.drawers.noTask.assignee")}</label>
               <div className="flex items-center gap-2 bg-app-bg p-1.5 rounded-[10px]">
                 <div className="w-6 h-6 rounded-full bg-sherloq-primary text-on-accent text-[10px] flex items-center justify-center font-bold">ME</div>
                 <span className="text-[12px] font-bold text-text-body">{t("hunter.drawers.noTask.myself")}</span>
@@ -216,22 +211,12 @@ export default function TaskFormular({
             {reminderActive && (
               <div className="grid grid-cols-2 gap-4 animate-fade-in">
                 <div className="space-y-1.5">
-                  <label className="text-[12px] font-bold text-text-muted">{t("hunter.drawers.noTask.reminderDay")}</label>
-                  <input
-                    type="date"
-                    value={reminderDate}
-                    onChange={(e) => setReminderDate(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-[10px] border border-border outline-none focus:border-[var(--sherloq-primary)] transition-colors text-[13px] font-semibold"
-                  />
+                  <label className={LABEL}>{t("hunter.drawers.noTask.reminderDay")}</label>
+                  <input type="date" value={reminderDate} onChange={(e) => setReminderDate(e.target.value)} className={INPUT} />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[12px] font-bold text-text-muted">{t("hunter.drawers.noTask.time")}</label>
-                  <input
-                    type="time"
-                    value={reminderTime}
-                    onChange={(e) => setReminderTime(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-[10px] border border-border outline-none focus:border-[var(--sherloq-primary)] transition-colors text-[13px] font-semibold"
-                  />
+                  <label className={LABEL}>{t("hunter.drawers.noTask.time")}</label>
+                  <input type="time" value={reminderTime} onChange={(e) => setReminderTime(e.target.value)} className={INPUT} />
                 </div>
               </div>
             )}
