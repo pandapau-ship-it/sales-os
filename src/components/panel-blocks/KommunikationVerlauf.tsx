@@ -127,7 +127,7 @@ function CommBody({ item }: { item: KommunikationItem }) {
           className={`max-w-[88%] px-3.5 py-2.5 text-[12px] leading-relaxed ${
             out
               ? "rounded-[14px] rounded-br-[4px] bg-[var(--channel-linkedin)]/10 text-text-body"
-              : "rounded-[14px] rounded-bl-[4px] bg-app-bg border border-border text-text-body"
+              : "rounded-[14px] rounded-bl-[4px] bg-app-surface border border-border text-text-body"
           }`}
         >
           {item.body}
@@ -138,7 +138,7 @@ function CommBody({ item }: { item: KommunikationItem }) {
 
   if (item.channel === "call") {
     return (
-      <div className="mt-2.5 rounded-[10px] border border-border bg-app-bg px-3.5 py-3">
+      <div className="mt-2.5 rounded-[10px] border border-border bg-app-surface px-3.5 py-3">
         <div className="flex items-center gap-2 mb-1.5">
           <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[var(--channel-call)]">
             <Phone className="w-3.5 h-3.5" strokeWidth={2.5} />
@@ -157,7 +157,7 @@ function CommBody({ item }: { item: KommunikationItem }) {
 
   if (item.channel === "meeting") {
     return (
-      <div className="mt-2.5 rounded-[10px] border border-border bg-app-bg px-3.5 py-3">
+      <div className="mt-2.5 rounded-[10px] border border-border bg-app-surface px-3.5 py-3">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-2">
           {item.duration && (
             <span className="inline-flex items-center gap-1 text-[11px] text-text-muted">
@@ -177,7 +177,7 @@ function CommBody({ item }: { item: KommunikationItem }) {
 
   // note
   return (
-    <p className="mt-2.5 rounded-[10px] border border-border bg-app-bg px-3.5 py-3 text-[12px] text-text-body leading-relaxed italic">
+    <p className="mt-2.5 rounded-[10px] border border-border bg-app-surface px-3.5 py-3 text-[12px] text-text-body leading-relaxed italic">
       {item.body}
     </p>
   );
