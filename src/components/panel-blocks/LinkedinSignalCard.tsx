@@ -2,8 +2,8 @@ import type { MouseEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { Flame } from "lucide-react";
 import LinkedinIcon from "@/components/shared/LinkedinIcon";
-import { HunterCard } from '@/components';
-import type { HunterCardData, SignalActionData } from '@/components';
+import HunterCard, { type HunterCardData } from './HunterCard';
+import type { SignalActionData } from '../features/hunter/SignalActionDrawer';
 import { ACTION_ROW } from "@/lib/componentBehavior";
 import type { Lead } from "@/types";
 

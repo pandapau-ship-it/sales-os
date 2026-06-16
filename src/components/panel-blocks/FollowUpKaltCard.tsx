@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { AlertTriangle, Snowflake, Clock, RotateCcw } from "lucide-react";
-import { HunterCard } from '@/components';
-import type { HunterCardData } from '@/components';
+import HunterCard, { type HunterCardData } from './HunterCard';
 import { ACTION_ROW } from "@/lib/componentBehavior";
 import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,

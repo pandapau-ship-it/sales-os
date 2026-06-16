@@ -4,7 +4,7 @@
  */
 import { Briefcase, Euro, Calendar } from "lucide-react";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { PanelField } from '@/components';
+import PanelField from './PanelField';
 
 export interface DealDraft { value: string; owner: string; arr: string; mrr: string; close: string; }
 const FIELD_SURFACE =

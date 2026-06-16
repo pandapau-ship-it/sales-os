@@ -502,9 +502,11 @@ import HunterCard from '@/components/panel-blocks/HunterCard';
 
 - **Default-Exports werden als Named exportiert** → immer `import { X } from '@/components'` (kein Default-Import).
 - **Ausnahme `ui/` (shadcn):** weiterhin direkt aus `@/components/ui/*` (bewusst nicht im Barrel).
-- Neue Komponente → ins jeweilige Unter-Barrel/Top-Level-Barrel eintragen, dann via `@/components` nutzen.
-- Hinweis Circular Imports: Library-interne Geschwister-Imports laufen ebenfalls über `@/components`
-  (render-time-sicher, da Nutzung nur in JSX/Funktionskörpern — nicht auf Modul-Ebene).
+- **Nur Consumer nutzen `@/components`:** Screens (`screens/`) und Feature-Kompositionen (`features/`).
+- **Library-intern = relativ (kein Self-Import des Barrels → keine Circular Deps):** Komponenten in
+  `panel-blocks/` und Atome in `shared/` importieren Geschwister **relativ** (`./HeatBadge`,
+  `../panel-blocks/HeatBadge`), **nie** über `@/components`.
+- Neue Komponente → ins jeweilige Unter-Barrel/Top-Level-Barrel eintragen, dann von Consumern via `@/components` nutzen.
 
 ### Vollansicht / Kontakt-Detail (Entscheidung 2026-06-15)
 
