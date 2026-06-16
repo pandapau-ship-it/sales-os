@@ -27,7 +27,7 @@ const STAGES: { id: Lead["pipelineStage"]; label: string }[] = [
   { id: "sequence", label: "Onboarding offen" },
   { id: "trial", label: "Free Trial" },
 ];
-const EMPTY_DEAL: DealDraft = { value: "", owner: "", arr: "", mrr: "", close: "" };
+const EMPTY_DEAL: DealDraft = { name: "", product: "", value: "", owner: "", arr: "", mrr: "", close: "" };
 
 const FIELD =
   "w-full text-[13px] font-sans px-3.5 py-2.5 bg-app-bg border border-border focus:border-[var(--sherloq-primary)] rounded-[10px] focus:outline-none transition-colors placeholder-[var(--text-muted)]";

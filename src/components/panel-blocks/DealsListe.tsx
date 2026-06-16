@@ -16,11 +16,11 @@ interface DealItem extends DealDraft { id: string; stage: string; }
 const OWNERS = ["Oliver Sand", "Lena Brandt", "Marc Vogel"];
 
 const DEFAULT_DEALS: DealItem[] = [
-  { id: "d1", value: "24000", owner: "Oliver Sand", arr: "24000", mrr: "2000", close: "2026-09-30", stage: "Demo vereinbart" },
-  { id: "d2", value: "8000", owner: "Lena Brandt", arr: "8000", mrr: "700", close: "2026-12-15", stage: "Free Trial" },
+  { id: "d1", name: "LogixFlow — Enterprise", product: "Enterprise", value: "24000", owner: "Oliver Sand", arr: "24000", mrr: "2000", close: "2026-09-30", stage: "Demo vereinbart" },
+  { id: "d2", name: "LogixFlow — Free Trial", product: "Growth", value: "8000", owner: "Lena Brandt", arr: "8000", mrr: "700", close: "2026-12-15", stage: "Free Trial" },
 ];
 
-const emptyDraft = (): DealDraft => ({ value: "", owner: "", arr: "", mrr: "", close: "" });
+const emptyDraft = (): DealDraft => ({ name: "", product: "", value: "", owner: "", arr: "", mrr: "", close: "" });
 const fmtEur = (v: string) => (v && !Number.isNaN(Number(v)) ? `€ ${Number(v).toLocaleString("de-DE")}` : "—");
 const fmtDate = (d: string) => (d ? new Date(d).toLocaleDateString("de-DE", { day: "2-digit", month: "short", year: "numeric" }) : "—");
 
@@ -35,7 +35,7 @@ export default function DealsListe({
   const [creating, setCreating] = useState<boolean>((autoEdit && !!first) || autoNew);
   const [editingId, setEditingId] = useState<string | null>(autoEdit && first ? first.id : null);
   const [draft, setDraft] = useState<DealDraft>(
-    autoEdit && first ? { value: first.value, owner: first.owner, arr: first.arr, mrr: first.mrr, close: first.close } : emptyDraft(),
+    autoEdit && first ? { name: first.name, product: first.product, value: first.value, owner: first.owner, arr: first.arr, mrr: first.mrr, close: first.close } : emptyDraft(),
   );
 
   // autoEdit/autoNew nur beim Eintritt anwenden, dann im Parent zurücksetzen.
@@ -44,7 +44,7 @@ export default function DealsListe({
   const openNew = () => { setEditingId(null); setDraft(emptyDraft()); setCreating(true); };
   const openEdit = (d: DealItem) => {
     setEditingId(d.id);
-    setDraft({ value: d.value, owner: d.owner, arr: d.arr, mrr: d.mrr, close: d.close });
+    setDraft({ name: d.name, product: d.product, value: d.value, owner: d.owner, arr: d.arr, mrr: d.mrr, close: d.close });
     setCreating(true);
   };
   const cancel = () => { setCreating(false); setEditingId(null); setDraft(emptyDraft()); };
@@ -97,8 +97,8 @@ export default function DealsListe({
                   <Briefcase className="w-5 h-5" />
                 </span>
                 <div className="min-w-0">
-                  <p className="text-[15px] font-extrabold text-text-primary leading-tight">{fmtEur(d.value)}</p>
-                  <p className="text-[11px] text-text-muted mt-0.5 truncate">{d.owner || "Kein Owner"} · Abschluss: {fmtDate(d.close)}</p>
+                  <p className="text-[15px] font-extrabold text-text-primary leading-tight truncate">{d.name || fmtEur(d.value)}</p>
+                  <p className="text-[11px] text-text-muted mt-0.5 truncate">{fmtEur(d.value)} · {d.owner || "Kein Owner"} · Abschluss: {fmtDate(d.close)}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2 shrink-0">
@@ -115,6 +115,7 @@ export default function DealsListe({
             </div>
 
             <div className="flex items-center flex-wrap gap-1.5 mt-3">
+              {d.product && <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[var(--signal-teal-bg)] border border-[var(--signal-teal-bg)] text-[var(--sherloq-primary)] text-[10px] font-bold">{d.product}</span>}
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-app-bg border border-border text-text-body text-[10px] font-bold">ARR: {fmtEur(d.arr)}</span>
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-app-bg border border-border text-text-body text-[10px] font-bold">MRR: {fmtEur(d.mrr)}</span>
             </div>

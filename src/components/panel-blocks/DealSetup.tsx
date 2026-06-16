@@ -7,8 +7,8 @@ import { AlertTriangle, Briefcase, Pencil } from "lucide-react";
 import { HOVER_ACTIONS } from "@/lib/componentBehavior";
 
 export default function DealSetup({
-  stage = "Demo vereinbart", count = 1, onEdit, onOpenDeals,
-}: { stage?: string; count?: number; onEdit?: () => void; onOpenDeals?: () => void }) {
+  stage = "Demo vereinbart", count = 1, dealName = "LogixFlow — Enterprise", product = "Enterprise", onEdit, onOpenDeals,
+}: { stage?: string; count?: number; dealName?: string; product?: string; onEdit?: () => void; onOpenDeals?: () => void }) {
   return (
     <div className="group bg-app-surface rounded-[12px] p-5 border border-border shadow-[var(--shadow-card)]">
       <div className="flex items-center justify-between mb-4">
@@ -34,7 +34,12 @@ export default function DealSetup({
           </button>
         )}
       </div>
+      {dealName && <p className="text-[15px] font-extrabold text-text-primary -mt-1 mb-3 truncate">{dealName}</p>}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-[12px]">
+        <div className="flex flex-col gap-1">
+          <span className="text-text-muted font-mono text-[10px] uppercase tracking-wider">Produkt</span>
+          <span className="font-bold text-text-primary text-[14px] truncate">{product || "—"}</span>
+        </div>
         <div className="flex flex-col gap-1">
           <span className="text-text-muted font-mono text-[10px] uppercase tracking-wider">Stage</span>
           <span className="font-bold text-text-primary text-[14px]">{stage}</span>

@@ -1,18 +1,34 @@
 /**
- * NewDealCard — „Neuer Deal"-Karte (Wert, Owner, ARR/MRR optional, Abschluss-Datum).
- * Controlled: deal + onChange(patch). Wiederverwendbar in Lead-/Deal-Formularen.
+ * NewDealCard — „Neuer Deal"-Karte (Deal-Name, Produkt, Wert, Owner, ARR/MRR optional,
+ * Abschluss-Datum). Controlled: deal + onChange(patch). Zentrale Deal-Formular-Komponente —
+ * wiederverwendbar in Lead-/Deal-Formularen (DealsListe, AddSdrLeadPanel). Produkt = Dropdown
+ * mit der Option „Eigenes Produkt…" (Freitext).
  */
+import { useState } from "react";
 import { Briefcase, Euro, Calendar } from "lucide-react";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import PanelField from './PanelField';
 
-export interface DealDraft { value: string; owner: string; arr: string; mrr: string; close: string; }
+export interface DealDraft { name: string; product: string; value: string; owner: string; arr: string; mrr: string; close: string; }
+
+/** Standard-Produktkatalog (bis system_config). Eigenes Produkt → „Eigenes Produkt…". */
+export const DEAL_PRODUCTS = ["Starter", "Growth", "Scale", "Enterprise", "Enrichment Add-on", "Signals Add-on"];
+const CUSTOM = "__custom__";
+
 const FIELD_SURFACE =
   "w-full text-[13px] font-sans px-3.5 py-2.5 bg-app-surface border border-border focus:border-[var(--sherloq-primary)] rounded-[10px] focus:outline-none transition-colors placeholder-[var(--text-muted)]";
 
 export default function NewDealCard({
-  deal, onChange, owners, onRemove,
-}: { deal: DealDraft; onChange: (patch: Partial<DealDraft>) => void; owners: string[]; onRemove: () => void }) {
+  deal, onChange, owners, onRemove, products = DEAL_PRODUCTS,
+}: { deal: DealDraft; onChange: (patch: Partial<DealDraft>) => void; owners: string[]; onRemove: () => void; products?: string[] }) {
+  // Custom-Produkt aktiv, wenn ein Produktname gesetzt ist, der nicht im Katalog steht.
+  const [custom, setCustom] = useState<boolean>(!!deal.product && !products.includes(deal.product));
+  const selectValue = custom ? CUSTOM : (deal.product || undefined);
+  const onProduct = (v: string) => {
+    if (v === CUSTOM) { setCustom(true); onChange({ product: "" }); }
+    else { setCustom(false); onChange({ product: v }); }
+  };
+
   return (
     <div className="rounded-[12px] border border-border bg-app-bg p-4 flex flex-col gap-3 shadow-[var(--shadow-card)]">
       <div className="flex items-center justify-between">
@@ -24,6 +40,24 @@ export default function NewDealCard({
           entfernen
         </button>
       </div>
+
+      <PanelField label="Deal-Name">
+        <input type="text" placeholder="z.B. LogixFlow — Growth" value={deal.name} onChange={(e) => onChange({ name: e.target.value })} className={FIELD_SURFACE} />
+      </PanelField>
+
+      <PanelField label="Produkt">
+        <Select value={selectValue} onValueChange={onProduct}>
+          <SelectTrigger className="w-full rounded-[10px] border-border bg-app-surface text-[13px]"><SelectValue placeholder="Produkt wählen…" /></SelectTrigger>
+          <SelectContent>
+            {products.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+            <SelectItem value={CUSTOM}>Eigenes Produkt…</SelectItem>
+          </SelectContent>
+        </Select>
+        {custom && (
+          <input autoFocus type="text" placeholder="Produktname eingeben" value={deal.product} onChange={(e) => onChange({ product: e.target.value })} className={`${FIELD_SURFACE} mt-2`} />
+        )}
+      </PanelField>
+
       <div className="grid grid-cols-2 gap-3">
         <PanelField label="Wert / Betrag">
           <div className="relative">
