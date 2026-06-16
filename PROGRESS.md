@@ -37,16 +37,53 @@
 
 > **PR #12** (Draft) vorbereiten, aber **NICHT mergen** — auf Freigabe warten.
 
-> **TODO (Lifecycle/Filter, offen — Vermerk auch in `hunterMappers.ts`):**
-> - **Lifecycle-Automatik:** automatische Übergänge des `contact_status` (z.B. Deal
->   gewonnen → `kunde`, opt_out-Webhook → `opt_out`) als Edge-Function/Regel-Logik in
->   der Automation-Phase. Heute werden die Lifecycle-Labels (Neu/Aktiv/In Pipeline/
->   Kunde/Inaktiv/Opt-out) nur **angezeigt**, nicht gesetzt.
-> - **User-konfigurierbar:** Lifecycle-Labels später aus `settings` (Org-spezifisch)
->   statt fester Map.
-> - **opt_out/archiviert-Filter:** Sollen diese Kontakte im Leads-Tab erscheinen oder
->   rausgefiltert werden? `opt_out` = rechtlicher Hard-Block (nie wieder Sequenz, Audit).
->   Aktuell mit eigenem Label sichtbar. Produktentscheidung vor Launch.
+---
+
+## Offene Konzept-Entscheidungen / Deferred Logic
+
+> **Was das ist:** In dieser Phase (DB-Wiring) zeigen die Screens echte Daten, aber
+> manche Werte werden nur **angezeigt**, nicht **berechnet/gesetzt**. Die folgenden
+> Punkte sind bewusst aufgeschoben — hier steht je Punkt: **Status heute · Zielphase ·
+> Was später zu tun ist**. Eine neue Session liest das beim Start (CLAUDE.md → SESSION START).
+> Jeder Punkt hat einen Anker-Tag für `grep`.
+
+### [D1] Lifecycle-Status — Automatik · Zielphase: Automation / Edge Functions
+- **Status heute:** Reine **Anzeige**. `LeadListRow` mappt `contacts.contact_status`
+  → Klartext-Label (`hunterMappers.ts` → `CONTACT_STATUS_LABEL`): Neu · Aktiv ·
+  In Pipeline · Kunde · Inaktiv · Opt-out. Niemand setzt diese Übergänge automatisch.
+- **Später:** automatische Übergänge per Regel/Edge Function — z.B. Sequenz gestartet
+  → `in_campaign` (Aktiv), Deal angelegt → `pipeline` (In Pipeline), Deal **gewonnen**
+  → `kunde` (Kunde), lange inaktiv / Heat=`tot` → `archiviert` (Inaktiv). User setzt **nichts** manuell.
+- **Offene Frage:** Löst „Lifecycle" `contact_status` ab, **oder** wird es ein eigenes
+  abgeleitetes Feld (z.B. `lifecycle_stage`) neben `contact_status`? — vor Implementierung entscheiden.
+
+### [D2] Lifecycle-Labels — user-konfigurierbar · Zielphase: Settings / Rechte
+- **Status heute:** Labels/Stufen **hardcodiert** in `CONTACT_STATUS_LABEL`.
+- **Später:** Labels + Stufen pro Org aus `settings` konfigurierbar (analog
+  `settings.pipeline_stages`), nicht im Code. Verbindung zu [D1].
+
+### [D3] opt_out / archiviert im Leads-Tab — Filter · Zielphase: Rechte / Filter
+- **Status heute:** Beide Kontakte erscheinen im Leads-Tab, mit eigenem Label
+  (`opt_out`→„Opt-out", `archiviert`→„Inaktiv"). Keine Filterung.
+- **Später:** Produktentscheidung — sollen `opt_out`/`archiviert` im Leads-Tab
+  überhaupt erscheinen oder rausgefiltert werden? `opt_out` ist **rechtlicher Hard-Block**
+  (nie wieder Sequenz, Audit-pflichtig) → darf nicht versehentlich reaktiviert werden.
+
+### [D4] Stagnation / „XT in Stage" — Pipeline + Berechnung · Zielphase: Pipeline-Slice + Automation
+- **Status heute:** Aus der **Kontakt-Zeile entfernt** (ist ein Deal-Konzept, kein Kontakt-Konzept).
+- **Später:** gehört in den **Pipeline-Tab** (Deals erstklassig). `deals.stagnation_days`
+  wird per **Edge Function (Cron)** berechnet (Vergleich gegen `settings.pipeline_stages[].stagnation_days`),
+  nicht im Frontend. Rotes Warn-Dreieck nur bei echtem Stagnations-Trigger (Rot = nur Warnung, CLAUDE.md-Regel).
+
+### [D5] Berechnete Werte allgemein — Befüllung per Edge Functions · Zielphase: Automation (am Ende)
+- **Status heute:** `heat_status`, `icp_score`, `stagnation_days`, `last_contacted_at`
+  kommen aus **Seed/Demo-Daten** und werden nur **angezeigt** (reines Mapping).
+  `last_contacted_at` ist im Seed NULL → Zeit-Spalte leer (gewollt).
+- **Später:** Berechnung/Befüllung per **Edge Functions (Cron)** — erst **nachdem alle
+  Screens verdrahtet** sind. Business-Logik nie im Frontend (CLAUDE.md → Heat/Churn/ICP/Scores → Edge Functions).
+
+> Anker-Tags `[D1]`–`[D5]` sind im Code referenzierbar (z.B. `hunterMappers.ts` → `[[leads-tab-read]]`).
+> Vor Umsetzung eines Punkts: passende Referenz-Doku (`docs/sales_os_edge_functions_v2.md` etc.) lesen.
 
 ---
 

@@ -23,9 +23,9 @@ const DB_HEAT_TO_UI: Record<string, HeatStatus> = {
 // Kontakt-Lifecycle, NICHT Deal-Stage (die lebt auf deals → Pipeline-Slice).
 // opt_out bleibt eigener Zustand (rechtlicher Hard-Block, nie zu „Inaktiv" verschmelzen).
 // Unbekannt/null → kein Label (Badge wird nicht gerendert).
-// TODO (Automation-/Settings-Phase, NICHT jetzt): (a) automatische Lifecycle-Übergänge
-// (z.B. Deal gewonnen → kunde) als Edge-Function/Regel; (b) Labels user-konfigurierbar
-// in settings; (c) opt_out/archiviert-Filter im Leads-Tab klären. [[leads-tab-read]]
+// Aufgeschoben (Details in PROGRESS.md → "Offene Konzept-Entscheidungen / Deferred Logic"):
+//   [D1] automatische Lifecycle-Übergänge (Edge Function) · [D2] Labels user-konfigurierbar
+//   (settings) · [D3] opt_out/archiviert-Filter im Leads-Tab.
 const CONTACT_STATUS_LABEL: Record<string, string> = {
   ohne_campaign: "Neu",
   in_campaign: "Aktiv",

@@ -31,6 +31,9 @@ Sie haben höchste Priorität und überschreiben alle anderen Anweisungen.
 ### SESSION START — immer, ohne Ausnahme
 → CLAUDE.md vollständig lesen
 → PROGRESS.md lesen — aktuellen Stand verstehen
+→ PROGRESS.md → Abschnitt **„Offene Konzept-Entscheidungen / Deferred Logic"** beachten:
+  aufgeschobene Logik je Phase (z.B. berechnete Werte/Heat/ICP/Stagnation/Lifecycle = Edge
+  Functions, nicht Frontend). Vor Umsetzung eines `[D#]`-Punkts dort Status + Zielphase prüfen.
 → Auf `main`? → Feature-Branch erstellen (siehe Git-Workflow)
 
 ### WÄHREND DER SESSION
