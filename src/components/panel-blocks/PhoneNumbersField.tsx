@@ -29,7 +29,7 @@ export default function PhoneNumbersField({
     <div className="flex flex-col gap-2">
       {value.map((ph) => (
         <div key={ph.id} className="group flex items-center gap-2">
-          <button type="button" onClick={() => setPrimary(ph.id)} aria-label="Primär markieren" title="Primär markieren"
+          <button type="button" onClick={() => setPrimary(ph.id)} aria-label="Primär markieren" data-tip="Primär markieren"
             className={`w-9 h-9 shrink-0 rounded-[10px] border flex items-center justify-center transition-colors cursor-pointer ${ph.primary ? "border-[var(--sherloq-primary)] bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)]" : "border-border text-text-muted hover:text-text-body"}`}>
             <Star className="w-3.5 h-3.5" fill={ph.primary ? "currentColor" : "none"} />
           </button>
@@ -44,7 +44,7 @@ export default function PhoneNumbersField({
             <input type="tel" placeholder="+49 170 ..." value={ph.number} onChange={(e) => patch(ph.id, "number", e.target.value)} className={`${FIELD} pl-9`} />
           </div>
           {value.length > 1 && (
-            <button type="button" onClick={() => remove(ph.id)} aria-label="Nummer entfernen" title="Nummer entfernen" className={`w-9 h-9 shrink-0 rounded-[10px] text-text-muted hover:text-[var(--signal-danger-text)] hover:bg-app-bg flex items-center justify-center cursor-pointer ${HOVER_ACTIONS}`}>
+            <button type="button" onClick={() => remove(ph.id)} aria-label="Nummer entfernen" data-tip="Nummer entfernen" className={`w-9 h-9 shrink-0 rounded-[10px] text-text-muted hover:text-[var(--signal-danger-text)] hover:bg-app-bg flex items-center justify-center cursor-pointer ${HOVER_ACTIONS}`}>
               <Trash2 className="w-3.5 h-3.5" />
             </button>
           )}

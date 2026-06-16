@@ -49,7 +49,7 @@ export default function DetailField({
     return (
       <div className="min-w-0">
         {Label}
-        <div className="text-[14px] font-semibold text-text-muted truncate" title="Vom System vergeben">{value || "—"}</div>
+        <div className="text-[14px] font-semibold text-text-muted truncate" data-tip="Vom System vergeben">{value || "—"}</div>
       </div>
     );
   }
@@ -126,11 +126,11 @@ export default function DetailField({
         )}
         <div className={`flex items-center gap-0.5 shrink-0 transition-opacity ${copyable ? "opacity-100" : "opacity-0 group-hover/df:opacity-100"}`}>
           {copyable && (
-            <button onClick={copy} aria-label="Kopieren" title="Kopieren" className="w-6 h-6 rounded-md flex items-center justify-center text-text-muted hover:text-[var(--sherloq-primary)] hover:bg-app-surface transition-colors cursor-pointer">
+            <button onClick={copy} aria-label="Kopieren" data-tip="Kopieren" className="w-6 h-6 rounded-md flex items-center justify-center text-text-muted hover:text-[var(--sherloq-primary)] hover:bg-app-surface transition-colors cursor-pointer">
               <Copy className="w-3.5 h-3.5" />
             </button>
           )}
-          <button onClick={() => { setDraft(value); setEditing(true); }} aria-label="Bearbeiten" title="Bearbeiten" className="w-6 h-6 rounded-md flex items-center justify-center text-text-muted hover:text-[var(--sherloq-primary)] hover:bg-app-surface transition-colors cursor-pointer">
+          <button onClick={() => { setDraft(value); setEditing(true); }} aria-label="Bearbeiten" data-tip="Bearbeiten" className="w-6 h-6 rounded-md flex items-center justify-center text-text-muted hover:text-[var(--sherloq-primary)] hover:bg-app-surface transition-colors cursor-pointer">
             <Pencil className="w-3.5 h-3.5" />
           </button>
         </div>

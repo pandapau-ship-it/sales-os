@@ -17,7 +17,7 @@ export default function DealSetup({
           {count > 1 && (
             <button
               onClick={onOpenDeals}
-              title="Alle Deals ansehen"
+              data-tip="Alle Deals ansehen"
               className="ml-1 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1.5 rounded-full bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)] text-[10px] font-extrabold cursor-pointer hover:opacity-80 transition-opacity"
             >
               {count}
@@ -27,7 +27,7 @@ export default function DealSetup({
         {onEdit && (
           <button
             onClick={onEdit}
-            aria-label="Deal bearbeiten" title="Deal bearbeiten"
+            aria-label="Deal bearbeiten" data-tip="Deal bearbeiten"
             className={`w-7 h-7 rounded-full flex items-center justify-center text-text-muted hover:text-[var(--sherloq-primary)] hover:bg-app-bg transition-colors cursor-pointer ${HOVER_ACTIONS}`}
           >
             <Pencil className="w-3.5 h-3.5" />

@@ -25,7 +25,7 @@ export default function ActionComposer({
         placeholder={placeholder}
         className="flex-1 bg-transparent resize-none outline-none text-[13px] font-medium leading-relaxed text-text-body placeholder-[var(--text-muted)] min-h-[28px] max-h-[96px] scrollbar-none py-1"
       />
-      <button onClick={send} aria-label="Senden" title="Senden" className="w-9 h-9 rounded-full text-on-accent flex items-center justify-center shrink-0 hover:scale-105 transition-transform cursor-pointer shadow-sm" style={{ background: "var(--sherloq-gradient)" }}>
+      <button onClick={send} aria-label="Senden" data-tip="Senden" className="w-9 h-9 rounded-full text-on-accent flex items-center justify-center shrink-0 hover:scale-105 transition-transform cursor-pointer shadow-sm" style={{ background: "var(--sherloq-gradient)" }}>
         <Send className="w-4 h-4" />
       </button>
     </div>

@@ -71,8 +71,9 @@ const DEFAULT_DETAILS = {
 
 export default function HunterSidepanel({ person: personProp, onClose, onExit, variant = 'panel' }: { person: any; onClose: () => void; onExit?: () => void; variant?: 'panel' | 'full' }) {
   const [activeTab, setActiveTab] = useState(variant === 'full' ? 'details' : 'overview');
-  // Aus der Übersicht „Deal bearbeiten" → Deal-Tab öffnet die Bearbeiten-Kachel direkt.
+  // Aus der Übersicht „Deal/Task bearbeiten" → Ziel-Tab öffnet die Bearbeiten-Kachel direkt.
   const [dealsAutoEdit, setDealsAutoEdit] = useState(false);
+  const [tasksAutoEditId, setTasksAutoEditId] = useState<string | null>(null);
   const [showVollansicht, setShowVollansicht] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -241,6 +242,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
             <OffeneTasks
               onAdd={() => showToast('Neue Task angelegt')}
               onOpenTasks={() => setActiveTab('tasks')}
+              onEditTask={(id) => { setTasksAutoEditId(id); setActiveTab('tasks'); }}
               onToast={showToast}
             />
 
@@ -260,7 +262,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
         )}
 
         {activeTab === 'tasks' && (
-          <TasksListe onToast={showToast} />
+          <TasksListe onToast={showToast} autoEditId={tasksAutoEditId} onAutoEditConsumed={() => setTasksAutoEditId(null)} />
         )}
 
         {activeTab === 'deals' && (
@@ -433,10 +435,10 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
     <div className="fixed inset-0 z-[120] bg-app-bg font-sans overflow-y-auto animate-fade-in">
       {/* Steuer-Zeile — ← zurück zum Panel, ✕ schließt ganz. Kein Balken, scrollt mit. */}
       <div className="max-w-[1100px] mx-auto px-5 sm:px-10 pt-5 flex items-center justify-between">
-        <button onClick={onClose} aria-label="Zurück" title="Zurück" className="w-9 h-9 rounded-full flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-app-surface transition-colors cursor-pointer">
+        <button onClick={onClose} aria-label="Zurück" data-tip="Zurück" className="w-9 h-9 rounded-full flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-app-surface transition-colors cursor-pointer">
           <ArrowLeft className="w-[18px] h-[18px]" />
         </button>
-        <button onClick={() => (onExit ?? onClose)()} aria-label="Schließen" title="Schließen" className="w-9 h-9 rounded-full flex items-center justify-center text-text-muted hover:text-[var(--signal-urgent-text)] hover:bg-app-surface transition-colors cursor-pointer">
+        <button onClick={() => (onExit ?? onClose)()} aria-label="Schließen" data-tip="Schließen" className="w-9 h-9 rounded-full flex items-center justify-center text-text-muted hover:text-[var(--signal-urgent-text)] hover:bg-app-surface transition-colors cursor-pointer">
           <X className="w-[18px] h-[18px]" />
         </button>
       </div>

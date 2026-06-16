@@ -80,7 +80,7 @@ ALTER TABLE knowledge_base ENABLE ROW LEVEL SECURITY;
 → `scripts/structure-check.sh` schlägt **FAIL** wenn `.tsx` direkt in `src/components/shared/`
   liegen, die dort nicht hingehören (= keine echten shared-Atome). Erlaubt in `shared/`:
   `Avatar` · `LinkedinIcon` · `Toast` · `EmptyState` · `CommandPalette` · `ICPDonut` · `BrandLogo`
-  · `BrandIcons` · `CommunicationChain` · `CustomerDrawer` · `Badge`. Alles andere → `panel-blocks/`
+  · `BrandIcons` · `CommunicationChain` · `CustomerDrawer` · `Badge` · `TooltipLayer`. Alles andere → `panel-blocks/`
   bzw. `features/[modul]/`. Neue erlaubte shared-Datei → Allowlist im Script ergänzen.
 → Teil des Merge-Gates (neben `build` + `audit`). Im Pre-Push-Hook nach der DB-Checkliste;
   blockt nur **mit** Terminal, sonst nur Anzeige (wie die DB-Checkliste).
@@ -326,13 +326,15 @@ visuelles Rauschen, die Kachel bleibt ruhig. Umsetzung über die **einzige Quell
 
 **Icon-Buttons — Hover-Tooltip Pflicht (verbindlich für ALLE Icon-only-Buttons):**
 Jeder Button, der **nur ein Icon** zeigt (Löschen, Erledigt, Kopieren, Bearbeiten, Favorit …),
-MUSS beim Hover einen Text anzeigen, der die Aktion benennt. Umsetzung über natives **`title`**
-(= derselbe Wert wie `aria-label`, das für Screenreader ohnehin gesetzt ist):
+MUSS beim Hover einen Text anzeigen, der die Aktion benennt. Umsetzung über **`data-tip`** +
+den global gemounteten `TooltipLayer` (`shared/TooltipLayer.tsx`, in `App.tsx`) — sofort sichtbar,
+getönt, per Portal (kein Clipping durch overflow/scroll). **Kein** natives `title` (langsam/ungestylt),
+**kein** Wrappen je Button:
 ```tsx
-<button aria-label="Löschen" title="Löschen" …><Trash2 … /></button>
+<button aria-label="Löschen" data-tip="Löschen" …><Trash2 … /></button>
 ```
-- `title` und `aria-label` immer gleich halten · `aria-label` bleibt Pflicht (A11y), `title` ist der sichtbare Hover-Text.
-- Gilt für alle Icon-Aktionen in Kacheln, Zeilen, Toolbars, Panels.
+- `data-tip` und `aria-label` gleich halten · `aria-label` bleibt Pflicht (A11y), `data-tip` ist der sichtbare Hover-Text.
+- Funktioniert auf JEDEM Element mit `data-tip` (nicht nur Buttons), app-weit, ohne weiteren Code.
 
 **Badge / Status-Pill Muster (verbindlich für ALLE Screens):**
 

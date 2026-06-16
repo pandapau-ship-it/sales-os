@@ -104,10 +104,10 @@ export default function DealsListe({
               <div className="flex items-center gap-2 shrink-0">
                 <StageBadge stage={d.stage} />
                 <div className={`flex items-center gap-1 ${HOVER_ACTIONS}`}>
-                  <button onClick={() => openEdit(d)} aria-label="Bearbeiten" title="Bearbeiten" className="w-7 h-7 rounded-full flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-app-bg transition-colors cursor-pointer">
+                  <button onClick={() => openEdit(d)} aria-label="Bearbeiten" data-tip="Bearbeiten" className="w-7 h-7 rounded-full flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-app-bg transition-colors cursor-pointer">
                     <Pencil className="w-3.5 h-3.5" />
                   </button>
-                  <button onClick={() => remove(d.id)} aria-label="Löschen" title="Löschen" className="w-7 h-7 rounded-full flex items-center justify-center text-text-muted hover:text-[var(--signal-urgent-text)] hover:bg-[var(--signal-urgent-bg)] transition-colors cursor-pointer">
+                  <button onClick={() => remove(d.id)} aria-label="Löschen" data-tip="Löschen" className="w-7 h-7 rounded-full flex items-center justify-center text-text-muted hover:text-[var(--signal-urgent-text)] hover:bg-[var(--signal-urgent-bg)] transition-colors cursor-pointer">
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>

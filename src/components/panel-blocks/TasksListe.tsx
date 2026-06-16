@@ -5,7 +5,7 @@
  * Erinnerung + Beschreibung). „Neue Task" und der Bearbeiten-Button öffnen die
  * TaskFormular-Maske (nur Formular, ohne Kontext-/KI-Meldungen). Tokens-only.
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Plus, Mail, Phone, Calendar, Clock, Briefcase, ClipboardList, ChevronDown,
@@ -84,12 +84,18 @@ function DetailRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-export default function TasksListe({ onToast }: { onToast?: (msg: string) => void }) {
+export default function TasksListe({
+  onToast, autoEditId = null, onAutoEditConsumed,
+}: { onToast?: (msg: string) => void; autoEditId?: string | null; onAutoEditConsumed?: () => void }) {
   const { t } = useTranslation();
-  // null = Liste · 'new' = anlegen · <id> = bearbeiten
-  const [editing, setEditing] = useState<"new" | string | null>(null);
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const tasks = DEFAULT_TASKS;
+  // null = Liste · 'new' = anlegen · <id> = bearbeiten. autoEditId (aus der Übersicht) öffnet
+  // den Task direkt im Bearbeiten-Modus.
+  const validAuto = autoEditId && tasks.some((x) => x.id === autoEditId) ? autoEditId : null;
+  const [editing, setEditing] = useState<"new" | string | null>(validAuto);
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+
+  useEffect(() => { if (autoEditId) onAutoEditConsumed?.(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (editing !== null) {
     const task = editing === "new" ? undefined : tasks.find((x) => x.id === editing);
@@ -136,10 +142,10 @@ export default function TasksListe({ onToast }: { onToast?: (msg: string) => voi
                   </div>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
-                  <button onClick={(e) => { e.stopPropagation(); setEditing(task.id); }} aria-label={t("hunter.drawers.noTask.editTask")} title={t("hunter.drawers.noTask.editTask")} className={`w-8 h-8 rounded-full flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-app-bg cursor-pointer ${HOVER_ACTIONS}`}>
+                  <button onClick={(e) => { e.stopPropagation(); setEditing(task.id); }} aria-label={t("hunter.drawers.noTask.editTask")} data-tip={t("hunter.drawers.noTask.editTask")} className={`w-8 h-8 rounded-full flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-app-bg cursor-pointer ${HOVER_ACTIONS}`}>
                     <Pencil className="w-3.5 h-3.5" />
                   </button>
-                  <button onClick={(e) => { e.stopPropagation(); onToast?.("Task gelöscht"); }} aria-label="Löschen" title="Löschen" className={`w-8 h-8 rounded-full flex items-center justify-center text-text-muted hover:text-[var(--signal-urgent-text)] hover:bg-[var(--signal-urgent-bg)] cursor-pointer ${HOVER_ACTIONS}`}>
+                  <button onClick={(e) => { e.stopPropagation(); onToast?.("Task gelöscht"); }} aria-label="Löschen" data-tip="Löschen" className={`w-8 h-8 rounded-full flex items-center justify-center text-text-muted hover:text-[var(--signal-urgent-text)] hover:bg-[var(--signal-urgent-bg)] cursor-pointer ${HOVER_ACTIONS}`}>
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
                   <ChevronDown className={`w-4 h-4 text-icon-muted transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />
