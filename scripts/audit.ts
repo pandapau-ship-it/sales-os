@@ -274,6 +274,65 @@ function checkPopoverInputFocus(): void {
       : 'Alle Popover mit Eingabe nutzen portal={false} — Tippen funktioniert.')
 }
 
+// ── Inline-Code-Hinweis ──────────────────────────────────────────────────────
+// Sucht in features/ + components/screens/ nach großen (>20 Zeilen) Inline-JSX-Blöcken,
+// die einen bestehenden panel-block duplizieren (gleiche markante className-Signatur) UND
+// in mehr als einer Datei vorkommen. Nur WARN — der Entwickler entscheidet über Extraktion.
+
+function checkInlineBlocks(): void {
+  // 1. Signaturen: markante statische className-Literale je panel-block. „Markant" =
+  //    >=30 Zeichen UND enthält einen arbiträren Token (`[…]` oder `var(--`) — so wie echte
+  //    Block-Container (rounded-[12px], shadow-[var(--shadow-card)]). Reine Utility-Strings
+  //    (flex items-center justify-between …) sind kein Block und werden ignoriert (kein False-Positive).
+  const distinctive = (cls: string) => cls.length >= 30 && /\[|var\(--/.test(cls)
+  const sig = new Map<string, string>() // className → panel-block-Name
+  for (const f of walk(join(SRC, 'components/panel-blocks'), ['.tsx'])) {
+    const name = basename(f, '.tsx')
+    for (const m of read(f).matchAll(/className=(?:"([^"]+)"|`([^`{}]+)`)/g)) {
+      const cls = (m[1] ?? m[2]).trim()
+      if (distinctive(cls) && !sig.has(cls)) sig.set(cls, name)
+    }
+  }
+
+  // 2. Consumer (features/ + screens/) auf große Inline-JSX-Blöcke scannen.
+  const dirs = [join(SRC, 'components/features'), join(SRC, 'components/screens')]
+  const isJsx = (l: string) => /<[A-Za-z/]|className=|\/>|>\s*$/.test(l)
+  const hits = new Map<string, { files: Set<string>; locs: string[] }>()
+
+  for (const f of dirs.flatMap((d) => walk(d, ['.tsx']))) {
+    const lines = read(f).split('\n')
+    let start = -1
+    const flush = (end: number) => {
+      if (start >= 0 && end - start > 20) {
+        const text = lines.slice(start, end).join('\n')
+        for (const [cls, pb] of sig) {
+          if (text.includes(cls)) {
+            if (!hits.has(pb)) hits.set(pb, { files: new Set(), locs: [] })
+            const h = hits.get(pb)!
+            if (!h.files.has(rel(f))) { h.files.add(rel(f)); h.locs.push(`${rel(f)}:${start + 1}`) }
+          }
+        }
+      }
+      start = -1
+    }
+    lines.forEach((l, i) => {
+      if (isJsx(l)) { if (start < 0) start = i }
+      else if (l.trim() !== '') flush(i) // Leerzeilen zählen zum Block, Code-Zeilen brechen ihn
+    })
+    flush(lines.length)
+  }
+
+  // 3. WARN nur, wenn derselbe panel-block in MEHR ALS EINER Datei inline auftaucht.
+  const warns: string[] = []
+  for (const [pb, h] of hits) {
+    if (h.files.size > 1) warns.push(`${pb} → ${h.locs.join(', ')}`)
+  }
+  add('Inline-Code → panel-block', warns.length ? 'WARN' : 'PASS',
+    warns.length
+      ? `Große Inline-JSX-Blöcke (>20 Z.), die bestehende panel-blocks duplizieren (in >1 Datei) — Extraktion erwägen:\n        ${warns.join('\n        ')}`
+      : 'Keine Inline-Duplikate bestehender panel-blocks (>20 Z.) in features/ + screens/.')
+}
+
 // ── Run ──────────────────────────────────────────────────────────────────────
 
 checkDatabase()
@@ -288,6 +347,7 @@ checkNoEmojiBadges()
 checkHardcodedColors()
 checkForbiddenHeatLabels()
 checkPopoverInputFocus()
+checkInlineBlocks()
 
 // ── Report ───────────────────────────────────────────────────────────────────
 
