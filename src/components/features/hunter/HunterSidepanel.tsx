@@ -10,24 +10,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import LinkedinIcon from '@/components/shared/LinkedinIcon';
 import Avatar from '@/components/shared/Avatar';
-import HeatBadge from '@/components/panel-blocks/HeatBadge';
-import StageBadge from '@/components/panel-blocks/StageBadge';
-import StatusBadge from '@/components/panel-blocks/StatusBadge';
-import DetailField from '@/components/panel-blocks/DetailField';
-import DetailSection from '@/components/panel-blocks/DetailSection';
-import DetailPhoneList from '@/components/panel-blocks/DetailPhoneList';
-import PanelTabs from '@/components/panel-blocks/PanelTabs';
-import KiKurzakte from '@/components/panel-blocks/KiKurzakte';
-import KontaktZeile from '@/components/panel-blocks/KontaktZeile';
-import AktiveSignale from '@/components/panel-blocks/AktiveSignale';
-import DealSetup from '@/components/panel-blocks/DealSetup';
-import ActiveSequenceChain from '@/components/panel-blocks/ActiveSequenceChain';
-import KommunikationPreview from '@/components/panel-blocks/KommunikationPreview';
-import OffeneTasks from '@/components/panel-blocks/OffeneTasks';
-import TasksListe from '@/components/panel-blocks/TasksListe';
-import KommunikationVerlauf from '@/components/panel-blocks/KommunikationVerlauf';
-import AktivitaetsVerlauf from '@/components/panel-blocks/AktivitaetsVerlauf';
-import NotizenListe from '@/components/panel-blocks/NotizenListe';
+import { ActiveSequenceChain, AktiveSignale, AktivitaetsVerlauf, DealSetup, DetailField, DetailPhoneList, DetailSection, HeatBadge, KiKurzakte, KommunikationPreview, KommunikationVerlauf, KontaktZeile, NotizenListe, OffeneTasks, PanelTabs, StageBadge, StatusBadge, TasksListe } from '@/components';
 
 /** Kanonische Default-Stages (Spec §3.2) — bis zum DB-Wiring dokumentierter Fallback. */
 const PIPELINE_STAGES = ['Backlog', 'Demo vereinbart', 'Follow-up offen', 'Onboarding offen', 'Free Trial', 'Gewonnen'];

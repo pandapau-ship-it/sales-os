@@ -8,8 +8,7 @@ import {
 import Avatar from "@/components/shared/Avatar";
 import { ICPDonut } from "@/components/shared/ICPDonut";
 import CommunicationChain from "@/components/shared/CommunicationChain";
-import HeatBadge from "@/components/panel-blocks/HeatBadge";
-import StageBadge from "@/components/panel-blocks/StageBadge";
+import { HeatBadge, StageBadge } from '@/components';
 import { CARD, ACTION_ROW } from "@/lib/componentBehavior";
 import type { HeatStatusKey } from "@/lib/constants";
 import type { HeatStatus } from "@/types";

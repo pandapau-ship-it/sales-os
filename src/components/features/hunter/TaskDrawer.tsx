@@ -1,4 +1,4 @@
-import TaskEntwurfForm from "@/components/panel-blocks/TaskEntwurfForm";
+import { TaskEntwurfForm } from '@/components';
 
 interface TaskDrawerProps {
   person: any;

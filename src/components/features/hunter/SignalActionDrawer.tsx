@@ -1,7 +1,7 @@
 import { Send, ArrowUpRight } from "lucide-react";
 import LinkedinIcon from "@/components/shared/LinkedinIcon";
-import ChatActionPanel from "@/components/features/hunter/ChatActionPanel";
-import type { ChatActionConfig } from "@/components/features/hunter/ChatActionPanel";
+import { ChatActionPanel } from '@/components';
+import type { ChatActionConfig } from '@/components';
 
 /** Reine Daten von außen — das Panel hält keinen eigenen Datenzustand. */
 export interface SignalActionData {

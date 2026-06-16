@@ -1,9 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import type { ReactNode } from "react";
 import { X, Sparkles, RotateCw, Check, Pencil } from "lucide-react";
-import ErledigtAction from "@/components/panel-blocks/ErledigtAction";
-import ActionComposer from "@/components/panel-blocks/ActionComposer";
-import ActionFooter from "@/components/panel-blocks/ActionFooter";
+import { ActionComposer, ActionFooter, ErledigtAction } from '@/components';
 import { Sheet, SheetContent, SheetClose } from "@/components/ui/sheet";
 import Avatar from "@/components/shared/Avatar";
 import BrandLogo from "@/components/shared/BrandLogo";

@@ -23,7 +23,7 @@ import {
   MessageSquare
 } from 'lucide-react';
 import type { Customer, SherloqStatus } from '@/types';
-import HeatBadge from '@/components/panel-blocks/HeatBadge';
+import { HeatBadge } from '@/components';
 import { ICPDonut } from '@/components/shared/ICPDonut';
 import { NAV } from '@/lib/navBehavior';
 import CommunicationChain from '@/components/shared/CommunicationChain';

@@ -1,6 +1,6 @@
 import { Clock, Send, ArrowUpRight } from "lucide-react";
-import ChatActionPanel from "@/components/features/hunter/ChatActionPanel";
-import type { ChatActionConfig } from "@/components/features/hunter/ChatActionPanel";
+import { ChatActionPanel } from '@/components';
+import type { ChatActionConfig } from '@/components';
 
 interface StagnatedPerson {
   name: string;

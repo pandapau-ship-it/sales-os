@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { CheckCircle2 } from "lucide-react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import TaskAnlegenForm from "@/components/panel-blocks/TaskAnlegenForm";
+import { TaskAnlegenForm } from '@/components';
 
 interface NoTaskPerson {
   name: string;

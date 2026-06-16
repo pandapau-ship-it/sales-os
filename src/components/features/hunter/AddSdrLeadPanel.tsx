@@ -13,9 +13,8 @@ import ActionPanel from "@/components/panels/ActionPanel";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import LinkedinIcon from "@/components/shared/LinkedinIcon";
 import { useToast } from "@/components/shared/Toast";
-import PanelField from "@/components/panel-blocks/PanelField";
-import PhoneNumbersField, { type PhoneRow } from "@/components/panel-blocks/PhoneNumbersField";
-import NewDealCard, { type DealDraft } from "@/components/panel-blocks/NewDealCard";
+import { NewDealCard, PanelField, PhoneNumbersField } from '@/components';
+import type { DealDraft, PhoneRow } from '@/components';
 import type { Lead } from "@/types";
 
 const ANREDEN = ["Herr", "Frau", "Dr.", "Prof."];

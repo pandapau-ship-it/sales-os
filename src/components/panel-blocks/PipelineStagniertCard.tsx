@@ -1,6 +1,7 @@
 import { AlertTriangle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import HunterCard, { type HunterCardData } from '@/components/panel-blocks/HunterCard';
+import { HunterCard } from '@/components';
+import type { HunterCardData } from '@/components';
 import { ACTION_ROW } from '@/lib/componentBehavior';
 import type { Lead } from '@/types';
 

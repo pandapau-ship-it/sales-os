@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Calendar, Clock, Check, Bot, UserCheck, RotateCw } from 'lucide-react';
-import HunterCard, { type HunterCardData } from '@/components/panel-blocks/HunterCard';
+import { HunterCard } from '@/components';
+import type { HunterCardData } from '@/components';
 import { ACTION_ROW } from '@/lib/componentBehavior';
 import type { Lead } from '@/types';
 

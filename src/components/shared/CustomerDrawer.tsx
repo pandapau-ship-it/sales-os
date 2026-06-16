@@ -25,7 +25,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import type { Lead, Customer } from "@/types";
-import HeatBadge from "@/components/panel-blocks/HeatBadge";
+import { HeatBadge } from '@/components';
 import BrandLogo from "@/components/shared/BrandLogo";
 import Avatar from "@/components/shared/Avatar";
 

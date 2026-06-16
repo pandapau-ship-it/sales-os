@@ -25,29 +25,12 @@ import {
 import type { Lead } from '@/types';
 import { ICPDonut } from '@/components/shared/ICPDonut';
 import { NAV } from '@/lib/navBehavior';
-import { SequenceLeadCards } from '@/components/panel-blocks/SequenceLeadCards';
-import NewInPipelineCards from '@/components/panel-blocks/NewInPipelineCards';
-import { PipelineStagniertCard } from '@/components/panel-blocks/PipelineStagniertCard';
-import { PipelineKeineTaskCard } from '@/components/panel-blocks/PipelineKeineTaskCard';
-import FunnelAnalysis from '@/components/features/hunter/FunnelAnalysis';
+import { AddSdrLeadPanel, ContactColdDrawer, FunnelAnalysis, HeatBadge, HunterCard, HunterSidepanel, KpiCard, LeadListRow, LinkedinSignalCard, NewInPipelineCards, NoTaskDrawer, PipelineKeineTaskCard, PipelineStagnatedDrawer, PipelineStagniertCard, SequenceLeadCards, SignalActionDrawer, StageBadge, TaskDrawer } from '@/components';
+import type { SignalActionData } from '@/components';
 
 import Avatar from '@/components/shared/Avatar';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
-import AddSdrLeadPanel from '@/components/features/hunter/AddSdrLeadPanel';
-import HeatBadge from '@/components/panel-blocks/HeatBadge';
-import StageBadge from '@/components/panel-blocks/StageBadge';
-import TaskDrawer from '@/components/features/hunter/TaskDrawer';
-import { LinkedinSignalCard } from '@/components/panel-blocks/LinkedinSignalCard';
-import SignalActionDrawer from '@/components/features/hunter/SignalActionDrawer';
-import type { SignalActionData } from '@/components/features/hunter/SignalActionDrawer';
-import HunterCard from '@/components/panel-blocks/HunterCard';
-import KpiCard from '@/components/panel-blocks/KpiCard';
-import LeadListRow from '@/components/panel-blocks/LeadListRow';
-import HunterSidepanel from '@/components/features/hunter/HunterSidepanel';
 import { ACTION_ROW } from '@/lib/componentBehavior';
-import PipelineStagnatedDrawer from '@/components/features/hunter/PipelineStagnatedDrawer';
-import ContactColdDrawer from '@/components/features/hunter/ContactColdDrawer';
-import NoTaskDrawer from '@/components/features/hunter/NoTaskDrawer';
 
 interface ScreenHuntingProps {
   leads: Lead[];

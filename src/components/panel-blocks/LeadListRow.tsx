@@ -13,8 +13,7 @@ import {
 import Avatar from "@/components/shared/Avatar";
 import { ICPDonut } from "@/components/shared/ICPDonut";
 import CommunicationChain from "@/components/shared/CommunicationChain";
-import StageBadge from "@/components/panel-blocks/StageBadge";
-import HeatBadge from "@/components/panel-blocks/HeatBadge";
+import { HeatBadge, StageBadge } from '@/components';
 
 export default function LeadListRow({
   lead, isExpanded, selected, onToggleExpand, onToggleSelect, onOpenInfo, onSelectCommunication,

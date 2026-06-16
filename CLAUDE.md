@@ -487,7 +487,24 @@ Alle prop-driven, Tokens-only, Dark-Mode automatisch.
 | `KontaktZeile` `KiKurzakte` `PanelHeader` `PanelField` `DealSetup` `NewDealCard` `ErledigtAction` `KommunikationPreview` `OffeneTasks` `ActiveSequenceChain` `AktiveSignale` `PanelFooter` `ActionFooter` `ActionComposer` `PhoneNumbersField` `HunterCard` `SignalRow` `FollowUpKaltCard` `PipelineStagniertCard` `PipelineKeineTaskCard` `LinkedinSignalCard` `NewInPipelineCards` `SequenceLeadCards` | weitere Blöcke (Panel-/Karten-/Formular-Komposition) |
 
 > Neuer panel-block → **sofort** in diese Tabelle **und** in `panel-blocks/index.ts` (Barrel) eintragen.
-> Gebündelter Import möglich: `import { HeatBadge, DetailField } from '@/components/panel-blocks'`.
+
+### Import-Regel — immer über `@/components` (nie tiefer als nötig)
+
+Es gibt ein zentrales Top-Level-Barrel **`src/components/index.ts`**, das `panel-blocks/` · `panels/`
+· `features/hunter/` · `shared/` re-exportiert.
+
+```tsx
+// Richtig — eine Quelle, named imports:
+import { HunterCard, DetailField, HunterSidepanel, Avatar } from '@/components';
+// Falsch — tiefe Pfade:
+import HunterCard from '@/components/panel-blocks/HunterCard';
+```
+
+- **Default-Exports werden als Named exportiert** → immer `import { X } from '@/components'` (kein Default-Import).
+- **Ausnahme `ui/` (shadcn):** weiterhin direkt aus `@/components/ui/*` (bewusst nicht im Barrel).
+- Neue Komponente → ins jeweilige Unter-Barrel/Top-Level-Barrel eintragen, dann via `@/components` nutzen.
+- Hinweis Circular Imports: Library-interne Geschwister-Imports laufen ebenfalls über `@/components`
+  (render-time-sicher, da Nutzung nur in JSX/Funktionskörpern — nicht auf Modul-Ebene).
 
 ### Vollansicht / Kontakt-Detail (Entscheidung 2026-06-15)
 
