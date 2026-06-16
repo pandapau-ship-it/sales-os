@@ -20,12 +20,14 @@ import {
   Clock,
   PenTool,
   TrendingUp,
+  Users,
+  Briefcase,
   X
 } from 'lucide-react';
 import type { Lead } from '@/types';
 import { ICPDonut } from '@/components/shared/ICPDonut';
 import { NAV } from '@/lib/navBehavior';
-import { AddSdrLeadPanel, ContactColdDrawer, FunnelAnalysis, HeatBadge, HunterCard, HunterSidepanel, KpiCard, LeadListRow, LinkedinSignalCard, NewInPipelineCards, NoTaskDrawer, PipelineKeineTaskCard, PipelineStagnatedDrawer, PipelineStagniertCard, SequenceLeadCards, SignalActionDrawer, StageBadge, TaskDrawer } from '@/components';
+import { AddSdrLeadPanel, ContactColdDrawer, EmptyState, FunnelAnalysis, HeatBadge, HunterCard, HunterSidepanel, KpiCard, LeadListRow, LinkedinSignalCard, NewInPipelineCards, NoTaskDrawer, PipelineKeineTaskCard, PipelineStagnatedDrawer, PipelineStagniertCard, SequenceLeadCards, SignalActionDrawer, StageBadge, TaskDrawer } from '@/components';
 import type { SignalActionData } from '@/components';
 
 import Avatar from '@/components/shared/Avatar';
@@ -363,7 +365,14 @@ export default function ScreenHunting({
             </div>
           </div>
 
-          {leads.map((lead) => {
+          {leads.length === 0 ? (
+            <EmptyState
+              icon={<Users className="w-6 h-6" />}
+              title="Noch keine Leads"
+              description="Füge deinen ersten Lead hinzu"
+              action={{ label: '+ SDR Lead hinzufügen', onClick: () => setShowAddModal(true) }}
+            />
+          ) : leads.map((lead) => {
             const isExpanded = expandedLeadId === lead.id;
             return (
               <LeadListRow
@@ -539,7 +548,13 @@ export default function ScreenHunting({
                     {/* Cards List (Only if expanded) */}
                     {isExpanded && (
                       <div className="flex flex-col gap-3">
-                        {displayLeads.map(lead => {
+                        {displayLeads.length === 0 ? (
+                          <EmptyState
+                            icon={<Briefcase className="w-6 h-6" />}
+                            title="Keine Deals"
+                            action={{ label: '+ Deal anlegen', onClick: () => setShowAddModal(true) }}
+                          />
+                        ) : displayLeads.map(lead => {
                           // Karten-Signal: stagnierter Deal oder fehlende Task (klickbar → Task-Liste).
                           let pill: { label: string; task: 'stagniert' | 'keine_task'; colorClass: string; icon: any } | null = null;
                           if (lead.heatStatus === 'HOT') pill = { label: 'Deal stagniert', task: 'stagniert', colorClass: 'text-[var(--signal-urgent-text)] bg-[var(--signal-urgent-bg)] border border-[var(--signal-urgent-bg)]', icon: <Clock className="w-3 h-3" /> };
@@ -710,6 +725,13 @@ export default function ScreenHunting({
             </div>
           </div>
 
+          {signalIds.length === 0 ? (
+            <EmptyState
+              icon={<Zap className="w-6 h-6" />}
+              title="Keine Signale heute"
+              description="Neue Signale erscheinen hier automatisch"
+            />
+          ) : (<>
           <LinkedinSignalCard
             name="Maja Voje"
             selected={selectedSignalIds.includes("Maja Voje")}
@@ -804,6 +826,7 @@ export default function ScreenHunting({
             commentText="Christian hat gerade dein LinkedIn Profil besucht, kurz nachdem du den Vorschlag per E-Mail gesendet hast."
             aiRecommendation="Sofort nachfassen! Er prüft gerade deine Authentizität und Lösung. Eine kurze LinkedIn Connectanfrage hinterherschicken."
           />
+          </>)}
         </div>
       )}
 

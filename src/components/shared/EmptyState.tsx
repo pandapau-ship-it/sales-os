@@ -6,7 +6,7 @@
 interface EmptyStateProps {
   icon: React.ReactNode;
   title: string;
-  description: string;
+  description?: string;
   action?: { label: string; onClick: () => void };
 }
 
@@ -18,7 +18,7 @@ export default function EmptyState({ icon, title, description, action }: EmptySt
       </div>
       <div className="flex flex-col gap-1">
         <h3 className="text-[14px] font-semibold text-text-primary">{title}</h3>
-        <p className="text-[12px] text-text-muted max-w-[320px] leading-relaxed">{description}</p>
+        {description && <p className="text-[12px] text-text-muted max-w-[320px] leading-relaxed">{description}</p>}
       </div>
       {action && (
         <button onClick={action.onClick} className="sherloq-btn-primary mt-1">

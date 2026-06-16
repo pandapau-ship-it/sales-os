@@ -1,9 +1,14 @@
 import { FollowUpKaltCard } from './FollowUpKaltCard';
+import EmptyState from '@/components/shared/EmptyState';
+import { CheckCircle2 } from 'lucide-react';
 import type { Lead } from '@/types';
 
 export const SequenceLeadCards = ({ onOutreachClick, onSelectLead }: { onOutreachClick?: (person: any) => void; onSelectLead?: (lead: Lead) => void }) => {
+    // Mock: 3 Follow-ups vorhanden. Bei leerer Liste → EmptyState (später items.length === 0).
+    const hasFollowUps = true;
     return (
         <div className="w-full flex flex-col gap-4 mt-6">
+            {hasFollowUps ? (<>
             <FollowUpKaltCard
                 onSelectLead={onSelectLead}
                 name="Dr. Christian Brand"
@@ -84,6 +89,13 @@ export const SequenceLeadCards = ({ onOutreachClick, onSelectLead }: { onOutreac
                   tags: ["Cold", "E-Mail erschöpft", "LinkedIn noch nicht versucht"]
                 })}
             />
+            </>) : (
+              <EmptyState
+                icon={<CheckCircle2 className="w-6 h-6" />}
+                title="Keine offenen Follow-ups"
+                description="Erledigte Aufgaben gut gemacht"
+              />
+            )}
         </div>
     );
 };

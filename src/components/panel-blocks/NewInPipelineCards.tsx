@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Calendar, Clock, Check, Bot, UserCheck, RotateCw } from 'lucide-react';
+import { Calendar, Clock, Check, Bot, UserCheck, RotateCw, Inbox } from 'lucide-react';
 import HunterCard, { type HunterCardData } from './HunterCard';
+import EmptyState from '@/components/shared/EmptyState';
 import { ACTION_ROW } from '@/lib/componentBehavior';
 import type { Lead } from '@/types';
 
@@ -69,7 +70,9 @@ export default function NewInPipelineCards({ onSelectLead }: { onSelectLead: (le
 
       {/* Karten — volle Breite (= Leads), einheitliche HunterCard */}
       <div className="flex flex-col gap-4">
-        {leads.map((lead) => {
+        {leads.length === 0 ? (
+          <EmptyState icon={<Inbox className="w-6 h-6" />} title="Keine neuen Leads in der Pipeline" />
+        ) : leads.map((lead) => {
           const data: HunterCardData = {
             id: lead.id,
             name: lead.name,
