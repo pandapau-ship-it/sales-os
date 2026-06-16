@@ -4,7 +4,7 @@
  * Bearbeiten editiert inline, Bearbeiten/Löschen erscheinen nur bei Hover (HOVER_ACTIONS).
  * Datengetrieben (NotizItem) + Default-Mock — das System spielt echte Notizen später ein.
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Plus, Pencil, Trash2, Check, X } from "lucide-react";
 import { HOVER_ACTIONS } from "@/lib/componentBehavior";
 
@@ -26,12 +26,17 @@ const TEXTAREA =
 
 let seq = 0;
 
-export default function NotizenListe({ onToast }: { onToast?: (msg: string) => void }) {
+export default function NotizenListe({
+  onToast, autoCompose = false, onAutoComposeConsumed,
+}: { onToast?: (msg: string) => void; autoCompose?: boolean; onAutoComposeConsumed?: () => void }) {
   const [notes, setNotes] = useState<NotizItem[]>(DEFAULT_NOTES);
-  const [composerOpen, setComposerOpen] = useState(false);
+  const [composerOpen, setComposerOpen] = useState(autoCompose);
   const [draft, setDraft] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState("");
+
+  // autoCompose (Footer „Notiz") nur beim Eintritt anwenden, dann im Parent zurücksetzen.
+  useEffect(() => { if (autoCompose) onAutoComposeConsumed?.(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const stamp = () => {
     const now = new Date();

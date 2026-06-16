@@ -91,7 +91,7 @@ export default function TasksListe({
   const tasks = DEFAULT_TASKS;
   // null = Liste · 'new' = anlegen · <id> = bearbeiten. autoEditId (aus der Übersicht) öffnet
   // den Task direkt im Bearbeiten-Modus.
-  const validAuto = autoEditId && tasks.some((x) => x.id === autoEditId) ? autoEditId : null;
+  const validAuto = autoEditId === "new" || (autoEditId && tasks.some((x) => x.id === autoEditId)) ? autoEditId : null;
   const [editing, setEditing] = useState<"new" | string | null>(validAuto);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 

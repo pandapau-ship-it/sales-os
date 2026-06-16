@@ -27,19 +27,19 @@ const fmtDate = (d: string) => (d ? new Date(d).toLocaleDateString("de-DE", { da
 let seq = 0;
 
 export default function DealsListe({
-  onToast, autoEdit = false, onAutoEditConsumed,
-}: { onToast?: (msg: string) => void; autoEdit?: boolean; onAutoEditConsumed?: () => void }) {
+  onToast, autoEdit = false, autoNew = false, onAutoEditConsumed,
+}: { onToast?: (msg: string) => void; autoEdit?: boolean; autoNew?: boolean; onAutoEditConsumed?: () => void }) {
   const [deals, setDeals] = useState<DealItem[]>(DEFAULT_DEALS);
-  // autoEdit (aus der Übersicht): ersten Deal direkt in der Bearbeiten-Kachel öffnen.
+  // autoEdit (Übersicht): ersten Deal in Bearbeiten öffnen. autoNew (Footer): leeres Anlegen öffnen.
   const first = DEFAULT_DEALS[0];
-  const [creating, setCreating] = useState<boolean>(autoEdit && !!first);
+  const [creating, setCreating] = useState<boolean>((autoEdit && !!first) || autoNew);
   const [editingId, setEditingId] = useState<string | null>(autoEdit && first ? first.id : null);
   const [draft, setDraft] = useState<DealDraft>(
     autoEdit && first ? { value: first.value, owner: first.owner, arr: first.arr, mrr: first.mrr, close: first.close } : emptyDraft(),
   );
 
-  // autoEdit nur beim Eintritt anwenden, dann im Parent zurücksetzen.
-  useEffect(() => { if (autoEdit) onAutoEditConsumed?.(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // autoEdit/autoNew nur beim Eintritt anwenden, dann im Parent zurücksetzen.
+  useEffect(() => { if (autoEdit || autoNew) onAutoEditConsumed?.(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const openNew = () => { setEditingId(null); setDraft(emptyDraft()); setCreating(true); };
   const openEdit = (d: DealItem) => {

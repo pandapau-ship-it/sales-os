@@ -1,16 +1,15 @@
 import { useState, useEffect } from 'react';
 import {
   ArrowUpRight, ArrowLeft, X, Mail, Phone, Clock, Check,
-  ChevronDown, Plus,
+  ChevronDown, Plus, Briefcase,
   StickyNote, User, Building2, Tag, CheckCircle2
 } from 'lucide-react';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
-import LinkedinIcon from '@/components/shared/LinkedinIcon';
 import Avatar from '@/components/shared/Avatar';
-import { ActiveSequenceChain, AktiveSignale, AktivitaetsVerlauf, DealSetup, DealsListe, DetailField, DetailPhoneList, DetailSection, HeatBadge, KiKurzakte, KommunikationPreview, KommunikationVerlauf, KontaktZeile, NotizenListe, OffeneTasks, PanelTabs, StageBadge, StatusBadge, TasksListe } from '@/components';
+import { ActiveSequenceChain, AktiveSignale, AktivitaetsVerlauf, DealSetup, DealsListe, DetailField, DetailPhoneList, DetailSection, HeatBadge, KiKurzakte, KommunikationPreview, KommunikationVerlauf, KontaktZeile, MailComposer, NotizenListe, OffeneTasks, PanelTabs, StageBadge, StatusBadge, TasksListe } from '@/components';
 
 /** Kanonische Default-Stages (Spec §3.2) — bis zum DB-Wiring dokumentierter Fallback. */
 const PIPELINE_STAGES = ['Backlog', 'Demo vereinbart', 'Follow-up offen', 'Onboarding offen', 'Free Trial', 'Gewonnen'];
@@ -74,6 +73,10 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
   // Aus der Übersicht „Deal/Task bearbeiten" → Ziel-Tab öffnet die Bearbeiten-Kachel direkt.
   const [dealsAutoEdit, setDealsAutoEdit] = useState(false);
   const [tasksAutoEditId, setTasksAutoEditId] = useState<string | null>(null);
+  // Footer-Quick-Actions: öffnen den jeweiligen Tab direkt im Anlege-/Compose-Modus.
+  const [dealsAutoNew, setDealsAutoNew] = useState(false);
+  const [notesAutoCompose, setNotesAutoCompose] = useState(false);
+  const [commCompose, setCommCompose] = useState(false);
   const [showVollansicht, setShowVollansicht] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -109,18 +112,18 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
     }, 2200);
   };
 
-  // Aktions-Buttons (Task/Mail/LinkedIn/Notiz) — einmal definiert, je Layout anders gerendert.
+  // Footer-Quick-Actions (Task/Mail/Deal/Notiz) — öffnen direkt das jeweilige Anlege-Panel.
   const ACTIONS = [
-    { icon: Plus, label: 'Task', toast: 'Task Aktion gestartet' },
-    { icon: Mail, label: 'Mail', toast: 'Mail Aktion gestartet' },
-    { icon: LinkedinIcon, label: 'LinkedIn', toast: 'LinkedIn Aktion gestartet' },
-    { icon: StickyNote, label: 'Notiz', toast: 'Notiz Aktion gestartet' },
+    { icon: Plus, label: 'Task', onClick: () => { setTasksAutoEditId('new'); setActiveTab('tasks'); } },
+    { icon: Mail, label: 'Mail', onClick: () => { setCommCompose(true); setActiveTab('communication'); } },
+    { icon: Briefcase, label: 'Deal', onClick: () => { setDealsAutoNew(true); setActiveTab('deals'); } },
+    { icon: StickyNote, label: 'Notiz', onClick: () => { setNotesAutoCompose(true); setActiveTab('notes'); } },
   ];
   const renderActions = (btnClass: string) =>
     ACTIONS.map((a) => {
       const Icon = a.icon;
       return (
-        <button key={a.label} onClick={() => showToast(a.toast)} className={btnClass}>
+        <button key={a.label} onClick={a.onClick} className={btnClass}>
           <Icon className="w-3.5 h-3.5" /> {a.label}
         </button>
       );
@@ -254,7 +257,16 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
         )}
 
         {activeTab === 'communication' && (
-          <KommunikationVerlauf />
+          <div className="space-y-7">
+            {commCompose && (
+              <MailComposer
+                to={contact.email}
+                onClose={() => setCommCompose(false)}
+                onSend={() => { showToast('E-Mail gesendet ✓'); setCommCompose(false); }}
+              />
+            )}
+            <KommunikationVerlauf />
+          </div>
         )}
 
         {activeTab === 'activity' && (
@@ -266,11 +278,16 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
         )}
 
         {activeTab === 'deals' && (
-          <DealsListe onToast={showToast} autoEdit={dealsAutoEdit} onAutoEditConsumed={() => setDealsAutoEdit(false)} />
+          <DealsListe
+            onToast={showToast}
+            autoEdit={dealsAutoEdit}
+            autoNew={dealsAutoNew}
+            onAutoEditConsumed={() => { setDealsAutoEdit(false); setDealsAutoNew(false); }}
+          />
         )}
 
         {activeTab === 'notes' && (
-          <NotizenListe onToast={showToast} />
+          <NotizenListe onToast={showToast} autoCompose={notesAutoCompose} onAutoComposeConsumed={() => setNotesAutoCompose(false)} />
         )}
 
         </>

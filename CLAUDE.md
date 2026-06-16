@@ -499,6 +499,7 @@ Alle prop-driven, Tokens-only, Dark-Mode automatisch.
 | `PhoneField` | Telefon-Feld (820px-Panel): inline nur Favorit (Typ-Pill + Nummer), Popover mit allen Nummern (Anrufen/Kopieren/Favorit/Bearbeiten + „Nummer hinzufügen") |
 | `PanelTabs` | Tab-Navigation des Info-Panels (`tabs`/`active`/`onChange`) |
 | `TasksListe` | Tasks-Tab: Aufgaben als **aufklappbare** Zusammenfassungs-Zeilen (Pills → volle Read-Only-Details) + Löschen; „Neue Task"/Bearbeiten öffnen `TaskFormular` (`onToast`) |
+| `MailComposer` | „Neue E-Mail"-Maske (An/Betreff/Nachricht + Senden) — Footer-Aktion „Mail", im Kommunikation-Tab; House-Style; `to`/`onClose`/`onSend` |
 | `DealsListe` | Deal-Tab: listet die Deals (Betrag/Stage/Owner/Abschluss/ARR/MRR), „Neuer Deal" → geteiltes `NewDealCard`-Formular (wie „SDR Lead hinzufügen"); Bearbeiten/Löschen on-hover; datengetrieben (`DealItem`) (`onToast`) |
 | `TaskFormular` | Generische Task-Maske (Anlegen + Bearbeiten) — **nur das Formular**, ohne Kontext-/KI-Meldungen (Optik wie TaskAnlegenForm BLOCK 3); `mode`/`initial`/`onSave`/`onClose`/`onToast` |
 | `KommunikationVerlauf` | Kommunikations-Tab: Touchpoints mit Marken-Kanal-Logo + aufklappbarem Volltext (Expand-State intern) — ≠ `KommunikationPreview` (Übersicht-Vorschau) |
