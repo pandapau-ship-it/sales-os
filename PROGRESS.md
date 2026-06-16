@@ -4,7 +4,7 @@
 
 ---
 
-## Current Status: Phase 3 (DB-Wiring Hunter) — gestartet · Migrationen 001–014 remote live ✅ → Leads-Tab Read next
+## Current Status: Phase 3 (DB-Wiring Hunter) — Leads-Tab live (echte Daten) ✅ → Pipeline-Tab / Info-Panel next
 
 > Single Source of Truth für den Umsetzungsstand: **CHECKLIST.md** (`npm run audit` prüft).
 > CLAUDE.md = WARUM/WIE · CHECKLIST.md = WAS-offen · PROGRESS.md = Session-Historie.
@@ -14,7 +14,20 @@
 
 ---
 
-## Offen — Nächste Session (Phase 2 Abschluss → Phase 3 DB)
+## Offen — Nächste Session (Phase 3 DB-Wiring, Reihenfolge)
+
+**A. Pipeline-Tab auf echte `deals`** — `getDeals` (org-gescoped, Deal+Kontakt+Company-Join) →
+   Kanban + Listenansicht; Stage/Owner/Value (value in **Cent → /100**), `deals.product`.
+   Hier kommt auch der **Stagnations-Block** zurück (Deal-Konzept, siehe Deferred Logic [D4]).
+**B. 820px-Info-Panel** (`HunterSidepanel`) an echte `contacts`/`companies`-Felder (CRM-Felder),
+   Tabs (Kommunikation/Aktivität/Tasks/Notizen/Deals) an echte Tabellen.
+**C. Realtime** für die Live-Tabellen (`lib/realtime.ts`), Cache-Invalidierung.
+**D. Restliche Mock-Screens** (Signals/Follow-ups/Overview) + AddSdrLeadPanel/Snooze (Writes, Edge Functions).
+
+> Berechnete Werte (heat/icp/stagnation/last_contacted) bleiben Anzeige bis Edge Functions —
+> siehe **„Offene Konzept-Entscheidungen / Deferred Logic"** [D1]–[D5].
+
+<details><summary>Ältere offene Punkte (Phase-2-Reste)</summary>
 
 0. **Vollansicht — restliche Tabs aufwerten** — Grundgerüst (echte Seite) + **Details-Tab**
    sind fertig (2026-06-15, `HunterSidepanel` `variant="full"`, geöffnet über ↗ im Info-Panel).
@@ -34,6 +47,8 @@
    Deal-Felder Name/Produkt → `deals.name`/`deals.product`; Produktkatalog (`DEAL_PRODUCTS`) aus
    `system_config`. Mock-Listen (Tasks/Notizen/Deals/Kommunikation/Aktivität) → echte Tabellen;
    die Blöcke sind bereits datengetrieben (`*Item`-Typen + Default-Mock).
+
+</details>
 
 > **PR #12** (Draft) vorbereiten, aber **NICHT mergen** — auf Freigabe warten.
 
@@ -88,6 +103,32 @@
 ---
 
 ## Completed
+
+### Phase 3 — Hunter Leads-Tab auf echte DB-Daten (Branch `feature/phase-2-hunter`) — Session 2026-06-16 (Teil 2)
+
+Slice-by-slice Mock → Supabase für den **Leads-Tab**. Live geschaltet, Test-User + Demo-Seed
+(vom User im SQL-Editor ausgeführt), Tab zeigt echte org-gescopte Kontakte. Gates durchgehend
+grün. **PR #12 weiter Draft.** Preview-MCP in dieser Umgebung defekt (`EPERM`) → Verifikation
+über Build/Audit/REST + visueller Gegencheck durch den User.
+
+- [x] **Live-Setup:** `.env.local` (anon-Key, Projekt `qhcmruprfjunalgrhgcp`) → `db.ts` Live-Modus;
+  Test-User (`test@gosherloq.dev`, `public.users` + Demo-Org, role owner) + Demo-Seed
+  (5 companies / 8 contacts / 3 leads / 6 deals) angelegt. RLS greift.
+- [x] **Slice 1 — Leads-Read:** `getContacts` (org-gescoped, Company-Name eingebettet) → neuer
+  Mapper `src/lib/hunterMappers.ts` (`contactRowToLead`) → `ScreenHunting` Leads-Tab via TanStack
+  Query (`HunterReference`), Loading-Skeleton + Error-State. Andere Tabs unverändert Mock.
+- [x] **Fix:** `getContacts`-Embed mehrdeutig (contacts→companies 2 FKs) → FK-Hint `!company_id` (PGRST201).
+- [x] **Fix:** `useModules` fragte nicht existente `user_modules` ab (404) → `getModules` (settings.modules)
+  via TanStack; `settings.modules` der Demo-Org auf `farmer:true` gesetzt (Nav unverändert).
+- [x] **Slice 2 — Heat:** `heat_status` (DB-Enum heiss/warm/lauwarm/kalt/tot) → UI-`HeatStatus` (1:1),
+  Badge zeigt echte Farbe (heiss=Engaged/grün, tot=Gone/grau); Fallback DEAD.
+- [x] **Slice 3 — Zeile fertig:** Stage-Badge ← `contact_status` (Lifecycle-Klartext: Neu/Aktiv/
+  In Pipeline/Kunde/Inaktiv/Opt-out, opt_out eigener Zustand); Heading „STAGE"→„STATUS" via
+  dediziertem `hunter.leadCard.statusLabel`; „vor X Tagen" ← `last_contacted_at` (NULL → nichts);
+  Stagnations-Block entfernt (Deal-Konzept). Firmen-Block ausgeblendet wenn keine Firma.
+- [x] **Deferred-Logic-Doku:** Abschnitt „Offene Konzept-Entscheidungen" (D1–D5) + CLAUDE SESSION-START-Verweis.
+- **Offen (nächste Slices):** Pipeline-Tab auf echte `deals` · 820px-Info-Panel an echte Kontaktdaten ·
+  Realtime · berechnete Werte per Edge Functions (siehe Deferred Logic).
 
 ### Phase 3 — DB-Wiring Start: Live-Schalt + Fundament-Ergänzungen (Branch `feature/phase-2-hunter`) — Session 2026-06-16
 

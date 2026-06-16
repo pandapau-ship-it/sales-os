@@ -1895,6 +1895,12 @@ Wird Supabase ausgetauscht, ändern wir **nur diese vier Dateien** — keine Kom
 | `lib/auth.ts` | Login, Logout, Session, User | `login()`, `logout()`, `getCurrentUser()` |
 | `lib/storage.ts` | Datei-Uploads & URLs | `uploadLogo()`, `getPublicUrl()` |
 | `lib/realtime.ts` | alle Realtime-Subscriptions | `subscribeToLeads()` (gibt Unsubscribe zurück) |
+| `lib/hunterMappers.ts` | **DB-Zeile → UI-Typ** (Hunter-Listen) | `contactRowToLead()` (contacts → `Lead`) |
+
+**Mapping-Layer (`lib/hunterMappers.ts`):** DB-Rohzeilen werden hier auf UI-Typen gemappt
+(nicht in Komponenten). Heat (DB-Enum `heiss/…` → `HeatStatus`) und Lifecycle-Status
+(`contact_status` → Klartext-Label) sind **reine Anzeige-Maps** — die Werte werden NICHT hier
+berechnet/gesetzt (das kommt per Edge Functions, siehe PROGRESS → Deferred Logic [D1]/[D5]).
 
 **Harte Regeln (vom `audit.ts` geprüft):**
 - Komponenten importieren NUR aus `@/lib/*` — **nie** aus `@supabase/supabase-js`
@@ -1903,10 +1909,11 @@ Wird Supabase ausgetauscht, ändern wir **nur diese vier Dateien** — keine Kom
 - Jede Funktion hat einen klar benannten Export (`getLeads()`, `uploadLogo()` …),
   Promise-basiert (passt zu Supabase und später TanStack Query als queryFn)
 
-**Status:** Phase 5 noch nicht gestartet → die Funktionskörper liefern aktuell
-Mock-Daten aus `@/data`. Beim Supabase-Einbau werden nur die Körper ersetzt,
-die Signaturen bleiben. App lädt Initialdaten über `lib/db` (Bridge-`useEffect`
-in der Mock-Phase → Phase 5 wird daraus TanStack Query).
+**Status (Phase 3, DB-Wiring läuft):** Supabase ist **live** (`.env.local`, anon-Key, Migrationen
+001–014 remote). **Schon echt verdrahtet:** Hunter-**Leads-Tab** (`getContacts` org-gescoped, via
+TanStack Query) + `useModules` (`getModules` = `settings.modules`). **Noch Mock:** übrige Hunter-Tabs
+(Pipeline/Signals/Info-Panel) + Mein Tag/Farmer — werden screenweise umgestellt (Körper tauschen,
+Signaturen bleiben). Server-State neuer Wirings läuft **nur** über TanStack Query (kein `useEffect`+fetch).
 
 ---
 

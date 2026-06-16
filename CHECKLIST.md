@@ -239,11 +239,11 @@
 - [x] **Service-Abstraktion** `lib/db.ts · auth.ts · storage.ts · realtime.ts` — *einzige Swap-Stelle für Supabase*
 - [x] App lädt Daten über `lib/db` (nicht direkt aus `@/data`/supabase) — *audit-geprüft*
 - [x] audit-Regel: `@supabase` nur in `lib/`, `createClient` nur in `db.ts`
-- [ ] Supabase-Client in `lib/db.ts` aktivieren (Phase 5) — *nur Funktionskörper tauschen*
-- [ ] TanStack Query als einziger Server-State — *Bridge-useEffect in App ersetzen*
-- [ ] `useModules()` Hook (gecacht) — *Modul-Gating*
-- [ ] **Phase 2:** `useModules` von Tabelle `user_modules` (existiert nicht) auf `getModules()` = `settings.modules` umstellen — *braucht Org-Kontext aus Auth; Live-DB ist bereits angebunden*
-- [ ] Mock-Daten (`data.ts`) durch echte Queries in `lib/db` ersetzen
+- [x] **Supabase-Client live** (`.env.local`, anon-Key) — `db.ts` Live-Modus, Test-User + Demo-Seed, RLS greift — *2026-06-16*
+- [x] **Hunter Leads-Tab auf echte Queries** — `getContacts` (org-gescoped, Company-Embed FK-Hint) → `hunterMappers.contactRowToLead` → TanStack Query (Loading/Error); Heat + Lifecycle-Status + last_contacted echt — *2026-06-16*
+- [x] **`useModules` → `getModules()` (`settings.modules`) via TanStack** statt nicht existenter `user_modules` (404 weg) — *2026-06-16*
+- [~] TanStack Query als Server-State — *Leads-Tab + Module umgestellt; restliche Screens folgen*
+- [ ] Restliche Mock-Listen (Pipeline/Signals/Info-Panel) durch echte Queries ersetzen
 - [ ] Glocke: echter Badge-Count aus `notifications` (read=false), live via Realtime
 
 ### Realtime
