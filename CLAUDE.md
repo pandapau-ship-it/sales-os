@@ -15,7 +15,7 @@ Sie haben höchste Priorität und überschreiben alle anderen Anweisungen.
    (`feature/<thema>` · `fix/<thema>` · `chore/<thema>`).
 → Regelmäßig committen mit sinnvollen Messages (`add:` `update:` `fix:` `refactor:` `docs:`).
 → Branch pushen → **Pull Request** (`gh pr create`) → triggert Vercel Preview-Deploy.
-→ **Merge-Gate:** erst mergen wenn `npm run build` UND `npm run audit` grün sind.
+→ **Merge-Gate:** erst mergen wenn `npm run build` · `npm run audit` · `npm run structure-check` grün sind.
 → **Squash-Merge** nach `main` (saubere, lineare History), Branch danach löschen.
 → Bei kleinen/sicheren Aufgaben merge ich nach grünem Gate selbst.
    Bei großen/riskanten Änderungen: PR offen lassen, kurz beim User rückfragen.
@@ -75,6 +75,15 @@ ALTER TABLE knowledge_base ENABLE ROW LEVEL SECURITY;
 ### AUF ANFRAGE (nicht automatisch)
 → scripts/audit.ts ausführen wenn Oliver explizit prüfen möchte
 → CHECKLIST.md vollständig durchgehen
+
+### Struktur-Check (`npm run structure-check`, läuft im Pre-Push-Hook)
+→ `scripts/structure-check.sh` schlägt **FAIL** wenn `.tsx` direkt in `src/components/shared/`
+  liegen, die dort nicht hingehören (= keine echten shared-Atome). Erlaubt in `shared/`:
+  `Avatar` · `LinkedinIcon` · `Toast` · `EmptyState` · `CommandPalette` · `ICPDonut` · `BrandLogo`
+  · `BrandIcons` · `CommunicationChain` · `CustomerDrawer` · `Badge`. Alles andere → `panel-blocks/`
+  bzw. `features/[modul]/`. Neue erlaubte shared-Datei → Allowlist im Script ergänzen.
+→ Teil des Merge-Gates (neben `build` + `audit`). Im Pre-Push-Hook nach der DB-Checkliste;
+  blockt nur **mit** Terminal, sonst nur Anzeige (wie die DB-Checkliste).
 
 ### CHECKLIST.md automatisch erweitern
 Wenn neue Abschnitte in CLAUDE.md hinzukommen:
@@ -470,6 +479,7 @@ Alle prop-driven, Tokens-only, Dark-Mode automatisch.
 | `KommunikationVerlauf` | Kommunikations-Tab: Touchpoints mit Marken-Kanal-Logo + aufklappbarem Volltext (Expand-State intern) — ≠ `KommunikationPreview` (Übersicht-Vorschau) |
 | `AktivitaetsVerlauf` | Aktivität-Tab: historischer Zeitstrahl (aktuell Empty-State, CRM-Sync folgt) |
 | `NotizenListe` | Notizen-Tab: manuelle Notizen (Datum/Autor + Speichern/Bearbeiten/Löschen) + „Neue Notiz" (`onAdd`/`onSave`/`onEdit`/`onDelete`) |
+| `PersonalityBadge` | Persönlichkeitsprofil-Pill (3 Dimensionen) — für künftiges Persönlichkeits-Feature (ab Confidence ≥ 60 %) |
 | `KontaktZeile` `KiKurzakte` `PanelHeader` `PanelField` `DealSetup` `NewDealCard` `ErledigtAction` `KommunikationPreview` `OffeneTasks` `ActiveSequenceChain` `AktiveSignale` `PanelFooter` `ActionFooter` `ActionComposer` `PhoneNumbersField` `HunterCard` `SignalRow` `FollowUpKaltCard` `PipelineStagniertCard` `PipelineKeineTaskCard` `LinkedinSignalCard` `NewInPipelineCards` `SequenceLeadCards` | weitere Blöcke (Panel-/Karten-/Formular-Komposition) |
 
 > Neuer panel-block → **sofort** in diese Tabelle **und** in `panel-blocks/index.ts` (Barrel) eintragen.

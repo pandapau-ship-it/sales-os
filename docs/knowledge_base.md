@@ -152,3 +152,16 @@
 --  'core');
 ```
 
+---
+
+## 2026-06-16 — SQL (beim DB-Wiring einspielen)
+
+```sql
+-- panel-block-Library + Struktur (intern)
+-- (:org, 'Komponenten-Library (panel-blocks)',
+--  'Alle Inhalts-Blöcke der Panels/Vollansicht sind wiederverwendbare panel-blocks (Barrel-Import); HunterSidepanel/ChatActionPanel komponieren nur noch daraus. Struktur per npm run structure-check + Pre-Push-Hook erzwungen.',
+--  'Entwickler bauen neue Ansichten aus bestehenden Blöcken statt Inline-Code; falsch platzierte shared/-Komponenten werden vor dem Push geblockt.',
+--  '(intern/Architektur — nicht kundenfähig) Weniger Duplikate, konsistente UI, schnellere Weiterentwicklung — Features erreichen Kunden früher und mit weniger Bugs.',
+--  'core');
+```
+

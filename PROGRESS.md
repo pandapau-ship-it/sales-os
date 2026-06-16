@@ -40,6 +40,30 @@
 
 ## Completed
 
+### Phase 2 — Komponenten-Struktur & panel-block-Library (Branch `feature/phase-2-hunter`) — Session 2026-06-16
+
+Aufräumen + Konsolidierung der Komponenten-Struktur. Reiner Refactor, **kein** Design-/Verhaltens-
+Change (Markup byte-identisch), kein DB-Wiring. Build · Audit · Structure-Check durchgehend grün.
+
+- [x] **Tote Dateien + Orphans gelöscht** — `shell/` komplett (alte Shell-Variante) · `shared/InfoPanel`
+  `EngagementChain` `HeatDot` `ChannelIcon` `ScoreRing` · verwaiste `features/hunter/HunterInfoPanel`
+  `HunterActionPanel` · `features/settings/SnoozeSettings` (vorher je 0 Importe verifiziert).
+- [x] **Komponenten verschoben** — Karten → `panel-blocks/` (`HunterCard` `SignalRow` `FollowUpKaltCard`
+  `PipelineStagniertCard` `PipelineKeineTaskCard` `LinkedinSignalCard` `NewInPipelineCards`
+  `SequenceLeadCards`) · Hunter-Panels/Drawer → `features/hunter/` (`HunterSidepanel` `ChatActionPanel`
+  4 Drawer). Import-Pfade projektweit angepasst.
+- [x] **HunterSidepanel + ChatActionPanel vollständig auf panel-blocks** (Weg B + Weg A, blockweise mit
+  Preview): `EditableInline`/`PhoneField` extrahiert; `PanelTabs`; Übersicht-Blöcke (`KiKurzakte`
+  /`AktiveSignale`/`DealSetup`/`OffeneTasks`/`ActiveSequenceChain`/`KommunikationPreview`);
+  `KontaktZeile` (interaktiv); Tab-Bodies als neue Blöcke `TasksListe`/`KommunikationVerlauf`/
+  `AktivitaetsVerlauf`/`NotizenListe`; `ActionComposer`/`ActionFooter`. **Jeder panel-block auf dem
+  reichsten/kanonischen Stand** (nie Funktion/Design verloren).
+- [x] **panel-blocks/index.ts Barrel** (Default-/Named-Exports + Typen) — gebündelter Import möglich.
+- [x] **shared/ bereinigt** — `ActionPanel` (Orphan) gelöscht · `FunnelAnalysis` → `features/hunter/`
+  · `PersonalityBadge` → `panel-blocks/` (künftiger Block) · `BrandIcons` als legitimes shared-Util.
+- [x] **`npm run structure-check`** (`scripts/structure-check.sh`) — FAIL bei falsch platzierten
+  `shared/`-Komponenten; im **Pre-Push-Hook** nach der DB-Checkliste; Teil des Merge-Gates. CLAUDE.md ergänzt.
+
 ### Phase 2 — Hunter-Vollansicht (Branch `feature/phase-2-hunter`) — Session 2026-06-15
 
 Kontakt-**Vollansicht** als echte Seite + **Details-Tab** (Attio/Clay-Stil). Alles Mock/Design,

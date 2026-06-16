@@ -12,6 +12,15 @@ echo "║  □ api_usage vor AI Calls geprüft?       ║"
 echo "╚══════════════════════════════════════════╝"
 echo ""
 
+# Structure-Check: Komponenten in richtiger Ordner-Struktur? (nach der DB-Checkliste)
+if ! sh scripts/structure-check.sh; then
+  if { true >/dev/tty; } 2>/dev/null; then
+    echo "Push abgebrochen — Struktur korrigieren (npm run structure-check)." > /dev/tty
+    exit 1
+  fi
+fi
+echo ""
+
 # Hinweis: git übergibt dem pre-push-Hook die Ref-Liste auf stdin. Die Bestätigung
 # muss daher vom Terminal (/dev/tty) gelesen werden, nicht von stdin. Steht KEIN
 # Terminal zur Verfügung (automatisierter Push durch Claude Code / CI), wird die

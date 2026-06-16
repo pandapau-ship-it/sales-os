@@ -12,6 +12,8 @@
 - [x] CHECKLIST.md als Single Source of Truth — *Umsetzungsstand zentral*
 - [x] `scripts/audit.ts` + `npm run audit` — *prüft die 5 Pflicht-Prüffragen automatisch*
 - [x] audit-Check „Design: nur Token-Farben" — *FAIL bei bg/text/border-white|black|gray-* oder Hex in .tsx*
+- [x] **`npm run structure-check`** (`scripts/structure-check.sh`) — *FAIL bei falsch in shared/ platzierten Komponenten; im Pre-Push-Hook + Merge-Gate* — *2026-06-16*
+- [x] **panel-block-Library konsolidiert** — alle Inhalts-Blöcke in `panel-blocks/` (+ Barrel `index.ts`); HunterSidepanel/ChatActionPanel komplett panel-block-basiert; tote Dateien/Orphans entfernt; shared/ bereinigt — *2026-06-16*
 - [ ] audit.ts an Pre-Commit-Hook hängen — *kein Commit mit hartem Verstoß*
 - [ ] audit.ts erweitern wenn neue Infrastruktur existiert (DB, lib/ai.ts …)
 

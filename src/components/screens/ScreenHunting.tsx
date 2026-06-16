@@ -35,7 +35,7 @@ import { SequenceLeadCards } from '@/components/panel-blocks/SequenceLeadCards';
 import NewInPipelineCards from '@/components/panel-blocks/NewInPipelineCards';
 import { PipelineStagniertCard } from '@/components/panel-blocks/PipelineStagniertCard';
 import { PipelineKeineTaskCard } from '@/components/panel-blocks/PipelineKeineTaskCard';
-import FunnelAnalysis from '@/components/shared/FunnelAnalysis';
+import FunnelAnalysis from '@/components/features/hunter/FunnelAnalysis';
 
 import Avatar from '@/components/shared/Avatar';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';

@@ -40,6 +40,7 @@ export { default as TasksListe } from './TasksListe';
 // ── Named-Exports ──────────────────────────────────────────────────────────
 export { FollowUpKaltCard } from './FollowUpKaltCard';
 export { LinkedinSignalCard } from './LinkedinSignalCard';
+export { PersonalityBadge } from './PersonalityBadge';
 export { PipelineKeineTaskCard } from './PipelineKeineTaskCard';
 export { PipelineStagniertCard } from './PipelineStagniertCard';
 export { SequenceLeadCards } from './SequenceLeadCards';
