@@ -11,6 +11,7 @@
  */
 
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   getLeads,
   getCustomers,
@@ -18,11 +19,14 @@ import {
   getPriorities,
   getAppointments,
   getAlerts,
+  getContacts,
   updateLeadStage as dbUpdateLeadStage,
   setTaskCompleted as dbSetTaskCompleted,
   createLead as dbCreateLead,
   upgradeSubscription as dbUpgradeSubscription,
 } from "@/lib/db";
+import { DEMO_ORGANIZATION_ID } from "@/lib/org";
+import { contactRowToLead } from "@/lib/hunterMappers";
 import type {
   Lead,
   Customer,
@@ -172,10 +176,20 @@ export function MeinTagReference() {
 
 export function HunterReference() {
   const s = useReferenceState();
+  // Slice 1 (Read-only): echte org-gescopte Kontakte → Leads-Tab. Andere Tabs
+  // bleiben auf Mock (s.leads). organization_id IMMER im Query-Key.
+  const leadsQuery = useQuery({
+    queryKey: ["contacts", DEMO_ORGANIZATION_ID],
+    queryFn: () => getContacts(DEMO_ORGANIZATION_ID),
+  });
+  const leadsData = leadsQuery.data?.map(contactRowToLead);
   return (
     <>
       <ScreenHunting
         leads={s.leads}
+        leadsData={leadsData}
+        leadsLoading={leadsQuery.isLoading}
+        leadsError={leadsQuery.isError}
         onSelectLead={s.selectPerson}
         onUpdateLeadStage={s.updateLeadStage}
         onAddLead={s.addLead}

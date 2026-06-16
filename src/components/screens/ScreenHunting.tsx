@@ -36,6 +36,11 @@ import { ACTION_ROW } from '@/lib/componentBehavior';
 
 interface ScreenHuntingProps {
   leads: Lead[];
+  // Slice 1: echte org-gescopte Leads (DB) NUR für den Leads-Tab. Fällt auf `leads`
+  // (Mock) zurück, solange nicht gesetzt. Andere Tabs nutzen weiter `leads`.
+  leadsData?: Lead[];
+  leadsLoading?: boolean;
+  leadsError?: boolean;
   onSelectLead: (lead: Lead) => void;
   onUpdateLeadStage: (leadId: string, newStage: string) => void;
   onAddLead: (lead: Lead) => void;
@@ -58,11 +63,17 @@ const ownerForLead = (id: string) =>
 
 export default function ScreenHunting({
   leads,
+  leadsData,
+  leadsLoading,
+  leadsError,
   onUpdateLeadStage,
   onAddLead,
   onSelectCommunication,
 }: ScreenHuntingProps) {
   const { t } = useTranslation();
+  // Leads-Tab-Quelle: echte DB-Leads, sonst Mock-Fallback. Nur dieser Tab + sein
+  // Count/Select nutzen leadRows; Pipeline/Overview/Signals bleiben auf `leads`.
+  const leadRows = leadsData ?? leads;
   const [subTab, setSubTab] = useState<'overview' | 'new_leads' | 'leads' | 'pipeline' | 'signals' | 'sequences' | 'follow_ups'>('leads');
   const [expandedLeadId, setExpandedLeadId] = useState<string | null>(null);
   const [selectedLeadIds, setSelectedLeadIds] = useState<string[]>([]);
@@ -104,7 +115,7 @@ export default function ScreenHunting({
       prev.includes(id) ? prev.filter(lId => lId !== id) : [...prev, id]
     );
   };
-  const selectAll = () => setSelectedLeadIds(leads.map(l => l.id));
+  const selectAll = () => setSelectedLeadIds(leadRows.map(l => l.id));
   const deselectAll = () => setSelectedLeadIds([]);
 
   // Signals-Auswahl (gleiche Mechanik wie Leads). IDs = Namen der Signal-Kacheln.
@@ -132,7 +143,7 @@ export default function ScreenHunting({
     { id: 'overview', label: t('hunter.tabs.overview'), count: null },
     { id: 'signals', label: t('hunter.tabs.signals'), count: 5 },
     { id: 'new_leads', label: t('hunter.tabs.newInPipeline'), count: null },
-    { id: 'leads', label: t('hunter.tabs.leads'), count: leads.length },
+    { id: 'leads', label: t('hunter.tabs.leads'), count: leadRows.length },
     { id: 'follow_ups', label: t('hunter.tabs.followUps'), count: 2 },
     { id: 'pipeline', label: t('hunter.tabs.pipelineKanban'), count: null },
   ];
@@ -346,8 +357,8 @@ export default function ScreenHunting({
           {/* List Actions / Select All Bar */}
           <div className={`transition-all duration-300 flex items-center justify-between px-2 ${selectedLeadIds.length > 0 ? 'opacity-100 h-10 mb-2' : 'opacity-0 h-0 overflow-hidden'}`}>
             <div className="flex items-center gap-3">
-              <button 
-                onClick={selectedLeadIds.length === leads.length ? deselectAll : selectAll}
+              <button
+                onClick={selectedLeadIds.length === leadRows.length ? deselectAll : selectAll}
                 className="flex items-center justify-center w-[22px] h-[22px] rounded-md bg-[var(--sherloq-primary)] border border-[var(--sherloq-primary)]"
               >
                 <Check className="w-3.5 h-3.5 text-on-accent" strokeWidth={3} />
@@ -367,14 +378,24 @@ export default function ScreenHunting({
             </div>
           </div>
 
-          {leads.length === 0 ? (
+          {leadsLoading ? (
+            <div className="flex flex-col gap-3">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="h-[76px] rounded-[12px] bg-app-surface border border-[var(--border-card)] animate-pulse" />
+              ))}
+            </div>
+          ) : leadsError ? (
+            <div className="px-4 py-10 text-center text-[13px] text-[var(--signal-urgent-text)]">
+              Leads konnten nicht geladen werden.
+            </div>
+          ) : leadRows.length === 0 ? (
             <EmptyState
               icon={<Users className="w-6 h-6" />}
               title="Noch keine Leads"
               description="Füge deinen ersten Lead hinzu"
               action={{ label: '+ SDR Lead hinzufügen', onClick: () => setShowAddModal(true) }}
             />
-          ) : leads.map((lead) => {
+          ) : leadRows.map((lead) => {
             const isExpanded = expandedLeadId === lead.id;
             return (
               <LeadListRow

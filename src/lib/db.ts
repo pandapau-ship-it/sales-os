@@ -171,7 +171,11 @@ export async function getContacts(
 ): Promise<Record<string, unknown>[]> {
   const client = getSupabaseClient();
   if (!client) return [];
-  let q = client.from("contacts").select("*").eq("organization_id", organizationId);
+  // Company-Name eingebettet (für die Leads-Liste); RLS greift auf companies mit.
+  let q = client
+    .from("contacts")
+    .select("*, company:companies(name)")
+    .eq("organization_id", organizationId);
   if (filters.status) q = q.eq("contact_status", filters.status);
   if (filters.heatStatus) q = q.eq("heat_status", filters.heatStatus);
   if (filters.cursor) q = q.lt("created_at", filters.cursor);
