@@ -73,12 +73,19 @@ export default function LeadListRow({
             <ICPDonut score={lead.icpScore ?? 87} />
           </div>
 
-          <div className="flex items-center gap-3 w-[140px] xl:w-[180px]">
-            <div className="bg-[var(--text-primary)] text-on-accent text-[14px] w-[40px] h-[40px] flex items-center justify-center rounded-[12px] font-bold shrink-0">
-              {lead.person.company.charAt(0).toUpperCase()}
+          {/* Firmen-Block: Quadrat = Initiale des Firmennamens (kein Logo-Feld). Keine
+              Firma (company_id NULL) → komplett ausblenden; Breite bleibt als
+              unsichtbarer Platzhalter erhalten, damit Status/Heat nicht verrutschen. */}
+          {lead.person.company ? (
+            <div className="flex items-center gap-3 w-[140px] xl:w-[180px]">
+              <div className="bg-[var(--text-primary)] text-on-accent text-[14px] w-[40px] h-[40px] flex items-center justify-center rounded-[12px] font-bold shrink-0">
+                {lead.person.company.charAt(0).toUpperCase()}
+              </div>
+              <span className="text-[14px] text-[var(--sherloq-primary)] font-semibold w-[120px] truncate">{lead.person.company}</span>
             </div>
-            <span className="text-[14px] text-[var(--sherloq-primary)] font-semibold w-[120px] truncate">{lead.person.company}</span>
-          </div>
+          ) : (
+            <div className="w-[140px] xl:w-[180px]" aria-hidden />
+          )}
         </div>
 
         {/* Middle Stats (Simplified) */}
