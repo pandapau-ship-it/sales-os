@@ -7,7 +7,7 @@
 import type { MouseEvent } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  Check, AlertTriangle, ChevronUp, ChevronDown, ArrowRight, Zap,
+  Check, ChevronUp, ChevronDown, ArrowRight, Zap,
 } from "lucide-react";
 import Avatar from "@/components/shared/Avatar";
 import { ICPDonut } from "@/components/shared/ICPDonut";
@@ -29,6 +29,10 @@ export default function LeadListRow({
   onSelectCommunication: any;
 }) {
   const { t } = useTranslation();
+  // „vor X Tagen" aus contacts.last_contacted_at (reine Anzeige). null → „—".
+  const lastContactedDays = lead.lastContactedAt
+    ? Math.max(0, Math.floor((Date.now() - new Date(lead.lastContactedAt).getTime()) / 86400000))
+    : null;
 
   return (
     <div
@@ -81,7 +85,7 @@ export default function LeadListRow({
         <div className="hidden lg:flex items-center gap-4 px-4 border-l border-[var(--border-subtle)] shrink-0">
           <div className="flex flex-col items-center justify-center w-[80px] relative h-full">
             <span className="absolute -top-[14px] text-[10px] font-bold text-[var(--icon-muted)] tracking-wider uppercase">{t('hunter.common.stage')}</span>
-            <StageBadge stage={lead.pipelineStage === 'pipeline' ? 'Demo' : 'Lead'} />
+            <StageBadge stage={lead.contactStatusLabel ?? 'Lead'} />
           </div>
           <div className="flex flex-col items-center justify-center w-[120px] relative h-full">
             <span className="absolute -top-[14px] text-[10px] font-bold text-[var(--icon-muted)] tracking-wider uppercase">{t('hunter.common.heat')}</span>
@@ -92,10 +96,11 @@ export default function LeadListRow({
         {/* Right Actions */}
         <div className="flex items-center gap-4 pl-4 border-l border-[var(--border-subtle)] shrink-0 justify-between md:justify-end">
           <div className="flex flex-col items-end hidden sm:flex w-[130px]">
-            <span className="text-[14px] font-bold text-[var(--text-primary)] whitespace-nowrap">{t('hunter.common.ago', { label: '5 Tagen' })}</span>
-            <div className="flex items-center justify-end gap-1.5 mt-0.5 text-[var(--icp-low)] font-semibold text-[12px] whitespace-nowrap w-full">
-              {t('hunter.common.daysInStage', { days: 8 })} <AlertTriangle className="w-3.5 h-3.5" strokeWidth={2.5} />
-            </div>
+            <span className="text-[14px] font-bold text-[var(--text-primary)] whitespace-nowrap">
+              {lastContactedDays === null
+                ? '—'
+                : t('hunter.common.ago', { label: t('hunter.common.daysAgo', { count: lastContactedDays }) })}
+            </span>
           </div>
           <div className="flex items-center gap-3 relative w-[90px] justify-end">
             <button className="w-8 h-8 flex items-center justify-center text-[var(--icon-muted)] hover:text-[var(--text-primary)] transition-colors rounded-full hover:bg-[var(--app-bg)]">

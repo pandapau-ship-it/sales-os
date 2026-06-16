@@ -123,6 +123,8 @@
       "hoursLeft": "{{hours}}h left",
       "hoursWindow": "{{hours}}h window",
       "ago": "vor {{label}}",
+      "daysAgo_one": "{{count}} Tag",
+      "daysAgo_other": "{{count}} Tagen",
       "daysInStage": "{{days}}T in Stage",
       "newInPipeline": "Neu in Pipeline",
       "kiKurzakte": "KI Kurzakte"

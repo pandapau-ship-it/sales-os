@@ -37,6 +37,11 @@
 
 > **PR #12** (Draft) vorbereiten, aber **NICHT mergen** — auf Freigabe warten.
 
+> **TODO (Rechte/Filter-Phase, offen):** Sollen `opt_out`/`archiviert`-Kontakte im
+> Hunter-Leads-Tab überhaupt erscheinen oder rausgefiltert werden? `opt_out` ist ein
+> Hard-Block (nie wieder Sequenz, Audit). Aktuell werden sie nur mit Label angezeigt
+> (Slice 3). Produktentscheidung vor Launch nötig. (Vermerk auch in `hunterMappers.ts`.)
+
 ---
 
 ## Completed
