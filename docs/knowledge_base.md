@@ -256,3 +256,26 @@
 - **how:** Filterleiste oben in der Pipeline; die Auswahl grenzt die Deals sofort ein, im Kanban folgen auch die Spalten-Aggregate.
 - **value:** Genau die Deals sehen, die gerade zählen (z.B. nur heiße, nur meine) — fokussiertes Arbeiten statt Scrollen durch alles.
 - **module:** hunter
+
+## 2026-06-17 (Teil 2) — Migration `024_knowledge_base_hunter_read.sql` (3 Einträge)
+
+### Hunter Signals
+- **feature:** Hunter Signals
+- **what:** Echte Kauf-/Engagement-Signale zu deinen Kontakten (z.B. LinkedIn-Aktivität, Job-Wechsel) als Feed — mit Kontakt-Kachel, Signaltyp, Zeit und — wenn vorhanden — der Stage des zuletzt aktiven Deals.
+- **how:** Hunter → Signale. Jede Kachel zeigt den Anlass; Pfeil rechts öffnet den Kontakt. Leer = aktuell nichts zu tun.
+- **value:** Du erfährst sofort, wann ein Kontakt anspringt — und reagierst im richtigen Moment statt zu spät. Mehr Antworten, weniger verpasste Chancen.
+- **module:** hunter
+
+### Neu in Pipeline
+- **feature:** Neu in Pipeline
+- **what:** Frisch in die Pipeline eingegangene Deals als Übersicht, wählbar nach Zeitraum (heute / letzte 7 Tage / letzter Monat); je Eintrag Herkunft „Via AI SDR" oder „Manuell hinzugefügt".
+- **how:** Hunter → Neu in Pipeline. Oben den Zeitraum wählen; Pfeil öffnet den Kontakt. Zeigt nur frisch Eingegangenes, nicht die ganze Pipeline.
+- **value:** Du siehst auf einen Blick, was neu reinkam und woher — schneller Einstieg in frische Opportunities, ohne die komplette Pipeline zu durchsuchen.
+- **module:** hunter
+
+### Follow-ups
+- **feature:** Follow-ups
+- **what:** Alle fälligen Aufgaben an deinen Kontakten/Deals als Liste — pro Eintrag die Kontakt-Kachel plus Aufgabe und Fälligkeit (überfällig rot, heute markiert). Erledigte verschwinden direkt.
+- **how:** Hunter → Follow-ups. „Erledigt" hakt die Aufgabe ab (verschwindet sofort). Leer = alles erledigt.
+- **value:** Kein Follow-up fällt mehr durchs Raster — du arbeitest deine fälligen Aufgaben ab und hältst Deals warm, mit klarer Dringlichkeit auf einen Blick.
+- **module:** hunter

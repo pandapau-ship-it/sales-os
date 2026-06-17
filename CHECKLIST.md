@@ -76,7 +76,14 @@
 - [x] **Hunter Pipeline-Tab auf echte `deals`** — `getDeals` (+`owner:users`-Embed) + `getPipelineSettings` via TanStack; Liste/Kanban/Filter (Heat/Owner/Stage), value Cent→/100 — *2026-06-17*
 - [x] **Hunter Signals-Tab datengetrieben** — `getSignals` + `signalToCardProps` (S-0…S-2); Signal-Typ-Mapping (i18n/Icon/`settings.signal_windows`) — *2026-06-17*
 - [x] **Kontakt-Datenvereinheitlichung** — `contactToProfile` = Single-Source (Identität/ICP/Heat/Status); Heat-Quellen-Fix Pipeline; `contactActiveStage` (zuletzt aktiver Deal); Regeln in CLAUDE.md — *2026-06-17*
-- [ ] knowledge_base-Eintrag je weiterem fertigem Feature (Migration 017+)
+- [x] **Hunter Neu-in-Pipeline read-verdrahtet** — `getNewInPipeline` + `dealToNewPipelineRow` (created_at desc), Zeitfilter heute/7T/30T (Default 30T), Herkunft AI-SDR/Manuell via `source_lead_id` ([D18]) — *2026-06-17*
+- [x] **Task-System DB** — Migration **021** (composite Indizes `org+due_at`/`+deal`/`+contact`), **022** (`tasks.channel` nullable), **023** (fällige Test-Tasks-Seed, idempotent) — *2026-06-17*
+- [x] **Hunter Follow-ups-Tab = fällige Tasks** — `getDueTasks` (`completed_at IS NULL AND due_at <= now()`) + `taskToDueCard`; ersetzt Heat-Cold/Gone ([D17] entschieden) — *2026-06-17*
+- [x] **Task abhaken = erster echter Write** — `completeTask` (UPDATE `completed_at`, org-gescoped, Audit via Trigger), `useMutation` + invalidate-on-success (T4a) — *2026-06-17*
+- [x] **knowledge_base Migration 024** — Einträge `Hunter Signals` · `Neu in Pipeline` · `Follow-ups` (module='hunter'); idempotent `ON CONFLICT DO UPDATE` — *2026-06-17*
+- [ ] **Task ANLEGEN (T4b)** — `createTask` vorbereitet (channel/`mail→email`/due_at/`assigned_to=NULL`), wartet auf Panel-Wiring (→ PROGRESS Panel-Thema B1)
+- [ ] **Erinnerung/Reminder** — Feld (`reminder_at`) + Auslöse-System (notifications/Cron/Versand) fehlen komplett ([D19])
+- [ ] knowledge_base-Eintrag je weiterem fertigem Feature
 
 > Die folgenden Listen sind die vollständige Soll-Spezifikation (großteils Felder/Feature-Wiring, das schrittweise folgt).
 

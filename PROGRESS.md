@@ -4,7 +4,9 @@
 
 ---
 
-## Current Status: Phase 3 (DB-Wiring Hunter) — Leads/Pipeline/Signals live + Kontakt-Daten zentralisiert ✅ → Info-Panel / Realtime next
+## Current Status: Phase 3 (DB-Wiring Hunter) — Hunter READ-seitig fertig (Leads/Pipeline/Signals/Neu-in-Pipeline/Follow-ups) + Task-System (read + Abhaken, erster Write) ✅ → Panel-Thema (B) / Realtime next
+
+> **Session 2026-06-17 (Teil 2) — fertig:** Neu-in-Pipeline read-verdrahtet (`getNewInPipeline`/`dealToNewPipelineRow`, Zeitfilter heute/7T/30T, Herkunft AI-SDR/Manuell via `source_lead_id`, [D18]) · **Task-System:** Migration 021 (composite Indizes org+due_at/deal/contact), 022 (`tasks.channel`), 023 (fällige Test-Tasks-Seed) · Follow-ups-Tab von Heat-Cold/Gone **auf fällige Tasks** umgestellt ([D17] entschieden: `getDueTasks`/`taskToDueCard`) · **Task abhaken = erster echter Write** (`completeTask`, T4a, invalidate-on-success) · Reminder ausgegraut ([D19]: Feld+System fehlen) · Panel-Thema (B) konsolidiert (T4b Anlegen + Deeplink + Pipeline-Task-Liste + Stagnation gebündelt). Task **Anlegen** (T4b) bewusst zum Panel-Bau verschoben.
 
 > Single Source of Truth für den Umsetzungsstand: **CHECKLIST.md** (`npm run audit` prüft).
 > CLAUDE.md = WARUM/WIE · CHECKLIST.md = WAS-offen · PROGRESS.md = Session-Historie.
@@ -17,21 +19,48 @@
 ## Offen — Nächste Session (Phase 3 DB-Wiring, Reihenfolge)
 
 **~~A. Pipeline-Tab~~ ✅ erledigt** (Liste/Kanban/Filter/Owner, Session 2026-06-17). Offen bleibt dort
-   nur die **Task-Liste-Ansicht** ([D13]) + **Stage-Writes/Stagnation** ([D8]/[D9]) — an Edge Functions gebunden.
-**B. 820px-Info-Panel** (`HunterSidepanel`) an echte `contacts`/`companies`-Felder (CRM-Felder),
-   Tabs (Kommunikation/Aktivität/Tasks/Notizen/Deals) an echte Tabellen. **← nächster Slice-Kandidat.**
-   ⮑ **Karten-Deeplink (beim Panel-Wiring mitbauen):** Ein Klick auf eine Karte soll das Panel **direkt
-   am kontextrelevanten Tab** öffnen, nicht generisch. Follow-up-/Task-Karte → **Task-/Aktivitäts-Tab**
-   mit Kontext, **welcher** Task gemeint ist (Task-ID durchreichen). Analog für andere kartenspezifische
-   Einstiege (z.B. Signal-Karte → relevanter Tab). Hängt am Panel-Wiring → dort umsetzen. Heute öffnet
-   `onSelectLead`/`onOpenInfo` nur generisch (Tür sichtbar, Deeplink-Kontext fehlt noch).
-   ⮑ **Task ANLEGEN (T4b) — bewusst hierher verschoben (nicht einzeln vorab bauen):** Das „Neue Task"-
-   Formular (`TaskFormular`) lebt im Panel; Kontakt-/Deal-Feld soll ein **echtes durchsuchbares Auswahlfeld**
-   werden — **vorbefüllt aus Kontext, änderbar** („ein Formular für beide Wege", wie gute CRMs es lösen).
-   Wird **zusammen mit dem Panel-Wiring** gebaut, damit das Formular nicht doppelt angefasst wird. Bis dahin
-   bleibt das Formular **Mock (kein Persist)**. **Vorbereitet & wartend:** `createTask` (db.ts) inkl. `channel`
-   (+ `mail→email`-Mapping), `due_at`-Komposition (Datum+Uhrzeit) und `assigned_to = NULL` (vorerst) — nur die
-   Panel-Anbindung fehlt. Abhaken (T4a) ist dagegen **fertig** (echter Write, `completeTask`).
+   nur die **Task-Liste-Ansicht** (→ Panel-Thema **B4**, [D13]) + **Stage-Writes/Stagnation** (→ **B5**, [D8]/[D9])
+   — an Panel-Wiring + Edge Functions gebunden.
+**B. PANEL-THEMA — Info-Panel (820px) + Action-Panel** (`HunterSidepanel`). **← nächster großer Block.**
+   Sammelpunkt für ALLES, was bewusst hierher verschoben wurde — beim Panel-Bau zusammen umsetzen,
+   damit nichts doppelt angefasst wird.
+
+   **B0 — Info-Panel-Felder:** `contacts`/`companies`-Felder (CRM-Felder) + Tabs
+   (Kommunikation/Aktivität/Tasks/Notizen/Deals) an echte Tabellen hängen.
+
+   **B1 — Task ANLEGEN (T4b, bewusst hierher verschoben):** Das „Neue Task"-Formular (`TaskFormular`)
+   lebt im Panel (Action-Panel). Wird **zusammen mit dem Panel-Wiring** gebaut (kein doppeltes Anfassen);
+   bis dahin bleibt das Formular **Mock (kein Persist)**. **Vorbereitet & wartend:** `createTask` (db.ts)
+   inkl. `channel` (+ `mail→email`-Mapping), `due_at`-Komposition (Datum+Uhrzeit), `source='manual'`,
+   `assigned_to = NULL` (vorerst) — nur die Panel-Anbindung fehlt. **Kontakt-Feld:** vorbefüllt aus
+   Kartenkontext + änderbar; Ziel ein **echtes durchsuchbares Auswahlfeld** („ein Formular für beide
+   Wege" — kontextbasiert **und** frei). _(Abhaken T4a ist bereits **fertig**: echter Write `completeTask`.)_
+
+   **B2 — Task-Datenmodell (GELOCKT):** Eine Aufgabe hängt **immer am Kontakt** (`contact_id`, Pflicht),
+   **Deal optional** (`deal_id`, nullable) — im Anlege-Formular wählbar. Die Tabelle unterstützt das
+   bereits. Begründung: deckt **menschbezogene** (kein Deal) **und geschäftsbezogene** Aufgaben ab; bei
+   Kontakten mit mehreren Deals macht die Deal-Zuordnung die Aufgabe **eindeutig**. Entspricht klassischem
+   CRM (SF/HubSpot: *who* + optional *what*) und modernen, kontaktzentrierten Execution-Tools.
+
+   **B3 — Karten-Deeplink:** Klick auf eine Karte öffnet das Panel **direkt am kontextrelevanten Tab**,
+   nicht generisch. Follow-up-/Task-Karte → **Task-/Aktivitäts-Tab** mit Kontext, **welche** Task
+   (Task-ID durchreichen). Analog andere kartenspezifische Einstiege (z.B. Signal-Karte → relevanter Tab).
+   Heute öffnet `onSelectLead`/`onOpenInfo` nur generisch (Tür sichtbar, Deeplink-Kontext fehlt noch).
+
+   **B4 — Pipeline-Task-Liste** (Pipeline-Tab, „Task Liste"-Ansicht; ersetzt [D13]) — **kommt mit dem
+   Panel + Stagnations-Berechnung (B5)**, zwei Fälle:
+   - **„Stagniert"** → Warnhinweis + KI-Vorschlag; Klick öffnet **Action-Panel**. Braucht die
+     Stagnations-Berechnung (B5) **und** den KI-Vorschlag (noch nicht gebaut).
+   - **„Deal ohne offene Task"** → Klick öffnet **Anlege-Panel**. **Aus Daten ableitbar**
+     (`getDeals` open-filtert `deal.tasks` → `length === 0`); `openTaskCount` auf `PipelineRow` noch zu ergänzen.
+   - **Definitionen (bestätigt):** Follow-ups = **fällige** Tasks (`completed_at IS NULL AND due_at <= now()`);
+     Pipeline-Task-Liste = **alle offenen** Tasks (`completed_at IS NULL`, Fälligkeit egal).
+   - **Testdaten-Hinweis:** die Seed-Tasks (023) haben `deal_id = NULL` → für die **Deal-bezogene** Ansicht
+     werden **Deal-verknüpfte** Test-Tasks gebraucht (Deal-UUIDs liefert der User via SQL-Editor, RLS-bedingt).
+
+   **B5 — Stagnations-Berechnung ([D4]/[D9], Voraussetzung für B4 „Stagniert"):** Regel „Deal länger als
+   X Tage/Wochen in einer Stage" — Schwellwert **pro Org konfigurierbar** (`settings`), erzeugt den
+   „Stagniert"-Warnhinweis. **Noch nicht gebaut** (Edge Function / Berechnung).
 **C. Realtime** für die Live-Tabellen (`lib/realtime.ts`), Cache-Invalidierung.
 **D. Restliche Mock-Screens** (Neu-in-Pipeline/Follow-ups/Overview Top-5) + AddSdrLeadPanel/Snooze (Writes, Edge Functions).
    ⮑ **Beim Wiring: Produktprinzip „Task-getriebene Leere"** (CLAUDE.md → Design Invariants) — diese Bereiche

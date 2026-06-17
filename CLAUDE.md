@@ -1944,13 +1944,19 @@ berechnet/gesetzt (das kommt per Edge Functions, siehe PROGRESS → Deferred Log
 - Jede Funktion hat einen klar benannten Export (`getLeads()`, `uploadLogo()` …),
   Promise-basiert (passt zu Supabase und später TanStack Query als queryFn)
 
-**Status (Phase 3, DB-Wiring läuft):** Supabase ist **live** (`.env.local`, anon-Key, Migrationen
-001–016 remote). **Schon echt verdrahtet:** Hunter-**Leads-Tab** (`getContacts`) + **Pipeline-Tab**
-(`getDeals` inkl. `owner:users`-Embed + `getPipelineSettings`; Liste/Kanban/Filter) + `useModules`
-(`settings.modules`) — alles via TanStack Query. **Noch Mock:** Hunter Signals/Follow-ups/Overview +
-Info-Panel + Mein Tag/Farmer — werden screenweise umgestellt (Körper tauschen, Signaturen bleiben).
-Server-State neuer Wirings läuft **nur** über TanStack Query (kein `useEffect`+fetch). Berechnete Werte
-(heat/icp/stagnation/Stage-Writes) sind Anzeige bis Edge Functions → PROGRESS „Deferred Logic" [D1]–[D13].
+**Status (Phase 3 — Hunter READ-seitig fertig):** Supabase ist **live** (`.env.local`, anon-Key, Migrationen
+001–023 remote; 024 = knowledge_base-Seed wartet auf `db push`). **Echt verdrahtet (alle Hunter-Read-Tabs):**
+**Leads** (`getContacts`) · **Pipeline** (`getDeals` inkl. `owner:users`-Embed + `getPipelineSettings`;
+Liste/Kanban/Filter) · **Signals** (`getSignals` + `signalToCardProps`) · **Neu-in-Pipeline**
+(`getNewInPipeline` + Zeitfilter) · **Follow-ups = fällige Tasks** (`getDueTasks`/`taskToDueCard`,
+`completed_at IS NULL AND due_at <= now()`) · `useModules` — alles via TanStack Query. **Erster Write:**
+**Task abhaken** (`completeTask` → `completed_at`, `useMutation` + invalidate-on-success; Audit via
+DB-Trigger, keine Edge Function). Kontakt-Werte zentral über `contactToProfile`/`contactActiveStage`.
+**Noch Mock/offen:** **820px-Info-Panel** (inkl. Task **Anlegen** T4b — `createTask` vorbereitet) ·
+Pipeline-**Task-Liste** · **Übersicht** Top-5/KPIs/Funnel · Mein Tag/Farmer → siehe PROGRESS **Panel-Thema (B)**.
+Server-State läuft **nur** über TanStack Query (kein `useEffect`+fetch). Berechnete Werte
+(heat/icp/stagnation/Stage-Writes) + Task-**Reminder** ([D19]) sind Anzeige/deferred bis Edge Functions/Notifications
+→ PROGRESS „Deferred Logic" [D1]–[D19].
 
 ---
 
