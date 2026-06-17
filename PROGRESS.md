@@ -20,6 +20,11 @@
    nur die **Task-Liste-Ansicht** ([D13]) + **Stage-Writes/Stagnation** ([D8]/[D9]) — an Edge Functions gebunden.
 **B. 820px-Info-Panel** (`HunterSidepanel`) an echte `contacts`/`companies`-Felder (CRM-Felder),
    Tabs (Kommunikation/Aktivität/Tasks/Notizen/Deals) an echte Tabellen. **← nächster Slice-Kandidat.**
+   ⮑ **Karten-Deeplink (beim Panel-Wiring mitbauen):** Ein Klick auf eine Karte soll das Panel **direkt
+   am kontextrelevanten Tab** öffnen, nicht generisch. Follow-up-/Task-Karte → **Task-/Aktivitäts-Tab**
+   mit Kontext, **welcher** Task gemeint ist (Task-ID durchreichen). Analog für andere kartenspezifische
+   Einstiege (z.B. Signal-Karte → relevanter Tab). Hängt am Panel-Wiring → dort umsetzen. Heute öffnet
+   `onSelectLead`/`onOpenInfo` nur generisch (Tür sichtbar, Deeplink-Kontext fehlt noch).
 **C. Realtime** für die Live-Tabellen (`lib/realtime.ts`), Cache-Invalidierung.
 **D. Restliche Mock-Screens** (Neu-in-Pipeline/Follow-ups/Overview Top-5) + AddSdrLeadPanel/Snooze (Writes, Edge Functions).
    ⮑ **Beim Wiring: Produktprinzip „Task-getriebene Leere"** (CLAUDE.md → Design Invariants) — diese Bereiche
@@ -182,8 +187,11 @@
 - **Später:** je Element mit seiner Logik zurückholen. Die **konkrete AI-Empfehlung** gehört NICHT auf die Karte —
   sie lebt im **820px-Action-Panel** (Slice „Info-Panel", B). Der Panel-**Pfeil** ist bewusst schon sichtbar (Tür für später).
 
-### [D17] Follow-ups-Tab — finale Bedeutung (PRODUKTENTSCHEIDUNG, offen)
-- **Status heute:** verdrahtet als **„kalte Kontakte"** (Heat Cold/Gone, **unabhängig vom Deal**). Read-Ergebnis bleibt bis zur Entscheidung bestehen.
+### [D17] Follow-ups-Tab — finale Bedeutung ✅ ENTSCHIEDEN (T2 umgesetzt)
+- **Entscheidung (gelockt):** Follow-up = **Kontakt/Deal mit fälliger Task** (`completed_at IS NULL AND due_at <= now()`). Ersetzt die frühere „kalte Kontakte"-Verdrahtung (Heat Cold/Gone) **vollständig**.
+- **Umsetzung (T2):** Query `getDueTasks` + Mapper `taskToDueCard`; Karte = zentrale Kontakt-Kachel + grauer Bereich „Fällige Task" + Titel + Fälligkeit. Alte `getFollowUps`-Heat-Query + `contactToFollowUpCard` entfernt. Tab-Count = Anzahl fälliger Tasks.
+- **Deferred bleibt:** Snooze/Eskalation/„Start Outreach"/Stagnation (Logik fehlt) — UI lebt weiter in `FollowUpKaltCard` (jetzt ungenutzt, bewusst behalten als Heimat der späteren Follow-up-Aktionen).
+- _Historie:_ frühere Optionen (a) kalte Kontakte / (b) dealbezogen / (c) beides — verworfen zugunsten der fällige-Task-Definition.
 - **Zu klären (nicht unter Bau-Druck):** Soll der Tab
   - **(a)** kalte Kontakte als **Segment** zeigen (Reaktivierungs-Sicht über alle, mit/ohne Deal — entspricht „niemand geht verloren"), **oder**
   - **(b)** **dealbezogene** Follow-ups (nur Kontakte mit **laufendem Deal**, an dem man nachfasst), **oder**

@@ -33,7 +33,7 @@ import type { SignalActionData } from '@/components';
 
 import Avatar from '@/components/shared/Avatar';
 import { ACTION_ROW } from '@/lib/componentBehavior';
-import { signalToCardProps, contactToFollowUpCard, dealToNewPipelineRow, newPipelineInPeriod, type PipelineRow, type NewPipelinePeriod } from '@/lib/hunterMappers';
+import { signalToCardProps, taskToDueCard, dealToNewPipelineRow, newPipelineInPeriod, type PipelineRow, type NewPipelinePeriod } from '@/lib/hunterMappers';
 
 interface ScreenHuntingProps {
   leads: Lead[];
@@ -52,8 +52,9 @@ interface ScreenHuntingProps {
   signalsData?: Record<string, unknown>[];
   signalsLoading?: boolean;
   signalsError?: boolean;
-  // Follow-ups: Kontakte mit Heat Cold/Gone (inkl. company + deals-Embed).
-  followUpsData?: Record<string, unknown>[];
+  // Follow-ups (T2): fällige Tasks (completed_at IS NULL AND due_at <= now()),
+  // inkl. Kontakt-Embed (+ company + deals für contactActiveStage).
+  dueTasksData?: Record<string, unknown>[];
   // Neu-in-Pipeline: frisch angelegte Deals (inkl. contact + company + deals-Embed).
   newInPipelineData?: Record<string, unknown>[];
   onSelectLead: (lead: Lead) => void;
@@ -75,7 +76,7 @@ export default function ScreenHunting({
   signalsData,
   signalsLoading,
   signalsError,
-  followUpsData,
+  dueTasksData,
   newInPipelineData,
   onAddLead,
   onSelectCommunication,
@@ -89,8 +90,8 @@ export default function ScreenHunting({
   // Signals-Tab: echte Signals → Card-Props (Mapping braucht t + Stage-Labels für aktive-Deal-Stage).
   const stageNameBySlug = Object.fromEntries((pipelineStages ?? []).map((stg) => [stg.slug, stg.name]));
   const signalCards = (signalsData ?? []).map((s) => signalToCardProps(s, t, stageNameBySlug));
-  // Follow-ups: echte Cold/Gone-Kontakte → schlanke Card-Items (Kontakt-Kachel + aktive-Deal-Stage).
-  const followUpCards = (followUpsData ?? []).map((c) => contactToFollowUpCard(c, stageNameBySlug));
+  // Follow-ups (T2): fällige Tasks → Card-Items (Kontakt-Kachel + aktive-Deal-Stage + Task-Titel/Fälligkeit).
+  const dueTaskCards = (dueTasksData ?? []).map((tk) => taskToDueCard(tk, stageNameBySlug));
   // Neu-in-Pipeline: frisch angelegte Deals → Card-Items (Kontakt-Kachel + aktive-Deal-Stage + Herkunft).
   // Default-Fenster 30T („letzter Monat") — weiteste sinnvolle Spanne, da die Seed-Recency
   // mit dem anon-Key (RLS) nicht prüfbar ist; auf '7d'/'today' per Filter umschaltbar.
@@ -179,7 +180,7 @@ export default function ScreenHunting({
     { id: 'signals', label: t('hunter.tabs.signals'), count: 5 },
     { id: 'new_leads', label: t('hunter.tabs.newInPipeline'), count: newPipelineFiltered.length },
     { id: 'leads', label: t('hunter.tabs.leads'), count: leadRows.length },
-    { id: 'follow_ups', label: t('hunter.tabs.followUps'), count: followUpCards.length },
+    { id: 'follow_ups', label: t('hunter.tabs.followUps'), count: dueTaskCards.length },
     { id: 'pipeline', label: t('hunter.tabs.pipelineKanban'), count: null },
   ];
 
@@ -378,7 +379,7 @@ export default function ScreenHunting({
       )}
 
       {subTab === 'follow_ups' && (
-        <SequenceLeadCards items={followUpCards} onSelectLead={setInfoPanelLead} />
+        <SequenceLeadCards items={dueTaskCards} onSelectLead={setInfoPanelLead} />
       )}
 
       {/* NEW LEADS VIEW */}

@@ -222,34 +222,6 @@ export function contactActiveStage(
   return d ? stageNameBySlug[d.stage] ?? d.stage : undefined;
 }
 
-// ── Follow-ups (Read): schlanke Karte = Kontakt-Kachel + Stage + Panel-Einstieg ──
-export type FollowUpCardItem = {
-  id: string;
-  name: string;
-  role: string; // jobTitle
-  companyName: string;
-  icpScore?: number;
-  heatStatus?: HeatStatus;
-  stage?: string; // zuletzt aktiver Deal; kein aktiver Deal → undefined → keine Stage
-};
-
-/** Kontakt (Heat Cold/Gone) → Follow-up-Card-Item. Identität/Heat/ICP zentral, Stage via active deal. */
-export function contactToFollowUpCard(
-  contact: Record<string, any>,
-  stageNameBySlug: Record<string, string> = {},
-): FollowUpCardItem {
-  const p = contactToProfile(contact);
-  return {
-    id: contact.id,
-    name: p.name,
-    role: p.jobTitle,
-    companyName: p.company,
-    icpScore: p.icpScore,
-    heatStatus: p.heatStatus,
-    stage: contactActiveStage(contact, stageNameBySlug),
-  };
-}
-
 // ── Neu in Pipeline (Read): frisch angelegter Deal → Kontakt-Kachel + Stage ──────
 // „Neu in Pipeline" = kürzlich angelegte Deals (deals.created_at) als Info-/Übersicht.
 // Identität/Heat/ICP zentral (contactToProfile), Stage = zuletzt aktiver Deal des

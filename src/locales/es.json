@@ -202,6 +202,13 @@
       "emptyTitle": "Nichts Neues in diesem Zeitraum",
       "emptyDesc": "Frisch eingegangene Deals erscheinen hier."
     },
+    "followUps": {
+      "dueLabel": "Fällige Task",
+      "dueToday": "heute fällig",
+      "dueAgo": "fällig vor {{label}}",
+      "emptyTitle": "Keine fälligen Tasks",
+      "emptyDesc": "Nichts zu tun — alle Follow-ups erledigt."
+    },
     "signals": {
       "channel": {
         "linkedin": "LINKEDIN SIGNAL",

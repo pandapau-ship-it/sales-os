@@ -23,7 +23,7 @@ import {
   getDeals,
   getPipelineSettings,
   getSignals,
-  getFollowUps,
+  getDueTasks,
   getNewInPipeline,
   updateLeadStage as dbUpdateLeadStage,
   setTaskCompleted as dbSetTaskCompleted,
@@ -206,10 +206,10 @@ export function HunterReference() {
     queryKey: ["signals", DEMO_ORGANIZATION_ID],
     queryFn: () => getSignals(DEMO_ORGANIZATION_ID, { routedTo: "hunter", processed: false }),
   });
-  // Follow-ups: Kontakte mit Heat Cold/Gone (Definition heute = echter heat_status-Wert).
-  const followUpsQuery = useQuery({
-    queryKey: ["followups", DEMO_ORGANIZATION_ID],
-    queryFn: () => getFollowUps(DEMO_ORGANIZATION_ID),
+  // Follow-ups (T2): fällige Tasks (completed_at IS NULL AND due_at <= now()).
+  const dueTasksQuery = useQuery({
+    queryKey: ["dueTasks", DEMO_ORGANIZATION_ID],
+    queryFn: () => getDueTasks(DEMO_ORGANIZATION_ID),
   });
   // Neu-in-Pipeline: frisch angelegte Deals (created_at desc); Zeitfenster filtert der Screen.
   const newInPipelineQuery = useQuery({
@@ -230,7 +230,7 @@ export function HunterReference() {
         signalsData={signalsQuery.data as unknown as Record<string, unknown>[] | undefined}
         signalsLoading={signalsQuery.isLoading}
         signalsError={signalsQuery.isError}
-        followUpsData={followUpsQuery.data}
+        dueTasksData={dueTasksQuery.data}
         newInPipelineData={newInPipelineQuery.data}
         onSelectLead={s.selectPerson}
         onUpdateLeadStage={s.updateLeadStage}
