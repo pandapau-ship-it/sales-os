@@ -139,11 +139,20 @@
 - **Später:** beim DB-Wiring des jeweiligen Screens entfernen → `null → 0/grau` bzw. echter Wert,
   **kein erfundener Default**. Mitnehmen, wenn Farmer / Task-Entwurf / Signal-Drawer echte Daten bekommen.
 
+### [D13] Pipeline „Task-Liste"-Ansicht auf echte Daten · Zielphase: Stagnations-/Task-Logik (gebündelt)
+- **Status heute:** Die dritte Pipeline-Ansicht („Task-Liste", per Button) läuft **komplett auf Mock**
+  (Christian Brand/LogixFlow, „Pipeline stagniert seit 14 Tagen", „Keine Task", Action-/Task-anlegen-Buttons).
+- **Abhängig von zwei Fundamenten:** (1) echte **Stagnations-Berechnung** (`stagnation_days` via Edge
+  Function, nicht Seed/fingiert, [D4]/[D9]); (2) **Task-Logik** (offene Tasks an Deals erkennen, [D10]).
+  Enthält zudem **Writes** (Action / Task anlegen → [D8]-artig, audit_log).
+- **Später:** gebündelt mit der Stagnations-/Task-Logik bauen — **dieselbe Logik** speist auch die im
+  Kanban ausgeblendete „Deal stagniert"-Pille ([D9]) + „N Action"-Badge ([D11]). Erst bauen, wenn diese Fundamente stehen.
+
 ### [TS] Deal-Typ ohne `product` — offener Faden
 - `src/types/hunter.ts` `Deal` hat **kein `product`** (Migration 014 fügte nur die DB-Spalte).
   Beim späteren Produkt-Anzeigen (Pipeline/Deal-Detail) `product?: string` im Typ ergänzen + mappen.
 
-> Anker-Tags `[D1]`–`[D12]` sind im Code referenzierbar (z.B. `hunterMappers.ts` → `[[leads-tab-read]]`).
+> Anker-Tags `[D1]`–`[D13]` sind im Code referenzierbar (z.B. `hunterMappers.ts` → `[[leads-tab-read]]`).
 > Vor Umsetzung eines Punkts: passende Referenz-Doku (`docs/sales_os_edge_functions_v2.md` etc.) lesen.
 
 ---
