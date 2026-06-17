@@ -74,6 +74,8 @@
 - [x] **`deals.product` (Migration 014)** — nullable text, kein Default; Produkt-Katalog (`products`) folgt separat — *2026-06-16*
 - [x] **`knowledge_base`-Schreibweg = Migrationen** (`015` Constraint+Leads-Eintrag · `016` 19 Backlog-Einträge); idempotent `ON CONFLICT DO UPDATE` — *2026-06-17*
 - [x] **Hunter Pipeline-Tab auf echte `deals`** — `getDeals` (+`owner:users`-Embed) + `getPipelineSettings` via TanStack; Liste/Kanban/Filter (Heat/Owner/Stage), value Cent→/100 — *2026-06-17*
+- [x] **Hunter Signals-Tab datengetrieben** — `getSignals` + `signalToCardProps` (S-0…S-2); Signal-Typ-Mapping (i18n/Icon/`settings.signal_windows`) — *2026-06-17*
+- [x] **Kontakt-Datenvereinheitlichung** — `contactToProfile` = Single-Source (Identität/ICP/Heat/Status); Heat-Quellen-Fix Pipeline; `contactActiveStage` (zuletzt aktiver Deal); Regeln in CLAUDE.md — *2026-06-17*
 - [ ] knowledge_base-Eintrag je weiterem fertigem Feature (Migration 017+)
 
 > Die folgenden Listen sind die vollständige Soll-Spezifikation (großteils Felder/Feature-Wiring, das schrittweise folgt).

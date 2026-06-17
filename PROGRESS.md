@@ -4,7 +4,7 @@
 
 ---
 
-## Current Status: Phase 3 (DB-Wiring Hunter) — Leads-Tab + Pipeline (Liste/Kanban/Filter) live ✅ → Info-Panel / Realtime next
+## Current Status: Phase 3 (DB-Wiring Hunter) — Leads/Pipeline/Signals live + Kontakt-Daten zentralisiert ✅ → Info-Panel / Realtime next
 
 > Single Source of Truth für den Umsetzungsstand: **CHECKLIST.md** (`npm run audit` prüft).
 > CLAUDE.md = WARUM/WIE · CHECKLIST.md = WAS-offen · PROGRESS.md = Session-Historie.
@@ -167,16 +167,42 @@
   (Config/Edge Function, [D5]-Linie) → Hot/Window/Restzeit echt; „Act now" als echte Aktion; Stage falls
   am Signal sinnvoll. **Mit dem Urgency-/Action-Slice zurückholen.**
 
+### [D15] Follow-ups + Neu-in-Pipeline: `contactActiveStage` erben · Zielphase: Daten-Wiring dieser Tabs
+- **Status heute:** `SequenceLeadCards` (Follow-ups) + `NewInPipelineCards` (Neu in Pipeline) sind **noch Mock**
+  (hartkodierte Stages). Die zentrale Stage-Logik (`contactActiveStage`, Slice 4) ist gebaut, aber dort **noch nicht angewandt**.
+- **Später:** beim Daten-Wiring dieser Tabs die Stage über `contactActiveStage(contact, stageNameBySlug)` ziehen
+  (zuletzt aktiver Deal) — wie Signals. Identität/Heat/ICP/Status über `contactToProfile`. Kein eigenes Herleiten.
+
 ### [TS] Deal-Typ ohne `product` — offener Faden
 - `src/types/hunter.ts` `Deal` hat **kein `product`** (Migration 014 fügte nur die DB-Spalte).
   Beim späteren Produkt-Anzeigen (Pipeline/Deal-Detail) `product?: string` im Typ ergänzen + mappen.
 
-> Anker-Tags `[D1]`–`[D14]` sind im Code referenzierbar (z.B. `hunterMappers.ts` → `[[leads-tab-read]]`).
+> Anker-Tags `[D1]`–`[D15]` sind im Code referenzierbar (z.B. `hunterMappers.ts` → `[[leads-tab-read]]`).
 > Vor Umsetzung eines Punkts: passende Referenz-Doku (`docs/sales_os_edge_functions_v2.md` etc.) lesen.
 
 ---
 
 ## Completed
+
+### Phase 3 — Signals-Tab live + Kontakt-Datenvereinheitlichung (Branch `feature/phase-2-hunter`) — Session 2026-06-17 (Teil 2)
+
+Signals-Tab datengetrieben (S-0…S-2) + **eine** zentrale Kontakt-Auflösung für alle Tabs (Slices A,1–5).
+Gates durchgehend grün. **PR #12 weiter Draft.** Preview-MCP env-defekt (`EPERM`) → Verifikation via Build/Audit/REST.
+
+- [x] **Signal-Fundament (S-0):** i18n-Text-Templates je `signal_type` + `constants.SIGNAL_TYPE_META` (Icon/Badge)
+  + `settings.signal_windows` (Migr. 018) + `resolveSignalText` Helfer.
+- [x] **Signals-Seed (S-1):** Migr. 019 (5 → nach 020 noch 4 Rows, alle mit Kontakt, hunter-routed).
+- [x] **Signals-Tab datengetrieben (S-2):** `getSignals` + `signalToCardProps`; `LinkedinSignalCard` heat/icp/channel
+  prop-driven (kein Fake-„HOT"/`?? 80`); Bulk-Select auf echte `signals.id`; ICP-Ring „kein Wert → unsichtbar".
+- [x] **Kontakt-Datenvereinheitlichung (A,1–5):** `contactToProfile(contact)` = **Single-Source** für Name/Jobtitel/
+  Firma/Initialen/ICP/Heat/Status; `contactRowToLead`/`dealToPipelineRow`/`signalToCardProps` ziehen daraus.
+  - **Heat-Fix:** Pipeline-Heat jetzt aus `contacts.heat_status` (statt `deals.heat_status`).
+  - **Stage zentral:** `latestActiveDeal`/`contactActiveStage` (zuletzt aktiver, nicht-terminaler Deal) → Signals
+    zeigt aktive-Deal-Stage; Pipeline = konkreter Deal; Leads = Status.
+  - **Cleanup:** Migr. 020 entfernt das kontaktlose Test-Signal (Fall existiert real nicht).
+  - **Regeln in CLAUDE.md verankert** (Kontakt-Datenvereinheitlichung, Single-Source, Heat-Quelle, Stage-Regel).
+- **Migrationen 018/019/020 remote applied.** **Offen:** Follow-ups/Neu-in-Pipeline erben `contactActiveStage` erst
+  beim jeweiligen Daten-Wiring ([D15]).
 
 ### Phase 3 — Hunter Pipeline-Tab auf echte Deals + knowledge_base-via-Migration (Branch `feature/phase-2-hunter`) — Session 2026-06-17
 

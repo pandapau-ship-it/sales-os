@@ -1919,6 +1919,24 @@ Wird Supabase ausgetauscht, ändern wir **nur diese vier Dateien** — keine Kom
 (`contact_status` → Klartext-Label) sind **reine Anzeige-Maps** — die Werte werden NICHT hier
 berechnet/gesetzt (das kommt per Edge Functions, siehe PROGRESS → Deferred Logic [D1]/[D5]).
 
+**KONTAKT-DATENVEREINHEITLICHUNG — verbindlich (gilt für ALLE Tabs/Module, auch Farmer & AI SDR):**
+- **`contactToProfile(contact)` ist die EINZIGE Quelle** aller Kontakt-Identitäts-/Statuswerte:
+  **Name · Jobtitel · Firma · Initialen · ICP · Heat · Status**. **Kein Tab/Mapper leitet diese Werte
+  selbst her** — jeder Mapper (`contactRowToLead`, `dealToPipelineRow`, `signalToCardProps`, künftige)
+  zieht sie aus dieser zentralen Auflösung. Sonst entstehen abweichende Wahrheiten für denselben Kontakt.
+- **Heat IMMER aus `contacts.heat_status`** — **nie** aus dem Deal. *(Lehre: die Pipeline zog Heat früher
+  fälschlich aus `deals.heat_status` → derselbe Kontakt zeigte je Tab anderes Heat. Behoben in Slice 3.)*
+- **Stage ist eine Deal-Eigenschaft, KEIN Kontakt-Feld.** Pipeline (Liste/Kanban) zeigt den **konkreten
+  Deal** (`deal.stage`). **Kontaktzentrierte** Stellen (Signals; später Follow-ups/Neu-in-Pipeline) zeigen
+  die Stage des **zuletzt aktiven Deals** via `contactActiveStage(contact, stageNameBySlug)`.
+  **Leads-Liste zeigt Status (`contact_status`), NIE Stage.**
+- **„Zuletzt aktiver Deal"** = jüngster **nicht-terminaler** Deal (`stage ∉ {gewonnen, verloren}` **und**
+  `closed_at IS NULL`); Recency: `updated_at` → Tiebreaker `stage_updated_at` → `created_at`. Keine offenen
+  Deals → **keine Stage** (Element unsichtbar). Helfer: `latestActiveDeal()` / `contactActiveStage()`.
+- **Universelle Regel (bekräftigt):** fehlt ein Wert → **Element unsichtbar**, nie Platzhalter/0/Fake.
+  *(Ausnahme Heat: jeder Kontakt hat per Definition einen echten Heat-Wert; „Gone/DEAD" ist eine gültige
+  Aussage, kein Platzhalter — daher rendert das Heat-Badge dort regulär.)*
+
 **Harte Regeln (vom `audit.ts` geprüft):**
 - Komponenten importieren NUR aus `@/lib/*` — **nie** aus `@supabase/supabase-js`
 - Die Supabase-Instanz wird **ausschließlich in `lib/db.ts`** initialisiert
