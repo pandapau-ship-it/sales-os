@@ -4,7 +4,7 @@
 
 ---
 
-## Current Status: Phase 3 (DB-Wiring Hunter) — Leads-Tab live (echte Daten) ✅ → Pipeline-Tab / Info-Panel next
+## Current Status: Phase 3 (DB-Wiring Hunter) — Leads-Tab + Pipeline (Liste/Kanban/Filter) live ✅ → Info-Panel / Realtime next
 
 > Single Source of Truth für den Umsetzungsstand: **CHECKLIST.md** (`npm run audit` prüft).
 > CLAUDE.md = WARUM/WIE · CHECKLIST.md = WAS-offen · PROGRESS.md = Session-Historie.
@@ -16,16 +16,15 @@
 
 ## Offen — Nächste Session (Phase 3 DB-Wiring, Reihenfolge)
 
-**A. Pipeline-Tab auf echte `deals`** — `getDeals` (org-gescoped, Deal+Kontakt+Company-Join) →
-   Kanban + Listenansicht; Stage/Owner/Value (value in **Cent → /100**), `deals.product`.
-   Hier kommt auch der **Stagnations-Block** zurück (Deal-Konzept, siehe Deferred Logic [D4]).
+**~~A. Pipeline-Tab~~ ✅ erledigt** (Liste/Kanban/Filter/Owner, Session 2026-06-17). Offen bleibt dort
+   nur die **Task-Liste-Ansicht** ([D13]) + **Stage-Writes/Stagnation** ([D8]/[D9]) — an Edge Functions gebunden.
 **B. 820px-Info-Panel** (`HunterSidepanel`) an echte `contacts`/`companies`-Felder (CRM-Felder),
-   Tabs (Kommunikation/Aktivität/Tasks/Notizen/Deals) an echte Tabellen.
+   Tabs (Kommunikation/Aktivität/Tasks/Notizen/Deals) an echte Tabellen. **← nächster Slice-Kandidat.**
 **C. Realtime** für die Live-Tabellen (`lib/realtime.ts`), Cache-Invalidierung.
 **D. Restliche Mock-Screens** (Signals/Follow-ups/Overview) + AddSdrLeadPanel/Snooze (Writes, Edge Functions).
 
 > Berechnete Werte (heat/icp/stagnation/last_contacted) bleiben Anzeige bis Edge Functions —
-> siehe **„Offene Konzept-Entscheidungen / Deferred Logic"** [D1]–[D5].
+> siehe **„Offene Konzept-Entscheidungen / Deferred Logic"** [D1]–[D13].
 
 <details><summary>Ältere offene Punkte (Phase-2-Reste)</summary>
 
@@ -160,6 +159,30 @@
 ---
 
 ## Completed
+
+### Phase 3 — Hunter Pipeline-Tab auf echte Deals + knowledge_base-via-Migration (Branch `feature/phase-2-hunter`) — Session 2026-06-17
+
+Pipeline-Tab (Listenansicht · Kanban · Filter) slice-by-slice auf echte `deals` verdrahtet;
+knowledge_base-Schreibweg auf Migrationen umgestellt. Gates durchgehend grün. **PR #12 weiter Draft.**
+Preview-MCP in dieser Umgebung defekt (`EPERM`) → Verifikation via Build/Audit/REST + User-Gegencheck.
+
+- [x] **knowledge_base via Migration** — Pattern etabliert: pro Feature/Batch eine additive Migration,
+  idempotent (`UNIQUE(org,feature)` + `ON CONFLICT DO UPDATE`). `015` (Constraint + Leads-Tab-Eintrag),
+  `016` (19 Backlog-Einträge aus `docs/knowledge_base.md` → DB == docs). Beide remote applied.
+- [x] **Slice A — Pipeline-Listenansicht:** `getDeals` + `getPipelineSettings` als geteilte TanStack-
+  Queries; neuer Mapper `dealToPipelineRow` (`hunterMappers`) → `PipelineRow`. Liste: Kontakt/Stage/
+  Owner/Wert (**Cent→/100**)/Heat. Mock-Filter + Mock-Helper entfernt.
+- [x] **Slice B — Pipeline-Kanban:** Spalten aus `settings.pipeline_stages` (slug/name/order, alle 7);
+  Karten gruppiert nach stageSlug; echte Aggregate (count + Σ Wert); ICP `null→0/grau`. Fingierte
+  Pfeile/Stagnations-Pills/Action-Badges **ausgeblendet** (→ Deferred [D8]–[D11]).
+- [x] **Slice C — Filter + echte Owner:** `owner:users(full_name)`-Embed → echter Owner-Name; 3 client-
+  seitige Filter über geteilte `dealRows`: Heat+Owner (Liste+Kanban), Stage (nur Liste). Kanban-
+  Aggregate folgen dem Heat/Owner-Filter.
+- [x] **Ehrlichkeit:** ICP-Fake-Default `?? 87` in LeadListRow → `?? 0`; restliche Mock-Fake-Defaults als [D12].
+- [x] **Deferred-Logic gepflegt:** [D6]–[D13] ergänzt (Provisionierung, Owner, Kanban-Rückbau-Punkte,
+  Fake-Defaults, Task-Liste-Ansicht).
+- **Offen (nächste Slices):** 820px-Info-Panel an echte contacts/companies · Realtime · Signals/Follow-ups/
+  Overview · Stage-Writes + Stagnation/Task-Logik (Edge Functions) — siehe Deferred Logic.
 
 ### Phase 3 — Hunter Leads-Tab auf echte DB-Daten (Branch `feature/phase-2-hunter`) — Session 2026-06-16 (Teil 2)
 

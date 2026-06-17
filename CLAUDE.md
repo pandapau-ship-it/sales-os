@@ -1910,10 +1910,12 @@ berechnet/gesetzt (das kommt per Edge Functions, siehe PROGRESS → Deferred Log
   Promise-basiert (passt zu Supabase und später TanStack Query als queryFn)
 
 **Status (Phase 3, DB-Wiring läuft):** Supabase ist **live** (`.env.local`, anon-Key, Migrationen
-001–014 remote). **Schon echt verdrahtet:** Hunter-**Leads-Tab** (`getContacts` org-gescoped, via
-TanStack Query) + `useModules` (`getModules` = `settings.modules`). **Noch Mock:** übrige Hunter-Tabs
-(Pipeline/Signals/Info-Panel) + Mein Tag/Farmer — werden screenweise umgestellt (Körper tauschen,
-Signaturen bleiben). Server-State neuer Wirings läuft **nur** über TanStack Query (kein `useEffect`+fetch).
+001–016 remote). **Schon echt verdrahtet:** Hunter-**Leads-Tab** (`getContacts`) + **Pipeline-Tab**
+(`getDeals` inkl. `owner:users`-Embed + `getPipelineSettings`; Liste/Kanban/Filter) + `useModules`
+(`settings.modules`) — alles via TanStack Query. **Noch Mock:** Hunter Signals/Follow-ups/Overview +
+Info-Panel + Mein Tag/Farmer — werden screenweise umgestellt (Körper tauschen, Signaturen bleiben).
+Server-State neuer Wirings läuft **nur** über TanStack Query (kein `useEffect`+fetch). Berechnete Werte
+(heat/icp/stagnation/Stage-Writes) sind Anzeige bis Edge Functions → PROGRESS „Deferred Logic" [D1]–[D13].
 
 ---
 

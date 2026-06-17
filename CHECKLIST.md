@@ -66,13 +66,15 @@
 
 ## 🗄️ Datenbank (Phase 3 DB-Wiring — Migrationen live)
 
-### Stand (Phase 1 + Phase 3) — Migrationen 001–014 remote applied ✅
+### Stand (Phase 1 + Phase 3) — Migrationen 001–016 remote applied ✅
 - [x] `organizations` + Multi-Tenant-Basis, alle 33 Tabellen aus 001–012 remote live (Projekt `qhcmruprfjunalgrhgcp`) — *2026-06-16*
 - [x] `organization_id NOT NULL` + RLS (`auth_org_id()`) + `ON DELETE CASCADE` + org-Index durchgängig (011) — *2026-06-16*
 - [x] `update_updated_at()` + `audit_write()`-Trigger auf Kern-Entitäten (010) — *2026-06-16*
 - [x] **`knowledge_base` (Migration 013)** — org_id NOT NULL + RLS + `audit_write`-Trigger; append-only — *2026-06-16*
 - [x] **`deals.product` (Migration 014)** — nullable text, kein Default; Produkt-Katalog (`products`) folgt separat — *2026-06-16*
-- [ ] Seed `knowledge_base` — pro fertigem Feature, nicht en bloc (CLAUDE.md-Regel)
+- [x] **`knowledge_base`-Schreibweg = Migrationen** (`015` Constraint+Leads-Eintrag · `016` 19 Backlog-Einträge); idempotent `ON CONFLICT DO UPDATE` — *2026-06-17*
+- [x] **Hunter Pipeline-Tab auf echte `deals`** — `getDeals` (+`owner:users`-Embed) + `getPipelineSettings` via TanStack; Liste/Kanban/Filter (Heat/Owner/Stage), value Cent→/100 — *2026-06-17*
+- [ ] knowledge_base-Eintrag je weiterem fertigem Feature (Migration 017+)
 
 > Die folgenden Listen sind die vollständige Soll-Spezifikation (großteils Felder/Feature-Wiring, das schrittweise folgt).
 

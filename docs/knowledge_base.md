@@ -227,3 +227,20 @@
 --  '(intern/UX) Aufgeräumtere Oberfläche und bessere Verständlichkeit — weniger Fehlklicks, schnelleres Arbeiten.',
 --  'core');
 ```
+
+---
+
+> **Ab 2026-06-17:** Einträge laufen über **Migrationen** (`supabase/migrations/NNN_knowledge_base_*.sql`,
+> idempotent `ON CONFLICT DO UPDATE`) und werden mit `db push` eingespielt. Diese Datei bleibt die
+> menschenlesbare Sammlung; die Migration ist die DB-Wahrheit. (Backlog 2026-06-14…16 → Migration `016`.)
+
+## 2026-06-17 — Migration `017_knowledge_base_pipeline.sql`
+
+### Hunter Pipeline (Liste & Kanban)
+- **feature:** Hunter Pipeline (Liste & Kanban)
+- **what:** Offene Deals als Liste UND Kanban-Board nach Pipeline-Stage — Wert, Stage, Owner, Heat, ICP
+  je Deal; pro Stage-Spalte Anzahl + Summe. Filter nach Heat, Owner und (Liste) Stage.
+- **how:** Hunter → Pipeline; oben zwischen Liste/Kanban umschalten, mit Filtern eingrenzen (Kanban-Aggregate folgen dem Filter).
+- **value:** Pipeline-Wert und -Verteilung auf einen Blick — wo Volumen steht, welche Deals heiß sind →
+  bessere Forecasts, schnellere Priorisierung, ohne Tabellen-Pflege.
+- **module:** hunter
