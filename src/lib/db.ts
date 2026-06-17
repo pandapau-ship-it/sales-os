@@ -191,6 +191,30 @@ export async function getContacts(
   return data ?? [];
 }
 
+/**
+ * getFollowUps — Follow-ups-Tab. Definition: Kontakt mit Heat **Cold/Gone**
+ * (`heat_status in (kalt, tot)`). Basiert auf dem echten Feldwert; die spätere
+ * Heat-Berechnung ([D5]) aktualisiert denselben Wert → greift automatisch.
+ * Embed: Firma (einheitlich) + lean Deals (für contactActiveStage).
+ */
+export async function getFollowUps(
+  organizationId: string,
+): Promise<Record<string, unknown>[]> {
+  const client = getSupabaseClient();
+  if (!client) return [];
+  const { data, error } = await client
+    .from("contacts")
+    .select(
+      `*, ${CONTACT_COMPANY_EMBED}, deals(stage, updated_at, stage_updated_at, closed_at, created_at)`,
+    )
+    .eq("organization_id", organizationId)
+    .in("heat_status", ["kalt", "tot"])
+    .order("created_at", { ascending: false })
+    .limit(50);
+  if (error) throw error;
+  return data ?? [];
+}
+
 export interface DealFilters {
   stage?: string;
   ownerId?: string;

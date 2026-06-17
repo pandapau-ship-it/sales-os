@@ -5,7 +5,7 @@ import { ACTION_ROW } from "@/lib/componentBehavior";
 import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import type { Lead } from "@/types";
+import type { Lead, HeatStatus } from "@/types";
 
 // Snooze-Limits — später aus system_config (snooze_max_count / snooze_max_days).
 const SNOOZE_MAX = 3;
@@ -18,16 +18,20 @@ const SNOOZE_OPTIONS = [
 interface FollowUpKaltCardProps {
   name: string;
   role: string;
-  avatarInitials: string;
-  companyInitials: string;
   companyName: string;
-  companyBg: string;
-  icpScore: number;
-  stage: string;
-  daysInStage: number;
-  timeAgoLabel: string;
-  aiRecommendation: string;
-  generatedMessage: string;
+  icpScore?: number;
+  /** Echter Heat aus dem Kontakt (Cold/Gone). */
+  heatStatus?: HeatStatus;
+  stage?: string;
+  /** Read-Slice: false blendet die (noch logiklose) Action-Row + Stagnations-/Zeit-Deko aus. */
+  showActions?: boolean;
+  avatarInitials?: string;
+  companyInitials?: string;
+  companyBg?: string;
+  daysInStage?: number;
+  timeAgoLabel?: string;
+  aiRecommendation?: string;
+  generatedMessage?: string;
   onOutreachClick?: () => void;
   /** Grüner Pfeil → 820px Info-Panel. */
   onSelectLead?: (lead: Lead) => void;
@@ -46,7 +50,9 @@ export function FollowUpKaltCard({
   avatarInitials,
   companyName,
   icpScore,
+  heatStatus,
   stage,
+  showActions = true,
   daysInStage,
   timeAgoLabel,
   aiRecommendation,
@@ -64,17 +70,19 @@ export function FollowUpKaltCard({
   // role enthält bereits "Titel, Firma" → Firmen-Suffix entfernen (HunterCard hängt Firma selbst an).
   const jobTitle = role.includes(",") ? role.split(",").slice(0, -1).join(",").trim() : role;
 
+  const initials = avatarInitials ?? name.split(" ").map((w) => w[0]).filter(Boolean).slice(0, 2).join("").toUpperCase();
+
   const buildLead = (): Lead => ({
     id: `followup-${name}`,
-    person: { id: `followup-${name}`, name, jobTitle, company: companyName, initials: avatarInitials },
+    person: { id: `followup-${name}`, name, jobTitle, company: companyName, initials },
     kurzakte: aiRecommendation ?? "",
     fullTimeline: [],
     engagementChain: [],
     lastTouchpoints: [],
-    heatStatus: "COLD",
+    heatStatus: heatStatus ?? "COLD",
     heatScore: 1,
     icpScore,
-    lastActivity: timeAgoLabel,
+    lastActivity: timeAgoLabel ?? "",
     pipelineStage: "sequence",
     signalsCount: 1,
     contactEmail: "",
@@ -85,18 +93,22 @@ export function FollowUpKaltCard({
     name,
     jobTitle,
     company: companyName,
-    icpScore,
-    stageLabel: stage,
-    heatStatus: "COLD",
-    timeLabel: timeAgoLabel,
-    timeSubLabel: (
-      <>
-        {daysInStage}T in Stage <AlertTriangle className="w-3.5 h-3.5" strokeWidth={2.5} />
-      </>
-    ),
+    icpScore, // fehlt → undefined → ICP-Ring unsichtbar
+    stageLabel: stage ?? "", // kein aktiver Deal → keine Stage
+    heatStatus, // echtes Heat (Cold/Gone); undefined → kein Badge
+    timeLabel: timeAgoLabel ?? "", // „vor X" nur wenn vorhanden (last_contacted_at) — kein Fake
+    // „XT in Stage" ist Stagnation (Berechnung fehlt) → nur im Mock-Modus (showActions).
+    timeSubLabel:
+      showActions && daysInStage != null ? (
+        <>
+          {daysInStage}T in Stage <AlertTriangle className="w-3.5 h-3.5" strokeWidth={2.5} />
+        </>
+      ) : undefined,
   };
 
-  const actionRow = isSnoozed ? (
+  // Read-Slice (showActions=false): keine Action-Row — Snooze/Eskalation/Outreach/„Kontakt
+  // wird kalt"-Text + AI-Empfehlung sind Logik/Writes, die noch nicht existieren ([D16]).
+  const actionRow = !showActions ? undefined : isSnoozed ? (
     /* Zustand 2 — aktiv gesnoozed */
     <>
       <div className="flex items-center gap-3 min-w-0">

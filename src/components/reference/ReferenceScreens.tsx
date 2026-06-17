@@ -23,6 +23,7 @@ import {
   getDeals,
   getPipelineSettings,
   getSignals,
+  getFollowUps,
   updateLeadStage as dbUpdateLeadStage,
   setTaskCompleted as dbSetTaskCompleted,
   createLead as dbCreateLead,
@@ -204,6 +205,11 @@ export function HunterReference() {
     queryKey: ["signals", DEMO_ORGANIZATION_ID],
     queryFn: () => getSignals(DEMO_ORGANIZATION_ID, { routedTo: "hunter", processed: false }),
   });
+  // Follow-ups: Kontakte mit Heat Cold/Gone (Definition heute = echter heat_status-Wert).
+  const followUpsQuery = useQuery({
+    queryKey: ["followups", DEMO_ORGANIZATION_ID],
+    queryFn: () => getFollowUps(DEMO_ORGANIZATION_ID),
+  });
   return (
     <>
       <ScreenHunting
@@ -218,6 +224,7 @@ export function HunterReference() {
         signalsData={signalsQuery.data as unknown as Record<string, unknown>[] | undefined}
         signalsLoading={signalsQuery.isLoading}
         signalsError={signalsQuery.isError}
+        followUpsData={followUpsQuery.data}
         onSelectLead={s.selectPerson}
         onUpdateLeadStage={s.updateLeadStage}
         onAddLead={s.addLead}

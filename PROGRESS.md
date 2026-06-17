@@ -173,11 +173,20 @@
 - **Später:** beim Daten-Wiring dieser Tabs die Stage über `contactActiveStage(contact, stageNameBySlug)` ziehen
   (zuletzt aktiver Deal) — wie Signals. Identität/Heat/ICP/Status über `contactToProfile`. Kein eigenes Herleiten.
 
+### [D16] Follow-up-Karten: ausgeblendete Dekorationen + Aktionen · Zielphase: Berechnungs-/Write-/Panel-Slices
+- **Status heute:** Follow-ups-Tab read-verdrahtet (Heat Cold/Gone → Kontakt-Kachel + aktive-Deal-Stage + Panel-Pfeil).
+  **Ausgeblendet** (`FollowUpKaltCard showActions=false`), weil Logik fehlt (würde Daten vortäuschen):
+  „XT in Stage"/Stagnation ([D4]/[D9]) · „vor X Tagen" (`last_contacted_at`, im Seed NULL) · Snooze inkl.
+  „X/3 genutzt"/„noch X Tage"/Reaktivieren (kein DB-Feld → Schema+Write) · „Eskaliert" · „Start Outreach" (Write) ·
+  `generatedMessage`/Step-Zähler (Sequenz-Engine) · die „Kontakt wird kalt"-Action-Zeile.
+- **Später:** je Element mit seiner Logik zurückholen. Die **konkrete AI-Empfehlung** gehört NICHT auf die Karte —
+  sie lebt im **820px-Action-Panel** (Slice „Info-Panel", B). Der Panel-**Pfeil** ist bewusst schon sichtbar (Tür für später).
+
 ### [TS] Deal-Typ ohne `product` — offener Faden
 - `src/types/hunter.ts` `Deal` hat **kein `product`** (Migration 014 fügte nur die DB-Spalte).
   Beim späteren Produkt-Anzeigen (Pipeline/Deal-Detail) `product?: string` im Typ ergänzen + mappen.
 
-> Anker-Tags `[D1]`–`[D15]` sind im Code referenzierbar (z.B. `hunterMappers.ts` → `[[leads-tab-read]]`).
+> Anker-Tags `[D1]`–`[D16]` sind im Code referenzierbar (z.B. `hunterMappers.ts` → `[[leads-tab-read]]`).
 > Vor Umsetzung eines Punkts: passende Referenz-Doku (`docs/sales_os_edge_functions_v2.md` etc.) lesen.
 
 ---

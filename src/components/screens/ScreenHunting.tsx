@@ -33,7 +33,7 @@ import type { SignalActionData } from '@/components';
 
 import Avatar from '@/components/shared/Avatar';
 import { ACTION_ROW } from '@/lib/componentBehavior';
-import { signalToCardProps, type PipelineRow } from '@/lib/hunterMappers';
+import { signalToCardProps, contactToFollowUpCard, type PipelineRow } from '@/lib/hunterMappers';
 
 interface ScreenHuntingProps {
   leads: Lead[];
@@ -52,6 +52,8 @@ interface ScreenHuntingProps {
   signalsData?: Record<string, unknown>[];
   signalsLoading?: boolean;
   signalsError?: boolean;
+  // Follow-ups: Kontakte mit Heat Cold/Gone (inkl. company + deals-Embed).
+  followUpsData?: Record<string, unknown>[];
   onSelectLead: (lead: Lead) => void;
   onUpdateLeadStage: (leadId: string, newStage: string) => void;
   onAddLead: (lead: Lead) => void;
@@ -71,6 +73,7 @@ export default function ScreenHunting({
   signalsData,
   signalsLoading,
   signalsError,
+  followUpsData,
   onAddLead,
   onSelectCommunication,
 }: ScreenHuntingProps) {
@@ -83,6 +86,8 @@ export default function ScreenHunting({
   // Signals-Tab: echte Signals → Card-Props (Mapping braucht t + Stage-Labels für aktive-Deal-Stage).
   const stageNameBySlug = Object.fromEntries((pipelineStages ?? []).map((stg) => [stg.slug, stg.name]));
   const signalCards = (signalsData ?? []).map((s) => signalToCardProps(s, t, stageNameBySlug));
+  // Follow-ups: echte Cold/Gone-Kontakte → schlanke Card-Items (Kontakt-Kachel + aktive-Deal-Stage).
+  const followUpCards = (followUpsData ?? []).map((c) => contactToFollowUpCard(c, stageNameBySlug));
   // Slice C — drei Filter, client-seitig über die geteilte dealRows-Quelle:
   //  • Heat + Owner gelten in BEIDEN Ansichten (Liste + Kanban)
   //  • Stage NUR in der Liste (Kanban ist bereits nach Stage gruppiert)
@@ -165,7 +170,7 @@ export default function ScreenHunting({
     { id: 'signals', label: t('hunter.tabs.signals'), count: 5 },
     { id: 'new_leads', label: t('hunter.tabs.newInPipeline'), count: null },
     { id: 'leads', label: t('hunter.tabs.leads'), count: leadRows.length },
-    { id: 'follow_ups', label: t('hunter.tabs.followUps'), count: 2 },
+    { id: 'follow_ups', label: t('hunter.tabs.followUps'), count: followUpCards.length },
     { id: 'pipeline', label: t('hunter.tabs.pipelineKanban'), count: null },
   ];
 
@@ -364,7 +369,7 @@ export default function ScreenHunting({
       )}
 
       {subTab === 'follow_ups' && (
-        <SequenceLeadCards onOutreachClick={(person) => setSelectedColdPerson(person)} onSelectLead={setInfoPanelLead} />
+        <SequenceLeadCards items={followUpCards} onSelectLead={setInfoPanelLead} />
       )}
 
       {/* NEW LEADS VIEW */}
