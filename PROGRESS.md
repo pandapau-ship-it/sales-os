@@ -130,11 +130,20 @@
 - **Status heute:** Im Kanban **ausgeblendet** (inkl. `actionFilterCols`-Toggle). War aus Heat fingiert.
 - **Später:** echte Aggregation aus den realen Signalen/Tasks der Spalte ([D9]/[D10]). **Muss mit der Signal-/Task-Logik zurück.**
 
+### [D12] Fake-Score-Defaults in Mock-Bereichen · Zielphase: DB-Wiring des jeweiligen Screens
+- **Status heute:** Noch erfundene Default-Scores in Mock-Bereichen (Leads-Tab + Kanban sind bereits
+  auf `?? 0`/grau bereinigt):
+  - `src/components/screens/ScreenFarming.tsx` ~Z. 233 — `icpScore ?? 87`
+  - `src/components/panel-blocks/TaskEntwurfForm.tsx` ~Z. 54 — `icpScore ?? 87`
+  - `src/components/features/hunter/SignalActionDrawer.tsx` ~Z. 58 — `confidence ?? 91`
+- **Später:** beim DB-Wiring des jeweiligen Screens entfernen → `null → 0/grau` bzw. echter Wert,
+  **kein erfundener Default**. Mitnehmen, wenn Farmer / Task-Entwurf / Signal-Drawer echte Daten bekommen.
+
 ### [TS] Deal-Typ ohne `product` — offener Faden
 - `src/types/hunter.ts` `Deal` hat **kein `product`** (Migration 014 fügte nur die DB-Spalte).
   Beim späteren Produkt-Anzeigen (Pipeline/Deal-Detail) `product?: string` im Typ ergänzen + mappen.
 
-> Anker-Tags `[D1]`–`[D11]` sind im Code referenzierbar (z.B. `hunterMappers.ts` → `[[leads-tab-read]]`).
+> Anker-Tags `[D1]`–`[D12]` sind im Code referenzierbar (z.B. `hunterMappers.ts` → `[[leads-tab-read]]`).
 > Vor Umsetzung eines Punkts: passende Referenz-Doku (`docs/sales_os_edge_functions_v2.md` etc.) lesen.
 
 ---
