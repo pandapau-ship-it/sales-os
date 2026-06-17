@@ -80,8 +80,9 @@ export default function ScreenHunting({
   const leadRows = leadsData ?? leads;
   // Pipeline-Listenansicht (Slice A): echte Deals. Kanban/Tasks bleiben Mock.
   const dealRows = dealsData ?? [];
-  // Signals-Tab (S-2): echte Signals → Card-Props (Mapping braucht t).
-  const signalCards = (signalsData ?? []).map((s) => signalToCardProps(s, t));
+  // Signals-Tab: echte Signals → Card-Props (Mapping braucht t + Stage-Labels für aktive-Deal-Stage).
+  const stageNameBySlug = Object.fromEntries((pipelineStages ?? []).map((stg) => [stg.slug, stg.name]));
+  const signalCards = (signalsData ?? []).map((s) => signalToCardProps(s, t, stageNameBySlug));
   // Slice C — drei Filter, client-seitig über die geteilte dealRows-Quelle:
   //  • Heat + Owner gelten in BEIDEN Ansichten (Liste + Kanban)
   //  • Stage NUR in der Liste (Kanban ist bereits nach Stage gruppiert)
@@ -736,7 +737,7 @@ export default function ScreenHunting({
                 key={id}
                 {...cardProps}
                 showUrgency={false}
-                showStage={false}
+                showStage={true}
                 selected={selectedSignalIds.includes(id)}
                 onToggleSelect={(e) => toggleSignalSelection(id, e)}
                 onOpenInfo={setInfoPanelLead}

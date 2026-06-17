@@ -52,7 +52,7 @@ export function LinkedinSignalCard({
   role,
   avatarUrl,
   companyName,
-  stage = "Signal",
+  stage,
   icpScore,
   heatStatus,
   channelLabelKey = "hunter.common.linkedinSignal",
@@ -111,7 +111,7 @@ export function LinkedinSignalCard({
     company: companyName,
     avatarUrl,
     icpScore, // undefined → HunterCard rendert den ICP-Ring nicht (kein 0/grau)
-    stageLabel: showStage ? stage : "", // leer → HunterCard blendet Stage-Badge aus
+    stageLabel: showStage && stage ? stage : "", // leer (kein aktiver Deal) → HunterCard zeigt keine Stage
     heatStatus, // echter Heat (oder undefined → kein Badge)
     timeLabel: timeAgoLabel || timeAgo,
     timeSubLabel: showUrgency ? t("hunter.common.hoursLeft", { hours: timeLeftHours }) : undefined,

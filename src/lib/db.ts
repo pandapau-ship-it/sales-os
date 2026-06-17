@@ -253,10 +253,13 @@ export async function getSignals(
 ): Promise<Signal[]> {
   const client = getSupabaseClient();
   if (!client) return [];
-  // Kontakt + (über den Kontakt) die Firma — gleicher einheitlicher Embed wie Leads.
+  // Kontakt + Firma (einheitlicher Embed) + lean Kontakt-Deals für die aktive-Deal-Stage.
+  // created_at zusätzlich als Recency-Tiebreaker (siehe latestActiveDeal).
   let q = client
     .from("signals")
-    .select(`*, contact:contacts(*, ${CONTACT_COMPANY_EMBED})`)
+    .select(
+      `*, contact:contacts(*, ${CONTACT_COMPANY_EMBED}, deals(stage, updated_at, stage_updated_at, closed_at, created_at))`,
+    )
     .eq("organization_id", organizationId);
   if (filters.routedTo) q = q.eq("routed_to", filters.routedTo);
   if (filters.processed === false) q = q.is("processed_at", null);

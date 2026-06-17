@@ -183,16 +183,54 @@ export type SignalCardProps = {
   channelLabelKey: string;
   channelIcon: LucideIcon;
   timeAgo: string;
+  stage?: string; // Label des zuletzt aktiven Deals; kein aktiver Deal → undefined → kein Stage
 };
 
+// Terminal-Stages (kein „aktiver" Deal mehr).
+const TERMINAL_STAGES = new Set(["gewonnen", "verloren"]);
+const ms = (x: any) => new Date(x ?? 0).getTime();
+
 /**
- * signalToCardProps — signals-Zeile (inkl. contact+company-Join) → Card-Props.
- * Null-Kontakt → ehrlicher Platzhalter „Unbekannter Kontakt", keine Firma/ICP/Heat
- * (kein Fake). Text via resolveSignalText (S-0), Channel/Icon via signalMetaFor (S-0).
+ * latestActiveDeal — jüngster NICHT-terminaler Deal eines Kontakts (offene Pipeline).
+ * Terminal = stage gewonnen/verloren oder closed_at gesetzt. Recency: updated_at,
+ * Tiebreaker stage_updated_at (Demo-Fall, wo updated_at ~uniform), dann created_at.
+ * Keine/nur terminale Deals → null.
+ */
+export function latestActiveDeal(
+  deals: Record<string, any>[] | null | undefined,
+): Record<string, any> | null {
+  const open = (deals ?? []).filter(
+    (d) => !TERMINAL_STAGES.has(d.stage) && d.closed_at == null,
+  );
+  if (!open.length) return null;
+  return open
+    .slice()
+    .sort(
+      (a, b) =>
+        ms(b.updated_at) - ms(a.updated_at) ||
+        ms(b.stage_updated_at) - ms(a.stage_updated_at) ||
+        ms(b.created_at) - ms(a.created_at),
+    )[0];
+}
+
+/** Stage-Label des zuletzt aktiven Deals (aus settings.pipeline_stages). Kein aktiver Deal → undefined. */
+export function contactActiveStage(
+  contact: Record<string, any> | null | undefined,
+  stageNameBySlug: Record<string, string>,
+): string | undefined {
+  const d = latestActiveDeal(contact?.deals);
+  return d ? stageNameBySlug[d.stage] ?? d.stage : undefined;
+}
+
+/**
+ * signalToCardProps — signals-Zeile (inkl. contact+company+deals-Join) → Card-Props.
+ * Identität/Status/Heat/ICP aus contactToProfile; Stage = zuletzt aktiver Deal des
+ * Kontakts (kein aktiver Deal → undefined → Karte zeigt keinen Stage-Bereich).
  */
 export function signalToCardProps(
   signal: Record<string, any>,
   t: (key: string, opts?: Record<string, unknown>) => string,
+  stageNameBySlug: Record<string, string> = {},
 ): SignalCardProps {
   const p = contactToProfile(signal.contact); // zentrale Auflösung (Identität/Status/Heat/ICP)
   const meta = signalMetaFor(signal.signal_type);
@@ -207,5 +245,6 @@ export function signalToCardProps(
     channelLabelKey: meta.channelLabelKey,
     channelIcon: meta.icon,
     timeAgo: relTimeShort(signal.created_at),
+    stage: contactActiveStage(signal.contact, stageNameBySlug),
   };
 }
