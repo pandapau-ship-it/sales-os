@@ -202,18 +202,15 @@ export function signalToCardProps(
   signal: Record<string, any>,
   t: (key: string, opts?: Record<string, unknown>) => string,
 ): SignalCardProps {
-  const c = signal.contact; // null, wenn Kontakt unbekannt
-  const name = c
-    ? [c.first_name, c.last_name].filter(Boolean).join(" ") || c.email || t("hunter.signals.unknownContact")
-    : t("hunter.signals.unknownContact");
+  const p = contactToProfile(signal.contact); // zentrale Auflösung (Identität/Status/Heat/ICP)
   const meta = signalMetaFor(signal.signal_type);
   return {
     id: signal.id,
-    name,
-    role: c?.job_title ?? "",
-    companyName: c?.company?.name ?? "",
-    icpScore: typeof c?.icp_score === "number" ? c.icp_score : undefined, // kein Wert → Ring weg
-    heatStatus: c?.heat_status ? DB_HEAT_TO_UI[c.heat_status] : undefined,
+    name: p.name,
+    role: p.jobTitle,
+    companyName: p.company,
+    icpScore: p.icpScore, // fehlt → undefined → Ring unsichtbar
+    heatStatus: p.heatStatus, // immer contacts.heat_status; fehlt → undefined → Badge unsichtbar (kein Fake)
     actionText: resolveSignalText(signal, t),
     channelLabelKey: meta.channelLabelKey,
     channelIcon: meta.icon,
