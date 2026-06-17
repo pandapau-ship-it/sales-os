@@ -191,11 +191,20 @@
 - **Kontext:** die ursprünglichen Design-Screenshots zeigten **dealbezogene** Karten (mit Stage); der aktuelle Build zeigt **reine kalte Kontakte**.
 - **Auswirkung:** die Entscheidung beeinflusst **Selektor** (`getFollowUps`) + **Karten-Inhalt** (Stage immer/nur bei Deal). Erst entscheiden, dann ggf. anpassen.
 
+### [D18] Neu-in-Pipeline — ausgeblendete Termin-/Prep-Logik (deferred)
+- **Read-Slice steht:** Tab verdrahtet über `getNewInPipeline` → `dealToNewPipelineRow` (zentrale `contactToProfile`/`contactActiveStage`-Leitung). Definition **gelockt:** „Neu in Pipeline" = kürzlich angelegte Deals (`deals.created_at`), client-seitiger Zeitfilter (heute / 7T / 30T, Default 30T). Herkunft „Via AI SDR" vs. „Manuell" aus `deals.source_lead_id`.
+- **Ausgeblendet (Logik/Tabellen fehlen → würde Daten vortäuschen):**
+  - **Termin-Datum** („Demo · 12. Juni · 14:00") — es gibt **keine Termin-/Booking-Tabelle**; kommt mit dem **Task-System (Termine = Tasks mit Datum)** bzw. der **Kalender-Integration** (Cal.com) zurück.
+  - **Meeting-Prep-Status + Spinner** („bereit/wird generiert") — `deals.meeting_prep` existiert als Spalte, aber **kein AI-Job** befüllt sie; Status erst zeigen, wenn die Generierung läuft.
+  - **AI-generierter Begleittext** + **„Termin gebucht"-Provenance** — hängen an Meeting-Prep-Job bzw. Booking-Ebene.
+- **Türen bleiben sichtbar** (Funktion folgt): Buttons „Meeting-Prep" + „Termin vereinbaren" (Klick → Platzhalter-Toast) und der Pfeil ins 820px-Info-Panel.
+- **Seed-Hinweis:** Recency/`source_lead_id`/`meeting_prep` der Demo-Deals sind mit dem anon-Key (RLS scoped auf `auth.uid()`) **nicht lesbar** — Default-Fenster bewusst weit (30T). Falls der Tab leer/„nur Manuell" wirkt: Seed prüfen/justieren (eingeloggt via SQL-Editor).
+
 ### [TS] Deal-Typ ohne `product` — offener Faden
 - `src/types/hunter.ts` `Deal` hat **kein `product`** (Migration 014 fügte nur die DB-Spalte).
   Beim späteren Produkt-Anzeigen (Pipeline/Deal-Detail) `product?: string` im Typ ergänzen + mappen.
 
-> Anker-Tags `[D1]`–`[D17]` sind im Code referenzierbar (z.B. `hunterMappers.ts` → `[[leads-tab-read]]`).
+> Anker-Tags `[D1]`–`[D18]` sind im Code referenzierbar (z.B. `hunterMappers.ts` → `[[leads-tab-read]]`).
 > Vor Umsetzung eines Punkts: passende Referenz-Doku (`docs/sales_os_edge_functions_v2.md` etc.) lesen.
 
 ---

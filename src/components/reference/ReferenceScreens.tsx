@@ -24,6 +24,7 @@ import {
   getPipelineSettings,
   getSignals,
   getFollowUps,
+  getNewInPipeline,
   updateLeadStage as dbUpdateLeadStage,
   setTaskCompleted as dbSetTaskCompleted,
   createLead as dbCreateLead,
@@ -210,6 +211,11 @@ export function HunterReference() {
     queryKey: ["followups", DEMO_ORGANIZATION_ID],
     queryFn: () => getFollowUps(DEMO_ORGANIZATION_ID),
   });
+  // Neu-in-Pipeline: frisch angelegte Deals (created_at desc); Zeitfenster filtert der Screen.
+  const newInPipelineQuery = useQuery({
+    queryKey: ["newInPipeline", DEMO_ORGANIZATION_ID],
+    queryFn: () => getNewInPipeline(DEMO_ORGANIZATION_ID),
+  });
   return (
     <>
       <ScreenHunting
@@ -225,6 +231,7 @@ export function HunterReference() {
         signalsLoading={signalsQuery.isLoading}
         signalsError={signalsQuery.isError}
         followUpsData={followUpsQuery.data}
+        newInPipelineData={newInPipelineQuery.data}
         onSelectLead={s.selectPerson}
         onUpdateLeadStage={s.updateLeadStage}
         onAddLead={s.addLead}

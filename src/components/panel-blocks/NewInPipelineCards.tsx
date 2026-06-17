@@ -1,16 +1,42 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Calendar, Clock, Check, Bot, UserCheck, RotateCw, Inbox } from 'lucide-react';
+import { Calendar, Check, Bot, UserCheck, Inbox } from 'lucide-react';
 import HunterCard, { type HunterCardData } from './HunterCard';
 import EmptyState from '@/components/shared/EmptyState';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { ACTION_ROW } from '@/lib/componentBehavior';
+import type { NewPipelineCardItem, NewPipelinePeriod } from '@/lib/hunterMappers';
 import type { Lead } from '@/types';
 
-function deriveInitials(name: string): string {
-  return name.split(' ').map((w) => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
+/** Ganze Tage seit `iso` (>= 0). Kein Datum → null → „vor X Tagen" bleibt unsichtbar. */
+function daysSince(iso: string | null): number | null {
+  if (!iso) return null;
+  const ms = Date.now() - new Date(iso).getTime();
+  if (Number.isNaN(ms)) return null;
+  return Math.max(0, Math.floor(ms / 86_400_000));
 }
 
-export default function NewInPipelineCards({ onSelectLead }: { onSelectLead: (lead: Lead) => void }) {
+/**
+ * NewInPipelineCards — Hunter → „Neu in Pipeline". Datengetrieben: frisch angelegte
+ * Deals (deals.created_at) als Kontakt-Kachel (contactToProfile) + Stage (contactActiveStage)
+ * über die zentrale Leitung. Herkunft „Via AI SDR" vs. „Manuell hinzugefügt" aus
+ * deals.source_lead_id. Zeitfilter (heute / 7 Tage / 30 Tage) wird im Screen über
+ * created_at gefiltert; hier nur die Auswahl gerendert. Meeting-Prep-/Termin-Buttons +
+ * Pfeil bleiben als Tür sichtbar (Klick → Platzhalter-Toast). Termin-Datum, Prep-Status
+ * + AI-Begleittext sind ausgeblendet (Logik/Tabellen fehlen → würde Daten vortäuschen,
+ * Deferred [D18]). Leerer Zeitraum → EmptyState (gewollter Positivzustand).
+ */
+export default function NewInPipelineCards({
+  items,
+  period,
+  onPeriodChange,
+  onSelectLead,
+}: {
+  items?: NewPipelineCardItem[];
+  period: NewPipelinePeriod;
+  onPeriodChange: (p: NewPipelinePeriod) => void;
+  onSelectLead: (lead: Lead) => void;
+}) {
   const { t } = useTranslation();
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -19,135 +45,110 @@ export default function NewInPipelineCards({ onSelectLead }: { onSelectLead: (le
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  const leads = [
-    {
-      id: 'l1', name: "Sarah Jenkins", title: "VP Sales EMEA", company: "Atrium GmbH",
-      avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=150",
-      score: 92, stage: "Demo", heatKey: "engaged" as const,
-      days: "vor 2 Tagen", source: "Via AI SDR · Termin gebucht", sourceType: "ai_sdr",
-      prepStatus: "ready", meetingText: "Demo · 12. Juni · 14:00", btnText: "Meeting-Prep ansehen →", btnType: "primary",
-    },
-    {
-      id: 'l2', name: "Marcus Müller", title: "Head of Business Development", company: "LogixFlow GmbH",
-      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150",
-      score: 68, stage: "Discovery", heatKey: "warm" as const,
-      days: "vor 3 Tagen", source: "Via AI SDR · Termin gebucht", sourceType: "ai_sdr",
-      prepStatus: "loading", meetingText: "Discovery · 14. Juni · 10:30", btnText: "Meeting-Prep generieren", btnType: "secondary_glow",
-    },
-    {
-      id: 'l3', name: "Elena Rostova", title: "RevOps Specialist", company: "Quantum Dynamics",
-      avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150",
-      score: 45, stage: "Proposal", heatKey: "cold" as const,
-      days: "vor 5 Tagen", source: "Manuell hinzugefügt", sourceType: "manual",
-      prepStatus: "none", meetingText: null, btnText: "Termin vereinbaren →", btnType: "primary",
-    },
-  ];
+  const list = items ?? [];
 
-  const buildLead = (lead: typeof leads[number]): Lead => ({
-    id: lead.id,
-    person: { id: lead.id, name: lead.name, jobTitle: lead.title, company: lead.company, avatarUrl: lead.avatar, initials: deriveInitials(lead.name) },
-    kurzakte: "",
+  const buildLead = (it: NewPipelineCardItem): Lead => ({
+    id: it.id,
+    person: { id: it.id, name: it.name, jobTitle: it.role, company: it.companyName, initials: it.initials },
+    kurzakte: '',
     fullTimeline: [],
     engagementChain: [],
     lastTouchpoints: [],
-    heatStatus: "WARM",
-    heatScore: 3,
-    icpScore: lead.score,
-    lastActivity: lead.days,
-    pipelineStage: "pipeline",
-    signalsCount: 1,
-    contactEmail: "",
+    heatStatus: it.heatStatus ?? 'DEAD',
+    heatScore: 0,
+    icpScore: it.icpScore,
+    lastActivity: '',
+    pipelineStage: 'pipeline',
+    signalsCount: 0,
+    contactEmail: '',
   });
 
   return (
     <div className="font-sans antialiased text-[var(--text-primary)]">
-      {/* Header */}
-      <header className="space-y-1 mb-6">
-        <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest">{t('hunter.newPipeline.breadcrumb')}</span>
-        <h1 className="text-[28px] font-extrabold tracking-tight text-text-primary leading-tight">{t('hunter.newPipeline.title')}</h1>
-        <p className="text-[13px] text-text-muted font-medium">{t('hunter.newPipeline.subtitle')}</p>
+      {/* Header + Zeitfilter */}
+      <header className="flex items-end justify-between gap-4 mb-6">
+        <div className="space-y-1">
+          <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest">{t('hunter.newPipeline.breadcrumb')}</span>
+          <h1 className="text-[28px] font-extrabold tracking-tight text-text-primary leading-tight">{t('hunter.newPipeline.title')}</h1>
+          <p className="text-[13px] text-text-muted font-medium">{t('hunter.newPipeline.subtitle')}</p>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <span className="text-[12px] font-bold text-text-muted">{t('hunter.newPipeline.filterLabel')}</span>
+          <Select value={period} onValueChange={(v) => onPeriodChange(v as NewPipelinePeriod)}>
+            <SelectTrigger className="w-[170px] rounded-[10px] border-border bg-app-surface text-[13px] font-semibold text-text-primary"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="today">{t('hunter.newPipeline.periodToday')}</SelectItem>
+              <SelectItem value="7d">{t('hunter.newPipeline.period7d')}</SelectItem>
+              <SelectItem value="30d">{t('hunter.newPipeline.period30d')}</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </header>
 
       {/* Karten — volle Breite (= Leads), einheitliche HunterCard */}
       <div className="flex flex-col gap-4">
-        {leads.length === 0 ? (
-          <EmptyState icon={<Inbox className="w-6 h-6" />} title="Keine neuen Leads in der Pipeline" />
-        ) : leads.map((lead) => {
+        {list.length === 0 ? (
+          <EmptyState icon={<Inbox className="w-6 h-6" />} title={t('hunter.newPipeline.emptyTitle')} description={t('hunter.newPipeline.emptyDesc')} />
+        ) : list.map((it) => {
+          const days = daysSince(it.createdAt);
           const data: HunterCardData = {
-            id: lead.id,
-            name: lead.name,
-            jobTitle: lead.title,
-            company: lead.company,
-            avatarUrl: lead.avatar,
-            icpScore: lead.score,
-            stageLabel: lead.stage,
-            heatStatus: lead.heatKey,
-            timeLabel: lead.days,
+            id: it.id,
+            name: it.name,
+            jobTitle: it.role,
+            company: it.companyName,
+            icpScore: it.icpScore, // fehlt → undefined → ICP-Ring unsichtbar
+            stageLabel: it.stage ?? '', // kein aktiver Deal → keine Stage
+            heatStatus: it.heatStatus, // echtes Heat; undefined → kein Badge
+            timeLabel: days != null ? t('hunter.common.ago', { label: t('hunter.common.daysAgo', { count: days }) }) : '',
             timeSubLabel: <span className="text-text-muted font-semibold">{t('hunter.newPipeline.label')}</span>,
           };
 
-          // Action-Row = REFERENZ für alle Action-Rows.
+          // Action-Row = REFERENZ. Links: Herkunft (AI SDR / Manuell). Rechts: Türen
+          // (Meeting-Prep · Termin vereinbaren) — Funktion folgt, Klick → Platzhalter.
           const actionRow = (
             <>
-              <div className="flex items-center gap-2.5 flex-wrap min-w-0">
-                <div className="flex items-center gap-1.5">
-                  {lead.sourceType === 'ai_sdr'
-                    ? <Bot size={15} className="text-[var(--sherloq-primary)]" />
-                    : <UserCheck size={15} className="text-text-muted" />}
-                  <span className={ACTION_ROW.strongText}>{lead.source}</span>
-                </div>
-                <span className="text-icon-muted">•</span>
-                {lead.prepStatus !== 'none' && (
-                  lead.prepStatus === 'ready' ? (
-                    <div className="flex items-center gap-1.5 text-[var(--signal-success-text)] text-[12.5px] font-semibold">
-                      <Check size={14} className="text-[var(--signal-success-text)] shrink-0" strokeWidth={3} />
-                      <span>{t('hunter.newPipeline.prepReady')}</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-1.5 text-[var(--signal-warn-text)] text-[12.5px] font-semibold">
-                      <Clock size={14} className="text-[var(--signal-warn-text)] shrink-0 animate-spin" strokeWidth={2.5} />
-                      <span>{t('hunter.newPipeline.prepLoading')}</span>
-                    </div>
-                  )
-                )}
-                {lead.meetingText && (
-                  <div className="flex items-center gap-2 bg-[var(--signal-teal-bg)] border border-[var(--sherloq-primary)]/10 px-2.5 py-1 rounded-full text-[11px] font-bold text-[var(--sherloq-primary)] ml-1 shrink-0">
-                    <Calendar size={13} className="shrink-0" />
-                    <span>{lead.meetingText}</span>
-                  </div>
-                )}
+              <div className="flex items-center gap-1.5 min-w-0">
+                {it.source === 'ai_sdr'
+                  ? <Bot size={15} className="text-[var(--sherloq-primary)] shrink-0" />
+                  : <UserCheck size={15} className="text-text-muted shrink-0" />}
+                <span className={ACTION_ROW.strongText}>
+                  {it.source === 'ai_sdr' ? t('hunter.newPipeline.sourceAiSdr') : t('hunter.newPipeline.sourceManual')}
+                </span>
               </div>
 
-              <div className="shrink-0">
-                {lead.btnType === 'primary' ? (
-                  <button onClick={(e) => { e.stopPropagation(); triggerToast(t('hunter.newPipeline.toastActionDone', { action: lead.btnText })); }} className={ACTION_ROW.ctaPrimary}>
-                    {lead.btnText}
-                  </button>
-                ) : (
-                  <button onClick={(e) => { e.stopPropagation(); triggerToast(t('hunter.newPipeline.toastPrepStarting')); }} className={`${ACTION_ROW.ctaSecondary} flex items-center gap-1.5`}>
-                    <RotateCw size={11} className="animate-spin text-[var(--sherloq-primary)]" />
-                    {lead.btnText}
-                  </button>
-                )}
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  onClick={(e) => { e.stopPropagation(); triggerToast(t('hunter.newPipeline.toastSoon')); }}
+                  className={`${ACTION_ROW.ctaSecondary} inline-flex items-center gap-1.5`}
+                >
+                  <Calendar size={13} className="text-[var(--sherloq-primary)]" />
+                  {t('hunter.newPipeline.btnMeetingPrep')}
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); triggerToast(t('hunter.newPipeline.toastSoon')); }}
+                  className={ACTION_ROW.ctaPrimary}
+                >
+                  {t('hunter.newPipeline.btnSchedule')}
+                </button>
               </div>
             </>
           );
 
           return (
             <HunterCard
-              key={lead.id}
+              key={it.id}
               data={data}
-              onOpenInfo={() => onSelectLead(buildLead(lead))}
+              onOpenInfo={() => onSelectLead(buildLead(it))}
               actionRow={actionRow}
             />
           );
         })}
       </div>
 
-      {/* Toast — animate-bounce bleibt */}
+      {/* Toast — Platzhalter (Funktion folgt mit Task-System / Kalender-Integration) */}
       {toastMessage && (
         <div className="fixed bottom-6 right-6 z-50 bg-inverse-surface text-on-accent px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2 animate-bounce">
-          <Check size={14} className="text-emerald-400" strokeWidth={3} />
+          <Check size={14} className="text-[var(--signal-success-text)]" strokeWidth={3} />
           <span className="text-xs font-semibold">{toastMessage}</span>
         </div>
       )}

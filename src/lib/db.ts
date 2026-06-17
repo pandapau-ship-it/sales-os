@@ -265,6 +265,30 @@ export async function getDealWithDetails(
   return data as unknown as Deal;
 }
 
+/**
+ * getNewInPipeline — „Neu in Pipeline"-Tab. Frisch angelegte Deals, neueste zuerst
+ * (`created_at` desc). Embed: Kontakt (Identität/Heat/ICP zentral) inkl. Firma-Hint
+ * + schlanker Deals-Embed für `contactActiveStage`. `source_lead_id` (Herkunft AI SDR
+ * vs. manuell) kommt explizit mit. Das Zeitfenster (heute / 7T / 30T) filtert der
+ * Screen client-seitig über `created_at` (Muster wie die Pipeline-Filter).
+ */
+export async function getNewInPipeline(
+  organizationId: string,
+): Promise<Record<string, unknown>[]> {
+  const client = getSupabaseClient();
+  if (!client) return [];
+  const { data, error } = await client
+    .from("deals")
+    .select(
+      `id, name, stage, created_at, source_lead_id, contact:contacts(*, ${CONTACT_COMPANY_EMBED}, deals(stage, updated_at, stage_updated_at, closed_at, created_at))`,
+    )
+    .eq("organization_id", organizationId)
+    .order("created_at", { ascending: false })
+    .limit(50);
+  if (error) throw error;
+  return data ?? [];
+}
+
 export interface SignalFilters {
   routedTo?: "hunter";
   processed?: boolean;

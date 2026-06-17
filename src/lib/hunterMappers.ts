@@ -250,6 +250,65 @@ export function contactToFollowUpCard(
   };
 }
 
+// ── Neu in Pipeline (Read): frisch angelegter Deal → Kontakt-Kachel + Stage ──────
+// „Neu in Pipeline" = kürzlich angelegte Deals (deals.created_at) als Info-/Übersicht.
+// Identität/Heat/ICP zentral (contactToProfile), Stage = zuletzt aktiver Deal des
+// Kontakts (contactActiveStage). Herkunft aus deals.source_lead_id (gesetzt → AI SDR,
+// null → manuell). createdAt trägt den Zeitfilter + „vor X Tagen". Termin-Datum,
+// Meeting-Prep-Status und AI-Begleittext sind bewusst NICHT hier (Logik/Tabellen
+// fehlen → würde Daten vortäuschen; siehe PROGRESS → Deferred [D18]).
+export type NewPipelineCardItem = {
+  id: string; // deal.id
+  name: string;
+  role: string; // jobTitle
+  companyName: string;
+  initials: string;
+  icpScore?: number;
+  heatStatus?: HeatStatus;
+  stage?: string; // zuletzt aktiver Deal des Kontakts; keiner → undefined → keine Stage
+  createdAt: string | null; // deal.created_at (Zeitfilter + „vor X Tagen"); null → unsichtbar
+  source: "ai_sdr" | "manual";
+};
+
+export function dealToNewPipelineRow(
+  deal: Record<string, any>,
+  stageNameBySlug: Record<string, string> = {},
+): NewPipelineCardItem {
+  const p = contactToProfile(deal.contact); // zentrale Auflösung (Identität/Status/Heat/ICP)
+  return {
+    id: deal.id,
+    name: p.name,
+    role: p.jobTitle,
+    companyName: p.company,
+    initials: p.initials,
+    icpScore: p.icpScore,
+    heatStatus: p.heatStatus,
+    stage: contactActiveStage(deal.contact, stageNameBySlug),
+    createdAt: deal.created_at ?? null,
+    source: deal.source_lead_id ? "ai_sdr" : "manual",
+  };
+}
+
+/** Zeitfenster des Neu-in-Pipeline-Tabs (client-seitiger Filter über deal.created_at). */
+export type NewPipelinePeriod = "today" | "7d" | "30d";
+
+/** True, wenn `createdAt` im gewählten Fenster liegt. Kein Datum → false (nie „neu" ohne Beleg). */
+export function newPipelineInPeriod(
+  createdAt: string | null | undefined,
+  period: NewPipelinePeriod,
+): boolean {
+  if (!createdAt) return false;
+  const at = new Date(createdAt).getTime();
+  if (Number.isNaN(at)) return false;
+  if (period === "today") {
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+    return at >= start.getTime();
+  }
+  const days = period === "7d" ? 7 : 30;
+  return at >= Date.now() - days * 86_400_000;
+}
+
 /**
  * signalToCardProps — signals-Zeile (inkl. contact+company+deals-Join) → Card-Props.
  * Identität/Status/Heat/ICP aus contactToProfile; Stage = zuletzt aktiver Deal des

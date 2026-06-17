@@ -72,6 +72,7 @@ export interface Deal {
   owner_id: string;
   next_action?: string;
   next_action_due_at?: string;
+  source_lead_id?: string | null; // gesetzt → Deal stammt aus AI-SDR-Lead; null → manuell angelegt
   created_at: string;
   updated_at: string;
   // Joined
