@@ -279,6 +279,20 @@ CLAUDE.md und `/docs` werden **im selben Commit** aktualisiert.
 Diese Regeln gelten absolut. Wenn ein hochgeladenes Design-File davon abweicht,
 wird das Design in unser System übersetzt — nicht umgekehrt.
 
+**PRODUKTPRINZIP — „Task-getriebene Leere" (verbindlich, gilt beim Wiring jedes Tasks-/Signal-Bereichs):**
+Sherloq ist ein Tool zum **Abarbeiten von Aufgaben**. Aufgaben-/Signal-Bereiche zeigen **NUR** etwas,
+wenn wirklich etwas anliegt. Gibt es nichts → der Bereich bleibt **komplett leer**: keine Kachel, kein
+Platzhalter, kein „0", keine fingierte/leere Warnung. **Eine leere Sektion ist ein gewollter, positiver
+Zustand („nichts zu tun") — kein Fehlerzustand.** Jede Kachel/Signal/Warnung wird **nur aus echten Werten**
+gerendert (echtes Signal · echtes `stagnation_days` · echte offene Task). Fehlt der Wert → Element erscheint
+gar nicht. Gleiche Ehrlichkeits-Linie wie „ICP/Heat null → unsichtbar" und die ausgeblendeten Kanban-Signale.
+- **Gilt für (erscheinen nur bei echtem Anlass):** Hunter **Signals** · **Neu in Pipeline** · **Follow-ups** ·
+  Pipeline **Task-Liste-Ansicht** (Stagniert-/Keine-Task-Kacheln, [D13]) · Übersicht **Top-5** (nur wenn welche da sind).
+- **AUSNAHME — immer sichtbar** (Daten-Übersichten, kein Task-Stapel): Pipeline **Kanban + Liste** (zeigen
+  immer alle Deals) · **Termine/Kalender** auf der Übersicht.
+- **Überschreibt** die Legacy-Regel „No empty dashboards" (siehe „Design Rules (Legacy)") für Tasks-/Signal-Bereiche
+  — Konflikt-Regel: neueste Entscheidung gewinnt.
+
 **Radius-Hierarchie (von groß nach klein):**
 | Element | Wert | Tailwind |
 |---|---|---|
@@ -575,6 +589,9 @@ import HunterCard from '@/components/panel-blocks/HunterCard';
 - No generic AI design (no purple gradients, no Inter font as hero choice, no oversized cards)
 - No heavy borders or shadows — use only to establish hierarchy
 - No empty dashboards — every screen has data or a concrete next action on first load
+  > ⚠️ **Überholt für Tasks-/Signal-Bereiche** durch das Produktprinzip „Task-getriebene Leere"
+  > (siehe Design Invariants): dort ist eine leere Sektion gewollt. Diese Legacy-Regel gilt nur noch
+  > für Daten-Übersichten (Kanban/Liste/Termine).
 
 ---
 

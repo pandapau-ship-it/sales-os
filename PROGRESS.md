@@ -21,7 +21,10 @@
 **B. 820px-Info-Panel** (`HunterSidepanel`) an echte `contacts`/`companies`-Felder (CRM-Felder),
    Tabs (Kommunikation/Aktivität/Tasks/Notizen/Deals) an echte Tabellen. **← nächster Slice-Kandidat.**
 **C. Realtime** für die Live-Tabellen (`lib/realtime.ts`), Cache-Invalidierung.
-**D. Restliche Mock-Screens** (Signals/Follow-ups/Overview) + AddSdrLeadPanel/Snooze (Writes, Edge Functions).
+**D. Restliche Mock-Screens** (Neu-in-Pipeline/Follow-ups/Overview Top-5) + AddSdrLeadPanel/Snooze (Writes, Edge Functions).
+   ⮑ **Beim Wiring: Produktprinzip „Task-getriebene Leere"** (CLAUDE.md → Design Invariants) — diese Bereiche
+   erscheinen NUR bei echtem Anlass, sonst komplett leer (keine Kachel/„0"/Fake-Warnung). Ausnahme: Kanban/Liste/Termine
+   immer sichtbar. (Hunter **Signals** ist bereits so verdrahtet, S-2.)
 
 > Berechnete Werte (heat/icp/stagnation/last_contacted) bleiben Anzeige bis Edge Functions —
 > siehe **„Offene Konzept-Entscheidungen / Deferred Logic"** [D1]–[D13].
@@ -153,6 +156,8 @@
   Enthält zudem **Writes** (Action / Task anlegen → [D8]-artig, audit_log).
 - **Später:** gebündelt mit der Stagnations-/Task-Logik bauen — **dieselbe Logik** speist auch die im
   Kanban ausgeblendete „Deal stagniert"-Pille ([D9]) + „N Action"-Badge ([D11]). Erst bauen, wenn diese Fundamente stehen.
+- **Produktprinzip „Task-getriebene Leere"** (CLAUDE.md → Design Invariants): Stagniert-/Keine-Task-Kacheln
+  nur bei **echtem** `stagnation_days`/offener Task rendern — keine Fake-/„0 Tage"-Kachel; gibt es nichts, bleibt die Ansicht leer.
 
 ### [D14] Signals-Tab Dringlichkeit + Stage · Zielphase: Signal-Urgency-/Action-Slice
 - **Status heute:** Im Signals-Tab (S-2) **ausgeblendet** (`showUrgency=false`, `showStage=false` an
