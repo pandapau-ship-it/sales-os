@@ -211,6 +211,7 @@
         "custom": "Neues Signal — {{topic}}"
       },
       "actNow": "Act now",
+      "unknownContact": "Unbekannter Kontakt",
       "signalDetails": "Signal Details",
       "repliedToComment": "Replied to a comment",
       "kiRecommendation": "KI Empfehlung",

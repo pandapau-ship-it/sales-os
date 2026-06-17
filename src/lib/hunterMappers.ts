@@ -8,6 +8,8 @@
  */
 
 import type { Lead, HeatStatus } from "@/types";
+import type { LucideIcon } from "lucide-react";
+import { signalMetaFor } from "@/lib/constants";
 
 // DB-Enum (deutsch) → UI-HeatStatus. 1:1, alle 5 Stufen abgedeckt. Label/Farbe
 // kommen via HEAT_KEY_BY_STATUS + HEAT_STATUS (heiss=Engaged/grün, tot=Gone/grau).
@@ -136,4 +138,55 @@ export function resolveSignalText(
   const text = t(key, { topic });
   // i18next gibt bei fehlendem Key den Key selbst zurück → auf `custom` zurückfallen.
   return text === key ? t("hunter.signals.types.custom", { topic }) : text;
+}
+
+/** Kurzformat „11m"/„2h"/„3d" aus einem ISO-Zeitstempel (sprachneutral). */
+function relTimeShort(iso: string | null | undefined): string {
+  if (!iso) return "";
+  const min = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 60000));
+  if (min < 60) return `${min}m`;
+  const h = Math.floor(min / 60);
+  return h < 24 ? `${h}h` : `${Math.floor(h / 24)}d`;
+}
+
+/** Card-Props für die LinkedinSignalCard (S-2). Echte Felder + S-0-Helfer. */
+export type SignalCardProps = {
+  id: string;
+  name: string;
+  role: string;
+  companyName: string;
+  icpScore: number; // null/kein Kontakt → 0 (Donut grau), kein Fake-Default
+  heatStatus?: HeatStatus; // undefined → kein Heat-Badge (z.B. kontaktloses Signal)
+  actionText: string;
+  channelLabelKey: string;
+  channelIcon: LucideIcon;
+  timeAgo: string;
+};
+
+/**
+ * signalToCardProps — signals-Zeile (inkl. contact+company-Join) → Card-Props.
+ * Null-Kontakt → ehrlicher Platzhalter „Unbekannter Kontakt", keine Firma/ICP/Heat
+ * (kein Fake). Text via resolveSignalText (S-0), Channel/Icon via signalMetaFor (S-0).
+ */
+export function signalToCardProps(
+  signal: Record<string, any>,
+  t: (key: string, opts?: Record<string, unknown>) => string,
+): SignalCardProps {
+  const c = signal.contact; // null, wenn Kontakt unbekannt
+  const name = c
+    ? [c.first_name, c.last_name].filter(Boolean).join(" ") || c.email || t("hunter.signals.unknownContact")
+    : t("hunter.signals.unknownContact");
+  const meta = signalMetaFor(signal.signal_type);
+  return {
+    id: signal.id,
+    name,
+    role: c?.job_title ?? "",
+    companyName: c?.company?.name ?? "",
+    icpScore: typeof c?.icp_score === "number" ? c.icp_score : 0,
+    heatStatus: c?.heat_status ? DB_HEAT_TO_UI[c.heat_status] : undefined,
+    actionText: resolveSignalText(signal, t),
+    channelLabelKey: meta.channelLabelKey,
+    channelIcon: meta.icon,
+    timeAgo: relTimeShort(signal.created_at),
+  };
 }

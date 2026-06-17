@@ -104,17 +104,25 @@ export default function HunterCard({
             <div className={CARD.icpWrap}>
               <ICPDonut score={data.icpScore} />
             </div>
-            <div className="flex items-center gap-3 w-[140px] xl:w-[180px]">
-              <div className={CARD.companyBox}>{data.company.charAt(0).toUpperCase()}</div>
-              <span className={CARD.companyName}>{data.company}</span>
-            </div>
+            {data.company ? (
+              <div className="flex items-center gap-3 w-[140px] xl:w-[180px]">
+                <div className={CARD.companyBox}>{data.company.charAt(0).toUpperCase()}</div>
+                <span className={CARD.companyName}>{data.company}</span>
+              </div>
+            ) : (
+              <div className="w-[140px] xl:w-[180px]" aria-hidden />
+            )}
           </div>
 
           {/* Stage & Heat */}
           <div className={`hidden lg:flex items-center gap-4 px-4 ${CARD.divider} shrink-0`}>
             <div className="flex flex-col items-center justify-center w-[80px] relative h-full">
-              <span className={CARD.miniLabel}>{t("hunter.common.stage")}</span>
-              <StageBadge stage={data.stageLabel} />
+              {data.stageLabel && (
+                <>
+                  <span className={CARD.miniLabel}>{t("hunter.common.stage")}</span>
+                  <StageBadge stage={data.stageLabel} />
+                </>
+              )}
             </div>
             <div className="flex flex-col items-center justify-center w-[120px] relative h-full">
               <span className={CARD.miniLabel}>{t("hunter.common.heat")}</span>

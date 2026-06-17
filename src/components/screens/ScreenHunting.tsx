@@ -33,7 +33,7 @@ import type { SignalActionData } from '@/components';
 
 import Avatar from '@/components/shared/Avatar';
 import { ACTION_ROW } from '@/lib/componentBehavior';
-import type { PipelineRow } from '@/lib/hunterMappers';
+import { signalToCardProps, type PipelineRow } from '@/lib/hunterMappers';
 
 interface ScreenHuntingProps {
   leads: Lead[];
@@ -48,6 +48,10 @@ interface ScreenHuntingProps {
   dealsError?: boolean;
   // Slice B: Pipeline-Stages (settings.pipeline_stages) für die Kanban-Spalten.
   pipelineStages?: PipelineStage[];
+  // S-2: echte Signals (org-gescoped, hunter-routed) für den Signals-Tab.
+  signalsData?: Record<string, unknown>[];
+  signalsLoading?: boolean;
+  signalsError?: boolean;
   onSelectLead: (lead: Lead) => void;
   onUpdateLeadStage: (leadId: string, newStage: string) => void;
   onAddLead: (lead: Lead) => void;
@@ -64,6 +68,9 @@ export default function ScreenHunting({
   dealsLoading,
   dealsError,
   pipelineStages,
+  signalsData,
+  signalsLoading,
+  signalsError,
   onAddLead,
   onSelectCommunication,
 }: ScreenHuntingProps) {
@@ -73,6 +80,8 @@ export default function ScreenHunting({
   const leadRows = leadsData ?? leads;
   // Pipeline-Listenansicht (Slice A): echte Deals. Kanban/Tasks bleiben Mock.
   const dealRows = dealsData ?? [];
+  // Signals-Tab (S-2): echte Signals → Card-Props (Mapping braucht t).
+  const signalCards = (signalsData ?? []).map((s) => signalToCardProps(s, t));
   // Slice C — drei Filter, client-seitig über die geteilte dealRows-Quelle:
   //  • Heat + Owner gelten in BEIDEN Ansichten (Liste + Kanban)
   //  • Stage NUR in der Liste (Kanban ist bereits nach Stage gruppiert)
@@ -131,7 +140,7 @@ export default function ScreenHunting({
 
   // Signals-Auswahl (gleiche Mechanik wie Leads). IDs = Namen der Signal-Kacheln.
   const [selectedSignalIds, setSelectedSignalIds] = useState<string[]>([]);
-  const signalIds = ['Maja Voje', 'Sarah Jenkins', 'Marc Levigne', 'Elena Rostova', 'Dr. Christian Brand'];
+  const signalIds = signalCards.map((s) => s.id); // echte signals.id statt Namen
   const toggleSignalSelection = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     setSelectedSignalIds(prev =>
@@ -266,6 +275,7 @@ export default function ScreenHunting({
                 companyInitials="GL"
                 companyName="Growth Lab"
                 stage="Onboarding"
+                heatStatus="HOT"
                 icpScore={92}
                 timeAgo="11m"
                 timeAgoLabel="11 Min"
@@ -706,108 +716,33 @@ export default function ScreenHunting({
             </div>
           </div>
 
-          {signalIds.length === 0 ? (
+          {signalsLoading ? (
+            <div className="flex flex-col gap-3">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="h-[88px] rounded-[12px] bg-app-surface border border-[var(--border-card)] animate-pulse" />
+              ))}
+            </div>
+          ) : signalsError ? (
+            <div className="px-4 py-10 text-center text-[13px] text-[var(--signal-urgent-text)]">Signale konnten nicht geladen werden.</div>
+          ) : signalCards.length === 0 ? (
             <EmptyState
               icon={<Zap className="w-6 h-6" />}
               title="Keine Signale heute"
               description="Neue Signale erscheinen hier automatisch"
             />
-          ) : (<>
-          <LinkedinSignalCard
-            name="Maja Voje"
-            selected={selectedSignalIds.includes("Maja Voje")}
-            onToggleSelect={(e) => toggleSignalSelection("Maja Voje", e)}
-            onOpenInfo={setInfoPanelLead}
-            onActNow={setSelectedSignal}
-            role="GTM Strategist"
-            avatarUrl="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=120&h=120"
-            companyInitials="GL"
-            companyName="Growth Lab"
-            stage="Onboarding"
-            icpScore={92}
-            timeAgo="11m"
-            timeAgoLabel="11 Min"
-            timeLeftHours={4}
-            windowHours={72}
-            actionText="Hat auf Kommentar geantwortet — GTM Strategie"
-            commentText="Anze Voje postete über GTM Strategien für 2026 — Maja Voje antwortete und verknüpfte das Thema mit Sales Enablement."
-            quoteText="The first working week of 2026 is wrapping up..."
-            aiRecommendation="Idealer Zeitpunkt — Post-Thema passt direkt zu Sherloq. Maja ist gerade aktiv. Persönlichkeit Blau: sachlicher Einstieg mit konkretem Bezug zum Post."
-          />
-          <LinkedinSignalCard
-            name="Sarah Jenkins"
-            selected={selectedSignalIds.includes("Sarah Jenkins")}
-            onToggleSelect={(e) => toggleSignalSelection("Sarah Jenkins", e)}
-            onOpenInfo={setInfoPanelLead}
-            onActNow={setSelectedSignal}
-            role="VP of Sales"
-            companyInitials="CS"
-            companyName="CloudSphere"
-            stage="Trial"
-            icpScore={85}
-            timeAgo="2h"
-            timeLeftHours={20}
-            windowHours={48}
-            actionText="Neuer Beitrag — BDR Skalierung"
-            commentText="Sarah hat einen neuen LinkedIn Beitrag über die Skalierung von BDR-Teams im EMEA-Raum veröffentlicht."
-            quoteText="Building a high-performing BDR team takes time, but what if..."
-            aiRecommendation="Hohe Relevanz! Sie thematisiert BDR Skalierung. Ein Reply, der Sherloqs schnelle Ramp-up Zeit erwähnt, wäre perfekt."
-          />
-          <LinkedinSignalCard
-            name="Marc Levigne"
-            selected={selectedSignalIds.includes("Marc Levigne")}
-            onToggleSelect={(e) => toggleSignalSelection("Marc Levigne", e)}
-            onOpenInfo={setInfoPanelLead}
-            onActNow={setSelectedSignal}
-            role="CPO"
-            companyInitials="DP"
-            companyName="DataPulse Corp"
-            stage="Proposal"
-            icpScore={78}
-            timeAgo="5h"
-            timeLeftHours={43}
-            windowHours={48}
-            actionText="Hat Beitrag geliked — Sales Ops Trends"
-            commentText="Marc hat den aktuellen Beitrag von Gartner Analysten zu Sales Ops Automation Tendenzen 2026 geliked."
-            aiRecommendation="Er recherchiert weiter. Ideal um jetzt mit echten Case Studies zu Sherloqs Automatisierung nachzuhaken."
-          />
-          <LinkedinSignalCard
-            name="Elena Rostova"
-            selected={selectedSignalIds.includes("Elena Rostova")}
-            onToggleSelect={(e) => toggleSignalSelection("Elena Rostova", e)}
-            onOpenInfo={setInfoPanelLead}
-            onActNow={setSelectedSignal}
-            role="Head of SDR"
-            companyInitials="QD"
-            companyName="Quantum Dynamics"
-            stage="Cold"
-            icpScore={88}
-            timeAgo="1d"
-            timeLeftHours={48}
-            windowHours={72}
-            actionText="Firmen-News: Series B Funding"
-            commentText="Quantum Dynamics hat auf LinkedIn die erfolgreiche Series B in Höhe von €18M verkündet."
-            aiRecommendation="Nutze diesen Trigger für einen neuen Kanal! Gratuliere zur Finanzierungsrunde per LinkedIn Message."
-          />
-          <LinkedinSignalCard
-            name="Dr. Christian Brand"
-            selected={selectedSignalIds.includes("Dr. Christian Brand")}
-            onToggleSelect={(e) => toggleSignalSelection("Dr. Christian Brand", e)}
-            onOpenInfo={setInfoPanelLead}
-            onActNow={setSelectedSignal}
-            role="CEO"
-            companyInitials="NX"
-            companyName="Nexus"
-            stage="Active"
-            icpScore={95}
-            timeAgo="15m"
-            timeLeftHours={8}
-            windowHours={24}
-            actionText="Hat Profil besucht"
-            commentText="Christian hat gerade dein LinkedIn Profil besucht, kurz nachdem du den Vorschlag per E-Mail gesendet hast."
-            aiRecommendation="Sofort nachfassen! Er prüft gerade deine Authentizität und Lösung. Eine kurze LinkedIn Connectanfrage hinterherschicken."
-          />
-          </>)}
+          ) : (
+            signalCards.map(({ id, ...cardProps }) => (
+              <LinkedinSignalCard
+                key={id}
+                {...cardProps}
+                showUrgency={false}
+                showStage={false}
+                selected={selectedSignalIds.includes(id)}
+                onToggleSelect={(e) => toggleSignalSelection(id, e)}
+                onOpenInfo={setInfoPanelLead}
+              />
+            ))
+          )}
         </div>
       )}
 

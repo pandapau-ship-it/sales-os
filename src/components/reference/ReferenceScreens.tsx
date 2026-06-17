@@ -22,6 +22,7 @@ import {
   getContacts,
   getDeals,
   getPipelineSettings,
+  getSignals,
   updateLeadStage as dbUpdateLeadStage,
   setTaskCompleted as dbSetTaskCompleted,
   createLead as dbCreateLead,
@@ -198,6 +199,11 @@ export function HunterReference() {
     (stagesQuery.data ?? []).map((stage) => [stage.slug, stage.name]),
   );
   const dealsData = dealsQuery.data?.map((deal) => dealToPipelineRow(deal, stageNameBySlug));
+  // S-2: hunter-geroutete, unverarbeitete Signals (Mapping zu Card-Props im Screen, braucht t).
+  const signalsQuery = useQuery({
+    queryKey: ["signals", DEMO_ORGANIZATION_ID],
+    queryFn: () => getSignals(DEMO_ORGANIZATION_ID, { routedTo: "hunter", processed: false }),
+  });
   return (
     <>
       <ScreenHunting
@@ -209,6 +215,9 @@ export function HunterReference() {
         dealsLoading={dealsQuery.isLoading || stagesQuery.isLoading}
         dealsError={dealsQuery.isError || stagesQuery.isError}
         pipelineStages={stagesQuery.data ?? []}
+        signalsData={signalsQuery.data as unknown as Record<string, unknown>[] | undefined}
+        signalsLoading={signalsQuery.isLoading}
+        signalsError={signalsQuery.isError}
         onSelectLead={s.selectPerson}
         onUpdateLeadStage={s.updateLeadStage}
         onAddLead={s.addLead}

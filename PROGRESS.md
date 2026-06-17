@@ -151,11 +151,19 @@
 - **Später:** gebündelt mit der Stagnations-/Task-Logik bauen — **dieselbe Logik** speist auch die im
   Kanban ausgeblendete „Deal stagniert"-Pille ([D9]) + „N Action"-Badge ([D11]). Erst bauen, wenn diese Fundamente stehen.
 
+### [D14] Signals-Tab Dringlichkeit + Stage · Zielphase: Signal-Urgency-/Action-Slice
+- **Status heute:** Im Signals-Tab (S-2) **ausgeblendet** (`showUrgency=false`, `showStage=false` an
+  `LinkedinSignalCard`): Hot-Flamme · „Xh left" · Window-Balken · „Xh window" · „Act now"-Button · Stage-Badge.
+  Die Elemente sind in der Karte erhalten (Übersicht-Tab nutzt sie weiter), nur im Signals-Tab gegated.
+- **Später:** Restzeit/Window aus `signals.created_at` + `settings.signal_windows` (S-0) **berechnen**
+  (Config/Edge Function, [D5]-Linie) → Hot/Window/Restzeit echt; „Act now" als echte Aktion; Stage falls
+  am Signal sinnvoll. **Mit dem Urgency-/Action-Slice zurückholen.**
+
 ### [TS] Deal-Typ ohne `product` — offener Faden
 - `src/types/hunter.ts` `Deal` hat **kein `product`** (Migration 014 fügte nur die DB-Spalte).
   Beim späteren Produkt-Anzeigen (Pipeline/Deal-Detail) `product?: string` im Typ ergänzen + mappen.
 
-> Anker-Tags `[D1]`–`[D13]` sind im Code referenzierbar (z.B. `hunterMappers.ts` → `[[leads-tab-read]]`).
+> Anker-Tags `[D1]`–`[D14]` sind im Code referenzierbar (z.B. `hunterMappers.ts` → `[[leads-tab-read]]`).
 > Vor Umsetzung eines Punkts: passende Referenz-Doku (`docs/sales_os_edge_functions_v2.md` etc.) lesen.
 
 ---

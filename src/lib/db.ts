@@ -78,6 +78,11 @@ export function getSupabaseClient(): SupabaseClient | null {
 // Mock-Helfer: simuliert die asynchrone Supabase-Antwort (Microtask, kein Flash).
 const ok = <T>(data: T): Promise<T> => Promise.resolve(data);
 
+// Firmen-Auflösung über den Kontakt — EINHEITLICH in der ganzen App. contacts hat
+// 2 FKs zu companies (company_id + primary_company_id) → expliziter !company_id-Hint
+// nötig (sonst PostgREST PGRST201). Single-Source für Leads (getContacts) + Signals (getSignals).
+const CONTACT_COMPANY_EMBED = "company:companies!company_id(name)";
+
 // ── Reads ────────────────────────────────────────────────────────────────────
 
 export async function getLeads(): Promise<Lead[]> {
@@ -171,12 +176,10 @@ export async function getContacts(
 ): Promise<Record<string, unknown>[]> {
   const client = getSupabaseClient();
   if (!client) return [];
-  // Company-Name eingebettet (für die Leads-Liste); RLS greift auf companies mit.
-  // FK-Hint !company_id nötig: contacts hat 2 FKs auf companies (company_id +
-  // primary_company_id) → ohne Hint ist der Embed mehrdeutig (PostgREST PGRST201).
+  // Company-Name über den einheitlichen Embed (RLS greift auf companies mit).
   let q = client
     .from("contacts")
-    .select("*, company:companies!company_id(name)")
+    .select(`*, ${CONTACT_COMPANY_EMBED}`)
     .eq("organization_id", organizationId);
   if (filters.status) q = q.eq("contact_status", filters.status);
   if (filters.heatStatus) q = q.eq("heat_status", filters.heatStatus);
@@ -250,9 +253,10 @@ export async function getSignals(
 ): Promise<Signal[]> {
   const client = getSupabaseClient();
   if (!client) return [];
+  // Kontakt + (über den Kontakt) die Firma — gleicher einheitlicher Embed wie Leads.
   let q = client
     .from("signals")
-    .select("*, contact:contacts(*)")
+    .select(`*, contact:contacts(*, ${CONTACT_COMPANY_EMBED})`)
     .eq("organization_id", organizationId);
   if (filters.routedTo) q = q.eq("routed_to", filters.routedTo);
   if (filters.processed === false) q = q.is("processed_at", null);
