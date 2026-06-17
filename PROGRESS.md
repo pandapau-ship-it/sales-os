@@ -96,13 +96,15 @@
 - **Später:** Berechnung/Befüllung per **Edge Functions (Cron)** — erst **nachdem alle
   Screens verdrahtet** sind. Business-Logik nie im Frontend (CLAUDE.md → Heat/Churn/ICP/Scores → Edge Functions).
 
-### [D6] knowledge_base — Provisionierung pro Org · Zielphase: SaaS / Onboarding
-- **Status heute:** `knowledge_base` ist **org-gescoped** (RLS, `organization_id NOT NULL`), der
-  Inhalt (Produkt-Features) ist aber **produktweit gleich**. Seed läuft per Migration (015/016)
-  nur auf die **Demo-Org**.
-- **Später:** Strategie für echte Kunden-Orgs — entweder **Funktion/Trigger bei Org-Anlage**
-  (kopiert die Produkt-Einträge in die neue Org) **oder** eine **globale `product_knowledge`-Tabelle**
-  (org-unabhängig, öffentlich lesbar) statt org-Kopien. Entscheidung in der SaaS-/Onboarding-Phase.
+### [D6] Org-Provisionierung von Seed-Konfig (knowledge_base + settings.signal_windows) · Zielphase: SaaS / Onboarding
+- **Status heute:** Mehrere produktweit-gleiche Konfig-/Inhaltsblöcke werden per Migration **nur auf die
+  Demo-Org** geseedet:
+  - `knowledge_base` (org-gescoped, RLS, NOT NULL) — Migrationen 015/016/017.
+  - **`settings.signal_windows`** — Migration 018 (`update … where organization_id = Demo-Org`).
+  Echte Kunden-Orgs erhalten diese Blöcke **nicht automatisch**.
+- **Später:** gemeinsame Provisionierungs-Strategie — **Funktion/Trigger bei Org-Anlage** (kopiert
+  Produkt-Defaults in die neue Org) **oder** globale, org-unabhängige Quellen (z.B. `product_knowledge`-
+  Tabelle; signal_windows-Defaults als Fallback). Beim Org-Anlage-Mechanismus zentral mitlösen.
 
 ### [D7] Deal Owner — echte Auflösung · Zielphase: Team / Rollen-Setup
 - **Status (Slice C):** **Owner-Auflösung ist live** — `getDeals` hat das `owner:users(full_name)`-Embed,

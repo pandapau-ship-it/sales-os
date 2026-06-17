@@ -9,14 +9,15 @@
 
 alter table settings add column if not exists signal_windows jsonb default '[]';
 
+-- Vorerst EINHEITLICH 72h für alle Typen; org-spezifische Staffelung kommt später.
 update settings set signal_windows = '[
   {"signal_type": "linkedin_post_commented", "window_hours": 72},
-  {"signal_type": "linkedin_post_liked",     "window_hours": 48},
-  {"signal_type": "linkedin_profile_view",   "window_hours": 48},
-  {"signal_type": "job_change",              "window_hours": 168},
-  {"signal_type": "company_growth",          "window_hours": 168},
-  {"signal_type": "funding_round",           "window_hours": 336},
-  {"signal_type": "tech_change",             "window_hours": 168},
-  {"signal_type": "custom",                  "window_hours": 48}
+  {"signal_type": "linkedin_post_liked",     "window_hours": 72},
+  {"signal_type": "linkedin_profile_view",   "window_hours": 72},
+  {"signal_type": "job_change",              "window_hours": 72},
+  {"signal_type": "company_growth",          "window_hours": 72},
+  {"signal_type": "funding_round",           "window_hours": 72},
+  {"signal_type": "tech_change",             "window_hours": 72},
+  {"signal_type": "custom",                  "window_hours": 72}
 ]'::jsonb
 where organization_id = '00000000-0000-0000-0000-000000000001';
