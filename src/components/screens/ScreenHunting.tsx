@@ -31,8 +31,8 @@ import { AddSdrLeadPanel, ContactColdDrawer, EmptyState, FunnelAnalysis, HeatBad
 import type { SignalActionData } from '@/components';
 
 import Avatar from '@/components/shared/Avatar';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { ACTION_ROW } from '@/lib/componentBehavior';
+import type { PipelineRow } from '@/lib/hunterMappers';
 
 interface ScreenHuntingProps {
   leads: Lead[];
@@ -41,6 +41,10 @@ interface ScreenHuntingProps {
   leadsData?: Lead[];
   leadsLoading?: boolean;
   leadsError?: boolean;
+  // Slice A: echte Deals (org-gescoped) für die Pipeline-Listenansicht.
+  dealsData?: PipelineRow[];
+  dealsLoading?: boolean;
+  dealsError?: boolean;
   onSelectLead: (lead: Lead) => void;
   onUpdateLeadStage: (leadId: string, newStage: string) => void;
   onAddLead: (lead: Lead) => void;
@@ -48,24 +52,14 @@ interface ScreenHuntingProps {
   onOpenCopilot?: (context?: 'elena' | 'marc') => void;
 }
 
-// Pipeline-Stage-Slug → Anzeigename (wie die Kanban-Spalten; später aus settings.pipeline_stages).
-const STAGE_LABELS: Record<string, string> = {
-  lead: 'Backlog',
-  pipeline: 'Demo vereinbart',
-  signal: 'Follow-up offen',
-  sequence: 'Onboarding offen',
-  trial: 'Free Trial',
-};
-// Mock-Deal-Owner (Phase 3: aus deals.owner / users). Deterministisch je Lead.
-const DEAL_OWNERS = ['Oliver Sand', 'Lena Brandt', 'Marc Vogel'];
-const ownerForLead = (id: string) =>
-  DEAL_OWNERS[[...id].reduce((a, c) => a + c.charCodeAt(0), 0) % DEAL_OWNERS.length];
-
 export default function ScreenHunting({
   leads,
   leadsData,
   leadsLoading,
   leadsError,
+  dealsData,
+  dealsLoading,
+  dealsError,
   onUpdateLeadStage,
   onAddLead,
   onSelectCommunication,
@@ -74,25 +68,20 @@ export default function ScreenHunting({
   // Leads-Tab-Quelle: echte DB-Leads, sonst Mock-Fallback. Nur dieser Tab + sein
   // Count/Select nutzen leadRows; Pipeline/Overview/Signals bleiben auf `leads`.
   const leadRows = leadsData ?? leads;
+  // Pipeline-Listenansicht (Slice A): echte Deals. Kanban/Tasks bleiben Mock.
+  const dealRows = dealsData ?? [];
   const [subTab, setSubTab] = useState<'overview' | 'new_leads' | 'leads' | 'pipeline' | 'signals' | 'sequences' | 'follow_ups'>('leads');
   const [expandedLeadId, setExpandedLeadId] = useState<string | null>(null);
   const [selectedLeadIds, setSelectedLeadIds] = useState<string[]>([]);
   const [expandedCols, setExpandedCols] = useState<Record<string, boolean>>({ lead: true, pipeline: true, signal: true, sequence: false, trial: false });
   // Pipeline-Tab: Listenansicht ↔ Kanban (Toggle); 'tasks' = jetzige Task-Liste (per Button).
   const [pipelineView, setPipelineView] = useState<'list' | 'kanban' | 'tasks'>('list');
-  const [dealOwnerFilter, setDealOwnerFilter] = useState('all');
-  const [stageFilter, setStageFilter] = useState('all');
   // Task-Ansicht auf einen einzelnen Task fokussiert (aus Kanban-Pill heraus geöffnet).
   const [focusedTask, setFocusedTask] = useState<'stagniert' | 'keine_task' | null>(null);
   // Pro Kanban-Spalte: nur Karten mit Action-Bedarf zeigen (Toggle über die Action-Badge).
   const [actionFilterCols, setActionFilterCols] = useState<Record<string, boolean>>({});
   const openTaskCount = 2; // Mock — Phase 3: COUNT(tasks WHERE status='open')
-  // Listenansicht: Deals nach Owner + Stage gefiltert.
-  const pipelineDeals = leads.filter((l) =>
-    (stageFilter === 'all' || l.pipelineStage === stageFilter) &&
-    (dealOwnerFilter === 'all' || ownerForLead(l.id) === dealOwnerFilter)
-  );
-  
+
   // Local state for Quick Lead Adder Dialog
   const [showAddModal, setShowAddModal] = useState(false);
 
@@ -646,28 +635,9 @@ export default function ScreenHunting({
             </div>
           ) : (
             <div className="flex flex-col gap-3 pb-8">
-              {/* Filter: Deal Owner + Stage */}
-              <div className="flex items-center gap-3 flex-wrap">
-                <span className="text-[12px] font-bold text-text-muted">Filter:</span>
-                <Select value={dealOwnerFilter} onValueChange={setDealOwnerFilter}>
-                  <SelectTrigger className="w-[190px] rounded-[10px] border-border bg-app-surface text-[13px] font-semibold text-text-primary">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Alle Deal Owner</SelectItem>
-                    {DEAL_OWNERS.map((o) => (<SelectItem key={o} value={o}>{o}</SelectItem>))}
-                  </SelectContent>
-                </Select>
-                <Select value={stageFilter} onValueChange={setStageFilter}>
-                  <SelectTrigger className="w-[190px] rounded-[10px] border-border bg-app-surface text-[13px] font-semibold text-text-primary">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Alle Stages</SelectItem>
-                    {Object.entries(STAGE_LABELS).map(([id, label]) => (<SelectItem key={id} value={id}>{label}</SelectItem>))}
-                  </SelectContent>
-                </Select>
-                <span className="text-[12px] text-text-muted ml-auto font-medium">{pipelineDeals.length} Deals</span>
+              {/* Slice A: echte deals (Read). Filter/Kanban/Stage-Writes folgen als eigene Slices. */}
+              <div className="flex items-center">
+                <span className="text-[12px] text-text-muted ml-auto font-medium">{dealRows.length} Deals</span>
               </div>
 
               {/* Deals-Tabelle */}
@@ -680,38 +650,39 @@ export default function ScreenHunting({
                   <span>Heat</span>
                   <span className="w-8" />
                 </div>
-                {pipelineDeals.map((lead) => {
-                  return (
-                    <div key={lead.id} className="grid grid-cols-[2.2fr_1.4fr_1.2fr_1fr_1.2fr_auto] gap-4 px-4 py-3 items-center border-b border-border-subtle last:border-0 hover:bg-app-bg transition-colors">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <Avatar name={lead.person.name} src={lead.person.avatarUrl} size={32} />
-                        <div className="min-w-0">
-                          <div className="text-[13px] font-bold text-text-primary truncate">{lead.person.name}</div>
-                          <div className="text-[11px] text-text-muted truncate">{lead.person.company}</div>
-                        </div>
-                      </div>
+                {dealsLoading ? (
+                  <div className="px-4 py-10 text-center text-[13px] text-text-muted">Lädt …</div>
+                ) : dealsError ? (
+                  <div className="px-4 py-10 text-center text-[13px] text-[var(--signal-urgent-text)]">Deals konnten nicht geladen werden.</div>
+                ) : dealRows.length === 0 ? (
+                  <div className="px-4 py-10 text-center text-[13px] text-text-muted">Noch keine Deals.</div>
+                ) : dealRows.map((deal) => (
+                  <div key={deal.id} className="grid grid-cols-[2.2fr_1.4fr_1.2fr_1fr_1.2fr_auto] gap-4 px-4 py-3 items-center border-b border-border-subtle last:border-0 hover:bg-app-bg transition-colors">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <Avatar name={deal.contactName} size={32} />
                       <div className="min-w-0">
-                        <StageBadge stage={STAGE_LABELS[lead.pipelineStage] ?? lead.pipelineStage} />
+                        <div className="text-[13px] font-bold text-text-primary truncate">{deal.contactName}</div>
+                        <div className="text-[11px] text-text-muted truncate">{deal.company}</div>
                       </div>
-                      <span className="text-[12px] text-text-body font-medium truncate">{ownerForLead(lead.id)}</span>
-                      <span className="text-[12px] font-bold text-text-primary">
-                        {lead.dealValue ? new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(lead.dealValue) : '—'}
-                      </span>
-                      <div className="min-w-0">
-                        <HeatBadge status={lead.heatStatus} />
-                      </div>
-                      <button
-                        onClick={() => setInfoPanelLead(lead)}
-                        className="w-8 h-8 rounded-full bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)] hover:scale-105 transition-all flex items-center justify-center shadow-sm cursor-pointer shrink-0"
-                      >
-                        <ArrowRight className="w-4 h-4" />
-                      </button>
                     </div>
-                  );
-                })}
-                {pipelineDeals.length === 0 && (
-                  <div className="px-4 py-10 text-center text-[13px] text-text-muted">Keine Deals für diese Filter.</div>
-                )}
+                    <div className="min-w-0">
+                      <StageBadge stage={deal.stageLabel} />
+                    </div>
+                    <span className="text-[12px] text-text-body font-medium truncate">{deal.ownerLabel}</span>
+                    <span className="text-[12px] font-bold text-text-primary">
+                      {deal.valueEur !== null ? new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(deal.valueEur) : '—'}
+                    </span>
+                    <div className="min-w-0">
+                      <HeatBadge status={deal.heatStatus} />
+                    </div>
+                    <button
+                      onClick={() => setInfoPanelLead(makeLead(deal.id, deal.contactName, deal.contactJobTitle, deal.company, deal.initials, 75))}
+                      className="w-8 h-8 rounded-full bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)] hover:scale-105 transition-all flex items-center justify-center shadow-sm cursor-pointer shrink-0"
+                    >
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
               </div>
             </div>
           )}

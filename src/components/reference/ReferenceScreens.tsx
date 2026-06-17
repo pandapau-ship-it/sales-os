@@ -20,13 +20,15 @@ import {
   getAppointments,
   getAlerts,
   getContacts,
+  getDeals,
+  getPipelineSettings,
   updateLeadStage as dbUpdateLeadStage,
   setTaskCompleted as dbSetTaskCompleted,
   createLead as dbCreateLead,
   upgradeSubscription as dbUpgradeSubscription,
 } from "@/lib/db";
 import { DEMO_ORGANIZATION_ID } from "@/lib/org";
-import { contactRowToLead } from "@/lib/hunterMappers";
+import { contactRowToLead, dealToPipelineRow } from "@/lib/hunterMappers";
 import type {
   Lead,
   Customer,
@@ -183,6 +185,19 @@ export function HunterReference() {
     queryFn: () => getContacts(DEMO_ORGANIZATION_ID),
   });
   const leadsData = leadsQuery.data?.map(contactRowToLead);
+  // Slice A: Pipeline-Listenansicht — geteilte Queries (Slice B Kanban erbt sie).
+  const dealsQuery = useQuery({
+    queryKey: ["deals", DEMO_ORGANIZATION_ID],
+    queryFn: () => getDeals(DEMO_ORGANIZATION_ID),
+  });
+  const stagesQuery = useQuery({
+    queryKey: ["pipelineStages", DEMO_ORGANIZATION_ID],
+    queryFn: () => getPipelineSettings(DEMO_ORGANIZATION_ID),
+  });
+  const stageNameBySlug = Object.fromEntries(
+    (stagesQuery.data ?? []).map((stage) => [stage.slug, stage.name]),
+  );
+  const dealsData = dealsQuery.data?.map((deal) => dealToPipelineRow(deal, stageNameBySlug));
   return (
     <>
       <ScreenHunting
@@ -190,6 +205,9 @@ export function HunterReference() {
         leadsData={leadsData}
         leadsLoading={leadsQuery.isLoading}
         leadsError={leadsQuery.isError}
+        dealsData={dealsData}
+        dealsLoading={dealsQuery.isLoading || stagesQuery.isLoading}
+        dealsError={dealsQuery.isError || stagesQuery.isError}
         onSelectLead={s.selectPerson}
         onUpdateLeadStage={s.updateLeadStage}
         onAddLead={s.addLead}

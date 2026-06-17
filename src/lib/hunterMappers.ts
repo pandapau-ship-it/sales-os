@@ -70,3 +70,48 @@ export function contactRowToLead(row: Record<string, any>): LeadRow {
     lastContactedAt: row.last_contacted_at ?? null,
   };
 }
+
+// ── Pipeline-Liste (Slice A, Read) ───────────────────────────────────────────
+// Eine Deal-Zeile (aus getDeals, inkl. joined contact/company) → normalisierte Row.
+// Geteilt mit Slice B (Kanban): der gruppiert dieselben Rows nach stageSlug.
+export type PipelineRow = {
+  id: string;
+  dealName: string;
+  contactName: string;
+  contactJobTitle: string;
+  initials: string;
+  company: string;
+  stageSlug: string;
+  stageLabel: string; // aus settings.pipeline_stages (slug → name)
+  valueEur: number | null; // deal.value ist Cent → bereits /100; null = kein Wert
+  heatStatus: HeatStatus;
+  ownerLabel: string; // Slice A: „—" (kein users-Join; echte Owner via [D7])
+};
+
+export function dealToPipelineRow(
+  deal: Record<string, any>,
+  stageNameBySlug: Record<string, string>,
+): PipelineRow {
+  const c = deal.contact ?? {};
+  const contactName =
+    [c.first_name, c.last_name].filter(Boolean).join(" ") || c.email || "Unbekannt";
+  const initials = contactName
+    .split(" ")
+    .map((p: string) => p[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+  return {
+    id: deal.id,
+    dealName: deal.name ?? "",
+    contactName,
+    contactJobTitle: c.job_title ?? "",
+    initials,
+    company: deal.company?.name ?? "",
+    stageSlug: deal.stage,
+    stageLabel: stageNameBySlug[deal.stage] ?? deal.stage, // Fallback: roher Slug
+    valueEur: typeof deal.value === "number" ? deal.value / 100 : null,
+    heatStatus: DB_HEAT_TO_UI[deal.heat_status] ?? "DEAD",
+    ownerLabel: "—",
+  };
+}

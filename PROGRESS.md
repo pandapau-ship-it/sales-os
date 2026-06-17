@@ -105,7 +105,18 @@
   (kopiert die Produkt-Einträge in die neue Org) **oder** eine **globale `product_knowledge`-Tabelle**
   (org-unabhängig, öffentlich lesbar) statt org-Kopien. Entscheidung in der SaaS-/Onboarding-Phase.
 
-> Anker-Tags `[D1]`–`[D6]` sind im Code referenzierbar (z.B. `hunterMappers.ts` → `[[leads-tab-read]]`).
+### [D7] Deal Owner — echte Auflösung · Zielphase: Team / Rollen-Setup
+- **Status heute:** Pipeline-Listenansicht zeigt Owner als **Platzhalter „—"**. `deals.owner_id`
+  ist gesetzt (im Seed alle = Test-User), aber wir lösen es bewusst **nicht** auf (zeigt sonst
+  überall denselben Namen → täuscht funktionierende Owner-Auflösung vor).
+- **Später:** echte Owner-Namen via `owner:users(full_name)`-Embed in `getDeals` (FK `owner_id`,
+  REST-getestet auflösbar) — sobald Team/mehrere User existieren. Dann auch Owner-**Filter** sinnvoll.
+
+### [TS] Deal-Typ ohne `product` — offener Faden
+- `src/types/hunter.ts` `Deal` hat **kein `product`** (Migration 014 fügte nur die DB-Spalte).
+  Beim späteren Produkt-Anzeigen (Pipeline/Deal-Detail) `product?: string` im Typ ergänzen + mappen.
+
+> Anker-Tags `[D1]`–`[D7]` sind im Code referenzierbar (z.B. `hunterMappers.ts` → `[[leads-tab-read]]`).
 > Vor Umsetzung eines Punkts: passende Referenz-Doku (`docs/sales_os_edge_functions_v2.md` etc.) lesen.
 
 ---
