@@ -234,13 +234,25 @@
 > idempotent `ON CONFLICT DO UPDATE`) und werden mit `db push` eingespielt. Diese Datei bleibt die
 > menschenlesbare Sammlung; die Migration ist die DB-Wahrheit. (Backlog 2026-06-14…16 → Migration `016`.)
 
-## 2026-06-17 — Migration `017_knowledge_base_pipeline.sql`
+## 2026-06-17 — Migration `017_knowledge_base_pipeline.sql` (3 Einträge)
 
-### Hunter Pipeline (Liste & Kanban)
-- **feature:** Hunter Pipeline (Liste & Kanban)
-- **what:** Offene Deals als Liste UND Kanban-Board nach Pipeline-Stage — Wert, Stage, Owner, Heat, ICP
-  je Deal; pro Stage-Spalte Anzahl + Summe. Filter nach Heat, Owner und (Liste) Stage.
-- **how:** Hunter → Pipeline; oben zwischen Liste/Kanban umschalten, mit Filtern eingrenzen (Kanban-Aggregate folgen dem Filter).
-- **value:** Pipeline-Wert und -Verteilung auf einen Blick — wo Volumen steht, welche Deals heiß sind →
-  bessere Forecasts, schnellere Priorisierung, ohne Tabellen-Pflege.
+### Pipeline Listenansicht
+- **feature:** Pipeline Listenansicht
+- **what:** Alle offenen Deals als kompakte Tabelle — Kontakt, Stage, Deal Owner, Wert und Heat je Deal.
+- **how:** Hunter → Pipeline → Ansicht „Liste". Pfeil rechts öffnet den Kontakt; oben nach Heat/Owner/Stage filtern.
+- **value:** Schneller Überblick über alle Deals in einer scanbaren Tabelle — Priorisierung und Statusprüfung in Sekunden, ohne ins CRM zu wechseln.
+- **module:** hunter
+
+### Pipeline Kanban
+- **feature:** Pipeline Kanban
+- **what:** Deals als Kanban-Board nach Pipeline-Stage (Spalten aus den konfigurierten Stages); je Karte Wert/Heat/ICP, pro Spalte Anzahl + Summe.
+- **how:** Hunter → Pipeline → Ansicht „Kanban". Spalten ein-/ausklappen; nach Heat/Owner filtern (Spalten-Summen folgen dem Filter).
+- **value:** Pipeline-Verteilung und -Wert pro Stage auf einen Blick — du erkennst sofort Engpässe und wo Volumen steht, für bessere Forecasts.
+- **module:** hunter
+
+### Pipeline Filter
+- **feature:** Pipeline Filter
+- **what:** Filter für Liste und Kanban: nach Heat-Stufe und Deal Owner (beide Ansichten) sowie Pipeline-Stage (nur Liste).
+- **how:** Filterleiste oben in der Pipeline; die Auswahl grenzt die Deals sofort ein, im Kanban folgen auch die Spalten-Aggregate.
+- **value:** Genau die Deals sehen, die gerade zählen (z.B. nur heiße, nur meine) — fokussiertes Arbeiten statt Scrollen durch alles.
 - **module:** hunter

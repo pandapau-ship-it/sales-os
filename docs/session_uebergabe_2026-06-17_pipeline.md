@@ -12,7 +12,7 @@
 - **knowledge_base-Schreibweg = Migrationen** (Entscheidung): pro Feature/Batch eine additive, idempotente
   Migration (`UNIQUE(org,feature)` + `ON CONFLICT DO UPDATE`). **`015`** (Constraint + Leads-Tab-Eintrag),
   **`016`** (19 Backlog-Einträge aus `docs/knowledge_base.md`) — beide **remote applied**.
-  **`017`** (Pipeline-Eintrag) — **geschrieben, noch nicht gepusht** (du machst `db push`).
+  **`017`** (3 Pipeline-Einträge: Listenansicht · Kanban · Filter) — **geschrieben, noch nicht gepusht** (du machst `db push`).
 - **Hunter Pipeline-Tab auf echte `deals`:**
   - **Slice A — Liste:** `getDeals` + `getPipelineSettings` als geteilte TanStack-Queries; Mapper
     `dealToPipelineRow` → `PipelineRow`. Spalten Kontakt/Stage/Owner/Wert(**Cent→/100**)/Heat.
@@ -51,5 +51,5 @@
   Dev-Server: `npm run dev` (Port 5173), `.env.local` wird beim Start gelesen.
 
 ## Noch zu tun von dir
-- `supabase db push` für **Migration 017** (Pipeline-knowledge_base-Eintrag).
-- Optional Count gegenchecken: `select count(*) from knowledge_base where organization_id = '00000000-0000-0000-0000-000000000001';` → erwartet **21** (1 Leads + 19 Backlog + 1 Pipeline).
+- `supabase db push` für **Migration 017** (3 Pipeline-knowledge_base-Einträge).
+- Optional Count gegenchecken: `select count(*) from knowledge_base where organization_id = '00000000-0000-0000-0000-000000000001';` → erwartet **23** (1 Leads + 19 Backlog + 3 Pipeline).
