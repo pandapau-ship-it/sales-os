@@ -197,7 +197,7 @@ export interface DealFilters {
 
 // Join-Select: Deal + Kontakt + Company + offene Tasks (Tasks im JS gefiltert).
 const DEAL_SELECT =
-  "*, contact:contacts(*), company:companies(*), tasks(*)";
+  "*, contact:contacts(*), company:companies(*), owner:users(full_name), tasks(*)";
 
 export async function getDeals(
   organizationId: string,

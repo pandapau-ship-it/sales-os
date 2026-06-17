@@ -106,11 +106,13 @@
   (org-unabhängig, öffentlich lesbar) statt org-Kopien. Entscheidung in der SaaS-/Onboarding-Phase.
 
 ### [D7] Deal Owner — echte Auflösung · Zielphase: Team / Rollen-Setup
-- **Status heute:** Pipeline-Listenansicht zeigt Owner als **Platzhalter „—"**. `deals.owner_id`
-  ist gesetzt (im Seed alle = Test-User), aber wir lösen es bewusst **nicht** auf (zeigt sonst
-  überall denselben Namen → täuscht funktionierende Owner-Auflösung vor).
-- **Später:** echte Owner-Namen via `owner:users(full_name)`-Embed in `getDeals` (FK `owner_id`,
-  REST-getestet auflösbar) — sobald Team/mehrere User existieren. Dann auch Owner-**Filter** sinnvoll.
+- **Status (Slice C):** **Owner-Auflösung ist live** — `getDeals` hat das `owner:users(full_name)`-Embed,
+  `dealToPipelineRow.ownerLabel` = echter Name (Fallback `„—"` bei `owner_id = null`, kein Fake).
+  Owner-Spalte + Owner-Filter laufen darüber.
+- **Offen / Vorsicht:** **nur mit EINEM User getestet** — im Seed gehören alle Deals dem Test-User,
+  also steht überall sein Name. **Multi-User-Verhalten** (mehrere distinct Owner, Filter über mehrere
+  Namen, „nur meine Deals") ist **erst mit Team/Rollen-Setup verifizierbar**. Bis dahin gilt die
+  Owner-Kette als funktional, aber nicht multi-user-erprobt.
 
 ### [D8] Kanban Stage-Wechsel-Pfeile (←→) · Zielphase: Stage-Write-Slice (Edge Function)
 - **Status heute:** Im Kanban (Slice B) **ausgeblendet**. Waren Writes über den Mock-`onUpdateLeadStage`.

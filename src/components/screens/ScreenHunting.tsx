@@ -22,8 +22,10 @@ import {
   Users,
   X
 } from 'lucide-react';
-import type { Lead } from '@/types';
+import type { Lead, HeatStatus } from '@/types';
 import type { PipelineStage } from '@/types/hunter';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { heatFor } from '@/lib/constants';
 import { ICPDonut } from '@/components/shared/ICPDonut';
 import { NAV } from '@/lib/navBehavior';
 import { AddSdrLeadPanel, ContactColdDrawer, EmptyState, FunnelAnalysis, HeatBadge, HunterCard, HunterSidepanel, KpiCard, LeadListRow, LinkedinSignalCard, NewInPipelineCards, NoTaskDrawer, PipelineKeineTaskCard, PipelineStagnatedDrawer, PipelineStagniertCard, SequenceLeadCards, SignalActionDrawer, StageBadge, TaskDrawer } from '@/components';
@@ -71,6 +73,26 @@ export default function ScreenHunting({
   const leadRows = leadsData ?? leads;
   // Pipeline-Listenansicht (Slice A): echte Deals. Kanban/Tasks bleiben Mock.
   const dealRows = dealsData ?? [];
+  // Slice C — drei Filter, client-seitig über die geteilte dealRows-Quelle:
+  //  • Heat + Owner gelten in BEIDEN Ansichten (Liste + Kanban)
+  //  • Stage NUR in der Liste (Kanban ist bereits nach Stage gruppiert)
+  const [stageFilter, setStageFilter] = useState('all');         // slug | 'all'
+  const [heatFilter, setHeatFilter] = useState<'all' | HeatStatus>('all');
+  const [ownerFilter, setOwnerFilter] = useState('all');         // ownerId-Key | 'all'
+  const ownerKey = (id: string | null) => id ?? '__none__';      // Radix verbietet '' als Value
+  // Stufe 1 (beide Ansichten): Heat + Owner
+  const baseFilteredDeals = dealRows.filter((d) =>
+    (heatFilter === 'all' || d.heatStatus === heatFilter) &&
+    (ownerFilter === 'all' || ownerKey(d.ownerId) === ownerFilter)
+  );
+  // Stufe 2 (nur Liste): zusätzlich Stage
+  const listDealRows = stageFilter === 'all'
+    ? baseFilteredDeals
+    : baseFilteredDeals.filter((d) => d.stageSlug === stageFilter);
+  // Owner-Optionen = distinct aus allen geladenen Deals (unabhängig vom aktiven Filter)
+  const ownerOptions = Array.from(
+    new Map(dealRows.map((d) => [ownerKey(d.ownerId), d.ownerLabel])).entries(),
+  ).map(([id, label]) => ({ id, label }));
   const [subTab, setSubTab] = useState<'overview' | 'new_leads' | 'leads' | 'pipeline' | 'signals' | 'sequences' | 'follow_ups'>('leads');
   const [expandedLeadId, setExpandedLeadId] = useState<string | null>(null);
   const [selectedLeadIds, setSelectedLeadIds] = useState<string[]>([]);
@@ -455,6 +477,44 @@ export default function ScreenHunting({
             </div>
           </div>
 
+          {/* Slice C — Filterleiste (Liste + Kanban, nicht Tasks). Heat+Owner beide,
+              Stage nur Liste. Client-seitig über die geteilte dealRows-Quelle. */}
+          {pipelineView !== 'tasks' && (
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="text-[12px] font-bold text-text-muted">Filter:</span>
+              <Select value={heatFilter} onValueChange={(v) => setHeatFilter(v as 'all' | HeatStatus)}>
+                <SelectTrigger className="w-[170px] rounded-[10px] border-border bg-app-surface text-[13px] font-semibold text-text-primary"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Alle Heat-Stufen</SelectItem>
+                  {(['HOT', 'WARM', 'LUKEWARM', 'COLD', 'DEAD'] as HeatStatus[]).map((h) => (
+                    <SelectItem key={h} value={h}>{heatFor(h).label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={ownerFilter} onValueChange={setOwnerFilter}>
+                <SelectTrigger className="w-[190px] rounded-[10px] border-border bg-app-surface text-[13px] font-semibold text-text-primary"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Alle Deal Owner</SelectItem>
+                  {ownerOptions.map((o) => (<SelectItem key={o.id} value={o.id}>{o.label}</SelectItem>))}
+                </SelectContent>
+              </Select>
+              {pipelineView === 'list' && (
+                <Select value={stageFilter} onValueChange={setStageFilter}>
+                  <SelectTrigger className="w-[190px] rounded-[10px] border-border bg-app-surface text-[13px] font-semibold text-text-primary"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Alle Stages</SelectItem>
+                    {[...(pipelineStages ?? [])].sort((a, b) => a.order - b.order).map((s) => (
+                      <SelectItem key={s.slug} value={s.slug}>{s.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+              <span className="text-[12px] text-text-muted ml-auto font-medium">
+                {(pipelineView === 'list' ? listDealRows.length : baseFilteredDeals.length)} Deals
+              </span>
+            </div>
+          )}
+
           {pipelineView === 'tasks' ? (
             <div className="flex flex-col gap-4 w-full pb-8">
               {focusedTask && (
@@ -492,7 +552,7 @@ export default function ScreenHunting({
                   Stage-Pfeile/Stagnations-Pills/Action-Badges entfallen (Writes/fingierte
                   Signale → eigene Slices). */}
               {[...(pipelineStages ?? [])].sort((a, b) => a.order - b.order).map((stage) => {
-                const colDeals = dealRows
+                const colDeals = baseFilteredDeals
                   .filter((d) => d.stageSlug === stage.slug)
                   .sort((a, b) => (b.icpScore ?? 0) - (a.icpScore ?? 0));
                 const count = colDeals.length;
@@ -566,12 +626,7 @@ export default function ScreenHunting({
             </div>
           ) : (
             <div className="flex flex-col gap-3 pb-8">
-              {/* Slice A: echte deals (Read). Filter/Kanban/Stage-Writes folgen als eigene Slices. */}
-              <div className="flex items-center">
-                <span className="text-[12px] text-text-muted ml-auto font-medium">{dealRows.length} Deals</span>
-              </div>
-
-              {/* Deals-Tabelle */}
+              {/* Deals-Tabelle (Count + Filter sitzen in der Filterleiste oben) */}
               <div className="bg-app-surface rounded-[12px] border border-border shadow-[var(--shadow-card)] overflow-hidden">
                 <div className="grid grid-cols-[2.2fr_1.4fr_1.2fr_1fr_1.2fr_auto] gap-4 px-4 py-2.5 bg-app-bg border-b border-border text-[10px] font-extrabold text-text-muted uppercase tracking-wider">
                   <span>Kontakt</span>
@@ -585,9 +640,9 @@ export default function ScreenHunting({
                   <div className="px-4 py-10 text-center text-[13px] text-text-muted">Lädt …</div>
                 ) : dealsError ? (
                   <div className="px-4 py-10 text-center text-[13px] text-[var(--signal-urgent-text)]">Deals konnten nicht geladen werden.</div>
-                ) : dealRows.length === 0 ? (
-                  <div className="px-4 py-10 text-center text-[13px] text-text-muted">Noch keine Deals.</div>
-                ) : dealRows.map((deal) => (
+                ) : listDealRows.length === 0 ? (
+                  <div className="px-4 py-10 text-center text-[13px] text-text-muted">Keine Deals für diese Filter.</div>
+                ) : listDealRows.map((deal) => (
                   <div key={deal.id} className="grid grid-cols-[2.2fr_1.4fr_1.2fr_1fr_1.2fr_auto] gap-4 px-4 py-3 items-center border-b border-border-subtle last:border-0 hover:bg-app-bg transition-colors">
                     <div className="flex items-center gap-3 min-w-0">
                       <Avatar name={deal.contactName} size={32} />
