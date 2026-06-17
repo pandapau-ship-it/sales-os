@@ -110,7 +110,7 @@ export function LinkedinSignalCard({
     jobTitle: role,
     company: companyName,
     avatarUrl,
-    icpScore: icpScore ?? 0, // kein Fake-Default; null/kein Kontakt → 0/grau
+    icpScore, // undefined → HunterCard rendert den ICP-Ring nicht (kein 0/grau)
     stageLabel: showStage ? stage : "", // leer → HunterCard blendet Stage-Badge aus
     heatStatus, // echter Heat (oder undefined → kein Badge)
     timeLabel: timeAgoLabel || timeAgo,

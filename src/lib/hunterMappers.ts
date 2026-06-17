@@ -87,7 +87,7 @@ export type PipelineRow = {
   stageLabel: string; // aus settings.pipeline_stages (slug → name)
   valueEur: number | null; // deal.value ist Cent → bereits /100; null = kein Wert
   heatStatus: HeatStatus;
-  icpScore: number | null; // deal.contact.icp_score; null → Donut zeigt 0/grau (Slice B)
+  icpScore: number | null; // deal.contact.icp_score; null → ICP-Ring nicht gerendert
   ownerId: string | null; // deals.owner_id (Filter-Key)
   ownerLabel: string; // owner:users.full_name (Slice C); null → „—" (kein Fake-Name)
 };
@@ -155,7 +155,7 @@ export type SignalCardProps = {
   name: string;
   role: string;
   companyName: string;
-  icpScore: number; // null/kein Kontakt → 0 (Donut grau), kein Fake-Default
+  icpScore?: number; // fehlt/kein Kontakt → undefined → ICP-Ring nicht gerendert
   heatStatus?: HeatStatus; // undefined → kein Heat-Badge (z.B. kontaktloses Signal)
   actionText: string;
   channelLabelKey: string;
@@ -182,7 +182,7 @@ export function signalToCardProps(
     name,
     role: c?.job_title ?? "",
     companyName: c?.company?.name ?? "",
-    icpScore: typeof c?.icp_score === "number" ? c.icp_score : 0,
+    icpScore: typeof c?.icp_score === "number" ? c.icp_score : undefined, // kein Wert → Ring weg
     heatStatus: c?.heat_status ? DB_HEAT_TO_UI[c.heat_status] : undefined,
     actionText: resolveSignalText(signal, t),
     channelLabelKey: meta.channelLabelKey,

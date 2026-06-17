@@ -21,7 +21,8 @@ export interface HunterCardData {
   jobTitle: string;
   company: string;
   avatarUrl?: string;
-  icpScore: number;
+  /** ICP 0–100. undefined/null → ICP-Ring wird NICHT gerendert (kein 0/grau-Platzhalter). */
+  icpScore?: number;
   stageLabel: string;
   /** Echter Heat-Status → zentrales HeatBadge. */
   heatStatus?: HeatStatusKey | HeatStatus;
@@ -102,7 +103,7 @@ export default function HunterCard({
           {/* ICP & Company */}
           <div className={`hidden md:flex items-center gap-4 px-4 ${CARD.divider} shrink-0`}>
             <div className={CARD.icpWrap}>
-              <ICPDonut score={data.icpScore} />
+              {data.icpScore != null && <ICPDonut score={data.icpScore} />}
             </div>
             {data.company ? (
               <div className="flex items-center gap-3 w-[140px] xl:w-[180px]">

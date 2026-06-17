@@ -620,7 +620,7 @@ export default function ScreenHunting({
                                 </div>
                               </div>
                               <div className="w-[38px] flex items-center justify-center shrink-0">
-                                <ICPDonut score={deal.icpScore ?? 0} />
+                                {deal.icpScore != null && <ICPDonut score={deal.icpScore} />}
                               </div>
                             </div>
                             <div className="flex justify-start pt-1">

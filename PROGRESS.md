@@ -134,12 +134,15 @@
 - **Später:** echte Aggregation aus den realen Signalen/Tasks der Spalte ([D9]/[D10]). **Muss mit der Signal-/Task-Logik zurück.**
 
 ### [D12] Fake-Score-Defaults in Mock-Bereichen · Zielphase: DB-Wiring des jeweiligen Screens
-- **Status heute:** Noch erfundene Default-Scores in Mock-Bereichen (Leads-Tab + Kanban sind bereits
-  auf `?? 0`/grau bereinigt):
+> **Universelle Regel (gilt app-weit):** Fehlt ein Score/Status-Wert (null/undefined) → das Element
+> (ICP-Ring, Heat-Badge, Firmen-Block, Stage, Zeit) wird **NICHT gerendert** — **kein** 0/grau-Platzhalter,
+> kein erfundener Default. (ICP-Ring in Leads-Tab/Kanban/Signals folgt dem bereits; HunterCard rendert
+> ICP/Heat/Stage/Company nur bei Wert.)
+- **Status heute:** Noch erfundene Default-Scores in **Mock-Bereichen**:
   - `src/components/screens/ScreenFarming.tsx` ~Z. 233 — `icpScore ?? 87`
   - `src/components/panel-blocks/TaskEntwurfForm.tsx` ~Z. 54 — `icpScore ?? 87`
   - `src/components/features/hunter/SignalActionDrawer.tsx` ~Z. 58 — `confidence ?? 91`
-- **Später:** beim DB-Wiring des jeweiligen Screens entfernen → `null → 0/grau` bzw. echter Wert,
+- **Später:** beim DB-Wiring des jeweiligen Screens entfernen → echter Wert oder **Element unsichtbar**,
   **kein erfundener Default**. Mitnehmen, wenn Farmer / Task-Entwurf / Signal-Drawer echte Daten bekommen.
 
 ### [D13] Pipeline „Task-Liste"-Ansicht auf echte Daten · Zielphase: Stagnations-/Task-Logik (gebündelt)
@@ -183,7 +186,7 @@ Preview-MCP in dieser Umgebung defekt (`EPERM`) → Verifikation via Build/Audit
   Queries; neuer Mapper `dealToPipelineRow` (`hunterMappers`) → `PipelineRow`. Liste: Kontakt/Stage/
   Owner/Wert (**Cent→/100**)/Heat. Mock-Filter + Mock-Helper entfernt.
 - [x] **Slice B — Pipeline-Kanban:** Spalten aus `settings.pipeline_stages` (slug/name/order, alle 7);
-  Karten gruppiert nach stageSlug; echte Aggregate (count + Σ Wert); ICP `null→0/grau`. Fingierte
+  Karten gruppiert nach stageSlug; echte Aggregate (count + Σ Wert); ICP `null→Ring unsichtbar`. Fingierte
   Pfeile/Stagnations-Pills/Action-Badges **ausgeblendet** (→ Deferred [D8]–[D11]).
 - [x] **Slice C — Filter + echte Owner:** `owner:users(full_name)`-Embed → echter Owner-Name; 3 client-
   seitige Filter über geteilte `dealRows`: Heat+Owner (Liste+Kanban), Stage (nur Liste). Kanban-

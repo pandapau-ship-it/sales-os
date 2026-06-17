@@ -70,7 +70,7 @@ export default function LeadListRow({
         {/* ICP donut & Company Area */}
         <div className="hidden md:flex items-center gap-4 px-4 border-l border-[var(--border-subtle)] shrink-0">
           <div className="w-[48px] flex items-center justify-center">
-            <ICPDonut score={lead.icpScore ?? 0} />
+            {lead.icpScore != null && <ICPDonut score={lead.icpScore} />}
           </div>
 
           {/* Firmen-Block: Quadrat = Initiale des Firmennamens (kein Logo-Feld). Keine
