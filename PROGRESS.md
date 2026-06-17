@@ -200,11 +200,18 @@
 - **Türen bleiben sichtbar** (Funktion folgt): Buttons „Meeting-Prep" + „Termin vereinbaren" (Klick → Platzhalter-Toast) und der Pfeil ins 820px-Info-Panel.
 - **Seed-Hinweis:** Recency/`source_lead_id`/`meeting_prep` der Demo-Deals sind mit dem anon-Key (RLS scoped auf `auth.uid()`) **nicht lesbar** — Default-Fenster bewusst weit (30T). Falls der Tab leer/„nur Manuell" wirkt: Seed prüfen/justieren (eingeloggt via SQL-Editor).
 
+### [D19] Task-Erinnerung — Feld + Auslöse-System fehlen komplett (deferred)
+- **Kontext:** Das „Neue Task"-Formular hat einen **Erinnerung**-Schalter (An/Aus + eigener Tag + Uhrzeit). Dafür gibt es **weder ein DB-Feld noch ein Auslöse-System.**
+- **Fehlt — Feld:** kein `reminder_at`/Reminder-Flag auf `tasks` (nur `due_at`). Migration 022 ergänzte nur `channel`.
+- **Fehlt — System:** keine `notifications`-Tabelle, keine `notification_preferences`, kein `lib/notify.ts`, **kein zeitgesteuerter Job** (pg_cron/Edge Function) und kein Versand (In-App/E-Mail/Push). `scheduled_tasks` (007) ist nur eine Datentabelle, kein aktiver Scheduler. CLAUDE.md beschreibt die Notifications-Infra ausführlich — **gebaut ist davon nichts**.
+- **Bis dahin (UI-Regel):** Der Erinnerung-Schalter bleibt **ausgegraut / „bald verfügbar"** (kein Fake-Speichern). Erst aktivieren, wenn (a) `reminder_at`-Feld, (b) `notifications`-Tabelle + `notify()`, (c) zeitgesteuerter Job + Versand existieren.
+- **Eigenes späteres Thema** (Reihenfolge nach Task-Write T4): Reminder-Feld → Notifications-Fundament → Scheduler/Versand.
+
 ### [TS] Deal-Typ ohne `product` — offener Faden
 - `src/types/hunter.ts` `Deal` hat **kein `product`** (Migration 014 fügte nur die DB-Spalte).
   Beim späteren Produkt-Anzeigen (Pipeline/Deal-Detail) `product?: string` im Typ ergänzen + mappen.
 
-> Anker-Tags `[D1]`–`[D18]` sind im Code referenzierbar (z.B. `hunterMappers.ts` → `[[leads-tab-read]]`).
+> Anker-Tags `[D1]`–`[D19]` sind im Code referenzierbar (z.B. `hunterMappers.ts` → `[[leads-tab-read]]`).
 > Vor Umsetzung eines Punkts: passende Referenz-Doku (`docs/sales_os_edge_functions_v2.md` etc.) lesen.
 
 ---

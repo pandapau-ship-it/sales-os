@@ -289,6 +289,34 @@ export async function getNewInPipeline(
   return data ?? [];
 }
 
+/**
+ * getDueTasks — fällige Tasks (Fundament für Follow-ups, T2). Definition:
+ * `completed_at IS NULL AND due_at <= now()` — reiner Filter, keine Berechnung.
+ * `due_at IS NULL` ist nie fällig (NULL-Vergleich) → fällt korrekt raus.
+ * Embed: Kontakt (Identität/Heat/ICP zentral) inkl. Firma-Hint + schlanker
+ * Deals-Embed → Stage via `contactActiveStage` (gleiche Leitung wie Signals/Follow-ups).
+ * Sortierung: due_at aufsteigend (am längsten überfällig zuerst). Index: idx_tasks_org_due (021).
+ */
+export async function getDueTasks(
+  organizationId: string,
+): Promise<Record<string, unknown>[]> {
+  const client = getSupabaseClient();
+  if (!client) return [];
+  const nowIso = new Date().toISOString();
+  const { data, error } = await client
+    .from("tasks")
+    .select(
+      `id, title, due_at, priority, channel, contact:contacts(*, ${CONTACT_COMPANY_EMBED}, deals(stage, updated_at, stage_updated_at, closed_at, created_at))`,
+    )
+    .eq("organization_id", organizationId)
+    .is("completed_at", null)
+    .lte("due_at", nowIso)
+    .order("due_at", { ascending: true })
+    .limit(50);
+  if (error) throw error;
+  return data ?? [];
+}
+
 export interface SignalFilters {
   routedTo?: "hunter";
   processed?: boolean;

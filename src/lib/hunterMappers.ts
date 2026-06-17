@@ -289,6 +289,43 @@ export function dealToNewPipelineRow(
   };
 }
 
+// ── Fällige Tasks (T1, Read-Infrastruktur) ───────────────────────────────────
+// Pro fälliger Task eine Karte: Kontakt-Kachel oben (zentrale Leitung) + grauer
+// Bereich „Fällige Task" mit Titel + Fälligkeit. Fundament für den Follow-ups-Tab
+// (T2 hängt die Karten an); hier NUR Query + Mapper (noch nicht verdrahtet).
+export type DueTaskCardItem = {
+  id: string; // task.id
+  name: string;
+  role: string; // jobTitle
+  companyName: string;
+  initials: string;
+  icpScore?: number;
+  heatStatus?: HeatStatus;
+  stage?: string; // zuletzt aktiver Deal des Kontakts; keiner → undefined → keine Stage
+  taskTitle: string;
+  dueAt: string | null; // task.due_at (ISO) → Fälligkeit; null → unsichtbar
+};
+
+/** Fällige Task (inkl. contact+company+deals-Embed) → Karte. Identität/Heat/ICP zentral, Stage via active deal. */
+export function taskToDueCard(
+  task: Record<string, any>,
+  stageNameBySlug: Record<string, string> = {},
+): DueTaskCardItem {
+  const p = contactToProfile(task.contact); // zentrale Auflösung (Identität/Status/Heat/ICP)
+  return {
+    id: task.id,
+    name: p.name,
+    role: p.jobTitle,
+    companyName: p.company,
+    initials: p.initials,
+    icpScore: p.icpScore,
+    heatStatus: p.heatStatus,
+    stage: contactActiveStage(task.contact, stageNameBySlug),
+    taskTitle: task.title ?? "",
+    dueAt: task.due_at ?? null,
+  };
+}
+
 /** Zeitfenster des Neu-in-Pipeline-Tabs (client-seitiger Filter über deal.created_at). */
 export type NewPipelinePeriod = "today" | "7d" | "30d";
 

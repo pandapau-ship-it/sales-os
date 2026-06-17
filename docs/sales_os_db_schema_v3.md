@@ -324,7 +324,8 @@ title               text NOT NULL
 description         text
 due_at              timestamptz
 completed_at        timestamptz
-priority            text DEFAULT 'medium'         -- low | medium | high
+priority            text DEFAULT 'medium'         -- low | medium | high | urgent  (kein CHECK; Werteliste app-/UI-seitig)
+channel             text                          -- email | linkedin | phone | calendar | other  (Migration 022, nullable)
 source              text                          -- ai | manual | crm_sync
 created_at          timestamptz
 ```

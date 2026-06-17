@@ -52,7 +52,8 @@ export interface Task {
   description?: string;
   due_at?: string;
   completed_at?: string;
-  priority: string;
+  priority: string; // low | medium | high | urgent (kein CHECK; Werteliste app-/UI-seitig)
+  channel?: string | null; // email | linkedin | phone | calendar | other (Migration 022)
   source?: string;
   created_at: string;
 }
