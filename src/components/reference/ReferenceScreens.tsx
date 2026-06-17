@@ -208,6 +208,7 @@ export function HunterReference() {
         dealsData={dealsData}
         dealsLoading={dealsQuery.isLoading || stagesQuery.isLoading}
         dealsError={dealsQuery.isError || stagesQuery.isError}
+        pipelineStages={stagesQuery.data ?? []}
         onSelectLead={s.selectPerson}
         onUpdateLeadStage={s.updateLeadStage}
         onAddLead={s.addLead}

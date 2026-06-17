@@ -85,6 +85,7 @@ export type PipelineRow = {
   stageLabel: string; // aus settings.pipeline_stages (slug → name)
   valueEur: number | null; // deal.value ist Cent → bereits /100; null = kein Wert
   heatStatus: HeatStatus;
+  icpScore: number | null; // deal.contact.icp_score; null → Donut zeigt 0/grau (Slice B)
   ownerLabel: string; // Slice A: „—" (kein users-Join; echte Owner via [D7])
 };
 
@@ -112,6 +113,7 @@ export function dealToPipelineRow(
     stageLabel: stageNameBySlug[deal.stage] ?? deal.stage, // Fallback: roher Slug
     valueEur: typeof deal.value === "number" ? deal.value / 100 : null,
     heatStatus: DB_HEAT_TO_UI[deal.heat_status] ?? "DEAD",
+    icpScore: typeof c.icp_score === "number" ? c.icp_score : null,
     ownerLabel: "—",
   };
 }

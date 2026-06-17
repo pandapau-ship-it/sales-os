@@ -13,7 +13,6 @@ import {
   Zap,
   ChevronDown,
   ArrowLeft,
-  CheckCircle2,
   AlertTriangle,
   Check,
   Trash,
@@ -21,10 +20,10 @@ import {
   PenTool,
   TrendingUp,
   Users,
-  Briefcase,
   X
 } from 'lucide-react';
 import type { Lead } from '@/types';
+import type { PipelineStage } from '@/types/hunter';
 import { ICPDonut } from '@/components/shared/ICPDonut';
 import { NAV } from '@/lib/navBehavior';
 import { AddSdrLeadPanel, ContactColdDrawer, EmptyState, FunnelAnalysis, HeatBadge, HunterCard, HunterSidepanel, KpiCard, LeadListRow, LinkedinSignalCard, NewInPipelineCards, NoTaskDrawer, PipelineKeineTaskCard, PipelineStagnatedDrawer, PipelineStagniertCard, SequenceLeadCards, SignalActionDrawer, StageBadge, TaskDrawer } from '@/components';
@@ -45,6 +44,8 @@ interface ScreenHuntingProps {
   dealsData?: PipelineRow[];
   dealsLoading?: boolean;
   dealsError?: boolean;
+  // Slice B: Pipeline-Stages (settings.pipeline_stages) für die Kanban-Spalten.
+  pipelineStages?: PipelineStage[];
   onSelectLead: (lead: Lead) => void;
   onUpdateLeadStage: (leadId: string, newStage: string) => void;
   onAddLead: (lead: Lead) => void;
@@ -60,7 +61,7 @@ export default function ScreenHunting({
   dealsData,
   dealsLoading,
   dealsError,
-  onUpdateLeadStage,
+  pipelineStages,
   onAddLead,
   onSelectCommunication,
 }: ScreenHuntingProps) {
@@ -73,13 +74,12 @@ export default function ScreenHunting({
   const [subTab, setSubTab] = useState<'overview' | 'new_leads' | 'leads' | 'pipeline' | 'signals' | 'sequences' | 'follow_ups'>('leads');
   const [expandedLeadId, setExpandedLeadId] = useState<string | null>(null);
   const [selectedLeadIds, setSelectedLeadIds] = useState<string[]>([]);
-  const [expandedCols, setExpandedCols] = useState<Record<string, boolean>>({ lead: true, pipeline: true, signal: true, sequence: false, trial: false });
+  // Kanban: Spalten default expanded (Slice B); key = echter stage.slug.
+  const [expandedCols, setExpandedCols] = useState<Record<string, boolean>>({});
   // Pipeline-Tab: Listenansicht ↔ Kanban (Toggle); 'tasks' = jetzige Task-Liste (per Button).
   const [pipelineView, setPipelineView] = useState<'list' | 'kanban' | 'tasks'>('list');
   // Task-Ansicht auf einen einzelnen Task fokussiert (aus Kanban-Pill heraus geöffnet).
   const [focusedTask, setFocusedTask] = useState<'stagniert' | 'keine_task' | null>(null);
-  // Pro Kanban-Spalte: nur Karten mit Action-Bedarf zeigen (Toggle über die Action-Badge).
-  const [actionFilterCols, setActionFilterCols] = useState<Record<string, boolean>>({});
   const openTaskCount = 2; // Mock — Phase 3: COUNT(tasks WHERE status='open')
 
   // Local state for Quick Lead Adder Dialog
@@ -488,145 +488,76 @@ export default function ScreenHunting({
             </div>
           ) : pipelineView === 'kanban' ? (
             <div className="flex flex-col md:flex-row gap-4 overflow-x-auto pb-6 items-start min-h-[600px] w-full hide-scrollbar">
-              {[
-                { id: 'lead', title: 'Backlog', prev: null, next: 'pipeline' },
-                { id: 'pipeline', title: 'Demo vereinbart', prev: 'lead', next: 'signal' },
-                { id: 'signal', title: 'Follow-up offen', prev: 'pipeline', next: 'sequence' },
-                { id: 'sequence', title: 'Onboarding offen', prev: 'signal', next: 'trial' },
-                { id: 'trial', title: 'Free Trial', prev: 'sequence', next: null }
-              ].map((col) => {
-                const colLeads = leads.filter(l => l.pipelineStage === col.id).sort((a, b) => (b.icpScore ?? 0) - (a.icpScore ?? 0));
-                const count = colLeads.length;
-                const isExpanded = expandedCols[col.id];
-                const actionsCount = colLeads.filter(l => l.heatStatus === 'HOT' || l.heatStatus === 'WARM').length;
-                const totalValue = colLeads.reduce((sum, l) => sum + (l.dealValue || 0), 0);
-                const actionActive = !!actionFilterCols[col.id];
-                const displayLeads = actionActive ? colLeads.filter(l => l.heatStatus === 'HOT' || l.heatStatus === 'WARM') : colLeads;
+              {/* Slice B: Spalten aus settings.pipeline_stages (slug/name/order), echte Deals.
+                  Stage-Pfeile/Stagnations-Pills/Action-Badges entfallen (Writes/fingierte
+                  Signale → eigene Slices). */}
+              {[...(pipelineStages ?? [])].sort((a, b) => a.order - b.order).map((stage) => {
+                const colDeals = dealRows
+                  .filter((d) => d.stageSlug === stage.slug)
+                  .sort((a, b) => (b.icpScore ?? 0) - (a.icpScore ?? 0));
+                const count = colDeals.length;
+                const totalEur = colDeals.reduce((sum, d) => sum + (d.valueEur ?? 0), 0);
+                const isExpanded = expandedCols[stage.slug] ?? true;
 
                 return (
-                  <div key={col.id} className="flex-1 min-w-[290px] w-[290px] max-w-[290px] flex flex-col h-fit transition-all duration-300 relative">
+                  <div key={stage.slug} className="flex-1 min-w-[290px] w-[290px] max-w-[290px] flex flex-col h-fit transition-all duration-300 relative">
                     {/* Column Header */}
                     <div className="bg-app-surface rounded-[12px] p-4 shadow-[var(--shadow-card)] mb-4">
                       <div className="flex justify-between items-center mb-3">
                         <div className="flex items-center gap-2">
-                          <h3 className="font-bold text-[15px] text-[var(--text-primary)]">{col.title}</h3>
+                          <h3 className="font-bold text-[15px] text-[var(--text-primary)]">{stage.name}</h3>
                           <div className="min-w-[24px] h-6 px-1.5 rounded-full border border-border text-text-muted text-[11px] font-semibold flex items-center justify-center bg-app-bg shadow-sm">
                             {count}
                           </div>
                         </div>
-                        <button 
-                          onClick={() => setExpandedCols(prev => ({ ...prev, [col.id]: !prev[col.id] }))}
+                        <button
+                          onClick={() => setExpandedCols(prev => ({ ...prev, [stage.slug]: !(prev[stage.slug] ?? true) }))}
                           className="w-7 h-7 rounded-full bg-app-bg hover:bg-app-bg flex items-center justify-center border border-transparent hover:border-border transition-colors z-10 cursor-pointer shadow-sm"
                         >
                           {isExpanded ? <ChevronDown className="w-4 h-4 text-text-muted" /> : <ChevronLeft className="w-4 h-4 text-text-muted" />}
                         </button>
                       </div>
-                      
+
                       <div className="flex flex-col gap-1">
                         <div className="flex items-baseline gap-1.5">
                           <span className="text-[34px] font-extrabold leading-none tracking-tight text-[var(--text-primary)]">{count}</span>
                           <span className="text-[12px] text-text-muted font-medium">{t('hunter.pipeline.opportunities')}</span>
                         </div>
                         <div className="text-[14px] font-bold text-[var(--text-primary)] mt-1">
-                          {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(totalValue)}
+                          {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(totalEur)}
                         </div>
-                      </div>
-                      
-                      <div className="mt-4 flex justify-between items-center border-t border-border-subtle pt-3">
-                        <span className="text-[11px] text-text-muted font-medium">{t('hunter.common.status')}</span>
-                        {actionsCount > 0 ? (
-                          <button
-                            onClick={() => {
-                              setActionFilterCols(prev => ({ ...prev, [col.id]: !prev[col.id] }));
-                              setExpandedCols(prev => ({ ...prev, [col.id]: true }));
-                            }}
-                            className={`px-3 py-1 rounded-full text-[11px] font-bold flex items-center gap-1.5 shadow-sm border transition-colors cursor-pointer ${
-                              actionActive
-                                ? 'bg-[var(--signal-urgent-text)] text-on-accent border-[var(--signal-urgent-text)]'
-                                : 'bg-app-surface text-[var(--signal-urgent-text)] border-[var(--signal-urgent-bg)] hover:bg-[var(--signal-urgent-bg)]'
-                            }`}
-                          >
-                            <div className={`w-1.5 h-1.5 rounded-full ${actionActive ? 'bg-on-accent' : 'bg-[var(--icp-low)]'}`}></div>
-                            {actionsCount} {actionsCount !== 1 ? t('hunter.pipeline.actionsPlural') : t('hunter.pipeline.actions')}
-                          </button>
-                        ) : (
-                          <div className="bg-app-surface text-[var(--icp-high)] px-3 py-1 rounded-full text-[11px] font-bold flex items-center gap-1.5 shadow-sm border border-[var(--icp-high)]/20">
-                            <CheckCircle2 className="w-3.5 h-3.5" />
-                            {t('hunter.pipeline.inFlow')}
-                          </div>
-                        )}
                       </div>
                     </div>
 
-                    {/* Cards List (Only if expanded) */}
+                    {/* Cards (nur wenn expanded) */}
                     {isExpanded && (
                       <div className="flex flex-col gap-3">
-                        {displayLeads.length === 0 ? (
-                          <EmptyState
-                            icon={<Briefcase className="w-6 h-6" />}
-                            title="Keine Deals"
-                            action={{ label: '+ Deal anlegen', onClick: () => setShowAddModal(true) }}
-                          />
-                        ) : displayLeads.map(lead => {
-                          // Karten-Signal: stagnierter Deal oder fehlende Task (klickbar → Task-Liste).
-                          let pill: { label: string; task: 'stagniert' | 'keine_task'; colorClass: string; icon: any } | null = null;
-                          if (lead.heatStatus === 'HOT') pill = { label: 'Deal stagniert', task: 'stagniert', colorClass: 'text-[var(--signal-urgent-text)] bg-[var(--signal-urgent-bg)] border border-[var(--signal-urgent-bg)]', icon: <Clock className="w-3 h-3" /> };
-                          else if (lead.heatStatus === 'WARM') pill = { label: 'Task fehlt', task: 'keine_task', colorClass: 'text-[var(--signal-warn-text)] bg-[var(--signal-warn-bg)] border border-[var(--signal-warn-bg)]', icon: <AlertTriangle className="w-3 h-3" /> };
-                          
-                          return (
-                            <div key={lead.id} className="bg-app-surface rounded-[12px] p-4 shadow-[var(--shadow-card)] hover:shadow-md transition-all duration-300 relative group">
-                              <div className="flex justify-between items-start mb-4">
-                                <div className="flex items-center gap-3">
-                                  <Avatar name={lead.person.name} src={lead.person.avatarUrl} size={40} />
-                                  <div className="flex flex-col min-w-0">
-                                    <span className="font-bold text-[13px] text-[var(--text-primary)] leading-tight truncate">{lead.person.name}</span>
-                                    <span className="text-[11px] text-[var(--sherloq-primary)] leading-tight truncate mt-0.5">{lead.person.company}</span>
-                                    {lead.dealValue && (
-                                      <span className="text-[11px] font-bold text-[var(--text-primary)] mt-1">
-                                        {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(lead.dealValue)}
-                                      </span>
-                                    )}
-                                  </div>
-                                </div>
-                                <div className="w-[38px] flex items-center justify-center shrink-0">
-                                  <ICPDonut score={lead.icpScore ?? 75} />
+                        {colDeals.length === 0 ? (
+                          <div className="px-3 py-6 text-center text-[12px] text-text-muted">Keine Deals</div>
+                        ) : colDeals.map((deal) => (
+                          <div key={deal.id} className="bg-app-surface rounded-[12px] p-4 shadow-[var(--shadow-card)] hover:shadow-md transition-all duration-300 relative group">
+                            <div className="flex justify-between items-start mb-3">
+                              <div className="flex items-center gap-3 min-w-0">
+                                <Avatar name={deal.contactName} size={40} />
+                                <div className="flex flex-col min-w-0">
+                                  <span className="font-bold text-[13px] text-[var(--text-primary)] leading-tight truncate">{deal.contactName}</span>
+                                  <span className="text-[11px] text-[var(--sherloq-primary)] leading-tight truncate mt-0.5">{deal.company}</span>
+                                  {deal.valueEur !== null && (
+                                    <span className="text-[11px] font-bold text-[var(--text-primary)] mt-1">
+                                      {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(deal.valueEur)}
+                                    </span>
+                                  )}
                                 </div>
                               </div>
-                              
-                              <div className="flex justify-between items-center mt-2 pt-2">
-                                {pill ? (
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); setFocusedTask(pill!.task); setPipelineView('tasks'); }}
-                                    className={`px-2.5 py-1 rounded-full text-[10px] font-bold flex items-center gap-1.5 cursor-pointer hover:opacity-90 transition-opacity ${pill.colorClass}`}
-                                  >
-                                    {pill.icon}
-                                    <span>{pill.label}</span>
-                                    <ArrowRight className="w-3 h-3" />
-                                  </button>
-                                ) : <div />}
-                                
-                                <div className="flex items-center gap-2">
-                                  {col.prev && (
-                                    <button 
-                                      onClick={() => onUpdateLeadStage(lead.id, col.prev!)}
-                                      className="w-7 h-7 rounded-full bg-[var(--app-bg)] hover:bg-[var(--border)] text-[var(--text-muted)] flex items-center justify-center transition-colors cursor-pointer shadow-sm"
-                                    >
-                                      <ArrowLeft className="w-3.5 h-3.5" />
-                                    </button>
-                                  )}
-                                  {col.next && (
-                                    <button 
-                                      onClick={() => onUpdateLeadStage(lead.id, col.next!)}
-                                      className="w-7 h-7 rounded-full bg-[var(--sherloq-primary)] hover:bg-[var(--sherloq-primary)] text-on-accent flex items-center justify-center transition-colors shadow-sm cursor-pointer"
-                                    >
-                                      <ArrowRight className="w-3 h-3 stroke-[3]" />
-                                    </button>
-                                  )}
-                                </div>
+                              <div className="w-[38px] flex items-center justify-center shrink-0">
+                                <ICPDonut score={deal.icpScore ?? 0} />
                               </div>
                             </div>
-                          );
-                        })}
+                            <div className="flex justify-start pt-1">
+                              <HeatBadge status={deal.heatStatus} />
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     )}
                   </div>
