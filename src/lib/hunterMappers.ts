@@ -126,27 +126,19 @@ export function dealToPipelineRow(
   deal: Record<string, any>,
   stageNameBySlug: Record<string, string>,
 ): PipelineRow {
-  const c = deal.contact ?? {};
-  const contactName =
-    [c.first_name, c.last_name].filter(Boolean).join(" ") || c.email || "Unbekannt";
-  const initials = contactName
-    .split(" ")
-    .map((p: string) => p[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
+  const p = contactToProfile(deal.contact); // zentrale Auflösung (Kontakt-Werte)
   return {
     id: deal.id,
     dealName: deal.name ?? "",
-    contactName,
-    contactJobTitle: c.job_title ?? "",
-    initials,
-    company: deal.company?.name ?? "",
+    contactName: p.name,
+    contactJobTitle: p.jobTitle,
+    initials: p.initials,
+    company: p.company, // jetzt vom KONTAKT (nested embed), nicht vom Deal
     stageSlug: deal.stage,
-    stageLabel: stageNameBySlug[deal.stage] ?? deal.stage, // Fallback: roher Slug
+    stageLabel: stageNameBySlug[deal.stage] ?? deal.stage, // Stage bleibt deal.stage (konkreter Deal)
     valueEur: typeof deal.value === "number" ? deal.value / 100 : null,
-    heatStatus: DB_HEAT_TO_UI[deal.heat_status] ?? "DEAD",
-    icpScore: typeof c.icp_score === "number" ? c.icp_score : null,
+    heatStatus: p.heatStatus ?? "DEAD", // FIX: Heat aus contacts.heat_status (statt deals.heat_status); Fallback wie bisher
+    icpScore: p.icpScore ?? null,
     ownerId: deal.owner_id ?? null,
     ownerLabel: deal.owner?.full_name ?? "—", // null → ehrliches „—", kein Fake-Name
   };
