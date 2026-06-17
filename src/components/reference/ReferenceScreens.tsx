@@ -11,7 +11,7 @@
  */
 
 import { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getLeads,
   getCustomers,
@@ -24,6 +24,7 @@ import {
   getPipelineSettings,
   getSignals,
   getDueTasks,
+  completeTask,
   getNewInPipeline,
   updateLeadStage as dbUpdateLeadStage,
   setTaskCompleted as dbSetTaskCompleted,
@@ -216,6 +217,14 @@ export function HunterReference() {
     queryKey: ["newInPipeline", DEMO_ORGANIZATION_ID],
     queryFn: () => getNewInPipeline(DEMO_ORGANIZATION_ID),
   });
+  // T4a (erster Write): Task erledigt → completed_at; onSuccess Follow-ups neu laden
+  // (kein Optimistic — invalidate-on-success). Fehler bewusst nicht stillschweigend
+  // abfangen: bei RLS/Login-Problem wird der Error sichtbar (Konsole/Network).
+  const queryClient = useQueryClient();
+  const completeTaskMutation = useMutation({
+    mutationFn: (taskId: string) => completeTask(taskId, DEMO_ORGANIZATION_ID),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["dueTasks", DEMO_ORGANIZATION_ID] }),
+  });
   return (
     <>
       <ScreenHunting
@@ -232,6 +241,7 @@ export function HunterReference() {
         signalsError={signalsQuery.isError}
         dueTasksData={dueTasksQuery.data}
         newInPipelineData={newInPipelineQuery.data}
+        onCompleteTask={(taskId) => completeTaskMutation.mutate(taskId)}
         onSelectLead={s.selectPerson}
         onUpdateLeadStage={s.updateLeadStage}
         onAddLead={s.addLead}

@@ -29,9 +29,12 @@ function overdueDays(iso: string | null): number | null {
 export const SequenceLeadCards = ({
   items,
   onSelectLead,
+  onComplete,
 }: {
   items?: DueTaskCardItem[];
   onSelectLead?: (lead: Lead) => void;
+  /** Task erledigt (T4a): setzt completed_at → Karte verschwindet nach Invalidate. */
+  onComplete?: (taskId: string) => void;
 }) => {
   const { t } = useTranslation();
 
@@ -78,18 +81,29 @@ export const SequenceLeadCards = ({
         };
 
         const actionRow = (
-          <div className="flex items-center gap-2.5 min-w-0 flex-wrap">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--signal-warn-bg)] text-[var(--signal-warn-text)] text-[10px] font-bold uppercase tracking-wider shrink-0">
-              <ClipboardList className="w-[11px] h-[11px]" /> {t('hunter.followUps.dueLabel')}
-            </span>
-            <span className={ACTION_ROW.strongText}>{it.taskTitle}</span>
-            {dueText && (
-              <>
-                <span className="text-text-muted">·</span>
-                <span className={`text-[12.5px] font-bold ${dueClass}`}>{dueText}</span>
-              </>
+          <>
+            <div className="flex items-center gap-2.5 min-w-0 flex-wrap">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--signal-warn-bg)] text-[var(--signal-warn-text)] text-[10px] font-bold uppercase tracking-wider shrink-0">
+                <ClipboardList className="w-[11px] h-[11px]" /> {t('hunter.followUps.dueLabel')}
+              </span>
+              <span className={ACTION_ROW.strongText}>{it.taskTitle}</span>
+              {dueText && (
+                <>
+                  <span className="text-text-muted">·</span>
+                  <span className={`text-[12.5px] font-bold ${dueClass}`}>{dueText}</span>
+                </>
+              )}
+            </div>
+            {onComplete && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onComplete(it.id); }}
+                className={`${ACTION_ROW.ctaSecondary} inline-flex items-center gap-1.5 shrink-0`}
+              >
+                <CheckCircle2 className="w-3.5 h-3.5 text-[var(--signal-success-text)]" strokeWidth={2.5} />
+                {t('hunter.followUps.markDone')}
+              </button>
             )}
-          </div>
+          </>
         );
 
         return (

@@ -58,6 +58,8 @@ interface ScreenHuntingProps {
   // Neu-in-Pipeline: frisch angelegte Deals (inkl. contact + company + deals-Embed).
   newInPipelineData?: Record<string, unknown>[];
   onSelectLead: (lead: Lead) => void;
+  // T4a: Task erledigt markieren (Follow-ups). org-Scoping/Mutation liegt im Container.
+  onCompleteTask?: (taskId: string) => void;
   onUpdateLeadStage: (leadId: string, newStage: string) => void;
   onAddLead: (lead: Lead) => void;
   onSelectCommunication?: (personId: string, tpId: string) => void;
@@ -78,6 +80,7 @@ export default function ScreenHunting({
   signalsError,
   dueTasksData,
   newInPipelineData,
+  onCompleteTask,
   onAddLead,
   onSelectCommunication,
 }: ScreenHuntingProps) {
@@ -379,7 +382,7 @@ export default function ScreenHunting({
       )}
 
       {subTab === 'follow_ups' && (
-        <SequenceLeadCards items={dueTaskCards} onSelectLead={setInfoPanelLead} />
+        <SequenceLeadCards items={dueTaskCards} onSelectLead={setInfoPanelLead} onComplete={onCompleteTask} />
       )}
 
       {/* NEW LEADS VIEW */}

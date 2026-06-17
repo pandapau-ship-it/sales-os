@@ -210,6 +210,7 @@
       "dueLabel": "Fällige Task",
       "dueToday": "heute fällig",
       "dueAgo": "fällig vor {{label}}",
+      "markDone": "Erledigt",
       "emptyTitle": "Keine fälligen Tasks",
       "emptyDesc": "Nichts zu tun — alle Follow-ups erledigt."
     },

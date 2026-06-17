@@ -25,6 +25,13 @@
    mit Kontext, **welcher** Task gemeint ist (Task-ID durchreichen). Analog für andere kartenspezifische
    Einstiege (z.B. Signal-Karte → relevanter Tab). Hängt am Panel-Wiring → dort umsetzen. Heute öffnet
    `onSelectLead`/`onOpenInfo` nur generisch (Tür sichtbar, Deeplink-Kontext fehlt noch).
+   ⮑ **Task ANLEGEN (T4b) — bewusst hierher verschoben (nicht einzeln vorab bauen):** Das „Neue Task"-
+   Formular (`TaskFormular`) lebt im Panel; Kontakt-/Deal-Feld soll ein **echtes durchsuchbares Auswahlfeld**
+   werden — **vorbefüllt aus Kontext, änderbar** („ein Formular für beide Wege", wie gute CRMs es lösen).
+   Wird **zusammen mit dem Panel-Wiring** gebaut, damit das Formular nicht doppelt angefasst wird. Bis dahin
+   bleibt das Formular **Mock (kein Persist)**. **Vorbereitet & wartend:** `createTask` (db.ts) inkl. `channel`
+   (+ `mail→email`-Mapping), `due_at`-Komposition (Datum+Uhrzeit) und `assigned_to = NULL` (vorerst) — nur die
+   Panel-Anbindung fehlt. Abhaken (T4a) ist dagegen **fertig** (echter Write, `completeTask`).
 **C. Realtime** für die Live-Tabellen (`lib/realtime.ts`), Cache-Invalidierung.
 **D. Restliche Mock-Screens** (Neu-in-Pipeline/Follow-ups/Overview Top-5) + AddSdrLeadPanel/Snooze (Writes, Edge Functions).
    ⮑ **Beim Wiring: Produktprinzip „Task-getriebene Leere"** (CLAUDE.md → Design Invariants) — diese Bereiche

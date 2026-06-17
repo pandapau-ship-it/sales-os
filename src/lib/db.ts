@@ -338,6 +338,26 @@ export async function updateDealStage(
   if (error) throw error;
 }
 
+/**
+ * completeTask — Task als erledigt markieren (`completed_at = now()`), org-gescoped.
+ * Erster Schreib-Pfad (User-Write); Audit deckt der DB-Trigger `trg_tasks_audit` ab —
+ * keine Edge Function. RLS verlangt eingeloggten User (org == auth_org_id()).
+ * Danach fällt die Task aus getDueTasks → Follow-ups-Karte verschwindet.
+ */
+export async function completeTask(
+  taskId: string,
+  organizationId: string,
+): Promise<void> {
+  const client = getSupabaseClient();
+  if (!client) return;
+  const { error } = await client
+    .from("tasks")
+    .update({ completed_at: new Date().toISOString() })
+    .eq("id", taskId)
+    .eq("organization_id", organizationId);
+  if (error) throw error;
+}
+
 /** Task anlegen. Audit-Log via DB-Trigger. */
 export async function createTask(task: {
   organizationId: string;
