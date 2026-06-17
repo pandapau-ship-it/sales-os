@@ -119,3 +119,21 @@ export function dealToPipelineRow(
     ownerLabel: deal.owner?.full_name ?? "—", // null → ehrliches „—", kein Fake-Name
   };
 }
+
+// ── Signals (S-0, nur Text-Auflösung; noch NICHT in der Karte verdrahtet) ─────
+/**
+ * resolveSignalText — i18n-Anzeige-Text eines Signals aus `signal_type` +
+ * `signal_data.detail` (= {{topic}}). Reine Funktion (t injiziert → testbar).
+ * Unbekannter/fehlender Typ → Fallback `custom`. Texte: i18n `hunter.signals.types.*`.
+ */
+export function resolveSignalText(
+  signal: { signal_type?: string | null; signal_data?: { detail?: string } | null },
+  t: (key: string, opts?: Record<string, unknown>) => string,
+): string {
+  const type = signal.signal_type || "custom";
+  const topic = signal.signal_data?.detail ?? "";
+  const key = `hunter.signals.types.${type}`;
+  const text = t(key, { topic });
+  // i18next gibt bei fehlendem Key den Key selbst zurück → auf `custom` zurückfallen.
+  return text === key ? t("hunter.signals.types.custom", { topic }) : text;
+}

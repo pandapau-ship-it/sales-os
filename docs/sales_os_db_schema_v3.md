@@ -407,6 +407,9 @@ thresholds          jsonb DEFAULT '{}'
 pipeline_stages     jsonb DEFAULT '[]'
                     -- TOP-LEVEL (nicht in thresholds): [{slug, name, order, stagnation_days, probability}]
                     --   slug = deals.stage Speicherwert · name = Anzeige · probability = Win-% Stage-Default
+signal_windows      jsonb DEFAULT '[]'
+                    -- TOP-LEVEL: [{signal_type, window_hours}] — Dringlichkeits-Window je Signaltyp
+                    --   (org-tunebar). Migration 018. Reader: db.getSignalWindows().
 sending_defaults    jsonb DEFAULT '{}'
                     -- {daily_email_limit, daily_linkedin_limit, sending_window}
 created_at          timestamptz

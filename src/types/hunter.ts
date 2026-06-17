@@ -102,3 +102,9 @@ export interface PipelineStage {
   stagnation_days: number | null;
   probability: number;
 }
+
+/** Dringlichkeits-Window je Signaltyp aus settings.signal_windows (org-tunebar). */
+export interface SignalWindow {
+  signal_type: string;
+  window_hours: number;
+}

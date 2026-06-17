@@ -37,7 +37,7 @@ import type {
 } from "@/types";
 import { createClient } from "@supabase/supabase-js";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Deal, Signal, PipelineStage } from "@/types/hunter";
+import type { Deal, Signal, PipelineStage, SignalWindow } from "@/types/hunter";
 
 // ── Supabase Client — EINZIGER Init-Punkt im gesamten Projekt ────────────────
 // createClient() läuft AUSSCHLIESSLICH hier (audit-erzwungen). auth/storage/
@@ -311,6 +311,14 @@ export async function getPipelineSettings(
 ): Promise<PipelineStage[]> {
   const settings = await getSettings(organizationId);
   return (settings?.pipeline_stages as PipelineStage[] | undefined) ?? [];
+}
+
+/** settings.signal_windows (Dringlichkeits-Window je signal_type, org-tunebar). */
+export async function getSignalWindows(
+  organizationId: string,
+): Promise<SignalWindow[]> {
+  const settings = await getSettings(organizationId);
+  return (settings?.signal_windows as SignalWindow[] | undefined) ?? [];
 }
 
 /** Settings-Zeile der Org (Single Source of Truth aller Schwellenwerte). */

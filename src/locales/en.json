@@ -196,6 +196,20 @@
       "toastPrepStarting": "Meeting-Prep wird gestartet..."
     },
     "signals": {
+      "channel": {
+        "linkedin": "LINKEDIN SIGNAL",
+        "other": "SIGNAL"
+      },
+      "types": {
+        "linkedin_profile_view": "Hat dein Profil besucht",
+        "linkedin_post_liked": "Hat einen Beitrag geliked — {{topic}}",
+        "linkedin_post_commented": "Hat auf einen Kommentar geantwortet — {{topic}}",
+        "job_change": "Neue Position — {{topic}}",
+        "company_growth": "Unternehmenswachstum — {{topic}}",
+        "funding_round": "Finanzierungsrunde — {{topic}}",
+        "tech_change": "Tech-Stack-Änderung — {{topic}}",
+        "custom": "Neues Signal — {{topic}}"
+      },
       "actNow": "Act now",
       "signalDetails": "Signal Details",
       "repliedToComment": "Replied to a comment",
