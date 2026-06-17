@@ -182,11 +182,20 @@
 - **Später:** je Element mit seiner Logik zurückholen. Die **konkrete AI-Empfehlung** gehört NICHT auf die Karte —
   sie lebt im **820px-Action-Panel** (Slice „Info-Panel", B). Der Panel-**Pfeil** ist bewusst schon sichtbar (Tür für später).
 
+### [D17] Follow-ups-Tab — finale Bedeutung (PRODUKTENTSCHEIDUNG, offen)
+- **Status heute:** verdrahtet als **„kalte Kontakte"** (Heat Cold/Gone, **unabhängig vom Deal**). Read-Ergebnis bleibt bis zur Entscheidung bestehen.
+- **Zu klären (nicht unter Bau-Druck):** Soll der Tab
+  - **(a)** kalte Kontakte als **Segment** zeigen (Reaktivierungs-Sicht über alle, mit/ohne Deal — entspricht „niemand geht verloren"), **oder**
+  - **(b)** **dealbezogene** Follow-ups (nur Kontakte mit **laufendem Deal**, an dem man nachfasst), **oder**
+  - **(c)** **beides** als zwei getrennte Sichten.
+- **Kontext:** die ursprünglichen Design-Screenshots zeigten **dealbezogene** Karten (mit Stage); der aktuelle Build zeigt **reine kalte Kontakte**.
+- **Auswirkung:** die Entscheidung beeinflusst **Selektor** (`getFollowUps`) + **Karten-Inhalt** (Stage immer/nur bei Deal). Erst entscheiden, dann ggf. anpassen.
+
 ### [TS] Deal-Typ ohne `product` — offener Faden
 - `src/types/hunter.ts` `Deal` hat **kein `product`** (Migration 014 fügte nur die DB-Spalte).
   Beim späteren Produkt-Anzeigen (Pipeline/Deal-Detail) `product?: string` im Typ ergänzen + mappen.
 
-> Anker-Tags `[D1]`–`[D16]` sind im Code referenzierbar (z.B. `hunterMappers.ts` → `[[leads-tab-read]]`).
+> Anker-Tags `[D1]`–`[D17]` sind im Code referenzierbar (z.B. `hunterMappers.ts` → `[[leads-tab-read]]`).
 > Vor Umsetzung eines Punkts: passende Referenz-Doku (`docs/sales_os_edge_functions_v2.md` etc.) lesen.
 
 ---
