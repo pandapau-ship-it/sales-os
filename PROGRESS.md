@@ -112,11 +112,29 @@
 - **Später:** echte Owner-Namen via `owner:users(full_name)`-Embed in `getDeals` (FK `owner_id`,
   REST-getestet auflösbar) — sobald Team/mehrere User existieren. Dann auch Owner-**Filter** sinnvoll.
 
+### [D8] Kanban Stage-Wechsel-Pfeile (←→) · Zielphase: Stage-Write-Slice (Edge Function)
+- **Status heute:** Im Kanban (Slice B) **ausgeblendet**. Waren Writes über den Mock-`onUpdateLeadStage`.
+- **Später:** Stage-Wechsel als echter Write via Edge Function (Stage + `stage_updated_at`, `stagnation_days=0`,
+  `audit_log`-Eintrag). `onUpdateLeadStage` bleibt dafür im `ScreenHunting`-Interface. **Muss mit dem Write-Slice zurück.**
+
+### [D9] Kanban „Deal stagniert"-Signal · Zielphase: Stagnations-Slice
+- **Status heute:** Im Kanban **ausgeblendet**. War aus `heatStatus===HOT` **fingiert** (Falschinfo).
+- **Später:** echtes Signal aus `deals.stagnation_days` vs. `settings.pipeline_stages[].stagnation_days`
+  (berechnet per Edge Function, [D4]). Rot nur bei echtem Trigger. **Muss mit dem Stagnations-Slice zurück.**
+
+### [D10] Kanban „Task fehlt"-Badge · Zielphase: Task-Signal-Slice
+- **Status heute:** Im Kanban **ausgeblendet**. War aus `heatStatus===WARM` fingiert.
+- **Später:** echtes Signal aus dem Task-Bestand des Deals (`tasks` ohne offene Aufgabe). **Muss mit dem Task-Slice zurück.**
+
+### [D11] Kanban „N Action"/„Im Flow"-Status-Badge (+ Action-Filter) · Zielphase: Signal-/Task-Logik
+- **Status heute:** Im Kanban **ausgeblendet** (inkl. `actionFilterCols`-Toggle). War aus Heat fingiert.
+- **Später:** echte Aggregation aus den realen Signalen/Tasks der Spalte ([D9]/[D10]). **Muss mit der Signal-/Task-Logik zurück.**
+
 ### [TS] Deal-Typ ohne `product` — offener Faden
 - `src/types/hunter.ts` `Deal` hat **kein `product`** (Migration 014 fügte nur die DB-Spalte).
   Beim späteren Produkt-Anzeigen (Pipeline/Deal-Detail) `product?: string` im Typ ergänzen + mappen.
 
-> Anker-Tags `[D1]`–`[D7]` sind im Code referenzierbar (z.B. `hunterMappers.ts` → `[[leads-tab-read]]`).
+> Anker-Tags `[D1]`–`[D11]` sind im Code referenzierbar (z.B. `hunterMappers.ts` → `[[leads-tab-read]]`).
 > Vor Umsetzung eines Punkts: passende Referenz-Doku (`docs/sales_os_edge_functions_v2.md` etc.) lesen.
 
 ---
