@@ -37,6 +37,44 @@ const CONTACT_STATUS_LABEL: Record<string, string> = {
   opt_out: "Opt-out",
 };
 
+// ── Zentrale Kontakt-Auflösung (Single-Source für alle Tabs) ──────────────────
+// Identitäts-/Status-Werte kommen IMMER vom Kontakt. heatStatus IMMER aus
+// contacts.heat_status. Fehlende Werte → undefined (Regel „kein Wert → unsichtbar";
+// wie der Render-Pfad das undefined behandelt, bleibt dort unverändert).
+// Stage gehört dem Deal → NICHT Teil des Profils (kommt später über den Deal-Kontext).
+export type ContactProfile = {
+  avatarUrl?: string; // contacts hat kein Foto-Feld → Initiale
+  name: string;
+  initials: string;
+  jobTitle: string;
+  company: string;
+  icpScore?: number;
+  heatStatus?: HeatStatus;
+  statusLabel?: string; // contact_status → Lifecycle-Label
+};
+
+export function contactToProfile(c: Record<string, any> | null | undefined): ContactProfile {
+  const name = c
+    ? [c.first_name, c.last_name].filter(Boolean).join(" ") || c.email || "Unbekannt"
+    : "Unbekannt";
+  const initials = name
+    .split(" ")
+    .map((p: string) => p[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+  return {
+    avatarUrl: undefined,
+    name,
+    initials,
+    jobTitle: c?.job_title ?? "",
+    company: c?.company?.name ?? "",
+    icpScore: typeof c?.icp_score === "number" ? c.icp_score : undefined,
+    heatStatus: c?.heat_status ? DB_HEAT_TO_UI[c.heat_status] : undefined,
+    statusLabel: c?.contact_status ? CONTACT_STATUS_LABEL[c.contact_status] : undefined,
+  };
+}
+
 // Lead + Leads-Zeilen-spezifische Anzeigefelder (LeadListRow liest `lead: any`).
 export type LeadRow = Lead & {
   contactStatusLabel?: string; // contact_status → Lifecycle-Label; undefined → kein Badge
@@ -44,31 +82,23 @@ export type LeadRow = Lead & {
 };
 
 export function contactRowToLead(row: Record<string, any>): LeadRow {
-  const name =
-    [row.first_name, row.last_name].filter(Boolean).join(" ") || row.email || "Unbekannt";
-  const company = row.company?.name ?? "";
-  const initials = name
-    .split(" ")
-    .map((p: string) => p[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
+  const p = contactToProfile(row); // zentrale Auflösung (Identität/Status/Heat/ICP)
 
   return {
     id: row.id,
-    person: { id: row.id, name, jobTitle: row.job_title ?? "", company, initials, avatarUrl: undefined },
+    person: { id: row.id, name: p.name, jobTitle: p.jobTitle, company: p.company, initials: p.initials, avatarUrl: p.avatarUrl },
     kurzakte: "",
     fullTimeline: [],
     engagementChain: [],
     lastTouchpoints: [],
-    heatStatus: DB_HEAT_TO_UI[row.heat_status] ?? "DEAD", // null/unbekannt → Gone/grau (neutral)
+    heatStatus: p.heatStatus ?? "DEAD", // Leads-Optik unverändert: fehlend → Gone (Render-Hide später)
     heatScore: 0, // von HeatBadge nicht genutzt; out of scope
-    icpScore: typeof row.icp_score === "number" ? row.icp_score : undefined,
+    icpScore: p.icpScore,
     lastActivity: "",
     pipelineStage: "lead", // Platzhalter (Deal-Stage gehört in den Pipeline-Slice)
     signalsCount: 0,
     contactEmail: row.email ?? "",
-    contactStatusLabel: CONTACT_STATUS_LABEL[row.contact_status], // unbekannt → undefined (kein Badge)
+    contactStatusLabel: p.statusLabel, // aus zentraler Auflösung (contact_status → Label)
     lastContactedAt: row.last_contacted_at ?? null,
   };
 }
