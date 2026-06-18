@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DEMO_ORGANIZATION_ID } from '@/lib/org';
-import { getContactDetail, getPipelineSettings, getTasksByContact, createTask, completeTask, softDeleteTask } from '@/lib/db';
+import { getContactDetail, getPipelineSettings, getTasksByContact, createTask, completeTask, softDeleteTask, getNotesByContact, createNote } from '@/lib/db';
 import { contactToProfile, contactActiveStage } from '@/lib/hunterMappers';
 import {
   ArrowUpRight, ArrowLeft, X, Mail, Phone, Clock, Check,
@@ -161,6 +161,21 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
     mutationFn: (taskId: string) => softDeleteTask(taskId, DEMO_ORGANIZATION_ID),
     onSuccess: () => { invalidateTasks(); showToast('Aufgabe gelöscht ✓'); },
     onError: (e) => showToast(`Löschen fehlgeschlagen: ${(e as Error).message}`), // nicht still abfangen
+  });
+
+  // P4 — Notizen-Tab: echte Notizen des Kontakts + Anlegen.
+  const notesQuery = useQuery({
+    queryKey: ['notesByContact', DEMO_ORGANIZATION_ID, contactId],
+    queryFn: () => getNotesByContact(DEMO_ORGANIZATION_ID, contactId as string),
+    enabled: !!contactId && isOpen,
+  });
+  const createNoteMutation = useMutation({
+    mutationFn: (body: string) => createNote(DEMO_ORGANIZATION_ID, contactId as string, body),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notesByContact', DEMO_ORGANIZATION_ID, contactId] });
+      showToast('Notiz angelegt ✓');
+    },
+    onError: (e) => showToast(`Notiz fehlgeschlagen: ${(e as Error).message}`), // nicht still abfangen
   });
 
 
@@ -365,7 +380,13 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
         )}
 
         {activeTab === 'notes' && (
-          <NotizenListe onToast={showToast} autoCompose={notesAutoCompose} onAutoComposeConsumed={() => setNotesAutoCompose(false)} />
+          <NotizenListe
+            onToast={showToast}
+            autoCompose={notesAutoCompose}
+            onAutoComposeConsumed={() => setNotesAutoCompose(false)}
+            noteRows={notesQuery.data ?? []}
+            onCreate={(body) => createNoteMutation.mutate(body)}
+          />
         )}
 
         </>

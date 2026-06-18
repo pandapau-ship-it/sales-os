@@ -452,6 +452,47 @@ export async function createTask(task: {
   if (error) throw error;
 }
 
+/**
+ * getNotesByContact — Notizen eines Kontakts fürs Panel (P4), neueste zuerst.
+ * Embed: Autor (created_by → users.full_name; NULL → kein Autor angezeigt).
+ */
+export async function getNotesByContact(
+  organizationId: string,
+  contactId: string,
+): Promise<Record<string, unknown>[]> {
+  const client = getSupabaseClient();
+  if (!client) return [];
+  const { data, error } = await client
+    .from("notes")
+    .select(`*, author:users(full_name)`)
+    .eq("organization_id", organizationId)
+    .eq("contact_id", contactId)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return data ?? [];
+}
+
+/**
+ * createNote — manuelle Notiz anlegen (P4, User-Write). RLS = eingeloggter User.
+ * HINWEIS: `notes` hat (anders als `tasks`) KEINEN audit_write-Trigger → dieser Write
+ * landet NICHT im audit_log (für einfache User-Notizen akzeptiert; Trigger ggf. später).
+ * `created_by` bleibt NULL (wie `tasks.assigned_to` — users.id vs. auth.uid() ungeklärt).
+ */
+export async function createNote(
+  organizationId: string,
+  contactId: string,
+  body: string,
+): Promise<void> {
+  const client = getSupabaseClient();
+  if (!client) return;
+  const { error } = await client.from("notes").insert({
+    organization_id: organizationId,
+    contact_id: contactId,
+    content: body,
+  });
+  if (error) throw error;
+}
+
 /** settings.pipeline_stages (Anzeigenamen/Slugs/Schwellen). Caching am Call-Site (TanStack). */
 export async function getPipelineSettings(
   organizationId: string,

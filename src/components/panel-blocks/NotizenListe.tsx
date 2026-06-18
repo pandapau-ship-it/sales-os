@@ -21,15 +21,36 @@ const DEFAULT_NOTES: NotizItem[] = [
   { id: "n2", text: "Demo lief hervorragend, Thomas war sehr engagiert.", date: "03. April 2026", time: "16:48", author: "Oliver Prossi" },
 ];
 
+/** DB-Notiz-Zeile → NotizItem. Autor aus created_by→users.full_name (fehlt → leer = unsichtbar). */
+function rowToNotiz(row: Record<string, any>): NotizItem {
+  const d = row.created_at ? new Date(row.created_at) : null;
+  return {
+    id: row.id,
+    text: row.content ?? "",
+    date: d ? d.toLocaleDateString("de-DE", { day: "2-digit", month: "long", year: "numeric" }) : "",
+    time: d ? d.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }) : "",
+    author: row.author?.full_name ?? "",
+  };
+}
+
 const TEXTAREA =
   "w-full px-3.5 py-3 rounded-[10px] border border-border bg-app-bg outline-none focus:border-[var(--sherloq-primary)] transition-colors resize-none text-[13px] font-medium leading-relaxed min-h-[88px]";
 
 let seq = 0;
 
 export default function NotizenListe({
-  onToast, autoCompose = false, onAutoComposeConsumed,
-}: { onToast?: (msg: string) => void; autoCompose?: boolean; onAutoComposeConsumed?: () => void }) {
-  const [notes, setNotes] = useState<NotizItem[]>(DEFAULT_NOTES);
+  onToast, autoCompose = false, onAutoComposeConsumed, noteRows, onCreate,
+}: {
+  onToast?: (msg: string) => void;
+  autoCompose?: boolean;
+  onAutoComposeConsumed?: () => void;
+  /** Echte DB-Notiz-Zeilen (P4). undefined → Mock (Standalone). */
+  noteRows?: Record<string, any>[];
+  onCreate?: (body: string) => void;
+}) {
+  const isReal = noteRows !== undefined; // Panel-Modus: read + create echt, Edit/Löschen = später
+  const [localNotes, setLocalNotes] = useState<NotizItem[]>(DEFAULT_NOTES);
+  const notes = isReal ? (noteRows ?? []).map(rowToNotiz) : localNotes;
   const [composerOpen, setComposerOpen] = useState(autoCompose);
   const [draft, setDraft] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -48,22 +69,27 @@ export default function NotizenListe({
 
   const addNote = () => {
     if (!draft.trim()) { setComposerOpen(false); return; }
-    const { date, time } = stamp();
-    setNotes((prev) => [{ id: `new-${seq++}`, text: draft.trim(), date, time, author: "Oliver Prossi" }, ...prev]);
+    if (isReal) {
+      onCreate?.(draft.trim()); // Insert + invalidate + Toast übernimmt das Panel
+    } else {
+      const { date, time } = stamp();
+      setLocalNotes((prev) => [{ id: `new-${seq++}`, text: draft.trim(), date, time, author: "Oliver Prossi" }, ...prev]);
+      onToast?.("Neue Notiz angelegt ✓");
+    }
     setDraft("");
     setComposerOpen(false);
-    onToast?.("Neue Notiz angelegt ✓");
   };
 
+  // Edit/Löschen nur im Mock-Modus (Standalone); im Panel kommt das später (analog Tasks).
   const saveEdit = (id: string) => {
     if (!editDraft.trim()) return;
-    setNotes((prev) => prev.map((n) => (n.id === id ? { ...n, text: editDraft.trim() } : n)));
+    setLocalNotes((prev) => prev.map((n) => (n.id === id ? { ...n, text: editDraft.trim() } : n)));
     setEditingId(null);
     onToast?.("Notiz aktualisiert ✓");
   };
 
   const deleteNote = (id: string) => {
-    setNotes((prev) => prev.filter((n) => n.id !== id));
+    setLocalNotes((prev) => prev.filter((n) => n.id !== id));
     onToast?.("Notiz gelöscht");
   };
 
@@ -99,8 +125,8 @@ export default function NotizenListe({
         {notes.map((note) => (
           <div key={note.id} className="group p-4 bg-app-surface border border-border rounded-[12px] shadow-sm">
             <div className="flex items-start justify-between gap-3">
-              <span className="text-[10px] text-text-muted font-bold">{note.date} · {note.time} · {note.author}</span>
-              {editingId !== note.id && (
+              <span className="text-[10px] text-text-muted font-bold">{note.date} · {note.time}{note.author ? ` · ${note.author}` : ""}</span>
+              {!isReal && editingId !== note.id && (
                 <div className={`flex items-center gap-1 shrink-0 ${HOVER_ACTIONS}`}>
                   <button onClick={() => { setEditingId(note.id); setEditDraft(note.text); }} aria-label="Bearbeiten" data-tip="Bearbeiten" className="w-7 h-7 rounded-full flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-app-bg transition-colors cursor-pointer">
                     <Pencil className="w-3.5 h-3.5" />
@@ -112,7 +138,7 @@ export default function NotizenListe({
               )}
             </div>
 
-            {editingId === note.id ? (
+            {!isReal && editingId === note.id ? (
               <div className="mt-2 space-y-3">
                 <textarea autoFocus value={editDraft} onChange={(e) => setEditDraft(e.target.value)} className={TEXTAREA} />
                 <div className="flex items-center justify-end gap-2">

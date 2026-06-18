@@ -144,6 +144,21 @@
 > Was später zu tun ist**. Eine neue Session liest das beim Start (CLAUDE.md → SESSION START).
 > Jeder Punkt hat einen Anker-Tag für `grep`.
 
+### [D21] ⭐ WICHTIG/BALD — Automatische Autor-/Bearbeiter-Erkennung (Auth/Org-Wiring)
+> _Bewusst vorne platziert (Priorität), außerhalb der numerischen Reihenfolge._
+- **Was:** Sobald die **Auth/User-Zuordnung** sauber steht (Login-Identität **`auth.uid()` ↔ interner `users`-Eintrag**
+  eindeutig verknüpft), wird der **handelnde Nutzer automatisch gesetzt** — niemand tippt seinen Namen ein.
+- **Betrifft auf einen Schlag:**
+  - **`notes.created_by`** (Notiz-Autor — heute **NULL**, P4)
+  - **`tasks.assigned_to`** (Zuständig — heute **NULL**, P3)
+  - **Stage-Änderungen / künftige Status-Writes** (wer hat geändert)
+  - das geplante **Aktivitäts-Log** (lebt komplett von „wer hat was gemacht" — **braucht es zwingend**)
+- **Gehört zum Auth/Org-Wiring** (heute noch **Demo-Org-Platzhalter** `DEMO_ORGANIZATION_ID`; vgl. CLAUDE.md
+  „TODO Auth→Org" + `[D6]`). **Voraussetzung klären:** Wie ist `auth.uid()` mit `users.id` verknüpft — gibt es
+  ein **Mapping / `profiles`-Tabelle / FK** (ist `users.id` == `auth.uid()` oder ein separates Feld)?
+- **Warum „bald":** Je weiter wir bauen, desto mehr Stellen sammeln **NULL-Autoren** an, die später nachgezogen
+  werden müssten — und das **Aktivitäts-Log** ist ohne diese Verknüpfung gar nicht baubar.
+
 ### [D1] Lifecycle-Status — Automatik · Zielphase: Automation / Edge Functions
 - **Status heute:** Reine **Anzeige**. `LeadListRow` mappt `contacts.contact_status`
   → Klartext-Label (`hunterMappers.ts` → `CONTACT_STATUS_LABEL`): Neu · Aktiv ·
@@ -301,7 +316,7 @@
 - `src/types/hunter.ts` `Deal` hat **kein `product`** (Migration 014 fügte nur die DB-Spalte).
   Beim späteren Produkt-Anzeigen (Pipeline/Deal-Detail) `product?: string` im Typ ergänzen + mappen.
 
-> Anker-Tags `[D1]`–`[D20]` sind im Code referenzierbar (z.B. `hunterMappers.ts` → `[[leads-tab-read]]`).
+> Anker-Tags `[D1]`–`[D21]` sind im Code referenzierbar (z.B. `hunterMappers.ts` → `[[leads-tab-read]]`).
 > Vor Umsetzung eines Punkts: passende Referenz-Doku (`docs/sales_os_edge_functions_v2.md` etc.) lesen.
 
 ---
