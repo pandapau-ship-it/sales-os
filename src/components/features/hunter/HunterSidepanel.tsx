@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DEMO_ORGANIZATION_ID } from '@/lib/org';
-import { getContactDetail, getPipelineSettings, getTasksByContact, createTask, completeTask, softDeleteTask, getNotesByContact, createNote, updateNote, softDeleteNote } from '@/lib/db';
+import { getContactDetail, getPipelineSettings, getTasksByContact, createTask, completeTask, softDeleteTask, getNotesByContact, createNote, updateNote, softDeleteNote, getDealsByContact } from '@/lib/db';
 import { contactToProfile, contactActiveStage } from '@/lib/hunterMappers';
 import {
   ArrowUpRight, ArrowLeft, X, Mail, Phone, Clock, Check,
@@ -184,6 +184,13 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
     mutationFn: (noteId: string) => softDeleteNote(noteId, DEMO_ORGANIZATION_ID),
     onSuccess: () => { invalidateNotes(); showToast('Notiz gelöscht ✓'); },
     onError: (e) => showToast(`Löschen fehlgeschlagen: ${(e as Error).message}`),
+  });
+
+  // P5a — Deals-Tab: echte Deals des Kontakts (nur lesen). Stage-Anzeige über stageMap.
+  const dealsQuery = useQuery({
+    queryKey: ['dealsByContact', DEMO_ORGANIZATION_ID, contactId],
+    queryFn: () => getDealsByContact(DEMO_ORGANIZATION_ID, contactId as string),
+    enabled: !!contactId && isOpen,
   });
 
 
@@ -384,6 +391,8 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
             autoEdit={dealsAutoEdit}
             autoNew={dealsAutoNew}
             onAutoEditConsumed={() => { setDealsAutoEdit(false); setDealsAutoNew(false); }}
+            dealRows={dealsQuery.data ?? []}
+            stageNameBySlug={stageMap}
           />
         )}
 

@@ -1,9 +1,9 @@
 /**
- * DealsListe — Deal-Tab (820px-Panel + Vollansicht): listet die Deals des Kontakts
- * (Betrag/Stage/Owner/Abschluss/ARR/MRR) und legt über „Neuer Deal" neue an — mit dem
- * geteilten Formular `NewDealCard` (identisch zu „SDR Lead hinzufügen"). Bearbeiten/
- * Löschen on-hover (HOVER_ACTIONS). Datengetrieben (DealItem) + Default-Mock — das System
- * spielt echte Deals später 1:1 ein. Tokens-only.
+ * DealsListe — Deal-Tab (820px-Panel + Vollansicht).
+ * Panel-Modus (`dealRows`): **P5a nur lesen** — echte Deals des Kontakts (Name/Produkt/
+ * Stage/Wert/Owner/Abschluss); arr/mrr entfallen (kein DB-Pendant); leer → ruhiger Hinweis.
+ * Anlegen/Bearbeiten/Löschen kommen später (P5b/P8).
+ * Ohne `dealRows`: Mock (Standalone, `NewDealCard`-Formular, on-hover Edit/Löschen). Tokens-only.
  */
 import { useEffect, useState } from "react";
 import { Plus, Briefcase, Pencil, Trash2, Check } from "lucide-react";
@@ -14,6 +14,83 @@ import NewDealCard, { type DealDraft } from "./NewDealCard";
 interface DealItem extends DealDraft { id: string; stage: string; }
 
 const OWNERS = ["Oliver Sand", "Lena Brandt", "Marc Vogel"];
+
+// ── P5a Read-Modus: echte Deals des Kontakts (nur lesen) ──────────────────────
+/** Eine Read-Deal-Ansicht — nur echte DB-Felder; fehlende → undefined (unsichtbar). */
+type DealView = {
+  id: string;
+  name: string;
+  product?: string;
+  stageLabel: string;     // Slug → Anzeigename (im Screen aufgelöst)
+  valueEur?: number;      // deals.value (Cent) / 100
+  currency: string;
+  owner?: string;         // owner_id → users.full_name
+  closeDate?: string;     // closed_at ?? end_date
+};
+
+function rowToDealView(row: Record<string, any>, stageNameBySlug: Record<string, string>): DealView {
+  return {
+    id: row.id,
+    name: row.name ?? "",
+    product: row.product || undefined,
+    stageLabel: stageNameBySlug[row.stage] ?? row.stage ?? "",
+    valueEur: typeof row.value === "number" ? row.value / 100 : undefined,
+    currency: row.currency ?? "EUR",
+    owner: row.owner?.full_name || undefined,
+    closeDate: row.closed_at ?? row.end_date ?? undefined,
+  };
+}
+
+const money = (v: number, currency: string) =>
+  currency === "EUR" ? `€ ${v.toLocaleString("de-DE")}` : `${currency} ${v.toLocaleString("de-DE")}`;
+const dateLabel = (iso: string) => new Date(iso).toLocaleDateString("de-DE", { day: "2-digit", month: "short", year: "numeric" });
+
+/** Read-only Deals-Liste (P5a): echte Felder, arr/mrr entfallen (kein DB-Pendant); leer → ruhiger Hinweis. */
+function DealsListeReadonly({ items }: { items: DealView[] }) {
+  if (items.length === 0) {
+    return (
+      <div className="space-y-4 animate-fade-in">
+        <span className="text-[10px] font-extrabold text-text-muted uppercase tracking-widest px-1 block">Deals</span>
+        <div className="text-[12px] text-text-muted px-1">Noch keine Deals.</div>
+      </div>
+    );
+  }
+  return (
+    <div className="space-y-4 animate-fade-in">
+      <span className="text-[10px] font-extrabold text-text-muted uppercase tracking-widest px-1 block">Deals</span>
+      <div className="space-y-3">
+        {items.map((d) => {
+          const sub = [
+            d.valueEur != null ? money(d.valueEur, d.currency) : null,
+            d.owner ?? null,
+            d.closeDate ? `Abschluss: ${dateLabel(d.closeDate)}` : null,
+          ].filter(Boolean).join(" · ");
+          return (
+            <div key={d.id} className="p-4 bg-app-surface border border-border rounded-[12px] shadow-sm">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className="w-10 h-10 rounded-[10px] shrink-0 inline-flex items-center justify-center bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)]">
+                    <Briefcase className="w-5 h-5" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-[15px] font-extrabold text-text-primary leading-tight truncate">{d.name}</p>
+                    {sub && <p className="text-[11px] text-text-muted mt-0.5 truncate">{sub}</p>}
+                  </div>
+                </div>
+                {d.stageLabel && <StageBadge stage={d.stageLabel} />}
+              </div>
+              {d.product && (
+                <div className="flex items-center flex-wrap gap-1.5 mt-3">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[var(--signal-teal-bg)] border border-[var(--signal-teal-bg)] text-[var(--sherloq-primary)] text-[10px] font-bold">{d.product}</span>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 const DEFAULT_DEALS: DealItem[] = [
   { id: "d1", name: "LogixFlow — Enterprise", product: "Enterprise", value: "24000", owner: "Oliver Sand", arr: "24000", mrr: "2000", close: "2026-09-30", stage: "Demo vereinbart" },
@@ -27,6 +104,25 @@ const fmtDate = (d: string) => (d ? new Date(d).toLocaleDateString("de-DE", { da
 let seq = 0;
 
 export default function DealsListe({
+  onToast, autoEdit = false, autoNew = false, onAutoEditConsumed, dealRows, stageNameBySlug,
+}: {
+  onToast?: (msg: string) => void;
+  autoEdit?: boolean;
+  autoNew?: boolean;
+  onAutoEditConsumed?: () => void;
+  /** Echte DB-Deal-Zeilen (P5a, nur Read). undefined → Mock (Standalone). */
+  dealRows?: Record<string, any>[];
+  stageNameBySlug?: Record<string, string>;
+}) {
+  // P5a — Panel-Modus: nur lesen (Anlegen/Bearbeiten/Löschen = P5b/P8). Dispatch, damit
+  // die Mock-Hooks nicht hinter einem Early-Return liegen (Rules of Hooks).
+  if (dealRows !== undefined) {
+    return <DealsListeReadonly items={dealRows.map((r) => rowToDealView(r, stageNameBySlug ?? {}))} />;
+  }
+  return <DealsListeMock onToast={onToast} autoEdit={autoEdit} autoNew={autoNew} onAutoEditConsumed={onAutoEditConsumed} />;
+}
+
+function DealsListeMock({
   onToast, autoEdit = false, autoNew = false, onAutoEditConsumed,
 }: { onToast?: (msg: string) => void; autoEdit?: boolean; autoNew?: boolean; onAutoEditConsumed?: () => void }) {
   const [deals, setDeals] = useState<DealItem[]>(DEFAULT_DEALS);

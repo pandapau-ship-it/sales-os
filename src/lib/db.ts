@@ -525,6 +525,27 @@ export async function createNote(
   if (error) throw error;
 }
 
+/**
+ * getDealsByContact — Deals eines Kontakts fürs Panel (P5a, nur Read), neueste zuerst.
+ * Embed: Owner (owner_id → users.full_name). Stage bleibt Slug → Anzeigename mappt der
+ * Screen über settings.pipeline_stages (etablierte Stage-Auflösung).
+ */
+export async function getDealsByContact(
+  organizationId: string,
+  contactId: string,
+): Promise<Record<string, unknown>[]> {
+  const client = getSupabaseClient();
+  if (!client) return [];
+  const { data, error } = await client
+    .from("deals")
+    .select(`*, owner:users(full_name)`)
+    .eq("organization_id", organizationId)
+    .eq("contact_id", contactId)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return data ?? [];
+}
+
 /** settings.pipeline_stages (Anzeigenamen/Slugs/Schwellen). Caching am Call-Site (TanStack). */
 export async function getPipelineSettings(
   organizationId: string,
