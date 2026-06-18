@@ -422,7 +422,15 @@
       "delete": "Löschen",
       "confirmDelete": "Aufgabe wirklich löschen?",
       "confirmDeleteNote": "Notiz wirklich löschen?",
-      "edited": "bearbeitet"
+      "edited": "bearbeitet",
+      "newDeal": "Neuer Deal",
+      "dealName": "Deal-Name",
+      "product": "Produkt",
+      "productPlaceholder": "Produkt wählen…",
+      "value": "Wert",
+      "save": "Speichern",
+      "nameRequired": "Bitte einen Deal-Namen eingeben",
+      "noDeals": "Noch keine Deals"
     }
   }
 }

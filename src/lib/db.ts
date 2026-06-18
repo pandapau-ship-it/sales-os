@@ -546,6 +546,46 @@ export async function getDealsByContact(
   return data ?? [];
 }
 
+/** getProducts — aktive Produkte der Org (Katalog, P5b), nach Name. Speist das Deal-Produkt-Dropdown. */
+export async function getProducts(
+  organizationId: string,
+): Promise<Record<string, unknown>[]> {
+  const client = getSupabaseClient();
+  if (!client) return [];
+  const { data, error } = await client
+    .from("products")
+    .select("id, name")
+    .eq("organization_id", organizationId)
+    .eq("is_active", true)
+    .order("name", { ascending: true });
+  if (error) throw error;
+  return data ?? [];
+}
+
+/**
+ * createDeal — neuen Deal anlegen (P5b, einfacher User-Write). Audit via DB-Trigger,
+ * keine Edge Function. value: € → Cent (×100). stage = Default `backlog` (kein Stage-Wechsel).
+ * owner_id bleibt NULL (vgl. [D21] — Auto-Set des Session-Users kommt mit Auth/Org-Wiring).
+ * product = gewählter Name aus dem Katalog (konsistente Werte; deals.product bleibt Freitext).
+ */
+export async function createDeal(
+  organizationId: string,
+  deal: { name: string; product?: string; valueEur?: number; contactId?: string },
+): Promise<void> {
+  const client = getSupabaseClient();
+  if (!client) return;
+  const { error } = await client.from("deals").insert({
+    organization_id: organizationId,
+    contact_id: deal.contactId ?? null,
+    name: deal.name,
+    product: deal.product || null,
+    value: deal.valueEur != null ? Math.round(deal.valueEur * 100) : null,
+    currency: "EUR",
+    stage: "backlog",
+  });
+  if (error) throw error;
+}
+
 /** settings.pipeline_stages (Anzeigenamen/Slugs/Schwellen). Caching am Call-Site (TanStack). */
 export async function getPipelineSettings(
   organizationId: string,

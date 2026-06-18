@@ -76,8 +76,15 @@
      ⮑ **Soft-gelöschte Tasks bleiben via `deleted_at` erhalten** → Grundlage für die geplante **Aufgaben-Historie**
        (Aktivität-Tab) + **Statistik** (erledigte/gelöschte über Zeit). Wiederherstellen-UI später, harte Löschung nicht vorgesehen.
    - **P4 — Notizen-Tab:** read + **+Notiz** (`notes`-Insert).
-   - **P5 — Deals-Tab:** read (`getDealsByContact`) + **+Deal** (`deals`-Insert). **Produkt-Katalog-Entscheidung
-     offen** (Freitext `deals.product` vs. eigene `products`-Tabelle) → bei P5 entscheiden.
+   - **P5 — Deals-Tab:** **P5a (read) ✅** (`getDealsByContact`; arr/mrr entfallen, close=closed_at/end_date).
+     **P5b (Deal anlegen) → offen** (`deals`-Insert, einfacher User-Write; Owner = [D21]).
+   - **Produkt-Katalog ✅ ENTSCHIEDEN + Tabelle angelegt (Migration 028):** eigene **`products`**-Tabelle
+     (Stammdaten je Org: id/org_id/name/description?/is_active/created_at/updated_at) + RLS/Audit/Index + **Seed
+     der 6 Defaults** (Starter/Growth/Scale/Enterprise/Enrichment Add-on/Signals Add-on) für die Demo-Org.
+     **NICHT** `system_config`/`settings` (Stammdaten, kein Schwellenwert). **`deals.product` (Freitext) bleibt
+     vorerst** — **P5b** speist das **Dropdown aus `products`** und schreibt den **gewählten Namen** in
+     `deals.product` (→ konsistente Werte). **Spätere Option (nicht jetzt):** `deals.product_id` FK + Daten-Migration
+     für saubere Auswertung „welches Produkt wie oft" · Produkt-**Verwaltung** (CRUD) später.
    - **P6 — Übersichts-Blöcke:** Deal-Setup/Offene-Tasks/Komm-Vorschau **echt** (aus geladenen deals/tasks/messages);
      **KI-Kurzakte/Aktive-Signale/Active-Sequence bleiben deferred (Gruppe B)**.
    - **P7 — Kommunikation:** read aus `messages` (Empty-State); **Versand deferred (Gruppe C)**.

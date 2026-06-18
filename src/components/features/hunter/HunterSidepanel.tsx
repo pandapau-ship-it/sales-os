@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DEMO_ORGANIZATION_ID } from '@/lib/org';
-import { getContactDetail, getPipelineSettings, getTasksByContact, createTask, completeTask, softDeleteTask, getNotesByContact, createNote, updateNote, softDeleteNote, getDealsByContact } from '@/lib/db';
+import { getContactDetail, getPipelineSettings, getTasksByContact, createTask, completeTask, softDeleteTask, getNotesByContact, createNote, updateNote, softDeleteNote, getDealsByContact, getProducts, createDeal } from '@/lib/db';
 import { contactToProfile, contactActiveStage } from '@/lib/hunterMappers';
 import {
   ArrowUpRight, ArrowLeft, X, Mail, Phone, Clock, Check,
@@ -186,11 +186,34 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
     onError: (e) => showToast(`Löschen fehlgeschlagen: ${(e as Error).message}`),
   });
 
-  // P5a — Deals-Tab: echte Deals des Kontakts (nur lesen). Stage-Anzeige über stageMap.
+  // P5a — Deals-Tab: echte Deals des Kontakts (lesen). Stage-Anzeige über stageMap.
   const dealsQuery = useQuery({
     queryKey: ['dealsByContact', DEMO_ORGANIZATION_ID, contactId],
     queryFn: () => getDealsByContact(DEMO_ORGANIZATION_ID, contactId as string),
     enabled: !!contactId && isOpen,
+  });
+  // P5b — Produkt-Katalog (Dropdown) + Deal anlegen.
+  const productsQuery = useQuery({
+    queryKey: ['products', DEMO_ORGANIZATION_ID],
+    queryFn: () => getProducts(DEMO_ORGANIZATION_ID),
+  });
+  const productOptions = (productsQuery.data ?? []).map((p) => (p as { name: string }).name);
+  const createDealMutation = useMutation({
+    mutationFn: (v: { name: string; product: string; value: string }) =>
+      createDeal(DEMO_ORGANIZATION_ID, {
+        name: v.name,
+        product: v.product || undefined,
+        valueEur: v.value && !Number.isNaN(Number(v.value)) ? Number(v.value) : undefined, // € → Cent in createDeal
+        contactId: contactId as string,
+      }),
+    onSuccess: () => {
+      // Alle von Deals abhängigen Listen mit-invalidieren → neuer Deal sofort überall (ohne Reload):
+      queryClient.invalidateQueries({ queryKey: ['dealsByContact', DEMO_ORGANIZATION_ID, contactId] }); // Panel
+      queryClient.invalidateQueries({ queryKey: ['deals', DEMO_ORGANIZATION_ID] });                     // Pipeline Liste/Kanban + Übersicht-KPIs/Funnel
+      queryClient.invalidateQueries({ queryKey: ['newInPipeline', DEMO_ORGANIZATION_ID] });              // Neu-in-Pipeline-Tab
+      showToast('Deal angelegt ✓');
+    },
+    onError: (e) => showToast(`Anlegen fehlgeschlagen: ${(e as Error).message}`), // nicht still abfangen
   });
 
 
@@ -393,6 +416,8 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
             onAutoEditConsumed={() => { setDealsAutoEdit(false); setDealsAutoNew(false); }}
             dealRows={dealsQuery.data ?? []}
             stageNameBySlug={stageMap}
+            productOptions={productOptions}
+            onCreateDeal={(v) => createDealMutation.mutate(v)}
           />
         )}
 
