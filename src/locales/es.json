@@ -414,7 +414,9 @@
       "soon": "Bald verfügbar",
       "noTasks": "Keine Aufgaben",
       "delete": "Löschen",
-      "confirmDelete": "Aufgabe wirklich löschen?"
+      "confirmDelete": "Aufgabe wirklich löschen?",
+      "confirmDeleteNote": "Notiz wirklich löschen?",
+      "edited": "bearbeitet"
     }
   }
 }

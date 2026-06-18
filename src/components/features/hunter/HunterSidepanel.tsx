@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DEMO_ORGANIZATION_ID } from '@/lib/org';
-import { getContactDetail, getPipelineSettings, getTasksByContact, createTask, completeTask, softDeleteTask, getNotesByContact, createNote } from '@/lib/db';
+import { getContactDetail, getPipelineSettings, getTasksByContact, createTask, completeTask, softDeleteTask, getNotesByContact, createNote, updateNote, softDeleteNote } from '@/lib/db';
 import { contactToProfile, contactActiveStage } from '@/lib/hunterMappers';
 import {
   ArrowUpRight, ArrowLeft, X, Mail, Phone, Clock, Check,
@@ -169,13 +169,21 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
     queryFn: () => getNotesByContact(DEMO_ORGANIZATION_ID, contactId as string),
     enabled: !!contactId && isOpen,
   });
+  const invalidateNotes = () => queryClient.invalidateQueries({ queryKey: ['notesByContact', DEMO_ORGANIZATION_ID, contactId] });
   const createNoteMutation = useMutation({
     mutationFn: (body: string) => createNote(DEMO_ORGANIZATION_ID, contactId as string, body),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notesByContact', DEMO_ORGANIZATION_ID, contactId] });
-      showToast('Notiz angelegt ✓');
-    },
+    onSuccess: () => { invalidateNotes(); showToast('Notiz angelegt ✓'); },
     onError: (e) => showToast(`Notiz fehlgeschlagen: ${(e as Error).message}`), // nicht still abfangen
+  });
+  const updateNoteMutation = useMutation({
+    mutationFn: (v: { id: string; body: string }) => updateNote(v.id, DEMO_ORGANIZATION_ID, v.body),
+    onSuccess: () => { invalidateNotes(); showToast('Notiz aktualisiert ✓'); },
+    onError: (e) => showToast(`Aktualisieren fehlgeschlagen: ${(e as Error).message}`),
+  });
+  const deleteNoteMutation = useMutation({
+    mutationFn: (noteId: string) => softDeleteNote(noteId, DEMO_ORGANIZATION_ID),
+    onSuccess: () => { invalidateNotes(); showToast('Notiz gelöscht ✓'); },
+    onError: (e) => showToast(`Löschen fehlgeschlagen: ${(e as Error).message}`),
   });
 
 
@@ -386,6 +394,8 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
             onAutoComposeConsumed={() => setNotesAutoCompose(false)}
             noteRows={notesQuery.data ?? []}
             onCreate={(body) => createNoteMutation.mutate(body)}
+            onUpdate={(id, body) => updateNoteMutation.mutate({ id, body })}
+            onDelete={(id) => deleteNoteMutation.mutate(id)}
           />
         )}
 

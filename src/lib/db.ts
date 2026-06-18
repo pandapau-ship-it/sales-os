@@ -467,9 +467,41 @@ export async function getNotesByContact(
     .select(`*, author:users(full_name)`)
     .eq("organization_id", organizationId)
     .eq("contact_id", contactId)
+    .is("deleted_at", null) // soft-gelöschte ausblenden
     .order("created_at", { ascending: false });
   if (error) throw error;
   return data ?? [];
+}
+
+/** updateNote — Notiztext bearbeiten (P4b): setzt `content` + `updated_at = now()`, org-gescoped. */
+export async function updateNote(
+  noteId: string,
+  organizationId: string,
+  body: string,
+): Promise<void> {
+  const client = getSupabaseClient();
+  if (!client) return;
+  const { error } = await client
+    .from("notes")
+    .update({ content: body, updated_at: new Date().toISOString() })
+    .eq("id", noteId)
+    .eq("organization_id", organizationId);
+  if (error) throw error;
+}
+
+/** softDeleteNote — Notiz ausblenden (P4b): `deleted_at = now()`, org-gescoped. Bleibt für Historie/Audit. */
+export async function softDeleteNote(
+  noteId: string,
+  organizationId: string,
+): Promise<void> {
+  const client = getSupabaseClient();
+  if (!client) return;
+  const { error } = await client
+    .from("notes")
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("id", noteId)
+    .eq("organization_id", organizationId);
+  if (error) throw error;
 }
 
 /**

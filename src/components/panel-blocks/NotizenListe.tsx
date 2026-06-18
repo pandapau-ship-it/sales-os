@@ -1,10 +1,12 @@
 /**
  * NotizenListe — Notizen-Tab (820px-Panel + Vollansicht): manuelle Notizen mit
- * Datum + Uhrzeit + Autor. „Neue Notiz" öffnet einen Inline-Composer (Textarea),
- * Bearbeiten editiert inline, Bearbeiten/Löschen erscheinen nur bei Hover (HOVER_ACTIONS).
- * Datengetrieben (NotizItem) + Default-Mock — das System spielt echte Notizen später ein.
+ * Datum + Uhrzeit + Autor (+ „bearbeitet"-Hinweis). „Neue Notiz" → Inline-Composer.
+ * Bearbeiten (inline) + Löschen (mit Bestätigung) erscheinen bei Hover (HOVER_ACTIONS).
+ * Panel-Modus (`noteRows`): read/create/update/soft-delete echt (onCreate/onUpdate/onDelete);
+ * ohne `noteRows`: Mock (Standalone).
  */
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Plus, Pencil, Trash2, Check, X } from "lucide-react";
 import { HOVER_ACTIONS } from "@/lib/componentBehavior";
 
@@ -14,6 +16,7 @@ export interface NotizItem {
   date: string; // "12. Mai 2026"
   time: string; // "09:14"
   author: string;
+  edited?: boolean; // updated_at gesetzt → „bearbeitet"-Hinweis
 }
 
 const DEFAULT_NOTES: NotizItem[] = [
@@ -30,6 +33,7 @@ function rowToNotiz(row: Record<string, any>): NotizItem {
     date: d ? d.toLocaleDateString("de-DE", { day: "2-digit", month: "long", year: "numeric" }) : "",
     time: d ? d.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }) : "",
     author: row.author?.full_name ?? "",
+    edited: row.updated_at != null,
   };
 }
 
@@ -39,7 +43,7 @@ const TEXTAREA =
 let seq = 0;
 
 export default function NotizenListe({
-  onToast, autoCompose = false, onAutoComposeConsumed, noteRows, onCreate,
+  onToast, autoCompose = false, onAutoComposeConsumed, noteRows, onCreate, onUpdate, onDelete,
 }: {
   onToast?: (msg: string) => void;
   autoCompose?: boolean;
@@ -47,14 +51,18 @@ export default function NotizenListe({
   /** Echte DB-Notiz-Zeilen (P4). undefined → Mock (Standalone). */
   noteRows?: Record<string, any>[];
   onCreate?: (body: string) => void;
+  onUpdate?: (noteId: string, body: string) => void;
+  onDelete?: (noteId: string) => void;
 }) {
-  const isReal = noteRows !== undefined; // Panel-Modus: read + create echt, Edit/Löschen = später
+  const { t } = useTranslation();
+  const isReal = noteRows !== undefined; // Panel-Modus: read + create + edit + soft-delete echt
   const [localNotes, setLocalNotes] = useState<NotizItem[]>(DEFAULT_NOTES);
   const notes = isReal ? (noteRows ?? []).map(rowToNotiz) : localNotes;
   const [composerOpen, setComposerOpen] = useState(autoCompose);
   const [draft, setDraft] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState("");
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   // autoCompose (Footer „Notiz") nur beim Eintritt anwenden, dann im Parent zurücksetzen.
   useEffect(() => { if (autoCompose) onAutoComposeConsumed?.(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -80,17 +88,25 @@ export default function NotizenListe({
     setComposerOpen(false);
   };
 
-  // Edit/Löschen nur im Mock-Modus (Standalone); im Panel kommt das später (analog Tasks).
   const saveEdit = (id: string) => {
     if (!editDraft.trim()) return;
-    setLocalNotes((prev) => prev.map((n) => (n.id === id ? { ...n, text: editDraft.trim() } : n)));
+    if (isReal) {
+      onUpdate?.(id, editDraft.trim()); // updateNote + invalidate + Toast übernimmt das Panel
+    } else {
+      setLocalNotes((prev) => prev.map((n) => (n.id === id ? { ...n, text: editDraft.trim() } : n)));
+      onToast?.("Notiz aktualisiert ✓");
+    }
     setEditingId(null);
-    onToast?.("Notiz aktualisiert ✓");
   };
 
-  const deleteNote = (id: string) => {
-    setLocalNotes((prev) => prev.filter((n) => n.id !== id));
-    onToast?.("Notiz gelöscht");
+  const confirmDelete = (id: string) => {
+    if (isReal) {
+      onDelete?.(id); // softDeleteNote + invalidate + Toast übernimmt das Panel
+    } else {
+      setLocalNotes((prev) => prev.filter((n) => n.id !== id));
+      onToast?.("Notiz gelöscht");
+    }
+    setConfirmDeleteId(null);
   };
 
   return (
@@ -125,20 +141,38 @@ export default function NotizenListe({
         {notes.map((note) => (
           <div key={note.id} className="group p-4 bg-app-surface border border-border rounded-[12px] shadow-sm">
             <div className="flex items-start justify-between gap-3">
-              <span className="text-[10px] text-text-muted font-bold">{note.date} · {note.time}{note.author ? ` · ${note.author}` : ""}</span>
-              {!isReal && editingId !== note.id && (
+              <span className="text-[10px] text-text-muted font-bold">
+                {note.date} · {note.time}{note.author ? ` · ${note.author}` : ""}
+                {note.edited && <span className="text-text-muted font-semibold italic"> · {t("hunter.panel.edited")}</span>}
+              </span>
+              {editingId !== note.id && confirmDeleteId !== note.id && (
                 <div className={`flex items-center gap-1 shrink-0 ${HOVER_ACTIONS}`}>
-                  <button onClick={() => { setEditingId(note.id); setEditDraft(note.text); }} aria-label="Bearbeiten" data-tip="Bearbeiten" className="w-7 h-7 rounded-full flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-app-bg transition-colors cursor-pointer">
+                  <button onClick={() => { setEditingId(note.id); setEditDraft(note.text); }} aria-label={t("hunter.common.edit")} data-tip={t("hunter.common.edit")} className="w-7 h-7 rounded-full flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-app-bg transition-colors cursor-pointer">
                     <Pencil className="w-3.5 h-3.5" />
                   </button>
-                  <button onClick={() => deleteNote(note.id)} aria-label="Löschen" data-tip="Löschen" className="w-7 h-7 rounded-full flex items-center justify-center text-text-muted hover:text-[var(--signal-urgent-text)] hover:bg-[var(--signal-urgent-bg)] transition-colors cursor-pointer">
+                  <button onClick={() => setConfirmDeleteId(note.id)} aria-label={t("hunter.panel.delete")} data-tip={t("hunter.panel.delete")} className="w-7 h-7 rounded-full flex items-center justify-center text-text-muted hover:text-[var(--signal-urgent-text)] hover:bg-[var(--signal-urgent-bg)] transition-colors cursor-pointer">
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
               )}
             </div>
 
-            {!isReal && editingId === note.id ? (
+            {/* Lösch-Bestätigung (soft delete) — abbrechbar */}
+            {confirmDeleteId === note.id && (
+              <div className="mt-2 px-3 py-2.5 rounded-[10px] bg-[var(--signal-urgent-bg)] flex items-center justify-between gap-3 animate-fade-in">
+                <span className="text-[12px] font-bold text-[var(--signal-urgent-text)]">{t("hunter.panel.confirmDeleteNote")}</span>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button onClick={() => setConfirmDeleteId(null)} className="px-3 py-1.5 rounded-[10px] border border-border bg-app-surface text-text-body text-[11px] font-bold hover:bg-app-bg transition-colors cursor-pointer">
+                    {t("hunter.common.cancel")}
+                  </button>
+                  <button onClick={() => confirmDelete(note.id)} className="px-3 py-1.5 rounded-[10px] bg-[var(--signal-urgent-text)] text-on-accent text-[11px] font-bold hover:opacity-90 transition-opacity cursor-pointer">
+                    {t("hunter.panel.delete")}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {editingId === note.id ? (
               <div className="mt-2 space-y-3">
                 <textarea autoFocus value={editDraft} onChange={(e) => setEditDraft(e.target.value)} className={TEXTAREA} />
                 <div className="flex items-center justify-end gap-2">
