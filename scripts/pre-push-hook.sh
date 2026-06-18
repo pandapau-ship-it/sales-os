@@ -21,6 +21,17 @@ if ! sh scripts/structure-check.sh; then
 fi
 echo ""
 
+# Audit: harte Verstöße (Single-Source, Token-Farben, Heat-Labels, Abstraktion …).
+# node führt die .ts nativ aus; Exit 1 bei FAIL. Mit Terminal blockt der Push,
+# ohne Terminal (Claude Code / CI) wird nur angezeigt (analog Struktur-/DB-Checkliste).
+if ! node scripts/audit.ts; then
+  if { true >/dev/tty; } 2>/dev/null; then
+    echo "Push abgebrochen — Audit-Verstoß beheben (npm run audit)." > /dev/tty
+    exit 1
+  fi
+fi
+echo ""
+
 # Hinweis: git übergibt dem pre-push-Hook die Ref-Liste auf stdin. Die Bestätigung
 # muss daher vom Terminal (/dev/tty) gelesen werden, nicht von stdin. Steht KEIN
 # Terminal zur Verfügung (automatisierter Push durch Claude Code / CI), wird die

@@ -333,6 +333,65 @@ function checkInlineBlocks(): void {
       : 'Keine Inline-Duplikate bestehender panel-blocks (>20 Z.) in features/ + screens/.')
 }
 
+// ── Single Source of Truth: gemeinsame Kontaktwerte nur über contactToProfile ──
+// Gemeinsame, in mehreren Karten/Tabs angezeigte Werte (Name/Jobtitel/Firma/ICP/
+// Heat/Status) kommen ausschließlich über contactToProfile(); Stage über
+// contactActiveStage(). Roh-Feld-Zugriff (.heat_status/.icp_score/.company.name/
+// .first_name/.last_name/.job_title) ist NUR erlaubt: (a) in den Resolvern (Marker
+// /* single-source:allow-start … end */), (b) in db.ts-Queries, (c) in einem
+// Edit-Feld (Zeile mit `// single-source-ok: <grund>`). „Gleiche Ausgabe = gleiche Quelle."
+
+function checkSingleSourceContactValues(): void {
+  // Scope: components/** + lib/hunterMappers.ts. Ausgenommen: db.ts, types/, theme.ts.
+  const mappers = join(SRC, 'lib', 'hunterMappers.ts')
+  const files = [...walk(join(SRC, 'components'), ['.ts', '.tsx']), mappers].filter(existsSync)
+
+  const FAIL_PAT = /\.heat_status\b/                       // sicher: Heat nie roh im Anzeige-Layer
+  const WARN_PATS = [
+    /\.icp_score\b/,
+    /\.company\s*\??\.\s*name\b/,
+    /\.(first_name|last_name|job_title)\b/,
+  ]
+
+  const failHits: string[] = []
+  const warnHits: string[] = []
+
+  for (const f of files) {
+    const raw = read(f)
+    const rawLines = raw.split('\n')
+    // 1) Erlaubte Resolver-Regionen aus dem ROH-Text bestimmen (vor Kommentar-Strip).
+    const allowed: boolean[] = new Array(rawLines.length).fill(false)
+    let inAllow = false
+    rawLines.forEach((l, i) => {
+      if (l.includes('single-source:allow-start')) inAllow = true
+      if (inAllow) allowed[i] = true
+      if (l.includes('single-source:allow-end')) inAllow = false
+    })
+    // 2) Kommentare neutralisieren (Block + Zeile), Zeilennummern bleiben erhalten.
+    const noBlock = raw.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '))
+    const lines = noBlock.split('\n').map((l) => l.replace(/\/\/.*$/, ''))
+    // 3) Matchen — Resolver-Regionen + `single-source-ok`-Zeilen überspringen.
+    lines.forEach((l, i) => {
+      if (allowed[i]) return
+      if (rawLines[i].includes('single-source-ok')) return
+      const loc = `${rel(f)}:${i + 1}`
+      if (FAIL_PAT.test(l)) failHits.push(loc)
+      else if (WARN_PATS.some((p) => p.test(l))) warnHits.push(loc)
+    })
+  }
+
+  if (failHits.length) {
+    add('Single-Source: Kontaktwerte', 'FAIL',
+      `Roh-Zugriff auf .heat_status statt contactToProfile („gleiche Ausgabe = gleiche Quelle“):\n        ${failHits.join('\n        ')}`)
+  } else if (warnHits.length) {
+    add('Single-Source: Kontaktwerte', 'WARN',
+      `Roh-Zugriff auf icp_score/company.name/first_name/last_name/job_title — über contactToProfile lösen (legit nur in Edit-Feldern, dann Zeile mit // single-source-ok: <grund>):\n        ${warnHits.join('\n        ')}`)
+  } else {
+    add('Single-Source: Kontaktwerte', 'PASS',
+      'Gemeinsame Kontaktwerte laufen über contactToProfile/contactActiveStage.')
+  }
+}
+
 // ── Run ──────────────────────────────────────────────────────────────────────
 
 checkDatabase()
@@ -348,6 +407,7 @@ checkHardcodedColors()
 checkForbiddenHeatLabels()
 checkPopoverInputFocus()
 checkInlineBlocks()
+checkSingleSourceContactValues()
 
 // ── Report ───────────────────────────────────────────────────────────────────
 

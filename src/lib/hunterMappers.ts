@@ -53,6 +53,8 @@ export type ContactProfile = {
   statusLabel?: string; // contact_status → Lifecycle-Label
 };
 
+/* single-source:allow-start — DIE zentrale Resolver-Region: HIER (und nur hier) ist
+   der Roh-Zugriff auf gemeinsame Kontaktwerte erlaubt (Single-Source-Audit). */
 export function contactToProfile(c: Record<string, any> | null | undefined): ContactProfile {
   const name = c
     ? [c.first_name, c.last_name].filter(Boolean).join(" ") || c.email || "Unbekannt"
@@ -74,6 +76,7 @@ export function contactToProfile(c: Record<string, any> | null | undefined): Con
     statusLabel: c?.contact_status ? CONTACT_STATUS_LABEL[c.contact_status] : undefined,
   };
 }
+/* single-source:allow-end */
 
 // Lead + Leads-Zeilen-spezifische Anzeigefelder (LeadListRow liest `lead: any`).
 export type LeadRow = Lead & {
@@ -190,6 +193,7 @@ export type SignalCardProps = {
 const TERMINAL_STAGES = new Set(["gewonnen", "verloren"]);
 const ms = (x: any) => new Date(x ?? 0).getTime();
 
+/* single-source:allow-start — Stage-Resolver (zentrale Quelle der aktiven-Deal-Stage). */
 /**
  * latestActiveDeal — jüngster NICHT-terminaler Deal eines Kontakts (offene Pipeline).
  * Terminal = stage gewonnen/verloren oder closed_at gesetzt. Recency: updated_at,
@@ -221,6 +225,7 @@ export function contactActiveStage(
   const d = latestActiveDeal(contact?.deals);
   return d ? stageNameBySlug[d.stage] ?? d.stage : undefined;
 }
+/* single-source:allow-end */
 
 // ── Neu in Pipeline (Read): frisch angelegter Deal → Kontakt-Kachel + Stage ──────
 // „Neu in Pipeline" = kürzlich angelegte Deals (deals.created_at) als Info-/Übersicht.

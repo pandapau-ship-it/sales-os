@@ -1937,6 +1937,23 @@ berechnet/gesetzt (das kommt per Edge Functions, siehe PROGRESS → Deferred Log
   *(Ausnahme Heat: jeder Kontakt hat per Definition einen echten Heat-Wert; „Gone/DEAD" ist eine gültige
   Aussage, kein Platzhalter — daher rendert das Heat-Badge dort regulär.)*
 
+**Single Source of Truth — Kontakt-/Anzeigewerte (erzwungen, `audit.ts` + pre-push):**
+Gemeinsame, in mehreren Karten/Tabs angezeigte Werte (**Name, Jobtitel, Firma, Initialen, ICP, Heat,
+Status**) kommen **ausschließlich** über `contactToProfile(contact)`; die **Stage** über
+`contactActiveStage(contact, stageNameBySlug)`. **Verboten:** Rohfeld-Zugriff (`*.heat_status`,
+`*.icp_score`, Firmen-Embed `*.company.name`, `first_name`/`last_name`/`job_title`) in Komponenten
+oder Mappern, **um denselben Wert anzuzeigen**. Roh-Zugriff ist **nur** erlaubt: (a) **in** den Resolvern
+`contactToProfile`/`contactActiveStage`/`latestActiveDeal` (Marker `/* single-source:allow-start … end */`),
+(b) in `db.ts`-Queries, (c) in einem **Edit-Feld**, das das CRM-Rohfeld bearbeitet (Zeile mit
+`// single-source-ok: <grund>`). Grundsatz: **„Gleiche Ausgabe = gleiche Quelle."** Gilt für **ALLE**
+Module (auch Farmer/AI SDR). **Neuer shared-Wert:** erst in `contactToProfile`/`ContactProfile` ergänzen,
+**dann** konsumieren — nie pro Karte herleiten.
+- **Check:** `checkSingleSourceContactValues()` in `audit.ts` — Scope `components/**` + `hunterMappers.ts`
+  (außerhalb der Resolver-Region); **FAIL** bei `.heat_status` (sicher), **WARN** bei
+  `.icp_score`/`.company.name`/`first_name|last_name|job_title` (heuristisch, Opt-out via Marker).
+  Kommentare/Strings werden vor dem Matchen neutralisiert. **Audit läuft jetzt im pre-push-Hook** →
+  FAIL blockt den Push (mit Terminal), sonst Anzeige.
+
 **Harte Regeln (vom `audit.ts` geprüft):**
 - Komponenten importieren NUR aus `@/lib/*` — **nie** aus `@supabase/supabase-js`
 - Die Supabase-Instanz wird **ausschließlich in `lib/db.ts`** initialisiert
