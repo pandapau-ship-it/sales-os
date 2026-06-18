@@ -83,10 +83,23 @@
    - **P7 — Kommunikation:** read aus `messages` (Empty-State); **Versand deferred (Gruppe C)**.
    - **P8 — Panel-Edits (Write):** Kontaktfeld-Inline-Edit (Write auf `contacts`, audit via Trigger) +
      **Stage-Write via Edge Function** (High-Risk: `audit_log` + Stagnation/`stage_updated_at`).
+   - **PH — Telefon-Mehrfachnummern + Favorit** (eigenes Thema, Modell-Details in der Diagnose 2026-06-18):
+     - **PH1 ✅ (2026-06-18, Migration 026):** Tabelle `contact_phones` (id/org_id/contact_id/number/label/is_primary/created_at)
+       + RLS (`auth_org_id()`) + Index `(org_id, contact_id)` + **partial unique** `(contact_id) WHERE is_primary` (max. 1 Favorit)
+       + `audit_write`-Trigger + **Daten-Migration** (`contacts.phone` → is_primary-Nummer, idempotent). **`contacts.phone` bleibt Legacy.**
+     - **PH2 (Read) + PH3 (Write) → kommen mit P8** (Nummer-Bearbeiten/Favorit-Setzen = Kontakt-Edit-Funktionen):
+       `getContactDetail` embeddet `contact_phones`; `ContactProfile.phones[]` + `phone`=Primär (Fallback Legacy);
+       `PhoneField`/`DetailPhoneList` verdrahten; `addContactPhone`/`updateContactPhone`/`deleteContactPhone`/`setPrimaryPhone`
+       (Favorit **atomar** — partial-unique beachten: andere Favoriten erst zurücksetzen).
+     - **PH4 (Cleanup) → nach P8:** Legacy `contacts.phone` droppen, wenn nichts mehr liest.
    - **Deeplink** (`initialTab`, klein, nach P1): Karte → Panel am Ziel-Tab (Task-Karte → Tasks/Aktivität).
    - **Deferred-Gruppen:** **B** = KI-Kurzakte · „Stagniert"/Next-Step · Active-Sequence · Heat-**Berechnung** ·
      Stage-Write. **C** = Mail-Versand (`lib/sending.ts`) · `activity_log`-Tabelle · `products`-Tabelle ·
      `kurzakte_entries`-Tabelle. _(Korrektur: Kommunikations-Historie hat eine Tabelle `messages` → read = A, nur Versand fehlt.)_
+     ⮑ **User-Wunsch (Aktivität-Tab / `activity_log` mitdenken):** **erledigte/alte Aufgaben als Historie ansehen.**
+       Datenbasis ist bereits da — **soft-gelöschte (`deleted_at`)** und **erledigte (`completed_at`)** Tasks bleiben
+       erhalten. Beim Bau des Aktivität-Tabs/`activity_log` diese Task-Historie (erledigt + gelöscht, mit Zeitpunkt)
+       mit abbilden.
 **C. Realtime** für die Live-Tabellen (`lib/realtime.ts`), Cache-Invalidierung.
 **D. Restliche Mock-Screens** (Neu-in-Pipeline/Follow-ups/Overview Top-5) + AddSdrLeadPanel/Snooze (Writes, Edge Functions).
    ⮑ **Beim Wiring: Produktprinzip „Task-getriebene Leere"** (CLAUDE.md → Design Invariants) — diese Bereiche
@@ -282,6 +295,7 @@
 - **Wo angezeigt:** Ergebnis als Kacheln in der **Hunter-Übersicht** (Top-5-Bereich) **und** in **Mein Tag** — jeweils mit **Deeplink** zum Element. **Einmal zentral bauen, mehrfach anzeigen.**
 - **Gehört zum Regel-/Berechnungs-Thema** (zusammen mit Stagnation **B5/[D4]**, Heat **[D5]**, Scores) — **NICHT** in den Übersicht-Read-Tab. Der Read-Tab zeigt heute nur einen **ruhigen Platzhalter** als Tür (kein Fake, keine Leere).
 - **Status:** Übersicht-KPIs (Pipeline-Wert/Heiße-Signale/Follow-ups) + Funnel (Deals/€ pro Stage) sind **read-seitig echt** (2026-06-18); Top-5 wartet auf diese Regel.
+- **User-Wunsch (Statistik-Kachel, später):** mögliche Übersicht-Kachel **„Anzahl erledigter Aufgaben über Zeit"** — Datenbasis ist da (`tasks.completed_at`, zusätzlich `deleted_at` für gelöschte). **Hinweis:** aussagekräftig erst mit **echter Nutzung über Wochen** (vorher zu wenig Datenpunkte). Gehört zum Statistik-/Berechnungs-Thema, nicht in den Read-Tab.
 
 ### [TS] Deal-Typ ohne `product` — offener Faden
 - `src/types/hunter.ts` `Deal` hat **kein `product`** (Migration 014 fügte nur die DB-Spalte).
