@@ -51,6 +51,12 @@ export type ContactProfile = {
   icpScore?: number;
   heatStatus?: HeatStatus;
   statusLabel?: string; // contact_status → Lifecycle-Label
+  // Kontaktwege (P2) — fehlend → undefined (Zeile/Icon unsichtbar). website = Firmen-Wert
+  // (contacts hat keine eigene Website) aus dem company-Embed; sonst domain.
+  email?: string;
+  phone?: string;
+  linkedinUrl?: string;
+  website?: string;
 };
 
 /* single-source:allow-start — DIE zentrale Resolver-Region: HIER (und nur hier) ist
@@ -74,6 +80,10 @@ export function contactToProfile(c: Record<string, any> | null | undefined): Con
     icpScore: typeof c?.icp_score === "number" ? c.icp_score : undefined,
     heatStatus: c?.heat_status ? DB_HEAT_TO_UI[c.heat_status] : undefined,
     statusLabel: c?.contact_status ? CONTACT_STATUS_LABEL[c.contact_status] : undefined,
+    email: c?.email || undefined,
+    phone: c?.phone || undefined,
+    linkedinUrl: c?.linkedin_url || undefined,
+    website: c?.company?.website || c?.company?.domain || undefined, // Firmen-Website (Kontakt hat keine eigene)
   };
 }
 /* single-source:allow-end */

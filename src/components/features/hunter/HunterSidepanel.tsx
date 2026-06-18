@@ -15,20 +15,8 @@ import {
 import Avatar from '@/components/shared/Avatar';
 import { ActiveSequenceChain, AktiveSignale, AktivitaetsVerlauf, DealSetup, DealsListe, DetailField, DetailPhoneList, DetailSection, HeatBadge, KiKurzakte, KommunikationPreview, KommunikationVerlauf, KontaktZeile, MailComposer, NotizenListe, OffeneTasks, PanelTabs, StageBadge, StatusBadge, TasksListe } from '@/components';
 
-/** Mock-Defaults für die vom User editierbaren Felder (kein System-Wert). */
-const DEFAULT_CONTACT = {
-  email: 'c.brand@logixflow.de',
-  linkedin: 'in/christianbrand',
-  web: 'logixflow.de',
-};
-
-/** Mehrere Telefonnummern — Favorit erscheint inline, Rest im Popover. Reihenfolge stabil. */
+/** Telefon-Eintrag (Favorit inline, Rest im Popover bei P8-Edit). */
 interface Phone { id: string; type: string; number: string; favorite: boolean }
-const DEFAULT_PHONES: Phone[] = [
-  { id: 'p1', type: 'Mobil', number: '+49 170 1234567', favorite: true },
-  { id: 'p2', type: 'Geschäftlich', number: '+49 89 9876543', favorite: false },
-  { id: 'p3', type: 'Privat', number: '+49 30 5551234', favorite: false },
-];
 const DEFAULT_KURZAKTE = [
   'Refactoring der Outreach-Struktur gestartet — sucht aktiv ein Tool zur Senkung der SDR Ramp-Up-Time.',
   'Persönlichkeit: analytisch & datengetrieben — reagiert auf klare ROI-Argumentation, wenig Smalltalk.',
@@ -82,8 +70,8 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Vom User editierbare Felder (kein System-Wert) — lokaler Mock-State.
-  const [contact, setContact] = useState(DEFAULT_CONTACT);
-  const [phones, setPhones] = useState<Phone[]>(DEFAULT_PHONES);
+  const [contact, setContact] = useState({ email: '', linkedin: '', web: '' });
+  const [phones, setPhones] = useState<Phone[]>([]);
   const [kurzakte, setKurzakte] = useState<string[]>(DEFAULT_KURZAKTE);
   const [details, setDetails] = useState(DEFAULT_DETAILS);
   const setDetail = (k: keyof typeof DEFAULT_DETAILS, v: string) => { setDetails((d) => ({ ...d, [k]: v })); showToast('Gespeichert'); };
@@ -93,9 +81,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
   useEffect(() => {
     if (personProp) {
       setDisplay(personProp);
-      // Editierbare Felder beim Öffnen auf den Stand des Kontakts zurücksetzen.
-      setContact(DEFAULT_CONTACT);
-      setPhones(DEFAULT_PHONES);
+      // Editierbare Felder beim Öffnen zurücksetzen (Kontaktzeile wird unten aus dem Fetch geseedet).
       setKurzakte(DEFAULT_KURZAKTE);
       setDetails(DEFAULT_DETAILS);
       // Karten-Aktion: Panel direkt mit der passenden Aktion öffnen.
@@ -125,6 +111,14 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
   const profile = contactToProfile(contactRow);              // zentrale Leitung
   const activeStage = contactActiveStage(contactRow, stageMap); // Stage = zuletzt aktiver Deal
   const headLoading = !!contactId && contactQuery.isLoading && !contactRow;
+
+  // P2 — Kontaktzeile aus dem echten Kontakt seeden (email/phone/linkedin_url + Firmen-Website).
+  // Werte zentral über contactToProfile; fehlend → leer → Read-Zeile blendet das Element aus.
+  useEffect(() => {
+    if (!contactRow) return;
+    setContact({ email: profile.email ?? '', linkedin: profile.linkedinUrl ?? '', web: profile.website ?? '' });
+    setPhones(profile.phone ? [{ id: 'p1', type: 'Telefon', number: profile.phone, favorite: true }] : []);
+  }, [contactRow]); // eslint-disable-line react-hooks/exhaustive-deps
 
 
   const showToast = (message: string) => {
@@ -229,6 +223,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
   const FIELD_LABEL: Record<'email' | 'linkedin' | 'web', string> = { email: 'E-Mail', linkedin: 'LinkedIn', web: 'Webadresse' };
   const contactPill = (
     <KontaktZeile
+      readonly
       contact={contact}
       phones={phones}
       onSaveField={(f, v) => { setContact((c) => ({ ...c, [f]: v })); showToast(`${FIELD_LABEL[f]} gespeichert`); }}
