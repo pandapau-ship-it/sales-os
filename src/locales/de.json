@@ -413,6 +413,14 @@
     "chain": {
       "header": "Kommunikationskette — Hover für Details",
       "sentiment": "Sentiment"
+    },
+    "panel": {
+      "copy": "Kopieren",
+      "editComing": "Bearbeiten folgt",
+      "soon": "Bald verfügbar",
+      "noTasks": "Keine Aufgaben",
+      "delete": "Löschen",
+      "confirmDelete": "Aufgabe wirklich löschen?"
     }
   }
 }

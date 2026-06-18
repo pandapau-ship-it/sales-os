@@ -46,13 +46,25 @@ const CHANNELS: { key: string; Icon: LucideIcon | typeof LinkedinIcon }[] = [
 
 const PRIORITIES = ["low", "medium", "high", "urgent"] as const;
 
+export interface TaskFormValues {
+  title: string;
+  description: string;
+  channel: string; // 'mail' | 'linkedin' | 'phone' | 'calendar' | 'other' (Caller mappt mail→email)
+  priority: string;
+  dueDate: string;
+  dueTime: string;
+  deal: string; // Deal-Value (echte deal.id) oder 'none'
+}
+
 export default function TaskFormular({
-  mode = "create", initial = {}, onClose, onSave, onToast,
+  mode = "create", initial = {}, dealOptions, onClose, onSave,
 }: {
   mode?: "create" | "edit";
   initial?: TaskFormInitial;
+  /** Echte Deals des Kontakts (P3). Fehlt → nur „Kein Deal". */
+  dealOptions?: { value: string; label: string }[];
   onClose: () => void;
-  onSave: () => void;
+  onSave: (values: TaskFormValues) => void;
   onToast?: (msg: string) => void;
 }) {
   const { t } = useTranslation();
@@ -62,21 +74,16 @@ export default function TaskFormular({
   const [channel, setChannel] = useState(initial.channel ?? "mail");
   const [priority, setPriority] = useState(initial.priority ?? "medium");
   const [dueDate, setDueDate] = useState(initial.dueDate ?? plusDays(2));
-  const [reminderActive, setReminderActive] = useState(initial.reminderActive ?? false);
-  const [reminderDate, setReminderDate] = useState(initial.reminderDate ?? plusDays(1));
-  const [reminderTime, setReminderTime] = useState(initial.reminderTime ?? "09:00");
-
-  const toggleReminder = () => {
-    onToast?.(reminderActive ? t("hunter.drawers.noTask.toastReminderOff") : t("hunter.drawers.noTask.toastReminderOn"));
-    setReminderActive((v) => !v);
-  };
+  const [dueTime, setDueTime] = useState(initial.dueTime ?? "09:00");
+  const [description, setDescription] = useState(initial.description ?? "");
+  const [deal, setDeal] = useState(initial.deal ?? "none");
 
   const handleSave = () => {
     if (!title.trim()) {
       setIsError(true);
       return;
     }
-    onSave();
+    onSave({ title: title.trim(), description, channel, priority, dueDate, dueTime, deal });
   };
 
   return (
@@ -116,20 +123,21 @@ export default function TaskFormular({
               <label className={LABEL}>{t("hunter.drawers.noTask.contact")}</label>
               <input
                 type="text"
-                value={initial.contact ?? "Sarah Jenkins"}
+                value={initial.contact ?? ""}
                 readOnly
                 className={`${INPUT} cursor-not-allowed text-text-muted`}
               />
             </div>
             <div className="space-y-1.5">
               <label className={LABEL}>{t("hunter.drawers.noTask.deal")}</label>
-              <Select defaultValue={initial.deal ?? "demo"}>
+              <Select value={deal} onValueChange={setDeal}>
                 <SelectTrigger className="w-full px-3.5 py-2.5 rounded-[10px] border-border bg-app-bg text-[13px] font-semibold text-text-primary">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="demo">Demo vereinbart</SelectItem>
-                  <SelectItem value="enterprise">Enterprise Upgrade (24.000€)</SelectItem>
+                  {(dealOptions ?? []).map((o) => (
+                    <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                  ))}
                   <SelectItem value="none">Kein Deal verknüpft</SelectItem>
                 </SelectContent>
               </Select>
@@ -158,7 +166,8 @@ export default function TaskFormular({
             <label className={LABEL}>{t("hunter.drawers.noTask.descriptionOptional")}</label>
             <textarea
               rows={5}
-              defaultValue={initial.description ?? ""}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
               className="w-full px-3.5 py-3 rounded-[10px] border border-border bg-app-bg outline-none focus:border-[var(--sherloq-primary)] transition-colors resize-none text-[13px] font-medium leading-relaxed min-h-[120px]"
             />
           </div>
@@ -171,7 +180,7 @@ export default function TaskFormular({
             </div>
             <div className="space-y-1.5">
               <label className={LABEL}>{t("hunter.drawers.noTask.time")}</label>
-              <input type="time" defaultValue={initial.dueTime ?? "09:00"} className={INPUT} />
+              <input type="time" value={dueTime} onChange={(e) => setDueTime(e.target.value)} className={INPUT} />
             </div>
             <div className="space-y-1.5">
               <label className={LABEL}>{t("hunter.drawers.noTask.priority")}</label>
@@ -196,30 +205,21 @@ export default function TaskFormular({
             </div>
           </div>
 
-          {/* Erinnerung */}
+          {/* Erinnerung — ausgegraut/deaktiviert ([D19]: Reminder-Feld + Auslöse-System fehlen) */}
           <div className="space-y-3 border-t border-border-subtle pt-4">
             <div className="flex items-center justify-between">
-              <span className="text-[12px] font-bold text-text-body">{t("hunter.drawers.noTask.reminder")}</span>
-              <button
-                onClick={toggleReminder}
-                aria-label={t("hunter.drawers.noTask.reminder")} data-tip={t("hunter.drawers.noTask.reminder")}
-                className={`w-11 h-6 rounded-full p-0.5 transition-colors cursor-pointer ${reminderActive ? "bg-[var(--sherloq-primary)]" : "bg-border"}`}
-              >
-                <span className={`block w-5 h-5 rounded-full bg-app-surface shadow-sm transition-transform ${reminderActive ? "translate-x-[20px]" : "translate-x-0"}`} />
-              </button>
-            </div>
-            {reminderActive && (
-              <div className="grid grid-cols-2 gap-4 animate-fade-in">
-                <div className="space-y-1.5">
-                  <label className={LABEL}>{t("hunter.drawers.noTask.reminderDay")}</label>
-                  <input type="date" value={reminderDate} onChange={(e) => setReminderDate(e.target.value)} className={INPUT} />
-                </div>
-                <div className="space-y-1.5">
-                  <label className={LABEL}>{t("hunter.drawers.noTask.time")}</label>
-                  <input type="time" value={reminderTime} onChange={(e) => setReminderTime(e.target.value)} className={INPUT} />
-                </div>
+              <span className="text-[12px] font-bold text-text-muted">{t("hunter.drawers.noTask.reminder")}</span>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-bold text-text-muted">{t("hunter.panel.soon")}</span>
+                <button
+                  disabled
+                  aria-label={t("hunter.panel.soon")} data-tip={t("hunter.panel.soon")}
+                  className="w-11 h-6 rounded-full p-0.5 bg-border opacity-50 cursor-not-allowed"
+                >
+                  <span className="block w-5 h-5 rounded-full bg-app-surface shadow-sm translate-x-0" />
+                </button>
               </div>
-            )}
+            </div>
           </div>
         </div>
       </div>

@@ -71,7 +71,10 @@
      `contactToProfile`/`contactActiveStage` — **Heat-Bug (hardcodiertes „Aktiv") behoben, keine Literale mehr**.
      Stage-Dropdown zeigt echte Stage, **noch nicht schreibend** (Tür → P8). Loading/Empty-State.
    - **P2 — Kontaktzeile (read):** email/phone/linkedin/web aus `contacts`.
-   - **P3 — Tasks-Tab:** read (`getTasksByContact`) + **+Task** (`createTask`, prefill) + **complete** (`completeTask`, da).
+   - **P3 — Tasks-Tab:** read (`getTasksByContact`) + **+Task** (`createTask`, prefill) + **complete** (`completeTask`, da)
+     + **soft-delete** (P3b: `softDeleteTask` → `tasks.deleted_at`, Migration 025; alle Task-Queries filtern `deleted_at IS NULL`).
+     ⮑ **Soft-gelöschte Tasks bleiben via `deleted_at` erhalten** → Grundlage für die geplante **Aufgaben-Historie**
+       (Aktivität-Tab) + **Statistik** (erledigte/gelöschte über Zeit). Wiederherstellen-UI später, harte Löschung nicht vorgesehen.
    - **P4 — Notizen-Tab:** read + **+Notiz** (`notes`-Insert).
    - **P5 — Deals-Tab:** read (`getDealsByContact`) + **+Deal** (`deals`-Insert). **Produkt-Katalog-Entscheidung
      offen** (Freitext `deals.product` vs. eigene `products`-Tabelle) → bei P5 entscheiden.

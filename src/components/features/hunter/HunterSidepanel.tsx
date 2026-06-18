@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DEMO_ORGANIZATION_ID } from '@/lib/org';
-import { getContactDetail, getPipelineSettings } from '@/lib/db';
+import { getContactDetail, getPipelineSettings, getTasksByContact, createTask, completeTask, softDeleteTask } from '@/lib/db';
 import { contactToProfile, contactActiveStage } from '@/lib/hunterMappers';
 import {
   ArrowUpRight, ArrowLeft, X, Mail, Phone, Clock, Check,
@@ -120,6 +120,49 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
     setPhones(profile.phone ? [{ id: 'p1', type: 'Telefon', number: profile.phone, favorite: true }] : []);
   }, [contactRow]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // P3 — Tasks-Tab: echte Tasks des Kontakts + Anlegen/Abhaken (erster Panel-Write).
+  const queryClient = useQueryClient();
+  const tasksQuery = useQuery({
+    queryKey: ['tasksByContact', DEMO_ORGANIZATION_ID, contactId],
+    queryFn: () => getTasksByContact(DEMO_ORGANIZATION_ID, contactId as string),
+    enabled: !!contactId && isOpen,
+  });
+  const invalidateTasks = () => {
+    queryClient.invalidateQueries({ queryKey: ['tasksByContact', DEMO_ORGANIZATION_ID, contactId] });
+    queryClient.invalidateQueries({ queryKey: ['dueTasks', DEMO_ORGANIZATION_ID] }); // Follow-ups-Tab mitziehen
+  };
+  // Echte Deals des Kontakts als Auswahl im „Neue Task"-Formular (Deal optional).
+  const dealOptions = ((contactRow?.deals as Record<string, any>[] | undefined) ?? [])
+    .filter((d) => d?.id && d?.name)
+    .map((d) => ({ value: d.id as string, label: d.name as string }));
+  const CH_TO_DB: Record<string, string> = { mail: 'email', linkedin: 'linkedin', phone: 'phone', calendar: 'calendar', other: 'other' };
+  const createTaskMutation = useMutation({
+    mutationFn: (v: { title: string; description: string; channel: string; priority: string; dueDate: string; dueTime: string; deal: string }) =>
+      createTask({
+        organizationId: DEMO_ORGANIZATION_ID,
+        contactId: contactId as string,
+        dealId: v.deal && v.deal !== 'none' ? v.deal : undefined,
+        title: v.title,
+        description: v.description || undefined,
+        channel: CH_TO_DB[v.channel] ?? 'other',         // mail→email
+        dueAt: new Date(`${v.dueDate}T${v.dueTime || '09:00'}:00`).toISOString(),
+        priority: v.priority,
+        source: 'manual',                                  // assigned_to bleibt NULL (P3)
+      }),
+    onSuccess: () => { invalidateTasks(); showToast('Task angelegt ✓'); },
+    onError: (e) => showToast(`Anlegen fehlgeschlagen: ${(e as Error).message}`), // nicht still abfangen
+  });
+  const completeTaskMutation = useMutation({
+    mutationFn: (taskId: string) => completeTask(taskId, DEMO_ORGANIZATION_ID),
+    onSuccess: () => { invalidateTasks(); showToast('Task erledigt ✓'); },
+    onError: (e) => showToast(`Abhaken fehlgeschlagen: ${(e as Error).message}`),
+  });
+  const deleteTaskMutation = useMutation({
+    mutationFn: (taskId: string) => softDeleteTask(taskId, DEMO_ORGANIZATION_ID),
+    onSuccess: () => { invalidateTasks(); showToast('Aufgabe gelöscht ✓'); },
+    onError: (e) => showToast(`Löschen fehlgeschlagen: ${(e as Error).message}`), // nicht still abfangen
+  });
+
 
   const showToast = (message: string) => {
     setToastMessage(message);
@@ -224,6 +267,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
   const contactPill = (
     <KontaktZeile
       readonly
+      onCopied={() => showToast('Kopiert ✓')}
       contact={contact}
       phones={phones}
       onSaveField={(f, v) => { setContact((c) => ({ ...c, [f]: v })); showToast(`${FIELD_LABEL[f]} gespeichert`); }}
@@ -298,7 +342,17 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
         )}
 
         {activeTab === 'tasks' && (
-          <TasksListe onToast={showToast} autoEditId={tasksAutoEditId} onAutoEditConsumed={() => setTasksAutoEditId(null)} />
+          <TasksListe
+            onToast={showToast}
+            autoEditId={tasksAutoEditId}
+            onAutoEditConsumed={() => setTasksAutoEditId(null)}
+            taskRows={tasksQuery.data ?? []}
+            contactName={profile.name}
+            dealOptions={dealOptions}
+            onCreate={(v) => createTaskMutation.mutate(v)}
+            onComplete={(id) => completeTaskMutation.mutate(id)}
+            onDelete={(id) => deleteTaskMutation.mutate(id)}
+          />
         )}
 
         {activeTab === 'deals' && (

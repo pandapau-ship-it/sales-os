@@ -279,7 +279,7 @@ export async function getContactDetail(
   const { data, error } = await client
     .from("contacts")
     .select(
-      `*, ${CONTACT_COMPANY_EMBED}, deals(stage, updated_at, stage_updated_at, closed_at, created_at)`,
+      `*, ${CONTACT_COMPANY_EMBED}, deals(id, name, stage, updated_at, stage_updated_at, closed_at, created_at)`,
     )
     .eq("organization_id", organizationId)
     .eq("id", contactId)
@@ -308,6 +308,7 @@ export async function getDueTasks(
       `id, title, due_at, priority, channel, contact:contacts(*, ${CONTACT_COMPANY_EMBED}, deals(stage, updated_at, stage_updated_at, closed_at, created_at))`,
     )
     .eq("organization_id", organizationId)
+    .is("deleted_at", null) // soft-gelöschte ausblenden
     .is("completed_at", null)
     .lte("due_at", nowIso)
     .order("due_at", { ascending: true })
@@ -381,13 +382,56 @@ export async function completeTask(
   if (error) throw error;
 }
 
-/** Task anlegen. Audit-Log via DB-Trigger. */
+/**
+ * getTasksByContact — alle Tasks eines Kontakts fürs Panel (P3). Offene zuerst
+ * (completed_at NULL), dann nach Fälligkeit; erledigte abgesetzt unten.
+ * Embed: Deal-Name (Deal-Bezug) + Zuständige:r (assigned_to → users.full_name).
+ */
+export async function getTasksByContact(
+  organizationId: string,
+  contactId: string,
+): Promise<Record<string, unknown>[]> {
+  const client = getSupabaseClient();
+  if (!client) return [];
+  const { data, error } = await client
+    .from("tasks")
+    .select(`*, deal:deals(name), assignee:users(full_name)`)
+    .eq("organization_id", organizationId)
+    .eq("contact_id", contactId)
+    .is("deleted_at", null) // soft-gelöschte ausblenden
+    .order("completed_at", { ascending: true, nullsFirst: true }) // offene (NULL) zuerst
+    .order("due_at", { ascending: true });
+  if (error) throw error;
+  return data ?? [];
+}
+
+/**
+ * softDeleteTask — Task ausblenden (soft delete): `deleted_at = now()`, org-gescoped.
+ * Bleibt für Historie/Audit erhalten (Audit via DB-Trigger). Fällt danach aus allen
+ * aktiven Task-Listen (deleted_at IS NULL-Filter). Harte Löschung NICHT vorgesehen.
+ */
+export async function softDeleteTask(
+  taskId: string,
+  organizationId: string,
+): Promise<void> {
+  const client = getSupabaseClient();
+  if (!client) return;
+  const { error } = await client
+    .from("tasks")
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("id", taskId)
+    .eq("organization_id", organizationId);
+  if (error) throw error;
+}
+
+/** Task anlegen (P3, erster Panel-Write). Audit-Log via DB-Trigger; RLS = eingeloggter User. */
 export async function createTask(task: {
   organizationId: string;
   contactId?: string;
   dealId?: string;
   title: string;
   description?: string;
+  channel?: string; // email | linkedin | phone | calendar | other (Caller mappt mail→email)
   dueAt: string;
   priority: string;
   source: "manual";
@@ -400,6 +444,7 @@ export async function createTask(task: {
     deal_id: task.dealId ?? null,
     title: task.title,
     description: task.description ?? null,
+    channel: task.channel ?? null,
     due_at: task.dueAt,
     priority: task.priority,
     source: task.source,
