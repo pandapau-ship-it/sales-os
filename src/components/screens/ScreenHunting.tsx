@@ -623,7 +623,7 @@ export default function ScreenHunting({
                       <HeatBadge status={deal.heatStatus} />
                     </div>
                     <button
-                      onClick={() => setInfoPanelLead(makeLead(deal.id, deal.contactName, deal.contactJobTitle, deal.company, deal.initials, 75))}
+                      onClick={() => setInfoPanelLead(makeLead(deal.contactId ?? deal.id, deal.contactName, deal.contactJobTitle, deal.company, deal.initials, 75))}
                       className="w-8 h-8 rounded-full bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)] hover:scale-105 transition-all flex items-center justify-center shadow-sm cursor-pointer shrink-0"
                     >
                       <ArrowRight className="w-4 h-4" />

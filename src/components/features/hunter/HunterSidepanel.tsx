@@ -1,4 +1,8 @@
 import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { DEMO_ORGANIZATION_ID } from '@/lib/org';
+import { getContactDetail, getPipelineSettings } from '@/lib/db';
+import { contactToProfile, contactActiveStage } from '@/lib/hunterMappers';
 import {
   ArrowUpRight, ArrowLeft, X, Mail, Phone, Clock, Check,
   ChevronDown, Plus, Briefcase,
@@ -10,9 +14,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import Avatar from '@/components/shared/Avatar';
 import { ActiveSequenceChain, AktiveSignale, AktivitaetsVerlauf, DealSetup, DealsListe, DetailField, DetailPhoneList, DetailSection, HeatBadge, KiKurzakte, KommunikationPreview, KommunikationVerlauf, KontaktZeile, MailComposer, NotizenListe, OffeneTasks, PanelTabs, StageBadge, StatusBadge, TasksListe } from '@/components';
-
-/** Kanonische Default-Stages (Spec §3.2) — bis zum DB-Wiring dokumentierter Fallback. */
-const PIPELINE_STAGES = ['Backlog', 'Demo vereinbart', 'Follow-up offen', 'Onboarding offen', 'Free Trial', 'Gewonnen'];
 
 /** Mock-Defaults für die vom User editierbaren Felder (kein System-Wert). */
 const DEFAULT_CONTACT = {
@@ -81,7 +82,6 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Vom User editierbare Felder (kein System-Wert) — lokaler Mock-State.
-  const [stage, setStage] = useState<string>('');
   const [contact, setContact] = useState(DEFAULT_CONTACT);
   const [phones, setPhones] = useState<Phone[]>(DEFAULT_PHONES);
   const [kurzakte, setKurzakte] = useState<string[]>(DEFAULT_KURZAKTE);
@@ -94,7 +94,6 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
     if (personProp) {
       setDisplay(personProp);
       // Editierbare Felder beim Öffnen auf den Stand des Kontakts zurücksetzen.
-      setStage(personProp.stage || 'Demo vereinbart');
       setContact(DEFAULT_CONTACT);
       setPhones(DEFAULT_PHONES);
       setKurzakte(DEFAULT_KURZAKTE);
@@ -107,6 +106,25 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
   }, [personProp, initialAction]); // eslint-disable-line react-hooks/exhaustive-deps
   const isOpen = personProp !== null;
   const person = display;
+
+  // P1 — Single-Source-Kopf: person.id trägt die echte contact_id → Kontakt laden.
+  // Name/Jobtitel/Firma/Initialen/ICP/Heat/Status NUR über contactToProfile; Stage über
+  // contactActiveStage. KEINE hardcodierten Kopf-Literale mehr (Heat-Bug behoben).
+  const contactId: string | null = person?.id ?? null;
+  const contactQuery = useQuery({
+    queryKey: ['contactDetail', DEMO_ORGANIZATION_ID, contactId],
+    queryFn: () => getContactDetail(DEMO_ORGANIZATION_ID, contactId as string),
+    enabled: !!contactId && isOpen,
+  });
+  const stagesQuery = useQuery({
+    queryKey: ['pipelineStages', DEMO_ORGANIZATION_ID],
+    queryFn: () => getPipelineSettings(DEMO_ORGANIZATION_ID),
+  });
+  const stageMap = Object.fromEntries((stagesQuery.data ?? []).map((s) => [s.slug, s.name]));
+  const contactRow = contactQuery.data ?? null;
+  const profile = contactToProfile(contactRow);              // zentrale Leitung
+  const activeStage = contactActiveStage(contactRow, stageMap); // Stage = zuletzt aktiver Deal
+  const headLoading = !!contactId && contactQuery.isLoading && !contactRow;
 
 
   const showToast = (message: string) => {
@@ -136,21 +154,27 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
   // Wiederverwendbare Inhalts-Fragmente — identisch in Panel (820px) und Vollansicht (Seite).
   const identityBlock = (
     <div className="flex items-center gap-4 min-w-0">
-      <Avatar name={person?.name || "Christian Brand"} src={person?.avatarUrl} size={64} className="shadow-sm" />
+      <Avatar name={profile.name} src={profile.avatarUrl} size={64} className="shadow-sm" />
       <div className="min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
           <h1 className="text-[20px] font-extrabold text-text-primary leading-tight">
-            {person?.name || "Dr. Christian Brand"}
+            {headLoading ? '…' : profile.name}
           </h1>
-          <span className="px-2.5 py-1 rounded-full bg-[var(--signal-success-bg)] border border-[var(--signal-success-bg)] text-[var(--signal-success-text)] text-[10px] font-extrabold">
-            ICP: 87
-          </span>
+          {profile.icpScore != null && (
+            <span className="px-2.5 py-1 rounded-full bg-[var(--signal-success-bg)] border border-[var(--signal-success-bg)] text-[var(--signal-success-text)] text-[10px] font-extrabold">
+              ICP: {profile.icpScore}
+            </span>
+          )}
         </div>
         <div className="flex items-center gap-2 text-[12px] font-semibold text-text-muted mt-2 leading-none flex-wrap">
-          <span>{person?.title || "VP of Sales EMEA"}</span>
-          <span className="text-icon-muted">•</span>
-          <span className="px-1.5 py-0.5 rounded bg-[var(--text-primary)] text-on-accent text-[9px] font-bold">L</span>
-          <span className="font-semibold text-text-body">{person?.company || "LogixFlow GmbH"}</span>
+          {profile.jobTitle && <span>{profile.jobTitle}</span>}
+          {profile.jobTitle && profile.company && <span className="text-icon-muted">•</span>}
+          {profile.company && (
+            <>
+              <span className="px-1.5 py-0.5 rounded bg-[var(--text-primary)] text-on-accent text-[9px] font-bold">{profile.company.charAt(0).toUpperCase()}</span>
+              <span className="font-semibold text-text-body">{profile.company}</span>
+            </>
+          )}
         </div>
       </div>
     </div>
@@ -158,41 +182,42 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
 
   const statusBadgesInner = (
     <>
-      <div className="flex flex-col items-center">
-        <span className="text-[9px] font-extrabold text-text-muted uppercase tracking-widest mb-2">Status</span>
-        <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--signal-success-bg)] text-[var(--signal-success-text)] text-[12px] font-extrabold leading-none">
-          <span className="w-2 h-2 rounded-full bg-[var(--signal-success-text)]"></span>
-          Aktiv
-        </span>
-      </div>
+      {profile.statusLabel && (
+        <div className="flex flex-col items-center">
+          <span className="text-[9px] font-extrabold text-text-muted uppercase tracking-widest mb-2">Status</span>
+          <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-app-bg border border-border text-text-body text-[12px] font-extrabold leading-none">
+            {profile.statusLabel}
+          </span>
+        </div>
+      )}
 
-      <div className="flex flex-col items-center">
-        <span className="text-[9px] font-extrabold text-text-muted uppercase tracking-widest mb-2">Heat</span>
-        <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--signal-success-bg)] text-[var(--signal-success-text)] text-[12px] font-extrabold leading-none">
-          <span className="w-2.5 h-2.5 rounded-full bg-[var(--icp-high)] opacity-90 shadow-sm"></span>
-          Aktiv
-        </span>
-      </div>
+      {profile.heatStatus && (
+        <div className="flex flex-col items-center">
+          <span className="text-[9px] font-extrabold text-text-muted uppercase tracking-widest mb-2">Heat</span>
+          <HeatBadge status={profile.heatStatus} />
+        </div>
+      )}
 
       <div className="flex flex-col items-center">
         <span className="text-[9px] font-extrabold text-text-muted uppercase tracking-widest mb-2">Stage</span>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
+            {/* Stage-Dropdown = sichtbare Tür; Änderung ist Write → P8/Edge Function (deferred). */}
             <button className="px-4 py-1.5 rounded-full bg-app-surface border border-border text-text-body text-[12px] font-extrabold leading-none shadow-sm hover:border-[var(--sherloq-primary)] hover:text-[var(--sherloq-primary)] transition-colors cursor-pointer flex items-center gap-1.5">
-              {stage}
+              {activeStage ?? '—'}
               <ChevronDown className="w-3.5 h-3.5" />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
-            {PIPELINE_STAGES.map((s) => (
+            {[...(stagesQuery.data ?? [])].sort((a, b) => a.order - b.order).map((s) => (
               <DropdownMenuItem
-                key={s}
-                onClick={() => { setStage(s); showToast(`Stage geändert zu „${s}"`); }}
+                key={s.slug}
+                onClick={() => showToast('Stage-Änderung folgt (P8)')}
                 className="cursor-pointer text-[13px] font-semibold"
               >
-                <span className={`w-1.5 h-1.5 rounded-full ${s === stage ? 'bg-[var(--sherloq-primary)]' : 'bg-[var(--border-strong)]'}`} />
-                {s}
-                {s === stage && <Check className="w-3.5 h-3.5 ml-auto text-[var(--sherloq-primary)]" />}
+                <span className={`w-1.5 h-1.5 rounded-full ${s.name === activeStage ? 'bg-[var(--sherloq-primary)]' : 'bg-[var(--border-strong)]'}`} />
+                {s.name}
+                {s.name === activeStage && <Check className="w-3.5 h-3.5 ml-auto text-[var(--sherloq-primary)]" />}
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>
@@ -240,7 +265,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
             <AktiveSignale onAction={(key) => { if (key === 'stagniert') showToast('Next Step geöffnet'); else if (key === 'keine_task') showToast('Task anlegen gestartet'); else setActiveTab('communication'); }} />
 
             <DealSetup
-              stage={stage}
+              stage={activeStage ?? ''}
               count={2}
               onEdit={() => { setDealsAutoEdit(true); setActiveTab('deals'); }}
               onOpenDeals={() => setActiveTab('deals')}

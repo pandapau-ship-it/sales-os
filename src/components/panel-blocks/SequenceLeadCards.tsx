@@ -52,7 +52,8 @@ export const SequenceLeadCards = ({
 
   const buildLead = (it: DueTaskCardItem): Lead => ({
     id: it.id,
-    person: { id: it.id, name: it.name, jobTitle: it.role, company: it.companyName, initials: it.initials },
+    // person.id = echte contact_id (Panel fetcht damit den Kontakt; Fallback task.id öffnet leeres Panel)
+    person: { id: it.contactId ?? it.id, name: it.name, jobTitle: it.role, company: it.companyName, initials: it.initials },
     kurzakte: '', fullTimeline: [], engagementChain: [], lastTouchpoints: [],
     heatStatus: it.heatStatus ?? 'DEAD', heatScore: 0, icpScore: it.icpScore,
     lastActivity: '', pipelineStage: 'pipeline', signalsCount: 0, contactEmail: '',

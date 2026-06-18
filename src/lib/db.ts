@@ -266,6 +266,29 @@ export async function getNewInPipeline(
 }
 
 /**
+ * getContactDetail — ein Kontakt für das 820px-Info-Panel (P1). Embed: Firma (einheitlich)
+ * + lean Deals (für contactActiveStage) — gleiche Leitung wie getContacts/getFollowUps.
+ * Kopf rendert via contactToProfile/contactActiveStage. Kein Treffer → null (Panel leer).
+ */
+export async function getContactDetail(
+  organizationId: string,
+  contactId: string,
+): Promise<Record<string, unknown> | null> {
+  const client = getSupabaseClient();
+  if (!client) return null;
+  const { data, error } = await client
+    .from("contacts")
+    .select(
+      `*, ${CONTACT_COMPANY_EMBED}, deals(stage, updated_at, stage_updated_at, closed_at, created_at)`,
+    )
+    .eq("organization_id", organizationId)
+    .eq("id", contactId)
+    .single();
+  if (error) return null;
+  return data ?? null;
+}
+
+/**
  * getDueTasks — fällige Tasks (Fundament für Follow-ups, T2). Definition:
  * `completed_at IS NULL AND due_at <= now()` — reiner Filter, keine Berechnung.
  * `due_at IS NULL` ist nie fällig (NULL-Vergleich) → fällt korrekt raus.

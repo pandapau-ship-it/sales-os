@@ -111,6 +111,7 @@ export function contactRowToLead(row: Record<string, any>): LeadRow {
 // Geteilt mit Slice B (Kanban): der gruppiert dieselben Rows nach stageSlug.
 export type PipelineRow = {
   id: string;
+  contactId: string | null; // zugrundeliegender Kontakt (für Panel-Fetch / Single-Source-Kopf)
   dealName: string;
   contactName: string;
   contactJobTitle: string;
@@ -132,6 +133,7 @@ export function dealToPipelineRow(
   const p = contactToProfile(deal.contact); // zentrale Auflösung (Kontakt-Werte)
   return {
     id: deal.id,
+    contactId: deal.contact?.id ?? null,
     dealName: deal.name ?? "",
     contactName: p.name,
     contactJobTitle: p.jobTitle,
@@ -177,6 +179,7 @@ function relTimeShort(iso: string | null | undefined): string {
 /** Card-Props für die LinkedinSignalCard (S-2). Echte Felder + S-0-Helfer. */
 export type SignalCardProps = {
   id: string;
+  contactId?: string; // zugrundeliegender Kontakt (für Panel-Fetch / Single-Source-Kopf)
   name: string;
   role: string;
   companyName: string;
@@ -236,6 +239,7 @@ export function contactActiveStage(
 // fehlen → würde Daten vortäuschen; siehe PROGRESS → Deferred [D18]).
 export type NewPipelineCardItem = {
   id: string; // deal.id
+  contactId?: string; // zugrundeliegender Kontakt (für Panel-Fetch / Single-Source-Kopf)
   name: string;
   role: string; // jobTitle
   companyName: string;
@@ -254,6 +258,7 @@ export function dealToNewPipelineRow(
   const p = contactToProfile(deal.contact); // zentrale Auflösung (Identität/Status/Heat/ICP)
   return {
     id: deal.id,
+    contactId: deal.contact?.id,
     name: p.name,
     role: p.jobTitle,
     companyName: p.company,
@@ -272,6 +277,7 @@ export function dealToNewPipelineRow(
 // (T2 hängt die Karten an); hier NUR Query + Mapper (noch nicht verdrahtet).
 export type DueTaskCardItem = {
   id: string; // task.id
+  contactId?: string; // zugrundeliegender Kontakt (für Panel-Fetch / Single-Source-Kopf)
   name: string;
   role: string; // jobTitle
   companyName: string;
@@ -291,6 +297,7 @@ export function taskToDueCard(
   const p = contactToProfile(task.contact); // zentrale Auflösung (Identität/Status/Heat/ICP)
   return {
     id: task.id,
+    contactId: task.contact?.id,
     name: p.name,
     role: p.jobTitle,
     companyName: p.company,
@@ -337,6 +344,7 @@ export function signalToCardProps(
   const meta = signalMetaFor(signal.signal_type);
   return {
     id: signal.id,
+    contactId: signal.contact?.id,
     name: p.name,
     role: p.jobTitle,
     companyName: p.company,

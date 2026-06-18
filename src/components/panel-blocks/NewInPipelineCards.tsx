@@ -49,7 +49,8 @@ export default function NewInPipelineCards({
 
   const buildLead = (it: NewPipelineCardItem): Lead => ({
     id: it.id,
-    person: { id: it.id, name: it.name, jobTitle: it.role, company: it.companyName, initials: it.initials },
+    // person.id = echte contact_id (Panel fetcht damit den Kontakt; Fallback deal.id öffnet leeres Panel)
+    person: { id: it.contactId ?? it.id, name: it.name, jobTitle: it.role, company: it.companyName, initials: it.initials },
     kurzakte: '',
     fullTimeline: [],
     engagementChain: [],

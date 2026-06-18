@@ -8,6 +8,8 @@ import { ACTION_ROW } from "@/lib/componentBehavior";
 import type { Lead, HeatStatus } from "@/types";
 
 interface LinkedinSignalCardProps {
+  /** Zugrundeliegender Kontakt (Panel-Fetch / Single-Source-Kopf). */
+  contactId?: string;
   name: string;
   role: string;
   avatarUrl?: string;
@@ -48,6 +50,7 @@ function deriveInitials(name: string): string {
  * signal-spezifische Action-Row (LinkedIn-Badge + Aktionstext + Timer + Act now).
  */
 export function LinkedinSignalCard({
+  contactId,
   name,
   role,
   avatarUrl,
@@ -76,7 +79,8 @@ export function LinkedinSignalCard({
 
   const buildLead = (): Lead => ({
     id: `signal-${name}`,
-    person: { id: `signal-${name}`, name, jobTitle: role, company: companyName, avatarUrl, initials: deriveInitials(name) },
+    // person.id = echte contact_id (Panel fetcht damit den Kontakt); kontaktloses Signal → leeres Panel
+    person: { id: contactId ?? `signal-${name}`, name, jobTitle: role, company: companyName, avatarUrl, initials: deriveInitials(name) },
     kurzakte: aiRecommendation ?? "",
     fullTimeline: [],
     engagementChain: [],

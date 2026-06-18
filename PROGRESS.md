@@ -64,6 +64,26 @@
    ⮑ **Übersicht-KPI „Deals in Gefahr / stagniert" — bewusst entfernt, kommt mit B5 zurück:** Die Kachel
    wurde aus der Hunter-Übersicht entfernt (kein Fake-Wert); aktuell bewusst **3 KPI-Kacheln**. Mit der
    Stagnations-Berechnung kehrt sie an ihren Platz zurück → Kachel-Reihe dann wieder **4-spaltig**.
+
+   **B6 — Panel read-Slices (Reihenfolge, regelunabhängiger Teil):**
+   - **P1 — Kopf (read) ✅ (2026-06-18):** echte `contact_id` aus allen Karten durchgereicht; `getContactDetail`
+     (contact + company + deals-Embed); Kopf (Name/Jobtitel/Firma/Initialen/ICP/Heat/Status/Stage) **nur** über
+     `contactToProfile`/`contactActiveStage` — **Heat-Bug (hardcodiertes „Aktiv") behoben, keine Literale mehr**.
+     Stage-Dropdown zeigt echte Stage, **noch nicht schreibend** (Tür → P8). Loading/Empty-State.
+   - **P2 — Kontaktzeile (read):** email/phone/linkedin/web aus `contacts`.
+   - **P3 — Tasks-Tab:** read (`getTasksByContact`) + **+Task** (`createTask`, prefill) + **complete** (`completeTask`, da).
+   - **P4 — Notizen-Tab:** read + **+Notiz** (`notes`-Insert).
+   - **P5 — Deals-Tab:** read (`getDealsByContact`) + **+Deal** (`deals`-Insert). **Produkt-Katalog-Entscheidung
+     offen** (Freitext `deals.product` vs. eigene `products`-Tabelle) → bei P5 entscheiden.
+   - **P6 — Übersichts-Blöcke:** Deal-Setup/Offene-Tasks/Komm-Vorschau **echt** (aus geladenen deals/tasks/messages);
+     **KI-Kurzakte/Aktive-Signale/Active-Sequence bleiben deferred (Gruppe B)**.
+   - **P7 — Kommunikation:** read aus `messages` (Empty-State); **Versand deferred (Gruppe C)**.
+   - **P8 — Panel-Edits (Write):** Kontaktfeld-Inline-Edit (Write auf `contacts`, audit via Trigger) +
+     **Stage-Write via Edge Function** (High-Risk: `audit_log` + Stagnation/`stage_updated_at`).
+   - **Deeplink** (`initialTab`, klein, nach P1): Karte → Panel am Ziel-Tab (Task-Karte → Tasks/Aktivität).
+   - **Deferred-Gruppen:** **B** = KI-Kurzakte · „Stagniert"/Next-Step · Active-Sequence · Heat-**Berechnung** ·
+     Stage-Write. **C** = Mail-Versand (`lib/sending.ts`) · `activity_log`-Tabelle · `products`-Tabelle ·
+     `kurzakte_entries`-Tabelle. _(Korrektur: Kommunikations-Historie hat eine Tabelle `messages` → read = A, nur Versand fehlt.)_
 **C. Realtime** für die Live-Tabellen (`lib/realtime.ts`), Cache-Invalidierung.
 **D. Restliche Mock-Screens** (Neu-in-Pipeline/Follow-ups/Overview Top-5) + AddSdrLeadPanel/Snooze (Writes, Edge Functions).
    ⮑ **Beim Wiring: Produktprinzip „Task-getriebene Leere"** (CLAUDE.md → Design Invariants) — diese Bereiche
