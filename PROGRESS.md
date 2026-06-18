@@ -61,6 +61,9 @@
    **B5 — Stagnations-Berechnung ([D4]/[D9], Voraussetzung für B4 „Stagniert"):** Regel „Deal länger als
    X Tage/Wochen in einer Stage" — Schwellwert **pro Org konfigurierbar** (`settings`), erzeugt den
    „Stagniert"-Warnhinweis. **Noch nicht gebaut** (Edge Function / Berechnung).
+   ⮑ **Übersicht-KPI „Deals in Gefahr / stagniert" — bewusst entfernt, kommt mit B5 zurück:** Die Kachel
+   wurde aus der Hunter-Übersicht entfernt (kein Fake-Wert); aktuell bewusst **3 KPI-Kacheln**. Mit der
+   Stagnations-Berechnung kehrt sie an ihren Platz zurück → Kachel-Reihe dann wieder **4-spaltig**.
 **C. Realtime** für die Live-Tabellen (`lib/realtime.ts`), Cache-Invalidierung.
 **D. Restliche Mock-Screens** (Neu-in-Pipeline/Follow-ups/Overview Top-5) + AddSdrLeadPanel/Snooze (Writes, Edge Functions).
    ⮑ **Beim Wiring: Produktprinzip „Task-getriebene Leere"** (CLAUDE.md → Design Invariants) — diese Bereiche
@@ -251,11 +254,17 @@
 - **Bis dahin (UI-Regel):** Der Erinnerung-Schalter bleibt **ausgegraut / „bald verfügbar"** (kein Fake-Speichern). Erst aktivieren, wenn (a) `reminder_at`-Feld, (b) `notifications`-Tabelle + `notify()`, (c) zeitgesteuerter Job + Versand existieren.
 - **Eigenes späteres Thema** (Reihenfolge nach Task-Write T4): Reminder-Feld → Notifications-Fundament → Scheduler/Versand.
 
+### [D20] Zentrale Priorisierungs-Regel — Top-5 „wichtigste Aufgaben" (Übersicht + Mein Tag)
+- **Was:** Eine **Regel/Edge-Function** (= `morning_briefing()`-Logik) berechnet „**die N wichtigsten Actions aus allem**" — über **alle** Quellen: Signale, fällige Tasks, stagnierte Deals, kalte Kontakte, Trials … (Katalog + Prioritäten siehe CLAUDE.md → „Mein Tag → Top 5 Auswahl-Logik").
+- **Wo angezeigt:** Ergebnis als Kacheln in der **Hunter-Übersicht** (Top-5-Bereich) **und** in **Mein Tag** — jeweils mit **Deeplink** zum Element. **Einmal zentral bauen, mehrfach anzeigen.**
+- **Gehört zum Regel-/Berechnungs-Thema** (zusammen mit Stagnation **B5/[D4]**, Heat **[D5]**, Scores) — **NICHT** in den Übersicht-Read-Tab. Der Read-Tab zeigt heute nur einen **ruhigen Platzhalter** als Tür (kein Fake, keine Leere).
+- **Status:** Übersicht-KPIs (Pipeline-Wert/Heiße-Signale/Follow-ups) + Funnel (Deals/€ pro Stage) sind **read-seitig echt** (2026-06-18); Top-5 wartet auf diese Regel.
+
 ### [TS] Deal-Typ ohne `product` — offener Faden
 - `src/types/hunter.ts` `Deal` hat **kein `product`** (Migration 014 fügte nur die DB-Spalte).
   Beim späteren Produkt-Anzeigen (Pipeline/Deal-Detail) `product?: string` im Typ ergänzen + mappen.
 
-> Anker-Tags `[D1]`–`[D19]` sind im Code referenzierbar (z.B. `hunterMappers.ts` → `[[leads-tab-read]]`).
+> Anker-Tags `[D1]`–`[D20]` sind im Code referenzierbar (z.B. `hunterMappers.ts` → `[[leads-tab-read]]`).
 > Vor Umsetzung eines Punkts: passende Referenz-Doku (`docs/sales_os_edge_functions_v2.md` etc.) lesen.
 
 ---

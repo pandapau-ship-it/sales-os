@@ -13,11 +13,10 @@ import {
   Zap,
   ChevronDown,
   ArrowLeft,
-  AlertTriangle,
   Check,
   Trash,
   Clock,
-  PenTool,
+  ListChecks,
   TrendingUp,
   Users,
   X
@@ -28,11 +27,10 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@
 import { heatFor } from '@/lib/constants';
 import { ICPDonut } from '@/components/shared/ICPDonut';
 import { NAV } from '@/lib/navBehavior';
-import { AddSdrLeadPanel, ContactColdDrawer, EmptyState, FunnelAnalysis, HeatBadge, HunterCard, HunterSidepanel, KpiCard, LeadListRow, LinkedinSignalCard, NewInPipelineCards, NoTaskDrawer, PipelineKeineTaskCard, PipelineStagnatedDrawer, PipelineStagniertCard, SequenceLeadCards, SignalActionDrawer, StageBadge, TaskDrawer } from '@/components';
+import { AddSdrLeadPanel, ContactColdDrawer, EmptyState, FunnelAnalysis, HeatBadge, HunterSidepanel, KpiCard, LeadListRow, LinkedinSignalCard, NewInPipelineCards, NoTaskDrawer, PipelineKeineTaskCard, PipelineStagnatedDrawer, PipelineStagniertCard, SequenceLeadCards, SignalActionDrawer, StageBadge, TaskDrawer } from '@/components';
 import type { SignalActionData } from '@/components';
 
 import Avatar from '@/components/shared/Avatar';
-import { ACTION_ROW } from '@/lib/componentBehavior';
 import { signalToCardProps, taskToDueCard, dealToNewPipelineRow, newPipelineInPeriod, type PipelineRow, type NewPipelinePeriod } from '@/lib/hunterMappers';
 
 interface ScreenHuntingProps {
@@ -101,6 +99,27 @@ export default function ScreenHunting({
   const [newPipelinePeriod, setNewPipelinePeriod] = useState<NewPipelinePeriod>('30d');
   const newPipelineItems = (newInPipelineData ?? []).map((d) => dealToNewPipelineRow(d, stageNameBySlug));
   const newPipelineFiltered = newPipelineItems.filter((it) => newPipelineInPeriod(it.createdAt, newPipelinePeriod));
+  // Übersicht-Aggregate (reine Reads, kein Write): wiederverwenden was schon geladen ist.
+  const TERMINAL_SLUGS = new Set(['gewonnen', 'verloren']);
+  const eur = (n: number) => `€ ${new Intl.NumberFormat('de-DE').format(Math.round(n))}`;
+  const openDeals = dealRows.filter((d) => !TERMINAL_SLUGS.has(d.stageSlug));
+  const pipelineValueEur = openDeals.reduce((sum, d) => sum + (d.valueEur ?? 0), 0); // null-Werte zählen 0
+  const openDealCount = openDeals.length;
+  const hotSignalCount = signalCards.length;       // identische Quelle wie der Signals-Tab-Count
+  const followUpsTodayCount = dueTaskCards.length;  // fällige Tasks (= Follow-ups-Tab)
+  // Funnel: Deals-Anzahl + €-Summe pro Stage (Reihenfolge/Namen aus pipeline_stages).
+  const funnelStages = [...(pipelineStages ?? [])].sort((a, b) => a.order - b.order).map((stg) => {
+    const ds = dealRows.filter((d) => d.stageSlug === stg.slug);
+    const sumEur = ds.reduce((s, d) => s + (d.valueEur ?? 0), 0);
+    return {
+      slug: stg.slug,
+      name: stg.name,
+      deals: ds.length,
+      valueLabel: eur(sumEur),
+      avgValueLabel: ds.length ? eur(sumEur / ds.length) : undefined, // Ø-Wert/Deal (ehrlich), sonst kein Tooltip
+      isWon: stg.slug === 'gewonnen',
+    };
+  });
   // Slice C — drei Filter, client-seitig über die geteilte dealRows-Quelle:
   //  • Heat + Owner gelten in BEIDEN Ansichten (Liste + Kanban)
   //  • Stage NUR in der Liste (Kanban ist bereits nach Stage gruppiert)
@@ -180,7 +199,7 @@ export default function ScreenHunting({
 
   const menuItems = [
     { id: 'overview', label: t('hunter.tabs.overview'), count: null },
-    { id: 'signals', label: t('hunter.tabs.signals'), count: 5 },
+    { id: 'signals', label: t('hunter.tabs.signals'), count: hotSignalCount },
     { id: 'new_leads', label: t('hunter.tabs.newInPipeline'), count: newPipelineFiltered.length },
     { id: 'leads', label: t('hunter.tabs.leads'), count: leadRows.length },
     { id: 'follow_ups', label: t('hunter.tabs.followUps'), count: dueTaskCards.length },
@@ -232,151 +251,59 @@ export default function ScreenHunting({
       {/* 1. VIEW OVERVIEW */}
       {subTab === 'overview' && (
         <div className="flex flex-col gap-6">
-          {/* KPI Cards oben */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
-            
-            {/* KPI Card 1: Pipeline-Wert */}
+          {/* KPI Cards — echte Aggregate (3). „Deals in Gefahr/stagniert" + „+X% Vormonat"
+              ausgeblendet: brauchen Stagnations-Berechnung (B5/[D4]) bzw. Monats-Historie. */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+
+            {/* Pipeline-Wert = Σ offene (nicht-terminale) Deals */}
             <KpiCard
               title={t('hunter.overview.pipelineValue')}
               icon={<TrendingUp size={16} strokeWidth={2.5} />}
               iconClass="bg-[var(--signal-success-bg)] text-[var(--sherloq-primary)]"
-              value="€ 284.500"
+              value={eur(pipelineValueEur)}
               valueClass="text-text-primary"
-              subtitleClass="text-[11px] font-semibold text-[var(--signal-success-text)] flex items-center gap-1.5"
-              subtitle={<span><TrendingUp className="w-3 h-3" /> {t('hunter.overview.pipelineValueTrend')}</span>}
-            />
-
-            {/* KPI Card 2: Deals in Gefahr */}
-            <KpiCard
-              title={t('hunter.overview.dealsAtRisk')}
-              icon={<AlertTriangle size={16} strokeWidth={2.5} />}
-              iconClass="bg-[var(--signal-urgent-bg)] text-[var(--signal-urgent-text)]"
-              value="4"
-              valueClass="text-[var(--signal-urgent-text)]"
               subtitleClass="text-[11px] font-semibold text-text-muted"
-              subtitle={t('hunter.overview.stagnatedOver7Days')}
+              subtitle={t('hunter.overview.openDeals', { count: openDealCount })}
             />
 
-            {/* KPI Card 3: Heisse Signale */}
+            {/* Heiße Signale = Anzahl hunter-Signale (gleiche Quelle wie Signals-Tab) */}
             <KpiCard
               title={t('hunter.overview.hotSignals')}
               icon={<Zap size={16} strokeWidth={2.5} />}
               iconClass="bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)]"
-              value="7"
+              value={String(hotSignalCount)}
               valueClass="text-[var(--sherloq-primary)]"
               subtitleClass="text-[11px] font-semibold text-text-muted"
-              subtitle={t('hunter.overview.activeSignalsToday')}
+              subtitle={t('hunter.overview.inSignalsFeed')}
             />
 
-            {/* KPI Card 4: Follow-ups heute */}
+            {/* Follow-ups heute = Anzahl fälliger Tasks (getDueTasks) */}
             <KpiCard
               title={t('hunter.overview.followUpsToday')}
               icon={<Clock size={16} strokeWidth={2.5} />}
               iconClass="bg-[var(--signal-info-bg)] text-[var(--signal-info-text)]"
-              value="5"
+              value={String(followUpsTodayCount)}
               valueClass="text-text-primary"
               subtitleClass="text-[11px] font-semibold text-text-muted"
-              subtitle={t('hunter.overview.dueBy1800')}
+              subtitle={t('hunter.overview.dueTasks')}
             />
 
           </div>
 
-          <FunnelAnalysis />
+          <FunnelAnalysis stages={funnelStages} />
 
-          <div className="mt-2 flex flex-col gap-4">
-            
-            {/* SIGNALS SECTION */}
-            <div className="mb-4">
-              <LinkedinSignalCard
-                name="Maja Voje"
-                role="GTM Strategist"
-                avatarUrl="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=120&h=120"
-                companyInitials="GL"
-                companyName="Growth Lab"
-                stage="Onboarding"
-                heatStatus="HOT"
-                icpScore={92}
-                timeAgo="11m"
-                timeAgoLabel="11 Min"
-                timeLeftHours={4}
-                windowHours={72}
-                actionText="Hat auf Kommentar geantwortet — GTM Strategie"
-                commentText="Anze Voje postete über GTM Strategien für 2026 — Maja Voje antwortete und verknüpfte das Thema mit Sales Enablement."
-                quoteText="The first working week of 2026 is wrapping up..."
-                aiRecommendation="Idealer Zeitpunkt — Post-Thema passt direkt zu Sherloq. Maja ist gerade aktiv. Persönlichkeit Blau: sachlicher Einstieg mit konkretem Bezug zum Post."
-                onActNow={setSelectedSignal}
-                onOpenInfo={setInfoPanelLead}
+          {/* Top-5 „wichtigste Aufgaben" — gefüllt von der zentralen Priorisierungs-
+              Regel (= morning_briefing(), wie Mein Tag). Noch nicht gebaut → ruhiger
+              Platzhalter als sichtbare Tür, KEINE Fake-Karten. (PROGRESS: Regel-Thema.) */}
+          <div className="mt-2">
+            <span className="text-[10px] font-extrabold text-text-muted uppercase tracking-widest">{t('hunter.overview.top5Header')}</span>
+            <div className="mt-3">
+              <EmptyState
+                icon={<ListChecks className="w-6 h-6" />}
+                title={t('hunter.overview.top5Title')}
+                description={t('hunter.overview.top5Hint')}
               />
             </div>
-
-
-            <HunterCard
-              data={{
-                id: "ov-sarah", name: "Sarah Jenkins", jobTitle: "Head of Business Development", company: "CloudSphere", icpScore: 65, stageLabel: "Lead",
-                heatStatus: "WARM",
-                timeLabel: t("hunter.common.ago", { label: "3 Tagen" }),
-                timeSubLabel: <span className="text-text-muted font-semibold">{t("hunter.common.newInPipeline")}</span>,
-              }}
-              onOpenInfo={() => setInfoPanelLead(makeLead("ov-sarah", "Sarah Jenkins", "Head of Business Development", "CloudSphere", "SJ", 65))}
-              statusDotClass="bg-[var(--icp-medium)]"
-              actionRow={<>
-                <div className="flex items-center gap-3 min-w-0">
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--signal-warn-bg)] text-[var(--icp-medium)] text-[10px] font-bold uppercase tracking-wider shrink-0"><AlertTriangle className="w-[11px] h-[11px]" /> {t("hunter.leadCard.noTask")}</span>
-                  <span className={ACTION_ROW.strongText}>{t("hunter.leadCard.noTaskHint")}</span>
-                </div>
-                <button onClick={(e) => { e.stopPropagation(); setSelectedNoTaskPerson({ name: "Sarah Jenkins", company: "CloudSphere" }); }} className={ACTION_ROW.ctaSecondary}>{t("hunter.leadCard.createTask")}</button>
-              </>}
-            />
-
-            <HunterCard
-              data={{
-                id: "ov-marc", name: "Marc Levigne", jobTitle: "Sales Director France", company: "DataPulse Corp", icpScore: 41, stageLabel: "Follow-up",
-                heatStatus: "COLD",
-                timeLabel: t("hunter.common.ago", { label: "12 Tagen" }),
-                timeSubLabel: <>{t("hunter.common.daysInStage", { days: 12 })} <AlertTriangle className="w-3.5 h-3.5" strokeWidth={2.5} /></>,
-              }}
-              onOpenInfo={() => setInfoPanelLead(makeLead("ov-marc", "Marc Levigne", "Sales Director France", "DataPulse Corp", "ML", 41))}
-              statusDotClass="bg-[var(--signal-info-text)]"
-              actionRow={<>
-                <div className="flex items-center gap-3 min-w-0">
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--signal-urgent-bg)] text-[var(--icp-low)] text-[10px] font-bold uppercase tracking-wider shrink-0"><Clock className="w-[11px] h-[11px]" /> {t("hunter.leadCard.stagnated")}</span>
-                  <span className={ACTION_ROW.strongText}>{t("hunter.leadCard.stagnatedHint")}</span>
-                </div>
-                <button onClick={(e) => { e.stopPropagation(); setSelectedStagnatedPerson({
-                  name: "Marc Levigne", company: "DataPulse Corp", icpScore: 41,
-                  daysStagnated: 12, stageName: "Follow-up offen", lastContactDays: 12,
-                  arr: "8.000€", probability: "50%",
-                  aiRecommendation: "Kanalwechsel empfehlen — nach 12 Tagen ohne Reaktion ein kurzer, konkreter Nachfass mit klarem CTA.",
-                  aiInsight: "Follow-up offen seit 12 Tagen · letzter Kontakt ohne Antwort",
-                  tags: ["Follow-up überfällig", "Kanalwechsel sinnvoll"], confidence: 76,
-                }); }} className={ACTION_ROW.ctaSecondary}>{t("hunter.leadCard.nextStep")}</button>
-              </>}
-            />
-
-            <HunterCard
-              data={{
-                id: "ov-elena", name: "Elena Rostova", jobTitle: "Head of Operations", company: "Quantum Dynamics", icpScore: 55, stageLabel: "Onboarding",
-                heatStatus: "COLD",
-                timeLabel: t("hunter.common.ago", { label: "32 Tagen" }),
-                timeSubLabel: <>{t("hunter.common.daysInStage", { days: 32 })} <AlertTriangle className="w-3.5 h-3.5" strokeWidth={2.5} /></>,
-              }}
-              onOpenInfo={() => setInfoPanelLead(makeLead("ov-elena", "Elena Rostova", "Head of Operations", "Quantum Dynamics", "ER", 55))}
-              statusDotClass="bg-[var(--signal-info-text)]"
-              actionRow={<>
-                <div className="flex items-center gap-3 min-w-0">
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--signal-info-bg)] text-[var(--signal-info-text)] text-[10px] font-bold uppercase tracking-wider shrink-0"><PenTool className="w-[11px] h-[11px]" /> {t("hunter.leadCard.cold")}</span>
-                  <span className={ACTION_ROW.strongText}>{t("hunter.leadCard.coldHint")}</span>
-                </div>
-                <div className="flex items-center gap-2 shrink-0"><button onClick={(e) => { e.stopPropagation(); setSelectedColdPerson({
-                  name: "Elena Rostova", company: "Quantum Dynamics",
-                  daysInStage: 32, lastContactDays: 32, lastContactChannel: "Email",
-                  lastConversationSentiment: "Letztes Gespräch: Neutral · seit 32 Tagen kein Kontakt",
-                  aiRecommendation: "Reaktivierung über LinkedIn — E-Mail-Kanal erschöpft, persönlicher Aufhänger nötig.",
-                  confidence: 80, tags: ["Cold", "E-Mail erschöpft", "LinkedIn noch nicht versucht"],
-                }); }} className={ACTION_ROW.ctaSecondary}>{t("hunter.leadCard.startOutreach")}</button><button onClick={(e) => e.stopPropagation()} className={ACTION_ROW.ctaSecondary}>{t("hunter.common.snooze")}</button></div>
-              </>}
-            />
-
           </div>
         </div>
       )}

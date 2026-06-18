@@ -144,7 +144,14 @@
       "hotSignals": "Heisse Signale",
       "activeSignalsToday": "Aktive Signale heute",
       "followUpsToday": "Follow-ups heute",
-      "dueBy1800": "Fällig bis 18:00"
+      "dueBy1800": "Fällig bis 18:00",
+      "openDeals_one": "{{count}} offener Deal",
+      "openDeals_other": "{{count}} offene Deals",
+      "inSignalsFeed": "im Signals-Feed",
+      "dueTasks": "fällige Aufgaben",
+      "top5Header": "Wichtigste Aufgaben",
+      "top5Title": "Deine wichtigsten Aufgaben erscheinen hier",
+      "top5Hint": "Sobald die Priorisierung aktiv ist, zeigt Sherloq hier die Top-Aufgaben aus allen Bereichen."
     },
     "funnel": {
       "header": "Funnel Analyse · Pipeline Stufen",
