@@ -90,6 +90,12 @@
    - **P7 — Kommunikation:** read aus `messages` (Empty-State); **Versand deferred (Gruppe C)**.
    - **P8 — Panel-Edits (Write):** Kontaktfeld-Inline-Edit (Write auf `contacts`, audit via Trigger) +
      **Stage-Write via Edge Function** (High-Risk: `audit_log` + Stagnation/`stage_updated_at`).
+     - **P5c-2b (2026-06-19) — Teil vorgezogen:** Stage ist im Deal-**Create + Edit** wählbar; ein Wechsel
+       schreibt über **`updateDealStage`** (setzt `stage`+`stage_updated_at`+`stagnation_days=0`, Audit via Trigger,
+       nur bei echtem Wechsel). Probability wird **abgeleitet** aus `settings.pipeline_stages` (nicht `deals.probability`).
+     - **NICHT vergessen (Rest P8):** (a) Edge Function `score_deal_health()` für **tägliche** Stagnations-Neuberechnung
+       (`stagnation_days` aus `stage_updated_at`) + `deals.heat_status='stagniert'`; (b) Stage-Write auch aus **Kanban-Pfeilen/StageBadge**
+       ([D8]) auf dieselbe `updateDealStage`-Quelle verdrahten; (c) terminale Stages (Gewonnen/Verloren) ggf. Won/Lost-Popup (Lost-Reason).
    - **PH — Telefon-Mehrfachnummern + Favorit** (eigenes Thema, Modell-Details in der Diagnose 2026-06-18):
      - **PH1 ✅ (2026-06-18, Migration 026):** Tabelle `contact_phones` (id/org_id/contact_id/number/label/is_primary/created_at)
        + RLS (`auth_org_id()`) + Index `(org_id, contact_id)` + **partial unique** `(contact_id) WHERE is_primary` (max. 1 Favorit)

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DEMO_ORGANIZATION_ID } from '@/lib/org';
-import { getContactDetail, getPipelineSettings, getTasksByContact, createTask, completeTask, softDeleteTask, getNotesByContact, createNote, updateNote, softDeleteNote, getDealsByContact, getProducts, getOrgUsers, createDeal, updateDeal } from '@/lib/db';
+import { getContactDetail, getPipelineSettings, getTasksByContact, createTask, completeTask, softDeleteTask, getNotesByContact, createNote, updateNote, softDeleteNote, getDealsByContact, getProducts, getOrgUsers, createDeal, updateDeal, updateDealStage } from '@/lib/db';
 import { contactToProfile, contactActiveStage, latestActiveDeal, dealToView } from '@/lib/hunterMappers';
 import {
   ArrowUpRight, ArrowLeft, X, Mail, Phone, Clock, Check,
@@ -107,6 +107,9 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
     queryFn: () => getPipelineSettings(DEMO_ORGANIZATION_ID),
   });
   const stageMap = Object.fromEntries((stagesQuery.data ?? []).map((s) => [s.slug, s.name]));
+  // P5c-2b: Stage→Probability (für abgeleitete Probability-Anzeige) + Stage-Liste fürs Create-Dropdown (in Pipeline-Reihenfolge).
+  const stageProbMap = Object.fromEntries((stagesQuery.data ?? []).map((s) => [s.slug, s.probability]));
+  const stageOptions = [...(stagesQuery.data ?? [])].sort((a, b) => a.order - b.order).map((s) => ({ slug: s.slug, name: s.name }));
   const contactRow = contactQuery.data ?? null;
   const profile = contactToProfile(contactRow);              // zentrale Leitung
   const activeStage = contactActiveStage(contactRow, stageMap); // Stage = zuletzt aktiver Deal
@@ -196,7 +199,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
   // (getDealsByContact sortiert created_at desc). Werte zentral über dealToView.
   const dealRows = dealsQuery.data ?? [];
   const primaryDealRow = latestActiveDeal(dealRows) ?? dealRows[0];
-  const primaryDeal = primaryDealRow ? dealToView(primaryDealRow, stageMap) : undefined;
+  const primaryDeal = primaryDealRow ? dealToView(primaryDealRow, stageMap, stageProbMap) : undefined;
   // P5b — Produkt-Katalog (Dropdown) + Deal anlegen.
   const productsQuery = useQuery({
     queryKey: ['products', DEMO_ORGANIZATION_ID],
@@ -210,7 +213,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
   });
   const ownerOptions = (usersQuery.data ?? []).map((u) => ({ id: (u as { id: string }).id, name: (u as { full_name?: string }).full_name ?? '' })).filter((o) => o.name);
   const createDealMutation = useMutation({
-    mutationFn: (v: { name: string; product: string; value: string; termMonths: string; noticePeriodDays: string; expectedCloseDate: string; ownerId: string }) =>
+    mutationFn: (v: { name: string; product: string; value: string; termMonths: string; noticePeriodDays: string; expectedCloseDate: string; ownerId: string; stage: string }) =>
       createDeal(DEMO_ORGANIZATION_ID, {
         name: v.name,
         product: v.product || undefined,
@@ -220,6 +223,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
         noticePeriodDays: v.noticePeriodDays && !Number.isNaN(Number(v.noticePeriodDays)) ? Math.trunc(Number(v.noticePeriodDays)) : undefined,
         expectedCloseDate: v.expectedCloseDate || undefined, // 'YYYY-MM-DD' aus dem Datumsfeld
         ownerId: v.ownerId || undefined, // gewählter Owner (User-ID); leer → undefined → null
+        stage: v.stage || undefined, // gewählte Stage (Slug); leer → undefined → Default 'backlog'
         contactId: contactId as string,
       }),
     onSuccess: () => {
@@ -231,10 +235,11 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
     },
     onError: (e) => showToast(`Anlegen fehlgeschlagen: ${(e as Error).message}`), // nicht still abfangen
   });
-  // P5c-2 — Deal bearbeiten: editierbare Felder + Probability; leer → null (Feld geleert).
+  // P5c-2/2b — Deal bearbeiten: editierbare Felder via updateDeal; Stage-Wechsel separat via
+  // updateDealStage (setzt stage_updated_at + Stagnation-Reset). leer → null (Feld geleert).
   const updateDealMutation = useMutation({
-    mutationFn: (p: { dealId: string; v: { name: string; product: string; value: string; termMonths: string; noticePeriodDays: string; expectedCloseDate: string; ownerId: string } }) =>
-      updateDeal(DEMO_ORGANIZATION_ID, p.dealId, {
+    mutationFn: async (p: { dealId: string; v: { name: string; product: string; value: string; termMonths: string; noticePeriodDays: string; expectedCloseDate: string; ownerId: string; stage: string } }) => {
+      await updateDeal(DEMO_ORGANIZATION_ID, p.dealId, {
         name: p.v.name,
         product: p.v.product || undefined,
         valueEur: p.v.value && !Number.isNaN(Number(p.v.value)) ? Number(p.v.value) : undefined,
@@ -242,7 +247,13 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
         noticePeriodDays: p.v.noticePeriodDays && !Number.isNaN(Number(p.v.noticePeriodDays)) ? Math.trunc(Number(p.v.noticePeriodDays)) : undefined,
         expectedCloseDate: p.v.expectedCloseDate || undefined,
         ownerId: p.v.ownerId || undefined,
-      }),
+      });
+      // Stage nur bei echtem Wechsel schreiben (sonst würde stage_updated_at/Stagnation unnötig resetten).
+      const current = (dealsQuery.data ?? []).find((d) => (d as { id: string }).id === p.dealId) as { stage?: string } | undefined;
+      if (p.v.stage && p.v.stage !== current?.stage) {
+        await updateDealStage(p.dealId, p.v.stage, DEMO_ORGANIZATION_ID);
+      }
+    },
     onSuccess: () => {
       // Gleiche Keys wie createDeal → Änderung sofort überall (Deals-Tab + Übersicht + Pipeline):
       queryClient.invalidateQueries({ queryKey: ['dealsByContact', DEMO_ORGANIZATION_ID, contactId] });
@@ -453,8 +464,10 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
             onAutoEditConsumed={() => { setDealsAutoEdit(false); setDealsAutoNew(false); }}
             dealRows={dealsQuery.data ?? []}
             stageNameBySlug={stageMap}
+            stageProbBySlug={stageProbMap}
             productOptions={productOptions}
             ownerOptions={ownerOptions}
+            stageOptions={stageOptions}
             onCreateDeal={(v) => createDealMutation.mutate(v)}
             onUpdateDeal={(dealId, v) => updateDealMutation.mutate({ dealId, v })}
           />

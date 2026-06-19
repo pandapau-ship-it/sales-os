@@ -32,16 +32,18 @@ const dateLabel = (iso: string) => new Date(iso).toLocaleDateString("de-DE", { d
  * Anlege-Formular bewusst LEAN: nur persistierte Felder (Name/Produkt/Wert) — kein owner/arr/mrr/
  * close-Input, der ins Leere liefe. Produkt-Dropdown aus dem echten Katalog (productOptions).
  */
-function DealsListeReadonly({ items, productOptions, ownerOptions, onCreate, onUpdate, autoNew = false, onAutoConsumed }: {
+function DealsListeReadonly({ items, productOptions, ownerOptions, stageOptions, onCreate, onUpdate, autoNew = false, onAutoConsumed }: {
   items: DealView[];
   productOptions?: string[];
   /** Owner-Auswahl (User der Org): id schreibt owner_id, name = Anzeige (P5c-1). */
   ownerOptions?: { id: string; name: string }[];
+  /** Pipeline-Stages (Slug+Name, in Pipeline-Reihenfolge) fürs Stage-Dropdown beim Anlegen (P5c-2b). */
+  stageOptions?: { slug: string; name: string }[];
   // Alle Felder als String (Formular-Rohwerte). Term/Notice/Close/Owner sind OPTIONAL — leer → nicht geschrieben.
-  onCreate?: (v: { name: string; product: string; value: string; termMonths: string; noticePeriodDays: string; expectedCloseDate: string; ownerId: string }) => void;
-  /** Deal bearbeiten (P5c-2): exakt dieselben Felder wie Create; leer → Feld geleert (null).
-   *  Probability ist KEIN Deal-Feld (Admin setzt sie pro Stage in den Pipeline-Settings). */
-  onUpdate?: (dealId: string, v: { name: string; product: string; value: string; termMonths: string; noticePeriodDays: string; expectedCloseDate: string; ownerId: string }) => void;
+  onCreate?: (v: { name: string; product: string; value: string; termMonths: string; noticePeriodDays: string; expectedCloseDate: string; ownerId: string; stage: string }) => void;
+  /** Deal bearbeiten (P5c-2/2b): dieselben Felder wie Create inkl. Stage; leer → Feld geleert (null).
+   *  Stage-Wechsel schreibt der Parent über updateDealStage. Probability bleibt KEIN Deal-Feld. */
+  onUpdate?: (dealId: string, v: { name: string; product: string; value: string; termMonths: string; noticePeriodDays: string; expectedCloseDate: string; ownerId: string; stage: string }) => void;
   /** Footer „Deal" öffnet das Anlege-Formular direkt (auch wenn der Tab schon offen ist). */
   autoNew?: boolean;
   onAutoConsumed?: () => void;
@@ -52,6 +54,7 @@ function DealsListeReadonly({ items, productOptions, ownerOptions, onCreate, onU
   const [name, setName] = useState("");
   const [product, setProduct] = useState<string>("");
   const [ownerId, setOwnerId] = useState<string>(""); // P5c-1: Default leer (kein Auto-Set, [D21])
+  const [stage, setStage] = useState<string>("backlog"); // P5c-2b: Default erste Stage (Backlog)
   const [value, setValue] = useState("");
   const [termMonths, setTermMonths] = useState("");
   const [noticePeriodDays, setNoticePeriodDays] = useState("");
@@ -65,8 +68,9 @@ function DealsListeReadonly({ items, productOptions, ownerOptions, onCreate, onU
     if (autoNew) { setEditingId(null); setComposerOpen(true); onAutoConsumed?.(); }
   }, [autoNew]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const firstStageSlug = stageOptions?.[0]?.slug ?? "backlog"; // Default-Stage = erste (Backlog)
   const reset = () => {
-    setName(""); setProduct(""); setOwnerId(""); setValue("");
+    setName(""); setProduct(""); setOwnerId(""); setStage(firstStageSlug); setValue("");
     setTermMonths(""); setNoticePeriodDays(""); setExpectedCloseDate("");
     setError(false); setComposerOpen(false); setEditingId(null);
   };
@@ -80,15 +84,16 @@ function DealsListeReadonly({ items, productOptions, ownerOptions, onCreate, onU
     setTermMonths(d.termMonths != null ? String(d.termMonths) : "");
     setNoticePeriodDays(d.noticePeriodDays != null ? String(d.noticePeriodDays) : "");
     setExpectedCloseDate(d.expectedCloseDate ?? "");
+    setStage(d.stageSlug || firstStageSlug);
     setError(false);
     setEditingId(d.id);
   };
   const save = () => {
     if (!name.trim()) { setError(true); return; }
     if (isEdit && editingId) {
-      onUpdate?.(editingId, { name: name.trim(), product, value, termMonths, noticePeriodDays, expectedCloseDate, ownerId });
+      onUpdate?.(editingId, { name: name.trim(), product, value, termMonths, noticePeriodDays, expectedCloseDate, ownerId, stage });
     } else {
-      onCreate?.({ name: name.trim(), product, value, termMonths, noticePeriodDays, expectedCloseDate, ownerId }); // Insert + invalidate + Toast übernimmt das Panel
+      onCreate?.({ name: name.trim(), product, value, termMonths, noticePeriodDays, expectedCloseDate, ownerId, stage }); // Insert + invalidate + Toast übernimmt das Panel
     }
     reset();
   };
@@ -117,6 +122,19 @@ function DealsListeReadonly({ items, productOptions, ownerOptions, onCreate, onU
               className={`${FIELD} ${error ? "border-[var(--signal-warn-text)] bg-[var(--signal-warn-bg)]" : "border-border bg-app-bg"}`}
             />
             {error && <span className="text-[11px] font-semibold text-[var(--signal-warn-text)]">{t("hunter.panel.nameRequired")}</span>}
+          </div>
+          {/* Stage wählbar (Anlegen + Bearbeiten), ALLE Stages inkl. Gewonnen/Verloren. Ein Wechsel
+              beim Bearbeiten schreibt über updateDealStage (stage_updated_at + Stagnation-Reset). */}
+          <div className="grid grid-cols-3 gap-3">
+            <div className="space-y-1.5">
+              <label className={LABEL}>{t("hunter.common.stage")}</label>
+              <Select value={stage} onValueChange={setStage}>
+                <SelectTrigger className={`${FIELD} border-border bg-app-bg`}><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {(stageOptions ?? []).map((s) => <SelectItem key={s.slug} value={s.slug}>{s.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           <div className="grid grid-cols-3 gap-3">
             <div className="space-y-1.5">
@@ -240,7 +258,7 @@ const fmtDate = (d: string) => (d ? new Date(d).toLocaleDateString("de-DE", { da
 let seq = 0;
 
 export default function DealsListe({
-  onToast, autoEdit = false, autoNew = false, onAutoEditConsumed, dealRows, stageNameBySlug, productOptions, ownerOptions, onCreateDeal, onUpdateDeal,
+  onToast, autoEdit = false, autoNew = false, onAutoEditConsumed, dealRows, stageNameBySlug, stageProbBySlug, productOptions, ownerOptions, stageOptions, onCreateDeal, onUpdateDeal,
 }: {
   onToast?: (msg: string) => void;
   autoEdit?: boolean;
@@ -249,23 +267,28 @@ export default function DealsListe({
   /** Echte DB-Deal-Zeilen (Panel). undefined → Mock (Standalone). */
   dealRows?: Record<string, any>[];
   stageNameBySlug?: Record<string, string>;
+  /** Stage→Probability (settings.pipeline_stages) — Probability wird daraus abgeleitet (P5c-2b). */
+  stageProbBySlug?: Record<string, number>;
   /** Produkt-Katalog (Namen) fürs Dropdown (P5b). */
   productOptions?: string[];
   /** Owner-Auswahl (User der Org) fürs Dropdown (P5c-1). */
   ownerOptions?: { id: string; name: string }[];
-  /** Deal anlegen (P5b/2b/5c-1). value/term/notice/owner als String (Formular-Rohwerte); term/notice/close/owner optional. */
-  onCreateDeal?: (v: { name: string; product: string; value: string; termMonths: string; noticePeriodDays: string; expectedCloseDate: string; ownerId: string }) => void;
-  /** Deal bearbeiten (P5c-2): exakt dieselben Felder wie Create (Probability ist kein Deal-Feld). */
-  onUpdateDeal?: (dealId: string, v: { name: string; product: string; value: string; termMonths: string; noticePeriodDays: string; expectedCloseDate: string; ownerId: string }) => void;
+  /** Pipeline-Stages (Slug+Name) fürs Stage-Dropdown beim Anlegen (P5c-2b). */
+  stageOptions?: { slug: string; name: string }[];
+  /** Deal anlegen (P5b/2b/5c-1/2b). value/term/notice/owner als String (Formular-Rohwerte); Stage gewählt (Slug). */
+  onCreateDeal?: (v: { name: string; product: string; value: string; termMonths: string; noticePeriodDays: string; expectedCloseDate: string; ownerId: string; stage: string }) => void;
+  /** Deal bearbeiten (P5c-2/2b): dieselben Felder wie Create inkl. Stage (Probability ist kein Deal-Feld). */
+  onUpdateDeal?: (dealId: string, v: { name: string; product: string; value: string; termMonths: string; noticePeriodDays: string; expectedCloseDate: string; ownerId: string; stage: string }) => void;
 }) {
   // P5a/P5b — Panel-Modus: lesen + anlegen (Bearbeiten/Löschen = P5c, Stage = P8). Dispatch, damit
   // die Mock-Hooks nicht hinter einem Early-Return liegen (Rules of Hooks).
   if (dealRows !== undefined) {
     return (
       <DealsListeReadonly
-        items={dealRows.map((r) => dealToView(r, stageNameBySlug ?? {}))}
+        items={dealRows.map((r) => dealToView(r, stageNameBySlug ?? {}, stageProbBySlug ?? {}))}
         productOptions={productOptions}
         ownerOptions={ownerOptions}
+        stageOptions={stageOptions}
         onCreate={onCreateDeal}
         onUpdate={onUpdateDeal}
         autoNew={autoNew}

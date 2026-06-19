@@ -590,6 +590,7 @@ export async function createDeal(
     // Optionale Vertrags-/Forecast-Felder (Migration 029). Fehlen sie → null, nie 0.
     termMonths?: number; noticePeriodDays?: number; expectedCloseDate?: string;
     ownerId?: string; // P5c-1: manuell gewählter Owner; leer → null ([D21], kein Auto-Set)
+    stage?: string; // P5c-2b: gewählte Stage (Slug); fehlt → Default 'backlog'
   },
 ): Promise<void> {
   const client = getSupabaseClient();
@@ -601,7 +602,7 @@ export async function createDeal(
     product: deal.product || null,
     value: deal.valueEur != null ? Math.round(deal.valueEur * 100) : null,
     currency: "EUR",
-    stage: "backlog",
+    stage: deal.stage || "backlog",
     term_months: deal.termMonths ?? null, // Laufzeit (Monate) — null wenn leer
     notice_period_days: deal.noticePeriodDays ?? null, // Kündigungsfrist (Tage) — null wenn leer
     expected_close_date: deal.expectedCloseDate || null, // erw. Abschluss — null wenn leer

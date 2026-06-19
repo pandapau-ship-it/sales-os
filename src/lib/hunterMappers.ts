@@ -133,7 +133,7 @@ export type DealView = {
   stageLabel: string; // settings.pipeline_stages: slug → Anzeigename
   owner?: string; // owner_id → users.full_name (Anzeige)
   ownerId?: string; // deals.owner_id (Roh-ID — für Edit-Vorbelegung des Owner-Dropdowns)
-  probability?: number; // deals.probability (0–100)
+  probability?: number; // ABGELEITET aus der Stage (settings.pipeline_stages), nicht aus deals.probability
   termMonths?: number; // Laufzeit (Monate)
   noticePeriodDays?: number; // Kündigungsfrist (Tage)
   expectedCloseDate?: string; // erwartetes Abschlussdatum (Forecast)
@@ -146,12 +146,18 @@ export type DealView = {
 export function dealToView(
   deal: Record<string, any>,
   stageNameBySlug: Record<string, string> = {},
+  stageProbBySlug: Record<string, number> = {},
 ): DealView {
   const valueEur = typeof deal.value === "number" ? deal.value / 100 : undefined;
   // term_months muss > 0 sein, sonst ist mrr/arr nicht definiert (keine Division durch 0).
   const termMonths = typeof deal.term_months === "number" && deal.term_months > 0 ? deal.term_months : undefined;
   const mrr = valueEur != null && termMonths ? valueEur / termMonths : undefined;
   const arr = mrr != null ? mrr * 12 : undefined;
+  // Probability ABGELEITET aus der Stage (Admin-Setting settings.pipeline_stages), nicht
+  // aus deals.probability — analog MRR/ARR (computed, nicht gespeichert). Stage ohne
+  // Probability in der Map → undefined (Honesty: Element ausgeblendet).
+  const prob = stageProbBySlug[deal.stage];
+  const probability = typeof prob === "number" ? prob : undefined;
   return {
     id: deal.id,
     name: deal.name ?? "",
@@ -162,7 +168,7 @@ export function dealToView(
     stageLabel: stageNameBySlug[deal.stage] ?? deal.stage ?? "",
     owner: deal.owner?.full_name || undefined,
     ownerId: deal.owner_id ?? undefined,
-    probability: typeof deal.probability === "number" ? deal.probability : undefined,
+    probability,
     termMonths,
     noticePeriodDays: typeof deal.notice_period_days === "number" ? deal.notice_period_days : undefined,
     expectedCloseDate: deal.expected_close_date ?? undefined,
