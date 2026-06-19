@@ -207,7 +207,7 @@
       "period30d": "Letzter Monat",
       "sourceAiSdr": "Via AI SDR",
       "sourceManual": "Manuell hinzugefügt",
-      "actionStart": "Action starten",
+      "btnCreateTask": "Task anlegen",
       "emptyTitle": "Nichts Neues in diesem Zeitraum",
       "emptyDesc": "Frisch eingegangene Deals erscheinen hier."
     },

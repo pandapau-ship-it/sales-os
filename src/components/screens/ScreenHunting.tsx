@@ -319,6 +319,7 @@ export default function ScreenHunting({
           period={newPipelinePeriod}
           onPeriodChange={setNewPipelinePeriod}
           onSelectLead={setInfoPanelLead}
+          onCreateTask={(lead) => { setInfoPanelAction('task'); setInfoPanelLead(lead); }}
         />
       )}
 

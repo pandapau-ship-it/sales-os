@@ -32,11 +32,14 @@ export default function NewInPipelineCards({
   period,
   onPeriodChange,
   onSelectLead,
+  onCreateTask,
 }: {
   items?: NewPipelineCardItem[];
   period: NewPipelinePeriod;
   onPeriodChange: (p: NewPipelinePeriod) => void;
   onSelectLead: (lead: Lead) => void;
+  /** „Task anlegen" — öffnet das Info-Panel direkt auf dem Tasks-Tab mit offenem Anlegen-Formular (Deeplink initialAction='task'). */
+  onCreateTask: (lead: Lead) => void;
 }) {
   const { t } = useTranslation();
 
@@ -109,7 +112,8 @@ export default function NewInPipelineCards({
           // Action-Row = REFERENZ. Links (feste Breite → Deal-Infos starten bei jeder Karte
           // bündig in derselben Spalte): Herkunft (AI SDR / Manuell). Daneben linksbündig:
           // Deal-Name · Betrag (teal-Pill) · Produkt — jeweils nur wenn vorhanden.
-          // Rechts: „Action starten" → öffnet das Info-Panel.
+          // Rechts: „Task anlegen" → öffnet das Info-Panel direkt auf dem Tasks-Tab
+          // mit offenem Anlegen-Formular (Deeplink initialAction='task').
           const actionRow = (
             <>
               <div className="flex items-center gap-3 min-w-0">
@@ -132,10 +136,10 @@ export default function NewInPipelineCards({
               </div>
 
               <button
-                onClick={(e) => { e.stopPropagation(); onSelectLead(buildLead(it)); }}
+                onClick={(e) => { e.stopPropagation(); onCreateTask(buildLead(it)); }}
                 className="px-4 py-1.5 bg-app-surface border border-[var(--sherloq-primary)] text-[var(--sherloq-primary)] hover:bg-[var(--sherloq-primary)] hover:text-on-accent rounded-full text-[11px] font-black transition-colors shadow-sm cursor-pointer shrink-0 inline-flex items-center gap-1.5"
               >
-                {t('hunter.newPipeline.actionStart')} →
+                {t('hunter.newPipeline.btnCreateTask')} →
               </button>
             </>
           );
