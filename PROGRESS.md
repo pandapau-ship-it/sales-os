@@ -87,7 +87,17 @@
      für saubere Auswertung „welches Produkt wie oft" · Produkt-**Verwaltung** (CRUD) später.
    - **P6 — Übersichts-Blöcke:** Deal-Setup/Offene-Tasks/Komm-Vorschau **echt** (aus geladenen deals/tasks/messages);
      **KI-Kurzakte/Aktive-Signale/Active-Sequence bleiben deferred (Gruppe B)**.
+   - **P6 ✅ Honesty-Pass Übersicht (2026-06-19):** Übersicht zeigt nur echte Daten. **Verdrahtet:**
+     **Offene Tasks** echt (`getTasksByContact`, nur offene; fällige=`due_at≤heute` orange; keine → Sektion
+     erscheint nicht) + **Aktive Signale** nur real ableitbar: „Stagniert XT in Stage Y" **nur wenn
+     `deals.stagnation_days > 0`** (Edge Function `score_deal_health` fehlt → bleibt 0 → kein Signal) ·
+     „Keine Task hinterlegt" (aktiver Deal + 0 offene Tasks). **Ausgeblendet + hier dokumentiert (kein Mock):**
+     **KI-Kurzakte** → KI-Pipeline (`kurzakte_entries` + `analyze_*`) · **Active Sequence** → `contact_sequences` ·
+     **externe/LinkedIn-Signale** → Signal-Quelle (`signals`/Webhook) · **Kommunikation** (Tab + Übersicht-
+     Vorschau + Footer-„Mail" + `MailComposer`) → **P7** (Quelle fehlt: keine `messages`-Read-Query/kein
+     Zufluss). **Aktivität-Tab bleibt sichtbar** (eigene nächste Scheibe = Audit-Log).
    - **P7 — Kommunikation:** read aus `messages` (Empty-State); **Versand deferred (Gruppe C)**.
+     (Aktuell ausgeblendet — Quelle steht noch nicht: keine Read-Query, kein Parser/Webhook-Zufluss.)
    - **P8 — Panel-Edits (Write):** Kontaktfeld-Inline-Edit (Write auf `contacts`, audit via Trigger) +
      **Stage-Write via Edge Function** (High-Risk: `audit_log` + Stagnation/`stage_updated_at`).
      - **P5c-2b (2026-06-19) — Teil vorgezogen:** Stage ist im Deal-**Create + Edit** wählbar; ein Wechsel

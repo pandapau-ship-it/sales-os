@@ -4,7 +4,7 @@ import { DEMO_ORGANIZATION_ID } from '@/lib/org';
 import { getContactDetail, getPipelineSettings, getTasksByContact, createTask, completeTask, softDeleteTask, getNotesByContact, createNote, updateNote, softDeleteNote, getDealsByContact, getProducts, getOrgUsers, createDeal, updateDeal, updateDealStage, softDeleteDeal } from '@/lib/db';
 import { contactToProfile, contactActiveStage, latestActiveDeal, dealToView } from '@/lib/hunterMappers';
 import {
-  ArrowUpRight, ArrowLeft, X, Mail, Phone, Clock, Check,
+  ArrowUpRight, ArrowLeft, X, Phone, Clock, Check,
   ChevronDown, Plus, Briefcase,
   StickyNote, User, Building2, Tag, CheckCircle2
 } from 'lucide-react';
@@ -13,16 +13,10 @@ import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
 import Avatar from '@/components/shared/Avatar';
-import { ActiveSequenceChain, AktiveSignale, AktivitaetsVerlauf, DealsListe, DetailField, DetailPhoneList, DetailSection, HeatBadge, KiKurzakte, KommunikationPreview, KommunikationVerlauf, KontaktZeile, MailComposer, NotizenListe, OffeneTasks, PanelTabs, StageBadge, StatusBadge, TasksListe } from '@/components';
+import { AktiveSignale, AktivitaetsVerlauf, DealsListe, DetailField, DetailPhoneList, DetailSection, HeatBadge, KontaktZeile, NotizenListe, OffeneTasks, PanelTabs, StageBadge, StatusBadge, TasksListe } from '@/components';
 
 /** Telefon-Eintrag (Favorit inline, Rest im Popover bei P8-Edit). */
 interface Phone { id: string; type: string; number: string; favorite: boolean }
-const DEFAULT_KURZAKTE = [
-  'Refactoring der Outreach-Struktur gestartet — sucht aktiv ein Tool zur Senkung der SDR Ramp-Up-Time.',
-  'Persönlichkeit: analytisch & datengetrieben — reagiert auf klare ROI-Argumentation, wenig Smalltalk.',
-  'Objection: Budget-Freeze bis Q3 — echter Einwand, kein Vorwand. Der ROI-Case ist der Hebel.',
-  'Buying Signal: Demo sehr positiv, fragte nach Implementierungs-Zeitplan. Abschluss realistisch ab Q4.',
-];
 
 // EditableInline → panel-blocks/EditableInline (importiert). PhoneField → panel-blocks/PhoneField.
 
@@ -65,14 +59,12 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
   // Footer-Quick-Actions: öffnen den jeweiligen Tab direkt im Anlege-/Compose-Modus.
   const [dealsAutoNew, setDealsAutoNew] = useState(false);
   const [notesAutoCompose, setNotesAutoCompose] = useState(false);
-  const [commCompose, setCommCompose] = useState(false);
   const [showVollansicht, setShowVollansicht] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Vom User editierbare Felder (kein System-Wert) — lokaler Mock-State.
   const [contact, setContact] = useState({ email: '', linkedin: '', web: '' });
   const [phones, setPhones] = useState<Phone[]>([]);
-  const [kurzakte, setKurzakte] = useState<string[]>(DEFAULT_KURZAKTE);
   const [details, setDetails] = useState(DEFAULT_DETAILS);
   const setDetail = (k: keyof typeof DEFAULT_DETAILS, v: string) => { setDetails((d) => ({ ...d, [k]: v })); showToast('Gespeichert'); };
 
@@ -82,11 +74,9 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
     if (personProp) {
       setDisplay(personProp);
       // Editierbare Felder beim Öffnen zurücksetzen (Kontaktzeile wird unten aus dem Fetch geseedet).
-      setKurzakte(DEFAULT_KURZAKTE);
       setDetails(DEFAULT_DETAILS);
-      // Karten-Aktion: Panel direkt mit der passenden Aktion öffnen.
-      if (initialAction === 'mail') { setCommCompose(true); setActiveTab('communication'); }
-      else if (initialAction === 'task') { setTasksAutoEditId('new'); setActiveTab('tasks'); }
+      // Karten-Aktion: Panel direkt mit der passenden Aktion öffnen. ('mail' deferred — Kommunikation P7.)
+      if (initialAction === 'task') { setTasksAutoEditId('new'); setActiveTab('tasks'); }
       else setActiveTab(variant === 'full' ? 'details' : 'overview');
     }
   }, [personProp, initialAction]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -200,6 +190,10 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
   const dealRows = dealsQuery.data ?? [];
   const primaryDealRow = latestActiveDeal(dealRows) ?? dealRows[0];
   const primaryDeal = primaryDealRow ? dealToView(primaryDealRow, stageMap, stageProbMap) : undefined;
+  // Übersicht-Signale aus echten Daten: offene Tasks + Stagnation des primären Deals (stagnation_days
+  // wird erst von der Edge Function score_deal_health gesetzt → bis dahin 0 → kein Fake-Signal).
+  const openTaskCount = (tasksQuery.data ?? []).filter((tk) => !(tk as { completed_at?: string }).completed_at).length;
+  const primaryStagnationDays = (primaryDealRow as { stagnation_days?: number } | undefined)?.stagnation_days ?? 0;
   // P5b — Produkt-Katalog (Dropdown) + Deal anlegen.
   const productsQuery = useQuery({
     queryKey: ['products', DEMO_ORGANIZATION_ID],
@@ -286,7 +280,6 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
   // Footer-Quick-Actions (Task/Mail/Deal/Notiz) — öffnen direkt das jeweilige Anlege-Panel.
   const ACTIONS = [
     { icon: Plus, label: 'Task', onClick: () => { setTasksAutoEditId('new'); setActiveTab('tasks'); } },
-    { icon: Mail, label: 'Mail', onClick: () => { setCommCompose(true); setActiveTab('communication'); } },
     { icon: Briefcase, label: 'Deal', onClick: () => { setDealsAutoNew(true); setActiveTab('deals'); } },
     { icon: StickyNote, label: 'Notiz', onClick: () => { setNotesAutoCompose(true); setActiveTab('notes'); } },
   ];
@@ -395,7 +388,6 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
     <PanelTabs
       tabs={[
         { id: 'overview', label: 'Übersicht' },
-        { id: 'communication', label: 'Kommunikation' },
         { id: 'activity', label: 'Aktivität' },
         { id: 'tasks', label: 'Tasks' },
         { id: 'deals', label: 'Deals' },
@@ -411,9 +403,14 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
 
         {activeTab === 'overview' && (
           <div className="space-y-7 animate-fade-in">
-            <KiKurzakte items={kurzakte} onSave={(lines) => { setKurzakte(lines); showToast('KI Kurzakte gespeichert'); }} />
-
-            <AktiveSignale onAction={(key) => { if (key === 'stagniert') showToast('Next Step geöffnet'); else if (key === 'keine_task') showToast('Task anlegen gestartet'); else setActiveTab('communication'); }} />
+            {/* Honesty: nur real ableitbare Signale (Stagnation > 0 · keine offene Task); sonst Sektion weg. */}
+            <AktiveSignale
+              stagnationDays={primaryStagnationDays}
+              stageLabel={primaryDeal?.stageLabel}
+              noOpenTask={!!primaryDeal && openTaskCount === 0}
+              onStagnant={() => { if (primaryDeal) { setDealsAutoEditId(primaryDeal.id); } setActiveTab('deals'); }}
+              onNoTask={() => { setTasksAutoEditId('new'); setActiveTab('tasks'); }}
+            />
 
             {/* Übersicht: ALLE Deals kompakt (aktiver zuerst), ab >2 einklappbar; Edit → Deals-Tab + diesen Deal. */}
             <DealsListe
@@ -425,30 +422,18 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
               onEditDeal={(id) => { setDealsAutoEditId(id); setActiveTab('deals'); }}
             />
 
+            {/* Echte offene Tasks; fällige orange; keine → Sektion erscheint nicht. */}
             <OffeneTasks
-              onAdd={() => showToast('Neue Task angelegt')}
+              taskRows={tasksQuery.data ?? []}
+              onAdd={() => { setTasksAutoEditId('new'); setActiveTab('tasks'); }}
               onOpenTasks={() => setActiveTab('tasks')}
               onEditTask={(id) => { setTasksAutoEditId(id); setActiveTab('tasks'); }}
-              onToast={showToast}
+              onComplete={(id) => completeTaskMutation.mutate(id)}
+              onDelete={(id) => deleteTaskMutation.mutate(id)}
             />
 
-            <ActiveSequenceChain />
-
-            <KommunikationPreview onShowAll={() => setActiveTab('communication')} />
-
-          </div>
-        )}
-
-        {activeTab === 'communication' && (
-          <div className="space-y-7">
-            {commCompose && (
-              <MailComposer
-                to={contact.email}
-                onClose={() => setCommCompose(false)}
-                onSend={() => { showToast('E-Mail gesendet ✓'); setCommCompose(false); }}
-              />
-            )}
-            <KommunikationVerlauf />
+            {/* Deferred (PROGRESS): KI-Kurzakte (KI-Pipeline) · Active Sequence (contact_sequences) ·
+                externe/LinkedIn-Signale (Signal-Quelle) · Kommunikations-Vorschau (P7, Quelle fehlt). */}
           </div>
         )}
 
@@ -653,7 +638,6 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
   const FULL_TABS = [
     { id: 'details', label: 'Details' },
     { id: 'overview', label: 'Übersicht' },
-    { id: 'communication', label: 'Kommunikation' },
     { id: 'activity', label: 'Aktivität' },
     { id: 'tasks', label: 'Tasks' },
     { id: 'deals', label: 'Deals' },
