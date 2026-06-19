@@ -409,13 +409,16 @@ checkPopoverInputFocus()
 checkInlineBlocks()
 checkSingleSourceContactValues()
 
-// ── Typo-Kanon: Schrift-Stufen laufen über Primitive (typo-*), nicht roh ──────
+// ── Typo-Kanon: Schrift-Stufen UND Schrift-Art laufen über Primitive (typo-*) ──
 // Analog zur Single-Source-Regel. In den Panel-Block-/Tab-Listen-Komponenten müssen
 // Titel/Header/Labels/Werte über ein typo-*-Primitive (src/index.css) laufen.
 // Distinctive Roh-Signaturen → FAIL, außer die className trägt ein typo-*-Primitive:
 //   tracking-widest        → section-label (nur Section-Header nutzen dieses Tracking)
-//   font-mono              → chevron-header / field-label (nur diese nutzen Mono)
+//   font-mono              → chevron-header / field-label (Mono NUR über diese Primitive)
 //   text-[13–15px] + bold  → card-title / field-value (Buttons/Container via rounded-/py- ausgenommen)
+// Schrift-ART (Marke = global auf <body> vererbt, kein Re-Deklarieren): rohes
+//   font-serif · arbitrary font-[family-name:…]/font-['…'] · inline fontFamily/font-family
+//   → FAIL (Buttons/Container ausgenommen, wie bei der Größen-Signatur). font-sans = Marke, ok.
 // Neue Tab-Listen-/Übersichts-Block-Komponente → IN_SCOPE ergänzen.
 function checkTypographyTokens(): void {
   const IN_SCOPE = new Set([
@@ -435,10 +438,19 @@ function checkTypographyTokens(): void {
     const noBlock = raw.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '))
     const lines = noBlock.split('\n').map((l) => l.replace(/\/\/.*$/, ''))
     lines.forEach((l, i) => {
-      if (TYPO.test(l)) return // läuft bereits über ein Primitive → ok
-      const isButton = /\brounded-/.test(l) || /\bpy-/.test(l) // Buttons/Container: keine Titel-Signatur
+      const isButton = /\brounded-/.test(l) || /\bpy-/.test(l) // Buttons/Container: keine Text-Signatur
+      // Schrift-ART: fremde/serife/inline Schrift ist NIE als Roh-Klasse erlaubt — auch nicht neben
+      // einem typo-* (das Primitive setzt die Schrift selbst in CSS; die Marke wird global vererbt).
+      const fontArt = (/\bfont-serif\b/.test(l)
+        || /\bfont-\[(?:\s*family-name:|['"])/.test(l) // arbitrary font-family utility
+        || /\bfont-family\s*:/.test(l)                 // inline style font-family
+        || /\bfontFamily\s*:/.test(l)                  // inline JSX style fontFamily
+      ) && !isButton
+      if (fontArt) { hits.push(`${rel(f)}:${i + 1}`); return }
+      // Größen-/Struktur-Signaturen: durch ein typo-*-Primitive erfüllt → ok.
+      if (TYPO.test(l)) return
       const sectionLabel = /tracking-widest/.test(l)
-      const monoHeader = /\bfont-mono\b/.test(l)
+      const monoHeader = /\bfont-mono\b/.test(l)        // rohes Mono ohne Primitive
       const titleSig = /text-\[1[345]px\]/.test(l) && /font-(bold|extrabold)\b/.test(l) && !isButton
       if (sectionLabel || monoHeader || titleSig) hits.push(`${rel(f)}:${i + 1}`)
     })
@@ -446,8 +458,8 @@ function checkTypographyTokens(): void {
 
   add('Typo-Kanon: Schrift-Stufen', hits.length ? 'FAIL' : 'PASS',
     hits.length
-      ? `Rohe Schrift-Klassen an Titel/Header/Label/Wert statt typo-*-Primitive (src/index.css → „Typo-Kanon“):\n        ${hits.join('\n        ')}`
-      : 'Titel/Header/Labels/Werte in Panel-Blocks laufen über typo-*-Primitive.')
+      ? `Rohe Schrift-Klassen/-Art an Titel/Header/Label/Wert statt typo-*-Primitive (src/index.css → „Typo-Kanon“):\n        ${hits.join('\n        ')}`
+      : 'Titel/Header/Labels/Werte + Schrift-Art in Panel-Blocks laufen über typo-*-Primitive (Marke global vererbt).')
 }
 checkTypographyTokens()
 

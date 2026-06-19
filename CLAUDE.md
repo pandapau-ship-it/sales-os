@@ -458,11 +458,19 @@ nie roh als `text-[Npx] font-*` an diesen Stellen wiederholen. **Farbe bleibt be
 - **Card-Title ist 14px/700** — der frühere Deals-Ausreißer (15px/extrabold) wurde angeglichen,
   damit alle Tab-Listen-Karten matchen. **Chevron-Header (11px mono)** und **Section-Label (10px)**
   sind bewusst getrennte Stufen — nicht verwechseln (Chevron-Kurzansicht ≠ Panel-Sektion).
+- **Schrift-ART verriegelt:** Die **Marken-Schrift (Plus Jakarta Sans)** ist **EINMAL global** auf
+  `<body>` gesetzt (`index.css`) und wird überall vererbt — Komponenten deklarieren die Schriftart
+  **nie** selbst neu. **Monospace ausschließlich** über die Primitive `typo-chevron-header` /
+  `typo-field-label` (dort steckt die Mono-Family im CSS) — **kein rohes `font-mono` auf Text**.
+  **Fremde Schriften verboten:** kein `font-serif`, keine arbitrary `font-[family-name:…]`/`font-['…']`,
+  kein inline `fontFamily`/`font-family`. `font-sans` = Marke (ok, aber redundant — Vererbung reicht).
 - **Erzwungen:** `npm run audit` → Check **„Typo-Kanon: Schrift-Stufen"** meldet **FAIL**, wenn in
-  einer Panel-Block-/Tab-Listen-Komponente eine rohe Schrift-Klasse an Titel/Header/Label/Wert steht,
-  die **nicht** über ein `typo-*`-Primitive läuft (distinctive Signaturen: `tracking-widest`,
-  `font-mono`, `text-[13–15px]`+`font-bold/extrabold`; Buttons/Container via `rounded-`/`py-`
-  ausgenommen). Läuft im **pre-push-Hook** → blockt den Push (mit Terminal), wie die Single-Source-Regel.
+  einer Panel-Block-/Tab-Listen-Komponente eine rohe Schrift-Klasse an Titel/Header/Label/Wert **oder
+  eine rohe Schrift-ART** steht, die **nicht** über ein `typo-*`-Primitive läuft (Signaturen:
+  `tracking-widest`, `font-mono`, `text-[13–15px]`+`font-bold/extrabold`; **Schrift-Art:** `font-serif`,
+  arbitrary `font-[…]`-Family, inline `fontFamily`/`font-family`). Schrift-ART wird **auch neben einem
+  `typo-*`** geflaggt (das Primitive setzt die Schrift selbst). Buttons/Container via `rounded-`/`py-`
+  ausgenommen. Läuft im **pre-push-Hook** → blockt den Push (mit Terminal), wie die Single-Source-Regel.
 - **Scope:** Panel-Blocks + Tab-Listen-Komponenten (dort tritt der Drift auf). Neue solche Komponente →
   `IN_SCOPE` in `scripts/audit.ts` (`checkTypographyTokens`) ergänzen. Andere Bereiche (Forms/Drawer/
   Detail-Felder) folgen später. Neue Stufe nötig → erst `typo-*`-Klasse in `index.css`, dann nutzen.
