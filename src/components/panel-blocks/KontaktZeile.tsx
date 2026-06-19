@@ -59,6 +59,18 @@ function KontaktZeileReadonly({ contact, phones, onCopied }: { contact: { email:
     <div className={PILL}>
       {items.map((it, i) => {
         const Icon = it.Icon;
+        // Telefon: PhoneField (readonly) → Popover mit allen Nummern (Anrufen/Kopieren, Favorit statisch).
+        if (it.key === "phone") {
+          return (
+            <Fragment key={it.key}>
+              {i > 0 && <span className="h-4 w-px bg-border shrink-0" />}
+              <span className="flex items-center gap-1.5 min-w-0">
+                <Icon className="w-[13px] h-[13px] text-text-muted shrink-0" />
+                <PhoneField readonly phones={phones} onCopy={() => onCopied?.()} />
+              </span>
+            </Fragment>
+          );
+        }
         return (
           <Fragment key={it.key}>
             {i > 0 && <span className="h-4 w-px bg-border shrink-0" />}

@@ -55,7 +55,8 @@ export type ContactProfile = {
   // Kontaktwege (P2) — fehlend → undefined (Zeile/Icon unsichtbar). website = Firmen-Wert
   // (contacts hat keine eigene Website) aus dem company-Embed; sonst domain.
   email?: string;
-  phone?: string;
+  phone?: string; // Legacy-Einzelnummer (contacts.phone) — bleibt bis PH4-Cleanup
+  phones: { id: string; type: string; number: string; favorite: boolean }[]; // PH2: aus contact_phones
   linkedinUrl?: string;
   website?: string;
 };
@@ -72,6 +73,19 @@ export function contactToProfile(c: Record<string, any> | null | undefined): Con
     .join("")
     .slice(0, 2)
     .toUpperCase();
+  // PH2 — Telefonnummern aus contact_phones (is_primary → favorite, label → type).
+  // Favorit zuerst. Kein contact_phones, aber Legacy contacts.phone → ein Fallback-Eintrag.
+  // Beides leer → leeres Array (Honesty).
+  const phonesRaw = Array.isArray(c?.contact_phones) ? c!.contact_phones : [];
+  let phones = phonesRaw.map((p: any) => ({
+    id: String(p.id),
+    type: p.label || "Weitere",
+    number: p.number ?? "",
+    favorite: !!p.is_primary,
+  }));
+  if (phones.length && !phones.some((p) => p.favorite)) phones[0].favorite = true; // genau-1-Favorit absichern
+  phones = phones.slice().sort((a, b) => Number(b.favorite) - Number(a.favorite)); // Favorit zuerst
+  if (!phones.length && c?.phone) phones = [{ id: "legacy", type: "Telefon", number: c.phone, favorite: true }];
   return {
     avatarUrl: undefined,
     name,
@@ -83,6 +97,7 @@ export function contactToProfile(c: Record<string, any> | null | undefined): Con
     statusLabel: c?.contact_status ? CONTACT_STATUS_LABEL[c.contact_status] : undefined,
     email: c?.email || undefined,
     phone: c?.phone || undefined,
+    phones,
     linkedinUrl: c?.linkedin_url || undefined,
     website: c?.company?.website || c?.company?.domain || undefined, // Firmen-Website (Kontakt hat keine eigene)
   };

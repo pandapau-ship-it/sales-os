@@ -6,16 +6,13 @@ import { contactToProfile, latestActiveDeal, dealToView, WON_STAGE_SLUG, LOST_ST
 import DealLostModal from './DealLostModal';
 import { triggerConfetti } from '@/lib/confetti';
 import {
-  ArrowUpRight, ArrowLeft, X, Phone, Clock, Check,
+  ArrowUpRight, ArrowLeft, X, Clock, Check,
   Plus, Briefcase,
   StickyNote, User, Building2, Tag, CheckCircle2
 } from 'lucide-react';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import Avatar from '@/components/shared/Avatar';
 import { AktiveSignale, AktivitaetsVerlauf, DealsListe, DetailField, DetailPhoneList, DetailSection, HeatBadge, KontaktZeile, NotizenListe, OffeneTasks, PanelTabs, StatusBadge, TasksListe } from '@/components';
-
-/** Telefon-Eintrag (Favorit inline, Rest im Popover bei P8-Edit). */
-interface Phone { id: string; type: string; number: string; favorite: boolean }
 
 // EditableInline → panel-blocks/EditableInline (importiert). PhoneField → panel-blocks/PhoneField.
 
@@ -63,7 +60,6 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
 
   // Vom User editierbare Felder (kein System-Wert) — lokaler Mock-State.
   const [contact, setContact] = useState({ email: '', linkedin: '', web: '' });
-  const [phones, setPhones] = useState<Phone[]>([]);
   const [details, setDetails] = useState(DEFAULT_DETAILS);
   const setDetail = (k: keyof typeof DEFAULT_DETAILS, v: string) => { setDetails((d) => ({ ...d, [k]: v })); showToast('Gespeichert'); };
 
@@ -104,12 +100,12 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
   const profile = contactToProfile(contactRow);              // zentrale Leitung
   const headLoading = !!contactId && contactQuery.isLoading && !contactRow;
 
-  // P2 — Kontaktzeile aus dem echten Kontakt seeden (email/phone/linkedin_url + Firmen-Website).
+  // P2 — Kontaktzeile aus dem echten Kontakt seeden (email/linkedin_url + Firmen-Website).
   // Werte zentral über contactToProfile; fehlend → leer → Read-Zeile blendet das Element aus.
+  // PH2: Telefonnummern kommen read-only direkt aus profile.phones (contact_phones) — kein lokaler State.
   useEffect(() => {
     if (!contactRow) return;
     setContact({ email: profile.email ?? '', linkedin: profile.linkedinUrl ?? '', web: profile.website ?? '' });
-    setPhones(profile.phone ? [{ id: 'p1', type: 'Telefon', number: profile.phone, favorite: true }] : []);
   }, [contactRow]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // P3 — Tasks-Tab: echte Tasks des Kontakts + Anlegen/Abhaken (erster Panel-Write).
@@ -392,13 +388,9 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
       readonly
       onCopied={() => showToast('Kopiert ✓')}
       contact={contact}
-      phones={phones}
+      phones={profile.phones}
       onSaveField={(f, v) => { setContact((c) => ({ ...c, [f]: v })); showToast(`${FIELD_LABEL[f]} gespeichert`); }}
       onCopyField={(f) => showToast(`${FIELD_LABEL[f]} kopiert`)}
-      onSetFavorite={(id) => { setPhones((prev) => prev.map((p) => ({ ...p, favorite: p.id === id }))); showToast('Favorit-Nummer gesetzt'); }}
-      onUpdateNumber={(id, number) => { setPhones((prev) => prev.map((p) => (p.id === id ? { ...p, number } : p))); showToast('Nummer gespeichert'); }}
-      onCopyPhone={() => showToast('Telefon kopiert')}
-      onAddPhone={() => showToast('Weitere Nummer hinzugefügt')}
     />
   );
 
@@ -515,22 +507,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
   // Details-Tab (nur Vollansicht) — alle Kontakt-/Firmen-/CRM-Felder (CLAUDE.md → CRM FELDER),
   // editierbar (Standard) bzw. readonly (System). Bündelt was bei „+ SDR Lead" erfassbar ist.
   const PHONE_TYPES = ['Mobil', 'Geschäftlich', 'Privat', 'Weitere'];
-  const addPhone = () => {
-    setPhones((prev) => {
-      const maxId = prev.reduce((m, p) => Math.max(m, parseInt(p.id.replace(/\D/g, '')) || 0), 0);
-      return [...prev, { id: 'p' + (maxId + 1), type: 'Weitere', number: '', favorite: prev.length === 0 }];
-    });
-  };
-  const setFavoritePhone = (id: string) => { setPhones((prev) => prev.map((p) => ({ ...p, favorite: p.id === id }))); showToast('Favorit-Nummer gesetzt'); };
-  const updatePhone = (id: string, patch: Partial<Phone>) => setPhones((prev) => prev.map((p) => (p.id === id ? { ...p, ...patch } : p)));
-  const removePhone = (id: string) => {
-    setPhones((prev) => {
-      let next = prev.filter((p) => p.id !== id);
-      if (next.length && !next.some((p) => p.favorite)) next = next.map((p, i) => (i === 0 ? { ...p, favorite: true } : p));
-      return next;
-    });
-    showToast('Nummer entfernt');
-  };
+  // PH2: Telefon-Liste read-only (echte contact_phones). Schreiben (Favorit/Edit/Add/Remove) folgt PH3.
   const detailsContent = person && (
     <div className="space-y-5 animate-fade-in">
       <DetailSection title="Person" icon={User}>
@@ -554,12 +531,9 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
           </div>
           <div className="mt-5">
             <DetailPhoneList
-              phones={phones}
+              readonly
+              phones={profile.phones}
               types={PHONE_TYPES}
-              onSetFavorite={setFavoritePhone}
-              onUpdate={updatePhone}
-              onAdd={addPhone}
-              onRemove={removePhone}
               onCopy={() => showToast('Kopiert ✓')}
             />
           </div>

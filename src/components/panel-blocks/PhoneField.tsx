@@ -13,8 +13,8 @@ import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover
 export interface Phone { id: string; type: string; number: string; favorite: boolean }
 
 export default function PhoneField({
-  phones, onSetFavorite, onUpdateNumber, onCopy, onAdd,
-}: { phones: Phone[]; onSetFavorite: (id: string) => void; onUpdateNumber: (id: string, number: string) => void; onCopy: () => void; onAdd: () => void }) {
+  phones, onSetFavorite, onUpdateNumber, onCopy, onAdd, readonly = false,
+}: { phones: Phone[]; onSetFavorite?: (id: string) => void; onUpdateNumber?: (id: string, number: string) => void; onCopy: () => void; onAdd?: () => void; readonly?: boolean }) {
   const [open, setOpen] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [editId, setEditId] = useState<string | null>(null);
@@ -29,7 +29,7 @@ export default function PhoneField({
     setTimeout(() => setCopiedId(null), 1500);
   };
   const startEdit = (p: Phone) => { setDraft(p.number); setEditId(p.id); setOpen(true); };
-  const saveEdit = () => { if (editId) onUpdateNumber(editId, draft.trim()); setEditId(null); };
+  const saveEdit = () => { if (editId) onUpdateNumber?.(editId, draft.trim()); setEditId(null); };
 
   if (!fav) return null;
 
@@ -50,9 +50,11 @@ export default function PhoneField({
         <button onClick={() => copy(fav)} aria-label="Kopieren" data-tip="Kopieren" className="opacity-0 group-hover/phone:opacity-100 transition-opacity text-text-muted hover:text-[var(--sherloq-primary)] cursor-pointer shrink-0">
           {copiedId === fav.id ? <Check className="w-3 h-3 text-[var(--sherloq-primary)]" /> : <Copy className="w-3 h-3" />}
         </button>
-        <button onClick={() => startEdit(fav)} aria-label="Bearbeiten" data-tip="Bearbeiten" className="opacity-0 group-hover/phone:opacity-100 transition-opacity text-text-muted hover:text-[var(--sherloq-primary)] cursor-pointer shrink-0">
-          <Pencil className="w-3 h-3" />
-        </button>
+        {!readonly && (
+          <button onClick={() => startEdit(fav)} aria-label="Bearbeiten" data-tip="Bearbeiten" className="opacity-0 group-hover/phone:opacity-100 transition-opacity text-text-muted hover:text-[var(--sherloq-primary)] cursor-pointer shrink-0">
+            <Pencil className="w-3 h-3" />
+          </button>
+        )}
       </span>
 
       <PopoverContent portal={false} align="start" sideOffset={8} className="w-[320px] p-0 overflow-hidden">
@@ -60,13 +62,19 @@ export default function PhoneField({
         <div className="py-1">
           {phones.map((p) => (
             <div key={p.id} className="flex items-center gap-2 px-3 py-2 hover:bg-app-bg transition-colors">
-              <button
-                onClick={() => onSetFavorite(p.id)}
-                aria-label={p.favorite ? 'Favorit' : 'Als Favorit setzen'} data-tip={p.favorite ? 'Favorit' : 'Als Favorit setzen'}
-                className="shrink-0 cursor-pointer"
-              >
-                <Star className={`w-3.5 h-3.5 transition-colors ${p.favorite ? 'fill-[var(--sherloq-primary)] text-[var(--sherloq-primary)]' : 'text-text-muted hover:text-[var(--sherloq-primary)]'}`} />
-              </button>
+              {readonly ? (
+                <span className="shrink-0" aria-label={p.favorite ? 'Favorit' : undefined} data-tip={p.favorite ? 'Favorit' : undefined}>
+                  <Star className={`w-3.5 h-3.5 ${p.favorite ? 'fill-[var(--sherloq-primary)] text-[var(--sherloq-primary)]' : 'text-text-muted opacity-40'}`} />
+                </span>
+              ) : (
+                <button
+                  onClick={() => onSetFavorite?.(p.id)}
+                  aria-label={p.favorite ? 'Favorit' : 'Als Favorit setzen'} data-tip={p.favorite ? 'Favorit' : 'Als Favorit setzen'}
+                  className="shrink-0 cursor-pointer"
+                >
+                  <Star className={`w-3.5 h-3.5 transition-colors ${p.favorite ? 'fill-[var(--sherloq-primary)] text-[var(--sherloq-primary)]' : 'text-text-muted hover:text-[var(--sherloq-primary)]'}`} />
+                </button>
+              )}
               <div className="min-w-0 flex-1">
                 <div className="text-[9px] font-bold text-text-muted uppercase tracking-wide">{p.type}</div>
                 {editId === p.id ? (
@@ -98,17 +106,21 @@ export default function PhoneField({
                   <button onClick={() => copy(p)} aria-label="Kopieren" data-tip="Kopieren" className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-text-muted hover:text-[var(--sherloq-primary)] hover:bg-app-surface transition-colors cursor-pointer">
                     {copiedId === p.id ? <Check className="w-3.5 h-3.5 text-[var(--sherloq-primary)]" /> : <Copy className="w-3.5 h-3.5" />}
                   </button>
-                  <button onClick={() => startEdit(p)} aria-label="Bearbeiten" data-tip="Bearbeiten" className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-text-muted hover:text-[var(--sherloq-primary)] hover:bg-app-surface transition-colors cursor-pointer">
-                    <Pencil className="w-3.5 h-3.5" />
-                  </button>
+                  {!readonly && (
+                    <button onClick={() => startEdit(p)} aria-label="Bearbeiten" data-tip="Bearbeiten" className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-text-muted hover:text-[var(--sherloq-primary)] hover:bg-app-surface transition-colors cursor-pointer">
+                      <Pencil className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                 </>
               )}
             </div>
           ))}
         </div>
-        <button onClick={onAdd} className="w-full px-4 py-2.5 border-t border-border-subtle text-left text-[12px] font-bold text-[var(--sherloq-primary)] hover:bg-app-bg transition-colors cursor-pointer flex items-center gap-1.5">
-          <Plus className="w-3.5 h-3.5" /> Nummer hinzufügen
-        </button>
+        {!readonly && (
+          <button onClick={onAdd} className="w-full px-4 py-2.5 border-t border-border-subtle text-left text-[12px] font-bold text-[var(--sherloq-primary)] hover:bg-app-bg transition-colors cursor-pointer flex items-center gap-1.5">
+            <Plus className="w-3.5 h-3.5" /> Nummer hinzufügen
+          </button>
+        )}
       </PopoverContent>
     </Popover>
   );
