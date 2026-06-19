@@ -1,6 +1,5 @@
-import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Calendar, Check, Bot, UserCheck, Inbox } from 'lucide-react';
+import { Bot, UserCheck, Inbox } from 'lucide-react';
 import HunterCard, { type HunterCardData } from './HunterCard';
 import EmptyState from '@/components/shared/EmptyState';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
@@ -21,10 +20,12 @@ function daysSince(iso: string | null): number | null {
  * Deals (deals.created_at) als Kontakt-Kachel (contactToProfile) + Stage (contactActiveStage)
  * über die zentrale Leitung. Herkunft „Via AI SDR" vs. „Manuell hinzugefügt" aus
  * deals.source_lead_id. Zeitfilter (heute / 7 Tage / 30 Tage) wird im Screen über
- * created_at gefiltert; hier nur die Auswahl gerendert. Meeting-Prep-/Termin-Buttons +
- * Pfeil bleiben als Tür sichtbar (Klick → Platzhalter-Toast). Termin-Datum, Prep-Status
- * + AI-Begleittext sind ausgeblendet (Logik/Tabellen fehlen → würde Daten vortäuschen,
- * Deferred [D18]). Leerer Zeitraum → EmptyState (gewollter Positivzustand).
+ * created_at gefiltert; hier nur die Auswahl gerendert. Zeile 2 zeigt links die
+ * Herkunft, in der Mitte echte Deal-Infos (Name · Betrag · Produkt — jeweils nur wenn
+ * vorhanden, Honesty) und rechts den „Action starten"-Button (öffnet das Info-Panel,
+ * gleiche Logik wie der grüne Pfeil). Termin-Datum, Prep-Status + AI-Begleittext bleiben
+ * ausgeblendet (Logik/Tabellen fehlen → würde Daten vortäuschen, Deferred [D18]).
+ * Leerer Zeitraum → EmptyState (gewollter Positivzustand).
  */
 export default function NewInPipelineCards({
   items,
@@ -38,12 +39,6 @@ export default function NewInPipelineCards({
   onSelectLead: (lead: Lead) => void;
 }) {
   const { t } = useTranslation();
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-
-  const triggerToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3000);
-  };
 
   const list = items ?? [];
 
@@ -104,34 +99,44 @@ export default function NewInPipelineCards({
             timeSubLabel: <span className="text-text-muted font-semibold">{t('hunter.newPipeline.label')}</span>,
           };
 
-          // Action-Row = REFERENZ. Links: Herkunft (AI SDR / Manuell). Rechts: Türen
-          // (Meeting-Prep · Termin vereinbaren) — Funktion folgt, Klick → Platzhalter.
+          // Echte Deal-Infos für die Mitte — nur vorhandene Teile (Honesty: kein „—", keine 0).
+          // Betrag: deal.value ist Cent → /100, ganzzahlig (de-DE-Gruppierung) + „ €".
+          const valueLabel = it.dealValue != null
+            ? `${Math.round(it.dealValue / 100).toLocaleString('de-DE')} €`
+            : null;
+          const hasDealInfo = !!(it.dealName || valueLabel || it.dealProduct);
+
+          // Action-Row = REFERENZ. Links (feste Breite → Deal-Infos starten bei jeder Karte
+          // bündig in derselben Spalte): Herkunft (AI SDR / Manuell). Daneben linksbündig:
+          // Deal-Name · Betrag (teal-Pill) · Produkt — jeweils nur wenn vorhanden.
+          // Rechts: „Action starten" → öffnet das Info-Panel.
           const actionRow = (
             <>
-              <div className="flex items-center gap-1.5 min-w-0">
-                {it.source === 'ai_sdr'
-                  ? <Bot size={15} className="text-[var(--sherloq-primary)] shrink-0" />
-                  : <UserCheck size={15} className="text-text-muted shrink-0" />}
-                <span className={ACTION_ROW.strongText}>
-                  {it.source === 'ai_sdr' ? t('hunter.newPipeline.sourceAiSdr') : t('hunter.newPipeline.sourceManual')}
-                </span>
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="flex items-center gap-1.5 w-[180px] shrink-0">
+                  {it.source === 'ai_sdr'
+                    ? <Bot size={15} className="text-[var(--sherloq-primary)] shrink-0" />
+                    : <UserCheck size={15} className="text-text-muted shrink-0" />}
+                  <span className={`${ACTION_ROW.strongText} truncate`}>
+                    {it.source === 'ai_sdr' ? t('hunter.newPipeline.sourceAiSdr') : t('hunter.newPipeline.sourceManual')}
+                  </span>
+                </div>
+
+                {hasDealInfo && (
+                  <div className="flex items-center gap-2 min-w-0">
+                    {it.dealName && <span className={`${ACTION_ROW.text} truncate`}>{it.dealName}</span>}
+                    {valueLabel && <span className="sherloq-pill pill-teal font-bold shrink-0">{valueLabel}</span>}
+                    {it.dealProduct && <span className={`${ACTION_ROW.text} truncate`}>{it.dealProduct}</span>}
+                  </div>
+                )}
               </div>
 
-              <div className="flex items-center gap-2 shrink-0">
-                <button
-                  onClick={(e) => { e.stopPropagation(); triggerToast(t('hunter.newPipeline.toastSoon')); }}
-                  className={`${ACTION_ROW.ctaSecondary} inline-flex items-center gap-1.5`}
-                >
-                  <Calendar size={13} className="text-[var(--sherloq-primary)]" />
-                  {t('hunter.newPipeline.btnMeetingPrep')}
-                </button>
-                <button
-                  onClick={(e) => { e.stopPropagation(); triggerToast(t('hunter.newPipeline.toastSoon')); }}
-                  className={ACTION_ROW.ctaPrimary}
-                >
-                  {t('hunter.newPipeline.btnSchedule')}
-                </button>
-              </div>
+              <button
+                onClick={(e) => { e.stopPropagation(); onSelectLead(buildLead(it)); }}
+                className="px-4 py-1.5 bg-app-surface border border-[var(--sherloq-primary)] text-[var(--sherloq-primary)] hover:bg-[var(--sherloq-primary)] hover:text-on-accent rounded-full text-[11px] font-black transition-colors shadow-sm cursor-pointer shrink-0 inline-flex items-center gap-1.5"
+              >
+                {t('hunter.newPipeline.actionStart')} →
+              </button>
             </>
           );
 
@@ -145,14 +150,6 @@ export default function NewInPipelineCards({
           );
         })}
       </div>
-
-      {/* Toast — Platzhalter (Funktion folgt mit Task-System / Kalender-Integration) */}
-      {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 bg-inverse-surface text-on-accent px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2 animate-bounce">
-          <Check size={14} className="text-[var(--signal-success-text)]" strokeWidth={3} />
-          <span className="text-xs font-semibold">{toastMessage}</span>
-        </div>
-      )}
     </div>
   );
 }

@@ -207,9 +207,7 @@
       "period30d": "Letzter Monat",
       "sourceAiSdr": "Via AI SDR",
       "sourceManual": "Manuell hinzugefügt",
-      "btnMeetingPrep": "Meeting-Prep",
-      "btnSchedule": "Termin vereinbaren",
-      "toastSoon": "Funktion folgt",
+      "actionStart": "Action starten",
       "emptyTitle": "Nichts Neues in diesem Zeitraum",
       "emptyDesc": "Frisch eingegangene Deals erscheinen hier."
     },

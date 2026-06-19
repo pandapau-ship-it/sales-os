@@ -323,6 +323,9 @@ export type NewPipelineCardItem = {
   stage?: string; // zuletzt aktiver Deal des Kontakts; keiner → undefined → keine Stage
   createdAt: string | null; // deal.created_at (Zeitfilter + „vor X Tagen"); null → unsichtbar
   source: "ai_sdr" | "manual";
+  dealName?: string; // deal.name; fehlt → ausgeblendet (Honesty)
+  dealValue?: number; // deal.value in Cent; fehlt → ausgeblendet
+  dealProduct?: string; // deal.product; fehlt → ausgeblendet
 };
 
 export function dealToNewPipelineRow(
@@ -342,6 +345,9 @@ export function dealToNewPipelineRow(
     stage: contactActiveStage(deal.contact, stageNameBySlug),
     createdAt: deal.created_at ?? null,
     source: deal.source_lead_id ? "ai_sdr" : "manual",
+    dealName: deal.name ?? undefined,
+    dealValue: deal.value ?? undefined,
+    dealProduct: deal.product ?? undefined,
   };
 }
 

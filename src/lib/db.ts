@@ -257,7 +257,7 @@ export async function getNewInPipeline(
   const { data, error } = await client
     .from("deals")
     .select(
-      `id, name, stage, created_at, source_lead_id, contact:contacts(*, ${CONTACT_COMPANY_EMBED}, deals(stage, updated_at, stage_updated_at, closed_at, created_at, deleted_at))`,
+      `id, name, stage, created_at, source_lead_id, value, product, contact:contacts(*, ${CONTACT_COMPANY_EMBED}, deals(stage, updated_at, stage_updated_at, closed_at, created_at, deleted_at))`,
     )
     .eq("organization_id", organizationId)
     .is("deleted_at", null) // soft-gelöschte ausblenden
