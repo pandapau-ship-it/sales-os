@@ -112,20 +112,19 @@ function DealsListeReadonly({
   }, [autoEditId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Subzeile (Wert · Owner · Abschluss) + Chips (Produkt/MRR/ARR, nur echte Werte — Honesty).
+  // Chips (Produkt · MRR · ARR) für die kompakten Übersicht-Karten — nur echte Werte (Honesty).
   const meta = (d: DealView) => {
-    const closeDate = d.closedAt ?? d.endDate;
-    const sub = [
-      d.valueEur != null ? money(d.valueEur, d.currency) : null,
-      d.owner ?? null,
-      closeDate ? `Abschluss: ${dateLabel(closeDate)}` : null,
-    ].filter(Boolean).join(" · ");
     const chips = [
       d.product ? { key: "product", label: d.product, accent: true } : null,
       d.mrr != null ? { key: "mrr", label: `MRR: ${money(Math.round(d.mrr), d.currency)}`, accent: false } : null,
       d.arr != null ? { key: "arr", label: `ARR: ${money(Math.round(d.arr), d.currency)}`, accent: false } : null,
     ].filter(Boolean) as { key: string; label: string; accent: boolean }[];
-    return { sub, chips };
+    return { chips };
   };
+  // Dealbetrag prominent: hellteal Pill, immer rechts → bei mehreren Deals bündig untereinander, schnell erfassbar.
+  const amountPill = (d: DealView) => d.valueEur != null ? (
+    <span className="px-2.5 py-1 rounded-full bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)] text-[13px] font-extrabold whitespace-nowrap shrink-0">{money(d.valueEur, d.currency)}</span>
+  ) : null;
   const chipsRow = (chips: { key: string; label: string; accent: boolean }[]) => chips.length > 0 ? (
     <div className="flex items-center flex-wrap gap-1.5 mt-3">
       {chips.map((c) => c.accent ? (
@@ -135,17 +134,26 @@ function DealsListeReadonly({
       ))}
     </div>
   ) : null;
-  const head = (d: DealView, sub: string) => (
-    <div className="flex items-center gap-3 min-w-0">
-      <span className="w-10 h-10 rounded-[10px] shrink-0 inline-flex items-center justify-center bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)]">
-        <Briefcase className="w-5 h-5" />
-      </span>
-      <div className="min-w-0">
-        <p className="typo-card-title text-text-primary leading-tight truncate">{d.name}</p>
-        {sub && <p className="typo-subline text-text-muted mt-0.5 truncate">{sub}</p>}
+  const head = (d: DealView) => {
+    const closeDate = d.closedAt ?? d.endDate;
+    const metaText = [d.owner ?? null, closeDate ? `Abschluss: ${dateLabel(closeDate)}` : null].filter(Boolean).join(" · ");
+    return (
+      <div className="flex items-center gap-3 min-w-0">
+        <span className="w-10 h-10 rounded-[10px] shrink-0 inline-flex items-center justify-center bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)]">
+          <Briefcase className="w-5 h-5" />
+        </span>
+        <div className="min-w-0">
+          <p className="typo-card-title text-text-primary leading-tight truncate">{d.name}</p>
+          {/* Betrag = Leitzahl → prominent direkt unter dem Namen (links), daneben Owner · Abschluss.
+              Stage-Badge sitzt allein oben rechts (Status-Konvention). */}
+          <div className="flex items-center gap-2 mt-1 min-w-0">
+            {amountPill(d)}
+            {metaText && <span className="typo-subline text-text-muted truncate">{metaText}</span>}
+          </div>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   // Geteiltes Formular (Anlegen + Bearbeiten) — Outer-Card setzt der Aufrufer (Create oben / Edit in der Karte).
   const renderForm = () => (
@@ -251,11 +259,12 @@ function DealsListeReadonly({
         <span className="typo-section-label text-text-muted">Deals</span>
         {sorted.length === 0 && <div className="text-[12px] text-text-muted px-1">{t("hunter.panel.noDeals")}</div>}
         {visible.map((d) => {
-          const { sub, chips } = meta(d);
+          const { chips } = meta(d);
           return (
             <div key={d.id} className="group p-4 bg-app-surface border border-border rounded-[12px] shadow-sm">
               <div className="flex items-start justify-between gap-3">
-                {head(d, sub)}
+                {head(d)}
+                {/* Oben rechts: nur Stage-Badge (Status) + Edit beim Hover. Betrag steht prominent unter dem Namen. */}
                 <div className="flex items-center gap-2 shrink-0">
                   {d.stageLabel && <StageBadge stage={d.stageLabel} />}
                   {onEditDeal && (
@@ -304,12 +313,12 @@ function DealsListeReadonly({
 
       <div className="space-y-3">
         {items.map((d) => {
-          const { sub } = meta(d);
           const editing = editingId === d.id;
           return (
             <div key={d.id} className="group p-4 bg-app-surface border border-border rounded-[12px] shadow-sm">
               <div className="flex items-start justify-between gap-3">
-                {head(d, sub)}
+                {head(d)}
+                {/* Oben rechts: nur Stage-Badge (Status) + Aktionen beim Hover. Betrag steht prominent unter dem Namen. */}
                 <div className="flex items-center gap-2 shrink-0">
                   {d.stageLabel && <StageBadge stage={d.stageLabel} />}
                   {(onUpdate || onDelete) && !editing && confirmDeleteId !== d.id && (
