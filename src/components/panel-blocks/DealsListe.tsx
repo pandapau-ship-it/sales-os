@@ -10,6 +10,7 @@ import { useTranslation } from "react-i18next";
 import { Plus, Briefcase, Pencil, Trash2, Check, X } from "lucide-react";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { HOVER_ACTIONS } from "@/lib/componentBehavior";
+import { dealToView, type DealView } from "@/lib/hunterMappers";
 import StageBadge from "./StageBadge";
 import NewDealCard, { type DealDraft } from "./NewDealCard";
 
@@ -21,31 +22,7 @@ interface DealItem extends DealDraft { id: string; stage: string; }
 const OWNERS = ["Oliver Sand", "Lena Brandt", "Marc Vogel"];
 
 // ── P5a Read-Modus: echte Deals des Kontakts (nur lesen) ──────────────────────
-/** Eine Read-Deal-Ansicht — nur echte DB-Felder; fehlende → undefined (unsichtbar). */
-type DealView = {
-  id: string;
-  name: string;
-  product?: string;
-  stageLabel: string;     // Slug → Anzeigename (im Screen aufgelöst)
-  valueEur?: number;      // deals.value (Cent) / 100
-  currency: string;
-  owner?: string;         // owner_id → users.full_name
-  closeDate?: string;     // closed_at ?? end_date
-};
-
-function rowToDealView(row: Record<string, any>, stageNameBySlug: Record<string, string>): DealView {
-  return {
-    id: row.id,
-    name: row.name ?? "",
-    product: row.product || undefined,
-    stageLabel: stageNameBySlug[row.stage] ?? row.stage ?? "",
-    valueEur: typeof row.value === "number" ? row.value / 100 : undefined,
-    currency: row.currency ?? "EUR",
-    owner: row.owner?.full_name || undefined,
-    closeDate: row.closed_at ?? row.end_date ?? undefined,
-  };
-}
-
+// Deal-Sicht kommt zentral aus dealToView (hunterMappers) — keine eigene Feldlogik mehr.
 const money = (v: number, currency: string) =>
   currency === "EUR" ? `€ ${v.toLocaleString("de-DE")}` : `${currency} ${v.toLocaleString("de-DE")}`;
 const dateLabel = (iso: string) => new Date(iso).toLocaleDateString("de-DE", { day: "2-digit", month: "short", year: "numeric" });
@@ -55,22 +32,38 @@ const dateLabel = (iso: string) => new Date(iso).toLocaleDateString("de-DE", { d
  * Anlege-Formular bewusst LEAN: nur persistierte Felder (Name/Produkt/Wert) — kein owner/arr/mrr/
  * close-Input, der ins Leere liefe. Produkt-Dropdown aus dem echten Katalog (productOptions).
  */
-function DealsListeReadonly({ items, productOptions, onCreate }: {
+function DealsListeReadonly({ items, productOptions, onCreate, autoNew = false, onAutoConsumed }: {
   items: DealView[];
   productOptions?: string[];
-  onCreate?: (v: { name: string; product: string; value: string }) => void;
+  // Alle Felder als String (Formular-Rohwerte). Term/Notice/Close sind OPTIONAL — leer → nicht geschrieben.
+  onCreate?: (v: { name: string; product: string; value: string; termMonths: string; noticePeriodDays: string; expectedCloseDate: string }) => void;
+  /** Footer „Deal" öffnet das Anlege-Formular direkt (auch wenn der Tab schon offen ist). */
+  autoNew?: boolean;
+  onAutoConsumed?: () => void;
 }) {
   const { t } = useTranslation();
-  const [composerOpen, setComposerOpen] = useState(false);
+  const [composerOpen, setComposerOpen] = useState(!!autoNew); // Remount-Fall (kein Flash)
   const [name, setName] = useState("");
   const [product, setProduct] = useState<string>("");
   const [value, setValue] = useState("");
+  const [termMonths, setTermMonths] = useState("");
+  const [noticePeriodDays, setNoticePeriodDays] = useState("");
+  const [expectedCloseDate, setExpectedCloseDate] = useState("");
   const [error, setError] = useState(false);
 
-  const reset = () => { setName(""); setProduct(""); setValue(""); setError(false); setComposerOpen(false); };
+  // Footer „Deal" → autoNew öffnet das Formular auch bei schon offenem Tab (Prop-Änderung, nicht nur Mount).
+  useEffect(() => {
+    if (autoNew) { setComposerOpen(true); onAutoConsumed?.(); }
+  }, [autoNew]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const reset = () => {
+    setName(""); setProduct(""); setValue("");
+    setTermMonths(""); setNoticePeriodDays(""); setExpectedCloseDate("");
+    setError(false); setComposerOpen(false);
+  };
   const save = () => {
     if (!name.trim()) { setError(true); return; }
-    onCreate?.({ name: name.trim(), product, value }); // Insert + invalidate + Toast übernimmt das Panel
+    onCreate?.({ name: name.trim(), product, value, termMonths, noticePeriodDays, expectedCloseDate }); // Insert + invalidate + Toast übernimmt das Panel
     reset();
   };
 
@@ -111,6 +104,22 @@ function DealsListeReadonly({ items, productOptions, onCreate }: {
             <div className="space-y-1.5">
               <label className={LABEL}>{t("hunter.panel.value")} (€)</label>
               <input type="number" min="0" step="100" value={value} onChange={(e) => setValue(e.target.value)} placeholder="25000" className={`${FIELD} border-border bg-app-bg`} />
+              <span className="text-[10px] text-text-muted">{t("hunter.panel.valueHint")}</span>
+            </div>
+          </div>
+          {/* Optionale Vertrags-/Forecast-Felder — alle leer lassen erlaubt (dann nicht geschrieben). */}
+          <div className="grid grid-cols-3 gap-3">
+            <div className="space-y-1.5">
+              <label className={LABEL}>{t("hunter.panel.termMonths")}</label>
+              <input type="number" min="0" step="1" value={termMonths} onChange={(e) => setTermMonths(e.target.value)} placeholder="12" className={`${FIELD} border-border bg-app-bg`} />
+            </div>
+            <div className="space-y-1.5">
+              <label className={LABEL}>{t("hunter.panel.noticePeriodDays")}</label>
+              <input type="number" min="0" step="1" value={noticePeriodDays} onChange={(e) => setNoticePeriodDays(e.target.value)} placeholder="30" className={`${FIELD} border-border bg-app-bg`} />
+            </div>
+            <div className="space-y-1.5">
+              <label className={LABEL}>{t("hunter.panel.expectedCloseDate")}</label>
+              <input type="date" value={expectedCloseDate} onChange={(e) => setExpectedCloseDate(e.target.value)} className={`${FIELD} border-border bg-app-bg`} />
             </div>
           </div>
           <div className="flex items-center justify-end gap-2">
@@ -130,11 +139,18 @@ function DealsListeReadonly({ items, productOptions, onCreate }: {
 
       <div className="space-y-3">
         {items.map((d) => {
+          const closeDate = d.closedAt ?? d.endDate; // tatsächlicher Abschluss, sonst Vertragsende
           const sub = [
             d.valueEur != null ? money(d.valueEur, d.currency) : null,
             d.owner ?? null,
-            d.closeDate ? `Abschluss: ${dateLabel(d.closeDate)}` : null,
+            closeDate ? `Abschluss: ${dateLabel(closeDate)}` : null,
           ].filter(Boolean).join(" · ");
+          // Chips nur mit echten Werten (Honesty): Produkt · MRR · ARR (berechnet, nur wenn term_months gesetzt).
+          const chips = [
+            d.product ? { key: "product", label: d.product, accent: true } : null,
+            d.mrr != null ? { key: "mrr", label: `MRR: ${money(Math.round(d.mrr), d.currency)}`, accent: false } : null,
+            d.arr != null ? { key: "arr", label: `ARR: ${money(Math.round(d.arr), d.currency)}`, accent: false } : null,
+          ].filter(Boolean) as { key: string; label: string; accent: boolean }[];
           return (
             <div key={d.id} className="p-4 bg-app-surface border border-border rounded-[12px] shadow-sm">
               <div className="flex items-start justify-between gap-3">
@@ -149,9 +165,15 @@ function DealsListeReadonly({ items, productOptions, onCreate }: {
                 </div>
                 {d.stageLabel && <StageBadge stage={d.stageLabel} />}
               </div>
-              {d.product && (
+              {chips.length > 0 && (
                 <div className="flex items-center flex-wrap gap-1.5 mt-3">
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[var(--signal-teal-bg)] border border-[var(--signal-teal-bg)] text-[var(--sherloq-primary)] text-[10px] font-bold">{d.product}</span>
+                  {chips.map((c) =>
+                    c.accent ? (
+                      <span key={c.key} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[var(--signal-teal-bg)] border border-[var(--signal-teal-bg)] text-[var(--sherloq-primary)] text-[10px] font-bold">{c.label}</span>
+                    ) : (
+                      <span key={c.key} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-app-bg border border-border text-text-body text-[10px] font-bold">{c.label}</span>
+                    ),
+                  )}
                 </div>
               )}
             </div>
@@ -185,17 +207,19 @@ export default function DealsListe({
   stageNameBySlug?: Record<string, string>;
   /** Produkt-Katalog (Namen) fürs Dropdown (P5b). */
   productOptions?: string[];
-  /** Deal anlegen (P5b). */
-  onCreateDeal?: (v: { name: string; product: string; value: string }) => void;
+  /** Deal anlegen (P5b/2b). value/term/notice als String (Formular-Rohwerte); term/notice/close optional. */
+  onCreateDeal?: (v: { name: string; product: string; value: string; termMonths: string; noticePeriodDays: string; expectedCloseDate: string }) => void;
 }) {
   // P5a/P5b — Panel-Modus: lesen + anlegen (Bearbeiten/Löschen = P5c, Stage = P8). Dispatch, damit
   // die Mock-Hooks nicht hinter einem Early-Return liegen (Rules of Hooks).
   if (dealRows !== undefined) {
     return (
       <DealsListeReadonly
-        items={dealRows.map((r) => rowToDealView(r, stageNameBySlug ?? {}))}
+        items={dealRows.map((r) => dealToView(r, stageNameBySlug ?? {}))}
         productOptions={productOptions}
         onCreate={onCreateDeal}
+        autoNew={autoNew}
+        onAutoConsumed={onAutoEditConsumed}
       />
     );
   }

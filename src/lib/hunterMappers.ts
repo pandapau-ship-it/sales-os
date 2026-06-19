@@ -116,6 +116,61 @@ export function contactRowToLead(row: Record<string, any>): LeadRow {
   };
 }
 
+// ── Deal-Resolver (zentrale Deal-Sicht — Pendant zu contactToProfile) ─────────
+// EINE Quelle aller Deal-ANZEIGEwerte. Jeder Deal-Mapper/Block (rowToDealView,
+// dealToPipelineRow, DealSetup, DealKurzinfo) zieht Wert/Stage/Owner/Probability/
+// Laufzeit/… HIER raus — keine doppelte Feldlogik, kein Roh-Zugriff daneben.
+// Honesty: fehlt ein Wert → undefined (Element wird ausgeblendet, nie 0/Platzhalter).
+// MRR/ARR sind BERECHNET (keine DB-Spalten): mrr = value€ / term_months, arr = mrr×12;
+// term_months fehlt/0 → mrr/arr = undefined.
+export type DealView = {
+  id: string;
+  name: string;
+  product?: string;
+  valueEur?: number; // deals.value (Cent) / 100
+  currency: string;
+  stageSlug: string; // roher Slug (Gruppierung/Filter)
+  stageLabel: string; // settings.pipeline_stages: slug → Anzeigename
+  owner?: string; // owner_id → users.full_name
+  probability?: number; // deals.probability (0–100)
+  termMonths?: number; // Laufzeit (Monate)
+  noticePeriodDays?: number; // Kündigungsfrist (Tage)
+  expectedCloseDate?: string; // erwartetes Abschlussdatum (Forecast)
+  closedAt?: string; // tatsächlicher Abschluss
+  endDate?: string; // Vertragsende/Churn
+  mrr?: number; // BERECHNET: valueEur / termMonths
+  arr?: number; // BERECHNET: mrr × 12
+};
+
+export function dealToView(
+  deal: Record<string, any>,
+  stageNameBySlug: Record<string, string> = {},
+): DealView {
+  const valueEur = typeof deal.value === "number" ? deal.value / 100 : undefined;
+  // term_months muss > 0 sein, sonst ist mrr/arr nicht definiert (keine Division durch 0).
+  const termMonths = typeof deal.term_months === "number" && deal.term_months > 0 ? deal.term_months : undefined;
+  const mrr = valueEur != null && termMonths ? valueEur / termMonths : undefined;
+  const arr = mrr != null ? mrr * 12 : undefined;
+  return {
+    id: deal.id,
+    name: deal.name ?? "",
+    product: deal.product || undefined,
+    valueEur,
+    currency: deal.currency ?? "EUR",
+    stageSlug: deal.stage ?? "",
+    stageLabel: stageNameBySlug[deal.stage] ?? deal.stage ?? "",
+    owner: deal.owner?.full_name || undefined,
+    probability: typeof deal.probability === "number" ? deal.probability : undefined,
+    termMonths,
+    noticePeriodDays: typeof deal.notice_period_days === "number" ? deal.notice_period_days : undefined,
+    expectedCloseDate: deal.expected_close_date ?? undefined,
+    closedAt: deal.closed_at ?? undefined,
+    endDate: deal.end_date ?? undefined,
+    mrr,
+    arr,
+  };
+}
+
 // ── Pipeline-Liste (Slice A, Read) ───────────────────────────────────────────
 // Eine Deal-Zeile (aus getDeals, inkl. joined contact/company) → normalisierte Row.
 // Geteilt mit Slice B (Kanban): der gruppiert dieselben Rows nach stageSlug.
@@ -141,21 +196,22 @@ export function dealToPipelineRow(
   stageNameBySlug: Record<string, string>,
 ): PipelineRow {
   const p = contactToProfile(deal.contact); // zentrale Auflösung (Kontakt-Werte)
+  const d = dealToView(deal, stageNameBySlug); // zentrale Auflösung (Deal-Werte) — keine doppelte Logik
   return {
     id: deal.id,
     contactId: deal.contact?.id ?? null,
-    dealName: deal.name ?? "",
+    dealName: d.name,
     contactName: p.name,
     contactJobTitle: p.jobTitle,
     initials: p.initials,
     company: p.company, // jetzt vom KONTAKT (nested embed), nicht vom Deal
-    stageSlug: deal.stage,
-    stageLabel: stageNameBySlug[deal.stage] ?? deal.stage, // Stage bleibt deal.stage (konkreter Deal)
-    valueEur: typeof deal.value === "number" ? deal.value / 100 : null,
+    stageSlug: d.stageSlug,
+    stageLabel: d.stageLabel, // Stage = konkreter Deal (über dealToView)
+    valueEur: d.valueEur ?? null, // DealView: undefined → null (PipelineRow-Vertrag)
     heatStatus: p.heatStatus ?? "DEAD", // FIX: Heat aus contacts.heat_status (statt deals.heat_status); Fallback wie bisher
     icpScore: p.icpScore ?? null,
     ownerId: deal.owner_id ?? null,
-    ownerLabel: deal.owner?.full_name ?? "—", // null → ehrliches „—", kein Fake-Name
+    ownerLabel: d.owner ?? "—", // null → ehrliches „—", kein Fake-Name
   };
 }
 

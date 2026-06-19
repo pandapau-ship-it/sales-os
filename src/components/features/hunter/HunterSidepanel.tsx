@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DEMO_ORGANIZATION_ID } from '@/lib/org';
 import { getContactDetail, getPipelineSettings, getTasksByContact, createTask, completeTask, softDeleteTask, getNotesByContact, createNote, updateNote, softDeleteNote, getDealsByContact, getProducts, createDeal } from '@/lib/db';
-import { contactToProfile, contactActiveStage } from '@/lib/hunterMappers';
+import { contactToProfile, contactActiveStage, latestActiveDeal, dealToView } from '@/lib/hunterMappers';
 import {
   ArrowUpRight, ArrowLeft, X, Mail, Phone, Clock, Check,
   ChevronDown, Plus, Briefcase,
@@ -192,6 +192,11 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
     queryFn: () => getDealsByContact(DEMO_ORGANIZATION_ID, contactId as string),
     enabled: !!contactId && isOpen,
   });
+  // Übersicht „Deal Setup" zeigt den primären Deal = zuletzt aktiver, sonst neuester
+  // (getDealsByContact sortiert created_at desc). Werte zentral über dealToView.
+  const dealRows = dealsQuery.data ?? [];
+  const primaryDealRow = latestActiveDeal(dealRows) ?? dealRows[0];
+  const primaryDeal = primaryDealRow ? dealToView(primaryDealRow, stageMap) : undefined;
   // P5b — Produkt-Katalog (Dropdown) + Deal anlegen.
   const productsQuery = useQuery({
     queryKey: ['products', DEMO_ORGANIZATION_ID],
@@ -199,11 +204,15 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
   });
   const productOptions = (productsQuery.data ?? []).map((p) => (p as { name: string }).name);
   const createDealMutation = useMutation({
-    mutationFn: (v: { name: string; product: string; value: string }) =>
+    mutationFn: (v: { name: string; product: string; value: string; termMonths: string; noticePeriodDays: string; expectedCloseDate: string }) =>
       createDeal(DEMO_ORGANIZATION_ID, {
         name: v.name,
         product: v.product || undefined,
         valueEur: v.value && !Number.isNaN(Number(v.value)) ? Number(v.value) : undefined, // € → Cent in createDeal
+        // Optionale Felder: leer → undefined (→ null in createDeal, nie 0). Ganzzahlen.
+        termMonths: v.termMonths && !Number.isNaN(Number(v.termMonths)) ? Math.trunc(Number(v.termMonths)) : undefined,
+        noticePeriodDays: v.noticePeriodDays && !Number.isNaN(Number(v.noticePeriodDays)) ? Math.trunc(Number(v.noticePeriodDays)) : undefined,
+        expectedCloseDate: v.expectedCloseDate || undefined, // 'YYYY-MM-DD' aus dem Datumsfeld
         contactId: contactId as string,
       }),
     onSuccess: () => {
@@ -357,8 +366,8 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
             <AktiveSignale onAction={(key) => { if (key === 'stagniert') showToast('Next Step geöffnet'); else if (key === 'keine_task') showToast('Task anlegen gestartet'); else setActiveTab('communication'); }} />
 
             <DealSetup
-              stage={activeStage ?? ''}
-              count={2}
+              deal={primaryDeal}
+              count={dealRows.length}
               onEdit={() => { setDealsAutoEdit(true); setActiveTab('deals'); }}
               onOpenDeals={() => setActiveTab('deals')}
             />

@@ -570,7 +570,11 @@ export async function getProducts(
  */
 export async function createDeal(
   organizationId: string,
-  deal: { name: string; product?: string; valueEur?: number; contactId?: string },
+  deal: {
+    name: string; product?: string; valueEur?: number; contactId?: string;
+    // Optionale Vertrags-/Forecast-Felder (Migration 029). Fehlen sie → null, nie 0.
+    termMonths?: number; noticePeriodDays?: number; expectedCloseDate?: string;
+  },
 ): Promise<void> {
   const client = getSupabaseClient();
   if (!client) return;
@@ -582,6 +586,9 @@ export async function createDeal(
     value: deal.valueEur != null ? Math.round(deal.valueEur * 100) : null,
     currency: "EUR",
     stage: "backlog",
+    term_months: deal.termMonths ?? null, // Laufzeit (Monate) — null wenn leer
+    notice_period_days: deal.noticePeriodDays ?? null, // Kündigungsfrist (Tage) — null wenn leer
+    expected_close_date: deal.expectedCloseDate || null, // erw. Abschluss — null wenn leer
   });
   if (error) throw error;
 }

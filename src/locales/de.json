@@ -428,6 +428,10 @@
       "product": "Produkt",
       "productPlaceholder": "Produkt wählen…",
       "value": "Wert",
+      "valueHint": "Gesamtwert über die Laufzeit",
+      "termMonths": "Laufzeit (Monate)",
+      "noticePeriodDays": "Kündigungsfrist (Tage)",
+      "expectedCloseDate": "Erw. Abschluss",
       "save": "Speichern",
       "nameRequired": "Bitte einen Deal-Namen eingeben",
       "noDeals": "Noch keine Deals"

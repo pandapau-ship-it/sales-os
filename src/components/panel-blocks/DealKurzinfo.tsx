@@ -7,7 +7,7 @@
  */
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Briefcase, Target, Mail, CalendarCheck, MessageSquare, AlertTriangle } from "lucide-react";
+import { Briefcase, Target, Mail, CalendarCheck, MessageSquare } from "lucide-react";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 
 export type DealCardAction = "mail" | "task" | "chat";
@@ -16,12 +16,15 @@ export type DealCardAction = "mail" | "task" | "chat";
 const STAGES = ["Backlog", "Demo vereinbart", "Follow-up offen", "Onboarding offen", "Free Trial", "Gewonnen"];
 
 export default function DealKurzinfo({
-  stage, company, product = "Enterprise", daysInStage = 8, onAction, onOpenInfo, onStageChange,
+  stage, company, product, volumeLabel, durationLabel, probability, onAction, onOpenInfo, onStageChange,
 }: {
   stage: string;
   company?: string;
   product?: string;
-  daysInStage?: number;
+  // Echte Deal-Werte (optional). Fehlen sie → Zelle ausgeblendet (kein Fake/Platzhalter).
+  volumeLabel?: string; // z.B. „24.000 € ARR" — nur mit echtem Wert
+  durationLabel?: string; // z.B. „12 Monate"
+  probability?: number; // 0–100
   onAction?: (action: DealCardAction) => void;
   onOpenInfo?: () => void;
   onStageChange?: (stage: string) => void;
@@ -31,6 +34,14 @@ export default function DealKurzinfo({
   const act = (a: DealCardAction) => (onAction ? onAction(a) : onOpenInfo?.());
   // Aktuellen Stage-Wert immer auswählbar halten (Karten-Label ≠ kanonischer Slug möglich).
   const stageOptions = Array.from(new Set([localStage, ...STAGES].filter(Boolean)));
+  // „Deal Details"-Zellen nur aus echten Werten (Honesty). Stage ist immer vorhanden.
+  const detailCells: { label: string; value: string; accent?: boolean }[] = [
+    volumeLabel ? { label: t("hunter.leadCard.volume"), value: volumeLabel, accent: true } : null,
+    product ? { label: "Produkt", value: product } : null,
+    durationLabel ? { label: t("hunter.leadCard.duration"), value: durationLabel } : null,
+    { label: t("hunter.common.stage"), value: localStage },
+    probability != null ? { label: t("hunter.leadCard.probability"), value: `${probability}%` } : null,
+  ].filter(Boolean) as { label: string; value: string; accent?: boolean }[];
 
   return (
     <>
@@ -39,30 +50,14 @@ export default function DealKurzinfo({
         <div className="flex items-center gap-2 text-[11px] font-bold font-mono text-[var(--text-muted)] uppercase tracking-wider mb-3">
           <Briefcase className="w-4 h-4" /> {t("hunter.leadCard.dealDetails")}
         </div>
-        {company && <p className="text-[15px] font-extrabold text-text-primary mb-3 truncate">{company} — {product}</p>}
+        {company && <p className="text-[15px] font-extrabold text-text-primary mb-3 truncate">{company}{product ? ` — ${product}` : ""}</p>}
         <div className="grid grid-cols-2 gap-4 text-[12px]">
-          <div className="flex flex-col gap-1">
-            <span className="text-[var(--text-muted)] font-mono text-[10px] uppercase tracking-wider">{t("hunter.leadCard.volume")}</span>
-            <span className="font-bold text-[var(--sherloq-primary)] text-[14px]">24.000 € ARR</span>
-          </div>
-          <div className="flex flex-col gap-1">
-            <span className="text-[var(--text-muted)] font-mono text-[10px] uppercase tracking-wider">Produkt</span>
-            <span className="font-bold text-text-primary text-[14px] truncate">{product}</span>
-          </div>
-          <div className="flex flex-col gap-1">
-            <span className="text-[var(--text-muted)] font-mono text-[10px] uppercase tracking-wider">{t("hunter.leadCard.duration")}</span>
-            <span className="font-bold text-[var(--text-primary)] text-[14px]">12 Monate</span>
-          </div>
-          <div className="flex flex-col gap-1">
-            <span className="text-[var(--text-muted)] font-mono text-[10px] uppercase tracking-wider">{t("hunter.common.stage")}</span>
-            <span className="font-bold text-[var(--icp-low)] text-[14px] flex items-center gap-1.5">
-              {localStage} <span className="font-semibold text-[var(--icp-low)] flex items-center gap-0.5"><AlertTriangle className="w-3 h-3" /> {daysInStage}T</span>
-            </span>
-          </div>
-          <div className="flex flex-col gap-1">
-            <span className="text-[var(--text-muted)] font-mono text-[10px] uppercase tracking-wider">{t("hunter.leadCard.probability")}</span>
-            <span className="font-bold text-[var(--text-primary)] text-[14px]">60%</span>
-          </div>
+          {detailCells.map((c) => (
+            <div key={c.label} className="flex flex-col gap-1">
+              <span className="text-[var(--text-muted)] font-mono text-[10px] uppercase tracking-wider">{c.label}</span>
+              <span className={`font-bold text-[14px] truncate ${c.accent ? "text-[var(--sherloq-primary)]" : "text-text-primary"}`}>{c.value}</span>
+            </div>
+          ))}
         </div>
       </div>
 

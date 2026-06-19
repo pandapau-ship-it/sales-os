@@ -1,18 +1,41 @@
 /**
  * DealSetup — Deal-Kennzahlen-Grid (Master-Card-Stil) für die Übersicht.
- * Hover → Bearbeiten-Stift (führt in den Deal-Tab mit offener Bearbeiten-Kachel, `onEdit`).
- * Bei mehreren Deals: Count-Badge neben der Überschrift → `onOpenDeals` (Deal-Tab).
+ * Datengetrieben über den zentralen Deal-Resolver (`DealView` aus hunterMappers) —
+ * KEINE hardcodierten Werte. Honesty: jedes Feld ohne Wert wird ausgeblendet (kein
+ * Platzhalter/0). MRR/ARR sind berechnet (erscheinen nur, wenn term_months gesetzt).
+ * Hover → Bearbeiten-Stift (führt in den Deal-Tab, `onEdit`). Mehrere Deals: Count-Badge
+ * neben der Überschrift → `onOpenDeals` (Deal-Tab). „In Stage seit" bleibt vorerst weg
+ * (Stagnation ist deferred).
  */
-import { AlertTriangle, Briefcase, Pencil } from "lucide-react";
+import { Briefcase, Pencil } from "lucide-react";
 import { HOVER_ACTIONS } from "@/lib/componentBehavior";
+import type { DealView } from "@/lib/hunterMappers";
+
+const money = (v: number, currency: string) =>
+  currency === "EUR" ? `${Math.round(v).toLocaleString("de-DE")} €` : `${currency} ${Math.round(v).toLocaleString("de-DE")}`;
+const dateLabel = (iso: string) => new Date(iso).toLocaleDateString("de-DE", { day: "2-digit", month: "short", year: "numeric" });
 
 export default function DealSetup({
-  stage = "Demo vereinbart", count = 1, dealName = "LogixFlow — Enterprise", product = "Enterprise", onEdit, onOpenDeals,
-}: { stage?: string; count?: number; dealName?: string; product?: string; onEdit?: () => void; onOpenDeals?: () => void }) {
+  deal, count = 0, onEdit, onOpenDeals,
+}: { deal?: DealView; count?: number; onEdit?: () => void; onOpenDeals?: () => void }) {
+  // Nur echte Werte (Honesty) — fehlt der Wert, fällt die Zelle ganz weg.
+  const cells: { label: string; value: string; accent?: boolean }[] = deal
+    ? [
+        deal.product ? { label: "Produkt", value: deal.product } : null,
+        deal.stageLabel ? { label: "Stage", value: deal.stageLabel } : null,
+        deal.probability != null ? { label: "Probability", value: `${deal.probability}%` } : null,
+        deal.arr != null ? { label: "ARR", value: money(deal.arr, deal.currency), accent: true } : null,
+        deal.mrr != null ? { label: "MRR", value: money(deal.mrr, deal.currency) } : null,
+        deal.termMonths != null ? { label: "Laufzeit", value: `${deal.termMonths} Monate` } : null,
+        deal.noticePeriodDays != null ? { label: "Kündigungsfrist", value: `${deal.noticePeriodDays} Tage` } : null,
+        deal.expectedCloseDate ? { label: "Erw. Abschluss", value: dateLabel(deal.expectedCloseDate) } : null,
+      ].filter(Boolean) as { label: string; value: string; accent?: boolean }[]
+    : [];
+
   return (
     <div className="group bg-app-surface rounded-[12px] p-5 border border-border shadow-[var(--shadow-card)]">
       <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2 text-[11px] font-bold font-mono text-text-muted uppercase tracking-wider">
+        <div className="flex items-center gap-2 text-[10px] font-extrabold text-text-muted uppercase tracking-widest">
           <Briefcase className="w-4 h-4" /> Deal Setup
           {count > 1 && (
             <button
@@ -24,7 +47,7 @@ export default function DealSetup({
             </button>
           )}
         </div>
-        {onEdit && (
+        {deal && onEdit && (
           <button
             onClick={onEdit}
             aria-label="Deal bearbeiten" data-tip="Deal bearbeiten"
@@ -34,37 +57,24 @@ export default function DealSetup({
           </button>
         )}
       </div>
-      {dealName && <p className="text-[15px] font-extrabold text-text-primary -mt-1 mb-3 truncate">{dealName}</p>}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-[12px]">
-        <div className="flex flex-col gap-1">
-          <span className="text-text-muted font-mono text-[10px] uppercase tracking-wider">Produkt</span>
-          <span className="font-bold text-text-primary text-[14px] truncate">{product || "—"}</span>
-        </div>
-        <div className="flex flex-col gap-1">
-          <span className="text-text-muted font-mono text-[10px] uppercase tracking-wider">Stage</span>
-          <span className="font-bold text-text-primary text-[14px]">{stage}</span>
-        </div>
-        <div className="flex flex-col gap-1">
-          <span className="text-text-muted font-mono text-[10px] uppercase tracking-wider">Probability</span>
-          <span className="font-bold text-text-primary text-[14px]">100%</span>
-        </div>
-        <div className="flex flex-col gap-1">
-          <span className="text-text-muted font-mono text-[10px] uppercase tracking-wider">ARR</span>
-          <span className="font-bold text-[var(--sherloq-primary)] text-[14px]">12.500 €</span>
-        </div>
-        <div className="flex flex-col gap-1">
-          <span className="text-text-muted font-mono text-[10px] uppercase tracking-wider">MRR</span>
-          <span className="font-bold text-text-primary text-[14px]">1.041 €</span>
-        </div>
-        <div className="flex flex-col gap-1">
-          <span className="text-text-muted font-mono text-[10px] uppercase tracking-wider">Laufzeit</span>
-          <span className="font-bold text-text-primary text-[14px]">12 Monate</span>
-        </div>
-        <div className="flex flex-col gap-1">
-          <span className="text-text-muted font-mono text-[10px] uppercase tracking-wider">In Stage seit</span>
-          <span className="font-bold text-[var(--icp-low)] text-[14px] flex items-center gap-1.5">8 Tage <AlertTriangle className="w-3 h-3" /></span>
-        </div>
-      </div>
+
+      {!deal ? (
+        <p className="text-[12px] text-text-muted">Kein Deal</p>
+      ) : (
+        <>
+          {deal.name && <p className="text-[15px] font-extrabold text-text-primary -mt-1 mb-3 truncate">{deal.name}</p>}
+          {cells.length > 0 && (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-[12px]">
+              {cells.map((c) => (
+                <div key={c.label} className="flex flex-col gap-1">
+                  <span className="text-text-muted font-mono text-[10px] uppercase tracking-wider">{c.label}</span>
+                  <span className={`font-bold text-[14px] truncate ${c.accent ? "text-[var(--sherloq-primary)]" : "text-text-primary"}`}>{c.value}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }
