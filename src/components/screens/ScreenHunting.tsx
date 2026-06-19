@@ -31,12 +31,13 @@ import { AddSdrLeadPanel, ContactColdDrawer, EmptyState, FunnelAnalysis, HeatBad
 import type { SignalActionData } from '@/components';
 
 import Avatar from '@/components/shared/Avatar';
-import { signalToCardProps, taskToDueCard, dealToNewPipelineRow, newPipelineInPeriod, isTerminalStage, WON_STAGE_SLUG, type PipelineRow, type NewPipelinePeriod } from '@/lib/hunterMappers';
+import { signalToCardProps, taskToDueCard, dealToNewPipelineRow, newPipelineInPeriod, isTerminalStage, WON_STAGE_SLUG, LOST_STAGE_SLUG, type PipelineRow, type NewPipelinePeriod } from '@/lib/hunterMappers';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { updateDealStage } from '@/lib/db';
+import { updateDealStage, updateDealWon, updateDealLost } from '@/lib/db';
 import { DEMO_ORGANIZATION_ID } from '@/lib/org';
 import { useToast } from '@/components/shared/Toast';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
+import { DealLostModal } from '@/components';
 
 interface ScreenHuntingProps {
   leads: Lead[];
@@ -93,31 +94,43 @@ export default function ScreenHunting({
   const leadRows = leadsData ?? leads;
   // Pipeline-Listenansicht (Slice A): echte Deals. Kanban/Tasks bleiben Mock.
   const dealRows = dealsData ?? [];
-  // P8-2c — Stage-Wechsel direkt von der Kanban-Karte. Eigene Mutation (nur Stage),
-  // gleiche Invalidierung wie der Panel-Deal-Write. Terminal (gewonnen/verloren) wird im
-  // Handler ehrlich blockiert (Won/Lost-Dialog folgt P8-3 — closed_at/lost_reason fehlen).
+  // P8-2c/3 — Stage-Wechsel (Kanban-Pfeile + Liste-Dropdown). Drei Schreib-Pfade, gleiche
+  // Invalidierung: normaler Move (updateDealStage), gewonnen (updateDealWon, direkt, kein Modal),
+  // verloren (DealLostModal → updateDealLost). Reihenfolge ['deals'] zieht Liste/Kanban/Funnel mit.
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const [lostModal, setLostModal] = useState<{ open: boolean; dealId: string | null }>({ open: false, dealId: null });
+  const invalidateDealsScope = () => {
+    queryClient.invalidateQueries({ queryKey: ['dealsByContact', DEMO_ORGANIZATION_ID] });
+    queryClient.invalidateQueries({ queryKey: ['deals', DEMO_ORGANIZATION_ID] });
+    queryClient.invalidateQueries({ queryKey: ['newInPipeline', DEMO_ORGANIZATION_ID] });
+  };
   const updateStageMutation = useMutation({
     mutationFn: ({ dealId, newSlug }: { dealId: string; newSlug: string }) => updateDealStage(dealId, newSlug, DEMO_ORGANIZATION_ID),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['dealsByContact', DEMO_ORGANIZATION_ID] });
-      queryClient.invalidateQueries({ queryKey: ['deals', DEMO_ORGANIZATION_ID] });
-      queryClient.invalidateQueries({ queryKey: ['newInPipeline', DEMO_ORGANIZATION_ID] });
-      toast('Stage geändert ✓');
-    },
+    onSuccess: () => { invalidateDealsScope(); toast('Stage geändert ✓'); },
+    onError: () => toast('Stage konnte nicht geändert werden'),
+  });
+  const wonMutation = useMutation({
+    mutationFn: (dealId: string) => updateDealWon(dealId, DEMO_ORGANIZATION_ID),
+    onSuccess: () => { invalidateDealsScope(); toast('Deal gewonnen 🎉'); },
+    onError: () => toast('Stage konnte nicht geändert werden'),
+  });
+  const lostMutation = useMutation({
+    mutationFn: ({ dealId, lostReason, note }: { dealId: string; lostReason: string; note: string }) => updateDealLost(dealId, DEMO_ORGANIZATION_ID, lostReason, note),
+    onSuccess: () => { invalidateDealsScope(); toast('Deal als verloren markiert'); setLostModal({ open: false, dealId: null }); },
     onError: () => toast('Stage konnte nicht geändert werden'),
   });
   const handleStageChange = (newSlug: string, dealId: string) => {
-    if (isTerminalStage(newSlug)) { toast('Won/Lost-Dialog folgt in P8-3'); return; }
+    if (newSlug === WON_STAGE_SLUG) { wonMutation.mutate(dealId); return; }
+    if (newSlug === LOST_STAGE_SLUG) { setLostModal({ open: true, dealId }); return; }
     updateStageMutation.mutate({ dealId, newSlug });
   };
-  // Pfeil → Deal eine Stage weiter (nächste in stageOptions-Reihenfolge). Keine nächste
-  // ODER nächste ist terminal → handleStageChange blockt mit Toast (Won/Lost-Dialog P8-3).
+  // Pfeil → Deal eine Stage weiter (nächste in stageOptions-Reihenfolge). Ist die nächste
+  // terminal (gewonnen), löst handleStageChange den Won-Flow aus. Keine nächste → still (Guard).
   const handleAdvanceStage = (currentSlug: string, dealId: string) => {
     const idx = stageOptions.findIndex((s) => s.slug === currentSlug);
     const next = idx >= 0 ? stageOptions[idx + 1] : undefined;
-    if (!next) { toast('Won/Lost-Dialog folgt in P8-3'); return; }
+    if (!next) return;
     handleStageChange(next.slug, dealId);
   };
   // Pfeil ← Deal eine Stage zurück (vorherige in stageOptions-Reihenfolge). Erste Stage →
@@ -847,6 +860,14 @@ export default function ScreenHunting({
         person={infoPanelLead?.person ?? null}
         initialAction={infoPanelAction}
         onClose={() => { setInfoPanelLead(null); setInfoPanelAction(null); }}
+      />
+
+      {/* P8-3: Lost-Dialog bei Wechsel in „verloren" (Kanban-Pfeil/Liste-Dropdown). Won = kein Modal. */}
+      <DealLostModal
+        open={lostModal.open}
+        pending={lostMutation.isPending}
+        onCancel={() => setLostModal({ open: false, dealId: null })}
+        onConfirm={(lostReason, note) => { if (lostModal.dealId) lostMutation.mutate({ dealId: lostModal.dealId, lostReason, note }); }}
       />
 
     </div>

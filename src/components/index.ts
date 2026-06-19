@@ -20,6 +20,7 @@ export { default as ChatActionPanel } from './features/hunter/ChatActionPanel';
 export * from './features/hunter/ChatActionPanel';
 export { default as ContactColdDrawer } from './features/hunter/ContactColdDrawer';
 export * from './features/hunter/ContactColdDrawer';
+export { default as DealLostModal } from './features/hunter/DealLostModal';
 export { default as FunnelAnalysis } from './features/hunter/FunnelAnalysis';
 export { default as HunterSidepanel } from './features/hunter/HunterSidepanel';
 export { default as NoTaskDrawer } from './features/hunter/NoTaskDrawer';

@@ -25,6 +25,7 @@ import {
   INITIAL_MARKETING_IDEAS,
   INITIAL_KPIS,
 } from "@/data";
+import { WON_STAGE_SLUG, LOST_STAGE_SLUG } from "@/lib/hunterMappers";
 import type {
   Lead,
   Customer,
@@ -359,6 +360,49 @@ export async function updateDealStage(
   const { error } = await client
     .from("deals")
     .update({ stage: newStage, stage_updated_at: new Date().toISOString(), stagnation_days: 0 })
+    .eq("organization_id", organizationId)
+    .eq("id", dealId);
+  if (error) throw error;
+}
+
+/**
+ * updateDealWon — Deal gewonnen (P8-3). Setzt stage=gewonnen + closed_at=now()
+ * (tatsächlicher Abschluss) + stage_updated_at + Stagnation-Reset. Eigene Funktion,
+ * weil updateDealStage bewusst kein closed_at schreibt. Audit via DB-Trigger.
+ */
+export async function updateDealWon(
+  dealId: string,
+  organizationId: string,
+): Promise<void> {
+  const client = getSupabaseClient();
+  if (!client) return;
+  const now = new Date().toISOString();
+  const { error } = await client
+    .from("deals")
+    .update({ stage: WON_STAGE_SLUG, closed_at: now, stage_updated_at: now, stagnation_days: 0 })
+    .eq("organization_id", organizationId)
+    .eq("id", dealId);
+  if (error) throw error;
+}
+
+/**
+ * updateDealLost — Deal verloren (P8-3). Setzt stage=verloren + closed_at=now() +
+ * lost_reason (Pflicht, App-seitig erzwungen) + stage_updated_at + Stagnation-Reset.
+ * Optionale Notiz wird an den Grund angehängt (lost_reason ist eine Textspalte). Audit via Trigger.
+ */
+export async function updateDealLost(
+  dealId: string,
+  organizationId: string,
+  lostReason: string,
+  note?: string,
+): Promise<void> {
+  const client = getSupabaseClient();
+  if (!client) return;
+  const now = new Date().toISOString();
+  const reason = note && note.trim() ? `${lostReason} — ${note.trim()}` : lostReason;
+  const { error } = await client
+    .from("deals")
+    .update({ stage: LOST_STAGE_SLUG, closed_at: now, lost_reason: reason, stage_updated_at: now, stagnation_days: 0 })
     .eq("organization_id", organizationId)
     .eq("id", dealId);
   if (error) throw error;

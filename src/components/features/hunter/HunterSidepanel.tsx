@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DEMO_ORGANIZATION_ID } from '@/lib/org';
-import { getContactDetail, getPipelineSettings, getTasksByContact, createTask, completeTask, softDeleteTask, getNotesByContact, createNote, updateNote, softDeleteNote, getDealsByContact, getActivityByContact, getProducts, getOrgUsers, createDeal, updateDeal, updateDealStage, softDeleteDeal } from '@/lib/db';
-import { contactToProfile, latestActiveDeal, dealToView, isTerminalStage } from '@/lib/hunterMappers';
+import { getContactDetail, getPipelineSettings, getTasksByContact, createTask, completeTask, softDeleteTask, getNotesByContact, createNote, updateNote, softDeleteNote, getDealsByContact, getActivityByContact, getProducts, getOrgUsers, createDeal, updateDeal, updateDealStage, updateDealWon, updateDealLost, softDeleteDeal } from '@/lib/db';
+import { contactToProfile, latestActiveDeal, dealToView, WON_STAGE_SLUG, LOST_STAGE_SLUG } from '@/lib/hunterMappers';
+import DealLostModal from './DealLostModal';
 import {
   ArrowUpRight, ArrowLeft, X, Phone, Clock, Check,
   Plus, Briefcase,
@@ -259,20 +260,33 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
     },
     onError: (e) => showToast(`Speichern fehlgeschlagen: ${(e as Error).message}`),
   });
-  // P8-2d — Stage-Wechsel direkt am Stage-Badge im Deals-Tab. Eigene Mutation (nur Stage),
-  // gleiche Invalidierung wie updateDeal. Terminal (gewonnen/verloren) ehrlich blockiert (P8-3).
+  const [lostModal, setLostModal] = useState<{ open: boolean; dealId: string | null }>({ open: false, dealId: null });
+  // P8-2d/3 — Stage-Wechsel am Stage-Badge (Deals-/Übersicht-Tab). Drei Pfade, gleiche
+  // Invalidierung: normaler Move (updateDealStage), gewonnen (updateDealWon, direkt, kein Modal),
+  // verloren (DealLostModal → updateDealLost).
+  const invalidateDealsScope = () => {
+    queryClient.invalidateQueries({ queryKey: ['dealsByContact', DEMO_ORGANIZATION_ID, contactId] });
+    queryClient.invalidateQueries({ queryKey: ['deals', DEMO_ORGANIZATION_ID] });
+    queryClient.invalidateQueries({ queryKey: ['newInPipeline', DEMO_ORGANIZATION_ID] });
+  };
   const updateStageMutation = useMutation({
     mutationFn: ({ dealId, newSlug }: { dealId: string; newSlug: string }) => updateDealStage(dealId, newSlug, DEMO_ORGANIZATION_ID),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['dealsByContact', DEMO_ORGANIZATION_ID, contactId] });
-      queryClient.invalidateQueries({ queryKey: ['deals', DEMO_ORGANIZATION_ID] });
-      queryClient.invalidateQueries({ queryKey: ['newInPipeline', DEMO_ORGANIZATION_ID] });
-      showToast('Stage geändert ✓');
-    },
+    onSuccess: () => { invalidateDealsScope(); showToast('Stage geändert ✓'); },
+    onError: () => showToast('Stage konnte nicht geändert werden'),
+  });
+  const wonMutation = useMutation({
+    mutationFn: (dealId: string) => updateDealWon(dealId, DEMO_ORGANIZATION_ID),
+    onSuccess: () => { invalidateDealsScope(); showToast('Deal gewonnen 🎉'); },
+    onError: () => showToast('Stage konnte nicht geändert werden'),
+  });
+  const lostMutation = useMutation({
+    mutationFn: ({ dealId, lostReason, note }: { dealId: string; lostReason: string; note: string }) => updateDealLost(dealId, DEMO_ORGANIZATION_ID, lostReason, note),
+    onSuccess: () => { invalidateDealsScope(); showToast('Deal als verloren markiert'); setLostModal({ open: false, dealId: null }); },
     onError: () => showToast('Stage konnte nicht geändert werden'),
   });
   const handleStageChange = (dealId: string, newSlug: string) => {
-    if (isTerminalStage(newSlug)) { showToast('Won/Lost-Dialog folgt in P8-3'); return; }
+    if (newSlug === WON_STAGE_SLUG) { wonMutation.mutate(dealId); return; }
+    if (newSlug === LOST_STAGE_SLUG) { setLostModal({ open: true, dealId }); return; }
     updateStageMutation.mutate({ dealId, newSlug });
   };
   // P5c-3 — Deal soft-löschen: deleted_at = now() (Audit via Trigger). Invalidation wie create/update.
@@ -712,6 +726,14 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
       {variant !== 'full' && showVollansicht && (
         <HunterSidepanel person={display} onClose={() => setShowVollansicht(false)} onExit={onClose} variant="full" />
       )}
+
+      {/* P8-3: Lost-Dialog bei Wechsel in „verloren" (Stage-Badge im Deals-/Übersicht-Tab). Won = kein Modal. */}
+      <DealLostModal
+        open={lostModal.open}
+        pending={lostMutation.isPending}
+        onCancel={() => setLostModal({ open: false, dealId: null })}
+        onConfirm={(lostReason, note) => { if (lostModal.dealId) lostMutation.mutate({ dealId: lostModal.dealId, lostReason, note }); }}
+      />
     </>
   );
 }
