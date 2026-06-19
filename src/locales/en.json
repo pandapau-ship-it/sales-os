@@ -418,6 +418,8 @@
       "confirmDeleteNote": "Notiz wirklich löschen?",
       "edited": "bearbeitet",
       "newDeal": "Neuer Deal",
+      "editDeal": "Deal bearbeiten",
+      "probability": "Probability",
       "dealName": "Deal-Name",
       "product": "Produkt",
       "productPlaceholder": "Produkt wählen…",

@@ -131,7 +131,8 @@ export type DealView = {
   currency: string;
   stageSlug: string; // roher Slug (Gruppierung/Filter)
   stageLabel: string; // settings.pipeline_stages: slug → Anzeigename
-  owner?: string; // owner_id → users.full_name
+  owner?: string; // owner_id → users.full_name (Anzeige)
+  ownerId?: string; // deals.owner_id (Roh-ID — für Edit-Vorbelegung des Owner-Dropdowns)
   probability?: number; // deals.probability (0–100)
   termMonths?: number; // Laufzeit (Monate)
   noticePeriodDays?: number; // Kündigungsfrist (Tage)
@@ -160,6 +161,7 @@ export function dealToView(
     stageSlug: deal.stage ?? "",
     stageLabel: stageNameBySlug[deal.stage] ?? deal.stage ?? "",
     owner: deal.owner?.full_name || undefined,
+    ownerId: deal.owner_id ?? undefined,
     probability: typeof deal.probability === "number" ? deal.probability : undefined,
     termMonths,
     noticePeriodDays: typeof deal.notice_period_days === "number" ? deal.notice_period_days : undefined,

@@ -32,19 +32,23 @@ const dateLabel = (iso: string) => new Date(iso).toLocaleDateString("de-DE", { d
  * Anlege-Formular bewusst LEAN: nur persistierte Felder (Name/Produkt/Wert) — kein owner/arr/mrr/
  * close-Input, der ins Leere liefe. Produkt-Dropdown aus dem echten Katalog (productOptions).
  */
-function DealsListeReadonly({ items, productOptions, ownerOptions, onCreate, autoNew = false, onAutoConsumed }: {
+function DealsListeReadonly({ items, productOptions, ownerOptions, onCreate, onUpdate, autoNew = false, onAutoConsumed }: {
   items: DealView[];
   productOptions?: string[];
   /** Owner-Auswahl (User der Org): id schreibt owner_id, name = Anzeige (P5c-1). */
   ownerOptions?: { id: string; name: string }[];
   // Alle Felder als String (Formular-Rohwerte). Term/Notice/Close/Owner sind OPTIONAL — leer → nicht geschrieben.
   onCreate?: (v: { name: string; product: string; value: string; termMonths: string; noticePeriodDays: string; expectedCloseDate: string; ownerId: string }) => void;
+  /** Deal bearbeiten (P5c-2): exakt dieselben Felder wie Create; leer → Feld geleert (null).
+   *  Probability ist KEIN Deal-Feld (Admin setzt sie pro Stage in den Pipeline-Settings). */
+  onUpdate?: (dealId: string, v: { name: string; product: string; value: string; termMonths: string; noticePeriodDays: string; expectedCloseDate: string; ownerId: string }) => void;
   /** Footer „Deal" öffnet das Anlege-Formular direkt (auch wenn der Tab schon offen ist). */
   autoNew?: boolean;
   onAutoConsumed?: () => void;
 }) {
   const { t } = useTranslation();
   const [composerOpen, setComposerOpen] = useState(!!autoNew); // Remount-Fall (kein Flash)
+  const [editingId, setEditingId] = useState<string | null>(null); // P5c-2: welcher Deal wird bearbeitet
   const [name, setName] = useState("");
   const [product, setProduct] = useState<string>("");
   const [ownerId, setOwnerId] = useState<string>(""); // P5c-1: Default leer (kein Auto-Set, [D21])
@@ -53,20 +57,39 @@ function DealsListeReadonly({ items, productOptions, ownerOptions, onCreate, aut
   const [noticePeriodDays, setNoticePeriodDays] = useState("");
   const [expectedCloseDate, setExpectedCloseDate] = useState("");
   const [error, setError] = useState(false);
+  const isEdit = editingId !== null;
+  const formOpen = composerOpen || isEdit;
 
   // Footer „Deal" → autoNew öffnet das Formular auch bei schon offenem Tab (Prop-Änderung, nicht nur Mount).
   useEffect(() => {
-    if (autoNew) { setComposerOpen(true); onAutoConsumed?.(); }
+    if (autoNew) { setEditingId(null); setComposerOpen(true); onAutoConsumed?.(); }
   }, [autoNew]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const reset = () => {
     setName(""); setProduct(""); setOwnerId(""); setValue("");
     setTermMonths(""); setNoticePeriodDays(""); setExpectedCloseDate("");
-    setError(false); setComposerOpen(false);
+    setError(false); setComposerOpen(false); setEditingId(null);
+  };
+  // Vorbefüllen aus dem Deal (Strings); fehlende Werte → leer.
+  const openEdit = (d: DealView) => {
+    setComposerOpen(false);
+    setName(d.name);
+    setProduct(d.product ?? "");
+    setOwnerId(d.ownerId ?? "");
+    setValue(d.valueEur != null ? String(d.valueEur) : "");
+    setTermMonths(d.termMonths != null ? String(d.termMonths) : "");
+    setNoticePeriodDays(d.noticePeriodDays != null ? String(d.noticePeriodDays) : "");
+    setExpectedCloseDate(d.expectedCloseDate ?? "");
+    setError(false);
+    setEditingId(d.id);
   };
   const save = () => {
     if (!name.trim()) { setError(true); return; }
-    onCreate?.({ name: name.trim(), product, value, termMonths, noticePeriodDays, expectedCloseDate, ownerId }); // Insert + invalidate + Toast übernimmt das Panel
+    if (isEdit && editingId) {
+      onUpdate?.(editingId, { name: name.trim(), product, value, termMonths, noticePeriodDays, expectedCloseDate, ownerId });
+    } else {
+      onCreate?.({ name: name.trim(), product, value, termMonths, noticePeriodDays, expectedCloseDate, ownerId }); // Insert + invalidate + Toast übernimmt das Panel
+    }
     reset();
   };
 
@@ -74,16 +97,17 @@ function DealsListeReadonly({ items, productOptions, ownerOptions, onCreate, aut
     <div className="space-y-4 animate-fade-in">
       <div className="flex justify-between items-center px-1">
         <span className="typo-section-label text-text-muted">Deals</span>
-        {onCreate && !composerOpen && (
+        {onCreate && !formOpen && (
           <button onClick={() => setComposerOpen(true)} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] bg-[var(--sherloq-primary)] text-on-accent text-[11px] font-bold shadow-sm hover:opacity-90 transition-opacity cursor-pointer">
             <Plus className="w-3.5 h-3.5" /> {t("hunter.panel.newDeal")}
           </button>
         )}
       </div>
 
-      {/* Anlege-Formular (lean: Name Pflicht · Produkt aus Katalog · Wert in €) */}
-      {composerOpen && (
+      {/* Anlegen/Bearbeiten-Formular (lean: Name Pflicht · Produkt/Owner aus Katalog · Wert in €) */}
+      {formOpen && (
         <div className="p-4 bg-app-surface border border-border rounded-[12px] shadow-sm animate-fade-in space-y-3">
+          {isEdit && <span className="typo-section-label text-text-muted">{t("hunter.panel.editDeal")}</span>}
           <div className="space-y-1.5">
             <label className={LABEL}>{t("hunter.panel.dealName")}</label>
             <input
@@ -134,6 +158,7 @@ function DealsListeReadonly({ items, productOptions, ownerOptions, onCreate, aut
               <input type="date" value={expectedCloseDate} onChange={(e) => setExpectedCloseDate(e.target.value)} className={`${FIELD} border-border bg-app-bg`} />
             </div>
           </div>
+          {/* Probability ist KEIN Deal-Feld — Admin setzt sie pro Stage (Pipeline-Settings), kein Eingabefeld hier. */}
           <div className="flex items-center justify-end gap-2">
             <button onClick={reset} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-text-muted hover:text-text-body text-[11px] font-bold transition-colors cursor-pointer">
               <X className="w-3.5 h-3.5" /> {t("hunter.common.cancel")}
@@ -145,7 +170,7 @@ function DealsListeReadonly({ items, productOptions, ownerOptions, onCreate, aut
         </div>
       )}
 
-      {items.length === 0 && !composerOpen && (
+      {items.length === 0 && !formOpen && (
         <div className="text-[12px] text-text-muted px-1">{t("hunter.panel.noDeals")}</div>
       )}
 
@@ -164,7 +189,7 @@ function DealsListeReadonly({ items, productOptions, ownerOptions, onCreate, aut
             d.arr != null ? { key: "arr", label: `ARR: ${money(Math.round(d.arr), d.currency)}`, accent: false } : null,
           ].filter(Boolean) as { key: string; label: string; accent: boolean }[];
           return (
-            <div key={d.id} className="p-4 bg-app-surface border border-border rounded-[12px] shadow-sm">
+            <div key={d.id} className="group p-4 bg-app-surface border border-border rounded-[12px] shadow-sm">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3 min-w-0">
                   <span className="w-10 h-10 rounded-[10px] shrink-0 inline-flex items-center justify-center bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)]">
@@ -175,7 +200,14 @@ function DealsListeReadonly({ items, productOptions, ownerOptions, onCreate, aut
                     {sub && <p className="typo-subline text-text-muted mt-0.5 truncate">{sub}</p>}
                   </div>
                 </div>
-                {d.stageLabel && <StageBadge stage={d.stageLabel} />}
+                <div className="flex items-center gap-2 shrink-0">
+                  {d.stageLabel && <StageBadge stage={d.stageLabel} />}
+                  {onUpdate && (
+                    <button onClick={() => openEdit(d)} aria-label={t("hunter.common.edit")} data-tip={t("hunter.common.edit")} className={`w-7 h-7 rounded-full flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-app-bg transition-colors cursor-pointer ${HOVER_ACTIONS}`}>
+                      <Pencil className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
               </div>
               {chips.length > 0 && (
                 <div className="flex items-center flex-wrap gap-1.5 mt-3">
@@ -208,7 +240,7 @@ const fmtDate = (d: string) => (d ? new Date(d).toLocaleDateString("de-DE", { da
 let seq = 0;
 
 export default function DealsListe({
-  onToast, autoEdit = false, autoNew = false, onAutoEditConsumed, dealRows, stageNameBySlug, productOptions, ownerOptions, onCreateDeal,
+  onToast, autoEdit = false, autoNew = false, onAutoEditConsumed, dealRows, stageNameBySlug, productOptions, ownerOptions, onCreateDeal, onUpdateDeal,
 }: {
   onToast?: (msg: string) => void;
   autoEdit?: boolean;
@@ -223,6 +255,8 @@ export default function DealsListe({
   ownerOptions?: { id: string; name: string }[];
   /** Deal anlegen (P5b/2b/5c-1). value/term/notice/owner als String (Formular-Rohwerte); term/notice/close/owner optional. */
   onCreateDeal?: (v: { name: string; product: string; value: string; termMonths: string; noticePeriodDays: string; expectedCloseDate: string; ownerId: string }) => void;
+  /** Deal bearbeiten (P5c-2): exakt dieselben Felder wie Create (Probability ist kein Deal-Feld). */
+  onUpdateDeal?: (dealId: string, v: { name: string; product: string; value: string; termMonths: string; noticePeriodDays: string; expectedCloseDate: string; ownerId: string }) => void;
 }) {
   // P5a/P5b — Panel-Modus: lesen + anlegen (Bearbeiten/Löschen = P5c, Stage = P8). Dispatch, damit
   // die Mock-Hooks nicht hinter einem Early-Return liegen (Rules of Hooks).
@@ -233,6 +267,7 @@ export default function DealsListe({
         productOptions={productOptions}
         ownerOptions={ownerOptions}
         onCreate={onCreateDeal}
+        onUpdate={onUpdateDeal}
         autoNew={autoNew}
         onAutoConsumed={onAutoEditConsumed}
       />

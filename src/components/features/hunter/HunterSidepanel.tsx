@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DEMO_ORGANIZATION_ID } from '@/lib/org';
-import { getContactDetail, getPipelineSettings, getTasksByContact, createTask, completeTask, softDeleteTask, getNotesByContact, createNote, updateNote, softDeleteNote, getDealsByContact, getProducts, getOrgUsers, createDeal } from '@/lib/db';
+import { getContactDetail, getPipelineSettings, getTasksByContact, createTask, completeTask, softDeleteTask, getNotesByContact, createNote, updateNote, softDeleteNote, getDealsByContact, getProducts, getOrgUsers, createDeal, updateDeal } from '@/lib/db';
 import { contactToProfile, contactActiveStage, latestActiveDeal, dealToView } from '@/lib/hunterMappers';
 import {
   ArrowUpRight, ArrowLeft, X, Mail, Phone, Clock, Check,
@@ -231,6 +231,27 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
     },
     onError: (e) => showToast(`Anlegen fehlgeschlagen: ${(e as Error).message}`), // nicht still abfangen
   });
+  // P5c-2 — Deal bearbeiten: editierbare Felder + Probability; leer → null (Feld geleert).
+  const updateDealMutation = useMutation({
+    mutationFn: (p: { dealId: string; v: { name: string; product: string; value: string; termMonths: string; noticePeriodDays: string; expectedCloseDate: string; ownerId: string } }) =>
+      updateDeal(DEMO_ORGANIZATION_ID, p.dealId, {
+        name: p.v.name,
+        product: p.v.product || undefined,
+        valueEur: p.v.value && !Number.isNaN(Number(p.v.value)) ? Number(p.v.value) : undefined,
+        termMonths: p.v.termMonths && !Number.isNaN(Number(p.v.termMonths)) ? Math.trunc(Number(p.v.termMonths)) : undefined,
+        noticePeriodDays: p.v.noticePeriodDays && !Number.isNaN(Number(p.v.noticePeriodDays)) ? Math.trunc(Number(p.v.noticePeriodDays)) : undefined,
+        expectedCloseDate: p.v.expectedCloseDate || undefined,
+        ownerId: p.v.ownerId || undefined,
+      }),
+    onSuccess: () => {
+      // Gleiche Keys wie createDeal → Änderung sofort überall (Deals-Tab + Übersicht + Pipeline):
+      queryClient.invalidateQueries({ queryKey: ['dealsByContact', DEMO_ORGANIZATION_ID, contactId] });
+      queryClient.invalidateQueries({ queryKey: ['deals', DEMO_ORGANIZATION_ID] });
+      queryClient.invalidateQueries({ queryKey: ['newInPipeline', DEMO_ORGANIZATION_ID] });
+      showToast('Deal aktualisiert ✓');
+    },
+    onError: (e) => showToast(`Speichern fehlgeschlagen: ${(e as Error).message}`),
+  });
 
 
   const showToast = (message: string) => {
@@ -435,6 +456,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
             productOptions={productOptions}
             ownerOptions={ownerOptions}
             onCreateDeal={(v) => createDealMutation.mutate(v)}
+            onUpdateDeal={(dealId, v) => updateDealMutation.mutate({ dealId, v })}
           />
         )}
 

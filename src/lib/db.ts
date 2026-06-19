@@ -610,6 +610,39 @@ export async function createDeal(
   if (error) throw error;
 }
 
+/**
+ * updateDeal — Deal bearbeiten (P5c-2, einfacher User-Write). Schreibt NUR editierbare
+ * Felder; leer → null (Feld leeren erlaubt). NICHT angefasst: stage (P8), currency,
+ * probability (Admin setzt sie pro Stage in den Pipeline-Settings, kein Deal-Feld),
+ * mrr/arr (berechnet, keine Spalten), heat/stagnation/source, end_date/lost_reason (P8).
+ * Audit via DB-Trigger. Scope hart auf org + id.
+ */
+export async function updateDeal(
+  organizationId: string,
+  dealId: string,
+  deal: {
+    name: string; product?: string; valueEur?: number; ownerId?: string;
+    termMonths?: number; noticePeriodDays?: number; expectedCloseDate?: string;
+  },
+): Promise<void> {
+  const client = getSupabaseClient();
+  if (!client) return;
+  const { error } = await client
+    .from("deals")
+    .update({
+      name: deal.name,
+      product: deal.product || null,
+      value: deal.valueEur != null ? Math.round(deal.valueEur * 100) : null,
+      owner_id: deal.ownerId || null,
+      term_months: deal.termMonths ?? null,
+      notice_period_days: deal.noticePeriodDays ?? null,
+      expected_close_date: deal.expectedCloseDate || null,
+    })
+    .eq("organization_id", organizationId)
+    .eq("id", dealId);
+  if (error) throw error;
+}
+
 /** settings.pipeline_stages (Anzeigenamen/Slugs/Schwellen). Caching am Call-Site (TanStack). */
 export async function getPipelineSettings(
   organizationId: string,
