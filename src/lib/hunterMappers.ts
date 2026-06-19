@@ -273,15 +273,15 @@ const ms = (x: any) => new Date(x ?? 0).getTime();
 /* single-source:allow-start — Stage-Resolver (zentrale Quelle der aktiven-Deal-Stage). */
 /**
  * latestActiveDeal — jüngster NICHT-terminaler Deal eines Kontakts (offene Pipeline).
- * Terminal = stage gewonnen/verloren oder closed_at gesetzt. Recency: updated_at,
- * Tiebreaker stage_updated_at (Demo-Fall, wo updated_at ~uniform), dann created_at.
- * Keine/nur terminale Deals → null.
+ * Terminal = stage gewonnen/verloren oder closed_at gesetzt; soft-gelöscht (deleted_at)
+ * zählt nie. Recency: updated_at, Tiebreaker stage_updated_at (Demo-Fall, wo updated_at
+ * ~uniform), dann created_at. Keine/nur terminale Deals → null.
  */
 export function latestActiveDeal(
   deals: Record<string, any>[] | null | undefined,
 ): Record<string, any> | null {
   const open = (deals ?? []).filter(
-    (d) => !TERMINAL_STAGES.has(d.stage) && d.closed_at == null,
+    (d) => !TERMINAL_STAGES.has(d.stage) && d.closed_at == null && d.deleted_at == null,
   );
   if (!open.length) return null;
   return open

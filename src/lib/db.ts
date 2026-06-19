@@ -208,7 +208,7 @@ export async function getDeals(
 ): Promise<Deal[]> {
   const client = getSupabaseClient();
   if (!client) return [];
-  let q = client.from("deals").select(DEAL_SELECT).eq("organization_id", organizationId);
+  let q = client.from("deals").select(DEAL_SELECT).eq("organization_id", organizationId).is("deleted_at", null); // soft-gelöschte ausblenden
   if (filters.stage) q = q.eq("stage", filters.stage);
   if (filters.ownerId) q = q.eq("owner_id", filters.ownerId);
   if (filters.cursor) q = q.lt("created_at", filters.cursor);
@@ -236,6 +236,7 @@ export async function getDealWithDetails(
     .select(DEAL_SELECT)
     .eq("organization_id", organizationId)
     .eq("id", dealId)
+    .is("deleted_at", null) // soft-gelöschte ausblenden
     .single();
   if (error) return null;
   return data as unknown as Deal;
@@ -256,9 +257,10 @@ export async function getNewInPipeline(
   const { data, error } = await client
     .from("deals")
     .select(
-      `id, name, stage, created_at, source_lead_id, contact:contacts(*, ${CONTACT_COMPANY_EMBED}, deals(stage, updated_at, stage_updated_at, closed_at, created_at))`,
+      `id, name, stage, created_at, source_lead_id, contact:contacts(*, ${CONTACT_COMPANY_EMBED}, deals(stage, updated_at, stage_updated_at, closed_at, created_at, deleted_at))`,
     )
     .eq("organization_id", organizationId)
+    .is("deleted_at", null) // soft-gelöschte ausblenden
     .order("created_at", { ascending: false })
     .limit(50);
   if (error) throw error;
@@ -279,7 +281,7 @@ export async function getContactDetail(
   const { data, error } = await client
     .from("contacts")
     .select(
-      `*, ${CONTACT_COMPANY_EMBED}, deals(id, name, stage, updated_at, stage_updated_at, closed_at, created_at)`,
+      `*, ${CONTACT_COMPANY_EMBED}, deals(id, name, stage, updated_at, stage_updated_at, closed_at, created_at, deleted_at)`,
     )
     .eq("organization_id", organizationId)
     .eq("id", contactId)
@@ -305,7 +307,7 @@ export async function getDueTasks(
   const { data, error } = await client
     .from("tasks")
     .select(
-      `id, title, due_at, priority, channel, contact:contacts(*, ${CONTACT_COMPANY_EMBED}, deals(stage, updated_at, stage_updated_at, closed_at, created_at))`,
+      `id, title, due_at, priority, channel, contact:contacts(*, ${CONTACT_COMPANY_EMBED}, deals(stage, updated_at, stage_updated_at, closed_at, created_at, deleted_at))`,
     )
     .eq("organization_id", organizationId)
     .is("deleted_at", null) // soft-gelöschte ausblenden
@@ -334,7 +336,7 @@ export async function getSignals(
   let q = client
     .from("signals")
     .select(
-      `*, contact:contacts(*, ${CONTACT_COMPANY_EMBED}, deals(stage, updated_at, stage_updated_at, closed_at, created_at))`,
+      `*, contact:contacts(*, ${CONTACT_COMPANY_EMBED}, deals(stage, updated_at, stage_updated_at, closed_at, created_at, deleted_at))`,
     )
     .eq("organization_id", organizationId);
   if (filters.routedTo) q = q.eq("routed_to", filters.routedTo);
@@ -541,6 +543,7 @@ export async function getDealsByContact(
     .select(`*, owner:users(full_name)`)
     .eq("organization_id", organizationId)
     .eq("contact_id", contactId)
+    .is("deleted_at", null) // soft-gelöschte ausblenden
     .order("created_at", { ascending: false });
   if (error) throw error;
   return data ?? [];
@@ -641,6 +644,22 @@ export async function updateDeal(
     })
     .eq("organization_id", organizationId)
     .eq("id", dealId);
+  if (error) throw error;
+}
+
+/** softDeleteDeal — Deal ausblenden (P5c-3): `deleted_at = now()`, org-gescoped. Bleibt für
+ *  Historie/Audit (Trigger trg_deals_audit aus 010). Harte Löschung NICHT vorgesehen. */
+export async function softDeleteDeal(
+  dealId: string,
+  organizationId: string,
+): Promise<void> {
+  const client = getSupabaseClient();
+  if (!client) return;
+  const { error } = await client
+    .from("deals")
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("id", dealId)
+    .eq("organization_id", organizationId);
   if (error) throw error;
 }
 

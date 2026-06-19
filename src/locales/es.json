@@ -416,6 +416,7 @@
       "delete": "Löschen",
       "confirmDelete": "Aufgabe wirklich löschen?",
       "confirmDeleteNote": "Notiz wirklich löschen?",
+      "confirmDeleteDeal": "Deal wirklich löschen?",
       "edited": "bearbeitet",
       "newDeal": "Neuer Deal",
       "editDeal": "Deal bearbeiten",

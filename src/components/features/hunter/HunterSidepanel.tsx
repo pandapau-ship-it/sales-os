@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DEMO_ORGANIZATION_ID } from '@/lib/org';
-import { getContactDetail, getPipelineSettings, getTasksByContact, createTask, completeTask, softDeleteTask, getNotesByContact, createNote, updateNote, softDeleteNote, getDealsByContact, getProducts, getOrgUsers, createDeal, updateDeal, updateDealStage } from '@/lib/db';
+import { getContactDetail, getPipelineSettings, getTasksByContact, createTask, completeTask, softDeleteTask, getNotesByContact, createNote, updateNote, softDeleteNote, getDealsByContact, getProducts, getOrgUsers, createDeal, updateDeal, updateDealStage, softDeleteDeal } from '@/lib/db';
 import { contactToProfile, contactActiveStage, latestActiveDeal, dealToView } from '@/lib/hunterMappers';
 import {
   ArrowUpRight, ArrowLeft, X, Mail, Phone, Clock, Check,
@@ -263,6 +263,17 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
     },
     onError: (e) => showToast(`Speichern fehlgeschlagen: ${(e as Error).message}`),
   });
+  // P5c-3 — Deal soft-löschen: deleted_at = now() (Audit via Trigger). Invalidation wie create/update.
+  const deleteDealMutation = useMutation({
+    mutationFn: (dealId: string) => softDeleteDeal(dealId, DEMO_ORGANIZATION_ID),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['dealsByContact', DEMO_ORGANIZATION_ID, contactId] });
+      queryClient.invalidateQueries({ queryKey: ['deals', DEMO_ORGANIZATION_ID] });
+      queryClient.invalidateQueries({ queryKey: ['newInPipeline', DEMO_ORGANIZATION_ID] });
+      showToast('Deal gelöscht');
+    },
+    onError: (e) => showToast(`Löschen fehlgeschlagen: ${(e as Error).message}`),
+  });
 
 
   const showToast = (message: string) => {
@@ -470,6 +481,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
             stageOptions={stageOptions}
             onCreateDeal={(v) => createDealMutation.mutate(v)}
             onUpdateDeal={(dealId, v) => updateDealMutation.mutate({ dealId, v })}
+            onDeleteDeal={(dealId) => deleteDealMutation.mutate(dealId)}
           />
         )}
 

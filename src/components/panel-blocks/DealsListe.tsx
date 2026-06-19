@@ -32,7 +32,7 @@ const dateLabel = (iso: string) => new Date(iso).toLocaleDateString("de-DE", { d
  * Anlege-Formular bewusst LEAN: nur persistierte Felder (Name/Produkt/Wert) — kein owner/arr/mrr/
  * close-Input, der ins Leere liefe. Produkt-Dropdown aus dem echten Katalog (productOptions).
  */
-function DealsListeReadonly({ items, productOptions, ownerOptions, stageOptions, onCreate, onUpdate, autoNew = false, onAutoConsumed }: {
+function DealsListeReadonly({ items, productOptions, ownerOptions, stageOptions, onCreate, onUpdate, onDelete, autoNew = false, onAutoConsumed }: {
   items: DealView[];
   productOptions?: string[];
   /** Owner-Auswahl (User der Org): id schreibt owner_id, name = Anzeige (P5c-1). */
@@ -44,6 +44,8 @@ function DealsListeReadonly({ items, productOptions, ownerOptions, stageOptions,
   /** Deal bearbeiten (P5c-2/2b): dieselben Felder wie Create inkl. Stage; leer → Feld geleert (null).
    *  Stage-Wechsel schreibt der Parent über updateDealStage. Probability bleibt KEIN Deal-Feld. */
   onUpdate?: (dealId: string, v: { name: string; product: string; value: string; termMonths: string; noticePeriodDays: string; expectedCloseDate: string; ownerId: string; stage: string }) => void;
+  /** Deal soft-löschen (P5c-3): setzt deleted_at = now() (Parent-Mutation). */
+  onDelete?: (dealId: string) => void;
   /** Footer „Deal" öffnet das Anlege-Formular direkt (auch wenn der Tab schon offen ist). */
   autoNew?: boolean;
   onAutoConsumed?: () => void;
@@ -51,6 +53,7 @@ function DealsListeReadonly({ items, productOptions, ownerOptions, stageOptions,
   const { t } = useTranslation();
   const [composerOpen, setComposerOpen] = useState(!!autoNew); // Remount-Fall (kein Flash)
   const [editingId, setEditingId] = useState<string | null>(null); // P5c-2: welcher Deal wird bearbeitet
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null); // P5c-3: Lösch-Bestätigung
   const [name, setName] = useState("");
   const [product, setProduct] = useState<string>("");
   const [ownerId, setOwnerId] = useState<string>(""); // P5c-1: Default leer (kein Auto-Set, [D21])
@@ -220,13 +223,37 @@ function DealsListeReadonly({ items, productOptions, ownerOptions, stageOptions,
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   {d.stageLabel && <StageBadge stage={d.stageLabel} />}
-                  {onUpdate && (
-                    <button onClick={() => openEdit(d)} aria-label={t("hunter.common.edit")} data-tip={t("hunter.common.edit")} className={`w-7 h-7 rounded-full flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-app-bg transition-colors cursor-pointer ${HOVER_ACTIONS}`}>
-                      <Pencil className="w-3.5 h-3.5" />
-                    </button>
+                  {(onUpdate || onDelete) && confirmDeleteId !== d.id && (
+                    <div className={`flex items-center gap-1 ${HOVER_ACTIONS}`}>
+                      {onUpdate && (
+                        <button onClick={() => openEdit(d)} aria-label={t("hunter.common.edit")} data-tip={t("hunter.common.edit")} className="w-7 h-7 rounded-full flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-app-bg transition-colors cursor-pointer">
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                      {onDelete && (
+                        <button onClick={() => setConfirmDeleteId(d.id)} aria-label={t("hunter.panel.delete")} data-tip={t("hunter.panel.delete")} className="w-7 h-7 rounded-full flex items-center justify-center text-text-muted hover:text-[var(--signal-urgent-text)] hover:bg-[var(--signal-urgent-bg)] transition-colors cursor-pointer">
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
                   )}
                 </div>
               </div>
+
+              {/* Lösch-Bestätigung (soft delete) — abbrechbar (Muster wie Tasks/Notes) */}
+              {confirmDeleteId === d.id && (
+                <div className="mt-2 px-3 py-2.5 rounded-[10px] bg-[var(--signal-urgent-bg)] flex items-center justify-between gap-3 animate-fade-in">
+                  <span className="text-[12px] font-bold text-[var(--signal-urgent-text)]">{t("hunter.panel.confirmDeleteDeal")}</span>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button onClick={() => setConfirmDeleteId(null)} className="px-3 py-1.5 rounded-[10px] border border-border bg-app-surface text-text-body text-[11px] font-bold hover:bg-app-bg transition-colors cursor-pointer">
+                      {t("hunter.common.cancel")}
+                    </button>
+                    <button onClick={() => { onDelete?.(d.id); setConfirmDeleteId(null); }} className="px-3 py-1.5 rounded-[10px] bg-[var(--signal-urgent-text)] text-on-accent text-[11px] font-bold hover:opacity-90 transition-opacity cursor-pointer">
+                      {t("hunter.panel.delete")}
+                    </button>
+                  </div>
+                </div>
+              )}
               {chips.length > 0 && (
                 <div className="flex items-center flex-wrap gap-1.5 mt-3">
                   {chips.map((c) =>
@@ -258,7 +285,7 @@ const fmtDate = (d: string) => (d ? new Date(d).toLocaleDateString("de-DE", { da
 let seq = 0;
 
 export default function DealsListe({
-  onToast, autoEdit = false, autoNew = false, onAutoEditConsumed, dealRows, stageNameBySlug, stageProbBySlug, productOptions, ownerOptions, stageOptions, onCreateDeal, onUpdateDeal,
+  onToast, autoEdit = false, autoNew = false, onAutoEditConsumed, dealRows, stageNameBySlug, stageProbBySlug, productOptions, ownerOptions, stageOptions, onCreateDeal, onUpdateDeal, onDeleteDeal,
 }: {
   onToast?: (msg: string) => void;
   autoEdit?: boolean;
@@ -279,6 +306,8 @@ export default function DealsListe({
   onCreateDeal?: (v: { name: string; product: string; value: string; termMonths: string; noticePeriodDays: string; expectedCloseDate: string; ownerId: string; stage: string }) => void;
   /** Deal bearbeiten (P5c-2/2b): dieselben Felder wie Create inkl. Stage (Probability ist kein Deal-Feld). */
   onUpdateDeal?: (dealId: string, v: { name: string; product: string; value: string; termMonths: string; noticePeriodDays: string; expectedCloseDate: string; ownerId: string; stage: string }) => void;
+  /** Deal soft-löschen (P5c-3). */
+  onDeleteDeal?: (dealId: string) => void;
 }) {
   // P5a/P5b — Panel-Modus: lesen + anlegen (Bearbeiten/Löschen = P5c, Stage = P8). Dispatch, damit
   // die Mock-Hooks nicht hinter einem Early-Return liegen (Rules of Hooks).
@@ -291,6 +320,7 @@ export default function DealsListe({
         stageOptions={stageOptions}
         onCreate={onCreateDeal}
         onUpdate={onUpdateDeal}
+        onDelete={onDeleteDeal}
         autoNew={autoNew}
         onAutoConsumed={onAutoEditConsumed}
       />
