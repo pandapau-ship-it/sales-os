@@ -85,7 +85,7 @@ export default function DealLostModal({
             type="button"
             onClick={() => onConfirm(reason, note)}
             disabled={!reason || pending}
-            className="px-4 py-2 rounded-[10px] bg-[var(--signal-urgent-text)] text-on-accent text-[13px] font-bold shadow-sm hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 disabled:cursor-default"
+            className="px-4 py-2 rounded-[10px] bg-[var(--sherloq-primary)] text-on-accent text-[13px] font-bold shadow-sm hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 disabled:cursor-default"
           >
             Als verloren markieren →
           </button>

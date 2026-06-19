@@ -37,7 +37,8 @@ import { updateDealStage, updateDealWon, updateDealLost } from '@/lib/db';
 import { DEMO_ORGANIZATION_ID } from '@/lib/org';
 import { useToast } from '@/components/shared/Toast';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
-import { DealLostModal } from '@/components';
+import { DealLostModal, DealCloseModal } from '@/components';
+import { triggerConfetti } from '@/lib/confetti';
 
 interface ScreenHuntingProps {
   leads: Lead[];
@@ -100,6 +101,7 @@ export default function ScreenHunting({
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [lostModal, setLostModal] = useState<{ open: boolean; dealId: string | null }>({ open: false, dealId: null });
+  const [closeDealModal, setCloseDealModal] = useState<{ open: boolean; dealId: string | null }>({ open: false, dealId: null });
   const invalidateDealsScope = () => {
     queryClient.invalidateQueries({ queryKey: ['dealsByContact', DEMO_ORGANIZATION_ID] });
     queryClient.invalidateQueries({ queryKey: ['deals', DEMO_ORGANIZATION_ID] });
@@ -112,7 +114,7 @@ export default function ScreenHunting({
   });
   const wonMutation = useMutation({
     mutationFn: (dealId: string) => updateDealWon(dealId, DEMO_ORGANIZATION_ID),
-    onSuccess: () => { invalidateDealsScope(); toast('Deal gewonnen 🎉'); },
+    onSuccess: () => { invalidateDealsScope(); triggerConfetti(); toast('Deal gewonnen ✓'); },
     onError: () => toast('Stage konnte nicht geändert werden'),
   });
   const lostMutation = useMutation({
@@ -126,11 +128,13 @@ export default function ScreenHunting({
     updateStageMutation.mutate({ dealId, newSlug });
   };
   // Pfeil → Deal eine Stage weiter (nächste in stageOptions-Reihenfolge). Ist die nächste
-  // terminal (gewonnen), löst handleStageChange den Won-Flow aus. Keine nächste → still (Guard).
+  // terminal (gewonnen/verloren) → Close-Deal-Popup (Gewonnen/Verloren wählen), kein Auto-Win.
+  // Keine nächste → still (Guard).
   const handleAdvanceStage = (currentSlug: string, dealId: string) => {
     const idx = stageOptions.findIndex((s) => s.slug === currentSlug);
     const next = idx >= 0 ? stageOptions[idx + 1] : undefined;
     if (!next) return;
+    if (isTerminalStage(next.slug)) { setCloseDealModal({ open: true, dealId }); return; }
     handleStageChange(next.slug, dealId);
   };
   // Pfeil ← Deal eine Stage zurück (vorherige in stageOptions-Reihenfolge). Erste Stage →
@@ -221,6 +225,7 @@ export default function ScreenHunting({
   const [infoPanelLead, setInfoPanelLead] = useState<Lead | null>(null);
   // Karten-Aktion (Mail/Task/Chat) → Info-Panel öffnet direkt mit dieser Aktion.
   const [infoPanelAction, setInfoPanelAction] = useState<'mail' | 'task' | 'chat' | null>(null);
+  const [infoPanelTab, setInfoPanelTab] = useState<'overview' | 'deals' | 'tasks' | 'activity' | 'notes' | null>(null);
 
   const toggleLeadSelection = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -612,7 +617,13 @@ export default function ScreenHunting({
                         {colDeals.length === 0 ? (
                           <div className="px-3 py-6 text-center text-[12px] text-text-muted">Keine Deals</div>
                         ) : colDeals.map((deal) => (
-                          <div key={deal.id} className="bg-app-surface rounded-[12px] p-4 shadow-[var(--shadow-card)] hover:shadow-md transition-all duration-300 relative group">
+                          <div
+                            key={deal.id}
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => { setInfoPanelTab('deals'); setInfoPanelLead(makeLead(deal.contactId ?? deal.id, deal.contactName, deal.contactJobTitle, deal.company, deal.initials, deal.icpScore ?? 75)); }}
+                            className="bg-app-surface rounded-[12px] p-4 shadow-[var(--shadow-card)] hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 relative group cursor-pointer"
+                          >
                             <div className="flex justify-between items-start mb-3">
                               <div className="flex items-center gap-3 min-w-0">
                                 <Avatar name={deal.contactName} size={40} />
@@ -644,7 +655,7 @@ export default function ScreenHunting({
                                       aria-label="Eine Stage zurück"
                                       data-tip="Eine Stage zurück"
                                       disabled={updateStageMutation.isPending}
-                                      onClick={() => handleRetreatStage(deal.stageSlug, deal.id)}
+                                      onClick={(e) => { e.stopPropagation(); handleRetreatStage(deal.stageSlug, deal.id); }}
                                       className="w-8 h-8 rounded-full bg-app-bg text-text-muted hover:scale-105 transition-all flex items-center justify-center shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-default disabled:hover:scale-100"
                                     >
                                       <ArrowLeft className="w-4 h-4" />
@@ -655,7 +666,7 @@ export default function ScreenHunting({
                                     aria-label="Eine Stage weiter"
                                     data-tip="Eine Stage weiter"
                                     disabled={updateStageMutation.isPending}
-                                    onClick={() => handleAdvanceStage(deal.stageSlug, deal.id)}
+                                    onClick={(e) => { e.stopPropagation(); handleAdvanceStage(deal.stageSlug, deal.id); }}
                                     className="w-8 h-8 rounded-full bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)] hover:scale-105 transition-all flex items-center justify-center shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-default disabled:hover:scale-100"
                                   >
                                     <ArrowRight className="w-4 h-4" />
@@ -859,7 +870,16 @@ export default function ScreenHunting({
       <HunterSidepanel
         person={infoPanelLead?.person ?? null}
         initialAction={infoPanelAction}
-        onClose={() => { setInfoPanelLead(null); setInfoPanelAction(null); }}
+        initialTab={infoPanelTab}
+        onClose={() => { setInfoPanelLead(null); setInfoPanelAction(null); setInfoPanelTab(null); }}
+      />
+
+      {/* P8-3c: Close-Deal-Popup (letzter Kanban-Pfeil) → Gewonnen (direkt + Konfetti) / Verloren (Lost-Modal). */}
+      <DealCloseModal
+        open={closeDealModal.open}
+        onWon={() => { const id = closeDealModal.dealId; setCloseDealModal({ open: false, dealId: null }); if (id) wonMutation.mutate(id); }}
+        onLost={() => { const id = closeDealModal.dealId; setCloseDealModal({ open: false, dealId: null }); setLostModal({ open: true, dealId: id }); }}
+        onCancel={() => setCloseDealModal({ open: false, dealId: null })}
       />
 
       {/* P8-3: Lost-Dialog bei Wechsel in „verloren" (Kanban-Pfeil/Liste-Dropdown). Won = kein Modal. */}

@@ -8,11 +8,11 @@
  */
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Plus, Briefcase, Pencil, Trash2, Check, X } from "lucide-react";
+import { Plus, Briefcase, Pencil, Trash2, Check, X, CheckCircle2 } from "lucide-react";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { HOVER_ACTIONS } from "@/lib/componentBehavior";
-import { dealToView, type DealView } from "@/lib/hunterMappers";
+import { dealToView, WON_STAGE_SLUG, LOST_STAGE_SLUG, type DealView } from "@/lib/hunterMappers";
 import StageBadge from "./StageBadge";
 import DealSetup from "./DealSetup";
 import NewDealCard, { type DealDraft } from "./NewDealCard";
@@ -150,6 +150,10 @@ function DealsListeReadonly({
         </span>
         <div className="min-w-0">
           <p className="typo-card-title text-text-primary leading-tight truncate">{d.name}</p>
+          {/* Verlorene Deals: Grund unter dem Namen (Honesty: nur wenn lost_reason vorhanden). */}
+          {d.stageSlug === LOST_STAGE_SLUG && d.lostReason && (
+            <p className="text-[11px] text-text-muted leading-tight truncate mt-0.5">Verloren: {d.lostReason}</p>
+          )}
           {/* Betrag = Leitzahl → prominent direkt unter dem Namen (links), daneben Owner · Abschluss.
               Stage-Badge sitzt allein oben rechts (Status-Konvention). */}
           <div className="flex items-center gap-2 mt-1 min-w-0">
@@ -255,9 +259,20 @@ function DealsListeReadonly({
   );
 
   // ── COMPACT (Übersicht): alle Deals kompakt, primärer zuerst, ab >2 einklappbar, Edit navigiert. ──
-  // Stage-Badge: dekorativ (ohne onChangeStage) ODER klickbar (Wrapper + Inline-Dropdown).
-  // Der StageBadge selbst bleibt unangetastet read-only; nur der Wrapper trägt onClick.
+  // Karten-Klasse: gewonnene Deals bekommen einen dezenten grünen linken Rand (Status-Highlight).
+  const cardCls = (d: DealView) =>
+    `group p-4 bg-app-surface border border-border rounded-[12px] shadow-sm${d.stageSlug === WON_STAGE_SLUG ? " border-l-2 border-l-[var(--signal-success-text)]" : ""}`;
+
+  // Stage-Badge: gewonnen → grünes „Gewonnen"-Badge (Lucide-Icon, kein Emoji); sonst dekorativ
+  // (ohne onChangeStage) ODER klickbar (Wrapper + Inline-Dropdown). StageBadge selbst unangetastet.
   const stageControl = (d: DealView) => {
+    if (d.stageSlug === WON_STAGE_SLUG) {
+      return (
+        <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[12px] font-medium w-fit bg-[var(--signal-success-bg)] text-[var(--signal-success-text)]">
+          <CheckCircle2 className="w-3 h-3" /> Gewonnen
+        </span>
+      );
+    }
     if (!d.stageLabel) return null;
     if (!onChangeStage) return <StageBadge stage={d.stageLabel} />;
     return (
@@ -290,7 +305,7 @@ function DealsListeReadonly({
         {visible.map((d) => {
           const { chips } = meta(d);
           return (
-            <div key={d.id} className="group p-4 bg-app-surface border border-border rounded-[12px] shadow-sm">
+            <div key={d.id} className={cardCls(d)}>
               <div className="flex items-start justify-between gap-3">
                 {head(d)}
                 {/* Oben rechts: nur Stage-Badge (Status) + Edit beim Hover. Betrag steht prominent unter dem Namen. */}
@@ -344,7 +359,7 @@ function DealsListeReadonly({
         {items.map((d) => {
           const editing = editingId === d.id;
           return (
-            <div key={d.id} className="group p-4 bg-app-surface border border-border rounded-[12px] shadow-sm">
+            <div key={d.id} className={cardCls(d)}>
               <div className="flex items-start justify-between gap-3">
                 {head(d)}
                 {/* Oben rechts: nur Stage-Badge (Status) + Aktionen beim Hover. Betrag steht prominent unter dem Namen. */}

@@ -139,6 +139,7 @@ export type DealView = {
   noticePeriodDays?: number; // Kündigungsfrist (Tage)
   expectedCloseDate?: string; // erwartetes Abschlussdatum (Forecast)
   closedAt?: string; // tatsächlicher Abschluss
+  lostReason?: string; // deals.lost_reason (nur bei stage=verloren) — fehlt → ausgeblendet
   endDate?: string; // Vertragsende/Churn
   mrr?: number; // BERECHNET: valueEur / termMonths
   arr?: number; // BERECHNET: mrr × 12
@@ -174,6 +175,7 @@ export function dealToView(
     noticePeriodDays: typeof deal.notice_period_days === "number" ? deal.notice_period_days : undefined,
     expectedCloseDate: deal.expected_close_date ?? undefined,
     closedAt: deal.closed_at ?? undefined,
+    lostReason: deal.lost_reason ?? undefined,
     endDate: deal.end_date ?? undefined,
     mrr,
     arr,

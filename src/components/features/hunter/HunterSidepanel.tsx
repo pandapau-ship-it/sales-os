@@ -4,6 +4,7 @@ import { DEMO_ORGANIZATION_ID } from '@/lib/org';
 import { getContactDetail, getPipelineSettings, getTasksByContact, createTask, completeTask, softDeleteTask, getNotesByContact, createNote, updateNote, softDeleteNote, getDealsByContact, getActivityByContact, getProducts, getOrgUsers, createDeal, updateDeal, updateDealStage, updateDealWon, updateDealLost, softDeleteDeal } from '@/lib/db';
 import { contactToProfile, latestActiveDeal, dealToView, WON_STAGE_SLUG, LOST_STAGE_SLUG } from '@/lib/hunterMappers';
 import DealLostModal from './DealLostModal';
+import { triggerConfetti } from '@/lib/confetti';
 import {
   ArrowUpRight, ArrowLeft, X, Phone, Clock, Check,
   Plus, Briefcase,
@@ -49,7 +50,7 @@ const DEFAULT_DETAILS = {
 // DetailField · DetailSection · StatusBadge · DetailPhoneList → ausgelagert nach
 // src/components/panel-blocks/ (siehe Imports). Hier nur noch deren Komposition.
 
-export default function HunterSidepanel({ person: personProp, onClose, onExit, variant = 'panel', initialAction = null }: { person: any; onClose: () => void; onExit?: () => void; variant?: 'panel' | 'full'; initialAction?: 'mail' | 'task' | 'chat' | null }) {
+export default function HunterSidepanel({ person: personProp, onClose, onExit, variant = 'panel', initialAction = null, initialTab = null }: { person: any; onClose: () => void; onExit?: () => void; variant?: 'panel' | 'full'; initialAction?: 'mail' | 'task' | 'chat' | null; initialTab?: 'overview' | 'deals' | 'tasks' | 'activity' | 'notes' | null }) {
   const [activeTab, setActiveTab] = useState(variant === 'full' ? 'details' : 'overview');
   // Aus der Übersicht „Deal/Task bearbeiten" → Ziel-Tab öffnet die Bearbeiten-Kachel direkt.
   const [dealsAutoEditId, setDealsAutoEditId] = useState<string | null>(null); // Übersicht „Bearbeiten" → Deal-id im Deals-Tab
@@ -75,9 +76,10 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
       setDetails(DEFAULT_DETAILS);
       // Karten-Aktion: Panel direkt mit der passenden Aktion öffnen. ('mail' deferred — Kommunikation P7.)
       if (initialAction === 'task') { setTasksAutoEditId('new'); setActiveTab('tasks'); }
+      else if (initialTab) { setActiveTab(initialTab); } // Deeplink z.B. Kanban-Karten-Klick → Deals-Tab
       else setActiveTab(variant === 'full' ? 'details' : 'overview');
     }
-  }, [personProp, initialAction]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [personProp, initialAction, initialTab]); // eslint-disable-line react-hooks/exhaustive-deps
   const isOpen = personProp !== null;
   const person = display;
 
@@ -276,7 +278,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
   });
   const wonMutation = useMutation({
     mutationFn: (dealId: string) => updateDealWon(dealId, DEMO_ORGANIZATION_ID),
-    onSuccess: () => { invalidateDealsScope(); showToast('Deal gewonnen 🎉'); },
+    onSuccess: () => { invalidateDealsScope(); triggerConfetti(); showToast('Deal gewonnen ✓'); },
     onError: () => showToast('Stage konnte nicht geändert werden'),
   });
   const lostMutation = useMutation({
