@@ -165,7 +165,7 @@ export default function TasksListe({
   return (
     <div className="space-y-4 animate-fade-in">
       <div className="flex justify-between items-center px-1">
-        <span className="text-[10px] font-extrabold text-text-muted uppercase tracking-widest">Alle Aufgaben</span>
+        <span className="typo-section-label text-text-muted">Alle Aufgaben</span>
         <button onClick={() => setEditing("new")} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] bg-[var(--sherloq-primary)] text-on-accent text-[11px] font-bold shadow-sm hover:opacity-90 transition-opacity cursor-pointer">
           <Plus className="w-3.5 h-3.5" /> {t("hunter.drawers.noTask.newTask")}
         </button>
@@ -185,7 +185,7 @@ export default function TasksListe({
               {/* Zusammenfassung — klickbar zum Aufklappen */}
               <div className="p-4 flex items-start justify-between gap-3 cursor-pointer select-none" onClick={() => setExpanded((p) => ({ ...p, [task.id]: !p[task.id] }))}>
                 <div className="min-w-0">
-                  <p className={`text-[13px] font-bold text-text-primary ${task.completed ? "line-through" : ""}`}>{task.title}</p>
+                  <p className={`typo-card-title text-text-primary ${task.completed ? "line-through" : ""}`}>{task.title}</p>
                   {task.description && <p className="text-[11px] text-text-muted leading-relaxed mt-1">{task.description}</p>}
                   <div className="flex items-center flex-wrap gap-1.5 mt-2.5">
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-app-bg border border-border text-text-body text-[10px] font-bold"><ChannelIcon className="w-3 h-3" /> {ch.label}</span>

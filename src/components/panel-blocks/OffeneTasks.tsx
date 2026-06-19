@@ -28,7 +28,7 @@ export default function OffeneTasks({
   return (
     <div className="space-y-2">
       <div className="flex justify-between items-center px-1">
-        <span className="text-[10px] font-extrabold text-text-muted uppercase tracking-widest">Offene Tasks</span>
+        <span className="typo-section-label text-text-muted">Offene Tasks</span>
         <button onClick={onAdd} className="text-[11px] font-bold text-[var(--sherloq-primary)] hover:underline cursor-pointer">+ Task hinzufügen</button>
       </div>
       <div className="space-y-3">

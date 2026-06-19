@@ -14,7 +14,7 @@ export default function KiKurzakte({ items, onSave }: { items: string[]; onSave:
   return (
     <div className="group bg-app-surface rounded-[12px] p-5 border border-border shadow-[var(--shadow-card)]">
       <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2 text-[11px] font-bold font-mono text-[var(--sherloq-primary)] uppercase tracking-wider">
+        <div className="flex items-center gap-2 typo-chevron-header text-[var(--sherloq-primary)]">
           <Zap className="w-4 h-4" /> KI Kurzakte
         </div>
         {!editing && (

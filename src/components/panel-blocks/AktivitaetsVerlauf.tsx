@@ -53,7 +53,7 @@ const DEFAULT_ITEMS: AktivitaetItem[] = [
 export default function AktivitaetsVerlauf({ items = DEFAULT_ITEMS }: { items?: AktivitaetItem[] }) {
   return (
     <div className="space-y-4 animate-fade-in">
-      <span className="block pl-1 text-[10px] font-extrabold text-text-muted uppercase tracking-widest">
+      <span className="block pl-1 typo-section-label text-text-muted">
         Aktivitätsverlauf
       </span>
 
@@ -81,7 +81,7 @@ export default function AktivitaetsVerlauf({ items = DEFAULT_ITEMS }: { items?: 
                 {/* Inhalt */}
                 <div className="flex-1 min-w-0 pt-0.5">
                   <div className="flex items-start justify-between gap-2">
-                    <h4 className="text-[13px] font-bold text-text-primary leading-snug">{item.title}</h4>
+                    <h4 className="typo-card-title text-text-primary leading-snug">{item.title}</h4>
                     <span className="text-[11px] font-medium text-text-muted shrink-0 pt-0.5">{item.time}</span>
                   </div>
                   {item.detail && (

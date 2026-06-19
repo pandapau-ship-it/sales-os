@@ -409,6 +409,48 @@ checkPopoverInputFocus()
 checkInlineBlocks()
 checkSingleSourceContactValues()
 
+// ── Typo-Kanon: Schrift-Stufen laufen über Primitive (typo-*), nicht roh ──────
+// Analog zur Single-Source-Regel. In den Panel-Block-/Tab-Listen-Komponenten müssen
+// Titel/Header/Labels/Werte über ein typo-*-Primitive (src/index.css) laufen.
+// Distinctive Roh-Signaturen → FAIL, außer die className trägt ein typo-*-Primitive:
+//   tracking-widest        → section-label (nur Section-Header nutzen dieses Tracking)
+//   font-mono              → chevron-header / field-label (nur diese nutzen Mono)
+//   text-[13–15px] + bold  → card-title / field-value (Buttons/Container via rounded-/py- ausgenommen)
+// Neue Tab-Listen-/Übersichts-Block-Komponente → IN_SCOPE ergänzen.
+function checkTypographyTokens(): void {
+  const IN_SCOPE = new Set([
+    'TasksListe', 'NotizenListe', 'DealsListe', 'KommunikationVerlauf', 'AktivitaetsVerlauf',
+    'KommunikationPreview', 'OffeneTasks', 'DealSetup', 'DealKurzinfo', 'KiKurzakte',
+    'AktiveSignale', 'ActiveSequenceChain',
+  ])
+  const dir = join(SRC, 'components', 'panel-blocks')
+  const files = walk(dir, ['.tsx']).filter((f) => IN_SCOPE.has(basename(f, '.tsx')))
+
+  const TYPO = /\btypo-(section-label|chevron-header|card-title|field-value|field-label|subline|chip)\b/
+  const hits: string[] = []
+
+  for (const f of files) {
+    const raw = read(f)
+    // Kommentare neutralisieren (Block + Zeile), Zeilennummern bleiben erhalten.
+    const noBlock = raw.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '))
+    const lines = noBlock.split('\n').map((l) => l.replace(/\/\/.*$/, ''))
+    lines.forEach((l, i) => {
+      if (TYPO.test(l)) return // läuft bereits über ein Primitive → ok
+      const isButton = /\brounded-/.test(l) || /\bpy-/.test(l) // Buttons/Container: keine Titel-Signatur
+      const sectionLabel = /tracking-widest/.test(l)
+      const monoHeader = /\bfont-mono\b/.test(l)
+      const titleSig = /text-\[1[345]px\]/.test(l) && /font-(bold|extrabold)\b/.test(l) && !isButton
+      if (sectionLabel || monoHeader || titleSig) hits.push(`${rel(f)}:${i + 1}`)
+    })
+  }
+
+  add('Typo-Kanon: Schrift-Stufen', hits.length ? 'FAIL' : 'PASS',
+    hits.length
+      ? `Rohe Schrift-Klassen an Titel/Header/Label/Wert statt typo-*-Primitive (src/index.css → „Typo-Kanon“):\n        ${hits.join('\n        ')}`
+      : 'Titel/Header/Labels/Werte in Panel-Blocks laufen über typo-*-Primitive.')
+}
+checkTypographyTokens()
+
 // ── Report ───────────────────────────────────────────────────────────────────
 
 const icon: Record<Status, string> = { PASS: '✓', WARN: '!', FAIL: '✗', SKIP: '·' }

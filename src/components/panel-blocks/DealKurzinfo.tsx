@@ -47,15 +47,15 @@ export default function DealKurzinfo({
     <>
       {/* Deal Details */}
       <div className="bg-app-surface rounded-[12px] p-5 border border-[var(--border)]">
-        <div className="flex items-center gap-2 text-[11px] font-bold font-mono text-[var(--text-muted)] uppercase tracking-wider mb-3">
+        <div className="flex items-center gap-2 typo-chevron-header text-[var(--text-muted)] mb-3">
           <Briefcase className="w-4 h-4" /> {t("hunter.leadCard.dealDetails")}
         </div>
-        {company && <p className="text-[15px] font-extrabold text-text-primary mb-3 truncate">{company}{product ? ` — ${product}` : ""}</p>}
+        {company && <p className="typo-card-title text-text-primary mb-3 truncate">{company}{product ? ` — ${product}` : ""}</p>}
         <div className="grid grid-cols-2 gap-4 text-[12px]">
           {detailCells.map((c) => (
             <div key={c.label} className="flex flex-col gap-1">
-              <span className="text-[var(--text-muted)] font-mono text-[10px] uppercase tracking-wider">{c.label}</span>
-              <span className={`font-bold text-[14px] truncate ${c.accent ? "text-[var(--sherloq-primary)]" : "text-text-primary"}`}>{c.value}</span>
+              <span className="typo-field-label text-[var(--text-muted)]">{c.label}</span>
+              <span className={`typo-field-value truncate ${c.accent ? "text-[var(--sherloq-primary)]" : "text-text-primary"}`}>{c.value}</span>
             </div>
           ))}
         </div>
@@ -63,7 +63,7 @@ export default function DealKurzinfo({
 
       {/* Aktionen */}
       <div className="bg-app-surface rounded-[12px] p-5 border border-[var(--border)]">
-        <div className="flex items-center gap-2 text-[11px] font-bold font-mono text-[var(--text-muted)] uppercase tracking-wider mb-4">
+        <div className="flex items-center gap-2 typo-chevron-header text-[var(--text-muted)] mb-4">
           <Target className="w-4 h-4" /> {t("hunter.leadCard.actions")}
         </div>
         <div className="flex flex-col gap-3">

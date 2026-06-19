@@ -35,7 +35,7 @@ export default function DealSetup({
   return (
     <div className="group bg-app-surface rounded-[12px] p-5 border border-border shadow-[var(--shadow-card)]">
       <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2 text-[10px] font-extrabold text-text-muted uppercase tracking-widest">
+        <div className="flex items-center gap-2 typo-section-label text-text-muted">
           <Briefcase className="w-4 h-4" /> Deal Setup
           {count > 1 && (
             <button
@@ -62,13 +62,13 @@ export default function DealSetup({
         <p className="text-[12px] text-text-muted">Kein Deal</p>
       ) : (
         <>
-          {deal.name && <p className="text-[15px] font-extrabold text-text-primary -mt-1 mb-3 truncate">{deal.name}</p>}
+          {deal.name && <p className="typo-card-title text-text-primary -mt-1 mb-3 truncate">{deal.name}</p>}
           {cells.length > 0 && (
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-[12px]">
               {cells.map((c) => (
                 <div key={c.label} className="flex flex-col gap-1">
-                  <span className="text-text-muted font-mono text-[10px] uppercase tracking-wider">{c.label}</span>
-                  <span className={`font-bold text-[14px] truncate ${c.accent ? "text-[var(--sherloq-primary)]" : "text-text-primary"}`}>{c.value}</span>
+                  <span className="typo-field-label text-text-muted">{c.label}</span>
+                  <span className={`typo-field-value truncate ${c.accent ? "text-[var(--sherloq-primary)]" : "text-text-primary"}`}>{c.value}</span>
                 </div>
               ))}
             </div>

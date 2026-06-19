@@ -437,6 +437,36 @@ Wenn ein Figma/Screenshot-Design hochgeladen wird:
 .pill-urgent / .pill-warn / .pill-success / .pill-info / .pill-cold / .pill-teal / .pill-muted
 ```
 
+### Typo-Kanon — Schrift-Stufen zentral (Pflicht, erzwungen)
+
+**Einzige Quelle aller Schriftgrößen/-gewichte an Titeln, Headern, Labels und Werten:
+benannte `typo-*`-Klassen in `src/index.css`** (Pendant zu `HeatBadge`/`StageBadge` für Text).
+Größe + Gewicht (+ Transform/Tracking bei Header/Label) liegen **EINMAL** in der Klasse —
+nie roh als `text-[Npx] font-*` an diesen Stellen wiederholen. **Farbe bleibt bewusst draußen**
+(separate `text-text-primary`/`-muted`-Utility), ebenso `leading-*`/`truncate`.
+
+| Token | Wert (real, aus Diagnose) | Wofür |
+|---|---|---|
+| `.typo-section-label` | 10px · 800 · uppercase · tracking-widest | 820px-Panel-Sektion-Header (OFFENE TASKS, DEAL SETUP, DEALS, …) |
+| `.typo-chevron-header` | 11px · 700 · mono · uppercase · tracking-wider | Karten-Header der Chevron-Kurzansicht (DealKurzinfo, KiKurzakte, HunterCard) |
+| `.typo-card-title` | 14px · 700 | Listen-Karten-Titel in Tabs (Tasks · Aktivität · Kommunikation · Deals) + Entitätsname |
+| `.typo-field-label` | 10px · 400 · mono · uppercase · tracking-wider | Feld-Label im Kennzahlen-Grid (PRODUKT, STAGE, …) |
+| `.typo-field-value` | 14px · 700 | Feld-Wert im Kennzahlen-Grid |
+| `.typo-subline` | 11px · 400 | Subzeile unter Karten-Titel (Wert · Owner · Datum) |
+| `.typo-chip` | 10px · 700 | Chip-/Badge-Text |
+
+- **Card-Title ist 14px/700** — der frühere Deals-Ausreißer (15px/extrabold) wurde angeglichen,
+  damit alle Tab-Listen-Karten matchen. **Chevron-Header (11px mono)** und **Section-Label (10px)**
+  sind bewusst getrennte Stufen — nicht verwechseln (Chevron-Kurzansicht ≠ Panel-Sektion).
+- **Erzwungen:** `npm run audit` → Check **„Typo-Kanon: Schrift-Stufen"** meldet **FAIL**, wenn in
+  einer Panel-Block-/Tab-Listen-Komponente eine rohe Schrift-Klasse an Titel/Header/Label/Wert steht,
+  die **nicht** über ein `typo-*`-Primitive läuft (distinctive Signaturen: `tracking-widest`,
+  `font-mono`, `text-[13–15px]`+`font-bold/extrabold`; Buttons/Container via `rounded-`/`py-`
+  ausgenommen). Läuft im **pre-push-Hook** → blockt den Push (mit Terminal), wie die Single-Source-Regel.
+- **Scope:** Panel-Blocks + Tab-Listen-Komponenten (dort tritt der Drift auf). Neue solche Komponente →
+  `IN_SCOPE` in `scripts/audit.ts` (`checkTypographyTokens`) ergänzen. Andere Bereiche (Forms/Drawer/
+  Detail-Felder) folgen später. Neue Stufe nötig → erst `typo-*`-Klasse in `index.css`, dann nutzen.
+
 ### Tailwind Token-Klassen (via @theme inline)
 ```
 bg-sherloq-primary    text-sherloq-primary

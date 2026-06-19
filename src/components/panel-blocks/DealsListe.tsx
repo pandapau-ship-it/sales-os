@@ -70,7 +70,7 @@ function DealsListeReadonly({ items, productOptions, onCreate, autoNew = false, 
   return (
     <div className="space-y-4 animate-fade-in">
       <div className="flex justify-between items-center px-1">
-        <span className="text-[10px] font-extrabold text-text-muted uppercase tracking-widest">Deals</span>
+        <span className="typo-section-label text-text-muted">Deals</span>
         {onCreate && !composerOpen && (
           <button onClick={() => setComposerOpen(true)} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] bg-[var(--sherloq-primary)] text-on-accent text-[11px] font-bold shadow-sm hover:opacity-90 transition-opacity cursor-pointer">
             <Plus className="w-3.5 h-3.5" /> {t("hunter.panel.newDeal")}
@@ -159,8 +159,8 @@ function DealsListeReadonly({ items, productOptions, onCreate, autoNew = false, 
                     <Briefcase className="w-5 h-5" />
                   </span>
                   <div className="min-w-0">
-                    <p className="text-[15px] font-extrabold text-text-primary leading-tight truncate">{d.name}</p>
-                    {sub && <p className="text-[11px] text-text-muted mt-0.5 truncate">{sub}</p>}
+                    <p className="typo-card-title text-text-primary leading-tight truncate">{d.name}</p>
+                    {sub && <p className="typo-subline text-text-muted mt-0.5 truncate">{sub}</p>}
                   </div>
                 </div>
                 {d.stageLabel && <StageBadge stage={d.stageLabel} />}
@@ -266,7 +266,7 @@ function DealsListeMock({
   return (
     <div className="space-y-4 animate-fade-in">
       <div className="flex justify-between items-center px-1">
-        <span className="text-[10px] font-extrabold text-text-muted uppercase tracking-widest">Deals</span>
+        <span className="typo-section-label text-text-muted">Deals</span>
         {!creating && (
           <button onClick={openNew} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] bg-[var(--sherloq-primary)] text-on-accent text-[11px] font-bold shadow-sm hover:opacity-90 transition-opacity cursor-pointer">
             <Plus className="w-3.5 h-3.5" /> Neuer Deal
@@ -297,7 +297,7 @@ function DealsListeMock({
                   <Briefcase className="w-5 h-5" />
                 </span>
                 <div className="min-w-0">
-                  <p className="text-[15px] font-extrabold text-text-primary leading-tight truncate">{d.name || fmtEur(d.value)}</p>
+                  <p className="typo-card-title text-text-primary leading-tight truncate">{d.name || fmtEur(d.value)}</p>
                   <p className="text-[11px] text-text-muted mt-0.5 truncate">{fmtEur(d.value)} · {d.owner || "Kein Owner"} · Abschluss: {fmtDate(d.close)}</p>
                 </div>
               </div>

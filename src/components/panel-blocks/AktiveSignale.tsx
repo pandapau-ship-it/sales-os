@@ -8,7 +8,7 @@ import LinkedinIcon from "@/components/shared/LinkedinIcon";
 export default function AktiveSignale({ onAction }: { onAction?: (key: string) => void }) {
   return (
     <div className="space-y-2">
-      <span className="text-[10px] font-extrabold text-text-muted uppercase tracking-widest pl-1">Aktive Signale</span>
+      <span className="typo-section-label text-text-muted pl-1">Aktive Signale</span>
       <div className="space-y-3">
         <div className="p-4 bg-[var(--signal-urgent-bg)] border border-[var(--signal-urgent-bg)] rounded-[12px] flex items-center justify-between text-xs text-[var(--signal-urgent-text)] font-semibold shadow-sm">
           <span className="flex items-center gap-2"><AlertTriangle className="w-4 h-4" /> Stagniert — 8T in Stage Demo</span>

@@ -115,7 +115,7 @@ export default function NotizenListe({
   return (
     <div className="space-y-4 animate-fade-in">
       <div className="flex justify-between items-center px-1">
-        <span className="text-[10px] font-extrabold text-text-muted uppercase tracking-widest">Notizen</span>
+        <span className="typo-section-label text-text-muted">Notizen</span>
         <button onClick={() => setComposerOpen((v) => !v)} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] bg-[var(--sherloq-primary)] text-on-accent text-[11px] font-bold shadow-sm hover:opacity-90 transition-opacity cursor-pointer">
           <Plus className="w-3.5 h-3.5" /> Neue Notiz
         </button>

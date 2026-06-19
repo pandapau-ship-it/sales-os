@@ -186,7 +186,7 @@ function CommBody({ item }: { item: KommunikationItem }) {
 export default function KommunikationVerlauf({ items = DEFAULT_ITEMS }: { items?: KommunikationItem[] }) {
   return (
     <div className="space-y-4 animate-fade-in">
-      <span className="block px-1 text-[10px] font-extrabold text-text-muted uppercase tracking-widest">
+      <span className="block px-1 typo-section-label text-text-muted">
         Kommunikationsverlauf
       </span>
 
@@ -211,7 +211,7 @@ export default function KommunikationVerlauf({ items = DEFAULT_ITEMS }: { items?
               <div className="flex-1 min-w-0 pb-0.5">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2 min-w-0">
-                    <h4 className="text-[14px] font-bold text-text-primary leading-tight truncate">{item.title}</h4>
+                    <h4 className="typo-card-title text-text-primary leading-tight truncate">{item.title}</h4>
                     <span
                       className="hidden sm:inline-flex items-center shrink-0 px-1.5 py-0.5 rounded-[6px] text-[9px] font-extrabold uppercase tracking-wide"
                       style={{ color: meta.accent, background: `color-mix(in srgb, ${meta.accent} 12%, transparent)` }}

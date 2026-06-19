@@ -9,7 +9,7 @@ export default function ActiveSequenceChain() {
   return (
     <div className="space-y-2">
       <div className="flex justify-between items-center px-1">
-        <span className="text-[10px] font-extrabold text-text-muted uppercase tracking-widest">Active Sequence</span>
+        <span className="typo-section-label text-text-muted">Active Sequence</span>
         <span className="text-[11px] font-bold text-[var(--sherloq-primary)]">Schritt 3 von 5</span>
       </div>
       <div className="bg-app-surface rounded-[12px] p-6 border border-border shadow-sm flex items-start justify-between relative px-8">

@@ -415,6 +415,28 @@ body {
   border: 1px solid var(--border);
 }
 
+/* ─── Typo-Kanon — zentrale Schrift-Stufen (Größe + Gewicht + Transform/Tracking) ─
+ * EINE Definition pro Stufe (Pendant zu HeatBadge/StageBadge für Text). Komponenten
+ * setzen NUR diese Klasse + eine Farb-Utility (text-text-primary/-muted) und ggf.
+ * leading-*. Rohe Schrift-Klassen (text-[Npx] font-*) an Titeln/Headern/Labels/Werten
+ * sind in Panel-Blocks verboten → `npm run audit` (Check „Typo-Kanon") meldet FAIL.
+ * Werte = real aus der Diagnose (nicht neu erfunden). Farbe bleibt bewusst draußen.
+ * ─────────────────────────────────────────────────────────────────────────────── */
+/* Section-Header eines 820px-Panel-Tabs/Blocks (z.B. OFFENE TASKS, DEAL SETUP, DEALS) */
+.typo-section-label  { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; }
+/* Karten-Header in der Chevron-Kurzansicht (DealKurzinfo, KiKurzakte, HunterCard) */
+.typo-chevron-header { font-size: 11px; font-weight: 700; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace; text-transform: uppercase; letter-spacing: 0.05em; }
+/* Listen-Karten-Titel in Tabs (Tasks, Aktivität, Kommunikation, Deals) + Entitätsname */
+.typo-card-title     { font-size: 14px; font-weight: 700; }
+/* Feld-Label im Kennzahlen-Grid (PRODUKT, STAGE, …) */
+.typo-field-label    { font-size: 10px; font-weight: 400; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace; text-transform: uppercase; letter-spacing: 0.05em; }
+/* Feld-Wert im Kennzahlen-Grid */
+.typo-field-value    { font-size: 14px; font-weight: 700; }
+/* Subzeile unter einem Karten-Titel (Meta: Wert · Owner · Datum) */
+.typo-subline        { font-size: 11px; font-weight: 400; }
+/* Chip/Badge-Text (Produkt-/Kanal-/Prioritäts-Pills) */
+.typo-chip           { font-size: 10px; font-weight: 700; }
+
 /* Custom scrollbar */
 .custom-scrollbar::-webkit-scrollbar        { width: 6px; }
 .custom-scrollbar::-webkit-scrollbar-track  { background: transparent; }
