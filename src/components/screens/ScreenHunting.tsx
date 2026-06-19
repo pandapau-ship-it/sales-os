@@ -589,8 +589,9 @@ export default function ScreenHunting({
             <div className="flex flex-col gap-3 pb-8">
               {/* Deals-Tabelle (Count + Filter sitzen in der Filterleiste oben) */}
               <div className="bg-app-surface rounded-[12px] border border-border shadow-[var(--shadow-card)] overflow-hidden">
-                <div className="grid grid-cols-[2.2fr_1.4fr_1.2fr_1fr_1.2fr_auto] gap-4 px-4 py-2.5 bg-app-bg border-b border-border text-[10px] font-extrabold text-text-muted uppercase tracking-wider">
+                <div className="grid grid-cols-[1.8fr_1.6fr_1.3fr_1.1fr_0.9fr_1.1fr_auto] gap-4 px-4 py-2.5 bg-app-bg border-b border-border text-[10px] font-extrabold text-text-muted uppercase tracking-wider">
                   <span>Kontakt</span>
+                  <span>Firma</span>
                   <span>Stage</span>
                   <span>Deal Owner</span>
                   <span>Wert</span>
@@ -604,13 +605,23 @@ export default function ScreenHunting({
                 ) : listDealRows.length === 0 ? (
                   <div className="px-4 py-10 text-center text-[13px] text-text-muted">Keine Deals für diese Filter.</div>
                 ) : listDealRows.map((deal) => (
-                  <div key={deal.id} className="grid grid-cols-[2.2fr_1.4fr_1.2fr_1fr_1.2fr_auto] gap-4 px-4 py-3 items-center border-b border-border-subtle last:border-0 hover:bg-app-bg transition-colors">
+                  <div key={deal.id} className="grid grid-cols-[1.8fr_1.6fr_1.3fr_1.1fr_0.9fr_1.1fr_auto] gap-4 px-4 py-3 items-center border-b border-border-subtle last:border-0 hover:bg-app-bg transition-colors">
+                    {/* KONTAKT: Avatar · Name (flex-1 → schiebt den ICP-Ring ans rechte Ende = bündig untereinander) · ICP-Ring. */}
                     <div className="flex items-center gap-3 min-w-0">
                       <Avatar name={deal.contactName} size={32} />
-                      <div className="min-w-0">
-                        <div className="text-[13px] font-bold text-text-primary truncate">{deal.contactName}</div>
-                        <div className="text-[11px] text-text-muted truncate">{deal.company}</div>
-                      </div>
+                      <span className="flex-1 min-w-0 text-[13px] font-bold text-text-primary truncate">{deal.contactName}</span>
+                      {deal.icpScore != null && <ICPDonut score={deal.icpScore} size={26} />}
+                    </div>
+                    {/* FIRMA: eigene Spalte — Company-Avatar (abgerundetes Quadrat) + Name (teal). Echt aus contactToProfile. */}
+                    <div className="flex items-center gap-2 min-w-0">
+                      {deal.company ? (
+                        <>
+                          <Avatar name={deal.company} size={32} radius={9} />
+                          <span className="text-[13px] font-semibold text-[var(--sherloq-primary)] truncate">{deal.company}</span>
+                        </>
+                      ) : (
+                        <span className="text-[12px] text-text-muted">—</span>
+                      )}
                     </div>
                     <div className="min-w-0">
                       <StageBadge stage={deal.stageLabel} />
