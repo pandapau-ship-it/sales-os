@@ -8,6 +8,7 @@
  */
 
 import type { Lead, HeatStatus } from "@/types";
+import type { DealStage } from "@/types/hunter";
 import type { LucideIcon } from "lucide-react";
 import { signalMetaFor } from "@/lib/constants";
 
@@ -266,8 +267,16 @@ export type SignalCardProps = {
   stage?: string; // Label des zuletzt aktiven Deals; kein aktiver Deal → undefined → kein Stage
 };
 
-// Terminal-Stages (kein „aktiver" Deal mehr).
-const TERMINAL_STAGES = new Set(["gewonnen", "verloren"]);
+// Terminal-Stages (kein „aktiver" Deal mehr) — SINGLE SOURCE für die ganze App.
+// `as const satisfies readonly DealStage[]` bindet die Slugs an die kanonische
+// DealStage-Union (types/hunter.ts) → kann nicht stillschweigend von ihr driften.
+// Won/Lost einzeln benannt, damit Won-only-Checks (isWon) ebenfalls aus einer Quelle kommen.
+export const WON_STAGE_SLUG = "gewonnen" as const;
+export const LOST_STAGE_SLUG = "verloren" as const;
+export const TERMINAL_STAGE_SLUGS = [WON_STAGE_SLUG, LOST_STAGE_SLUG] as const satisfies readonly DealStage[];
+/** true, wenn der Slug eine Terminal-Stage (gewonnen/verloren) ist. */
+export const isTerminalStage = (slug: string): boolean =>
+  (TERMINAL_STAGE_SLUGS as readonly string[]).includes(slug);
 const ms = (x: any) => new Date(x ?? 0).getTime();
 
 /* single-source:allow-start — Stage-Resolver (zentrale Quelle der aktiven-Deal-Stage). */
@@ -281,7 +290,7 @@ export function latestActiveDeal(
   deals: Record<string, any>[] | null | undefined,
 ): Record<string, any> | null {
   const open = (deals ?? []).filter(
-    (d) => !TERMINAL_STAGES.has(d.stage) && d.closed_at == null && d.deleted_at == null,
+    (d) => !isTerminalStage(d.stage) && d.closed_at == null && d.deleted_at == null,
   );
   if (!open.length) return null;
   return open

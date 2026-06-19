@@ -4,6 +4,9 @@
  * aus src/types.ts. Joined-Felder kommen aus den lib/db-Queries (select-Joins).
  */
 
+// Kanonische Stage-Slugs (volle Union). Single Source auf Typ-Ebene; die Terminal-Slugs
+// (gewonnen/verloren) werden in lib/hunterMappers.ts via `satisfies readonly DealStage[]`
+// an diese Union gebunden (TERMINAL_STAGE_SLUGS) — keine separate Duplikat-Liste mehr.
 export type DealStage =
   | "backlog"
   | "demo_vereinbart"

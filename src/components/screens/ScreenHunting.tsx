@@ -31,7 +31,7 @@ import { AddSdrLeadPanel, ContactColdDrawer, EmptyState, FunnelAnalysis, HeatBad
 import type { SignalActionData } from '@/components';
 
 import Avatar from '@/components/shared/Avatar';
-import { signalToCardProps, taskToDueCard, dealToNewPipelineRow, newPipelineInPeriod, type PipelineRow, type NewPipelinePeriod } from '@/lib/hunterMappers';
+import { signalToCardProps, taskToDueCard, dealToNewPipelineRow, newPipelineInPeriod, isTerminalStage, WON_STAGE_SLUG, type PipelineRow, type NewPipelinePeriod } from '@/lib/hunterMappers';
 
 interface ScreenHuntingProps {
   leads: Lead[];
@@ -100,9 +100,8 @@ export default function ScreenHunting({
   const newPipelineItems = (newInPipelineData ?? []).map((d) => dealToNewPipelineRow(d, stageNameBySlug));
   const newPipelineFiltered = newPipelineItems.filter((it) => newPipelineInPeriod(it.createdAt, newPipelinePeriod));
   // Übersicht-Aggregate (reine Reads, kein Write): wiederverwenden was schon geladen ist.
-  const TERMINAL_SLUGS = new Set(['gewonnen', 'verloren']);
   const eur = (n: number) => `€ ${new Intl.NumberFormat('de-DE').format(Math.round(n))}`;
-  const openDeals = dealRows.filter((d) => !TERMINAL_SLUGS.has(d.stageSlug));
+  const openDeals = dealRows.filter((d) => !isTerminalStage(d.stageSlug));
   const pipelineValueEur = openDeals.reduce((sum, d) => sum + (d.valueEur ?? 0), 0); // null-Werte zählen 0
   const openDealCount = openDeals.length;
   const hotSignalCount = signalCards.length;       // identische Quelle wie der Signals-Tab-Count
@@ -117,7 +116,7 @@ export default function ScreenHunting({
       deals: ds.length,
       valueLabel: eur(sumEur),
       avgValueLabel: ds.length ? eur(sumEur / ds.length) : undefined, // Ø-Wert/Deal (ehrlich), sonst kein Tooltip
-      isWon: stg.slug === 'gewonnen',
+      isWon: stg.slug === WON_STAGE_SLUG,
     };
   });
   // Slice C — drei Filter, client-seitig über die geteilte dealRows-Quelle:
