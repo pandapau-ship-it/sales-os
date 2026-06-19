@@ -106,6 +106,8 @@ export default function ScreenHunting({
     queryClient.invalidateQueries({ queryKey: ['dealsByContact', DEMO_ORGANIZATION_ID] });
     queryClient.invalidateQueries({ queryKey: ['deals', DEMO_ORGANIZATION_ID] });
     queryClient.invalidateQueries({ queryKey: ['newInPipeline', DEMO_ORGANIZATION_ID] });
+    queryClient.invalidateQueries({ queryKey: ['dueTasks', DEMO_ORGANIZATION_ID] }); // Follow-ups: aktive-Deal-Stage der Karte
+    queryClient.invalidateQueries({ queryKey: ['signals', DEMO_ORGANIZATION_ID] });  // Signals: aktive-Deal-Stage der Karte
   };
   const updateStageMutation = useMutation({
     mutationFn: ({ dealId, newSlug }: { dealId: string; newSlug: string }) => updateDealStage(dealId, newSlug, DEMO_ORGANIZATION_ID),

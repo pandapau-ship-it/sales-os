@@ -258,6 +258,8 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
       queryClient.invalidateQueries({ queryKey: ['dealsByContact', DEMO_ORGANIZATION_ID, contactId] });
       queryClient.invalidateQueries({ queryKey: ['deals', DEMO_ORGANIZATION_ID] });
       queryClient.invalidateQueries({ queryKey: ['newInPipeline', DEMO_ORGANIZATION_ID] });
+      queryClient.invalidateQueries({ queryKey: ['dueTasks', DEMO_ORGANIZATION_ID] }); // Follow-ups: aktive-Deal-Stage der Karte
+      queryClient.invalidateQueries({ queryKey: ['signals', DEMO_ORGANIZATION_ID] });  // Signals: aktive-Deal-Stage der Karte
       showToast('Deal aktualisiert ✓');
     },
     onError: (e) => showToast(`Speichern fehlgeschlagen: ${(e as Error).message}`),
@@ -270,6 +272,8 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
     queryClient.invalidateQueries({ queryKey: ['dealsByContact', DEMO_ORGANIZATION_ID, contactId] });
     queryClient.invalidateQueries({ queryKey: ['deals', DEMO_ORGANIZATION_ID] });
     queryClient.invalidateQueries({ queryKey: ['newInPipeline', DEMO_ORGANIZATION_ID] });
+    queryClient.invalidateQueries({ queryKey: ['dueTasks', DEMO_ORGANIZATION_ID] }); // Follow-ups: aktive-Deal-Stage der Karte
+    queryClient.invalidateQueries({ queryKey: ['signals', DEMO_ORGANIZATION_ID] });  // Signals: aktive-Deal-Stage der Karte
   };
   const updateStageMutation = useMutation({
     mutationFn: ({ dealId, newSlug }: { dealId: string; newSlug: string }) => updateDealStage(dealId, newSlug, DEMO_ORGANIZATION_ID),
@@ -298,6 +302,8 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
       queryClient.invalidateQueries({ queryKey: ['dealsByContact', DEMO_ORGANIZATION_ID, contactId] });
       queryClient.invalidateQueries({ queryKey: ['deals', DEMO_ORGANIZATION_ID] });
       queryClient.invalidateQueries({ queryKey: ['newInPipeline', DEMO_ORGANIZATION_ID] });
+      queryClient.invalidateQueries({ queryKey: ['dueTasks', DEMO_ORGANIZATION_ID] }); // Follow-ups: aktive-Deal-Stage der Karte
+      queryClient.invalidateQueries({ queryKey: ['signals', DEMO_ORGANIZATION_ID] });  // Signals: aktive-Deal-Stage der Karte
       showToast('Deal gelöscht');
     },
     onError: (e) => showToast(`Löschen fehlgeschlagen: ${(e as Error).message}`),
