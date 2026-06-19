@@ -230,6 +230,8 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
       queryClient.invalidateQueries({ queryKey: ['dealsByContact', DEMO_ORGANIZATION_ID, contactId] }); // Panel
       queryClient.invalidateQueries({ queryKey: ['deals', DEMO_ORGANIZATION_ID] });                     // Pipeline Liste/Kanban + Übersicht-KPIs/Funnel
       queryClient.invalidateQueries({ queryKey: ['newInPipeline', DEMO_ORGANIZATION_ID] });              // Neu-in-Pipeline-Tab
+      queryClient.invalidateQueries({ queryKey: ['dueTasks', DEMO_ORGANIZATION_ID] });                  // Follow-ups: aktive-Deal-Stage der Karte
+      queryClient.invalidateQueries({ queryKey: ['signals', DEMO_ORGANIZATION_ID] });                   // Signals: aktive-Deal-Stage der Karte
       showToast('Deal angelegt ✓');
     },
     onError: (e) => showToast(`Anlegen fehlgeschlagen: ${(e as Error).message}`), // nicht still abfangen
