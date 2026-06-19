@@ -32,6 +32,11 @@ import type { SignalActionData } from '@/components';
 
 import Avatar from '@/components/shared/Avatar';
 import { signalToCardProps, taskToDueCard, dealToNewPipelineRow, newPipelineInPeriod, isTerminalStage, WON_STAGE_SLUG, type PipelineRow, type NewPipelinePeriod } from '@/lib/hunterMappers';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { updateDealStage } from '@/lib/db';
+import { DEMO_ORGANIZATION_ID } from '@/lib/org';
+import { useToast } from '@/components/shared/Toast';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 
 interface ScreenHuntingProps {
   leads: Lead[];
@@ -88,6 +93,27 @@ export default function ScreenHunting({
   const leadRows = leadsData ?? leads;
   // Pipeline-Listenansicht (Slice A): echte Deals. Kanban/Tasks bleiben Mock.
   const dealRows = dealsData ?? [];
+  // P8-2c — Stage-Wechsel direkt von der Kanban-Karte. Eigene Mutation (nur Stage),
+  // gleiche Invalidierung wie der Panel-Deal-Write. Terminal (gewonnen/verloren) wird im
+  // Handler ehrlich blockiert (Won/Lost-Dialog folgt P8-3 — closed_at/lost_reason fehlen).
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const updateStageMutation = useMutation({
+    mutationFn: ({ dealId, newSlug }: { dealId: string; newSlug: string }) => updateDealStage(dealId, newSlug, DEMO_ORGANIZATION_ID),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['dealsByContact', DEMO_ORGANIZATION_ID] });
+      queryClient.invalidateQueries({ queryKey: ['deals', DEMO_ORGANIZATION_ID] });
+      queryClient.invalidateQueries({ queryKey: ['newInPipeline', DEMO_ORGANIZATION_ID] });
+      toast('Stage geändert ✓');
+    },
+    onError: () => toast('Stage konnte nicht geändert werden'),
+  });
+  const handleStageChange = (newSlug: string, dealId: string) => {
+    if (isTerminalStage(newSlug)) { toast('Won/Lost-Dialog folgt in P8-3'); return; }
+    updateStageMutation.mutate({ dealId, newSlug });
+  };
+  // Stage-Liste fürs Inline-Dropdown (slug/name, in Pipeline-Reihenfolge) — wie im Panel.
+  const stageOptions = [...(pipelineStages ?? [])].sort((a, b) => a.order - b.order).map((s) => ({ slug: s.slug, name: s.name }));
   // Signals-Tab: echte Signals → Card-Props (Mapping braucht t + Stage-Labels für aktive-Deal-Stage).
   const stageNameBySlug = Object.fromEntries((pipelineStages ?? []).map((stg) => [stg.slug, stg.name]));
   const signalCards = (signalsData ?? []).map((s) => signalToCardProps(s, t, stageNameBySlug));
@@ -574,8 +600,33 @@ export default function ScreenHunting({
                                 {deal.icpScore != null && <ICPDonut score={deal.icpScore} />}
                               </div>
                             </div>
-                            <div className="flex justify-start pt-1">
+                            <div className="flex justify-between items-center pt-1 gap-2">
                               <HeatBadge status={deal.heatStatus} />
+                              {/* P8-2c: Stage-Badge klickbar → Inline-Dropdown → Stage wechseln (echter Write).
+                                  Der dekorative StageBadge bleibt read-only; nur der Wrapper trägt onClick. */}
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild disabled={updateStageMutation.isPending}>
+                                  <button
+                                    type="button"
+                                    aria-label="Stage ändern"
+                                    data-tip="Stage ändern"
+                                    className="cursor-pointer disabled:opacity-50 disabled:cursor-default rounded-full shrink-0"
+                                  >
+                                    <StageBadge stage={deal.stageLabel} />
+                                  </button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  {stageOptions.map((s) => (
+                                    <DropdownMenuItem
+                                      key={s.slug}
+                                      disabled={s.slug === deal.stageSlug}
+                                      onSelect={() => handleStageChange(s.slug, deal.id)}
+                                    >
+                                      {s.name}
+                                    </DropdownMenuItem>
+                                  ))}
+                                </DropdownMenuContent>
+                              </DropdownMenu>
                             </div>
                           </div>
                         ))}

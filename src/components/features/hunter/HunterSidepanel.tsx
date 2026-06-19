@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import Avatar from '@/components/shared/Avatar';
-import { AktiveSignale, AktivitaetsVerlauf, DealsListe, DetailField, DetailPhoneList, DetailSection, HeatBadge, KontaktZeile, NotizenListe, OffeneTasks, PanelTabs, StageBadge, StatusBadge, TasksListe } from '@/components';
+import { AktiveSignale, AktivitaetsVerlauf, DealsListe, DetailField, DetailPhoneList, DetailSection, HeatBadge, KontaktZeile, NotizenListe, OffeneTasks, PanelTabs, StatusBadge, TasksListe } from '@/components';
 
 /** Telefon-Eintrag (Favorit inline, Rest im Popover bei P8-Edit). */
 interface Phone { id: string; type: string; number: string; favorite: boolean }
@@ -341,7 +341,8 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
           <HeatBadge status={profile.heatStatus} />
         </div>
       )}
-      {/* KEINE Stage im Kontakt-Header: Stage ist eine Deal-Eigenschaft, kein Kontakt-Wert. */}
+      {/* KEINE Stage im Kontakt-Header: Stage ist eine Deal-Eigenschaft, kein Kontakt-Wert.
+          Stage-Wechsel läuft über die Kanban-Karte (ScreenHunting, P8-2c). */}
     </>
   );
 
@@ -535,15 +536,9 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
         <DetailField label="Owner" value={details.owner} onSave={(v) => setDetail('owner', v)} />
         <DetailField label="Tags" value={details.tags} onSave={(v) => setDetail('tags', v)} />
 
-        {/* System-gesetzte Status → read-only Badges (keine Input-Felder) */}
-        <div className="min-w-0">
-          <div className="text-[10px] font-extrabold text-text-muted uppercase tracking-widest mb-1.5">Contact Status</div>
-          <StageBadge stage="Pipeline" />
-        </div>
-        <div className="min-w-0">
-          <div className="text-[10px] font-extrabold text-text-muted uppercase tracking-widest mb-1.5">Heat Status</div>
-          <HeatBadge status="engaged" />
-        </div>
+        {/* System-gesetzte Status → read-only Badges (keine Input-Felder).
+            Stage (läuft echt über primaryDeal.stageLabel im Deal-Setup) und Heat
+            (über contactToProfile.heatStatus) waren hier hardcodiert → entfernt (Honesty). */}
         <div className="min-w-0">
           <div className="text-[10px] font-extrabold text-text-muted uppercase tracking-widest mb-1.5">E-Mail verifiziert</div>
           <StatusBadge tone="success" icon={CheckCircle2} label="Verifiziert" />
