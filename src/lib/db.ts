@@ -549,6 +549,42 @@ export async function getDealsByContact(
   return data ?? [];
 }
 
+/**
+ * getActivityByContact — Aktivitäts-Feed eines Kontakts (Audit-Log). Sammelt die Audit-Einträge,
+ * die zu diesem Kontakt gehören: der Kontakt selbst + seine Deals/Tasks/Notes (über deren id =
+ * audit_log.entity_id). Soft-gelöschte Deals/Tasks/Notes werden BEWUSST mitgenommen — ihre Historie
+ * (inkl. Lösch-Event) gehört in den Feed. Embed user:users(full_name) → „Wer" (NULL bei System/AI).
+ * Neueste zuerst, auf 50 begrenzt.
+ */
+export async function getActivityByContact(
+  organizationId: string,
+  contactId: string,
+): Promise<Record<string, unknown>[]> {
+  const client = getSupabaseClient();
+  if (!client) return [];
+  // Entity-IDs des Kontakts einsammeln (kein deleted_at-Filter → Lösch-Historie bleibt sichtbar).
+  const [deals, tasks, notes] = await Promise.all([
+    client.from("deals").select("id").eq("organization_id", organizationId).eq("contact_id", contactId),
+    client.from("tasks").select("id").eq("organization_id", organizationId).eq("contact_id", contactId),
+    client.from("notes").select("id").eq("organization_id", organizationId).eq("contact_id", contactId),
+  ]);
+  const ids = [
+    contactId,
+    ...((deals.data ?? []) as { id: string }[]).map((r) => r.id),
+    ...((tasks.data ?? []) as { id: string }[]).map((r) => r.id),
+    ...((notes.data ?? []) as { id: string }[]).map((r) => r.id),
+  ];
+  const { data, error } = await client
+    .from("audit_log")
+    .select("id, action, entity_type, entity_id, user_id, metadata, created_at, user:users(full_name)")
+    .eq("organization_id", organizationId)
+    .in("entity_id", ids)
+    .order("created_at", { ascending: false })
+    .limit(50);
+  if (error) throw error;
+  return data ?? [];
+}
+
 /** getProducts — aktive Produkte der Org (Katalog, P5b), nach Name. Speist das Deal-Produkt-Dropdown. */
 export async function getProducts(
   organizationId: string,

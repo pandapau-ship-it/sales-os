@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DEMO_ORGANIZATION_ID } from '@/lib/org';
-import { getContactDetail, getPipelineSettings, getTasksByContact, createTask, completeTask, softDeleteTask, getNotesByContact, createNote, updateNote, softDeleteNote, getDealsByContact, getProducts, getOrgUsers, createDeal, updateDeal, updateDealStage, softDeleteDeal } from '@/lib/db';
+import { getContactDetail, getPipelineSettings, getTasksByContact, createTask, completeTask, softDeleteTask, getNotesByContact, createNote, updateNote, softDeleteNote, getDealsByContact, getActivityByContact, getProducts, getOrgUsers, createDeal, updateDeal, updateDealStage, softDeleteDeal } from '@/lib/db';
 import { contactToProfile, contactActiveStage, latestActiveDeal, dealToView } from '@/lib/hunterMappers';
 import {
   ArrowUpRight, ArrowLeft, X, Phone, Clock, Check,
@@ -184,6 +184,12 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
     queryKey: ['dealsByContact', DEMO_ORGANIZATION_ID, contactId],
     queryFn: () => getDealsByContact(DEMO_ORGANIZATION_ID, contactId as string),
     enabled: !!contactId && isOpen,
+  });
+  // Aktivität-Tab: echter Feed aus audit_log (Kontakt + seine Deals/Tasks/Notes).
+  const activityQuery = useQuery({
+    queryKey: ['activityByContact', DEMO_ORGANIZATION_ID, contactId],
+    queryFn: () => getActivityByContact(DEMO_ORGANIZATION_ID, contactId as string),
+    enabled: !!contactId && isOpen && activeTab === 'activity', // erst laden, wenn der Tab offen ist
   });
   // Übersicht „Deal Setup" zeigt den primären Deal = zuletzt aktiver, sonst neuester
   // (getDealsByContact sortiert created_at desc). Werte zentral über dealToView.
@@ -438,7 +444,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
         )}
 
         {activeTab === 'activity' && (
-          <AktivitaetsVerlauf />
+          <AktivitaetsVerlauf rows={activityQuery.data ?? []} />
         )}
 
         {activeTab === 'tasks' && (

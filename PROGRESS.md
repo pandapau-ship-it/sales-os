@@ -96,6 +96,14 @@
      **externe/LinkedIn-Signale** → Signal-Quelle (`signals`/Webhook) · **Kommunikation** (Tab + Übersicht-
      Vorschau + Footer-„Mail" + `MailComposer`) → **P7** (Quelle fehlt: keine `messages`-Read-Query/kein
      Zufluss). **Aktivität-Tab bleibt sichtbar** (eigene nächste Scheibe = Audit-Log).
+   - **Aktivität-Tab ✅ verdrahtet (2026-06-19):** echter Feed aus `audit_log` (`getActivityByContact` —
+     Einträge des Kontakts + seiner Deals/Tasks/Notes über `entity_id`, neueste zuerst, Limit 50; soft-
+     gelöschte bewusst mit für die Lösch-Historie). Pro Eintrag: **Was** (lesbar aus `entity_type`+`op`,
+     z.B. „Deal erstellt"/„Task aktualisiert"), **Wann** (relativ), **Wer** nur wenn `user_id`/Name vorhanden
+     (bei System/AI weggelassen — Honesty, Auth/[D21] offen). Keine Einträge → ehrlicher Empty-State, Default-
+     Mock entfernt. **Limitierung (ehrlich):** `audit_write()` schreibt nur `{op}_{table}` (kein Feld-Diff) →
+     ein Stage-Wechsel/Soft-Delete erscheint als generisches „aktualisiert". Feinere Labels (Feld-Diff aus
+     `metadata`) später möglich.
    - **P7 — Kommunikation:** read aus `messages` (Empty-State); **Versand deferred (Gruppe C)**.
      (Aktuell ausgeblendet — Quelle steht noch nicht: keine Read-Query, kein Parser/Webhook-Zufluss.)
    - **P8 — Panel-Edits (Write):** Kontaktfeld-Inline-Edit (Write auf `contacts`, audit via Trigger) +
