@@ -2,16 +2,13 @@ import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DEMO_ORGANIZATION_ID } from '@/lib/org';
 import { getContactDetail, getPipelineSettings, getTasksByContact, createTask, completeTask, softDeleteTask, getNotesByContact, createNote, updateNote, softDeleteNote, getDealsByContact, getActivityByContact, getProducts, getOrgUsers, createDeal, updateDeal, updateDealStage, softDeleteDeal } from '@/lib/db';
-import { contactToProfile, contactActiveStage, latestActiveDeal, dealToView } from '@/lib/hunterMappers';
+import { contactToProfile, latestActiveDeal, dealToView } from '@/lib/hunterMappers';
 import {
   ArrowUpRight, ArrowLeft, X, Phone, Clock, Check,
-  ChevronDown, Plus, Briefcase,
+  Plus, Briefcase,
   StickyNote, User, Building2, Tag, CheckCircle2
 } from 'lucide-react';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
-import {
-  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
-} from '@/components/ui/dropdown-menu';
 import Avatar from '@/components/shared/Avatar';
 import { AktiveSignale, AktivitaetsVerlauf, DealsListe, DetailField, DetailPhoneList, DetailSection, HeatBadge, KontaktZeile, NotizenListe, OffeneTasks, PanelTabs, StageBadge, StatusBadge, TasksListe } from '@/components';
 
@@ -102,7 +99,6 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
   const stageOptions = [...(stagesQuery.data ?? [])].sort((a, b) => a.order - b.order).map((s) => ({ slug: s.slug, name: s.name }));
   const contactRow = contactQuery.data ?? null;
   const profile = contactToProfile(contactRow);              // zentrale Leitung
-  const activeStage = contactActiveStage(contactRow, stageMap); // Stage = zuletzt aktiver Deal
   const headLoading = !!contactId && contactQuery.isLoading && !contactRow;
 
   // P2 — Kontaktzeile aus dem echten Kontakt seeden (email/phone/linkedin_url + Firmen-Website).
@@ -345,32 +341,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
           <HeatBadge status={profile.heatStatus} />
         </div>
       )}
-
-      <div className="flex flex-col items-center">
-        <span className="text-[9px] font-extrabold text-text-muted uppercase tracking-widest mb-2">Stage</span>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            {/* Stage-Dropdown = sichtbare Tür; Änderung ist Write → P8/Edge Function (deferred). */}
-            <button className="px-4 py-1.5 rounded-full bg-app-surface border border-border text-text-body text-[12px] font-extrabold leading-none shadow-sm hover:border-[var(--sherloq-primary)] hover:text-[var(--sherloq-primary)] transition-colors cursor-pointer flex items-center gap-1.5">
-              {activeStage ?? '—'}
-              <ChevronDown className="w-3.5 h-3.5" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            {[...(stagesQuery.data ?? [])].sort((a, b) => a.order - b.order).map((s) => (
-              <DropdownMenuItem
-                key={s.slug}
-                onClick={() => showToast('Stage-Änderung folgt (P8)')}
-                className="cursor-pointer text-[13px] font-semibold"
-              >
-                <span className={`w-1.5 h-1.5 rounded-full ${s.name === activeStage ? 'bg-[var(--sherloq-primary)]' : 'bg-[var(--border-strong)]'}`} />
-                {s.name}
-                {s.name === activeStage && <Check className="w-3.5 h-3.5 ml-auto text-[var(--sherloq-primary)]" />}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
+      {/* KEINE Stage im Kontakt-Header: Stage ist eine Deal-Eigenschaft, kein Kontakt-Wert. */}
     </>
   );
 
@@ -611,21 +582,23 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
       <header className="p-7 pb-0 bg-app-surface items-start relative z-10 border-b border-border-subtle shrink-0">
         <div className="flex items-start justify-between gap-6">
           {identityBlock}
-          <div className="flex items-center gap-2 shrink-0">
-            <button onClick={() => setShowVollansicht(true)} className="w-9 h-9 rounded-full bg-app-bg flex items-center justify-center text-text-muted hover:text-[var(--sherloq-primary)] hover:bg-[var(--signal-teal-bg)] transition-colors">
-              <ArrowUpRight className="w-4 h-4" />
-            </button>
-            <button onClick={onClose} className="w-9 h-9 rounded-full bg-app-bg flex items-center justify-center text-text-muted hover:text-[var(--signal-urgent-text)] hover:bg-[var(--signal-urgent-bg)] transition-colors">
-              <X className="w-4 h-4" />
-            </button>
+          {/* Rechts auf Namens-Höhe: Status · Heat (wie in der Vollansicht), daneben Aktionen. */}
+          <div className="flex items-start gap-6 shrink-0">
+            <div className="hidden md:flex items-start gap-7">
+              {statusBadgesInner}
+            </div>
+            <div className="flex items-center gap-2">
+              <button onClick={() => setShowVollansicht(true)} className="w-9 h-9 rounded-full bg-app-bg flex items-center justify-center text-text-muted hover:text-[var(--sherloq-primary)] hover:bg-[var(--signal-teal-bg)] transition-colors">
+                <ArrowUpRight className="w-4 h-4" />
+              </button>
+              <button onClick={onClose} className="w-9 h-9 rounded-full bg-app-bg flex items-center justify-center text-text-muted hover:text-[var(--signal-urgent-text)] hover:bg-[var(--signal-urgent-bg)] transition-colors">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
 
-        <div className="absolute top-[58px] right-[58px] flex items-start gap-7 hidden md:flex">
-          {statusBadgesInner}
-        </div>
-
-        <div className="mt-10">{contactPill}</div>
+        <div className="mt-6">{contactPill}</div>
         <div className="mt-6">{tabNav}</div>
       </header>
 
