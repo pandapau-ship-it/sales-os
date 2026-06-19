@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DEMO_ORGANIZATION_ID } from '@/lib/org';
 import { getContactDetail, getPipelineSettings, getTasksByContact, createTask, completeTask, softDeleteTask, getNotesByContact, createNote, updateNote, softDeleteNote, getDealsByContact, getActivityByContact, getProducts, getOrgUsers, createDeal, updateDeal, updateDealStage, softDeleteDeal } from '@/lib/db';
-import { contactToProfile, latestActiveDeal, dealToView } from '@/lib/hunterMappers';
+import { contactToProfile, latestActiveDeal, dealToView, isTerminalStage } from '@/lib/hunterMappers';
 import {
   ArrowUpRight, ArrowLeft, X, Phone, Clock, Check,
   Plus, Briefcase,
@@ -259,6 +259,22 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
     },
     onError: (e) => showToast(`Speichern fehlgeschlagen: ${(e as Error).message}`),
   });
+  // P8-2d — Stage-Wechsel direkt am Stage-Badge im Deals-Tab. Eigene Mutation (nur Stage),
+  // gleiche Invalidierung wie updateDeal. Terminal (gewonnen/verloren) ehrlich blockiert (P8-3).
+  const updateStageMutation = useMutation({
+    mutationFn: ({ dealId, newSlug }: { dealId: string; newSlug: string }) => updateDealStage(dealId, newSlug, DEMO_ORGANIZATION_ID),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['dealsByContact', DEMO_ORGANIZATION_ID, contactId] });
+      queryClient.invalidateQueries({ queryKey: ['deals', DEMO_ORGANIZATION_ID] });
+      queryClient.invalidateQueries({ queryKey: ['newInPipeline', DEMO_ORGANIZATION_ID] });
+      showToast('Stage geändert ✓');
+    },
+    onError: () => showToast('Stage konnte nicht geändert werden'),
+  });
+  const handleStageChange = (dealId: string, newSlug: string) => {
+    if (isTerminalStage(newSlug)) { showToast('Won/Lost-Dialog folgt in P8-3'); return; }
+    updateStageMutation.mutate({ dealId, newSlug });
+  };
   // P5c-3 — Deal soft-löschen: deleted_at = now() (Audit via Trigger). Invalidation wie create/update.
   const deleteDealMutation = useMutation({
     mutationFn: (dealId: string) => softDeleteDeal(dealId, DEMO_ORGANIZATION_ID),
@@ -396,8 +412,11 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
               dealRows={dealsQuery.data ?? []}
               stageNameBySlug={stageMap}
               stageProbBySlug={stageProbMap}
+              stageOptions={stageOptions}
               primaryDealId={primaryDeal?.id}
               onEditDeal={(id) => { setDealsAutoEditId(id); setActiveTab('deals'); }}
+              onChangeStage={(dealId, newSlug) => handleStageChange(dealId, newSlug)}
+              stageChangePendingId={updateStageMutation.isPending ? (updateStageMutation.variables?.dealId ?? null) : null}
             />
 
             {/* Echte offene Tasks; fällige orange; keine → Sektion erscheint nicht. */}
@@ -449,6 +468,8 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
             onCreateDeal={(v) => createDealMutation.mutate(v)}
             onUpdateDeal={(dealId, v) => updateDealMutation.mutate({ dealId, v })}
             onDeleteDeal={(dealId) => deleteDealMutation.mutate(dealId)}
+            onChangeStage={(dealId, newSlug) => handleStageChange(dealId, newSlug)}
+            stageChangePendingId={updateStageMutation.isPending ? (updateStageMutation.variables?.dealId ?? null) : null}
           />
         )}
 

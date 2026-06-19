@@ -112,6 +112,23 @@ export default function ScreenHunting({
     if (isTerminalStage(newSlug)) { toast('Won/Lost-Dialog folgt in P8-3'); return; }
     updateStageMutation.mutate({ dealId, newSlug });
   };
+  // Pfeil → Deal eine Stage weiter (nächste in stageOptions-Reihenfolge). Keine nächste
+  // ODER nächste ist terminal → handleStageChange blockt mit Toast (Won/Lost-Dialog P8-3).
+  const handleAdvanceStage = (currentSlug: string, dealId: string) => {
+    const idx = stageOptions.findIndex((s) => s.slug === currentSlug);
+    const next = idx >= 0 ? stageOptions[idx + 1] : undefined;
+    if (!next) { toast('Won/Lost-Dialog folgt in P8-3'); return; }
+    handleStageChange(next.slug, dealId);
+  };
+  // Pfeil ← Deal eine Stage zurück (vorherige in stageOptions-Reihenfolge). Erste Stage →
+  // keine vorherige → Button ist ausgeblendet (idx === 0). Zurück landet nie auf terminal
+  // (Terminal-Stages stehen am Ende) → direkter Write.
+  const handleRetreatStage = (currentSlug: string, dealId: string) => {
+    const idx = stageOptions.findIndex((s) => s.slug === currentSlug);
+    const prev = idx > 0 ? stageOptions[idx - 1] : undefined;
+    if (!prev) return;
+    handleStageChange(prev.slug, dealId);
+  };
   // Stage-Liste fürs Inline-Dropdown (slug/name, in Pipeline-Reihenfolge) — wie im Panel.
   const stageOptions = [...(pipelineStages ?? [])].sort((a, b) => a.order - b.order).map((s) => ({ slug: s.slug, name: s.name }));
   // Signals-Tab: echte Signals → Card-Props (Mapping braucht t + Stage-Labels für aktive-Deal-Stage).
@@ -602,31 +619,36 @@ export default function ScreenHunting({
                             </div>
                             <div className="flex justify-between items-center pt-1 gap-2">
                               <HeatBadge status={deal.heatStatus} />
-                              {/* P8-2c: Stage-Badge klickbar → Inline-Dropdown → Stage wechseln (echter Write).
-                                  Der dekorative StageBadge bleibt read-only; nur der Wrapper trägt onClick. */}
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild disabled={updateStageMutation.isPending}>
+                              {/* P8-2c: Pfeile ← / → schieben den Deal eine Stage zurück/weiter
+                                  (stageOptions-Reihenfolge). Stage selbst = Spaltenüberschrift (kein Badge).
+                                  Terminal → keine Pfeile. Erste Stage → kein ←. Letzte nicht-terminale
+                                  Stage → → blockt mit Toast (Won/Lost-Dialog P8-3). */}
+                              {!isTerminalStage(deal.stageSlug) && (
+                                <div className="flex items-center gap-1.5 shrink-0">
+                                  {stageOptions.findIndex((s) => s.slug === deal.stageSlug) > 0 && (
+                                    <button
+                                      type="button"
+                                      aria-label="Eine Stage zurück"
+                                      data-tip="Eine Stage zurück"
+                                      disabled={updateStageMutation.isPending}
+                                      onClick={() => handleRetreatStage(deal.stageSlug, deal.id)}
+                                      className="w-8 h-8 rounded-full bg-app-bg text-text-muted hover:scale-105 transition-all flex items-center justify-center shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-default disabled:hover:scale-100"
+                                    >
+                                      <ArrowLeft className="w-4 h-4" />
+                                    </button>
+                                  )}
                                   <button
                                     type="button"
-                                    aria-label="Stage ändern"
-                                    data-tip="Stage ändern"
-                                    className="cursor-pointer disabled:opacity-50 disabled:cursor-default rounded-full shrink-0"
+                                    aria-label="Eine Stage weiter"
+                                    data-tip="Eine Stage weiter"
+                                    disabled={updateStageMutation.isPending}
+                                    onClick={() => handleAdvanceStage(deal.stageSlug, deal.id)}
+                                    className="w-8 h-8 rounded-full bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)] hover:scale-105 transition-all flex items-center justify-center shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-default disabled:hover:scale-100"
                                   >
-                                    <StageBadge stage={deal.stageLabel} />
+                                    <ArrowRight className="w-4 h-4" />
                                   </button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  {stageOptions.map((s) => (
-                                    <DropdownMenuItem
-                                      key={s.slug}
-                                      disabled={s.slug === deal.stageSlug}
-                                      onSelect={() => handleStageChange(s.slug, deal.id)}
-                                    >
-                                      {s.name}
-                                    </DropdownMenuItem>
-                                  ))}
-                                </DropdownMenuContent>
-                              </DropdownMenu>
+                                </div>
+                              )}
                             </div>
                           </div>
                         ))}
@@ -675,7 +697,22 @@ export default function ScreenHunting({
                       )}
                     </div>
                     <div className="min-w-0">
-                      <StageBadge stage={deal.stageLabel} />
+                      {/* P8-2d: Stage-Badge klickbar → Inline-Dropdown → Stage wechseln (echter Write).
+                          Dekorativer StageBadge bleibt read-only; nur der Wrapper trägt onClick. */}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild disabled={updateStageMutation.isPending && updateStageMutation.variables?.dealId === deal.id}>
+                          <button type="button" aria-label="Stage ändern" data-tip="Stage ändern" className="cursor-pointer disabled:opacity-50 disabled:cursor-default rounded-full">
+                            <StageBadge stage={deal.stageLabel} />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start">
+                          {stageOptions.map((s) => (
+                            <DropdownMenuItem key={s.slug} disabled={s.slug === deal.stageSlug} onSelect={() => handleStageChange(s.slug, deal.id)}>
+                              {s.name}
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                     <span className="text-[12px] text-text-body font-medium truncate">{deal.ownerLabel}</span>
                     <span className="text-[12px] font-bold text-text-primary">

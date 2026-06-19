@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Plus, Briefcase, Pencil, Trash2, Check, X } from "lucide-react";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { HOVER_ACTIONS } from "@/lib/componentBehavior";
 import { dealToView, type DealView } from "@/lib/hunterMappers";
 import StageBadge from "./StageBadge";
@@ -35,11 +36,16 @@ function DealsListeReadonly({
   variant = "detail", primaryDealId,
   onCreate, onUpdate, onDelete, onEditDeal,
   autoNew = false, autoEditId, onAutoConsumed,
+  onChangeStage, stageChangePendingId,
 }: {
   items: DealView[];
   productOptions?: string[];
   ownerOptions?: { id: string; name: string }[];
   stageOptions?: { slug: string; name: string }[];
+  /** Stage-Badge klickbar machen: Auswahl → onChangeStage(dealId, newSlug). Fehlt → Badge bleibt dekorativ. */
+  onChangeStage?: (dealId: string, newSlug: string) => void;
+  /** dealId dessen Stage-Write gerade läuft → dessen Badge disabled. */
+  stageChangePendingId?: string | null;
   /** compact = Übersicht (kompakte Karten, Edit navigiert) · detail = Deals-Tab (aufklappbar + editierbar). */
   variant?: "compact" | "detail";
   /** Primärer (aktiver) Deal — in der compact-Ansicht zuerst. */
@@ -249,6 +255,29 @@ function DealsListeReadonly({
   );
 
   // ── COMPACT (Übersicht): alle Deals kompakt, primärer zuerst, ab >2 einklappbar, Edit navigiert. ──
+  // Stage-Badge: dekorativ (ohne onChangeStage) ODER klickbar (Wrapper + Inline-Dropdown).
+  // Der StageBadge selbst bleibt unangetastet read-only; nur der Wrapper trägt onClick.
+  const stageControl = (d: DealView) => {
+    if (!d.stageLabel) return null;
+    if (!onChangeStage) return <StageBadge stage={d.stageLabel} />;
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild disabled={stageChangePendingId === d.id}>
+          <button type="button" aria-label={t("hunter.common.edit")} data-tip="Stage ändern" className="cursor-pointer disabled:opacity-50 disabled:cursor-default rounded-full">
+            <StageBadge stage={d.stageLabel} />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          {(stageOptions ?? []).map((s) => (
+            <DropdownMenuItem key={s.slug} disabled={s.slug === d.stageSlug} onSelect={() => onChangeStage(d.id, s.slug)}>
+              {s.name}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+  };
+
   if (variant === "compact") {
     const primary = primaryDealId ? items.find((x) => x.id === primaryDealId) : undefined;
     const sorted = primary ? [primary, ...items.filter((x) => x.id !== primary.id)] : items;
@@ -266,7 +295,7 @@ function DealsListeReadonly({
                 {head(d)}
                 {/* Oben rechts: nur Stage-Badge (Status) + Edit beim Hover. Betrag steht prominent unter dem Namen. */}
                 <div className="flex items-center gap-2 shrink-0">
-                  {d.stageLabel && <StageBadge stage={d.stageLabel} />}
+                  {stageControl(d)}
                   {onEditDeal && (
                     <button onClick={() => onEditDeal(d.id)} aria-label={t("hunter.common.edit")} data-tip={t("hunter.common.edit")} className={`w-7 h-7 rounded-full flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-app-bg transition-colors cursor-pointer ${HOVER_ACTIONS}`}>
                       <Pencil className="w-3.5 h-3.5" />
@@ -320,7 +349,7 @@ function DealsListeReadonly({
                 {head(d)}
                 {/* Oben rechts: nur Stage-Badge (Status) + Aktionen beim Hover. Betrag steht prominent unter dem Namen. */}
                 <div className="flex items-center gap-2 shrink-0">
-                  {d.stageLabel && <StageBadge stage={d.stageLabel} />}
+                  {stageControl(d)}
                   {(onUpdate || onDelete) && !editing && confirmDeleteId !== d.id && (
                     <div className={`flex items-center gap-1 ${HOVER_ACTIONS}`}>
                       {onUpdate && (
@@ -367,7 +396,7 @@ const fmtDate = (d: string) => (d ? new Date(d).toLocaleDateString("de-DE", { da
 let seq = 0;
 
 export default function DealsListe({
-  onToast, autoEdit = false, autoNew = false, onAutoEditConsumed, dealRows, stageNameBySlug, stageProbBySlug, productOptions, ownerOptions, stageOptions, variant, primaryDealId, onCreateDeal, onUpdateDeal, onDeleteDeal, onEditDeal, autoEditId,
+  onToast, autoEdit = false, autoNew = false, onAutoEditConsumed, dealRows, stageNameBySlug, stageProbBySlug, productOptions, ownerOptions, stageOptions, variant, primaryDealId, onCreateDeal, onUpdateDeal, onDeleteDeal, onEditDeal, autoEditId, onChangeStage, stageChangePendingId,
 }: {
   onToast?: (msg: string) => void;
   autoEdit?: boolean;
@@ -398,6 +427,10 @@ export default function DealsListe({
   onEditDeal?: (dealId: string) => void;
   /** detail: von der Übersicht navigiert → diesen Deal aufklappen + bearbeiten. */
   autoEditId?: string;
+  /** Stage-Badge klickbar (P8-2d): Auswahl → onChangeStage(dealId, newSlug). Fehlt → Badge dekorativ. */
+  onChangeStage?: (dealId: string, newSlug: string) => void;
+  /** dealId dessen Stage-Write läuft → dessen Badge disabled. */
+  stageChangePendingId?: string | null;
 }) {
   // Panel-Modus: lesen + anlegen/bearbeiten/löschen. Dispatch, damit die Mock-Hooks nicht hinter
   // einem Early-Return liegen (Rules of Hooks).
@@ -417,6 +450,8 @@ export default function DealsListe({
         autoNew={autoNew}
         autoEditId={autoEditId}
         onAutoConsumed={onAutoEditConsumed}
+        onChangeStage={onChangeStage}
+        stageChangePendingId={stageChangePendingId}
       />
     );
   }
