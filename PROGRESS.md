@@ -304,6 +304,36 @@
   - **AI-generierter Begleittext** + **„Termin gebucht"-Provenance** — hängen an Meeting-Prep-Job bzw. Booking-Ebene.
 - **Türen bleiben sichtbar** (Funktion folgt): Buttons „Meeting-Prep" + „Termin vereinbaren" (Klick → Platzhalter-Toast) und der Pfeil ins 820px-Info-Panel.
 - **Seed-Hinweis:** Recency/`source_lead_id`/`meeting_prep` der Demo-Deals sind mit dem anon-Key (RLS scoped auf `auth.uid()`) **nicht lesbar** — Default-Fenster bewusst weit (30T). Falls der Tab leer/„nur Manuell" wirkt: Seed prüfen/justieren (eingeloggt via SQL-Editor).
+- ⚠️ **Die „Türen" (Meeting-Prep / Termin vereinbaren) werden vom geplanten Umbau [A-NIP] ENTFERNT** (siehe unten) — sie passen thematisch nicht.
+
+### [A-NIP] 📋 GEPLANTER AUFTRAG — Neu-in-Pipeline-Tab umbauen (noch nicht gebaut)
+> _Geplanter Auftrag mit ausführlichem WARUM, damit der Kontext über Sessions hält. Supersedet die
+> „Türen bleiben sichtbar"-Zeile aus [D18]: die Meeting-Buttons sollen **weg**, nicht als Tür bleiben._
+
+**Problem / Beobachtung:** Die Karten im Neu-in-Pipeline-Tab zeigen aktuell **„Meeting-Prep / Termin vereinbaren"**.
+Das passt **thematisch nicht** zum Zweck des Tabs. ⮑ **Erst prüfen:** Sind das **Reste** aus dem ursprünglichen Mock,
+oder wurde es wieder eingeblendet? In [D18] wurde dieses Meeting-Zeug (Termin-Datum/Meeting-Prep/AI-Text) **bewusst
+deferred**, weil die Logik dahinter fehlt — die Buttons blieben damals aber als „Tür" stehen. Genau die sollen jetzt **raus**.
+
+**Warum der Tab anders sein soll (Zweck):** Der Tab beantwortet **„Welche Deals sind NEU in die Pipeline gekommen?"** —
+eine **Übersicht über Neuzugänge**, **KEINE Meeting-Funktion**. Der User will auf einen Blick sehen: **was ist neu, woher
+kam es, wie groß ist es** — und einen **klaren nächsten Schritt** anstoßen können.
+
+**Soll-Zustand der Karte:**
+- **Herkunft prominent** (oben/vorne): **„Manuell"** oder **„Via AI SDR"** (über `deals.source_lead_id`: gesetzt = via
+  AI SDR, sonst manuell — die Leitung existiert schon, zeigte bisher nur „Manuell", weil der Seed `source_lead_id` nicht setzt).
+- **Deal-Infos** (darunter/daneben): **Deal-Name · Volumen (Wert) · Produkt**.
+- **Aktion:** ein Button **„Action starten"** (o. ä.). User-Idee: wenn der Deal **noch keine (offene) Task** hat → von hier
+  aus eine **anlegen** können. _(Logik „hat der Deal eine offene Task?" ist noch zu klären — die Karten müssten das wissen.)_
+- **Raus:** Meeting-Prep / Termin vereinbaren / Termin-Datum / AI-Text (= das deferrte [D18]-Zeug), solange die Logik fehlt.
+
+**Offene Punkte für die spätere Diagnose:**
+1. Woher weiß die Karte, ob ein Deal **schon eine (offene) Task** hat? (Embed `deals.tasks` open-gefiltert, analog Pipeline „Keine Task" B4?)
+2. Was genau macht **„Action starten"** — direkt das Task-Anlegen-Formular, oder das 820px-Panel öffnen (am Tasks-Tab, vgl. Deeplink)?
+3. Ist **„neu in Pipeline" = Deal-Erstelldatum im Zeitfenster** (heute/7T/30T, existiert schon)?
+
+**Vorgehen wenn dran:** erst **read-only Diagnose** (heutiger Karten-Aufbau in `NewInPipelineCards`, vorhandene Datenfelder,
+[D18]-Reste prüfen), **dann Bau in Scheiben.**
 
 ### [D19] Task-Erinnerung — Feld + Auslöse-System fehlen komplett (deferred)
 - **Kontext:** Das „Neue Task"-Formular hat einen **Erinnerung**-Schalter (An/Aus + eigener Tag + Uhrzeit). Dafür gibt es **weder ein DB-Feld noch ein Auslöse-System.**

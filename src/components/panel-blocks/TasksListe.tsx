@@ -134,7 +134,13 @@ export default function TasksListe({
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
-  useEffect(() => { if (autoEditId) onAutoEditConsumed?.(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // autoEditId (Footer „+ Task" / Übersicht) öffnet die Maske — auch wenn der Tab schon offen
+  // ist (reagiert auf Prop-Änderung, nicht nur auf Mount). Danach im Parent zurücksetzen.
+  useEffect(() => {
+    if (!autoEditId) return;
+    if (autoEditId === "new" || tasks.some((x) => x.id === autoEditId)) setEditing(autoEditId);
+    onAutoEditConsumed?.();
+  }, [autoEditId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (editing !== null) {
     const task = editing === "new" ? undefined : tasks.find((x) => x.id === editing);

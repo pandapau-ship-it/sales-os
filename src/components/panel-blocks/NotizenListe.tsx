@@ -64,8 +64,11 @@ export default function NotizenListe({
   const [editDraft, setEditDraft] = useState("");
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
-  // autoCompose (Footer „Notiz") nur beim Eintritt anwenden, dann im Parent zurücksetzen.
-  useEffect(() => { if (autoCompose) onAutoComposeConsumed?.(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // autoCompose (Footer „Notiz") öffnet den Composer — auch wenn der Tab schon offen ist
+  // (reagiert auf Prop-Änderung, nicht nur auf Mount). Danach im Parent zurücksetzen.
+  useEffect(() => {
+    if (autoCompose) { setComposerOpen(true); onAutoComposeConsumed?.(); }
+  }, [autoCompose]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const stamp = () => {
     const now = new Date();
