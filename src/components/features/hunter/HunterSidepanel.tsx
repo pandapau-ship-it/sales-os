@@ -13,7 +13,7 @@ import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
 import Avatar from '@/components/shared/Avatar';
-import { ActiveSequenceChain, AktiveSignale, AktivitaetsVerlauf, DealSetup, DealsListe, DetailField, DetailPhoneList, DetailSection, HeatBadge, KiKurzakte, KommunikationPreview, KommunikationVerlauf, KontaktZeile, MailComposer, NotizenListe, OffeneTasks, PanelTabs, StageBadge, StatusBadge, TasksListe } from '@/components';
+import { ActiveSequenceChain, AktiveSignale, AktivitaetsVerlauf, DealsListe, DetailField, DetailPhoneList, DetailSection, HeatBadge, KiKurzakte, KommunikationPreview, KommunikationVerlauf, KontaktZeile, MailComposer, NotizenListe, OffeneTasks, PanelTabs, StageBadge, StatusBadge, TasksListe } from '@/components';
 
 /** Telefon-Eintrag (Favorit inline, Rest im Popover bei P8-Edit). */
 interface Phone { id: string; type: string; number: string; favorite: boolean }
@@ -60,7 +60,7 @@ const DEFAULT_DETAILS = {
 export default function HunterSidepanel({ person: personProp, onClose, onExit, variant = 'panel', initialAction = null }: { person: any; onClose: () => void; onExit?: () => void; variant?: 'panel' | 'full'; initialAction?: 'mail' | 'task' | 'chat' | null }) {
   const [activeTab, setActiveTab] = useState(variant === 'full' ? 'details' : 'overview');
   // Aus der Übersicht „Deal/Task bearbeiten" → Ziel-Tab öffnet die Bearbeiten-Kachel direkt.
-  const [dealsAutoEdit, setDealsAutoEdit] = useState(false);
+  const [dealsAutoEditId, setDealsAutoEditId] = useState<string | null>(null); // Übersicht „Bearbeiten" → Deal-id im Deals-Tab
   const [tasksAutoEditId, setTasksAutoEditId] = useState<string | null>(null);
   // Footer-Quick-Actions: öffnen den jeweiligen Tab direkt im Anlege-/Compose-Modus.
   const [dealsAutoNew, setDealsAutoNew] = useState(false);
@@ -415,11 +415,14 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
 
             <AktiveSignale onAction={(key) => { if (key === 'stagniert') showToast('Next Step geöffnet'); else if (key === 'keine_task') showToast('Task anlegen gestartet'); else setActiveTab('communication'); }} />
 
-            <DealSetup
-              deal={primaryDeal}
-              count={dealRows.length}
-              onEdit={() => { setDealsAutoEdit(true); setActiveTab('deals'); }}
-              onOpenDeals={() => setActiveTab('deals')}
+            {/* Übersicht: ALLE Deals kompakt (aktiver zuerst), ab >2 einklappbar; Edit → Deals-Tab + diesen Deal. */}
+            <DealsListe
+              variant="compact"
+              dealRows={dealsQuery.data ?? []}
+              stageNameBySlug={stageMap}
+              stageProbBySlug={stageProbMap}
+              primaryDealId={primaryDeal?.id}
+              onEditDeal={(id) => { setDealsAutoEditId(id); setActiveTab('deals'); }}
             />
 
             <OffeneTasks
@@ -469,10 +472,11 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
 
         {activeTab === 'deals' && (
           <DealsListe
+            variant="detail"
             onToast={showToast}
-            autoEdit={dealsAutoEdit}
             autoNew={dealsAutoNew}
-            onAutoEditConsumed={() => { setDealsAutoEdit(false); setDealsAutoNew(false); }}
+            autoEditId={dealsAutoEditId ?? undefined}
+            onAutoEditConsumed={() => { setDealsAutoEditId(null); setDealsAutoNew(false); }}
             dealRows={dealsQuery.data ?? []}
             stageNameBySlug={stageMap}
             stageProbBySlug={stageProbMap}

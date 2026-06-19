@@ -433,6 +433,8 @@
       "expectedCloseDate": "Erw. Abschluss",
       "save": "Speichern",
       "nameRequired": "Bitte einen Deal-Namen eingeben",
+      "showMoreDeals": "+{{n}} weitere anzeigen",
+      "showLessDeals": "Weniger anzeigen",
       "noDeals": "Noch keine Deals"
     }
   }

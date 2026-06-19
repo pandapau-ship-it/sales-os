@@ -16,8 +16,8 @@ const money = (v: number, currency: string) =>
 const dateLabel = (iso: string) => new Date(iso).toLocaleDateString("de-DE", { day: "2-digit", month: "short", year: "numeric" });
 
 export default function DealSetup({
-  deal, count = 0, onEdit, onOpenDeals,
-}: { deal?: DealView; count?: number; onEdit?: () => void; onOpenDeals?: () => void }) {
+  deal, count = 0, onEdit, onOpenDeals, embedded = false,
+}: { deal?: DealView; count?: number; onEdit?: () => void; onOpenDeals?: () => void; embedded?: boolean }) {
   // Nur echte Werte (Honesty) — fehlt der Wert, fällt die Zelle ganz weg.
   const cells: { label: string; value: string; accent?: boolean }[] = deal
     ? [
@@ -32,6 +32,21 @@ export default function DealSetup({
         deal.expectedCloseDate ? { label: "Erw. Abschluss", value: dateLabel(deal.expectedCloseDate) } : null,
       ].filter(Boolean) as { label: string; value: string; accent?: boolean }[]
     : [];
+
+  // Das Kennzahlen-Grid (eine Quelle für Block- + Embedded-Modus).
+  const grid = cells.length > 0 && (
+    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-[12px]">
+      {cells.map((c) => (
+        <div key={c.label} className="flex flex-col gap-1">
+          <span className="typo-field-label text-text-muted">{c.label}</span>
+          <span className={`typo-field-value truncate ${c.accent ? "text-[var(--sherloq-primary)]" : "text-text-primary"}`}>{c.value}</span>
+        </div>
+      ))}
+    </div>
+  );
+
+  // Embedded (Deals-Tab, aufgeklappte Karte): NUR das Grid — Name/Stage zeigt die Deal-Zeile schon.
+  if (embedded) return grid || null;
 
   return (
     <div className="group bg-app-surface rounded-[12px] p-5 border border-border shadow-[var(--shadow-card)]">
@@ -64,16 +79,7 @@ export default function DealSetup({
       ) : (
         <>
           {deal.name && <p className="typo-card-title text-text-primary -mt-1 mb-3 truncate">{deal.name}</p>}
-          {cells.length > 0 && (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-[12px]">
-              {cells.map((c) => (
-                <div key={c.label} className="flex flex-col gap-1">
-                  <span className="typo-field-label text-text-muted">{c.label}</span>
-                  <span className={`typo-field-value truncate ${c.accent ? "text-[var(--sherloq-primary)]" : "text-text-primary"}`}>{c.value}</span>
-                </div>
-              ))}
-            </div>
-          )}
+          {grid}
         </>
       )}
     </div>
