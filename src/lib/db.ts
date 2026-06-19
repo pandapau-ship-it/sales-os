@@ -562,6 +562,21 @@ export async function getProducts(
   return data ?? [];
 }
 
+/** getOrgUsers — User der Organisation (P5c-1), nach Name. Speist das Deal-Owner-Dropdown. */
+export async function getOrgUsers(
+  organizationId: string,
+): Promise<Record<string, unknown>[]> {
+  const client = getSupabaseClient();
+  if (!client) return [];
+  const { data, error } = await client
+    .from("users")
+    .select("id, full_name")
+    .eq("organization_id", organizationId)
+    .order("full_name", { ascending: true });
+  if (error) throw error;
+  return data ?? [];
+}
+
 /**
  * createDeal — neuen Deal anlegen (P5b, einfacher User-Write). Audit via DB-Trigger,
  * keine Edge Function. value: € → Cent (×100). stage = Default `backlog` (kein Stage-Wechsel).
@@ -574,6 +589,7 @@ export async function createDeal(
     name: string; product?: string; valueEur?: number; contactId?: string;
     // Optionale Vertrags-/Forecast-Felder (Migration 029). Fehlen sie → null, nie 0.
     termMonths?: number; noticePeriodDays?: number; expectedCloseDate?: string;
+    ownerId?: string; // P5c-1: manuell gewählter Owner; leer → null ([D21], kein Auto-Set)
   },
 ): Promise<void> {
   const client = getSupabaseClient();
@@ -589,6 +605,7 @@ export async function createDeal(
     term_months: deal.termMonths ?? null, // Laufzeit (Monate) — null wenn leer
     notice_period_days: deal.noticePeriodDays ?? null, // Kündigungsfrist (Tage) — null wenn leer
     expected_close_date: deal.expectedCloseDate || null, // erw. Abschluss — null wenn leer
+    owner_id: deal.ownerId || null, // gewählter Owner — null wenn nicht gewählt (kein Fake)
   });
   if (error) throw error;
 }

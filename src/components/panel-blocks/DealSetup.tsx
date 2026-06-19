@@ -23,6 +23,7 @@ export default function DealSetup({
     ? [
         deal.product ? { label: "Produkt", value: deal.product } : null,
         deal.stageLabel ? { label: "Stage", value: deal.stageLabel } : null,
+        deal.owner ? { label: "Owner", value: deal.owner } : null, // Name aus dealToView; fehlt → ausgeblendet (kein Fake)
         deal.probability != null ? { label: "Probability", value: `${deal.probability}%` } : null,
         deal.arr != null ? { label: "ARR", value: money(deal.arr, deal.currency), accent: true } : null,
         deal.mrr != null ? { label: "MRR", value: money(deal.mrr, deal.currency) } : null,

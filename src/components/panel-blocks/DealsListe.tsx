@@ -32,11 +32,13 @@ const dateLabel = (iso: string) => new Date(iso).toLocaleDateString("de-DE", { d
  * Anlege-Formular bewusst LEAN: nur persistierte Felder (Name/Produkt/Wert) — kein owner/arr/mrr/
  * close-Input, der ins Leere liefe. Produkt-Dropdown aus dem echten Katalog (productOptions).
  */
-function DealsListeReadonly({ items, productOptions, onCreate, autoNew = false, onAutoConsumed }: {
+function DealsListeReadonly({ items, productOptions, ownerOptions, onCreate, autoNew = false, onAutoConsumed }: {
   items: DealView[];
   productOptions?: string[];
-  // Alle Felder als String (Formular-Rohwerte). Term/Notice/Close sind OPTIONAL — leer → nicht geschrieben.
-  onCreate?: (v: { name: string; product: string; value: string; termMonths: string; noticePeriodDays: string; expectedCloseDate: string }) => void;
+  /** Owner-Auswahl (User der Org): id schreibt owner_id, name = Anzeige (P5c-1). */
+  ownerOptions?: { id: string; name: string }[];
+  // Alle Felder als String (Formular-Rohwerte). Term/Notice/Close/Owner sind OPTIONAL — leer → nicht geschrieben.
+  onCreate?: (v: { name: string; product: string; value: string; termMonths: string; noticePeriodDays: string; expectedCloseDate: string; ownerId: string }) => void;
   /** Footer „Deal" öffnet das Anlege-Formular direkt (auch wenn der Tab schon offen ist). */
   autoNew?: boolean;
   onAutoConsumed?: () => void;
@@ -45,6 +47,7 @@ function DealsListeReadonly({ items, productOptions, onCreate, autoNew = false, 
   const [composerOpen, setComposerOpen] = useState(!!autoNew); // Remount-Fall (kein Flash)
   const [name, setName] = useState("");
   const [product, setProduct] = useState<string>("");
+  const [ownerId, setOwnerId] = useState<string>(""); // P5c-1: Default leer (kein Auto-Set, [D21])
   const [value, setValue] = useState("");
   const [termMonths, setTermMonths] = useState("");
   const [noticePeriodDays, setNoticePeriodDays] = useState("");
@@ -57,13 +60,13 @@ function DealsListeReadonly({ items, productOptions, onCreate, autoNew = false, 
   }, [autoNew]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const reset = () => {
-    setName(""); setProduct(""); setValue("");
+    setName(""); setProduct(""); setOwnerId(""); setValue("");
     setTermMonths(""); setNoticePeriodDays(""); setExpectedCloseDate("");
     setError(false); setComposerOpen(false);
   };
   const save = () => {
     if (!name.trim()) { setError(true); return; }
-    onCreate?.({ name: name.trim(), product, value, termMonths, noticePeriodDays, expectedCloseDate }); // Insert + invalidate + Toast übernimmt das Panel
+    onCreate?.({ name: name.trim(), product, value, termMonths, noticePeriodDays, expectedCloseDate, ownerId }); // Insert + invalidate + Toast übernimmt das Panel
     reset();
   };
 
@@ -91,13 +94,22 @@ function DealsListeReadonly({ items, productOptions, onCreate, autoNew = false, 
             />
             {error && <span className="text-[11px] font-semibold text-[var(--signal-warn-text)]">{t("hunter.panel.nameRequired")}</span>}
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             <div className="space-y-1.5">
               <label className={LABEL}>{t("hunter.panel.product")}</label>
               <Select value={product || undefined} onValueChange={setProduct}>
                 <SelectTrigger className={`${FIELD} border-border bg-app-bg`}><SelectValue placeholder={t("hunter.panel.productPlaceholder")} /></SelectTrigger>
                 <SelectContent>
                   {(productOptions ?? []).map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <label className={LABEL}>{t("hunter.panel.owner")}</label>
+              <Select value={ownerId || undefined} onValueChange={setOwnerId}>
+                <SelectTrigger className={`${FIELD} border-border bg-app-bg`}><SelectValue placeholder={t("hunter.panel.ownerPlaceholder")} /></SelectTrigger>
+                <SelectContent>
+                  {(ownerOptions ?? []).map((o) => <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -196,7 +208,7 @@ const fmtDate = (d: string) => (d ? new Date(d).toLocaleDateString("de-DE", { da
 let seq = 0;
 
 export default function DealsListe({
-  onToast, autoEdit = false, autoNew = false, onAutoEditConsumed, dealRows, stageNameBySlug, productOptions, onCreateDeal,
+  onToast, autoEdit = false, autoNew = false, onAutoEditConsumed, dealRows, stageNameBySlug, productOptions, ownerOptions, onCreateDeal,
 }: {
   onToast?: (msg: string) => void;
   autoEdit?: boolean;
@@ -207,8 +219,10 @@ export default function DealsListe({
   stageNameBySlug?: Record<string, string>;
   /** Produkt-Katalog (Namen) fürs Dropdown (P5b). */
   productOptions?: string[];
-  /** Deal anlegen (P5b/2b). value/term/notice als String (Formular-Rohwerte); term/notice/close optional. */
-  onCreateDeal?: (v: { name: string; product: string; value: string; termMonths: string; noticePeriodDays: string; expectedCloseDate: string }) => void;
+  /** Owner-Auswahl (User der Org) fürs Dropdown (P5c-1). */
+  ownerOptions?: { id: string; name: string }[];
+  /** Deal anlegen (P5b/2b/5c-1). value/term/notice/owner als String (Formular-Rohwerte); term/notice/close/owner optional. */
+  onCreateDeal?: (v: { name: string; product: string; value: string; termMonths: string; noticePeriodDays: string; expectedCloseDate: string; ownerId: string }) => void;
 }) {
   // P5a/P5b — Panel-Modus: lesen + anlegen (Bearbeiten/Löschen = P5c, Stage = P8). Dispatch, damit
   // die Mock-Hooks nicht hinter einem Early-Return liegen (Rules of Hooks).
@@ -217,6 +231,7 @@ export default function DealsListe({
       <DealsListeReadonly
         items={dealRows.map((r) => dealToView(r, stageNameBySlug ?? {}))}
         productOptions={productOptions}
+        ownerOptions={ownerOptions}
         onCreate={onCreateDeal}
         autoNew={autoNew}
         onAutoConsumed={onAutoEditConsumed}

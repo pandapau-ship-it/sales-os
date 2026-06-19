@@ -427,6 +427,8 @@
       "dealName": "Deal-Name",
       "product": "Produkt",
       "productPlaceholder": "Produkt wählen…",
+      "owner": "Owner",
+      "ownerPlaceholder": "Owner wählen…",
       "value": "Wert",
       "valueHint": "Gesamtwert über die Laufzeit",
       "termMonths": "Laufzeit (Monate)",

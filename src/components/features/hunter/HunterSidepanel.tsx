@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DEMO_ORGANIZATION_ID } from '@/lib/org';
-import { getContactDetail, getPipelineSettings, getTasksByContact, createTask, completeTask, softDeleteTask, getNotesByContact, createNote, updateNote, softDeleteNote, getDealsByContact, getProducts, createDeal } from '@/lib/db';
+import { getContactDetail, getPipelineSettings, getTasksByContact, createTask, completeTask, softDeleteTask, getNotesByContact, createNote, updateNote, softDeleteNote, getDealsByContact, getProducts, getOrgUsers, createDeal } from '@/lib/db';
 import { contactToProfile, contactActiveStage, latestActiveDeal, dealToView } from '@/lib/hunterMappers';
 import {
   ArrowUpRight, ArrowLeft, X, Mail, Phone, Clock, Check,
@@ -203,8 +203,14 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
     queryFn: () => getProducts(DEMO_ORGANIZATION_ID),
   });
   const productOptions = (productsQuery.data ?? []).map((p) => (p as { name: string }).name);
+  // P5c-1 — Owner-Dropdown: User der Org (id + Name).
+  const usersQuery = useQuery({
+    queryKey: ['orgUsers', DEMO_ORGANIZATION_ID],
+    queryFn: () => getOrgUsers(DEMO_ORGANIZATION_ID),
+  });
+  const ownerOptions = (usersQuery.data ?? []).map((u) => ({ id: (u as { id: string }).id, name: (u as { full_name?: string }).full_name ?? '' })).filter((o) => o.name);
   const createDealMutation = useMutation({
-    mutationFn: (v: { name: string; product: string; value: string; termMonths: string; noticePeriodDays: string; expectedCloseDate: string }) =>
+    mutationFn: (v: { name: string; product: string; value: string; termMonths: string; noticePeriodDays: string; expectedCloseDate: string; ownerId: string }) =>
       createDeal(DEMO_ORGANIZATION_ID, {
         name: v.name,
         product: v.product || undefined,
@@ -213,6 +219,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
         termMonths: v.termMonths && !Number.isNaN(Number(v.termMonths)) ? Math.trunc(Number(v.termMonths)) : undefined,
         noticePeriodDays: v.noticePeriodDays && !Number.isNaN(Number(v.noticePeriodDays)) ? Math.trunc(Number(v.noticePeriodDays)) : undefined,
         expectedCloseDate: v.expectedCloseDate || undefined, // 'YYYY-MM-DD' aus dem Datumsfeld
+        ownerId: v.ownerId || undefined, // gewählter Owner (User-ID); leer → undefined → null
         contactId: contactId as string,
       }),
     onSuccess: () => {
@@ -426,6 +433,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
             dealRows={dealsQuery.data ?? []}
             stageNameBySlug={stageMap}
             productOptions={productOptions}
+            ownerOptions={ownerOptions}
             onCreateDeal={(v) => createDealMutation.mutate(v)}
           />
         )}
