@@ -128,10 +128,10 @@ export default function ScreenMyDay({
 
   const getPriorityColor = (type: string) => {
     switch (type) {
-      case 'urgent': return 'bg-[var(--signal-urgent-bg)] text-signal-urgent border-[#FEF4E9]';
-      case 'warning': return 'bg-[var(--signal-warn-bg)] text-[#F59E0B] border-[#FFF9DB]';
-      case 'info': return 'bg-[var(--signal-info-bg)] text-signal-info border-[#DBEAFE]';
-      default: return 'bg-[var(--signal-success-bg)] text-signal-success border-[#EBFBEE]';
+      case 'urgent': return 'bg-[var(--signal-urgent-bg)] text-signal-urgent border-[var(--signal-urgent-bg)]';
+      case 'warning': return 'bg-[var(--signal-warn-bg)] text-[var(--signal-warn-text)] border-[var(--signal-warn-bg)]';
+      case 'info': return 'bg-[var(--signal-info-bg)] text-signal-info border-[var(--signal-info-bg)]';
+      default: return 'bg-[var(--signal-success-bg)] text-signal-success border-[var(--signal-success-bg)]';
     }
   };
 
@@ -155,7 +155,7 @@ export default function ScreenMyDay({
           {alerts.map((alert) => (
             <div 
               key={alert.id}
-              className="bg-[var(--signal-urgent-bg)] border-l-3 border-[#E8590C] rounded-[16px] px-5 py-4 flex items-center justify-between shadow-card animate-pulse-soft"
+              className="bg-[var(--signal-urgent-bg)] border-l-3 border-[var(--signal-urgent-text)] rounded-[16px] px-5 py-4 flex items-center justify-between shadow-card animate-pulse-soft"
             >
               <div className="flex items-center gap-3">
                 <AlertTriangle className="w-5 h-5 text-signal-urgent flex-shrink-0" />
@@ -173,7 +173,7 @@ export default function ScreenMyDay({
                 </button>
                 <button 
                   onClick={() => onResolveAlert(alert.id)}
-                  className="w-8 h-8 rounded-pill hover:bg-black/5 flex items-center justify-center text-text-muted transition-colors cursor-pointer"
+                  className="w-8 h-8 rounded-pill hover:bg-scrim/5 flex items-center justify-center text-text-muted transition-colors cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -212,7 +212,7 @@ export default function ScreenMyDay({
           <h2 className="text-[14px] font-semibold text-text-primary tracking-tight uppercase tracking-wider font-sans inline-flex items-center gap-2">
             <Flame className="w-4 h-4 text-signal-urgent" /> Top Prioritäten für heute (Max 5)
           </h2>
-          <span className="text-[11px] font-mono text-text-muted bg-amber-50 text-amber-700 px-2.5 py-0.5 rounded-pill border border-amber-100 font-semibold">
+          <span className="text-[11px] font-mono text-text-muted bg-[var(--signal-warn-bg)] text-[var(--signal-warn-text)] px-2.5 py-0.5 rounded-pill border border-[var(--signal-warn-bg)] font-semibold">
             Urgent Dispatcher
           </span>
         </div>
@@ -226,7 +226,7 @@ export default function ScreenMyDay({
               <div>
                 <div className="flex items-center justify-between mb-3.5">
                   <div className="flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-pill bg-sherloq-primary text-white flex items-center justify-center font-mono text-[11px] font-semibold">
+                    <span className="w-6 h-6 rounded-pill bg-sherloq-primary text-on-accent flex items-center justify-center font-mono text-[11px] font-semibold">
                       {idx + 1}
                     </span>
                     <span className={`text-[10px] font-mono px-2.5 py-0.5 rounded-pill border ${getPriorityColor(prio.signalType)}`}>
@@ -250,7 +250,7 @@ export default function ScreenMyDay({
                     const target = prio.actionPayload?.targetId;
                     if (target) onPersonSelect(target);
                   }}
-                  className="bg-sherloq-primary hover:bg-sherloq-primary/90 text-white font-sans text-[12px] font-semibold rounded-pill px-4 py-1.5 shadow-sm hover:shadow-card transition-all duration-150 flex items-center gap-1.5 cursor-pointer"
+                  className="bg-sherloq-primary hover:bg-sherloq-primary/90 text-on-accent font-sans text-[12px] font-semibold rounded-pill px-4 py-1.5 shadow-sm hover:shadow-card transition-all duration-150 flex items-center gap-1.5 cursor-pointer"
                 >
                   <span>Jetzt handeln</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -287,7 +287,7 @@ export default function ScreenMyDay({
                   </div>
                   <div className="flex flex-col text-left">
                     <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-[6px] bg-sherloq-primary text-white flex items-center justify-center text-[10px] font-semibold font-sans">
+                      <div className="w-6 h-6 rounded-[6px] bg-sherloq-primary text-on-accent flex items-center justify-center text-[10px] font-semibold font-sans">
                         {app.person.initials}
                       </div>
                       <span className="text-[13px] font-semibold text-text-primary">{app.person.name}</span>
@@ -313,7 +313,7 @@ export default function ScreenMyDay({
 
                   <button
                     onClick={() => onPersonSelect(app.id === 'app-1' ? 'cust-1' : app.id === 'app-2' ? 'lead-1' : 'lead-2')}
-                    className="bg-sherloq-primary hover:bg-sherloq-primary/95 text-white text-[12px] font-medium rounded-pill px-4 py-1.5 shadow-sm cursor-pointer"
+                    className="bg-sherloq-primary hover:bg-sherloq-primary/95 text-on-accent text-[12px] font-medium rounded-pill px-4 py-1.5 shadow-sm cursor-pointer"
                   >
                     Vorbereiten
                   </button>
@@ -343,12 +343,12 @@ export default function ScreenMyDay({
               <div 
                 key={task.id}
                 className={`bg-app-surface rounded-[14px] p-4 flex flex-col justify-between transition-all shadow-card ${
-                  task.isOverdue && !task.completed ? 'border-l-4 border-l-[#E8590C]' : ''
+                  task.isOverdue && !task.completed ? 'border-l-4 border-l-[var(--signal-urgent-text)]' : ''
                 } ${task.completed ? 'opacity-50' : ''}`}
               >
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                   <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-[9px] bg-sherloq-primary text-white flex items-center justify-center font-sans font-medium text-[11px] flex-shrink-0 mt-0.5">
+                    <div className="w-8 h-8 rounded-[9px] bg-sherloq-primary text-on-accent flex items-center justify-center font-sans font-medium text-[11px] flex-shrink-0 mt-0.5">
                       {task.person.initials}
                     </div>
                     <div className="flex flex-col text-left">
@@ -356,7 +356,7 @@ export default function ScreenMyDay({
                         <span className="text-[13px] font-semibold text-text-primary">{task.person.name}</span>
                         <span className="text-[11px] text-text-muted">· {task.person.company} ({task.person.jobTitle})</span>
                         {task.isOverdue && !task.completed && (
-                          <span className="text-[9px] font-mono bg-red-50 text-red-600 border border-red-100 px-2 py-0.5 rounded-pill font-bold">
+                          <span className="text-[9px] font-mono bg-[var(--signal-urgent-bg)] text-[var(--signal-urgent-text)] border border-[var(--signal-urgent-bg)] px-2 py-0.5 rounded-pill font-bold">
                             FÄLLIG
                           </span>
                         )}
@@ -430,7 +430,7 @@ export default function ScreenMyDay({
                       <button
                         onClick={() => handleGenerateCustomDraft(task)}
                         disabled={isGeneratingDraft}
-                        className="bg-sherloq-primary hover:bg-sherloq-primary/90 text-white font-sans text-[11px] font-medium rounded-pill px-3 py-1.5 transition-all shadow-xs cursor-pointer flex-shrink-0 disabled:opacity-50"
+                        className="bg-sherloq-primary hover:bg-sherloq-primary/90 text-on-accent font-sans text-[11px] font-medium rounded-pill px-3 py-1.5 transition-all shadow-xs cursor-pointer flex-shrink-0 disabled:opacity-50"
                       >
                         {isGeneratingDraft ? 'Schreibt...' : 'Dran feilen'}
                       </button>
@@ -444,7 +444,7 @@ export default function ScreenMyDay({
                             navigator.clipboard.writeText(aiDraftMessage);
                             alert("Kopiert!");
                           }}
-                          className="bg-app-surface border border-border text-text-body text-[11px] rounded-pill px-3 py-1 transition-all hover:bg-gray-50 cursor-pointer"
+                          className="bg-app-surface border border-border text-text-body text-[11px] rounded-pill px-3 py-1 transition-all hover:bg-app-bg cursor-pointer"
                         >
                           Kopieren
                         </button>
@@ -453,7 +453,7 @@ export default function ScreenMyDay({
                             onToggleTask(task.id);
                             setActiveTaskAiDraft(null);
                           }}
-                          className="bg-sherloq-primary text-white text-[11px] rounded-pill px-4.5 py-1.5 shadow-sm hover:shadow-card transition-all cursor-pointer font-semibold"
+                          className="bg-sherloq-primary text-on-accent text-[11px] rounded-pill px-4.5 py-1.5 shadow-sm hover:shadow-card transition-all cursor-pointer font-semibold"
                         >
                           Senden (Simulation)
                         </button>

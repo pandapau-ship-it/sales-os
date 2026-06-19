@@ -23,8 +23,9 @@ import {
   MessageSquare
 } from 'lucide-react';
 import type { Customer, SherloqStatus } from '@/types';
-import { getHeatColor } from '@/lib/heatUtils';
+import { HeatBadge } from '@/components';
 import { ICPDonut } from '@/components/shared/ICPDonut';
+import { NAV } from '@/lib/navBehavior';
 import CommunicationChain from '@/components/shared/CommunicationChain';
 
 interface ScreenFarmingProps {
@@ -87,22 +88,19 @@ export default function ScreenFarming({
       </div>
 
       {/* Sub-Navigation (Section 12) */}
-      <div className="flex gap-1 p-1 bg-app-surface rounded-[12px] w-fit items-center">
+      <div className={`${NAV.container} ${NAV.surface} ${NAV.radius}`}>
         {menuItems.map((item) => {
           const isActive = subTab === item.id;
           return (
             <button
               key={item.id}
               onClick={() => setSubTab(item.id as any)}
-              className={`px-3.5 py-1.5 text-[12px] font-medium transition-all rounded-[9px] cursor-pointer flex items-center gap-1.5 ${
-                isActive
-                  ? 'bg-sherloq-primary text-white'
-                  : 'text-text-body hover:bg-app-bg hover:text-text-primary'
-              }`}
+              style={isActive ? { background: NAV.activeBg } : undefined}
+              className={`${NAV.subTab} ${NAV.radius} ${isActive ? NAV.active : NAV.inactive}`}
             >
               <span>{item.label}</span>
               {item.count !== undefined && (
-                <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-[5px] ${isActive ? 'bg-white/20 text-white' : 'bg-border text-text-muted'}`}>
+                <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-[5px] ${isActive ? NAV.badgeActive : NAV.badgeInactive}`}>
                   {item.count}
                 </span>
               )}
@@ -126,9 +124,9 @@ export default function ScreenFarming({
               <p className="text-[12px] text-text-body mt-1.5">Soll-Abschluss für Q2</p>
             </div>
             <div className="bg-app-surface rounded-[16px] p-6 shadow-card ring-1 ring-red-100">
-              <span className="text-[10px] text-red-600 uppercase font-semibold">Churn Risk At Risk</span>
+              <span className="text-[10px] text-[var(--signal-urgent-text)] uppercase font-semibold">Churn Risk At Risk</span>
               <h3 className="text-[28px] font-bold text-text-primary mt-1">1 Account</h3>
-              <p className="text-[12px] text-red-700 font-medium mt-1.5">Logistify DE (CS-Support benötigt)</p>
+              <p className="text-[12px] text-[var(--signal-urgent-text)] font-medium mt-1.5">Logistify DE (CS-Support benötigt)</p>
             </div>
           </div>
 
@@ -138,24 +136,24 @@ export default function ScreenFarming({
             <div className="mt-6 flex flex-col gap-3">
               <div className="flex items-center justify-between text-[11px]">
                 <span className="font-semibold text-text-body w-24 text-left">PayGuard AG</span>
-                <div className="flex-1 bg-gray-100 h-2.5 rounded-pill overflow-hidden mx-4">
+                <div className="flex-1 bg-app-bg h-2.5 rounded-pill overflow-hidden mx-4">
                   <div className="bg-sherloq-primary h-full" style={{ width: '92%' }} />
                 </div>
                 <span className="font-mono text-text-muted w-12 text-right">92%</span>
               </div>
               <div className="flex items-center justify-between text-[11px]">
                 <span className="font-semibold text-text-body w-24 text-left">HiringMate Ltd</span>
-                <div className="flex-1 bg-gray-100 h-2.5 rounded-pill overflow-hidden mx-4">
+                <div className="flex-1 bg-app-bg h-2.5 rounded-pill overflow-hidden mx-4">
                   <div className="bg-sherloq-primary h-full" style={{ width: '68%' }} />
                 </div>
                 <span className="font-mono text-text-muted w-12 text-right">68%</span>
               </div>
               <div className="flex items-center justify-between text-[11px]">
                 <span className="font-semibold text-text-body w-24 text-left">Logistify DE</span>
-                <div className="flex-1 bg-gray-100 h-2.5 rounded-pill overflow-hidden mx-4">
-                  <div className="bg-red-500 h-full" style={{ width: '8%' }} />
+                <div className="flex-1 bg-app-bg h-2.5 rounded-pill overflow-hidden mx-4">
+                  <div className="bg-[var(--icp-low)] h-full" style={{ width: '8%' }} />
                 </div>
-                <span className="font-mono text-red-500 w-12 text-right inline-flex items-center justify-end gap-1">8% <AlertTriangle className="w-3 h-3" /></span>
+                <span className="font-mono text-[var(--icp-low)] w-12 text-right inline-flex items-center justify-end gap-1">8% <AlertTriangle className="w-3 h-3" /></span>
               </div>
             </div>
           </div>
@@ -173,7 +171,7 @@ export default function ScreenFarming({
                 onClick={selectedCustomerIds.length === customers.length ? deselectAll : selectAll}
                 className="flex items-center justify-center w-[22px] h-[22px] rounded-md bg-sherloq-dark border border-sherloq-dark"
               >
-                <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />
+                <Check className="w-3.5 h-3.5 text-on-accent" strokeWidth={3} />
               </button>
               <span className="text-[13px] font-bold text-text-primary">
                 {selectedCustomerIds.length} {selectedCustomerIds.length === 1 ? 'Kunde' : 'Kunden'} ausgewählt
@@ -184,14 +182,13 @@ export default function ScreenFarming({
               <button className="bg-app-surface border text-text-body border-border hover:border-border-strong hover:bg-app-bg px-3 py-1.5 rounded-pill text-[12px] font-semibold flex items-center gap-1.5 transition-colors">
                 <Target className="w-3.5 h-3.5" /> Zu Kampagne hinzufügen
               </button>
-              <button className="bg-app-surface border border-red-200 text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-pill text-[12px] font-semibold flex items-center gap-1.5 transition-colors">
+              <button className="bg-app-surface border border-[var(--signal-urgent-bg)] text-[var(--signal-urgent-text)] hover:bg-[var(--signal-urgent-bg)] px-3 py-1.5 rounded-pill text-[12px] font-semibold flex items-center gap-1.5 transition-colors">
                 <Trash className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
 
           {customers.map((cust) => {
-            const heat = getHeatColor(cust.heatStatus);
             const isExpanded = expandedCustomerId === cust.id;
 
             return (
@@ -212,13 +209,13 @@ export default function ScreenFarming({
                       selectedCustomerIds.includes(cust.id) ? 'bg-sherloq-dark opacity-100 border-sherloq-dark' : 'bg-app-surface border-2 border-border hover:border-text-muted'
                     }`}
                   >
-                    {selectedCustomerIds.includes(cust.id) && <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />}
+                    {selectedCustomerIds.includes(cust.id) && <Check className="w-3.5 h-3.5 text-on-accent" strokeWidth={3} />}
                   </div>
 
                   {/* Avatar & Info */}
                   <div className="flex items-center gap-4 flex-1 min-w-0 ml-0 group-hover:ml-8 transition-all duration-300">
                     <div className="relative shrink-0">
-                      <div className="w-9 h-9 rounded-[10px] bg-sherloq-primary text-white flex items-center justify-center text-[12px] font-bold">
+                      <div className="w-9 h-9 rounded-[10px] bg-sherloq-primary text-on-accent flex items-center justify-center text-[12px] font-bold">
                         {cust.person.initials}
                       </div>
                     </div>
@@ -255,10 +252,7 @@ export default function ScreenFarming({
                     </div>
                     <div className="flex flex-col gap-1.5 w-[100px]">
                       <span className="text-[9px] font-semibold text-text-muted tracking-wider uppercase">HEAT</span>
-                      <div className={`px-2.5 py-1 rounded-[7px] text-[11px] font-medium border flex items-center gap-1.5 w-fit whitespace-nowrap ${heat.bg} ${heat.text} ${heat.border}`}>
-                        <span style={{ color: heat.dot, fontSize: 8, lineHeight: 1 }}>●</span>
-                        {heat.label}
-                      </div>
+                      <HeatBadge status={cust.heatStatus} />
                     </div>
                   </div>
 
@@ -266,12 +260,12 @@ export default function ScreenFarming({
                   <div className="flex items-center gap-4 pl-4 border-l border-border-subtle shrink-0 justify-between md:justify-end">
                     <div className="flex flex-col items-end hidden sm:flex w-[130px]">
                       <span className="text-[14px] font-bold text-text-primary whitespace-nowrap">vor 5 Tagen</span>
-                      <div className="flex items-center justify-end gap-1 mt-0.5 text-[#B03020] font-medium text-[11px] whitespace-nowrap w-full">
+                      <div className="flex items-center justify-end gap-1 mt-0.5 text-[var(--icp-low)] font-medium text-[11px] whitespace-nowrap w-full">
                         8T ohne Login <AlertTriangle className="w-3 h-3" strokeWidth={2} />
                       </div>
                     </div>
                     <div className="flex items-center gap-3 relative w-[90px] justify-end">
-                      <button className="w-8 h-8 flex items-center justify-center text-[#ADB5BD] hover:text-text-primary transition-colors rounded-pill hover:bg-app-bg">
+                      <button className="w-8 h-8 flex items-center justify-center text-[var(--text-muted)] hover:text-text-primary transition-colors rounded-pill hover:bg-app-bg">
                         {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                       </button>
                       <button
@@ -423,14 +417,14 @@ export default function ScreenFarming({
                   <div 
                     key={cust.id}
                     className={`flex items-center justify-between p-4 rounded-[14px] border transition-all ${
-                      isCritical ? 'bg-[var(--signal-urgent-bg)]/30 border-red-100' : 'bg-app-surface border-border'
+                      isCritical ? 'bg-[var(--signal-urgent-bg)]/30 border-[var(--signal-urgent-bg)]' : 'bg-app-surface border-border'
                     }`}
                   >
                     <div className="flex items-center gap-3">
                       {cust.person.avatarUrl ? (
                         <img src={cust.person.avatarUrl} alt={cust.person.name} className="w-9 h-9 rounded-pill object-cover" />
                       ) : (
-                        <div className="w-9 h-9 rounded-pill bg-sherloq-primary text-white flex items-center justify-center font-sans font-medium text-[12px]">
+                        <div className="w-9 h-9 rounded-pill bg-sherloq-primary text-on-accent flex items-center justify-center font-sans font-medium text-[12px]">
                           {cust.person.initials}
                         </div>
                       )}
@@ -465,7 +459,7 @@ export default function ScreenFarming({
                         onClick={() => onSelectCustomer(cust)}
                         className={`text-[11px] font-semibold px-4 py-1.5 rounded-pill border cursor-pointer transition-all ${
                           isCritical
-                            ? 'bg-[var(--signal-urgent-bg)] border-[#E8590C]/20 text-signal-urgent hover:bg-[var(--signal-urgent-bg)]/80'
+                            ? 'bg-[var(--signal-urgent-bg)] border-[var(--signal-urgent-text)]/20 text-signal-urgent hover:bg-[var(--signal-urgent-bg)]/80'
                             : 'bg-app-surface border-border hover:bg-app-bg text-text-body'
                         }`}
                       >

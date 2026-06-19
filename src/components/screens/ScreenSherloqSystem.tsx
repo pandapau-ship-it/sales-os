@@ -8,7 +8,7 @@ import { Shield, Server } from 'lucide-react';
 export default function ScreenSherloqSystem() {
   const stats = [
     { title: 'PROFILES ADDED', value: '198 / 500', pct: 40, color: 'bg-sherloq-primary' },
-    { title: 'SDK TRAFFIC', value: '1.43M calls', pct: 72, color: 'bg-emerald-600' },
+    { title: 'SDK TRAFFIC', value: '1.43M calls', pct: 72, color: 'bg-[var(--signal-success-text)]' },
     { title: 'API HEALTH', value: '100.0%', pct: 100, color: 'bg-[var(--signal-success-text)]' },
   ];
 
@@ -27,7 +27,7 @@ export default function ScreenSherloqSystem() {
             <span className="text-[10px] font-mono font-semibold text-text-muted uppercase tracking-wider">{stat.title}</span>
             <h3 className="text-[24px] font-bold text-text-primary mt-1.5">{stat.value}</h3>
             
-            <div className="w-full bg-gray-100 h-2 rounded-pill overflow-hidden mt-4">
+            <div className="w-full bg-app-bg h-2 rounded-pill overflow-hidden mt-4">
               <div className={`${stat.color} h-full transition-all`} style={{ width: `${stat.pct}%` }} />
             </div>
           </div>
@@ -53,7 +53,7 @@ export default function ScreenSherloqSystem() {
             <p className="text-[11px] text-text-body mt-1">Für einzelne BDRs. Bis zu 50 Leads.</p>
           </div>
           <div className="bg-app-surface shadow-[0_4px_15px_rgb(0,0,0,0.04)] ring-1 ring-sherloq-primary/10 rounded-[24px] p-5 relative">
-            <span className="absolute top-3 right-3 text-[9px] bg-sherloq-primary text-white px-2 py-0.5 rounded-pill font-bold">AKTIV</span>
+            <span className="absolute top-3 right-3 text-[9px] bg-sherloq-primary text-on-accent px-2 py-0.5 rounded-pill font-bold">AKTIV</span>
             <span className="text-[11px] font-mono text-sherloq-primary font-bold">GROWTH</span>
             <h4 className="text-[18px] font-bold text-text-primary mt-2">149€ / AM Team</h4>
             <p className="text-[11px] text-text-body mt-1">Für bis zu 5 AMs. Unlimitierte Sequenzen.</p>

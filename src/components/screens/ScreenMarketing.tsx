@@ -73,7 +73,7 @@ export default function ScreenMarketing({
         <button
           onClick={() => setSubTab('posts')}
           className={`px-4.5 py-1.5 text-[12px] font-medium transition-all rounded-pill cursor-pointer flex items-center gap-1.5 ${
-            subTab === 'posts' ? 'bg-sherloq-primary text-white' : 'text-text-body hover:bg-app-bg'
+            subTab === 'posts' ? 'bg-sherloq-primary text-on-accent' : 'text-text-body hover:bg-app-bg'
           }`}
         >
           <Link2 className="w-4 h-4" />
@@ -82,7 +82,7 @@ export default function ScreenMarketing({
         <button
           onClick={() => setSubTab('campaigns')}
           className={`px-4.5 py-1.5 text-[12px] font-medium transition-all rounded-pill cursor-pointer flex items-center gap-1.5 ${
-            subTab === 'campaigns' ? 'bg-sherloq-primary text-white' : 'text-text-body hover:bg-app-bg'
+            subTab === 'campaigns' ? 'bg-sherloq-primary text-on-accent' : 'text-text-body hover:bg-app-bg'
           }`}
         >
           <Megaphone className="w-4 h-4" />
@@ -129,7 +129,7 @@ export default function ScreenMarketing({
                 className={`p-3.5 rounded-[16px] border text-left cursor-pointer transition-all ${
                   activeIdeaId === 'custom'
                     ? 'bg-[var(--sherloq-light)] border-sherloq-primary/20 text-sherloq-primary'
-                    : 'bg-app-bg border-dashed border-[#C1C9D0] text-text-muted hover:bg-[#F1F3F5]'
+                    : 'bg-app-bg border-dashed border-[var(--border)] text-text-muted hover:bg-[var(--app-bg)]'
                 }`}
               >
                 <div className="flex items-center gap-1.5 font-bold text-[12px]">
@@ -171,7 +171,7 @@ export default function ScreenMarketing({
                 <button
                   onClick={handleGenerateLinkedInPost}
                   disabled={isGenerating || !customTopic}
-                  className="mt-4 bg-sherloq-primary hover:bg-sherloq-primary/95 text-white font-sans text-[12px] font-semibold px-4.5 py-2 rounded-pill cursor-pointer shadow-xs disabled:opacity-50"
+                  className="mt-4 bg-sherloq-primary hover:bg-sherloq-primary/95 text-on-accent font-sans text-[12px] font-semibold px-4.5 py-2 rounded-pill cursor-pointer shadow-xs disabled:opacity-50"
                 >
                   {isGenerating ? 'Wird entworfen...' : 'Entwurf generieren'}
                 </button>
@@ -185,7 +185,7 @@ export default function ScreenMarketing({
               </div>
 
               {activeIdeaId === 'custom' && !aiDraftOutput && !isGenerating ? (
-                <div className="p-8 text-center text-text-muted border border-dashed border-[#C1C9D0] rounded-[16px]">
+                <div className="p-8 text-center text-text-muted border border-dashed border-[var(--border)] rounded-[16px]">
                   Gib links ein Thema ein und klicke auf "Entwurf generieren", um die Magie der Gemini API zu erleben.
                 </div>
               ) : (
@@ -211,7 +211,7 @@ export default function ScreenMarketing({
                   onClick={() => {
                     alert("Simulation gestartet! Der Post wird für Ihren Social Profile Queue eingeplant.");
                   }}
-                  className="bg-sherloq-primary hover:bg-sherloq-primary/95 text-white text-[12px] font-semibold rounded-pill px-5 py-2 cursor-pointer transition-all shadow-sm"
+                  className="bg-sherloq-primary hover:bg-sherloq-primary/95 text-on-accent text-[12px] font-semibold rounded-pill px-5 py-2 cursor-pointer transition-all shadow-sm"
                 >
                   LinkedIn Veröffentlichen (Simulation)
                 </button>

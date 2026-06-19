@@ -11,6 +11,7 @@ import { useRef, useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Sun, Bot, Target, Sprout } from "lucide-react";
+import { NAV } from "@/lib/navBehavior";
 
 interface TopBarProps {
   onOpenCommandPalette: () => void;
@@ -45,7 +46,7 @@ export default function TopBar({ onOpenCommandPalette }: TopBarProps) {
 
   return (
     <header
-      style={{ height: 56, background: "transparent", position: "sticky", top: 0, zIndex: 30 }}
+      style={{ height: 56, marginTop: 30, background: "transparent", position: "sticky", top: 0, zIndex: 30 }}
       className="px-6 flex items-center justify-between select-none relative"
     >
       {/* Logo */}
@@ -54,7 +55,7 @@ export default function TopBar({ onOpenCommandPalette }: TopBarProps) {
           style={{ width: 32, height: 32, background: "var(--sherloq-primary)", borderRadius: "var(--radius-btn)" }}
           className="flex items-center justify-center"
         >
-          <span className="text-white font-semibold text-sm leading-none">S</span>
+          <span className="text-on-accent font-semibold text-sm leading-none">S</span>
         </div>
         <div className="flex flex-col leading-none gap-[3px]">
           <span style={{ color: "var(--text-primary)", fontSize: 14 }} className="font-semibold tracking-tight">
@@ -68,8 +69,8 @@ export default function TopBar({ onOpenCommandPalette }: TopBarProps) {
 
       {/* Nav (absolut zentriert) */}
       <nav
-        style={{ background: "var(--surface)", borderRadius: 12, padding: 3 }}
-        className="absolute left-1/2 -translate-x-1/2 flex items-center gap-0.5 shadow-nav"
+        style={{ padding: 3 }}
+        className={`absolute left-1/2 -translate-x-1/2 flex items-center gap-0.5 ${NAV.surface} ${NAV.radius}`}
       >
         {slider.ready && (
           <div
@@ -79,8 +80,8 @@ export default function TopBar({ onOpenCommandPalette }: TopBarProps) {
               bottom: 3,
               left: slider.left,
               width: slider.width,
-              background: "var(--sherloq-gradient)",
-              borderRadius: 9,
+              background: NAV.activeBg,
+              borderRadius: 9999,
               transition: "left 200ms cubic-bezier(0.4,0,0.2,1), width 200ms cubic-bezier(0.4,0,0.2,1)",
               pointerEvents: "none",
             }}
@@ -95,10 +96,8 @@ export default function TopBar({ onOpenCommandPalette }: TopBarProps) {
                 buttonRefs.current[index] = el;
               }}
               onClick={() => navigate(`/app/${item.route}`)}
-              style={{ color: active ? "white" : "var(--text-body)", borderRadius: 9, position: "relative", zIndex: 1 }}
-              className={`flex items-center gap-2 px-4 py-1.5 text-[12px] font-medium cursor-pointer transition-colors duration-150${
-                !active ? " hover:bg-[var(--app-bg)]" : ""
-              }`}
+              style={{ position: "relative", zIndex: 1 }}
+              className={`${NAV.tab} ${NAV.radius} ${active ? "text-on-accent" : NAV.inactive}`}
             >
               {item.icon}
               <span>{t(item.labelKey)}</span>
@@ -139,7 +138,7 @@ export default function TopBar({ onOpenCommandPalette }: TopBarProps) {
 
         <button
           style={{ width: 30, height: 30, background: "var(--sherloq-primary)", borderRadius: 9 }}
-          className="flex items-center justify-center text-white text-[11px] font-semibold cursor-pointer hover:opacity-90 transition-opacity"
+          className="flex items-center justify-center text-on-accent text-[11px] font-semibold cursor-pointer hover:opacity-90 transition-opacity"
         >
           OS
         </button>

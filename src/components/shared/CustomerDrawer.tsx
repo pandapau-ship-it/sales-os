@@ -25,7 +25,9 @@ import {
   TrendingUp,
 } from "lucide-react";
 import type { Lead, Customer } from "@/types";
-import { getHeatColor } from "@/lib/heatUtils";
+import HeatBadge from '../panel-blocks/HeatBadge';
+import BrandLogo from "@/components/shared/BrandLogo";
+import Avatar from "@/components/shared/Avatar";
 
 interface CustomerDrawerProps {
   person: Lead | Customer | null;
@@ -78,9 +80,7 @@ export default function CustomerDrawer({
   const castedCustomer = person as Customer;
   const lead = person as Lead;
 
-  // getHeatColor imported from @/lib/heatUtils — single source of truth
   const heatStatusStr = person?.heatStatus || "COLD";
-  const heatSettings = getHeatColor(heatStatusStr);
 
   return (
     // Sheet handles overlay, backdrop-blur, animation, Escape key, and focus-trap
@@ -102,11 +102,7 @@ export default function CustomerDrawer({
             {/* Header Area */}
             <div className="flex items-center justify-between mb-2 mt-4 pr-12">
               <div className="flex items-center gap-4">
-                <div className="relative">
-                  <div className="w-14 h-14 rounded-[14px] bg-sherloq-primary text-white flex items-center justify-center font-sans font-bold text-[20px]">
-                    {person.person.initials}
-                  </div>
-                </div>
+                <Avatar name={person.person.name} src={person.person.avatarUrl} size={56} radius={14} />
 
                 <div className="flex flex-col justify-center">
                   <div className="flex items-center gap-3">
@@ -123,7 +119,7 @@ export default function CustomerDrawer({
                     </span>
                     <span className="text-icon-muted">•</span>
                     <div className="flex items-center gap-1.5">
-                      <div className="bg-[var(--text-primary)] text-white text-[9px] w-4 h-4 flex items-center justify-center rounded-[4px] font-bold">
+                      <div className="bg-[var(--text-primary)] text-on-accent text-[9px] w-4 h-4 flex items-center justify-center rounded-[4px] font-bold">
                         {person.person.company.charAt(0).toUpperCase()}
                       </div>
                       <span className="font-semibold text-text-primary">
@@ -149,12 +145,7 @@ export default function CustomerDrawer({
                   <span className="text-[9px] font-bold text-icon-muted uppercase tracking-wider font-mono">
                     HEAT
                   </span>
-                  <div
-                    className={`px-3 py-1.5 rounded-pill text-[12px] font-semibold flex items-center gap-1.5 border ${heatSettings.bg} ${heatSettings.text} ${heatSettings.border}`}
-                  >
-                    <span style={{ color: heatSettings.dot, fontSize: 8, lineHeight: 1 }}>●</span>
-                    {heatSettings.label}
-                  </div>
+                  <HeatBadge status={heatStatusStr} />
                 </div>
                 <div className="flex flex-col items-center gap-1.5">
                   <span className="text-[9px] font-bold text-icon-muted uppercase tracking-wider font-mono">
@@ -314,10 +305,10 @@ export default function CustomerDrawer({
                       <div className="absolute left-[8%] right-[8%] top-1/2 -translate-y-1/2 h-[2px] bg-[var(--border)] z-0" />
                       {/* Active Line (up to step 3) */}
                       <div className="absolute left-[8%] right-[50%] top-1/2 -translate-y-1/2 h-[2px] bg-[var(--signal-success-text)] z-0" />
-                      <div className="relative z-10 w-9 h-9 rounded-pill bg-[var(--signal-success-text)] flex items-center justify-center text-white border-2 border-app-surface shadow-sm cursor-pointer">
+                      <div className="relative z-10 w-9 h-9 rounded-pill bg-[var(--signal-success-text)] flex items-center justify-center text-on-accent border-2 border-app-surface shadow-sm cursor-pointer">
                         <Mail className="w-4 h-4" />
                       </div>
-                      <div className="relative z-10 w-9 h-9 rounded-pill bg-[var(--signal-success-text)] flex items-center justify-center text-white border-2 border-app-surface shadow-sm cursor-pointer"></div>
+                      <div className="relative z-10 w-9 h-9 rounded-pill bg-[var(--signal-success-text)] flex items-center justify-center text-on-accent border-2 border-app-surface shadow-sm cursor-pointer"></div>
                       <div className="relative z-10 w-10 h-10 rounded-pill bg-app-surface border-[2.5px] border-[var(--signal-success-text)] flex items-center justify-center text-signal-success shadow-sm cursor-pointer">
                         <Mail className="w-4 h-4" />
                       </div>
@@ -451,7 +442,7 @@ export default function CustomerDrawer({
 
                   {/* Upsell Potential */}
                   {castedCustomer.upsellOpportunity && (
-                    <div className="bg-app-surface border border-border rounded-[14px] p-6 shadow-card border-l-4 border-l-[#10B981]">
+                    <div className="bg-app-surface border border-border rounded-[14px] p-6 shadow-card border-l-4 border-l-[var(--signal-success-text)]">
                       <h3 className="text-[10px] font-bold text-signal-success uppercase tracking-wider font-mono mb-4 flex items-center gap-2">
                         UPSELL POTENTIAL
                       </h3>
@@ -538,13 +529,7 @@ export default function CustomerDrawer({
                       setExpandedComm((prev) => ({ ...prev, 1: !prev[1] }))
                     }
                   >
-                    <div className="w-12 h-12 rounded-card overflow-hidden shrink-0 shadow-sm border border-border">
-                      <img
-                        src="/teams.jpeg"
-                        alt="Teams"
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
+                    <BrandLogo name="teams" tile className="w-12 h-12 rounded-card shrink-0 shadow-sm" />
                     <div className="flex flex-col flex-1 pr-2">
                       <div className="flex justify-between items-center w-full">
                         <span className="text-[14px] font-bold text-text-primary">
@@ -606,13 +591,7 @@ export default function CustomerDrawer({
                       setExpandedComm((prev) => ({ ...prev, 2: !prev[2] }))
                     }
                   >
-                    <div className="w-12 h-12 rounded-card overflow-hidden shrink-0 shadow-sm border border-border">
-                      <img
-                        src="/microsoft-outlook-2025.jpg"
-                        alt="Outlook"
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
+                    <BrandLogo name="outlook" tile className="w-12 h-12 rounded-card shrink-0 shadow-sm" />
                     <div className="flex flex-col flex-1 pr-2">
                       <div className="flex justify-between items-center w-full">
                         <span className="text-[14px] font-bold text-text-primary">

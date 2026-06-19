@@ -3,59 +3,30 @@
  * Single source of truth for all Heat badge styles — used by
  * ScreenHunting, ScreenFarming, CustomerDrawer, and any future component.
  *
- * All color values reference CSS tokens from index.css :root.
- * To change a color: update the token in index.css — never here.
+ * Labels & Dot-Farbe kommen aus HEAT_STATUS (src/lib/constants.ts).
+ * bg/text/border referenzieren CSS-Tokens aus index.css — niemals hier hardcoden.
  */
+import { HEAT_STATUS, HEAT_KEY_BY_STATUS, type HeatStatusKey } from "@/lib/constants";
+import type { HeatStatus } from "@/types";
 
 export interface HeatColorResult {
-  bg:     string; // Tailwind bg class
-  text:   string; // Tailwind text class
+  bg: string; // Tailwind bg class
+  text: string; // Tailwind text class
   border: string; // Tailwind border class
-  dot:    string; // CSS color value for the ● dot (use in style={{ color }})
-  label:  string; // German display label
+  dot: string; // CSS color value für den Dot-Kreis (style={{ background }})
+  label: string; // kanonisches Label aus HEAT_STATUS
 }
 
+// Pro Heat-Key abgestimmte bg/text/border-Klassen (Farbe = HEAT_STATUS[key].color).
+const STYLE: Record<HeatStatusKey, { bg: string; text: string; border: string }> = {
+  engaged: { bg: "bg-[var(--signal-success-bg)]", text: "text-[var(--color-success)]",      border: "border-[var(--color-success)]/15" },
+  warm:    { bg: "bg-[var(--signal-warn-bg)]",    text: "text-[var(--color-warning-soft)]", border: "border-[var(--color-warning-soft)]/20" },
+  cooling: { bg: "bg-[var(--signal-warm-bg)]",    text: "text-[var(--color-warning)]",      border: "border-[var(--color-warning)]/20" },
+  cold:    { bg: "bg-[var(--signal-info-bg)]",    text: "text-[var(--color-info)]",         border: "border-[var(--color-info)]/15" },
+  gone:    { bg: "bg-app-bg",                     text: "text-[var(--color-muted)]",        border: "border-border" },
+};
+
 export function getHeatColor(status: string): HeatColorResult {
-  switch (status) {
-    case 'HOT':
-      return {
-        bg:     'bg-[var(--signal-success-bg)]',
-        text:   'text-signal-success',
-        border: 'border-[var(--signal-success-text)]/15',
-        dot:    'var(--signal-success-text)',
-        label:  'Aktiv',
-      };
-    case 'WARM':
-      return {
-        bg:     'bg-[var(--signal-warm-bg)]',
-        text:   'text-[var(--signal-warm-text)]',
-        border: 'border-[var(--signal-warm-text)]/20',
-        dot:    'var(--signal-warm-text)',
-        label:  'Stabil',
-      };
-    case 'LUKEWARM':
-      return {
-        bg:     'bg-[var(--signal-warn-bg)]',
-        text:   'text-signal-warn',
-        border: 'border-[var(--signal-warn-text)]/15',
-        dot:    'var(--signal-warn-text)',
-        label:  'Rückläufig',
-      };
-    case 'COLD':
-      return {
-        bg:     'bg-[var(--signal-cold-bg)]',
-        text:   'text-signal-cold',
-        border: 'border-[var(--signal-cold-text)]/15',
-        dot:    'var(--signal-cold-text)',
-        label:  'Ruhend',
-      };
-    default:
-      return {
-        bg:     'bg-app-bg',
-        text:   'text-text-muted',
-        border: 'border-border',
-        dot:    'var(--text-muted)',
-        label:  'Inaktiv',
-      };
-  }
+  const key = HEAT_KEY_BY_STATUS[status as HeatStatus] ?? "gone";
+  return { ...STYLE[key], dot: HEAT_STATUS[key].color, label: HEAT_STATUS[key].label };
 }

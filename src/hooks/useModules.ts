@@ -6,16 +6,18 @@
  *   if (!hasModule('farmer')) return null
  *
  * ModuleKeys = kanonische Liste aus CLAUDE.md → MODUL-SYSTEM.
- * Daten kommen aus Supabase (`user_modules`), Zugriff nur über getSupabaseClient()
- * — nie @supabase direkt (Audit-Regel).
+ * Daten kommen aus `settings.modules` (kanonische Quelle) via `getModules()` aus
+ * lib/db — nie @supabase direkt (Audit-Regel). Server-State über TanStack Query.
  *
- * Phase 0 ohne Backend: getSupabaseClient() liefert null → Default = alle Module
- * sichtbar, damit die Layout-Shell vollständig rendert. Sobald die DB verbunden
- * ist, werden die echten aktiven Module geladen.
+ * Ohne Backend / leeres Ergebnis: Fallback = alle Module sichtbar (PHASE0_DEFAULT),
+ * damit die Layout-Shell vollständig rendert. Mit verbundener DB greifen die echten
+ * aktiven Module aus settings.modules der Organisation.
  */
 
-import { useEffect, useState } from "react";
-import { getSupabaseClient } from "@/lib/db";
+import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { getModules } from "@/lib/db";
+import { DEMO_ORGANIZATION_ID } from "@/lib/org";
 
 export const MODULE_KEYS = [
   "core_crm",
@@ -40,36 +42,23 @@ export function useModules(): {
   modules: Set<ModuleKey>;
   loading: boolean;
 } {
-  const [modules, setModules] = useState<Set<ModuleKey>>(PHASE0_DEFAULT);
-  const [loading, setLoading] = useState(true);
+  // settings.modules der Org (org_id im Query-Key). getModules liefert {} ohne
+  // Backend/Settings → Fallback unten greift.
+  const { data, isLoading } = useQuery({
+    queryKey: ["modules", DEMO_ORGANIZATION_ID],
+    queryFn: () => getModules(DEMO_ORGANIZATION_ID),
+  });
 
-  useEffect(() => {
-    const client = getSupabaseClient();
-    if (!client) {
-      // Phase 0 ohne Env → Default behalten.
-      setLoading(false);
-      return;
-    }
-    let active = true;
-    client
-      .from("user_modules")
-      .select("module")
-      .eq("active", true)
-      .then(({ data }: { data: { module: string }[] | null }) => {
-        if (!active) return;
-        if (data) {
-          setModules(new Set(data.map((r) => r.module as ModuleKey)));
-        }
-        setLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
+  const modules = useMemo<Set<ModuleKey>>(() => {
+    if (!data) return PHASE0_DEFAULT; // noch nicht geladen → Shell vollständig
+    const active = MODULE_KEYS.filter((k) => data[k] === true);
+    // Leeres/kein settings.modules → sinnvoller Default statt „alles tot".
+    return active.length ? new Set<ModuleKey>(active) : PHASE0_DEFAULT;
+  }, [data]);
 
   return {
     hasModule: (m: ModuleKey) => modules.has(m),
     modules,
-    loading,
+    loading: isLoading,
   };
 }

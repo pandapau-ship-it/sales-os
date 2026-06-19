@@ -11,6 +11,7 @@
  */
 
 import { useEffect, useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getLeads,
   getCustomers,
@@ -18,11 +19,20 @@ import {
   getPriorities,
   getAppointments,
   getAlerts,
+  getContacts,
+  getDeals,
+  getPipelineSettings,
+  getSignals,
+  getDueTasks,
+  completeTask,
+  getNewInPipeline,
   updateLeadStage as dbUpdateLeadStage,
   setTaskCompleted as dbSetTaskCompleted,
   createLead as dbCreateLead,
   upgradeSubscription as dbUpgradeSubscription,
 } from "@/lib/db";
+import { DEMO_ORGANIZATION_ID } from "@/lib/org";
+import { contactRowToLead, dealToPipelineRow } from "@/lib/hunterMappers";
 import type {
   Lead,
   Customer,
@@ -172,10 +182,66 @@ export function MeinTagReference() {
 
 export function HunterReference() {
   const s = useReferenceState();
+  // Slice 1 (Read-only): echte org-gescopte Kontakte → Leads-Tab. Andere Tabs
+  // bleiben auf Mock (s.leads). organization_id IMMER im Query-Key.
+  const leadsQuery = useQuery({
+    queryKey: ["contacts", DEMO_ORGANIZATION_ID],
+    queryFn: () => getContacts(DEMO_ORGANIZATION_ID),
+  });
+  const leadsData = leadsQuery.data?.map(contactRowToLead);
+  // Slice A: Pipeline-Listenansicht — geteilte Queries (Slice B Kanban erbt sie).
+  const dealsQuery = useQuery({
+    queryKey: ["deals", DEMO_ORGANIZATION_ID],
+    queryFn: () => getDeals(DEMO_ORGANIZATION_ID),
+  });
+  const stagesQuery = useQuery({
+    queryKey: ["pipelineStages", DEMO_ORGANIZATION_ID],
+    queryFn: () => getPipelineSettings(DEMO_ORGANIZATION_ID),
+  });
+  const stageNameBySlug = Object.fromEntries(
+    (stagesQuery.data ?? []).map((stage) => [stage.slug, stage.name]),
+  );
+  const dealsData = dealsQuery.data?.map((deal) => dealToPipelineRow(deal, stageNameBySlug));
+  // S-2: hunter-geroutete, unverarbeitete Signals (Mapping zu Card-Props im Screen, braucht t).
+  const signalsQuery = useQuery({
+    queryKey: ["signals", DEMO_ORGANIZATION_ID],
+    queryFn: () => getSignals(DEMO_ORGANIZATION_ID, { routedTo: "hunter", processed: false }),
+  });
+  // Follow-ups (T2): fällige Tasks (completed_at IS NULL AND due_at <= now()).
+  const dueTasksQuery = useQuery({
+    queryKey: ["dueTasks", DEMO_ORGANIZATION_ID],
+    queryFn: () => getDueTasks(DEMO_ORGANIZATION_ID),
+  });
+  // Neu-in-Pipeline: frisch angelegte Deals (created_at desc); Zeitfenster filtert der Screen.
+  const newInPipelineQuery = useQuery({
+    queryKey: ["newInPipeline", DEMO_ORGANIZATION_ID],
+    queryFn: () => getNewInPipeline(DEMO_ORGANIZATION_ID),
+  });
+  // T4a (erster Write): Task erledigt → completed_at; onSuccess Follow-ups neu laden
+  // (kein Optimistic — invalidate-on-success). Fehler bewusst nicht stillschweigend
+  // abfangen: bei RLS/Login-Problem wird der Error sichtbar (Konsole/Network).
+  const queryClient = useQueryClient();
+  const completeTaskMutation = useMutation({
+    mutationFn: (taskId: string) => completeTask(taskId, DEMO_ORGANIZATION_ID),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["dueTasks", DEMO_ORGANIZATION_ID] }),
+  });
   return (
     <>
       <ScreenHunting
         leads={s.leads}
+        leadsData={leadsData}
+        leadsLoading={leadsQuery.isLoading}
+        leadsError={leadsQuery.isError}
+        dealsData={dealsData}
+        dealsLoading={dealsQuery.isLoading || stagesQuery.isLoading}
+        dealsError={dealsQuery.isError || stagesQuery.isError}
+        pipelineStages={stagesQuery.data ?? []}
+        signalsData={signalsQuery.data as unknown as Record<string, unknown>[] | undefined}
+        signalsLoading={signalsQuery.isLoading}
+        signalsError={signalsQuery.isError}
+        dueTasksData={dueTasksQuery.data}
+        newInPipelineData={newInPipelineQuery.data}
+        onCompleteTask={(taskId) => completeTaskMutation.mutate(taskId)}
         onSelectLead={s.selectPerson}
         onUpdateLeadStage={s.updateLeadStage}
         onAddLead={s.addLead}

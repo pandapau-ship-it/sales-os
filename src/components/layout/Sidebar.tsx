@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useTheme } from "@/hooks/useTheme";
 import { useModules, type ModuleKey } from "@/hooks/useModules";
+import { NAV } from "@/lib/navBehavior";
 
 interface NavIcon {
   route: string;
@@ -73,12 +74,8 @@ export default function Sidebar() {
             onClick={() => navigate(`/app/${item.route}`)}
             aria-label={t(item.labelKey)}
             aria-current={active ? "page" : undefined}
-            style={active ? { background: "var(--sherloq-gradient)" } : undefined}
-            className={`w-[40px] h-[40px] rounded-[10px] flex items-center justify-center transition-all duration-200 cursor-pointer ${
-              active
-                ? "text-white shadow-brand"
-                : "text-text-muted hover:bg-app-bg hover:text-text-primary"
-            }`}
+            style={active ? { background: NAV.activeBg } : undefined}
+            className={`w-[40px] h-[40px] ${NAV.radius} ${NAV.iconBtn} ${active ? NAV.activeIcon : NAV.inactiveIcon}`}
           >
             {item.icon}
           </button>
@@ -90,7 +87,7 @@ export default function Sidebar() {
 
   return (
     <TooltipProvider delayDuration={300}>
-      <aside className="w-[56px] min-w-[56px] h-[calc(100vh-80px)] bg-app-surface rounded-[16px] shadow-card flex flex-col items-center py-4 select-none sticky top-[68px] ml-4 z-20">
+      <aside className={`w-[56px] min-w-[56px] h-[calc(100vh-80px)] ${NAV.surface} ${NAV.radius} flex flex-col items-center py-4 select-none sticky top-[68px] ml-4 z-20`}>
         {/* Screens */}
         <div className="flex flex-col gap-2 items-center">{screens.map(renderIcon)}</div>
 
@@ -130,7 +127,7 @@ export default function Sidebar() {
             <TooltipTrigger asChild>
               <button
                 aria-label={t("nav.profil")}
-                className="w-[34px] h-[34px] mt-1 rounded-[10px] bg-sherloq-primary text-white text-[11px] font-semibold flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity"
+                className="w-[34px] h-[34px] mt-1 rounded-[10px] bg-sherloq-primary text-on-accent text-[11px] font-semibold flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity"
               >
                 OS
               </button>

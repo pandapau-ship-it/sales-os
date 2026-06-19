@@ -11,12 +11,82 @@
 ## 🛠️ Selbst-Wartung (Tooling)
 - [x] CHECKLIST.md als Single Source of Truth — *Umsetzungsstand zentral*
 - [x] `scripts/audit.ts` + `npm run audit` — *prüft die 5 Pflicht-Prüffragen automatisch*
+- [x] audit-Check „Design: nur Token-Farben" — *FAIL bei bg/text/border-white|black|gray-* oder Hex in .tsx*
+- [x] **`npm run structure-check`** (`scripts/structure-check.sh`) — *FAIL bei falsch in shared/ platzierten Komponenten; im Pre-Push-Hook + Merge-Gate* — *2026-06-16*
+- [x] **panel-block-Library konsolidiert** — alle Inhalts-Blöcke in `panel-blocks/` (+ Barrel `index.ts`); HunterSidepanel/ChatActionPanel komplett panel-block-basiert; tote Dateien/Orphans entfernt; shared/ bereinigt — *2026-06-16*
+- [x] **Single-Source-Audit + pre-push-Kopplung** — `checkSingleSourceContactValues()` (Kontaktwerte nur über `contactToProfile`/`contactActiveStage`; FAIL `.heat_status`, WARN icp/company/name, Resolver-Marker + `// single-source-ok`-Opt-out); **`npm run audit` jetzt im pre-push-Hook** (blockt FAIL hart); CLAUDE.md-Regel „Gleiche Ausgabe = gleiche Quelle" — *2026-06-18*
 - [ ] audit.ts an Pre-Commit-Hook hängen — *kein Commit mit hartem Verstoß*
 - [ ] audit.ts erweitern wenn neue Infrastruktur existiert (DB, lib/ai.ts …)
 
 ---
 
-## 🗄️ Datenbank (Phase 5 — noch nicht gestartet)
+## 🎯 Hunter-Screen (Phase 2 — UI, Branch `feature/phase-2-hunter`)
+
+### Erledigt
+- [x] Design-Etappen 1–6: Header/Gradient · 673 Hex → Tokens · Emoji → Lucide · Avatare rund · i18n `hunter.*`
+- [x] **`HunterCard`** (`src/components/shared/`) = eine Kachel für alle Tabs — *einheitliche Top-Row, Chevron-Kurzansicht, grüner Pfeil → Info-Panel*
+- [x] **`componentBehavior.ts`** (`src/lib/`) = einzige Wertquelle (`CARD` + `ACTION_ROW`)
+- [x] Alle Profilkarten auf HunterCard: Übersicht · Signals · Neu in Pipeline · Follow-ups · Pipeline-Task-Liste
+- [x] Side Panels auf `ui/sheet`: SignalAction (580) · ContactCold · NoTask · PipelineStagnated
+- [x] SignalActionDrawer props-driven (`initialDraft`) · Composer/Deal-Dropdown → `ui/select`
+- [x] PipelineStagnatedDrawer Spec-Flow (Stage-Pills + 3 Buttons)
+- [x] CLAUDE.md-Regel: Kacheln immer HunterCard · shadcn-Primitive bevorzugen
+- [x] **Dark Mode app-weit token-sicher** — alle hardcodierten Farben → Tokens; shadcn-Farbnamen in `@theme inline` gemappt; Enforcement via Audit-Check + CLAUDE.md-Regel
+- [x] **Komponenten-Struktur** eingeführt: `panels/` (InfoPanel 820 · ActionPanel 50vw) · `panel-blocks/` · `features/[modul]/` (CLAUDE.md-Pflichtregel) — *Session 2026-06-14*
+- [x] **Side Panels als Basis-Komponenten** abstrahiert: `panels/InfoPanel` (820) + `panels/ActionPanel` (50vw, Sheet-Shell) — *2026-06-14*
+- [x] **AddSdrLeadPanel** (Popup → Action-Side-Panel, Progressive Disclosure, Owner-Pflicht, Stage↔Deal-Kopplung; aus `panel-blocks/` komponiert) — *2026-06-14*
+- [x] **Heat-Status neu** — Engaged/Warm/Cooling/Cold/Gone zentral in `lib/constants.ts` (`HEAT_STATUS`), Farb-Tokens Light+Dark, app-weit ersetzt, Dot-Kreis statt `●` — *2026-06-14*
+- [x] **`HeatBadge` + `StageBadge`** (`panel-blocks/`) — kein Border, 10%-Hintergrund, Dot+Text; app-weit verdrahtet; Audit-Check „keine alten Heat-Labels"; CLAUDE.md Badge-Regel — *2026-06-14*
+- [x] **Snooze** — Regelwerk in CLAUDE.md; 3 Zustände interaktiv in Follow-up-Kacheln (Mock); Settings-Sektion `SnoozeSettings` (Design) — *2026-06-14*
+- [x] **Navigation zentralisiert** — `src/lib/navBehavior.ts` (`NAV`) für Top-Nav · Sub-Navs · Sidebar (einmal ändern → überall); Top-Nav `rounded-full`-Pills, +30px oben; CLAUDE.md-Regel + Radius-Hierarchie — *2026-06-14*
+- [x] **Erledigt-Aktion** — zentrale `panel-blocks/ErledigtAction` (Popover + RadioGroup + Notiz), einmal in `ChatActionPanel` → alle Action-Panels; shadcn `radio-group` ergänzt — *2026-06-14*
+- [x] **Popover-Fokus-Fix** — `ui/popover` `portal`-Prop; Eingaben in Popovern im Sheet tippbar (Kontaktfelder + Erledigt-Notiz); Audit-Check „Popover-Eingabe fokussierbar" + CLAUDE.md-Regel — *2026-06-14*
+- [x] **AI-Chat Guardrails** — CLAUDE.md §9 (Secrets/Code/Tenant, Injection, PII) + Red-Team-Gate (`npm run redteam`, Phase 7) — *2026-06-14*
+- [x] **knowledge_base** `value` = Kundennutzen/Pitch (Regel + Leitlinie + 5 Einträge umformuliert) — *2026-06-14*
+- [x] **Vollansicht (Kontakt-Detail, Vollbild)** — `HunterSidepanel` `variant="full"`: echte Seite (ein Scroll-Container, native Scrollbar, sticky Tabs, Hero integriert), über ↗ im Info-Panel; ← zurück zum Panel, ✕ schließt (`onExit`) — *2026-06-15*
+- [x] **Details-Tab (Vollansicht)** — alle CRM-Felder (Person/Firma/Klassifizierung/System/Notizen); Read-Mode + Inline-Edit (kein Popup) + Copy + System-Status als Badges; Kontaktdaten in grauer Sub-Kachel — *2026-06-15*
+- [x] **Neue panel-blocks** — `DetailField` · `DetailSection` · `StatusBadge` · `DetailPhoneList` (global, prop-driven, Tokens-only) — *2026-06-15*
+- [x] **Info-Panel-Tabs ausgebaut** — Kommunikation = vertikaler Zeitstrahl (medium-spezifisch) · Aktivität = System-Feed · Tasks (aufklappbar, Edit/Löschen on-hover, `TaskFormular`) · Notizen (Composer + Datum/Uhrzeit) · **neuer Deal-Tab** (`DealsListe`) — *2026-06-16*
+- [x] **Footer-Quick-Actions verdrahtet** — Task/Mail/Deal/Notiz öffnen ihr Anlege-Panel (LinkedIn→Deal; Mail = `MailComposer`) — *2026-06-16*
+- [x] **Deals: Deal-Name + Produktauswahl** (`DealDraft` + `name`/`product`; `NewDealCard` Dropdown `DEAL_PRODUCTS` + „Eigenes Produkt…"); Anzeige in DealsListe/DealSetup — *2026-06-16*
+- [x] **Empty States für alle Hunter-Tabs** — Leads(+Button) · Signals · Follow-ups · Neu in Pipeline · leere Kanban-Spalte(+„Deal anlegen"); `shared/EmptyState` (description optional) — *2026-06-16*
+- [x] **Globale Regel: Hover-Aktionen** (Edit/Löschen/Copy nur bei Hover — `HOVER_ACTIONS`) — *2026-06-16*
+- [x] **Globale Regel: Icon-Tooltips** (`shared/TooltipLayer` + `data-tip`, portal/sofort) — *2026-06-16*
+- [x] **Neue panel-blocks** — `TaskFormular` · `DealsListe` · `MailComposer` (+ `shared/TooltipLayer`); `npm run audit` um Inline-Code-Check erweitert — *2026-06-16*
+
+### Offen (neu heute)
+- [ ] **Vollansicht — vollseiten-spezifisches Layout/Spacing der Tabs** (Inhalte aufgewertet; nur Voll-Layout offen)
+- [ ] AI-Chat **Red-Team-Gate** (`scripts/redteam-aichat.ts`, `npm run redteam`) bauen — Phase 7, vor Live
+
+### Offen
+- [ ] Skeleton/Loading — kommt mit DB-Wiring via TanStack Query
+- [ ] Kanban-Mini-Karten angleichen (bauartbedingt separat)
+- [ ] DB-Wiring: Mock → `getDeals`/`getSignals`/`getPipelineSettings`, Realtime, Routing → echtes ScreenHunting; Deal-Felder `name`/`product` + Produktkatalog aus `system_config`
+
+---
+
+## 🗄️ Datenbank (Phase 3 DB-Wiring — Migrationen live)
+
+### Stand (Phase 1 + Phase 3) — Migrationen 001–016 remote applied ✅
+- [x] `organizations` + Multi-Tenant-Basis, alle 33 Tabellen aus 001–012 remote live (Projekt `qhcmruprfjunalgrhgcp`) — *2026-06-16*
+- [x] `organization_id NOT NULL` + RLS (`auth_org_id()`) + `ON DELETE CASCADE` + org-Index durchgängig (011) — *2026-06-16*
+- [x] `update_updated_at()` + `audit_write()`-Trigger auf Kern-Entitäten (010) — *2026-06-16*
+- [x] **`knowledge_base` (Migration 013)** — org_id NOT NULL + RLS + `audit_write`-Trigger; append-only — *2026-06-16*
+- [x] **`deals.product` (Migration 014)** — nullable text, kein Default; Produkt-Katalog (`products`) folgt separat — *2026-06-16*
+- [x] **`knowledge_base`-Schreibweg = Migrationen** (`015` Constraint+Leads-Eintrag · `016` 19 Backlog-Einträge); idempotent `ON CONFLICT DO UPDATE` — *2026-06-17*
+- [x] **Hunter Pipeline-Tab auf echte `deals`** — `getDeals` (+`owner:users`-Embed) + `getPipelineSettings` via TanStack; Liste/Kanban/Filter (Heat/Owner/Stage), value Cent→/100 — *2026-06-17*
+- [x] **Hunter Signals-Tab datengetrieben** — `getSignals` + `signalToCardProps` (S-0…S-2); Signal-Typ-Mapping (i18n/Icon/`settings.signal_windows`) — *2026-06-17*
+- [x] **Kontakt-Datenvereinheitlichung** — `contactToProfile` = Single-Source (Identität/ICP/Heat/Status); Heat-Quellen-Fix Pipeline; `contactActiveStage` (zuletzt aktiver Deal); Regeln in CLAUDE.md — *2026-06-17*
+- [x] **Hunter Neu-in-Pipeline read-verdrahtet** — `getNewInPipeline` + `dealToNewPipelineRow` (created_at desc), Zeitfilter heute/7T/30T (Default 30T), Herkunft AI-SDR/Manuell via `source_lead_id` ([D18]) — *2026-06-17*
+- [x] **Task-System DB** — Migration **021** (composite Indizes `org+due_at`/`+deal`/`+contact`), **022** (`tasks.channel` nullable), **023** (fällige Test-Tasks-Seed, idempotent) — *2026-06-17*
+- [x] **Hunter Follow-ups-Tab = fällige Tasks** — `getDueTasks` (`completed_at IS NULL AND due_at <= now()`) + `taskToDueCard`; ersetzt Heat-Cold/Gone ([D17] entschieden) — *2026-06-17*
+- [x] **Task abhaken = erster echter Write** — `completeTask` (UPDATE `completed_at`, org-gescoped, Audit via Trigger), `useMutation` + invalidate-on-success (T4a) — *2026-06-17*
+- [x] **knowledge_base Migration 024** — Einträge `Hunter Signals` · `Neu in Pipeline` · `Follow-ups` (module='hunter'); idempotent `ON CONFLICT DO UPDATE` — *2026-06-17*
+- [ ] **Task ANLEGEN (T4b)** — `createTask` vorbereitet (channel/`mail→email`/due_at/`assigned_to=NULL`), wartet auf Panel-Wiring (→ PROGRESS Panel-Thema B1)
+- [ ] **Erinnerung/Reminder** — Feld (`reminder_at`) + Auslöse-System (notifications/Cron/Versand) fehlen komplett ([D19])
+- [ ] knowledge_base-Eintrag je weiterem fertigem Feature
+
+> Die folgenden Listen sind die vollständige Soll-Spezifikation (großteils Felder/Feature-Wiring, das schrittweise folgt).
 
 ### Multi-Tenancy & Isolation (zuerst, nicht verhandelbar)
 - [ ] `organizations` Tabelle zuerst — *Basis für alles, brand_*/onboarding_* Felder*
@@ -181,11 +251,11 @@
 - [x] **Service-Abstraktion** `lib/db.ts · auth.ts · storage.ts · realtime.ts` — *einzige Swap-Stelle für Supabase*
 - [x] App lädt Daten über `lib/db` (nicht direkt aus `@/data`/supabase) — *audit-geprüft*
 - [x] audit-Regel: `@supabase` nur in `lib/`, `createClient` nur in `db.ts`
-- [ ] Supabase-Client in `lib/db.ts` aktivieren (Phase 5) — *nur Funktionskörper tauschen*
-- [ ] TanStack Query als einziger Server-State — *Bridge-useEffect in App ersetzen*
-- [ ] `useModules()` Hook (gecacht) — *Modul-Gating*
-- [ ] **Phase 2:** `useModules` von Tabelle `user_modules` (existiert nicht) auf `getModules()` = `settings.modules` umstellen — *braucht Org-Kontext aus Auth; Live-DB ist bereits angebunden*
-- [ ] Mock-Daten (`data.ts`) durch echte Queries in `lib/db` ersetzen
+- [x] **Supabase-Client live** (`.env.local`, anon-Key) — `db.ts` Live-Modus, Test-User + Demo-Seed, RLS greift — *2026-06-16*
+- [x] **Hunter Leads-Tab auf echte Queries** — `getContacts` (org-gescoped, Company-Embed FK-Hint) → `hunterMappers.contactRowToLead` → TanStack Query (Loading/Error); Heat + Lifecycle-Status + last_contacted echt — *2026-06-16*
+- [x] **`useModules` → `getModules()` (`settings.modules`) via TanStack** statt nicht existenter `user_modules` (404 weg) — *2026-06-16*
+- [~] TanStack Query als Server-State — *Leads-Tab + Module umgestellt; restliche Screens folgen*
+- [ ] Restliche Mock-Listen (Pipeline/Signals/Info-Panel) durch echte Queries ersetzen
 - [ ] Glocke: echter Badge-Count aus `notifications` (read=false), live via Realtime
 
 ### Realtime
@@ -219,9 +289,11 @@
 - [x] FOUC-Guard in `index.html` (Theme vor erstem Paint)
 - [x] Theme-Toggle (Sonne/Mond) im Profil/Avatar-Bereich der Sidebar
 - [x] Alter `.dark-theme` !important-Hack aus App.tsx entfernt → Token-System
-- [~] Strukturelle Flächen schalten korrekt (laufen über Token-Klassen)
-- [ ] **Akzent-Hex → Signal-Tokens** in Screens (≈144 Vorkommen, meist Status-Akzente):
-      ScreenMyDay/Hunting/Farming/Marketing/Jira/CustomerDrawer — *brechen Dark Mode optisch, nicht strukturell*
+- [x] Strukturelle Flächen schalten korrekt (alle über Token-Klassen)
+- [x] **Akzent-Hex/-Klassen → Signal-Tokens** app-weit (Hunter + ScreenMyDay/Farming/Marketing/
+      Jira/CustomerDrawer): bg-white/gray/semantik/Hex → Tokens; `--on-accent`/`--inverse-surface`/`--scrim`
+- [x] **shadcn-Farbnamen** (`background`/`card`/`popover`/`muted`/`accent`/`primary`/…) in `@theme inline` gemappt
+- [x] **Enforcement**: Audit-Check „Design: nur Token-Farben" (FAIL bei Hardcode) + CLAUDE.md-Pflichtregel
 - [ ] Tote Dateien mit Hex entfernen: `src/theme.ts`, `src/components/shell/TopNav.tsx` (nicht importiert)
 - [ ] personalityColors Token in theme.ts umbenennen (kein DISG: rot/gelb/grün/blau → neutral benennen, passend zu 3-Dimensionen-Modell)
 
@@ -279,6 +351,8 @@
 - [ ] `update_field()` Fallback (Permission-Check) · `query_contacts()` · `generate_message()`
 - [ ] Cmd+Enter-Overlay überall · strikt getrennt von Cmd+K · respektiert Rollen/Rechte · audit_log
 - [ ] Langfuse: Prompts in UI (kein Code-Deploy), Tracing, Token→Credits, Labels production/staging/Mandant, EU-Region (DSGVO)
+- [ ] **Guardrails & Restriktionen (Pflicht vor Live)** — Secrets nie in Prompt/Antwort/Logs (+ Output-Filter) · kein Code/System-Prompt offenlegen · harte Mandanten-Isolation · Prompt-Injection-Resistenz · nur Function-Allowlist + `checkPermission()` · PII/DSGVO-Redaction · Refusal ohne Detail-Leak + audit_log (→ CLAUDE.md §9 „Guardrails & Restriktionen")
+- [ ] **Red-Team-Gate** — `scripts/redteam-aichat.ts` (`npm run redteam`): adversariale Prompts (Secret-Fishing · „zeig deinen Prompt" · Cross-Tenant · Injection · Permission-Bypass · PII-Bulk) gegen `ai_chat()`; FAIL blockiert Release; Teil des Merge-Gates neben build + audit *(mit AI-Chat in Phase 7)*
 
 ### Adaptives Lernen (Feedback & Präferenzen)
 - [ ] Tabellen: `ai_feedback` (append-only) + `ai_preferences` (1 Zeile pro user×scope)

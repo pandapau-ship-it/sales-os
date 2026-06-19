@@ -1,0 +1,461 @@
+/**
+ * hunterMappers — DB-Zeilen → UI-Typen für den Hunter.
+ *
+ * Slice 1+2 (Leads-Tab, NUR Read): `contacts`-Zeile (org-gescoped, inkl. eingebettetem
+ * Company-Namen) → `Lead` fürs Listing. heatStatus kommt jetzt echt aus der DB
+ * (Slice 2). pipelineStage bleibt Platzhalter (Stage gehört zu Deals, späterer Slice).
+ * Zeit-Felder werden in der Zeile (LeadListRow) ohnehin statisch gerendert, daher leer.
+ */
+
+import type { Lead, HeatStatus } from "@/types";
+import type { DealStage } from "@/types/hunter";
+import type { LucideIcon } from "lucide-react";
+import { signalMetaFor } from "@/lib/constants";
+
+// DB-Enum (deutsch) → UI-HeatStatus. 1:1, alle 5 Stufen abgedeckt. Label/Farbe
+// kommen via HEAT_KEY_BY_STATUS + HEAT_STATUS (heiss=Engaged/grün, tot=Gone/grau).
+const DB_HEAT_TO_UI: Record<string, HeatStatus> = {
+  heiss: "HOT",
+  warm: "WARM",
+  lauwarm: "LUKEWARM",
+  kalt: "COLD",
+  tot: "DEAD",
+};
+
+// contacts.contact_status → Lifecycle-Status-Label (Leads-Zeile, Klartext).
+// Kontakt-Lifecycle, NICHT Deal-Stage (die lebt auf deals → Pipeline-Slice).
+// opt_out bleibt eigener Zustand (rechtlicher Hard-Block, nie zu „Inaktiv" verschmelzen).
+// Unbekannt/null → kein Label (Badge wird nicht gerendert).
+// Aufgeschoben (Details in PROGRESS.md → "Offene Konzept-Entscheidungen / Deferred Logic"):
+//   [D1] automatische Lifecycle-Übergänge (Edge Function) · [D2] Labels user-konfigurierbar
+//   (settings) · [D3] opt_out/archiviert-Filter im Leads-Tab.
+const CONTACT_STATUS_LABEL: Record<string, string> = {
+  ohne_campaign: "Neu",
+  in_campaign: "Aktiv",
+  pipeline: "In Pipeline",
+  kunde: "Kunde",
+  archiviert: "Inaktiv",
+  opt_out: "Opt-out",
+};
+
+// ── Zentrale Kontakt-Auflösung (Single-Source für alle Tabs) ──────────────────
+// Identitäts-/Status-Werte kommen IMMER vom Kontakt. heatStatus IMMER aus
+// contacts.heat_status. Fehlende Werte → undefined (Regel „kein Wert → unsichtbar";
+// wie der Render-Pfad das undefined behandelt, bleibt dort unverändert).
+// Stage gehört dem Deal → NICHT Teil des Profils (kommt später über den Deal-Kontext).
+export type ContactProfile = {
+  avatarUrl?: string; // contacts hat kein Foto-Feld → Initiale
+  name: string;
+  initials: string;
+  jobTitle: string;
+  company: string;
+  icpScore?: number;
+  heatStatus?: HeatStatus;
+  statusLabel?: string; // contact_status → Lifecycle-Label
+  // Kontaktwege (P2) — fehlend → undefined (Zeile/Icon unsichtbar). website = Firmen-Wert
+  // (contacts hat keine eigene Website) aus dem company-Embed; sonst domain.
+  email?: string;
+  phones: { id: string; type: string; number: string; favorite: boolean }[]; // aus contact_phones (einzige Quelle)
+  linkedinUrl?: string;
+  website?: string;
+};
+
+/* single-source:allow-start — DIE zentrale Resolver-Region: HIER (und nur hier) ist
+   der Roh-Zugriff auf gemeinsame Kontaktwerte erlaubt (Single-Source-Audit). */
+export function contactToProfile(c: Record<string, any> | null | undefined): ContactProfile {
+  const name = c
+    ? [c.first_name, c.last_name].filter(Boolean).join(" ") || c.email || "Unbekannt"
+    : "Unbekannt";
+  const initials = name
+    .split(" ")
+    .map((p: string) => p[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+  // Telefonnummern aus contact_phones (is_primary → favorite, label → type). Favorit zuerst.
+  // Keine Nummern → leeres Array (Honesty). PH4: Legacy contacts.phone entfernt — einzige Quelle.
+  const phonesRaw = Array.isArray(c?.contact_phones) ? c!.contact_phones : [];
+  let phones = phonesRaw.map((p: any) => ({
+    id: String(p.id),
+    type: p.label || "Weitere",
+    number: p.number ?? "",
+    favorite: !!p.is_primary,
+  }));
+  if (phones.length && !phones.some((p) => p.favorite)) phones[0].favorite = true; // genau-1-Favorit absichern
+  phones = phones.slice().sort((a, b) => Number(b.favorite) - Number(a.favorite)); // Favorit zuerst
+  return {
+    avatarUrl: undefined,
+    name,
+    initials,
+    jobTitle: c?.job_title ?? "",
+    company: c?.company?.name ?? "",
+    icpScore: typeof c?.icp_score === "number" ? c.icp_score : undefined,
+    heatStatus: c?.heat_status ? DB_HEAT_TO_UI[c.heat_status] : undefined,
+    statusLabel: c?.contact_status ? CONTACT_STATUS_LABEL[c.contact_status] : undefined,
+    email: c?.email || undefined,
+    phones,
+    linkedinUrl: c?.linkedin_url || undefined,
+    website: c?.company?.website || c?.company?.domain || undefined, // Firmen-Website (Kontakt hat keine eigene)
+  };
+}
+/* single-source:allow-end */
+
+// Lead + Leads-Zeilen-spezifische Anzeigefelder (LeadListRow liest `lead: any`).
+export type LeadRow = Lead & {
+  contactStatusLabel?: string; // contact_status → Lifecycle-Label; undefined → kein Badge
+  lastContactedAt: string | null; // ISO oder null → Zeit-Spalte rendert nichts
+};
+
+export function contactRowToLead(row: Record<string, any>): LeadRow {
+  const p = contactToProfile(row); // zentrale Auflösung (Identität/Status/Heat/ICP)
+
+  return {
+    id: row.id,
+    person: { id: row.id, name: p.name, jobTitle: p.jobTitle, company: p.company, initials: p.initials, avatarUrl: p.avatarUrl },
+    kurzakte: "",
+    fullTimeline: [],
+    engagementChain: [],
+    lastTouchpoints: [],
+    heatStatus: p.heatStatus ?? "DEAD", // Leads-Optik unverändert: fehlend → Gone (Render-Hide später)
+    heatScore: 0, // von HeatBadge nicht genutzt; out of scope
+    icpScore: p.icpScore,
+    lastActivity: "",
+    pipelineStage: "lead", // Platzhalter (Deal-Stage gehört in den Pipeline-Slice)
+    signalsCount: 0,
+    contactEmail: row.email ?? "",
+    contactStatusLabel: p.statusLabel, // aus zentraler Auflösung (contact_status → Label)
+    lastContactedAt: row.last_contacted_at ?? null,
+  };
+}
+
+// ── Deal-Resolver (zentrale Deal-Sicht — Pendant zu contactToProfile) ─────────
+// EINE Quelle aller Deal-ANZEIGEwerte. Jeder Deal-Mapper/Block (rowToDealView,
+// dealToPipelineRow, DealSetup, DealKurzinfo) zieht Wert/Stage/Owner/Probability/
+// Laufzeit/… HIER raus — keine doppelte Feldlogik, kein Roh-Zugriff daneben.
+// Honesty: fehlt ein Wert → undefined (Element wird ausgeblendet, nie 0/Platzhalter).
+// MRR/ARR sind BERECHNET (keine DB-Spalten): mrr = value€ / term_months, arr = mrr×12;
+// term_months fehlt/0 → mrr/arr = undefined.
+export type DealView = {
+  id: string;
+  name: string;
+  product?: string;
+  valueEur?: number; // deals.value (Cent) / 100
+  currency: string;
+  stageSlug: string; // roher Slug (Gruppierung/Filter)
+  stageLabel: string; // settings.pipeline_stages: slug → Anzeigename
+  owner?: string; // owner_id → users.full_name (Anzeige)
+  ownerId?: string; // deals.owner_id (Roh-ID — für Edit-Vorbelegung des Owner-Dropdowns)
+  probability?: number; // ABGELEITET aus der Stage (settings.pipeline_stages), nicht aus deals.probability
+  termMonths?: number; // Laufzeit (Monate)
+  noticePeriodDays?: number; // Kündigungsfrist (Tage)
+  expectedCloseDate?: string; // erwartetes Abschlussdatum (Forecast)
+  closedAt?: string; // tatsächlicher Abschluss
+  lostReason?: string; // deals.lost_reason (nur bei stage=verloren) — fehlt → ausgeblendet
+  endDate?: string; // Vertragsende/Churn
+  mrr?: number; // BERECHNET: valueEur / termMonths
+  arr?: number; // BERECHNET: mrr × 12
+};
+
+export function dealToView(
+  deal: Record<string, any>,
+  stageNameBySlug: Record<string, string> = {},
+  stageProbBySlug: Record<string, number> = {},
+): DealView {
+  const valueEur = typeof deal.value === "number" ? deal.value / 100 : undefined;
+  // term_months muss > 0 sein, sonst ist mrr/arr nicht definiert (keine Division durch 0).
+  const termMonths = typeof deal.term_months === "number" && deal.term_months > 0 ? deal.term_months : undefined;
+  const mrr = valueEur != null && termMonths ? valueEur / termMonths : undefined;
+  const arr = mrr != null ? mrr * 12 : undefined;
+  // Probability ABGELEITET aus der Stage (Admin-Setting settings.pipeline_stages), nicht
+  // aus deals.probability — analog MRR/ARR (computed, nicht gespeichert). Stage ohne
+  // Probability in der Map → undefined (Honesty: Element ausgeblendet).
+  const prob = stageProbBySlug[deal.stage];
+  const probability = typeof prob === "number" ? prob : undefined;
+  return {
+    id: deal.id,
+    name: deal.name ?? "",
+    product: deal.product || undefined,
+    valueEur,
+    currency: deal.currency ?? "EUR",
+    stageSlug: deal.stage ?? "",
+    stageLabel: stageNameBySlug[deal.stage] ?? deal.stage ?? "",
+    owner: deal.owner?.full_name || undefined,
+    ownerId: deal.owner_id ?? undefined,
+    probability,
+    termMonths,
+    noticePeriodDays: typeof deal.notice_period_days === "number" ? deal.notice_period_days : undefined,
+    expectedCloseDate: deal.expected_close_date ?? undefined,
+    closedAt: deal.closed_at ?? undefined,
+    lostReason: deal.lost_reason ?? undefined,
+    endDate: deal.end_date ?? undefined,
+    mrr,
+    arr,
+  };
+}
+
+// ── Pipeline-Liste (Slice A, Read) ───────────────────────────────────────────
+// Eine Deal-Zeile (aus getDeals, inkl. joined contact/company) → normalisierte Row.
+// Geteilt mit Slice B (Kanban): der gruppiert dieselben Rows nach stageSlug.
+export type PipelineRow = {
+  id: string;
+  contactId: string | null; // zugrundeliegender Kontakt (für Panel-Fetch / Single-Source-Kopf)
+  dealName: string;
+  contactName: string;
+  contactJobTitle: string;
+  initials: string;
+  company: string;
+  stageSlug: string;
+  stageLabel: string; // aus settings.pipeline_stages (slug → name)
+  valueEur: number | null; // deal.value ist Cent → bereits /100; null = kein Wert
+  heatStatus: HeatStatus;
+  icpScore: number | null; // deal.contact.icp_score; null → ICP-Ring nicht gerendert
+  ownerId: string | null; // deals.owner_id (Filter-Key)
+  ownerLabel: string; // owner:users.full_name (Slice C); null → „—" (kein Fake-Name)
+};
+
+export function dealToPipelineRow(
+  deal: Record<string, any>,
+  stageNameBySlug: Record<string, string>,
+): PipelineRow {
+  const p = contactToProfile(deal.contact); // zentrale Auflösung (Kontakt-Werte)
+  const d = dealToView(deal, stageNameBySlug); // zentrale Auflösung (Deal-Werte) — keine doppelte Logik
+  return {
+    id: deal.id,
+    contactId: deal.contact?.id ?? null,
+    dealName: d.name,
+    contactName: p.name,
+    contactJobTitle: p.jobTitle,
+    initials: p.initials,
+    company: p.company, // jetzt vom KONTAKT (nested embed), nicht vom Deal
+    stageSlug: d.stageSlug,
+    stageLabel: d.stageLabel, // Stage = konkreter Deal (über dealToView)
+    valueEur: d.valueEur ?? null, // DealView: undefined → null (PipelineRow-Vertrag)
+    heatStatus: p.heatStatus ?? "DEAD", // FIX: Heat aus contacts.heat_status (statt deals.heat_status); Fallback wie bisher
+    icpScore: p.icpScore ?? null,
+    ownerId: deal.owner_id ?? null,
+    ownerLabel: d.owner ?? "—", // null → ehrliches „—", kein Fake-Name
+  };
+}
+
+// ── Signals (S-0, nur Text-Auflösung; noch NICHT in der Karte verdrahtet) ─────
+/**
+ * resolveSignalText — i18n-Anzeige-Text eines Signals aus `signal_type` +
+ * `signal_data.detail` (= {{topic}}). Reine Funktion (t injiziert → testbar).
+ * Unbekannter/fehlender Typ → Fallback `custom`. Texte: i18n `hunter.signals.types.*`.
+ */
+export function resolveSignalText(
+  signal: { signal_type?: string | null; signal_data?: { detail?: string } | null },
+  t: (key: string, opts?: Record<string, unknown>) => string,
+): string {
+  const type = signal.signal_type || "custom";
+  const topic = signal.signal_data?.detail ?? "";
+  const key = `hunter.signals.types.${type}`;
+  const text = t(key, { topic });
+  // i18next gibt bei fehlendem Key den Key selbst zurück → auf `custom` zurückfallen.
+  return text === key ? t("hunter.signals.types.custom", { topic }) : text;
+}
+
+/** Kurzformat „11m"/„2h"/„3d" aus einem ISO-Zeitstempel (sprachneutral). */
+function relTimeShort(iso: string | null | undefined): string {
+  if (!iso) return "";
+  const min = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 60000));
+  if (min < 60) return `${min}m`;
+  const h = Math.floor(min / 60);
+  return h < 24 ? `${h}h` : `${Math.floor(h / 24)}d`;
+}
+
+/** Card-Props für die LinkedinSignalCard (S-2). Echte Felder + S-0-Helfer. */
+export type SignalCardProps = {
+  id: string;
+  contactId?: string; // zugrundeliegender Kontakt (für Panel-Fetch / Single-Source-Kopf)
+  name: string;
+  role: string;
+  companyName: string;
+  icpScore?: number; // fehlt/kein Kontakt → undefined → ICP-Ring nicht gerendert
+  heatStatus?: HeatStatus; // undefined → kein Heat-Badge (z.B. kontaktloses Signal)
+  actionText: string;
+  channelLabelKey: string;
+  channelIcon: LucideIcon;
+  timeAgo: string;
+  stage?: string; // Label des zuletzt aktiven Deals; kein aktiver Deal → undefined → kein Stage
+};
+
+// Terminal-Stages (kein „aktiver" Deal mehr) — SINGLE SOURCE für die ganze App.
+// `as const satisfies readonly DealStage[]` bindet die Slugs an die kanonische
+// DealStage-Union (types/hunter.ts) → kann nicht stillschweigend von ihr driften.
+// Won/Lost einzeln benannt, damit Won-only-Checks (isWon) ebenfalls aus einer Quelle kommen.
+export const WON_STAGE_SLUG = "gewonnen" as const;
+export const LOST_STAGE_SLUG = "verloren" as const;
+export const TERMINAL_STAGE_SLUGS = [WON_STAGE_SLUG, LOST_STAGE_SLUG] as const satisfies readonly DealStage[];
+/** true, wenn der Slug eine Terminal-Stage (gewonnen/verloren) ist. */
+export const isTerminalStage = (slug: string): boolean =>
+  (TERMINAL_STAGE_SLUGS as readonly string[]).includes(slug);
+const ms = (x: any) => new Date(x ?? 0).getTime();
+
+/* single-source:allow-start — Stage-Resolver (zentrale Quelle der aktiven-Deal-Stage). */
+/**
+ * latestActiveDeal — jüngster NICHT-terminaler Deal eines Kontakts (offene Pipeline).
+ * Terminal = stage gewonnen/verloren oder closed_at gesetzt; soft-gelöscht (deleted_at)
+ * zählt nie. Recency: updated_at, Tiebreaker stage_updated_at (Demo-Fall, wo updated_at
+ * ~uniform), dann created_at. Keine/nur terminale Deals → null.
+ */
+export function latestActiveDeal(
+  deals: Record<string, any>[] | null | undefined,
+): Record<string, any> | null {
+  const open = (deals ?? []).filter(
+    (d) => !isTerminalStage(d.stage) && d.closed_at == null && d.deleted_at == null,
+  );
+  if (!open.length) return null;
+  return open
+    .slice()
+    .sort(
+      (a, b) =>
+        ms(b.updated_at) - ms(a.updated_at) ||
+        ms(b.stage_updated_at) - ms(a.stage_updated_at) ||
+        ms(b.created_at) - ms(a.created_at),
+    )[0];
+}
+
+/** Stage-Label des zuletzt aktiven Deals (aus settings.pipeline_stages). Kein aktiver Deal → undefined. */
+export function contactActiveStage(
+  contact: Record<string, any> | null | undefined,
+  stageNameBySlug: Record<string, string>,
+): string | undefined {
+  const d = latestActiveDeal(contact?.deals);
+  return d ? stageNameBySlug[d.stage] ?? d.stage : undefined;
+}
+/* single-source:allow-end */
+
+// ── Neu in Pipeline (Read): frisch angelegter Deal → Kontakt-Kachel + Stage ──────
+// „Neu in Pipeline" = kürzlich angelegte Deals (deals.created_at) als Info-/Übersicht.
+// Identität/Heat/ICP zentral (contactToProfile), Stage = zuletzt aktiver Deal des
+// Kontakts (contactActiveStage). Herkunft aus deals.source_lead_id (gesetzt → AI SDR,
+// null → manuell). createdAt trägt den Zeitfilter + „vor X Tagen". Termin-Datum,
+// Meeting-Prep-Status und AI-Begleittext sind bewusst NICHT hier (Logik/Tabellen
+// fehlen → würde Daten vortäuschen; siehe PROGRESS → Deferred [D18]).
+export type NewPipelineCardItem = {
+  id: string; // deal.id
+  contactId?: string; // zugrundeliegender Kontakt (für Panel-Fetch / Single-Source-Kopf)
+  name: string;
+  role: string; // jobTitle
+  companyName: string;
+  initials: string;
+  icpScore?: number;
+  heatStatus?: HeatStatus;
+  stage?: string; // zuletzt aktiver Deal des Kontakts; keiner → undefined → keine Stage
+  createdAt: string | null; // deal.created_at (Zeitfilter + „vor X Tagen"); null → unsichtbar
+  source: "ai_sdr" | "manual";
+  dealName?: string; // deal.name; fehlt → ausgeblendet (Honesty)
+  dealValue?: number; // deal.value in Cent; fehlt → ausgeblendet
+  dealProduct?: string; // deal.product; fehlt → ausgeblendet
+};
+
+export function dealToNewPipelineRow(
+  deal: Record<string, any>,
+  stageNameBySlug: Record<string, string> = {},
+): NewPipelineCardItem {
+  const p = contactToProfile(deal.contact); // zentrale Auflösung (Identität/Status/Heat/ICP)
+  return {
+    id: deal.id,
+    contactId: deal.contact?.id,
+    name: p.name,
+    role: p.jobTitle,
+    companyName: p.company,
+    initials: p.initials,
+    icpScore: p.icpScore,
+    heatStatus: p.heatStatus,
+    stage: contactActiveStage(deal.contact, stageNameBySlug),
+    createdAt: deal.created_at ?? null,
+    source: deal.source_lead_id ? "ai_sdr" : "manual",
+    dealName: deal.name ?? undefined,
+    dealValue: deal.value ?? undefined,
+    dealProduct: deal.product ?? undefined,
+  };
+}
+
+// ── Fällige Tasks (T1, Read-Infrastruktur) ───────────────────────────────────
+// Pro fälliger Task eine Karte: Kontakt-Kachel oben (zentrale Leitung) + grauer
+// Bereich „Fällige Task" mit Titel + Fälligkeit. Fundament für den Follow-ups-Tab
+// (T2 hängt die Karten an); hier NUR Query + Mapper (noch nicht verdrahtet).
+export type DueTaskCardItem = {
+  id: string; // task.id
+  contactId?: string; // zugrundeliegender Kontakt (für Panel-Fetch / Single-Source-Kopf)
+  name: string;
+  role: string; // jobTitle
+  companyName: string;
+  initials: string;
+  icpScore?: number;
+  heatStatus?: HeatStatus;
+  stage?: string; // zuletzt aktiver Deal des Kontakts; keiner → undefined → keine Stage
+  taskTitle: string;
+  dueAt: string | null; // task.due_at (ISO) → Fälligkeit; null → unsichtbar
+};
+
+/** Fällige Task (inkl. contact+company+deals-Embed) → Karte. Identität/Heat/ICP zentral, Stage via active deal. */
+export function taskToDueCard(
+  task: Record<string, any>,
+  stageNameBySlug: Record<string, string> = {},
+): DueTaskCardItem {
+  const p = contactToProfile(task.contact); // zentrale Auflösung (Identität/Status/Heat/ICP)
+  return {
+    id: task.id,
+    contactId: task.contact?.id,
+    name: p.name,
+    role: p.jobTitle,
+    companyName: p.company,
+    initials: p.initials,
+    icpScore: p.icpScore,
+    heatStatus: p.heatStatus,
+    stage: contactActiveStage(task.contact, stageNameBySlug),
+    taskTitle: task.title ?? "",
+    dueAt: task.due_at ?? null,
+  };
+}
+
+/** Zeitfenster des Neu-in-Pipeline-Tabs (client-seitiger Filter über deal.created_at). */
+export type NewPipelinePeriod = "today" | "7d" | "30d";
+
+/** True, wenn `createdAt` im gewählten Fenster liegt. Kein Datum → false (nie „neu" ohne Beleg). */
+export function newPipelineInPeriod(
+  createdAt: string | null | undefined,
+  period: NewPipelinePeriod,
+): boolean {
+  if (!createdAt) return false;
+  const at = new Date(createdAt).getTime();
+  if (Number.isNaN(at)) return false;
+  if (period === "today") {
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+    return at >= start.getTime();
+  }
+  const days = period === "7d" ? 7 : 30;
+  return at >= Date.now() - days * 86_400_000;
+}
+
+/**
+ * signalToCardProps — signals-Zeile (inkl. contact+company+deals-Join) → Card-Props.
+ * Identität/Status/Heat/ICP aus contactToProfile; Stage = zuletzt aktiver Deal des
+ * Kontakts (kein aktiver Deal → undefined → Karte zeigt keinen Stage-Bereich).
+ */
+export function signalToCardProps(
+  signal: Record<string, any>,
+  t: (key: string, opts?: Record<string, unknown>) => string,
+  stageNameBySlug: Record<string, string> = {},
+): SignalCardProps {
+  const p = contactToProfile(signal.contact); // zentrale Auflösung (Identität/Status/Heat/ICP)
+  const meta = signalMetaFor(signal.signal_type);
+  return {
+    id: signal.id,
+    contactId: signal.contact?.id,
+    name: p.name,
+    role: p.jobTitle,
+    companyName: p.company,
+    icpScore: p.icpScore, // fehlt → undefined → Ring unsichtbar
+    heatStatus: p.heatStatus, // immer contacts.heat_status; fehlt → undefined → Badge unsichtbar (kein Fake)
+    actionText: resolveSignalText(signal, t),
+    channelLabelKey: meta.channelLabelKey,
+    channelIcon: meta.icon,
+    timeAgo: relTimeShort(signal.created_at),
+    stage: contactActiveStage(signal.contact, stageNameBySlug),
+  };
+}

@@ -4,71 +4,230 @@
  */
 
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Target,
-  Mail,
   ArrowRight,
-  MessageSquare,
-  Flame,
   ChevronLeft,
   Plus,
-  Briefcase,
   Zap,
   ChevronDown,
-  ChevronUp,
   ArrowLeft,
-  CheckCircle2,
-  AlertTriangle,
-  CalendarCheck,
   Check,
   Trash,
+  Clock,
+  ListChecks,
+  TrendingUp,
+  Users,
+  X
 } from 'lucide-react';
 import type { Lead, HeatStatus } from '@/types';
-import { getHeatColor } from '@/lib/heatUtils';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import type { PipelineStage } from '@/types/hunter';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { heatFor } from '@/lib/constants';
 import { ICPDonut } from '@/components/shared/ICPDonut';
-import CommunicationChain from '@/components/shared/CommunicationChain';
+import { NAV } from '@/lib/navBehavior';
+import { AddSdrLeadPanel, ContactColdDrawer, EmptyState, FunnelAnalysis, HeatBadge, HunterSidepanel, KpiCard, LeadListRow, LinkedinSignalCard, NewInPipelineCards, NoTaskDrawer, PipelineKeineTaskCard, PipelineStagnatedDrawer, PipelineStagniertCard, SequenceLeadCards, SignalActionDrawer, StageBadge, TaskDrawer } from '@/components';
+import type { SignalActionData } from '@/components';
+
+import Avatar from '@/components/shared/Avatar';
+import { signalToCardProps, taskToDueCard, dealToNewPipelineRow, newPipelineInPeriod, isTerminalStage, WON_STAGE_SLUG, LOST_STAGE_SLUG, type PipelineRow, type NewPipelinePeriod } from '@/lib/hunterMappers';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { updateDealStage, updateDealWon, updateDealLost } from '@/lib/db';
+import { DEMO_ORGANIZATION_ID } from '@/lib/org';
+import { useToast } from '@/components/shared/Toast';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
+import { DealLostModal, DealCloseModal } from '@/components';
+import { triggerConfetti } from '@/lib/confetti';
 
 interface ScreenHuntingProps {
   leads: Lead[];
+  // Slice 1: echte org-gescopte Leads (DB) NUR für den Leads-Tab. Fällt auf `leads`
+  // (Mock) zurück, solange nicht gesetzt. Andere Tabs nutzen weiter `leads`.
+  leadsData?: Lead[];
+  leadsLoading?: boolean;
+  leadsError?: boolean;
+  // Slice A: echte Deals (org-gescoped) für die Pipeline-Listenansicht.
+  dealsData?: PipelineRow[];
+  dealsLoading?: boolean;
+  dealsError?: boolean;
+  // Slice B: Pipeline-Stages (settings.pipeline_stages) für die Kanban-Spalten.
+  pipelineStages?: PipelineStage[];
+  // S-2: echte Signals (org-gescoped, hunter-routed) für den Signals-Tab.
+  signalsData?: Record<string, unknown>[];
+  signalsLoading?: boolean;
+  signalsError?: boolean;
+  // Follow-ups (T2): fällige Tasks (completed_at IS NULL AND due_at <= now()),
+  // inkl. Kontakt-Embed (+ company + deals für contactActiveStage).
+  dueTasksData?: Record<string, unknown>[];
+  // Neu-in-Pipeline: frisch angelegte Deals (inkl. contact + company + deals-Embed).
+  newInPipelineData?: Record<string, unknown>[];
   onSelectLead: (lead: Lead) => void;
+  // T4a: Task erledigt markieren (Follow-ups). org-Scoping/Mutation liegt im Container.
+  onCompleteTask?: (taskId: string) => void;
   onUpdateLeadStage: (leadId: string, newStage: string) => void;
   onAddLead: (lead: Lead) => void;
   onSelectCommunication?: (personId: string, tpId: string) => void;
+  onOpenCopilot?: (context?: 'elena' | 'marc') => void;
 }
 
 export default function ScreenHunting({
   leads,
-  onSelectLead,
-  onUpdateLeadStage,
+  leadsData,
+  leadsLoading,
+  leadsError,
+  dealsData,
+  dealsLoading,
+  dealsError,
+  pipelineStages,
+  signalsData,
+  signalsLoading,
+  signalsError,
+  dueTasksData,
+  newInPipelineData,
+  onCompleteTask,
   onAddLead,
-  onSelectCommunication
+  onSelectCommunication,
 }: ScreenHuntingProps) {
-  const [subTab, setSubTab] = useState<'overview' | 'leads' | 'pipeline' | 'signals' | 'sequences'>('leads');
+  const { t } = useTranslation();
+  // Leads-Tab-Quelle: echte DB-Leads, sonst Mock-Fallback. Nur dieser Tab + sein
+  // Count/Select nutzen leadRows; Pipeline/Overview/Signals bleiben auf `leads`.
+  const leadRows = leadsData ?? leads;
+  // Pipeline-Listenansicht (Slice A): echte Deals. Kanban/Tasks bleiben Mock.
+  const dealRows = dealsData ?? [];
+  // P8-2c/3 — Stage-Wechsel (Kanban-Pfeile + Liste-Dropdown). Drei Schreib-Pfade, gleiche
+  // Invalidierung: normaler Move (updateDealStage), gewonnen (updateDealWon, direkt, kein Modal),
+  // verloren (DealLostModal → updateDealLost). Reihenfolge ['deals'] zieht Liste/Kanban/Funnel mit.
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const [lostModal, setLostModal] = useState<{ open: boolean; dealId: string | null }>({ open: false, dealId: null });
+  const [closeDealModal, setCloseDealModal] = useState<{ open: boolean; dealId: string | null }>({ open: false, dealId: null });
+  const invalidateDealsScope = () => {
+    queryClient.invalidateQueries({ queryKey: ['dealsByContact', DEMO_ORGANIZATION_ID] });
+    queryClient.invalidateQueries({ queryKey: ['deals', DEMO_ORGANIZATION_ID] });
+    queryClient.invalidateQueries({ queryKey: ['newInPipeline', DEMO_ORGANIZATION_ID] });
+    queryClient.invalidateQueries({ queryKey: ['dueTasks', DEMO_ORGANIZATION_ID] }); // Follow-ups: aktive-Deal-Stage der Karte
+    queryClient.invalidateQueries({ queryKey: ['signals', DEMO_ORGANIZATION_ID] });  // Signals: aktive-Deal-Stage der Karte
+  };
+  const updateStageMutation = useMutation({
+    mutationFn: ({ dealId, newSlug }: { dealId: string; newSlug: string }) => updateDealStage(dealId, newSlug, DEMO_ORGANIZATION_ID),
+    onSuccess: () => { invalidateDealsScope(); toast('Stage geändert ✓'); },
+    onError: () => toast('Stage konnte nicht geändert werden'),
+  });
+  const wonMutation = useMutation({
+    mutationFn: (dealId: string) => updateDealWon(dealId, DEMO_ORGANIZATION_ID),
+    onSuccess: () => { invalidateDealsScope(); triggerConfetti(); toast('Deal gewonnen ✓'); },
+    onError: () => toast('Stage konnte nicht geändert werden'),
+  });
+  const lostMutation = useMutation({
+    mutationFn: ({ dealId, lostReason, note }: { dealId: string; lostReason: string; note: string }) => updateDealLost(dealId, DEMO_ORGANIZATION_ID, lostReason, note),
+    onSuccess: () => { invalidateDealsScope(); toast('Deal als verloren markiert'); setLostModal({ open: false, dealId: null }); },
+    onError: () => toast('Stage konnte nicht geändert werden'),
+  });
+  const handleStageChange = (newSlug: string, dealId: string) => {
+    if (newSlug === WON_STAGE_SLUG) { wonMutation.mutate(dealId); return; }
+    if (newSlug === LOST_STAGE_SLUG) { setLostModal({ open: true, dealId }); return; }
+    updateStageMutation.mutate({ dealId, newSlug });
+  };
+  // Pfeil → Deal eine Stage weiter (nächste in stageOptions-Reihenfolge). Ist die nächste
+  // terminal (gewonnen/verloren) → Close-Deal-Popup (Gewonnen/Verloren wählen), kein Auto-Win.
+  // Keine nächste → still (Guard).
+  const handleAdvanceStage = (currentSlug: string, dealId: string) => {
+    const idx = stageOptions.findIndex((s) => s.slug === currentSlug);
+    const next = idx >= 0 ? stageOptions[idx + 1] : undefined;
+    if (!next) return;
+    if (isTerminalStage(next.slug)) { setCloseDealModal({ open: true, dealId }); return; }
+    handleStageChange(next.slug, dealId);
+  };
+  // Pfeil ← Deal eine Stage zurück (vorherige in stageOptions-Reihenfolge). Erste Stage →
+  // keine vorherige → Button ist ausgeblendet (idx === 0). Zurück landet nie auf terminal
+  // (Terminal-Stages stehen am Ende) → direkter Write.
+  const handleRetreatStage = (currentSlug: string, dealId: string) => {
+    const idx = stageOptions.findIndex((s) => s.slug === currentSlug);
+    const prev = idx > 0 ? stageOptions[idx - 1] : undefined;
+    if (!prev) return;
+    handleStageChange(prev.slug, dealId);
+  };
+  // Stage-Liste fürs Inline-Dropdown (slug/name, in Pipeline-Reihenfolge) — wie im Panel.
+  const stageOptions = [...(pipelineStages ?? [])].sort((a, b) => a.order - b.order).map((s) => ({ slug: s.slug, name: s.name }));
+  // Signals-Tab: echte Signals → Card-Props (Mapping braucht t + Stage-Labels für aktive-Deal-Stage).
+  const stageNameBySlug = Object.fromEntries((pipelineStages ?? []).map((stg) => [stg.slug, stg.name]));
+  const signalCards = (signalsData ?? []).map((s) => signalToCardProps(s, t, stageNameBySlug));
+  // Follow-ups (T2): fällige Tasks → Card-Items (Kontakt-Kachel + aktive-Deal-Stage + Task-Titel/Fälligkeit).
+  const dueTaskCards = (dueTasksData ?? []).map((tk) => taskToDueCard(tk, stageNameBySlug));
+  // Neu-in-Pipeline: frisch angelegte Deals → Card-Items (Kontakt-Kachel + aktive-Deal-Stage + Herkunft).
+  // Default-Fenster 30T („letzter Monat") — weiteste sinnvolle Spanne, da die Seed-Recency
+  // mit dem anon-Key (RLS) nicht prüfbar ist; auf '7d'/'today' per Filter umschaltbar.
+  const [newPipelinePeriod, setNewPipelinePeriod] = useState<NewPipelinePeriod>('30d');
+  const newPipelineItems = (newInPipelineData ?? []).map((d) => dealToNewPipelineRow(d, stageNameBySlug));
+  const newPipelineFiltered = newPipelineItems.filter((it) => newPipelineInPeriod(it.createdAt, newPipelinePeriod));
+  // Übersicht-Aggregate (reine Reads, kein Write): wiederverwenden was schon geladen ist.
+  const eur = (n: number) => `€ ${new Intl.NumberFormat('de-DE').format(Math.round(n))}`;
+  const openDeals = dealRows.filter((d) => !isTerminalStage(d.stageSlug));
+  const pipelineValueEur = openDeals.reduce((sum, d) => sum + (d.valueEur ?? 0), 0); // null-Werte zählen 0
+  const openDealCount = openDeals.length;
+  const hotSignalCount = signalCards.length;       // identische Quelle wie der Signals-Tab-Count
+  const followUpsTodayCount = dueTaskCards.length;  // fällige Tasks (= Follow-ups-Tab)
+  // Funnel: Deals-Anzahl + €-Summe pro Stage (Reihenfolge/Namen aus pipeline_stages).
+  const funnelStages = [...(pipelineStages ?? [])].sort((a, b) => a.order - b.order).map((stg) => {
+    const ds = dealRows.filter((d) => d.stageSlug === stg.slug);
+    const sumEur = ds.reduce((s, d) => s + (d.valueEur ?? 0), 0);
+    return {
+      slug: stg.slug,
+      name: stg.name,
+      deals: ds.length,
+      valueLabel: eur(sumEur),
+      avgValueLabel: ds.length ? eur(sumEur / ds.length) : undefined, // Ø-Wert/Deal (ehrlich), sonst kein Tooltip
+      isWon: stg.slug === WON_STAGE_SLUG,
+    };
+  });
+  // Slice C — drei Filter, client-seitig über die geteilte dealRows-Quelle:
+  //  • Heat + Owner gelten in BEIDEN Ansichten (Liste + Kanban)
+  //  • Stage NUR in der Liste (Kanban ist bereits nach Stage gruppiert)
+  const [stageFilter, setStageFilter] = useState('all');         // slug | 'all'
+  const [heatFilter, setHeatFilter] = useState<'all' | HeatStatus>('all');
+  const [ownerFilter, setOwnerFilter] = useState('all');         // ownerId-Key | 'all'
+  const ownerKey = (id: string | null) => id ?? '__none__';      // Radix verbietet '' als Value
+  // Stufe 1 (beide Ansichten): Heat + Owner
+  const baseFilteredDeals = dealRows.filter((d) =>
+    (heatFilter === 'all' || d.heatStatus === heatFilter) &&
+    (ownerFilter === 'all' || ownerKey(d.ownerId) === ownerFilter)
+  );
+  // Stufe 2 (nur Liste): zusätzlich Stage
+  const listDealRows = stageFilter === 'all'
+    ? baseFilteredDeals
+    : baseFilteredDeals.filter((d) => d.stageSlug === stageFilter);
+  // Owner-Optionen = distinct aus allen geladenen Deals (unabhängig vom aktiven Filter)
+  const ownerOptions = Array.from(
+    new Map(dealRows.map((d) => [ownerKey(d.ownerId), d.ownerLabel])).entries(),
+  ).map(([id, label]) => ({ id, label }));
+  const [subTab, setSubTab] = useState<'overview' | 'new_leads' | 'leads' | 'pipeline' | 'signals' | 'sequences' | 'follow_ups'>('leads');
   const [expandedLeadId, setExpandedLeadId] = useState<string | null>(null);
   const [selectedLeadIds, setSelectedLeadIds] = useState<string[]>([]);
-  const [expandedCols, setExpandedCols] = useState<Record<string, boolean>>({ lead: true, pipeline: true, signal: true, sequence: false, trial: false });
-  
+  // Kanban: Spalten default expanded (Slice B); key = echter stage.slug.
+  const [expandedCols, setExpandedCols] = useState<Record<string, boolean>>({});
+  // Pipeline-Tab: Listenansicht ↔ Kanban (Toggle); 'tasks' = jetzige Task-Liste (per Button).
+  const [pipelineView, setPipelineView] = useState<'list' | 'kanban' | 'tasks'>('list');
+  // Task-Ansicht auf einen einzelnen Task fokussiert (aus Kanban-Pill heraus geöffnet).
+  const [focusedTask, setFocusedTask] = useState<'stagniert' | 'keine_task' | null>(null);
+  const openTaskCount = 2; // Mock — Phase 3: COUNT(tasks WHERE status='open')
+
   // Local state for Quick Lead Adder Dialog
   const [showAddModal, setShowAddModal] = useState(false);
-  const [newLeadName, setNewLeadName] = useState('');
-  const [newLeadCompany, setNewLeadCompany] = useState('');
-  const [newLeadRole, setNewLeadRole] = useState('');
-  const [newLeadEmail, setNewLeadEmail] = useState('');
-  const [newLeadAka, setNewLeadAka] = useState('');
-  const [newLeadHeat, setNewLeadHeat] = useState<HeatStatus>('HOT');
+
+  const [taskLead, setTaskLead] = useState<{name: string, company: string, initials: string, color: string} | null>(null);
+  const [taskTitle] = useState('Erster Outreach empfohlen — LinkedIn DM');
+  const [taskNote] = useState('Hallo Sarah,\n\nich habe gerade gesehen, dass CloudSphere stark skaliert. Da wir viele BDR-Teams im selben Bereich unterstützen, dachte ich, ein kurzer Connect macht Sinn.\n\nViele Grüße');
+
+  const [selectedSignal, setSelectedSignal] = useState<SignalActionData | null>(null);
+  const [selectedStagnatedPerson, setSelectedStagnatedPerson] = useState<any | null>(null);
+  const [selectedColdPerson, setSelectedColdPerson] = useState<any | null>(null);
+  const [selectedNoTaskPerson, setSelectedNoTaskPerson] = useState<any | null>(null);
+  // Info-Panel (§22.1, 820px) — vorerst NUR im Leads-Tab inline rechts neben der Liste.
+  const [infoPanelLead, setInfoPanelLead] = useState<Lead | null>(null);
+  // Karten-Aktion (Mail/Task/Chat) → Info-Panel öffnet direkt mit dieser Aktion.
+  const [infoPanelAction, setInfoPanelAction] = useState<'mail' | 'task' | 'chat' | null>(null);
+  const [infoPanelTab, setInfoPanelTab] = useState<'overview' | 'deals' | 'tasks' | 'activity' | 'notes' | null>(null);
 
   const toggleLeadSelection = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -76,87 +235,73 @@ export default function ScreenHunting({
       prev.includes(id) ? prev.filter(lId => lId !== id) : [...prev, id]
     );
   };
-  const selectAll = () => setSelectedLeadIds(leads.map(l => l.id));
+  const selectAll = () => setSelectedLeadIds(leadRows.map(l => l.id));
   const deselectAll = () => setSelectedLeadIds([]);
 
-  const handleCreateLead = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newLeadName || !newLeadCompany) return;
-
-    const newLead: Lead = {
-      id: `lead-new-${Date.now()}`,
-      person: {
-        id: `pers-new-${Date.now()}`,
-        name: newLeadName,
-        jobTitle: newLeadRole || 'Decision Maker',
-        company: newLeadCompany,
-        initials: newLeadName.split(' ').map(n => n[0]).join('').toUpperCase()
-      },
-      kurzakte: newLeadAka || 'Neu angelegter Lead für Outreach.',
-      fullTimeline: ['Gerade erstellt via Lead-Formular.'],
-      engagementChain: ['LINKEDIN'],
-      lastTouchpoints: [
-        { channel: 'LINKEDIN', date: 'vor 1 Min', sentiment: 'neutral', summary: 'Hinzugefügt' }
-      ],
-      heatStatus: newLeadHeat,
-      heatScore: newLeadHeat === 'HOT' ? 5 : newLeadHeat === 'WARM' ? 4 : 3,
-      lastActivity: 'Gerade eben',
-      pipelineStage: 'lead',
-      contactEmail: newLeadEmail || 'info@company.com'
-    };
-
-    onAddLead(newLead);
-    setShowAddModal(false);
-    // Reset
-    setNewLeadName('');
-    setNewLeadCompany('');
-    setNewLeadRole('');
-    setNewLeadEmail('');
-    setNewLeadAka('');
+  // Signals-Auswahl (gleiche Mechanik wie Leads). IDs = Namen der Signal-Kacheln.
+  const [selectedSignalIds, setSelectedSignalIds] = useState<string[]>([]);
+  const signalIds = signalCards.map((s) => s.id); // echte signals.id statt Namen
+  const toggleSignalSelection = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedSignalIds(prev =>
+      prev.includes(id) ? prev.filter(sId => sId !== id) : [...prev, id]
+    );
   };
+  const selectAllSignals = () => setSelectedSignalIds(signalIds);
+  const deselectAllSignals = () => setSelectedSignalIds([]);
+
+  // Minimaler Lead für das Info-Panel (Übersicht-Demokarten; später aus DB).
+  const makeLead = (id: string, name: string, jobTitle: string, company: string, initials: string, icpScore: number): Lead => ({
+    id,
+    person: { id, name, jobTitle, company, initials },
+    kurzakte: '', fullTimeline: [], engagementChain: [], lastTouchpoints: [],
+    heatStatus: 'WARM', heatScore: 3, icpScore, lastActivity: '',
+    pipelineStage: 'pipeline', signalsCount: 1, contactEmail: '',
+  });
 
   const menuItems = [
-    { id: 'overview', label: 'Übersicht', count: null },
-    { id: 'leads', label: 'Leads', count: leads.length },
-    { id: 'pipeline', label: 'Pipeline (Kanban)', count: null },
+    { id: 'overview', label: t('hunter.tabs.overview'), count: null },
+    { id: 'signals', label: t('hunter.tabs.signals'), count: hotSignalCount },
+    { id: 'new_leads', label: t('hunter.tabs.newInPipeline'), count: newPipelineFiltered.length },
+    { id: 'leads', label: t('hunter.tabs.leads'), count: leadRows.length },
+    { id: 'follow_ups', label: t('hunter.tabs.followUps'), count: dueTaskCards.length },
+    { id: 'pipeline', label: t('hunter.tabs.pipelineKanban'), count: null },
   ];
 
-  // getHeatColor imported from @/lib/heatUtils — single source of truth
+
+
 
   return (
-    <div className="flex flex-col gap-4 w-full animate-fade-in font-sans pb-12">
+    <div className="flex flex-col gap-6 w-full animate-fade-in font-sans pb-12">
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-[20px] font-semibold text-text-primary tracking-tight">Hunting (Outreach & Pipeline)</h1>
-          <p className="text-[12px] text-text-muted mt-0.5">Finde Leads, tracke Signale und verwalte Abschlussphasen.</p>
+          <h1 className="text-[20px] font-semibold text-[var(--text-primary)] tracking-tight">{t('hunter.title')}</h1>
+          <p className="text-[12px] text-[var(--text-muted)] mt-0.5">{t('hunter.subtitle')}</p>
         </div>
         <button
           onClick={() => setShowAddModal(true)}
-          className="bg-sherloq-primary hover:bg-sherloq-hover text-white text-[12px] font-semibold px-4 py-2 rounded-[10px] cursor-pointer flex items-center gap-1.5 transition-colors"
+          className="bg-[var(--sherloq-primary)] hover:bg-[var(--sherloq-primary)]/95 text-on-accent text-[12px] font-semibold px-4 py-2 rounded-full cursor-pointer shadow-sm flex items-center gap-1.5"
         >
           <Plus className="w-4 h-4" />
-          <span>SDR Lead hinzufügen</span>
+          <span>{t('hunter.addSdrLead')}</span>
         </button>
       </div>
 
       {/* Sub-Navigation (Section 12) */}
-      <div className="flex gap-1 p-1 bg-app-surface rounded-[12px] w-fit items-center">
+      <div className={`${NAV.container} ${NAV.surface} ${NAV.radius}`}>
         {menuItems.map((item) => {
           const isActive = subTab === item.id;
           return (
             <button
               key={item.id}
               onClick={() => setSubTab(item.id as any)}
-              className={`px-3.5 py-1.5 text-[12px] font-medium transition-all rounded-[9px] cursor-pointer flex items-center gap-1.5 ${
-                isActive
-                  ? 'bg-sherloq-primary text-white'
-                  : 'text-text-body hover:bg-app-bg hover:text-text-primary'
-              }`}
+              style={isActive ? { background: NAV.activeBg } : undefined}
+              className={`${NAV.subTab} ${NAV.radius} ${isActive ? NAV.active : NAV.inactive}`}
             >
               <span>{item.label}</span>
               {item.count !== null && (
-                <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-[5px] ${isActive ? 'bg-white/20 text-white' : 'bg-border text-text-muted'}`}>
+                <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-[5px] ${isActive ? NAV.badgeActive : NAV.badgeInactive}`}>
                   {item.count}
                 </span>
               )}
@@ -168,266 +313,137 @@ export default function ScreenHunting({
       {/* 1. VIEW OVERVIEW */}
       {subTab === 'overview' && (
         <div className="flex flex-col gap-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-app-surface rounded-[12px] p-5 shadow-card">
-              <span className="text-[10px] text-text-muted uppercase font-semibold">Conversations</span>
-              <h3 className="text-[28px] font-bold text-text-primary mt-1">48 Mails</h3>
-              <p className="text-[12px] text-text-body mt-1.5">Letzte 7 Tage geschickt</p>
-              <div className="w-full h-1 bg-[var(--sherloq-light)] rounded-pill mt-4 overflow-hidden">
-                <div className="w-4/5 h-full bg-sherloq-primary"></div>
-              </div>
-            </div>
-            <div className="bg-app-surface rounded-[12px] p-5 shadow-card">
-              <span className="text-[10px] text-text-muted uppercase font-semibold">LinkedIn Connector Rate</span>
-              <h3 className="text-[28px] font-bold text-text-primary mt-1">68.4%</h3>
-              <p className="text-[12px] text-text-body mt-1.5">+4.2% gegenüber Vorwoche</p>
-              <div className="w-full h-1 bg-[var(--sherloq-light)] rounded-pill mt-4 overflow-hidden">
-                <div className="w-2/3 h-full bg-sherloq-primary"></div>
-              </div>
-            </div>
-            <div className="bg-app-surface rounded-[12px] p-5 shadow-card">
-              <span className="text-[10px] text-text-muted uppercase font-semibold">BDR Ramp time (Avg)</span>
-              <h3 className="text-[28px] font-bold text-text-primary mt-1">1.8 Monate</h3>
-              <p className="text-[12px] text-text-body mt-1.5">Sherloq Ziel: &lt; 2.2 Monate ✓</p>
-              <div className="w-full h-1 bg-[var(--sherloq-light)] rounded-pill mt-4 overflow-hidden">
-                <div className="w-[90%] h-full bg-sherloq-primary"></div>
-              </div>
-            </div>
+          {/* KPI Cards — echte Aggregate (3). „Deals in Gefahr/stagniert" + „+X% Vormonat"
+              ausgeblendet: brauchen Stagnations-Berechnung (B5/[D4]) bzw. Monats-Historie. */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+
+            {/* Pipeline-Wert = Σ offene (nicht-terminale) Deals */}
+            <KpiCard
+              title={t('hunter.overview.pipelineValue')}
+              icon={<TrendingUp size={16} strokeWidth={2.5} />}
+              iconClass="bg-[var(--signal-success-bg)] text-[var(--sherloq-primary)]"
+              value={eur(pipelineValueEur)}
+              valueClass="text-text-primary"
+              subtitleClass="text-[11px] font-semibold text-text-muted"
+              subtitle={t('hunter.overview.openDeals', { count: openDealCount })}
+            />
+
+            {/* Heiße Signale = Anzahl hunter-Signale (gleiche Quelle wie Signals-Tab) */}
+            <KpiCard
+              title={t('hunter.overview.hotSignals')}
+              icon={<Zap size={16} strokeWidth={2.5} />}
+              iconClass="bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)]"
+              value={String(hotSignalCount)}
+              valueClass="text-[var(--sherloq-primary)]"
+              subtitleClass="text-[11px] font-semibold text-text-muted"
+              subtitle={t('hunter.overview.inSignalsFeed')}
+            />
+
+            {/* Follow-ups heute = Anzahl fälliger Tasks (getDueTasks) */}
+            <KpiCard
+              title={t('hunter.overview.followUpsToday')}
+              icon={<Clock size={16} strokeWidth={2.5} />}
+              iconClass="bg-[var(--signal-info-bg)] text-[var(--signal-info-text)]"
+              value={String(followUpsTodayCount)}
+              valueClass="text-text-primary"
+              subtitleClass="text-[11px] font-semibold text-text-muted"
+              subtitle={t('hunter.overview.dueTasks')}
+            />
+
           </div>
 
-          <div className="bg-app-surface rounded-[12px] p-5 text-center shadow-card">
-            <h3 className="text-[14px] font-semibold text-text-primary">Aktuelle Pipeline Performance</h3>
-            <p className="text-[11px] text-text-muted mt-1">Ereignisse und Reaktionen in Echtzeit</p>
-            <div className="h-[120px] w-full flex items-end justify-between px-8 mt-6">
-              {[25, 45, 30, 60, 48, 70, 85].map((val, idx) => (
-                <div key={idx} className="flex flex-col items-center gap-2 flex-1">
-                  <div 
-                    className="w-8 rounded-t-lg bg-sherloq-primary hover:opacity-90 max-w-[24px] transition-all"
-                    style={{ height: `${val}px` }}
-                  />
-                  <span className="text-[9px] font-mono text-text-muted">Tag {idx + 1}</span>
-                </div>
-              ))}
+          <FunnelAnalysis stages={funnelStages} />
+
+          {/* Top-5 „wichtigste Aufgaben" — gefüllt von der zentralen Priorisierungs-
+              Regel (= morning_briefing(), wie Mein Tag). Noch nicht gebaut → ruhiger
+              Platzhalter als sichtbare Tür, KEINE Fake-Karten. (PROGRESS: Regel-Thema.) */}
+          <div className="mt-2">
+            <span className="text-[10px] font-extrabold text-text-muted uppercase tracking-widest">{t('hunter.overview.top5Header')}</span>
+            <div className="mt-3">
+              <EmptyState
+                icon={<ListChecks className="w-6 h-6" />}
+                title={t('hunter.overview.top5Title')}
+                description={t('hunter.overview.top5Hint')}
+              />
             </div>
           </div>
         </div>
       )}
 
+      {subTab === 'follow_ups' && (
+        <SequenceLeadCards items={dueTaskCards} onSelectLead={setInfoPanelLead} onComplete={onCompleteTask} />
+      )}
+
+      {/* NEW LEADS VIEW */}
+      {subTab === 'new_leads' && (
+        <NewInPipelineCards
+          items={newPipelineFiltered}
+          period={newPipelinePeriod}
+          onPeriodChange={setNewPipelinePeriod}
+          onSelectLead={setInfoPanelLead}
+          onCreateTask={(lead) => { setInfoPanelAction('task'); setInfoPanelLead(lead); }}
+        />
+      )}
+
       {/* 2. VIEW LEADS (LIST) */}
       {subTab === 'leads' && (
         <div className="flex flex-col gap-4">
-          
+
           {/* List Actions / Select All Bar */}
           <div className={`transition-all duration-300 flex items-center justify-between px-2 ${selectedLeadIds.length > 0 ? 'opacity-100 h-10 mb-2' : 'opacity-0 h-0 overflow-hidden'}`}>
             <div className="flex items-center gap-3">
-              <button 
-                onClick={selectedLeadIds.length === leads.length ? deselectAll : selectAll}
-                className="flex items-center justify-center w-[22px] h-[22px] rounded-md bg-sherloq-dark border border-sherloq-dark"
+              <button
+                onClick={selectedLeadIds.length === leadRows.length ? deselectAll : selectAll}
+                className="flex items-center justify-center w-[22px] h-[22px] rounded-md bg-[var(--sherloq-primary)] border border-[var(--sherloq-primary)]"
               >
-                <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />
+                <Check className="w-3.5 h-3.5 text-on-accent" strokeWidth={3} />
               </button>
-              <span className="text-[13px] font-bold text-text-primary">
-                {selectedLeadIds.length} {selectedLeadIds.length === 1 ? 'Lead' : 'Leads'} ausgewählt
+              <span className="text-[13px] font-bold text-[var(--text-primary)]">
+                {t('hunter.leadCard.selected', { count: selectedLeadIds.length, noun: selectedLeadIds.length === 1 ? t('hunter.leadCard.leadSingular') : t('hunter.leadCard.leadPlural') })}
               </span>
-              <button onClick={deselectAll} className="ml-2 text-[12px] text-text-muted hover:text-text-body font-semibold underline underline-offset-2">Auswahl aufheben</button>
+              <button onClick={deselectAll} className="ml-2 text-[12px] text-[var(--text-muted)] hover:text-[var(--text-body)] font-semibold underline underline-offset-2">{t('hunter.leadCard.deselect')}</button>
             </div>
             <div className="flex items-center gap-2">
-              <button className="bg-app-surface border text-text-body border-border hover:border-border-strong hover:bg-app-bg px-3 py-1.5 rounded-pill text-[12px] font-semibold flex items-center gap-1.5 transition-colors">
-                <Target className="w-3.5 h-3.5" /> Zu Kampagne hinzufügen
+              <button className="bg-app-surface border text-[var(--text-body)] border-[var(--border)] hover:border-[var(--icon-muted)] hover:bg-[var(--app-bg)] px-3 py-1.5 rounded-full text-[12px] font-semibold flex items-center gap-1.5 transition-colors">
+                <Target className="w-3.5 h-3.5" /> {t('hunter.leadCard.addToCampaign')}
               </button>
-              <button className="bg-app-surface border border-red-200 text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-pill text-[12px] font-semibold flex items-center gap-1.5 transition-colors">
+              <button className="bg-app-surface border border-[var(--signal-urgent-bg)] text-[var(--signal-urgent-text)] hover:bg-[var(--signal-urgent-bg)] px-3 py-1.5 rounded-full text-[12px] font-semibold flex items-center gap-1.5 transition-colors">
                 <Trash className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
 
-          {leads.map((lead) => {
-            const heat = getHeatColor(lead.heatStatus);
+          {leadsLoading ? (
+            <div className="flex flex-col gap-3">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="h-[76px] rounded-[12px] bg-app-surface border border-[var(--border-card)] animate-pulse" />
+              ))}
+            </div>
+          ) : leadsError ? (
+            <div className="px-4 py-10 text-center text-[13px] text-[var(--signal-urgent-text)]">
+              Leads konnten nicht geladen werden.
+            </div>
+          ) : leadRows.length === 0 ? (
+            <EmptyState
+              icon={<Users className="w-6 h-6" />}
+              title="Noch keine Leads"
+              description="Füge deinen ersten Lead hinzu"
+              action={{ label: '+ SDR Lead hinzufügen', onClick: () => setShowAddModal(true) }}
+            />
+          ) : leadRows.map((lead) => {
             const isExpanded = expandedLeadId === lead.id;
-
             return (
-              <div
+              <LeadListRow
                 key={lead.id}
-                className={`group rounded-[12px] p-4 flex flex-col gap-3 shadow-card hover:shadow-hover transition-all duration-200 cursor-pointer border border-[var(--border-card)] relative ${
-                  selectedLeadIds.includes(lead.id) ? 'bg-selection-bg' : 'bg-app-surface'
-                }`}
-                onClick={() => setExpandedLeadId(isExpanded ? null : lead.id)}
-              >
-                {/* TOP ROW / COLLAPSED STATE */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative transition-transform duration-300">
-                  
-                  {/* Select Checkbox (Hover/Selected state) */}
-                  <div 
-                    onClick={(e) => toggleLeadSelection(lead.id, e)}
-                    className={`absolute -left-3 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center w-[22px] h-[22px] rounded-md z-10 ${
-                      selectedLeadIds.includes(lead.id) ? 'bg-sherloq-dark opacity-100 border-sherloq-dark' : 'bg-app-surface border-2 border-border hover:border-text-muted'
-                    }`}
-                  >
-                    {selectedLeadIds.includes(lead.id) && <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />}
-                  </div>
-
-                  {/* Avatar & Info */}
-                  <div className="flex items-center gap-4 flex-1 min-w-0 ml-0 group-hover:ml-8 transition-all duration-300">
-                    <div className="relative shrink-0">
-                      <div className="w-9 h-9 rounded-[10px] bg-sherloq-primary text-white flex items-center justify-center text-[12px] font-bold">
-                        {lead.person.initials}
-                      </div>
-                    </div>
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-[14px] font-bold text-text-primary font-sans">{lead.person.name}</span>
-                      <span className="text-[12px] text-text-muted mt-0.5 max-w-[200px] truncate">
-                        {lead.person.jobTitle}, {lead.person.company}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* ICP donut & Company Area */}
-                  <div className="hidden md:flex items-center gap-4 px-4 border-l border-border-subtle shrink-0">
-                    <div className="w-[48px] flex items-center justify-center">
-                      <ICPDonut score={lead.icpScore ?? 87} />
-                    </div>
-                    
-                    <div className="flex items-center gap-3 w-[140px] xl:w-[180px]">
-                      <div className="bg-app-bg border border-border text-text-body text-[13px] w-[34px] h-[34px] flex items-center justify-center rounded-[9px] font-semibold shrink-0">
-                        {lead.person.company.charAt(0).toUpperCase()}
-                      </div>
-                      <span className="text-[13px] text-text-body font-medium w-[120px] truncate">{lead.person.company}</span>
-                    </div>
-                  </div>
-
-                  {/* Middle Stats (Simplified) */}
-                  <div className="hidden lg:flex items-center gap-5 px-4 border-l border-border-subtle shrink-0">
-                    <div className="flex flex-col gap-1.5 w-[72px]">
-                      <span className="text-[9px] font-semibold text-text-muted tracking-wider uppercase">STAGE</span>
-                      <div className="px-2.5 py-1 rounded-[7px] bg-app-bg text-text-body text-[11px] font-medium border border-border w-fit">
-                        {lead.pipelineStage === 'pipeline' ? 'Demo' : 'Lead'}
-                      </div>
-                    </div>
-                    <div className="flex flex-col gap-1.5 w-[100px]">
-                      <span className="text-[9px] font-semibold text-text-muted tracking-wider uppercase">HEAT</span>
-                      <div className={`px-2.5 py-1 rounded-[7px] text-[11px] font-medium border flex items-center gap-1.5 w-fit ${heat.bg} ${heat.text} ${heat.border}`}>
-                        <span style={{ color: heat.dot, fontSize: 8, lineHeight: 1 }}>●</span>
-                        {heat.label}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Right Actions */}
-                  <div className="flex items-center gap-4 pl-4 border-l border-border-subtle shrink-0 justify-between md:justify-end">
-                    <div className="flex flex-col items-end hidden sm:flex w-[130px]">
-                      <span className="text-[14px] font-bold text-text-primary whitespace-nowrap">vor 5 Tagen</span>
-                      <div className="flex items-center justify-end gap-1 mt-0.5 text-[#B03020] font-medium text-[11px] whitespace-nowrap w-full">
-                        8T in Stage <AlertTriangle className="w-3 h-3" strokeWidth={2} />
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 relative w-[90px] justify-end">
-                      <button className="w-8 h-8 flex items-center justify-center text-icon-muted hover:text-text-primary transition-colors rounded-pill hover:bg-app-bg">
-                        {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                      </button>
-                      <button
-                        className="w-8 h-8 rounded-[10px] bg-[var(--sherloq-light)] text-sherloq-primary border border-sherloq-primary/10 hover:border-sherloq-primary/20 hover:bg-[var(--sherloq-light)] transition-all flex items-center justify-center"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onSelectLead(lead);
-                        }}
-                      >
-                        <ArrowRight className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* EXPANDED CONTENT */}
-                {isExpanded && (
-                  <div className="flex flex-col gap-6 border-t border-border-subtle pt-5 mt-2" onClick={(e) => e.stopPropagation()}>
-                    <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
-                      {/* Left Column (KI Kurzakte) */}
-                      <div className="md:col-span-7 bg-app-surface rounded-[24px] p-5 border border-border">
-                        <div className="flex items-center gap-2 text-[11px] font-bold font-mono text-sherloq-primary uppercase tracking-wider mb-4">
-                          <Zap className="w-4 h-4 text-sherloq-primary" /> KI Kurzakte
-                        </div>
-                        <ul className="flex flex-col gap-3 text-[13px] text-text-body leading-relaxed">
-                          <li className="flex items-start gap-2.5">
-                            <span className="w-1.5 h-1.5 bg-sherloq-primary rounded-pill mt-1.5 shrink-0" />
-                            Hat Budget-Freeze bis Q3 bestätigt. Trotzdem starkes Interesse an Feature Y — fragte aktiv nach ROI-Zahlen.
-                          </li>
-                          <li className="flex items-start gap-2.5">
-                            <span className="w-1.5 h-1.5 bg-sherloq-primary rounded-pill mt-1.5 shrink-0" />
-                            Persönlichkeit: Blau — analytisch, entscheidet auf Basis von Daten. Kein Smalltalk, direkt zum Punkt.
-                          </li>
-                          <li className="flex items-start gap-2.5">
-                            <span className="w-1.5 h-1.5 bg-sherloq-primary rounded-pill mt-1.5 shrink-0" />
-                            Objection: Timing wegen Budget-Freeze. Echter Einwand — kein Vorwand. ROI-Argument ist der Schlüssel.
-                          </li>
-                          <li className="flex items-start gap-2.5">
-                            <span className="w-1.5 h-1.5 bg-sherloq-primary rounded-pill mt-1.5 shrink-0" />
-                            Buying Signal: Demo sehr positiv, fragte nach Implementierungs-Zeitplan. Abschluss realistisch ab Q4.
-                          </li>
-                        </ul>
-                      </div>
-                      
-                      {/* Right Column (Deal Details & Aktionen) */}
-                      <div className="md:col-span-5 flex flex-col gap-5">
-                        {/* Deal Details */}
-                        <div className="bg-app-surface rounded-[24px] p-5 border border-border">
-                          <div className="flex items-center gap-2 text-[11px] font-bold font-mono text-text-muted uppercase tracking-wider mb-4">
-                            <Briefcase className="w-4 h-4" /> Deal Details
-                          </div>
-                          <div className="grid grid-cols-2 gap-4 text-[12px]">
-                            <div className="flex flex-col gap-1">
-                              <span className="text-text-muted font-mono text-[10px] uppercase tracking-wider">Volumen</span>
-                              <span className="font-bold text-sherloq-primary text-[14px]">24.000 € ARR</span>
-                            </div>
-                            <div className="flex flex-col gap-1">
-                              <span className="text-text-muted font-mono text-[10px] uppercase tracking-wider">Laufzeit</span>
-                              <span className="font-bold text-text-primary text-[14px]">12 Monate</span>
-                            </div>
-                            <div className="flex flex-col gap-1">
-                              <span className="text-text-muted font-mono text-[10px] uppercase tracking-wider">Stage</span>
-                              <span className="font-bold text-signal-urgent text-[14px] flex items-center gap-1.5">
-                                Demo <span className="font-semibold text-red-500 inline-flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> 8T</span>
-                              </span>
-                            </div>
-                            <div className="flex flex-col gap-1">
-                              <span className="text-text-muted font-mono text-[10px] uppercase tracking-wider">Probability</span>
-                              <span className="font-bold text-text-primary text-[14px]">60%</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Aktionen */}
-                        <div className="bg-app-surface rounded-[24px] p-5 border border-border">
-                          <div className="flex items-center gap-2 text-[11px] font-bold font-mono text-text-muted uppercase tracking-wider mb-4">
-                            <Target className="w-4 h-4" /> Aktionen
-                          </div>
-                          <div className="flex flex-col gap-3">
-                            <div className="flex items-center gap-2">
-                              <button className="flex-1 bg-app-surface border border-border text-text-body text-[12px] font-semibold py-2 rounded-[12px] hover:bg-app-bg transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
-                                <Mail className="w-3.5 h-3.5" /> Mail
-                              </button>
-                              <button className="flex-1 bg-app-surface border border-border text-text-body text-[12px] font-semibold py-2 rounded-[12px] hover:bg-app-bg transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
-                                <CalendarCheck className="w-3.5 h-3.5" /> Task
-                              </button>
-                              <button className="flex-1 bg-app-surface border border-border text-text-body text-[12px] font-semibold py-2 rounded-[12px] hover:bg-app-bg transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
-                                <ArrowRight className="w-3.5 h-3.5" /> Stage
-                              </button>
-                            </div>
-                            <button className="w-full bg-app-surface border border-border hover:bg-app-bg text-text-primary font-bold text-[13px] py-2.5 rounded-[12px] transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm">
-                              <MessageSquare className="w-4 h-4 text-sherloq-primary" /> AI Chat starten
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Bottom Row - Communication Chain */}
-                    <CommunicationChain 
-                      personId={lead.id} 
-                      onSelectCommunication={onSelectCommunication} 
-                    />
-                  </div>
-                )}
-              </div>
+                lead={lead}
+                isExpanded={isExpanded}
+                selected={selectedLeadIds.includes(lead.id)}
+                onToggleExpand={() => setExpandedLeadId(isExpanded ? null : lead.id)}
+                onToggleSelect={(e) => toggleLeadSelection(lead.id, e)}
+                onOpenInfo={() => setInfoPanelLead(lead)}
+                onAction={(a) => { setInfoPanelAction(a); setInfoPanelLead(lead); }}
+                onSelectCommunication={onSelectCommunication}
+              />
             );
           })}
         </div>
@@ -436,264 +452,446 @@ export default function ScreenHunting({
       {/* 3. VIEW PIPELINE (KANBAN BOARD) */}
       {subTab === 'pipeline' && (
         <div className="flex flex-col gap-4">
-          <div className="flex flex-col md:flex-row gap-4 overflow-x-auto pb-6 items-start min-h-[600px] w-full hide-scrollbar">
-            {[
-              { id: 'lead', title: 'Backlog', prev: null, next: 'pipeline' },
-              { id: 'pipeline', title: 'Demo vereinbart', prev: 'lead', next: 'signal' },
-              { id: 'signal', title: 'Follow-up offen', prev: 'pipeline', next: 'sequence' },
-              { id: 'sequence', title: 'Onboarding offen', prev: 'signal', next: 'trial' },
-              { id: 'trial', title: 'Free Trial', prev: 'sequence', next: null }
-            ].map((col) => {
-              const colLeads = leads.filter(l => l.pipelineStage === col.id).sort((a, b) => (b.icpScore ?? 0) - (a.icpScore ?? 0));
-              const count = colLeads.length;
-              const isExpanded = expandedCols[col.id];
-              const actionsCount = colLeads.filter(l => l.heatStatus === 'HOT' || l.heatStatus === 'WARM').length;
-              const totalValue = colLeads.reduce((sum, l) => sum + (l.dealValue || 0), 0);
+          <div className="flex items-center justify-between mb-2 gap-3 flex-wrap">
+            <h2 className="text-[18px] font-bold text-[var(--text-primary)]">
+              {t('hunter.pipeline.title')}
+            </h2>
 
-              return (
-                <div key={col.id} className="flex-1 min-w-[290px] w-[290px] max-w-[290px] flex flex-col h-fit transition-all duration-300 relative">
-                  {/* Column Header */}
-                  <div className="bg-app-surface rounded-[24px] p-4 shadow-card mb-4">
-                    <div className="flex justify-between items-center mb-3">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-bold text-[15px] text-text-primary">{col.title}</h3>
-                        <div className="min-w-[24px] h-6 px-1.5 rounded-pill border border-gray-200 text-gray-500 text-[11px] font-semibold flex items-center justify-center bg-gray-50 shadow-sm">
-                          {count}
-                        </div>
-                      </div>
-                      <button 
-                        onClick={() => setExpandedCols(prev => ({ ...prev, [col.id]: !prev[col.id] }))}
-                        className="w-7 h-7 rounded-pill bg-gray-50 hover:bg-gray-100 flex items-center justify-center border border-transparent hover:border-gray-200 transition-colors z-10 cursor-pointer shadow-sm"
-                      >
-                        {isExpanded ? <ChevronDown className="w-4 h-4 text-gray-500" /> : <ChevronLeft className="w-4 h-4 text-gray-500" />}
-                      </button>
-                    </div>
-                    
-                    <div className="flex flex-col gap-1">
-                      <div className="flex items-baseline gap-1.5">
-                        <span className="text-[34px] font-extrabold leading-none tracking-tight text-text-primary">{count}</span>
-                        <span className="text-[12px] text-gray-400 font-medium">Opportunities</span>
-                      </div>
-                      <div className="text-[14px] font-bold text-text-primary mt-1">
-                        {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(totalValue)}
-                      </div>
-                    </div>
-                    
-                    <div className="mt-4 flex justify-between items-center border-t border-gray-50 pt-3">
-                      <span className="text-[11px] text-gray-400 font-medium">Status</span>
-                      {actionsCount > 0 ? (
-                        <div className="text-signal-urgent bg-[var(--signal-urgent-bg)] px-2 py-0.5 rounded-[6px] text-[10px] font-semibold flex items-center gap-1 border border-[#C2410C]/10">
-                          <div className="w-1.5 h-1.5 rounded-full bg-[var(--signal-urgent-text)]"></div>
-                          {actionsCount} Action{actionsCount !== 1 ? 's' : ''}
-                        </div>
-                      ) : (
-                        <div className="text-[#15803D] bg-[#F0FDF4] px-2 py-0.5 rounded-[6px] text-[10px] font-semibold flex items-center gap-1 border border-[#15803D]/10">
-                          <CheckCircle2 className="w-3 h-3" />
-                          Im Flow
-                        </div>
-                      )}
-                    </div>
-                  </div>
+            <div className="flex items-center gap-2">
+              {/* Task-Liste-Button mit Anzahl offener Tasks → öffnet die Task-Ansicht */}
+              <button
+                onClick={() => { setFocusedTask(null); setPipelineView('tasks'); }}
+                className={`px-3.5 py-1.5 rounded-[10px] text-[13px] font-bold flex items-center gap-2 border transition-colors cursor-pointer ${
+                  pipelineView === 'tasks'
+                    ? 'bg-[var(--sherloq-primary)] text-on-accent border-[var(--sherloq-primary)]'
+                    : 'bg-app-surface text-[var(--text-body)] border-[var(--border)] hover:bg-[var(--app-bg)]'
+                }`}
+              >
+                {t('hunter.pipeline.taskList')}
+                <span className={`min-w-[20px] h-5 px-1.5 rounded-full text-[11px] font-extrabold flex items-center justify-center ${
+                  pipelineView === 'tasks' ? 'bg-on-accent/20 text-on-accent' : 'bg-[var(--signal-urgent-bg)] text-[var(--signal-urgent-text)]'
+                }`}>
+                  {openTaskCount}
+                </span>
+              </button>
 
-                  {/* Cards List (Only if expanded) */}
-                  {isExpanded && (
-                    <div className="flex flex-col gap-3">
-                      {colLeads.map(lead => {
-                        let pill: any = null;
-                        if (lead.heatStatus === 'HOT') pill = { label: 'Signal Call', colorClass: 'text-orange-600 bg-orange-50 border border-orange-100/50', icon: <Flame className="w-3 h-3" /> };
-                        else if (lead.heatStatus === 'WARM') pill = { label: 'Demo Call', colorClass: 'text-red-600 bg-red-50 border border-red-100/50', icon: <AlertTriangle className="w-3 h-3" /> };
-                        
-                        return (
-                          <div key={lead.id} className="bg-app-surface rounded-[12px] p-3.5 border border-[var(--border-card)] shadow-card hover:shadow-hover transition-all duration-200 relative group">
-                            <div className="flex justify-between items-start gap-2">
-                              <div className="flex items-center gap-2.5 min-w-0">
-                                <div className="w-8 h-8 rounded-[8px] bg-sherloq-primary text-white flex items-center justify-center text-[11px] font-bold shrink-0">
-                                  {lead.person.initials}
-                                </div>
+              {/* Toggle: Listenansicht ↔ Kanban */}
+              <div className="flex bg-[var(--app-bg)] rounded-[10px] p-1 border border-[var(--border)]">
+                <button
+                  onClick={() => setPipelineView('list')}
+                  className={`px-4 py-1.5 rounded-[8px] text-[13px] font-bold transition-all cursor-pointer ${
+                    pipelineView === 'list'
+                      ? 'bg-app-surface shadow-sm text-[var(--sherloq-primary)]'
+                      : 'text-[var(--text-muted)] hover:text-[var(--text-body)]'
+                  }`}
+                >
+                  {t('hunter.pipeline.listView')}
+                </button>
+                <button
+                  onClick={() => setPipelineView('kanban')}
+                  className={`px-4 py-1.5 rounded-[8px] text-[13px] font-bold transition-all cursor-pointer ${
+                    pipelineView === 'kanban'
+                      ? 'bg-app-surface shadow-sm text-[var(--sherloq-primary)]'
+                      : 'text-[var(--text-muted)] hover:text-[var(--text-body)]'
+                  }`}
+                >
+                  {t('hunter.pipeline.kanban')}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Slice C — Filterleiste (Liste + Kanban, nicht Tasks). Heat+Owner beide,
+              Stage nur Liste. Client-seitig über die geteilte dealRows-Quelle. */}
+          {pipelineView !== 'tasks' && (
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="text-[12px] font-bold text-text-muted">Filter:</span>
+              <Select value={heatFilter} onValueChange={(v) => setHeatFilter(v as 'all' | HeatStatus)}>
+                <SelectTrigger className="w-[170px] rounded-[10px] border-border bg-app-surface text-[13px] font-semibold text-text-primary"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Alle Heat-Stufen</SelectItem>
+                  {(['HOT', 'WARM', 'LUKEWARM', 'COLD', 'DEAD'] as HeatStatus[]).map((h) => (
+                    <SelectItem key={h} value={h}>{heatFor(h).label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={ownerFilter} onValueChange={setOwnerFilter}>
+                <SelectTrigger className="w-[190px] rounded-[10px] border-border bg-app-surface text-[13px] font-semibold text-text-primary"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Alle Deal Owner</SelectItem>
+                  {ownerOptions.map((o) => (<SelectItem key={o.id} value={o.id}>{o.label}</SelectItem>))}
+                </SelectContent>
+              </Select>
+              {pipelineView === 'list' && (
+                <Select value={stageFilter} onValueChange={setStageFilter}>
+                  <SelectTrigger className="w-[190px] rounded-[10px] border-border bg-app-surface text-[13px] font-semibold text-text-primary"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Alle Stages</SelectItem>
+                    {[...(pipelineStages ?? [])].sort((a, b) => a.order - b.order).map((s) => (
+                      <SelectItem key={s.slug} value={s.slug}>{s.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+              <span className="text-[12px] text-text-muted ml-auto font-medium">
+                {(pipelineView === 'list' ? listDealRows.length : baseFilteredDeals.length)} Deals
+              </span>
+            </div>
+          )}
+
+          {pipelineView === 'tasks' ? (
+            <div className="flex flex-col gap-4 w-full pb-8">
+              {focusedTask && (
+                <button onClick={() => setFocusedTask(null)} className="text-[12px] font-bold text-[var(--sherloq-primary)] hover:underline flex items-center gap-1.5 w-fit cursor-pointer">
+                  <ArrowLeft className="w-3.5 h-3.5" /> Alle Tasks anzeigen
+                </button>
+              )}
+              {(!focusedTask || focusedTask === 'stagniert') && (
+              <PipelineStagniertCard onSelectLead={setInfoPanelLead} onTaskAnlegen={() => setSelectedStagnatedPerson({
+                name: "Dr. Christian Brand",
+                company: "LogixFlow GmbH",
+                avatarUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150",
+                icpScore: 87,
+                daysStagnated: 8,
+                stageName: "Demo",
+                lastContactDays: 8,
+                arr: "12.500€",
+                probability: "100%",
+                aiRecommendation: "Kanalwechsel zu LinkedIn — Email ohne Response. Persönliche Nachricht mit Bezug auf letztes Gespräch.",
+                aiInsight: "Letztes Meeting: Demo positiv · Budget-Freeze erwähnt · Entscheider eingebunden",
+                tags: ["Email erschöpft", "LinkedIn noch nicht versucht", "ICP Score hoch"],
+                confidence: 87
+              })} />
+              )}
+              {(!focusedTask || focusedTask === 'keine_task') && (
+              <PipelineKeineTaskCard onSelectLead={setInfoPanelLead} onTaskAnlegen={() => setSelectedNoTaskPerson({
+                name: "Sarah Jenkins",
+                company: "CloudSphere"
+              })} />
+              )}
+            </div>
+          ) : pipelineView === 'kanban' ? (
+            <div className="flex flex-col md:flex-row gap-4 overflow-x-auto pb-6 items-start min-h-[600px] w-full hide-scrollbar">
+              {/* Slice B: Spalten aus settings.pipeline_stages (slug/name/order), echte Deals.
+                  Stage-Pfeile/Stagnations-Pills/Action-Badges entfallen (Writes/fingierte
+                  Signale → eigene Slices). */}
+              {[...(pipelineStages ?? [])].sort((a, b) => a.order - b.order).map((stage) => {
+                const colDeals = baseFilteredDeals
+                  .filter((d) => d.stageSlug === stage.slug)
+                  .sort((a, b) => (b.icpScore ?? 0) - (a.icpScore ?? 0));
+                const count = colDeals.length;
+                const totalEur = colDeals.reduce((sum, d) => sum + (d.valueEur ?? 0), 0);
+                const isExpanded = expandedCols[stage.slug] ?? true;
+
+                return (
+                  <div key={stage.slug} className="flex-1 min-w-[290px] w-[290px] max-w-[290px] flex flex-col h-fit transition-all duration-300 relative">
+                    {/* Column Header */}
+                    <div className="bg-app-surface rounded-[12px] p-4 shadow-[var(--shadow-card)] mb-4">
+                      <div className="flex justify-between items-center mb-3">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-bold text-[15px] text-[var(--text-primary)]">{stage.name}</h3>
+                          <div className="min-w-[24px] h-6 px-1.5 rounded-full border border-border text-text-muted text-[11px] font-semibold flex items-center justify-center bg-app-bg shadow-sm">
+                            {count}
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => setExpandedCols(prev => ({ ...prev, [stage.slug]: !(prev[stage.slug] ?? true) }))}
+                          className="w-7 h-7 rounded-full bg-app-bg hover:bg-app-bg flex items-center justify-center border border-transparent hover:border-border transition-colors z-10 cursor-pointer shadow-sm"
+                        >
+                          {isExpanded ? <ChevronDown className="w-4 h-4 text-text-muted" /> : <ChevronLeft className="w-4 h-4 text-text-muted" />}
+                        </button>
+                      </div>
+
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-baseline gap-1.5">
+                          <span className="text-[34px] font-extrabold leading-none tracking-tight text-[var(--text-primary)]">{count}</span>
+                          <span className="text-[12px] text-text-muted font-medium">{t('hunter.pipeline.opportunities')}</span>
+                        </div>
+                        <div className="text-[14px] font-bold text-[var(--text-primary)] mt-1">
+                          {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(totalEur)}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Cards (nur wenn expanded) */}
+                    {isExpanded && (
+                      <div className="flex flex-col gap-3">
+                        {colDeals.length === 0 ? (
+                          <div className="px-3 py-6 text-center text-[12px] text-text-muted">Keine Deals</div>
+                        ) : colDeals.map((deal) => (
+                          <div
+                            key={deal.id}
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => { setInfoPanelTab('deals'); setInfoPanelLead(makeLead(deal.contactId ?? deal.id, deal.contactName, deal.contactJobTitle, deal.company, deal.initials, deal.icpScore ?? 75)); }}
+                            className="bg-app-surface rounded-[12px] p-4 shadow-[var(--shadow-card)] hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 relative group cursor-pointer"
+                          >
+                            <div className="flex justify-between items-start mb-3">
+                              <div className="flex items-center gap-3 min-w-0">
+                                <Avatar name={deal.contactName} size={40} />
                                 <div className="flex flex-col min-w-0">
-                                  <span className="font-semibold text-[12px] text-text-primary leading-tight truncate">{lead.person.name}</span>
-                                  <span className="text-[11px] text-text-muted leading-tight truncate">{lead.person.company}</span>
+                                  <span className="font-bold text-[13px] text-[var(--text-primary)] leading-tight truncate">{deal.contactName}</span>
+                                  <span className="text-[11px] text-[var(--sherloq-primary)] leading-tight truncate mt-0.5">{deal.company}</span>
+                                  {deal.valueEur !== null && (
+                                    <span className="text-[11px] font-bold text-[var(--text-primary)] mt-1">
+                                      {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(deal.valueEur)}
+                                    </span>
+                                  )}
                                 </div>
                               </div>
-                              <div className="w-[34px] flex items-center justify-center shrink-0">
-                                <ICPDonut score={lead.icpScore ?? 75} />
+                              <div className="w-[38px] flex items-center justify-center shrink-0">
+                                {deal.icpScore != null && <ICPDonut score={deal.icpScore} />}
                               </div>
                             </div>
-
-                            {lead.dealValue && (
-                              <div className="text-[12px] font-semibold text-text-primary mt-2.5">
-                                {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(lead.dealValue)}
-                              </div>
-                            )}
-
-                            <div className="flex justify-between items-center mt-2.5 pt-2.5 border-t border-[var(--border-card)]">
-                              {pill ? (
-                                <div className={`px-2 py-0.5 rounded-[6px] text-[10px] font-medium flex items-center gap-1 ${pill.colorClass}`}>
-                                  {pill.icon}
-                                  <span>{pill.label}</span>
+                            <div className="flex justify-between items-center pt-1 gap-2">
+                              <HeatBadge status={deal.heatStatus} />
+                              {/* P8-2c: Pfeile ← / → schieben den Deal eine Stage zurück/weiter
+                                  (stageOptions-Reihenfolge). Stage selbst = Spaltenüberschrift (kein Badge).
+                                  Terminal → keine Pfeile. Erste Stage → kein ←. Letzte nicht-terminale
+                                  Stage → → blockt mit Toast (Won/Lost-Dialog P8-3). */}
+                              {!isTerminalStage(deal.stageSlug) && (
+                                <div className="flex items-center gap-1.5 shrink-0">
+                                  {stageOptions.findIndex((s) => s.slug === deal.stageSlug) > 0 && (
+                                    <button
+                                      type="button"
+                                      aria-label="Eine Stage zurück"
+                                      data-tip="Eine Stage zurück"
+                                      disabled={updateStageMutation.isPending}
+                                      onClick={(e) => { e.stopPropagation(); handleRetreatStage(deal.stageSlug, deal.id); }}
+                                      className="w-8 h-8 rounded-full bg-app-bg text-text-muted hover:scale-105 transition-all flex items-center justify-center shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-default disabled:hover:scale-100"
+                                    >
+                                      <ArrowLeft className="w-4 h-4" />
+                                    </button>
+                                  )}
+                                  <button
+                                    type="button"
+                                    aria-label="Eine Stage weiter"
+                                    data-tip="Eine Stage weiter"
+                                    disabled={updateStageMutation.isPending}
+                                    onClick={(e) => { e.stopPropagation(); handleAdvanceStage(deal.stageSlug, deal.id); }}
+                                    className="w-8 h-8 rounded-full bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)] hover:scale-105 transition-all flex items-center justify-center shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-default disabled:hover:scale-100"
+                                  >
+                                    <ArrowRight className="w-4 h-4" />
+                                  </button>
                                 </div>
-                              ) : <div />}
-
-                              <div className="flex items-center gap-1.5">
-                                {col.prev && (
-                                  <button
-                                    onClick={() => onUpdateLeadStage(lead.id, col.prev!)}
-                                    className="w-6 h-6 rounded-[6px] bg-app-bg hover:bg-border text-text-muted flex items-center justify-center transition-colors cursor-pointer border border-border"
-                                  >
-                                    <ArrowLeft className="w-3 h-3" />
-                                  </button>
-                                )}
-                                {col.next && (
-                                  <button
-                                    onClick={() => onUpdateLeadStage(lead.id, col.next!)}
-                                    className="w-6 h-6 rounded-[6px] bg-sherloq-primary hover:bg-sherloq-hover text-white flex items-center justify-center transition-colors cursor-pointer"
-                                  >
-                                    <ArrowRight className="w-3 h-3" />
-                                  </button>
-                                )}
-                              </div>
+                              )}
                             </div>
                           </div>
-                        );
-                      })}
-                    </div>
-                  )}
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3 pb-8">
+              {/* Deals-Tabelle (Count + Filter sitzen in der Filterleiste oben) */}
+              <div className="bg-app-surface rounded-[12px] border border-border shadow-[var(--shadow-card)] overflow-hidden">
+                <div className="grid grid-cols-[1.8fr_1.6fr_1.3fr_1.1fr_0.9fr_1.1fr_auto] gap-4 px-4 py-2.5 bg-app-bg border-b border-border text-[10px] font-extrabold text-text-muted uppercase tracking-wider">
+                  <span>Kontakt</span>
+                  <span>Firma</span>
+                  <span>Stage</span>
+                  <span>Deal Owner</span>
+                  <span>Wert</span>
+                  <span>Heat</span>
+                  <span className="w-8" />
                 </div>
-              );
-            })}
-          </div>
+                {dealsLoading ? (
+                  <div className="px-4 py-10 text-center text-[13px] text-text-muted">Lädt …</div>
+                ) : dealsError ? (
+                  <div className="px-4 py-10 text-center text-[13px] text-[var(--signal-urgent-text)]">Deals konnten nicht geladen werden.</div>
+                ) : listDealRows.length === 0 ? (
+                  <div className="px-4 py-10 text-center text-[13px] text-text-muted">Keine Deals für diese Filter.</div>
+                ) : listDealRows.map((deal) => (
+                  <div key={deal.id} className="grid grid-cols-[1.8fr_1.6fr_1.3fr_1.1fr_0.9fr_1.1fr_auto] gap-4 px-4 py-3 items-center border-b border-border-subtle last:border-0 hover:bg-app-bg transition-colors">
+                    {/* KONTAKT: Avatar · Name (flex-1 → schiebt den ICP-Ring ans rechte Ende = bündig untereinander) · ICP-Ring. */}
+                    <div className="flex items-center gap-3 min-w-0">
+                      <Avatar name={deal.contactName} size={32} />
+                      <span className="flex-1 min-w-0 text-[13px] font-bold text-text-primary truncate">{deal.contactName}</span>
+                      {deal.icpScore != null && <ICPDonut score={deal.icpScore} size={26} />}
+                    </div>
+                    {/* FIRMA: eigene Spalte — Company-Avatar (abgerundetes Quadrat) + Name (teal). Echt aus contactToProfile. */}
+                    <div className="flex items-center gap-2 min-w-0">
+                      {deal.company ? (
+                        <>
+                          <Avatar name={deal.company} size={32} radius={9} />
+                          <span className="text-[13px] font-semibold text-[var(--sherloq-primary)] truncate">{deal.company}</span>
+                        </>
+                      ) : (
+                        <span className="text-[12px] text-text-muted">—</span>
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      {/* P8-2d: Stage-Badge klickbar → Inline-Dropdown → Stage wechseln (echter Write).
+                          Dekorativer StageBadge bleibt read-only; nur der Wrapper trägt onClick. */}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild disabled={updateStageMutation.isPending && updateStageMutation.variables?.dealId === deal.id}>
+                          <button type="button" aria-label="Stage ändern" data-tip="Stage ändern" className="cursor-pointer disabled:opacity-50 disabled:cursor-default rounded-full">
+                            <StageBadge stage={deal.stageLabel} />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start">
+                          {stageOptions.map((s) => (
+                            <DropdownMenuItem key={s.slug} disabled={s.slug === deal.stageSlug} onSelect={() => handleStageChange(s.slug, deal.id)}>
+                              {s.name}
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                    <span className="text-[12px] text-text-body font-medium truncate">{deal.ownerLabel}</span>
+                    <span className="text-[12px] font-bold text-text-primary">
+                      {deal.valueEur !== null ? new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(deal.valueEur) : '—'}
+                    </span>
+                    <div className="min-w-0">
+                      <HeatBadge status={deal.heatStatus} />
+                    </div>
+                    <button
+                      onClick={() => setInfoPanelLead(makeLead(deal.contactId ?? deal.id, deal.contactName, deal.contactJobTitle, deal.company, deal.initials, 75))}
+                      className="w-8 h-8 rounded-full bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)] hover:scale-105 transition-all flex items-center justify-center shadow-sm cursor-pointer shrink-0"
+                    >
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
-      {/* QUICK ADD MODAL — shadcn Dialog (focus-trap, keyboard, a11y built-in) */}
-      <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
-        <DialogContent className="max-w-[460px]">
-          <DialogHeader>
-            <DialogTitle className="text-[15px] font-bold text-text-primary flex items-center gap-2">
-              <Target className="w-5 h-5 text-sherloq-primary" />
-              Neuen SDR Lead anlegen
-            </DialogTitle>
-          </DialogHeader>
+      {/* SIGNALS TAB */}
+      {subTab === 'signals' && (
+        <div className="flex flex-col gap-4">
 
-          <form onSubmit={handleCreateLead} className="flex flex-col gap-3.5 mt-2">
-            <div>
-              <label className="text-[11px] text-text-muted font-semibold block mb-1">Voller Name *</label>
-              <input
-                type="text"
-                required
-                placeholder="z.B. Dr. Michael Schumacher"
-                value={newLeadName}
-                onChange={(e) => setNewLeadName(e.target.value)}
-                className="w-full text-[12px] font-sans px-3.5 py-2.5 bg-app-bg border border-border focus:border-sherloq-primary rounded-[10px] focus:outline-none"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-[11px] text-text-muted font-semibold block mb-1">Unternehmen *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="z.B. Porsche AG"
-                  value={newLeadCompany}
-                  onChange={(e) => setNewLeadCompany(e.target.value)}
-                  className="w-full text-[12px] font-sans px-3.5 py-2.5 bg-app-bg border border-border focus:border-sherloq-primary rounded-[10px] focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="text-[11px] text-text-muted font-semibold block mb-1">Rolle / Position</label>
-                <input
-                  type="text"
-                  placeholder="z.B. VP of Procurement"
-                  value={newLeadRole}
-                  onChange={(e) => setNewLeadRole(e.target.value)}
-                  className="w-full text-[12px] font-sans px-3.5 py-2.5 bg-app-bg border border-border focus:border-sherloq-primary rounded-[10px] focus:outline-none"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="text-[11px] text-text-muted font-semibold block mb-1">Kontakt E-Mail</label>
-              <input
-                type="email"
-                placeholder="m.schumacher@porsche.de"
-                value={newLeadEmail}
-                onChange={(e) => setNewLeadEmail(e.target.value)}
-                className="w-full text-[12px] font-sans px-3.5 py-2.5 bg-app-bg border border-border focus:border-sherloq-primary rounded-[10px] focus:outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="text-[11px] text-text-muted font-semibold block mb-1">SDR Kurzakte (AI-Summary Vorschau)</label>
-              <textarea
-                placeholder="Interesse an schnellerer BDR Einarbeitung im EMEA Raum. Erwartet DSGVO Abnahme..."
-                rows={2}
-                value={newLeadAka}
-                onChange={(e) => setNewLeadAka(e.target.value)}
-                className="w-full text-[11px] font-mono leading-relaxed p-3 bg-app-bg border border-border focus:border-sherloq-primary rounded-[10px] focus:outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="text-[11px] text-text-muted font-semibold block mb-1">Lead Heat-Level</label>
-              {/* shadcn Select — keyboard, a11y, and focus-trap built in */}
-              <Select value={newLeadHeat} onValueChange={(v) => setNewLeadHeat(v as HeatStatus)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="HOT">
-                    <span className="flex items-center gap-2">
-                      <span style={{ color: 'var(--signal-success-text)', fontSize: 8, lineHeight: 1 }}>●</span>
-                      Aktiv
-                    </span>
-                  </SelectItem>
-                  <SelectItem value="WARM">
-                    <span className="flex items-center gap-2">
-                      <span style={{ color: 'var(--signal-warm-text)', fontSize: 8, lineHeight: 1 }}>●</span>
-                      Stabil
-                    </span>
-                  </SelectItem>
-                  <SelectItem value="LUKEWARM">
-                    <span className="flex items-center gap-2">
-                      <span style={{ color: 'var(--signal-warn-text)', fontSize: 8, lineHeight: 1 }}>●</span>
-                      Rückläufig
-                    </span>
-                  </SelectItem>
-                  <SelectItem value="COLD">
-                    <span className="flex items-center gap-2">
-                      <span style={{ color: 'var(--signal-cold-text)', fontSize: 8, lineHeight: 1 }}>●</span>
-                      Ruhend
-                    </span>
-                  </SelectItem>
-                  <SelectItem value="DEAD">
-                    <span className="flex items-center gap-2">
-                      <span style={{ color: 'var(--text-muted)', fontSize: 8, lineHeight: 1 }}>●</span>
-                      Inaktiv
-                    </span>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex justify-end gap-2.5 mt-2">
+          {/* Bulk-Aktionsleiste — gleiche Leiste wie bei Leads */}
+          <div className={`transition-all duration-300 flex items-center justify-between px-2 ${selectedSignalIds.length > 0 ? 'opacity-100 h-10 mb-2' : 'opacity-0 h-0 overflow-hidden'}`}>
+            <div className="flex items-center gap-3">
               <button
-                type="button"
-                onClick={() => setShowAddModal(false)}
-                className="px-4 py-2 bg-app-bg hover:bg-[var(--border)] text-text-body text-[12px] rounded-[10px] cursor-pointer border border-border"
+                onClick={selectedSignalIds.length === signalIds.length ? deselectAllSignals : selectAllSignals}
+                className="flex items-center justify-center w-[22px] h-[22px] rounded-md bg-[var(--sherloq-primary)] border border-[var(--sherloq-primary)]"
               >
-                Abbrechen
+                <Check className="w-3.5 h-3.5 text-on-accent" strokeWidth={3} />
               </button>
-              <button
-                type="submit"
-                className="px-5 py-2 bg-sherloq-primary hover:bg-sherloq-hover text-white text-[12px] font-semibold rounded-[10px] cursor-pointer"
-              >
-                Lead anlegen
+              <span className="text-[13px] font-bold text-[var(--text-primary)]">
+                {t('hunter.signals.selected', { count: selectedSignalIds.length, noun: selectedSignalIds.length === 1 ? t('hunter.signals.signalSingular') : t('hunter.signals.signalPlural') })}
+              </span>
+              <button onClick={deselectAllSignals} className="ml-2 text-[12px] text-[var(--text-muted)] hover:text-[var(--text-body)] font-semibold underline underline-offset-2">{t('hunter.signals.deselect')}</button>
+            </div>
+            <div className="flex items-center gap-2">
+              <button className="bg-app-surface border text-[var(--text-body)] border-[var(--border)] hover:border-[var(--icon-muted)] hover:bg-[var(--app-bg)] px-3 py-1.5 rounded-full text-[12px] font-semibold flex items-center gap-1.5 transition-colors">
+                <X className="w-3.5 h-3.5" /> {t('hunter.signals.ignore')}
+              </button>
+              <button className="bg-app-surface border text-[var(--text-body)] border-[var(--border)] hover:border-[var(--icon-muted)] hover:bg-[var(--app-bg)] px-3 py-1.5 rounded-full text-[12px] font-semibold flex items-center gap-1.5 transition-colors">
+                <Clock className="w-3.5 h-3.5" /> {t('hunter.signals.snooze')}
+              </button>
+              <button className="bg-app-surface border border-[var(--signal-urgent-bg)] text-[var(--signal-urgent-text)] hover:bg-[var(--signal-urgent-bg)] px-3 py-1.5 rounded-full text-[12px] font-semibold flex items-center gap-1.5 transition-colors">
+                <Trash className="w-3.5 h-3.5" />
               </button>
             </div>
-          </form>
-        </DialogContent>
-      </Dialog>
+          </div>
+
+          {signalsLoading ? (
+            <div className="flex flex-col gap-3">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="h-[88px] rounded-[12px] bg-app-surface border border-[var(--border-card)] animate-pulse" />
+              ))}
+            </div>
+          ) : signalsError ? (
+            <div className="px-4 py-10 text-center text-[13px] text-[var(--signal-urgent-text)]">Signale konnten nicht geladen werden.</div>
+          ) : signalCards.length === 0 ? (
+            <EmptyState
+              icon={<Zap className="w-6 h-6" />}
+              title="Keine Signale heute"
+              description="Neue Signale erscheinen hier automatisch"
+            />
+          ) : (
+            signalCards.map(({ id, ...cardProps }) => (
+              <LinkedinSignalCard
+                key={id}
+                {...cardProps}
+                showUrgency={false}
+                showStage={true}
+                selected={selectedSignalIds.includes(id)}
+                onToggleSelect={(e) => toggleSignalSelection(id, e)}
+                onOpenInfo={setInfoPanelLead}
+              />
+            ))
+          )}
+        </div>
+      )}
+
+      {/* SDR Lead anlegen — Action-Side-Panel (features/hunter/AddSdrLeadPanel) */}
+      <AddSdrLeadPanel open={showAddModal} onClose={() => setShowAddModal(false)} onAdd={onAddLead} />
+
+      {taskLead && (
+        <TaskDrawer 
+          person={{
+            person: {
+              name: taskLead.name,
+              company: taskLead.company,
+              initials: taskLead.initials,
+              jobTitle: 'VP of Growth'
+            },
+            icpScore: 92
+          }}
+          recommendedTitle={taskTitle}
+          recommendedNote={taskNote}
+          onClose={() => setTaskLead(null)}
+          onSave={() => setTaskLead(null)}
+        />
+      )}
+
+
+      <SignalActionDrawer
+        signal={selectedSignal}
+        onClose={() => setSelectedSignal(null)}
+      />
+
+      <PipelineStagnatedDrawer
+        person={selectedStagnatedPerson}
+        onClose={() => setSelectedStagnatedPerson(null)}
+        onTakeAction={(text) => {
+          console.log('Took action with text:', text);
+        }}
+      />
+
+      <ContactColdDrawer
+        person={selectedColdPerson}
+        onClose={() => setSelectedColdPerson(null)}
+      />
+
+      <NoTaskDrawer
+        person={selectedNoTaskPerson}
+        onClose={() => setSelectedNoTaskPerson(null)}
+      />
+
+      {/* Info Panel (§22.1, 820px) — Slide-in-Overlay, vorerst nur Leads-Tab.
+          Immer gemountet für die Ausfahr-Animation; person=null → geschlossen. */}
+      <HunterSidepanel
+        person={infoPanelLead?.person ?? null}
+        initialAction={infoPanelAction}
+        initialTab={infoPanelTab}
+        onClose={() => { setInfoPanelLead(null); setInfoPanelAction(null); setInfoPanelTab(null); }}
+      />
+
+      {/* P8-3c: Close-Deal-Popup (letzter Kanban-Pfeil) → Gewonnen (direkt + Konfetti) / Verloren (Lost-Modal). */}
+      <DealCloseModal
+        open={closeDealModal.open}
+        onWon={() => { const id = closeDealModal.dealId; setCloseDealModal({ open: false, dealId: null }); if (id) wonMutation.mutate(id); }}
+        onLost={() => { const id = closeDealModal.dealId; setCloseDealModal({ open: false, dealId: null }); setLostModal({ open: true, dealId: id }); }}
+        onCancel={() => setCloseDealModal({ open: false, dealId: null })}
+      />
+
+      {/* P8-3: Lost-Dialog bei Wechsel in „verloren" (Kanban-Pfeil/Liste-Dropdown). Won = kein Modal. */}
+      <DealLostModal
+        open={lostModal.open}
+        pending={lostMutation.isPending}
+        onCancel={() => setLostModal({ open: false, dealId: null })}
+        onConfirm={(lostReason, note) => { if (lostModal.dealId) lostMutation.mutate({ dealId: lostModal.dealId, lostReason, note }); }}
+      />
+
     </div>
   );
 }

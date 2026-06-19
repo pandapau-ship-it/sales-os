@@ -1,10 +1,13 @@
 /**
- * Avatar — Initialen-Fallback, optional Bild.
- * Größen: sm (28px) / md (36px) / lg (44px).
- * Form: rounded-[10px] (Avatar-Ebene der Radius-Hierarchie, CLAUDE.md) —
- * konsistent mit den Avataren in TopBar/Sidebar.
+ * Avatar — die EINZIGE Avatar-Primitive der App. Bild (optional) mit automatischem
+ * Fallback auf Initialen (helle Teal-Fläche + Teal-Initialen, app-weit einheitlich).
+ * Nur Parameter unterscheiden die Vorkommen:
+ *   - `size`: sm/md/lg (28/36/44) ODER beliebige Pixelzahl (Schrift skaliert mit).
+ *   - `radius`: ohne Angabe Kreis (rounded-full); mit Wert = abgerundetes Quadrat (px).
+ * Kaputte Bild-URLs (onError) fallen automatisch auf Initialen zurück.
  */
 
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 type AvatarSize = "sm" | "md" | "lg";
@@ -26,25 +29,43 @@ function initials(name: string): string {
 interface AvatarProps {
   name: string;
   src?: string;
-  size?: AvatarSize;
+  size?: AvatarSize | number;
+  /** Eckenradius in px → abgerundetes Quadrat. Ohne Angabe: Kreis. */
+  radius?: number;
   className?: string;
 }
 
-export default function Avatar({ name, src, size = "md", className }: AvatarProps) {
-  const px = PX[size];
+export default function Avatar({ name, src, size = "md", radius, className }: AvatarProps) {
+  const [errored, setErrored] = useState(false);
+  const isNumeric = typeof size === "number";
+  const px = isNumeric ? (size as number) : PX[size as AvatarSize];
+  // Schrift: bei benannten Größen feste Klasse, bei Pixel-Größen proportional skaliert.
+  const fontClass = isNumeric ? "" : FONT[size as AvatarSize];
+  const showImg = Boolean(src) && !errored;
   return (
     <div
-      style={{ width: px, height: px }}
+      style={{
+        width: px,
+        height: px,
+        borderRadius: radius ?? 9999,
+        ...(isNumeric ? { fontSize: Math.round(px * 0.36) } : {}),
+      }}
       className={cn(
-        "rounded-[10px] overflow-hidden shrink-0 flex items-center justify-center select-none",
-        "bg-sherloq-primary text-white font-semibold",
-        FONT[size],
+        "overflow-hidden shrink-0 flex items-center justify-center select-none",
+        // Fallback (ohne Bild): helle Teal-Fläche + Teal-Initialen — app-weit einheitlich.
+        "bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)] font-semibold",
+        fontClass,
         className,
       )}
       aria-label={name}
     >
-      {src ? (
-        <img src={src} alt={name} className="w-full h-full object-cover" />
+      {showImg ? (
+        <img
+          src={src}
+          alt={name}
+          onError={() => setErrored(true)}
+          className="w-full h-full object-cover"
+        />
       ) : (
         initials(name)
       )}

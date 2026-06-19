@@ -64,6 +64,13 @@
   --signal-cold-text:   #0369A1;
   --signal-teal-bg:     #F0FAFA;
   --signal-teal-text:   #155E5C;
+  /* Heat-Status Farben — Quelle: HEAT_STATUS in src/lib/constants.ts.
+     Rot bleibt ausschließlich für Warnungen (Stagnation, überfällige Tasks). */
+  --color-success:      #15803D;
+  --color-warning-soft: #CA8A04;
+  --color-warning:      #EA580C;
+  --color-info:         #2563EB;
+  --color-muted:        #6B7280;
 
   /* Extended UI Tokens */
   --sherloq-dark:    #064E3B;  /* selected checkbox, deepest CTA */
@@ -71,6 +78,7 @@
   --icon-muted:      #ADB5BD;  /* muted icons, placeholder text */
   --selection-bg:    #EDF5F5;  /* selected row background */
   --accent-teal:     #36D1A1;  /* CommunicationChain progress bar */
+  --accent-purple:   #8B5CF6;  /* AI / Insight Akzent (Signale, AI-Hinweise) */
 
   /* Personality Colors (DISG) */
   --personality-rot-text:   #E11D48;
@@ -92,6 +100,11 @@
   --channel-phone:    #10B981;
   --channel-whatsapp: #25D366;
 
+  /* Brand-Kanal-Logos (Marken-Glyphen, konstant in beiden Modi) */
+  --brand-gmail:      #EA4335;
+  --brand-outlook:    #0078D4;
+  --brand-meet:       #00897B;
+
   /* ICP Score Colors */
   --icp-high:   #2B8A3E;
   --icp-medium: #F59E0B;
@@ -107,6 +120,11 @@
   --primary-foreground: 0 0% 100%;
   --border-shadcn:    214 14% 91%;
   --radius:           0.5rem;
+
+  /* Fixe Akzent-/Overlay-Tokens (kein bg-white/black/gray nötig) */
+  --on-accent:        #FFFFFF;   /* Text/Icon auf farbigem/dunklem Grund — bleibt hell in beiden Modi */
+  --inverse-surface:  #111827;   /* dunkle Fläche (Toasts) — Light */
+  --scrim:            #0B1120;   /* Overlay/Backdrop — fix dunkel in beiden Modi */
 }
 
 /* ─── Dark Mode — überschreibt NUR die Tokens, @theme inline folgt automatisch ──
@@ -151,6 +169,10 @@
   --signal-info-bg:     #17263A; --signal-info-text:   #60A5FA;
   --signal-cold-bg:     #16283A; --signal-cold-text:   #38BDF8;
   --signal-teal-bg:     #12302F; --signal-teal-text:   #2DD4BF;
+  /* Heat-Status Farben (Dark) */
+  --color-success:      #4ADE80; --color-warning-soft: #FACC15;
+  --color-warning:      #FB923C; --color-info:         #60A5FA;
+  --color-muted:        #9CA3AF;
 
   /* Extended UI Tokens */
   --sherloq-dark:    #34A3A0;
@@ -158,6 +180,7 @@
   --icon-muted:      #64748B;
   --selection-bg:    #14322F;
   --accent-teal:     #36D1A1;
+  --accent-purple:   #A78BFA;
 
   /* Personality Colors (DISG) — aufgehellt */
   --personality-rot-text:   #FB7185; --personality-rot-bg:   #3A1A22;
@@ -177,6 +200,10 @@
   --primary:          179 53% 36%;
   --primary-foreground: 0 0% 100%;
   --border-shadcn:    220 26% 22%;
+
+  /* Inverse Fläche im Dark Mode etwas heller, damit Toasts auf dunklem Grund abheben.
+     --on-accent / --scrim bleiben bewusst fix (hell bzw. dunkel). */
+  --inverse-surface:  #1E293B;
 }
 
 /* ─── Tailwind v4 @theme — mapped for utility classes ────────────────────────
@@ -220,6 +247,32 @@
   /* Border */
   --color-border:                var(--border);
   --color-border-strong:         var(--border-strong);
+
+  /* shadcn-Primitive: Farbnamen → unsere Design-Tokens (EIN Token-Satz für
+     shadcn + eigene Komponenten; Dark Mode greift automatisch via [data-theme]). */
+  --color-background:            var(--surface);
+  --color-foreground:            var(--text-primary);
+  --color-card:                  var(--surface);
+  --color-card-foreground:       var(--text-primary);
+  --color-popover:               var(--surface);
+  --color-popover-foreground:    var(--text-primary);
+  --color-primary:               var(--sherloq-primary);
+  --color-primary-foreground:    #FFFFFF;
+  --color-secondary:             var(--app-bg);
+  --color-secondary-foreground:  var(--text-primary);
+  /* --color-muted ist Heat-„Gone"-Grau (siehe :root) — bg-muted-Utility ungenutzt. */
+  --color-muted-foreground:      var(--text-muted);
+  --color-accent:                var(--app-bg);
+  --color-accent-foreground:     var(--text-primary);
+  --color-destructive:           var(--signal-urgent-text);
+  --color-destructive-foreground: #FFFFFF;
+  --color-input:                 var(--border);
+  --color-ring:                  var(--sherloq-primary);
+
+  /* Fixe Akzent-/Overlay-Tokens */
+  --color-on-accent:             var(--on-accent);
+  --color-inverse-surface:       var(--inverse-surface);
+  --color-scrim:                 var(--scrim);
 
   /* Radius */
   --radius-card:                 var(--radius-card);
@@ -361,6 +414,28 @@ body {
   color: var(--text-muted);
   border: 1px solid var(--border);
 }
+
+/* ─── Typo-Kanon — zentrale Schrift-Stufen (Größe + Gewicht + Transform/Tracking) ─
+ * EINE Definition pro Stufe (Pendant zu HeatBadge/StageBadge für Text). Komponenten
+ * setzen NUR diese Klasse + eine Farb-Utility (text-text-primary/-muted) und ggf.
+ * leading-*. Rohe Schrift-Klassen (text-[Npx] font-*) an Titeln/Headern/Labels/Werten
+ * sind in Panel-Blocks verboten → `npm run audit` (Check „Typo-Kanon") meldet FAIL.
+ * Werte = real aus der Diagnose (nicht neu erfunden). Farbe bleibt bewusst draußen.
+ * ─────────────────────────────────────────────────────────────────────────────── */
+/* Section-Header eines 820px-Panel-Tabs/Blocks (z.B. OFFENE TASKS, DEAL SETUP, DEALS) */
+.typo-section-label  { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; }
+/* Karten-Header in der Chevron-Kurzansicht (DealKurzinfo, KiKurzakte, HunterCard) */
+.typo-chevron-header { font-size: 11px; font-weight: 700; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace; text-transform: uppercase; letter-spacing: 0.05em; }
+/* Listen-Karten-Titel in Tabs (Tasks, Aktivität, Kommunikation, Deals) + Entitätsname */
+.typo-card-title     { font-size: 14px; font-weight: 700; }
+/* Feld-Label im Kennzahlen-Grid (PRODUKT, STAGE, …) */
+.typo-field-label    { font-size: 10px; font-weight: 400; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace; text-transform: uppercase; letter-spacing: 0.05em; }
+/* Feld-Wert im Kennzahlen-Grid */
+.typo-field-value    { font-size: 14px; font-weight: 700; }
+/* Subzeile unter einem Karten-Titel (Meta: Wert · Owner · Datum) */
+.typo-subline        { font-size: 11px; font-weight: 400; }
+/* Chip/Badge-Text (Produkt-/Kanal-/Prioritäts-Pills) */
+.typo-chip           { font-size: 10px; font-weight: 700; }
 
 /* Custom scrollbar */
 .custom-scrollbar::-webkit-scrollbar        { width: 6px; }

@@ -202,6 +202,196 @@ function checkNoEmojiBadges(): void {
     offenders.length ? `Emoji gefunden in: ${offenders.join(', ')}` : 'Keine Status-Emoji in .tsx.')
 }
 
+// ── Design: nur Token-Farben (Dark Mode) ────────────────────────────────────
+// Hardcodierte Farben brechen Dark Mode (sie sind kein Hex, rutschen sonst durch).
+// Verboten in .tsx: bg/text/border-white, -black, -gray-N · direkte Hex-Werte.
+// Erlaubt: Token-Klassen (bg-app-surface, text-text-primary, bg-on-accent, bg-scrim …).
+// Token-Definitionen (Hex) leben in src/index.css (.css) — wird NICHT gescannt.
+
+function checkHardcodedColors(): void {
+  const files = walk(SRC, ['.tsx'])
+  const named = /\b(?:bg|text|border)-(?:white|black|gray-\d{1,3})\b/g
+  const hex = /#[0-9a-fA-F]{3,8}\b/g
+  const offenders: string[] = []
+  for (const f of files) {
+    const src = read(f)
+    const hits = new Set<string>()
+    for (const m of src.matchAll(named)) hits.add(m[0])
+    for (const m of src.matchAll(hex)) hits.add(m[0])
+    if (hits.size) {
+      const list = [...hits].slice(0, 4).join(', ') + (hits.size > 4 ? ' …' : '')
+      offenders.push(`${rel(f)} (${list})`)
+    }
+  }
+  add('Design: nur Token-Farben', offenders.length ? 'FAIL' : 'PASS',
+    offenders.length
+      ? `Hardcodierte Farben (bg/text/border-white/black/gray-* oder Hex) — auf CSS-Tokens umstellen:\n        ${offenders.join('\n        ')}`
+      : 'Keine hardcodierten Farb-Klassen/Hex in .tsx — Dark-Mode-sicher.')
+}
+
+// ── Design: keine hardcodierten Heat-Labels (use <HeatBadge>) ───────────────
+// Alte Heat-Labels gehören nicht hardcodiert in .tsx — Heat läuft über
+// <HeatBadge status={...} /> (Quelle: HEAT_STATUS in lib/constants.ts).
+// "Aktiv" ist bewusst NICHT in der Liste: es ist auch ein legitimes Nicht-Heat-
+// Wort (Abo-/Task-/Sequence-Status „Aktiv" · „Aktiv seit"), CLAUDE.md schreibt
+// Subscription-Status „Aktiv" sogar vor. Ein Pauschalverbot bräche legitimen Code.
+
+function checkForbiddenHeatLabels(): void {
+  const files = walk(SRC, ['.tsx'])
+  const forbidden = /\b(Kalt|Stabil|Rückläufig|Ruhend|Hot|Lukewarm|Dead)\b/g
+  const offenders: string[] = []
+  for (const f of files) {
+    const hits = new Set<string>()
+    for (const m of read(f).matchAll(forbidden)) hits.add(m[1])
+    if (hits.size) offenders.push(`${rel(f)} (${[...hits].join(', ')})`)
+  }
+  add('Design: keine alten Heat-Labels', offenders.length ? 'FAIL' : 'PASS',
+    offenders.length
+      ? `Hardcodierte alte Heat-Labels — durch <HeatBadge status={...} /> ersetzen:\n        ${offenders.join('\n        ')}`
+      : 'Keine alten Heat-Labels in .tsx — Heat läuft über <HeatBadge>.')
+}
+
+// ── Design: Eingaben in Popovern müssen fokussierbar bleiben ────────────────
+// Ein Popover mit <input>/<textarea> INNERHALB eines modalen Sheets/Dialogs verliert
+// den Fokus (Radix-Fokusfalle zieht ihn zurück), wenn der Inhalt per Portal gerendert
+// wird → man kann nicht tippen. Fix: <PopoverContent portal={false}> (Inhalt bleibt im
+// Fokus-Scope). Dieser Check erzwingt das für JEDEN Popover, der eine Eingabe umschließt.
+
+function checkPopoverInputFocus(): void {
+  const files = walk(SRC, ['.tsx'])
+  const block = /<PopoverContent[\s\S]*?<\/PopoverContent>/g
+  const offenders: string[] = []
+  for (const f of files) {
+    for (const m of read(f).matchAll(block)) {
+      if (/<input|<textarea/.test(m[0]) && !/portal=\{false\}/.test(m[0])) {
+        offenders.push(rel(f)); break
+      }
+    }
+  }
+  add('Design: Popover-Eingabe fokussierbar', offenders.length ? 'FAIL' : 'PASS',
+    offenders.length
+      ? `Popover mit <input>/<textarea> ohne portal={false} (Fokusfalle im modalen Sheet → kein Tippen):\n        ${offenders.join('\n        ')}`
+      : 'Alle Popover mit Eingabe nutzen portal={false} — Tippen funktioniert.')
+}
+
+// ── Inline-Code-Hinweis ──────────────────────────────────────────────────────
+// Sucht in features/ + components/screens/ nach großen (>20 Zeilen) Inline-JSX-Blöcken,
+// die einen bestehenden panel-block duplizieren (gleiche markante className-Signatur) UND
+// in mehr als einer Datei vorkommen. Nur WARN — der Entwickler entscheidet über Extraktion.
+
+function checkInlineBlocks(): void {
+  // 1. Signaturen: markante statische className-Literale je panel-block. „Markant" =
+  //    >=30 Zeichen UND enthält einen arbiträren Token (`[…]` oder `var(--`) — so wie echte
+  //    Block-Container (rounded-[12px], shadow-[var(--shadow-card)]). Reine Utility-Strings
+  //    (flex items-center justify-between …) sind kein Block und werden ignoriert (kein False-Positive).
+  const distinctive = (cls: string) => cls.length >= 30 && /\[|var\(--/.test(cls)
+  const sig = new Map<string, string>() // className → panel-block-Name
+  for (const f of walk(join(SRC, 'components/panel-blocks'), ['.tsx'])) {
+    const name = basename(f, '.tsx')
+    for (const m of read(f).matchAll(/className=(?:"([^"]+)"|`([^`{}]+)`)/g)) {
+      const cls = (m[1] ?? m[2]).trim()
+      if (distinctive(cls) && !sig.has(cls)) sig.set(cls, name)
+    }
+  }
+
+  // 2. Consumer (features/ + screens/) auf große Inline-JSX-Blöcke scannen.
+  const dirs = [join(SRC, 'components/features'), join(SRC, 'components/screens')]
+  const isJsx = (l: string) => /<[A-Za-z/]|className=|\/>|>\s*$/.test(l)
+  const hits = new Map<string, { files: Set<string>; locs: string[] }>()
+
+  for (const f of dirs.flatMap((d) => walk(d, ['.tsx']))) {
+    const lines = read(f).split('\n')
+    let start = -1
+    const flush = (end: number) => {
+      if (start >= 0 && end - start > 20) {
+        const text = lines.slice(start, end).join('\n')
+        for (const [cls, pb] of sig) {
+          if (text.includes(cls)) {
+            if (!hits.has(pb)) hits.set(pb, { files: new Set(), locs: [] })
+            const h = hits.get(pb)!
+            if (!h.files.has(rel(f))) { h.files.add(rel(f)); h.locs.push(`${rel(f)}:${start + 1}`) }
+          }
+        }
+      }
+      start = -1
+    }
+    lines.forEach((l, i) => {
+      if (isJsx(l)) { if (start < 0) start = i }
+      else if (l.trim() !== '') flush(i) // Leerzeilen zählen zum Block, Code-Zeilen brechen ihn
+    })
+    flush(lines.length)
+  }
+
+  // 3. WARN nur, wenn derselbe panel-block in MEHR ALS EINER Datei inline auftaucht.
+  const warns: string[] = []
+  for (const [pb, h] of hits) {
+    if (h.files.size > 1) warns.push(`${pb} → ${h.locs.join(', ')}`)
+  }
+  add('Inline-Code → panel-block', warns.length ? 'WARN' : 'PASS',
+    warns.length
+      ? `Große Inline-JSX-Blöcke (>20 Z.), die bestehende panel-blocks duplizieren (in >1 Datei) — Extraktion erwägen:\n        ${warns.join('\n        ')}`
+      : 'Keine Inline-Duplikate bestehender panel-blocks (>20 Z.) in features/ + screens/.')
+}
+
+// ── Single Source of Truth: gemeinsame Kontaktwerte nur über contactToProfile ──
+// Gemeinsame, in mehreren Karten/Tabs angezeigte Werte (Name/Jobtitel/Firma/ICP/
+// Heat/Status) kommen ausschließlich über contactToProfile(); Stage über
+// contactActiveStage(). Roh-Feld-Zugriff (.heat_status/.icp_score/.company.name/
+// .first_name/.last_name/.job_title) ist NUR erlaubt: (a) in den Resolvern (Marker
+// /* single-source:allow-start … end */), (b) in db.ts-Queries, (c) in einem
+// Edit-Feld (Zeile mit `// single-source-ok: <grund>`). „Gleiche Ausgabe = gleiche Quelle."
+
+function checkSingleSourceContactValues(): void {
+  // Scope: components/** + lib/hunterMappers.ts. Ausgenommen: db.ts, types/, theme.ts.
+  const mappers = join(SRC, 'lib', 'hunterMappers.ts')
+  const files = [...walk(join(SRC, 'components'), ['.ts', '.tsx']), mappers].filter(existsSync)
+
+  const FAIL_PAT = /\.heat_status\b/                       // sicher: Heat nie roh im Anzeige-Layer
+  const WARN_PATS = [
+    /\.icp_score\b/,
+    /\.company\s*\??\.\s*name\b/,
+    /\.(first_name|last_name|job_title)\b/,
+  ]
+
+  const failHits: string[] = []
+  const warnHits: string[] = []
+
+  for (const f of files) {
+    const raw = read(f)
+    const rawLines = raw.split('\n')
+    // 1) Erlaubte Resolver-Regionen aus dem ROH-Text bestimmen (vor Kommentar-Strip).
+    const allowed: boolean[] = new Array(rawLines.length).fill(false)
+    let inAllow = false
+    rawLines.forEach((l, i) => {
+      if (l.includes('single-source:allow-start')) inAllow = true
+      if (inAllow) allowed[i] = true
+      if (l.includes('single-source:allow-end')) inAllow = false
+    })
+    // 2) Kommentare neutralisieren (Block + Zeile), Zeilennummern bleiben erhalten.
+    const noBlock = raw.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '))
+    const lines = noBlock.split('\n').map((l) => l.replace(/\/\/.*$/, ''))
+    // 3) Matchen — Resolver-Regionen + `single-source-ok`-Zeilen überspringen.
+    lines.forEach((l, i) => {
+      if (allowed[i]) return
+      if (rawLines[i].includes('single-source-ok')) return
+      const loc = `${rel(f)}:${i + 1}`
+      if (FAIL_PAT.test(l)) failHits.push(loc)
+      else if (WARN_PATS.some((p) => p.test(l))) warnHits.push(loc)
+    })
+  }
+
+  if (failHits.length) {
+    add('Single-Source: Kontaktwerte', 'FAIL',
+      `Roh-Zugriff auf .heat_status statt contactToProfile („gleiche Ausgabe = gleiche Quelle“):\n        ${failHits.join('\n        ')}`)
+  } else if (warnHits.length) {
+    add('Single-Source: Kontaktwerte', 'WARN',
+      `Roh-Zugriff auf icp_score/company.name/first_name/last_name/job_title — über contactToProfile lösen (legit nur in Edit-Feldern, dann Zeile mit // single-source-ok: <grund>):\n        ${warnHits.join('\n        ')}`)
+  } else {
+    add('Single-Source: Kontaktwerte', 'PASS',
+      'Gemeinsame Kontaktwerte laufen über contactToProfile/contactActiveStage.')
+  }
+}
+
 // ── Run ──────────────────────────────────────────────────────────────────────
 
 checkDatabase()
@@ -213,6 +403,65 @@ checkAbstraction('notify.ts', 'Notifications → notify()', /from\s+['"](resend|
 checkAbstraction('email.ts', 'Emails → sendEmail()', /from\s+['"](resend|postmark|nodemailer)['"]/)
 checkSupabaseAbstraction()
 checkNoEmojiBadges()
+checkHardcodedColors()
+checkForbiddenHeatLabels()
+checkPopoverInputFocus()
+checkInlineBlocks()
+checkSingleSourceContactValues()
+
+// ── Typo-Kanon: Schrift-Stufen UND Schrift-Art laufen über Primitive (typo-*) ──
+// Analog zur Single-Source-Regel. In den Panel-Block-/Tab-Listen-Komponenten müssen
+// Titel/Header/Labels/Werte über ein typo-*-Primitive (src/index.css) laufen.
+// Distinctive Roh-Signaturen → FAIL, außer die className trägt ein typo-*-Primitive:
+//   tracking-widest        → section-label (nur Section-Header nutzen dieses Tracking)
+//   font-mono              → chevron-header / field-label (Mono NUR über diese Primitive)
+//   text-[13–15px] + bold  → card-title / field-value (Buttons/Container via rounded-/py- ausgenommen)
+// Schrift-ART (Marke = global auf <body> vererbt, kein Re-Deklarieren): rohes
+//   font-serif · arbitrary font-[family-name:…]/font-['…'] · inline fontFamily/font-family
+//   → FAIL (Buttons/Container ausgenommen, wie bei der Größen-Signatur). font-sans = Marke, ok.
+// Neue Tab-Listen-/Übersichts-Block-Komponente → IN_SCOPE ergänzen.
+function checkTypographyTokens(): void {
+  const IN_SCOPE = new Set([
+    'TasksListe', 'NotizenListe', 'DealsListe', 'KommunikationVerlauf', 'AktivitaetsVerlauf',
+    'KommunikationPreview', 'OffeneTasks', 'DealSetup', 'DealKurzinfo', 'KiKurzakte',
+    'AktiveSignale', 'ActiveSequenceChain',
+  ])
+  const dir = join(SRC, 'components', 'panel-blocks')
+  const files = walk(dir, ['.tsx']).filter((f) => IN_SCOPE.has(basename(f, '.tsx')))
+
+  const TYPO = /\btypo-(section-label|chevron-header|card-title|field-value|field-label|subline|chip)\b/
+  const hits: string[] = []
+
+  for (const f of files) {
+    const raw = read(f)
+    // Kommentare neutralisieren (Block + Zeile), Zeilennummern bleiben erhalten.
+    const noBlock = raw.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '))
+    const lines = noBlock.split('\n').map((l) => l.replace(/\/\/.*$/, ''))
+    lines.forEach((l, i) => {
+      const isButton = /\brounded-/.test(l) || /\bpy-/.test(l) // Buttons/Container: keine Text-Signatur
+      // Schrift-ART: fremde/serife/inline Schrift ist NIE als Roh-Klasse erlaubt — auch nicht neben
+      // einem typo-* (das Primitive setzt die Schrift selbst in CSS; die Marke wird global vererbt).
+      const fontArt = (/\bfont-serif\b/.test(l)
+        || /\bfont-\[(?:\s*family-name:|['"])/.test(l) // arbitrary font-family utility
+        || /\bfont-family\s*:/.test(l)                 // inline style font-family
+        || /\bfontFamily\s*:/.test(l)                  // inline JSX style fontFamily
+      ) && !isButton
+      if (fontArt) { hits.push(`${rel(f)}:${i + 1}`); return }
+      // Größen-/Struktur-Signaturen: durch ein typo-*-Primitive erfüllt → ok.
+      if (TYPO.test(l)) return
+      const sectionLabel = /tracking-widest/.test(l)
+      const monoHeader = /\bfont-mono\b/.test(l)        // rohes Mono ohne Primitive
+      const titleSig = /text-\[1[345]px\]/.test(l) && /font-(bold|extrabold)\b/.test(l) && !isButton
+      if (sectionLabel || monoHeader || titleSig) hits.push(`${rel(f)}:${i + 1}`)
+    })
+  }
+
+  add('Typo-Kanon: Schrift-Stufen', hits.length ? 'FAIL' : 'PASS',
+    hits.length
+      ? `Rohe Schrift-Klassen/-Art an Titel/Header/Label/Wert statt typo-*-Primitive (src/index.css → „Typo-Kanon“):\n        ${hits.join('\n        ')}`
+      : 'Titel/Header/Labels/Werte + Schrift-Art in Panel-Blocks laufen über typo-*-Primitive (Marke global vererbt).')
+}
+checkTypographyTokens()
 
 // ── Report ───────────────────────────────────────────────────────────────────
 
