@@ -11,6 +11,7 @@ import { Star, Copy, Trash2, Plus, Check, ChevronDown, Phone } from "lucide-reac
 import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
+import { isValidPhone } from "@/lib/validation";
 
 export interface PhoneEntry { id: string; type: string; number: string; favorite: boolean }
 
@@ -28,11 +29,25 @@ export default function DetailPhoneList({
   readonly?: boolean;
 }) {
   const [editId, setEditId] = useState<string | null>(null);
+  const [draft, setDraft] = useState("");
+  const [error, setError] = useState(false);
+  const skipSaveRef = useRef(false); // Escape: nächsten Blur nicht speichern
+
+  const beginEdit = (p: PhoneEntry) => { setDraft(p.number); setError(false); setEditId(p.id); };
+  const cancelEdit = () => { setEditId(null); setError(false); };
+  // Nummer beim Speichern (Blur/Enter) validieren: leer → löschen; ungültig → Fehler, kein Write; sonst Write.
+  const saveEdit = (p: PhoneEntry) => {
+    const v = draft.trim();
+    if (!v) { setEditId(null); setError(false); onRemove?.(p.id); return; }
+    if (!isValidPhone(v)) { setError(true); return; } // Edit bleibt offen, Fehler sichtbar
+    if (v !== p.number) onUpdate?.(p.id, { number: v });
+    setEditId(null); setError(false);
+  };
 
   // Neu hinzugefügte Nummer direkt zum Tippen fokussieren.
   const prevLen = useRef(phones.length);
   useEffect(() => {
-    if (phones.length > prevLen.current) setEditId(phones[phones.length - 1].id);
+    if (phones.length > prevLen.current) { const np = phones[phones.length - 1]; setDraft(np.number); setError(false); setEditId(np.id); }
     prevLen.current = phones.length;
   }, [phones]);
 
@@ -88,20 +103,26 @@ export default function DetailPhoneList({
             {readonly ? (
               <span className="text-[14px] font-semibold text-text-primary truncate">{p.number}</span>
             ) : editId === p.id ? (
-              <input
-                autoFocus
-                type="tel"
-                value={p.number}
-                placeholder="+49 …"
-                onChange={(e) => onUpdate?.(p.id, { number: e.target.value })}
-                onBlur={() => { setEditId(null); if (!p.number.trim()) onRemove?.(p.id); }}
-                onKeyDown={(e) => { if (e.key === "Enter" || e.key === "Escape") e.currentTarget.blur(); }}
-                className="w-[200px] max-w-full rounded-[8px] border border-[var(--sherloq-primary)] bg-app-surface px-2.5 py-1.5 text-[14px] font-semibold text-text-primary outline-none placeholder-[var(--text-muted)]"
-              />
+              <div>
+                <input
+                  autoFocus
+                  type="tel"
+                  value={draft}
+                  placeholder="+49 …"
+                  onChange={(e) => { setDraft(e.target.value); if (error) setError(false); }}
+                  onBlur={() => { if (skipSaveRef.current) { skipSaveRef.current = false; cancelEdit(); return; } saveEdit(p); }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") { e.preventDefault(); e.currentTarget.blur(); }
+                    if (e.key === "Escape") { e.preventDefault(); skipSaveRef.current = true; e.currentTarget.blur(); }
+                  }}
+                  className={`w-[200px] max-w-full rounded-[8px] border bg-app-surface px-2.5 py-1.5 text-[14px] font-semibold text-text-primary outline-none placeholder-[var(--text-muted)] ${error ? "border-[var(--signal-urgent-text)]" : "border-[var(--sherloq-primary)]"}`}
+                />
+                {error && <div className="mt-1 text-[10px] font-semibold text-[var(--signal-urgent-text)]">Nur Ziffern und + erlaubt</div>}
+              </div>
             ) : p.number ? (
-              <button onClick={() => setEditId(p.id)} className="text-left text-[14px] font-semibold text-text-primary truncate hover:text-[var(--sherloq-primary)] transition-colors cursor-text">{p.number}</button>
+              <button onClick={() => beginEdit(p)} className="text-left text-[14px] font-semibold text-text-primary truncate hover:text-[var(--sherloq-primary)] transition-colors cursor-text">{p.number}</button>
             ) : (
-              <button onClick={() => setEditId(p.id)} className="inline-flex items-center gap-1 text-[13px] font-semibold text-[var(--sherloq-primary)] hover:opacity-80 transition-opacity cursor-pointer">
+              <button onClick={() => beginEdit(p)} className="inline-flex items-center gap-1 text-[13px] font-semibold text-[var(--sherloq-primary)] hover:opacity-80 transition-opacity cursor-pointer">
                 <Phone className="w-3.5 h-3.5" /> Nummer eintragen
               </button>
             )}

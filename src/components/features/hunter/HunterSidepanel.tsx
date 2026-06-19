@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DEMO_ORGANIZATION_ID } from '@/lib/org';
-import { getContactDetail, getPipelineSettings, getTasksByContact, createTask, completeTask, softDeleteTask, getNotesByContact, createNote, updateNote, softDeleteNote, getDealsByContact, getActivityByContact, getProducts, getOrgUsers, createDeal, updateDeal, updateDealStage, updateDealWon, updateDealLost, softDeleteDeal } from '@/lib/db';
+import { getContactDetail, getPipelineSettings, getTasksByContact, createTask, completeTask, softDeleteTask, getNotesByContact, createNote, updateNote, softDeleteNote, getDealsByContact, getActivityByContact, getProducts, getOrgUsers, createDeal, updateDeal, updateDealStage, updateDealWon, updateDealLost, softDeleteDeal, createContactPhone, updateContactPhone, setContactPhonePrimary, deleteContactPhone } from '@/lib/db';
 import { contactToProfile, latestActiveDeal, dealToView, WON_STAGE_SLUG, LOST_STAGE_SLUG } from '@/lib/hunterMappers';
 import DealLostModal from './DealLostModal';
 import { triggerConfetti } from '@/lib/confetti';
@@ -31,6 +31,7 @@ const SPRACHE_OPTS = ['Deutsch', 'Englisch', 'Französisch', 'Spanisch', 'Andere
 const LAND_OPTS = ['Deutschland', 'Österreich', 'Schweiz', 'Andere'];
 const BRANCHE_OPTS = ['SaaS', 'Fintech', 'E-Commerce', 'Healthcare', 'Industrie', 'Andere'];
 const GROESSE_OPTS = ['1–10', '11–50', '51–200', '201–500', '500+'];
+const PHONE_TYPES = ['Mobil', 'Geschäftlich', 'Privat', 'Weitere'];
 const LEAD_STATUS_OPTS = ['Lead', 'Qualified Lead', 'Marketing Qualified Lead (MQL)', 'Sales Qualified Lead (SQL)', 'Customer', 'Churned'];
 
 const DEFAULT_DETAILS = {
@@ -293,6 +294,35 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
     if (newSlug === LOST_STAGE_SLUG) { setLostModal({ open: true, dealId }); return; }
     updateStageMutation.mutate({ dealId, newSlug });
   };
+  // PH3 — Telefonnummern schreiben (contact_phones). Invalidiert nur contactDetail (Phones-Embed).
+  const invalidatePhones = () => queryClient.invalidateQueries({ queryKey: ['contactDetail', DEMO_ORGANIZATION_ID, contactId] });
+  const setPhonePrimaryMutation = useMutation({
+    mutationFn: (phoneId: string) => setContactPhonePrimary(DEMO_ORGANIZATION_ID, contactId as string, phoneId),
+    onSuccess: () => { invalidatePhones(); showToast('Favorit-Nummer gesetzt ✓'); },
+    onError: () => showToast('Favorit konnte nicht gesetzt werden'),
+  });
+  const updatePhoneMutation = useMutation({
+    mutationFn: (p: { phoneId: string; number?: string; label?: string }) => updateContactPhone(DEMO_ORGANIZATION_ID, p.phoneId, { number: p.number, label: p.label }),
+    onSuccess: () => { invalidatePhones(); showToast('Nummer gespeichert ✓'); },
+    onError: () => showToast('Nummer konnte nicht gespeichert werden'),
+  });
+  const createPhoneMutation = useMutation({
+    mutationFn: (p: { number: string; label?: string; isPrimary?: boolean }) => createContactPhone(DEMO_ORGANIZATION_ID, contactId as string, p),
+    onSuccess: () => { invalidatePhones(); showToast('Nummer hinzugefügt ✓'); },
+    onError: () => showToast('Nummer konnte nicht hinzugefügt werden'),
+  });
+  const deletePhoneMutation = useMutation({
+    mutationFn: (phoneId: string) => deleteContactPhone(DEMO_ORGANIZATION_ID, phoneId),
+    onSuccess: () => { invalidatePhones(); showToast('Nummer entfernt'); },
+    onError: () => showToast('Nummer konnte nicht entfernt werden'),
+  });
+  // Telefon-Handler (geteilt von Kontaktzeile-PhoneField + Details-DetailPhoneList).
+  const phoneAdd = () => createPhoneMutation.mutate({ number: '', label: 'Weitere', isPrimary: profile.phones.length === 0 });
+  const phoneDelete = (id: string) => {
+    // Sicherheitsabfrage nur, wenn es die einzige Nummer ist (sonst direkt löschen).
+    if (profile.phones.length <= 1 && !window.confirm('Das ist die einzige Telefonnummer. Wirklich löschen?')) return;
+    deletePhoneMutation.mutate(id);
+  };
   // P5c-3 — Deal soft-löschen: deleted_at = now() (Audit via Trigger). Invalidation wie create/update.
   const deleteDealMutation = useMutation({
     mutationFn: (dealId: string) => softDeleteDeal(dealId, DEMO_ORGANIZATION_ID),
@@ -391,6 +421,12 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
       phones={profile.phones}
       onSaveField={(f, v) => { setContact((c) => ({ ...c, [f]: v })); showToast(`${FIELD_LABEL[f]} gespeichert`); }}
       onCopyField={(f) => showToast(`${FIELD_LABEL[f]} kopiert`)}
+      onSetFavorite={(id) => setPhonePrimaryMutation.mutate(id)}
+      onUpdateNumber={(id, number) => updatePhoneMutation.mutate({ phoneId: id, number })}
+      onAddPhone={phoneAdd}
+      onRemovePhone={phoneDelete}
+      onUpdateLabel={(id, label) => updatePhoneMutation.mutate({ phoneId: id, label })}
+      phoneTypes={PHONE_TYPES}
     />
   );
 
@@ -506,8 +542,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
 
   // Details-Tab (nur Vollansicht) — alle Kontakt-/Firmen-/CRM-Felder (CLAUDE.md → CRM FELDER),
   // editierbar (Standard) bzw. readonly (System). Bündelt was bei „+ SDR Lead" erfassbar ist.
-  const PHONE_TYPES = ['Mobil', 'Geschäftlich', 'Privat', 'Weitere'];
-  // PH2: Telefon-Liste read-only (echte contact_phones). Schreiben (Favorit/Edit/Add/Remove) folgt PH3.
+  // PH3: Telefon-Liste schreibbar (echte contact_phones — Favorit/Edit/Add/Remove via Mutations).
   const detailsContent = person && (
     <div className="space-y-5 animate-fade-in">
       <DetailSection title="Person" icon={User}>
@@ -531,9 +566,12 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
           </div>
           <div className="mt-5">
             <DetailPhoneList
-              readonly
               phones={profile.phones}
               types={PHONE_TYPES}
+              onSetFavorite={(id) => setPhonePrimaryMutation.mutate(id)}
+              onUpdate={(id, patch) => updatePhoneMutation.mutate({ phoneId: id, number: patch.number, label: patch.type })}
+              onAdd={phoneAdd}
+              onRemove={phoneDelete}
               onCopy={() => showToast('Kopiert ✓')}
             />
           </div>

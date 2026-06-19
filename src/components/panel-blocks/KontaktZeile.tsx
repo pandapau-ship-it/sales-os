@@ -27,6 +27,9 @@ interface KontaktZeileProps {
   onUpdateNumber?: (id: string, number: string) => void;
   onCopyPhone?: () => void;
   onAddPhone?: () => void;
+  onRemovePhone?: (id: string) => void;
+  onUpdateLabel?: (id: string, label: string) => void;
+  phoneTypes?: string[];
 }
 
 const PILL = "bg-app-surface border border-border-subtle rounded-full px-5 py-3 flex items-center gap-3 text-[12px] text-text-muted shadow-sm";
@@ -37,7 +40,9 @@ const HOVER_BTN = "opacity-0 group-hover/item:opacity-100 focus-within:opacity-1
 type ReadItem = { key: string; Icon: ComponentType<{ className?: string }>; value: string; href: string; ext?: boolean };
 
 /** Read-only Kontaktzeile (P2): nur vorhandene Werte als Link; Hover → Copy (echt) + Stift (P8, deaktiviert). */
-function KontaktZeileReadonly({ contact, phones, onCopied }: { contact: { email: string; linkedin: string; web: string }; phones: PhoneEntry[]; onCopied?: () => void }) {
+function KontaktZeileReadonly({ contact, phones, onCopied, onSetFavorite, onUpdateNumber, onAddPhone, onRemovePhone, onUpdateLabel, phoneTypes }: { contact: { email: string; linkedin: string; web: string }; phones: PhoneEntry[]; onCopied?: () => void; onSetFavorite?: (id: string) => void; onUpdateNumber?: (id: string, number: string) => void; onAddPhone?: () => void; onRemovePhone?: (id: string) => void; onUpdateLabel?: (id: string, label: string) => void; phoneTypes?: string[] }) {
+  // Telefon im readonly: Popover immer. Schreiben (Favorit/Edit/Add/Löschen/Label) nur mit echten Handlern (PH3).
+  const phonesEditable = !!(onSetFavorite || onUpdateNumber || onAddPhone);
   const { t } = useTranslation();
   const [copied, setCopied] = useState<string | null>(null);
   const doCopy = (key: string, value: string) => {
@@ -66,7 +71,17 @@ function KontaktZeileReadonly({ contact, phones, onCopied }: { contact: { email:
               {i > 0 && <span className="h-4 w-px bg-border shrink-0" />}
               <span className="flex items-center gap-1.5 min-w-0">
                 <Icon className="w-[13px] h-[13px] text-text-muted shrink-0" />
-                <PhoneField readonly phones={phones} onCopy={() => onCopied?.()} />
+                <PhoneField
+                  readonly={!phonesEditable}
+                  phones={phones}
+                  onSetFavorite={onSetFavorite}
+                  onUpdateNumber={onUpdateNumber}
+                  onAdd={onAddPhone}
+                  onRemove={onRemovePhone}
+                  onUpdateLabel={onUpdateLabel}
+                  types={phoneTypes}
+                  onCopy={() => onCopied?.()}
+                />
               </span>
             </Fragment>
           );
@@ -103,10 +118,11 @@ function KontaktZeileReadonly({ contact, phones, onCopied }: { contact: { email:
 
 export default function KontaktZeile({
   contact, phones, readonly, onCopied,
-  onSaveField = () => {}, onCopyField = () => {}, onSetFavorite = () => {},
-  onUpdateNumber = () => {}, onCopyPhone = () => {}, onAddPhone = () => {},
+  onSaveField = () => {}, onCopyField = () => {}, onSetFavorite,
+  onUpdateNumber, onCopyPhone = () => {}, onAddPhone, onRemovePhone, onUpdateLabel, phoneTypes,
 }: KontaktZeileProps) {
-  if (readonly) return <KontaktZeileReadonly contact={contact} phones={phones} onCopied={onCopied} />;
+  // readonly-Zeile: Telefon-Popover bleibt; Schreiben nur, wenn echte Phone-Handler übergeben werden (PH3).
+  if (readonly) return <KontaktZeileReadonly contact={contact} phones={phones} onCopied={onCopied} onSetFavorite={onSetFavorite} onUpdateNumber={onUpdateNumber} onAddPhone={onAddPhone} onRemovePhone={onRemovePhone} onUpdateLabel={onUpdateLabel} phoneTypes={phoneTypes} />;
   return (
     <div className="bg-app-surface border border-border-subtle rounded-full px-5 py-3 flex items-center justify-between gap-3 text-[12px] text-text-muted shadow-sm">
       <span className="flex items-center gap-1.5 min-w-0">
@@ -122,6 +138,9 @@ export default function KontaktZeile({
           onUpdateNumber={onUpdateNumber}
           onCopy={onCopyPhone}
           onAdd={onAddPhone}
+          onRemove={onRemovePhone}
+          onUpdateLabel={onUpdateLabel}
+          types={phoneTypes}
         />
       </span>
       <span className="h-4 w-px bg-border shrink-0"></span>

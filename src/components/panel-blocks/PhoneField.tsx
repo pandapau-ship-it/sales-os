@@ -7,18 +7,20 @@
  * Extrahiert aus features/hunter/HunterSidepanel.tsx — kanonischer Stand.
  */
 import { useState } from 'react';
-import { Star, Check, Copy, Pencil, X, Phone, Plus } from 'lucide-react';
+import { Star, Check, Copy, Pencil, X, Phone, Plus, Trash2 } from 'lucide-react';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
+import { isValidPhone } from '@/lib/validation';
 
 export interface Phone { id: string; type: string; number: string; favorite: boolean }
 
 export default function PhoneField({
-  phones, onSetFavorite, onUpdateNumber, onCopy, onAdd, readonly = false,
-}: { phones: Phone[]; onSetFavorite?: (id: string) => void; onUpdateNumber?: (id: string, number: string) => void; onCopy: () => void; onAdd?: () => void; readonly?: boolean }) {
+  phones, onSetFavorite, onUpdateNumber, onCopy, onAdd, onRemove, types, onUpdateLabel, readonly = false,
+}: { phones: Phone[]; onSetFavorite?: (id: string) => void; onUpdateNumber?: (id: string, number: string) => void; onCopy: () => void; onAdd?: () => void; onRemove?: (id: string) => void; types?: string[]; onUpdateLabel?: (id: string, label: string) => void; readonly?: boolean }) {
   const [open, setOpen] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [editId, setEditId] = useState<string | null>(null);
   const [draft, setDraft] = useState('');
+  const [error, setError] = useState(false);
   const fav = phones.find((p) => p.favorite) ?? phones[0];
   const telHref = (num: string) => `tel:${num.replace(/[^0-9+]/g, '')}`;
 
@@ -28,13 +30,20 @@ export default function PhoneField({
     onCopy();
     setTimeout(() => setCopiedId(null), 1500);
   };
-  const startEdit = (p: Phone) => { setDraft(p.number); setEditId(p.id); setOpen(true); };
-  const saveEdit = () => { if (editId) onUpdateNumber?.(editId, draft.trim()); setEditId(null); };
+  const startEdit = (p: Phone) => { setDraft(p.number); setError(false); setEditId(p.id); setOpen(true); };
+  const cancelEdit = () => { setEditId(null); setError(false); };
+  const saveEdit = () => {
+    if (!editId) return;
+    const v = draft.trim();
+    if (!isValidPhone(v)) { setError(true); return; } // ungültig → kein Write, Edit bleibt offen
+    onUpdateNumber?.(editId, v);
+    setEditId(null); setError(false);
+  };
 
   if (!fav) return null;
 
   return (
-    <Popover open={open} onOpenChange={(o) => { setOpen(o); if (!o) setEditId(null); }}>
+    <Popover open={open} onOpenChange={(o) => { setOpen(o); if (!o) cancelEdit(); }}>
       <span className="inline-flex items-center gap-1.5 group/phone min-w-0">
         {/* Typ-Pill = Trigger: Klick zeigt die anderen Nummern in der Vorschau */}
         <PopoverTrigger asChild>
@@ -78,17 +87,33 @@ export default function PhoneField({
               <div className="min-w-0 flex-1">
                 <div className="text-[9px] font-bold text-text-muted uppercase tracking-wide">{p.type}</div>
                 {editId === p.id ? (
-                  <input
-                    autoFocus
-                    type="tel"
-                    value={draft}
-                    onChange={(e) => setDraft(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') { e.preventDefault(); saveEdit(); }
-                      if (e.key === 'Escape') { e.preventDefault(); setEditId(null); }
-                    }}
-                    className="w-full bg-app-surface border border-[var(--sherloq-primary)] rounded-[7px] px-2 py-1 text-[13px] font-semibold text-text-primary outline-none"
-                  />
+                  <>
+                    {types && onUpdateLabel && (
+                      <div className="flex flex-wrap gap-1 mb-1.5">
+                        {types.map((tp) => (
+                          <button
+                            key={tp}
+                            onClick={() => onUpdateLabel(p.id, tp)}
+                            className={`px-1.5 py-0.5 rounded-[5px] text-[9px] font-bold uppercase tracking-wide transition-colors cursor-pointer ${tp === p.type ? 'bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)]' : 'bg-app-bg text-text-muted hover:text-[var(--sherloq-primary)]'}`}
+                          >
+                            {tp}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    <input
+                      autoFocus
+                      type="tel"
+                      value={draft}
+                      onChange={(e) => { setDraft(e.target.value); if (error) setError(false); }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') { e.preventDefault(); saveEdit(); }
+                        if (e.key === 'Escape') { e.preventDefault(); cancelEdit(); }
+                      }}
+                      className={`w-full bg-app-surface border rounded-[7px] px-2 py-1 text-[13px] font-semibold text-text-primary outline-none ${error ? 'border-[var(--signal-urgent-text)]' : 'border-[var(--sherloq-primary)]'}`}
+                    />
+                    {error && <div className="mt-1 text-[10px] font-semibold text-[var(--signal-urgent-text)]">Nur Ziffern und + erlaubt</div>}
+                  </>
                 ) : (
                   <a href={telHref(p.number)} className="block text-[13px] font-semibold text-text-body hover:text-[var(--sherloq-primary)] transition-colors truncate">{p.number}</a>
                 )}
@@ -96,7 +121,7 @@ export default function PhoneField({
               {editId === p.id ? (
                 <>
                   <button onClick={saveEdit} aria-label="Speichern" data-tip="Speichern" className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-[var(--sherloq-primary)] hover:bg-app-surface transition-colors cursor-pointer"><Check className="w-3.5 h-3.5" /></button>
-                  <button onClick={() => setEditId(null)} aria-label="Abbrechen" data-tip="Abbrechen" className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-app-surface transition-colors cursor-pointer"><X className="w-3.5 h-3.5" /></button>
+                  <button onClick={cancelEdit} aria-label="Abbrechen" data-tip="Abbrechen" className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-app-surface transition-colors cursor-pointer"><X className="w-3.5 h-3.5" /></button>
                 </>
               ) : (
                 <>
@@ -109,6 +134,11 @@ export default function PhoneField({
                   {!readonly && (
                     <button onClick={() => startEdit(p)} aria-label="Bearbeiten" data-tip="Bearbeiten" className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-text-muted hover:text-[var(--sherloq-primary)] hover:bg-app-surface transition-colors cursor-pointer">
                       <Pencil className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                  {!readonly && onRemove && (
+                    <button onClick={() => onRemove(p.id)} aria-label="Löschen" data-tip="Löschen" className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-text-muted hover:text-[var(--signal-urgent-text)] hover:bg-[var(--signal-urgent-bg)] transition-colors cursor-pointer">
+                      <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   )}
                 </>

@@ -291,6 +291,94 @@ export async function getContactDetail(
   return data ?? null;
 }
 
+// ── contact_phones Writes (PH3) ──────────────────────────────────────────────
+// Hard-Delete (Migration 026 hat kein deleted_at). Genau-1-Favorit via partial
+// unique index (… where is_primary) → vor jedem neuen Favorit erst alle false.
+// Audit deckt der Trigger trg_contact_phones_audit ab. RLS = eingeloggte Org.
+
+/** Neue Telefonnummer anlegen. isPrimary → vorher alle anderen entprimen (Constraint). */
+export async function createContactPhone(
+  organizationId: string,
+  contactId: string,
+  fields: { number: string; label?: string; isPrimary?: boolean },
+): Promise<void> {
+  const client = getSupabaseClient();
+  if (!client) return;
+  if (fields.isPrimary) {
+    const { error: e0 } = await client
+      .from("contact_phones")
+      .update({ is_primary: false })
+      .eq("organization_id", organizationId)
+      .eq("contact_id", contactId);
+    if (e0) throw e0;
+  }
+  const { error } = await client.from("contact_phones").insert({
+    organization_id: organizationId,
+    contact_id: contactId,
+    number: fields.number,
+    label: fields.label ?? null,
+    is_primary: !!fields.isPrimary,
+  });
+  if (error) throw error;
+}
+
+/** Nummer/Label einer bestehenden Telefonnummer aktualisieren. */
+export async function updateContactPhone(
+  organizationId: string,
+  phoneId: string,
+  fields: { number?: string; label?: string },
+): Promise<void> {
+  const client = getSupabaseClient();
+  if (!client) return;
+  const patch: Record<string, unknown> = {};
+  if (fields.number !== undefined) patch.number = fields.number;
+  if (fields.label !== undefined) patch.label = fields.label;
+  if (Object.keys(patch).length === 0) return;
+  const { error } = await client
+    .from("contact_phones")
+    .update(patch)
+    .eq("organization_id", organizationId)
+    .eq("id", phoneId);
+  if (error) throw error;
+}
+
+/** Favorit/primäre Nummer setzen: erst alle des Kontakts false, dann diese true (Constraint-sicher). */
+export async function setContactPhonePrimary(
+  organizationId: string,
+  contactId: string,
+  phoneId: string,
+): Promise<void> {
+  const client = getSupabaseClient();
+  if (!client) return;
+  const { error: e0 } = await client
+    .from("contact_phones")
+    .update({ is_primary: false })
+    .eq("organization_id", organizationId)
+    .eq("contact_id", contactId);
+  if (e0) throw e0;
+  const { error } = await client
+    .from("contact_phones")
+    .update({ is_primary: true })
+    .eq("organization_id", organizationId)
+    .eq("id", phoneId);
+  if (error) throw error;
+}
+
+/** Telefonnummer löschen (Hard-Delete, kein deleted_at in 026). */
+export async function deleteContactPhone(
+  organizationId: string,
+  phoneId: string,
+): Promise<void> {
+  const client = getSupabaseClient();
+  if (!client) return;
+  const { error } = await client
+    .from("contact_phones")
+    .delete()
+    .eq("organization_id", organizationId)
+    .eq("id", phoneId);
+  if (error) throw error;
+}
+
 /**
  * getDueTasks — fällige Tasks (Fundament für Follow-ups, T2). Definition:
  * `completed_at IS NULL AND due_at <= now()` — reiner Filter, keine Berechnung.
