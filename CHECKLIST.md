@@ -82,7 +82,14 @@
 - [x] **Hunter Follow-ups-Tab = fällige Tasks** — `getDueTasks` (`completed_at IS NULL AND due_at <= now()`) + `taskToDueCard`; ersetzt Heat-Cold/Gone ([D17] entschieden) — *2026-06-17*
 - [x] **Task abhaken = erster echter Write** — `completeTask` (UPDATE `completed_at`, org-gescoped, Audit via Trigger), `useMutation` + invalidate-on-success (T4a) — *2026-06-17*
 - [x] **knowledge_base Migration 024** — Einträge `Hunter Signals` · `Neu in Pipeline` · `Follow-ups` (module='hunter'); idempotent `ON CONFLICT DO UPDATE` — *2026-06-17*
-- [ ] **Task ANLEGEN (T4b)** — `createTask` vorbereitet (channel/`mail→email`/due_at/`assigned_to=NULL`), wartet auf Panel-Wiring (→ PROGRESS Panel-Thema B1)
+- [x] **Task ANLEGEN (T4b)** — `createTask` verdrahtet (Panel Tasks-Tab + Neu-in-Pipeline-Deeplink `initialAction='task'`), `createTaskMutation` + invalidate — *2026-06-18*
+- [x] **820px Info-Panel READ+WRITE (P1–P5c)** — Kopf/Kontaktzeile/Tasks/Notizen/Deals echt; `dealToView`-Resolver; Übersicht (KPIs+Funnel) + Aktivität (audit_log) + Pipeline-Liste echt; Migr. **028** (products) **029** (Vertragsfelder) **030** (Deal soft-delete) — *2026-06-18/19*
+- [x] **P8 Stage-Write + Won/Lost** — Terminal-Slugs Single-Source (`WON_/LOST_STAGE_SLUG`/`isTerminalStage`); Stage-Wechsel Kanban(←/→)+Stage-Badge-Dropdown (Liste/Deals/Übersicht) → `updateDealStage`; **Won** (`updateDealWon`+`closed_at`+Konfetti) / **Lost** (`DealLostModal`→`updateDealLost`+`lost_reason`); `closed_at`/`lost_reason` aus Migr. 004 (keine neue Spalte) — *2026-06-19*
+- [x] **P8-4 Cache-Konsistenz** — alle Deal-Writes invalidieren `dealsByContact`/`deals`/`newInPipeline` **+ `dueTasks`/`signals`** (aktive-Deal-Stage) — *2026-06-20*
+- [x] **Telefon PH1–PH4** — `contact_phones` (Migr. **026**) read (`contactToProfile.phones` + Embed) + write (create/update/setPrimary/delete, Favorit Constraint-sicher) + Validierung (`lib/validation.ts`); Legacy `contacts.phone` entfernt (Migr. **031**, db push offen) — *2026-06-20*
+- [x] **knowledge_base Migration 032** — `Deal-Stufe ändern` · `Deal abschließen (Gewonnen/Verloren)` · `Telefonnummern am Kontakt` (module='hunter', idempotent); db push offen — *2026-06-20*
+- [x] **Merge `feature/phase-2-hunter` → `main`** (`--no-ff`, `22c3cad`), Gates grün — *2026-06-20*
+- [ ] **Erinnerung/Reminder** — Feld (`reminder_at`) + Auslöse-System (notifications/Cron/Versand) fehlen komplett ([D19])
 - [ ] **Erinnerung/Reminder** — Feld (`reminder_at`) + Auslöse-System (notifications/Cron/Versand) fehlen komplett ([D19])
 - [ ] knowledge_base-Eintrag je weiterem fertigem Feature
 
