@@ -13,11 +13,15 @@ import {
   Zap,
   ChevronDown,
   ArrowLeft,
+  Eye,
+  SlidersHorizontal,
   Check,
   Trash,
   Clock,
   ListChecks,
   TrendingUp,
+  Percent,
+  Flame,
   Users,
   X
 } from 'lucide-react';
@@ -166,6 +170,21 @@ export default function ScreenHunting({
   const openDeals = dealRows.filter((d) => !isTerminalStage(d.stageSlug));
   const pipelineValueEur = openDeals.reduce((sum, d) => sum + (d.valueEur ?? 0), 0); // null-Werte zählen 0
   const openDealCount = openDeals.length;
+  // Kanban-KPIs (client-seitig aus dealRows, kein DB-Call). Probability aus pipeline_stages (slug→prob).
+  const fmtEur0 = (n: number) => new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n);
+  const stageProbBySlug = Object.fromEntries((pipelineStages ?? []).map((stg) => [stg.slug, stg.probability]));
+  const weightedValueEur = openDeals.reduce((sum, d) => sum + (d.valueEur ?? 0) * ((stageProbBySlug[d.stageSlug] ?? 0) / 100), 0);
+  // Gewichteter Wert pro Stage (für Hover-Popover) — nur Stages mit aktiven Deals (Honesty), in Pipeline-Reihenfolge.
+  const weightedByStage = [...(pipelineStages ?? [])]
+    .sort((a, b) => a.order - b.order)
+    .map((s) => {
+      const ds = openDeals.filter((d) => d.stageSlug === s.slug);
+      const weighted = ds.reduce((sum, d) => sum + (d.valueEur ?? 0) * ((s.probability ?? 0) / 100), 0);
+      return { slug: s.slug, name: s.name, probability: s.probability, weighted, count: ds.length };
+    })
+    .filter((x) => x.count > 0);
+  const HEAT_ORDER: HeatStatus[] = ['HOT', 'WARM', 'LUKEWARM', 'COLD', 'DEAD'];
+  const heatCounts = openDeals.reduce((acc, d) => { acc[d.heatStatus] = (acc[d.heatStatus] ?? 0) + 1; return acc; }, {} as Record<string, number>);
   const hotSignalCount = signalCards.length;       // identische Quelle wie der Signals-Tab-Count
   const followUpsTodayCount = dueTaskCards.length;  // fällige Tasks (= Follow-ups-Tab)
   // Funnel: Deals-Anzahl + €-Summe pro Stage (Reihenfolge/Namen aus pipeline_stages).
@@ -187,6 +206,7 @@ export default function ScreenHunting({
   const [stageFilter, setStageFilter] = useState('all');         // slug | 'all'
   const [heatFilter, setHeatFilter] = useState<'all' | HeatStatus>('all');
   const [ownerFilter, setOwnerFilter] = useState('all');         // ownerId-Key | 'all'
+  const [filtersOpen, setFiltersOpen] = useState(false);          // Progressive Disclosure: Filter erst auf Klick
   const ownerKey = (id: string | null) => id ?? '__none__';      // Radix verbietet '' als Value
   // Stufe 1 (beide Ansichten): Heat + Owner
   const baseFilteredDeals = dealRows.filter((d) =>
@@ -501,43 +521,70 @@ export default function ScreenHunting({
             </div>
           </div>
 
-          {/* Slice C — Filterleiste (Liste + Kanban, nicht Tasks). Heat+Owner beide,
-              Stage nur Liste. Client-seitig über die geteilte dealRows-Quelle. */}
-          {pipelineView !== 'tasks' && (
-            <div className="flex items-center gap-3 flex-wrap">
-              <span className="text-[12px] font-bold text-text-muted">Filter:</span>
-              <Select value={heatFilter} onValueChange={(v) => setHeatFilter(v as 'all' | HeatStatus)}>
-                <SelectTrigger className="w-[170px] rounded-[10px] border-border bg-app-surface text-[13px] font-semibold text-text-primary"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Alle Heat-Stufen</SelectItem>
-                  {(['HOT', 'WARM', 'LUKEWARM', 'COLD', 'DEAD'] as HeatStatus[]).map((h) => (
-                    <SelectItem key={h} value={h}>{heatFor(h).label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={ownerFilter} onValueChange={setOwnerFilter}>
-                <SelectTrigger className="w-[190px] rounded-[10px] border-border bg-app-surface text-[13px] font-semibold text-text-primary"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Alle Deal Owner</SelectItem>
-                  {ownerOptions.map((o) => (<SelectItem key={o.id} value={o.id}>{o.label}</SelectItem>))}
-                </SelectContent>
-              </Select>
-              {pipelineView === 'list' && (
-                <Select value={stageFilter} onValueChange={setStageFilter}>
-                  <SelectTrigger className="w-[190px] rounded-[10px] border-border bg-app-surface text-[13px] font-semibold text-text-primary"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Alle Stages</SelectItem>
-                    {[...(pipelineStages ?? [])].sort((a, b) => a.order - b.order).map((s) => (
-                      <SelectItem key={s.slug} value={s.slug}>{s.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-              <span className="text-[12px] text-text-muted ml-auto font-medium">
-                {(pipelineView === 'list' ? listDealRows.length : baseFilteredDeals.length)} Deals
-              </span>
-            </div>
-          )}
+          {/* Slice C — Filter als Progressive Disclosure (Liste + Kanban, nicht Tasks): „Filter"-Button
+              klappt die Selects auf; Zähler zeigt aktive Filter auch im eingeklappten Zustand. */}
+          {pipelineView !== 'tasks' && (() => {
+            const activeFilterCount = [
+              heatFilter !== 'all',
+              ownerFilter !== 'all',
+              pipelineView === 'list' && stageFilter !== 'all',
+            ].filter(Boolean).length;
+            return (
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setFiltersOpen((o) => !o)}
+                    aria-expanded={filtersOpen}
+                    className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-[10px] border text-[13px] font-bold transition-colors cursor-pointer ${
+                      filtersOpen || activeFilterCount > 0
+                        ? 'bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)] border-[var(--sherloq-primary)]'
+                        : 'bg-app-surface text-text-body border-[var(--border)] hover:bg-app-bg'
+                    }`}
+                  >
+                    <SlidersHorizontal className="w-4 h-4" /> Filter
+                    {activeFilterCount > 0 && (
+                      <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-[var(--sherloq-primary)] text-on-accent text-[10px] font-extrabold flex items-center justify-center">{activeFilterCount}</span>
+                    )}
+                  </button>
+                  <span className="text-[12px] text-text-muted ml-auto font-medium">
+                    {(pipelineView === 'list' ? listDealRows.length : baseFilteredDeals.length)} Deals
+                  </span>
+                </div>
+
+                {filtersOpen && (
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <Select value={heatFilter} onValueChange={(v) => setHeatFilter(v as 'all' | HeatStatus)}>
+                      <SelectTrigger className="w-[170px] rounded-[10px] border-border bg-app-surface text-[13px] font-semibold text-text-primary"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Alle Heat-Stufen</SelectItem>
+                        {(['HOT', 'WARM', 'LUKEWARM', 'COLD', 'DEAD'] as HeatStatus[]).map((h) => (
+                          <SelectItem key={h} value={h}>{heatFor(h).label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select value={ownerFilter} onValueChange={setOwnerFilter}>
+                      <SelectTrigger className="w-[190px] rounded-[10px] border-border bg-app-surface text-[13px] font-semibold text-text-primary"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Alle Deal Owner</SelectItem>
+                        {ownerOptions.map((o) => (<SelectItem key={o.id} value={o.id}>{o.label}</SelectItem>))}
+                      </SelectContent>
+                    </Select>
+                    {pipelineView === 'list' && (
+                      <Select value={stageFilter} onValueChange={setStageFilter}>
+                        <SelectTrigger className="w-[190px] rounded-[10px] border-border bg-app-surface text-[13px] font-semibold text-text-primary"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Alle Stages</SelectItem>
+                          {[...(pipelineStages ?? [])].sort((a, b) => a.order - b.order).map((s) => (
+                            <SelectItem key={s.slug} value={s.slug}>{s.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
 
           {pipelineView === 'tasks' ? (
             <div className="flex flex-col gap-4 w-full pb-8">
@@ -571,6 +618,69 @@ export default function ScreenHunting({
               )}
             </div>
           ) : pipelineView === 'kanban' ? (
+           <div className="flex flex-col gap-4">
+            {/* KPI-Kacheln über dem Board — einheitliches Prinzip: Titel links + Icon-Box oben rechts
+                (auf Überschrift-Höhe), Inhalt darunter. Wert-Kacheln fest; Heat-Verteilung inhaltsbreit
+                (w-fit) → wächst mit jeder vorhandenen Phase bis Bildschirmbreite. Client-seitig aus openDeals. */}
+            <div className="flex flex-wrap gap-4 w-full items-stretch">
+              {/* Tile 1 — Pipeline-Gesamtwert */}
+              <div className="flex-1 min-w-[180px] bg-app-surface rounded-[12px] p-5 shadow-[var(--shadow-card)] hover:shadow-md transition-shadow flex flex-col gap-3">
+                <div className="flex items-start justify-between gap-3">
+                  <span className="text-[11px] font-bold text-text-muted uppercase tracking-widest">Pipeline-Gesamtwert</span>
+                  <div className="w-9 h-9 rounded-[10px] bg-[var(--signal-info-bg)] text-[var(--signal-info-text)] flex items-center justify-center shrink-0"><TrendingUp size={16} strokeWidth={2.5} /></div>
+                </div>
+                <div className="text-[24px] font-extrabold text-text-primary tracking-tight leading-none truncate">{fmtEur0(pipelineValueEur)}</div>
+              </div>
+
+              {/* Tile 2 — Gewichteter Wert (Hover-Popover: gewichteter Wert pro Stage) */}
+              <div className="group relative flex-1 min-w-[180px] bg-app-surface rounded-[12px] p-5 shadow-[var(--shadow-card)] hover:shadow-md transition-shadow flex flex-col gap-3">
+                <div className="flex items-start justify-between gap-3">
+                  <span className="text-[11px] font-bold text-text-muted uppercase tracking-widest">Gewichteter Wert</span>
+                  <div className="w-9 h-9 rounded-[10px] bg-[var(--signal-success-bg)] text-[var(--signal-success-text)] flex items-center justify-center shrink-0"><Percent size={16} strokeWidth={2.5} /></div>
+                </div>
+                <div className="text-[24px] font-extrabold text-text-primary tracking-tight leading-none truncate">{fmtEur0(weightedValueEur)}</div>
+
+                {/* Hover-Popover: gewichteter Wert je Stage (nur Stages mit aktiven Deals) */}
+                {weightedByStage.length > 0 && (
+                  <div className="absolute left-0 top-full mt-2 z-30 w-[280px] max-w-[90vw] bg-app-surface border border-border rounded-[12px] shadow-[var(--shadow-dropdown)] p-2 opacity-0 invisible translate-y-1 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 transition-all duration-150">
+                    <div className="px-2 py-1.5 text-[10px] font-extrabold text-text-muted uppercase tracking-widest">Gewichtet pro Stage</div>
+                    <div className="flex flex-col">
+                      {weightedByStage.map((s) => (
+                        <div key={s.slug} className="flex items-center justify-between gap-3 px-2 py-1.5 rounded-[8px] hover:bg-app-bg transition-colors">
+                          <span className="flex items-center gap-2 min-w-0">
+                            <StageBadge stage={s.name} />
+                            <span className="text-[10px] font-bold text-text-muted shrink-0">{s.probability}%</span>
+                          </span>
+                          <span className="text-[13px] font-bold text-text-primary shrink-0">{fmtEur0(s.weighted)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Tile 3 — Heat-Verteilung: Baseline gleich groß wie die Wert-Kacheln (flex-1), wächst aber
+                  mit den Phasen (min-w-fit, Chips ohne Umbruch) → die Wert-Kacheln links schrumpfen. */}
+              <div className="flex-1 min-w-fit max-w-full bg-app-surface rounded-[12px] p-5 shadow-[var(--shadow-card)] hover:shadow-md transition-shadow flex flex-col gap-3">
+                <div className="flex items-start justify-between gap-6">
+                  <span className="text-[11px] font-bold text-text-muted uppercase tracking-widest">Heat-Verteilung</span>
+                  <div className="w-9 h-9 rounded-[10px] bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)] flex items-center justify-center shrink-0"><Flame size={16} strokeWidth={2.5} /></div>
+                </div>
+                {openDealCount === 0 ? (
+                  <span className="text-[12px] text-text-muted">Keine aktiven Deals</span>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    {HEAT_ORDER.filter((h) => (heatCounts[h] ?? 0) > 0).map((h) => (
+                      <div key={h} className="flex items-center gap-2 bg-app-bg rounded-[10px] px-3 py-1.5 shrink-0">
+                        <HeatBadge status={h} />
+                        <span className="text-[16px] font-extrabold text-text-primary leading-none">{heatCounts[h]}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
             <div className="flex flex-col md:flex-row gap-4 overflow-x-auto pb-6 items-start min-h-[600px] w-full hide-scrollbar">
               {/* Slice B: Spalten aus settings.pipeline_stages (slug/name/order), echte Deals.
                   Stage-Pfeile/Stagnations-Pills/Action-Badges entfallen (Writes/fingierte
@@ -584,33 +694,32 @@ export default function ScreenHunting({
                 const isExpanded = expandedCols[stage.slug] ?? true;
 
                 return (
-                  <div key={stage.slug} className="flex-1 min-w-[290px] w-[290px] max-w-[290px] flex flex-col h-fit transition-all duration-300 relative">
-                    {/* Column Header */}
-                    <div className="bg-app-surface rounded-[12px] p-4 shadow-[var(--shadow-card)] mb-4">
-                      <div className="flex justify-between items-center mb-3">
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-bold text-[15px] text-[var(--text-primary)]">{stage.name}</h3>
-                          <div className="min-w-[24px] h-6 px-1.5 rounded-full border border-border text-text-muted text-[11px] font-semibold flex items-center justify-center bg-app-bg shadow-sm">
-                            {count}
-                          </div>
+                  <div key={stage.slug} className="flex-1 min-w-[290px] w-[290px] max-w-[290px] flex flex-col h-fit transition-all duration-300 relative bg-[var(--border-subtle)] rounded-[12px] p-3">
+                    {/* Spalten-Header (Stage-Name + Anzahl + Collapse) — ÜBER der Übersichts-Kachel, auf der grauen Lane */}
+                    <div className="flex justify-between items-center mb-2 px-1">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-bold text-[15px] text-[var(--text-primary)]">{stage.name}</h3>
+                        <div className="min-w-[24px] h-6 px-1.5 rounded-full border border-border text-text-muted text-[11px] font-semibold flex items-center justify-center bg-app-surface shadow-sm">
+                          {count}
                         </div>
-                        <button
-                          onClick={() => setExpandedCols(prev => ({ ...prev, [stage.slug]: !(prev[stage.slug] ?? true) }))}
-                          className="w-7 h-7 rounded-full bg-app-bg hover:bg-app-bg flex items-center justify-center border border-transparent hover:border-border transition-colors z-10 cursor-pointer shadow-sm"
-                        >
-                          {isExpanded ? <ChevronDown className="w-4 h-4 text-text-muted" /> : <ChevronLeft className="w-4 h-4 text-text-muted" />}
-                        </button>
                       </div>
+                      <button
+                        onClick={() => setExpandedCols(prev => ({ ...prev, [stage.slug]: !(prev[stage.slug] ?? true) }))}
+                        className="w-7 h-7 rounded-full bg-app-surface hover:bg-app-surface flex items-center justify-center border border-transparent hover:border-border transition-colors z-10 cursor-pointer shadow-sm"
+                      >
+                        {isExpanded ? <ChevronDown className="w-4 h-4 text-text-muted" /> : <ChevronLeft className="w-4 h-4 text-text-muted" />}
+                      </button>
+                    </div>
 
-                      <div className="flex flex-col gap-1">
-                        <div className="flex items-baseline gap-1.5">
-                          <span className="text-[34px] font-extrabold leading-none tracking-tight text-[var(--text-primary)]">{count}</span>
-                          <span className="text-[12px] text-text-muted font-medium">{t('hunter.pipeline.opportunities')}</span>
-                        </div>
-                        <div className="text-[14px] font-bold text-[var(--text-primary)] mt-1">
-                          {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(totalEur)}
-                        </div>
+                    {/* Übersichts-Kachel — weiß wie die Deal-Kacheln: Zahl links / „Opportunities" darunter · Volumen rechts */}
+                    <div className="bg-app-surface rounded-[12px] shadow-[var(--shadow-card)] px-4 py-3 mb-3 flex items-center justify-between gap-2">
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-[28px] font-extrabold leading-none tracking-tight text-[var(--text-primary)]">{count}</span>
+                        <span className="text-[10px] text-text-muted font-bold uppercase tracking-wider mt-1">{t('hunter.pipeline.opportunities')}</span>
                       </div>
+                      <span className="text-[15px] font-bold text-[var(--text-primary)] shrink-0">
+                        {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(totalEur)}
+                      </span>
                     </div>
 
                     {/* Cards (nur wenn expanded) */}
@@ -643,26 +752,34 @@ export default function ScreenHunting({
                                 {deal.icpScore != null && <ICPDonut score={deal.icpScore} />}
                               </div>
                             </div>
-                            <div className="flex justify-between items-center pt-1 gap-2">
+                            {/* Trennlinie zwischen Kopf und Aktionszeile (dezenter Bestands-Token). */}
+                            <div className="mt-3 pt-3 border-t border-[var(--border-subtle)] flex justify-between items-center gap-2">
                               <HeatBadge status={deal.heatStatus} />
-                              {/* P8-2c: Pfeile ← / → schieben den Deal eine Stage zurück/weiter
-                                  (stageOptions-Reihenfolge). Stage selbst = Spaltenüberschrift (kein Badge).
-                                  Terminal → keine Pfeile. Erste Stage → kein ←. Letzte nicht-terminale
-                                  Stage → → blockt mit Toast (Won/Lost-Dialog P8-3). */}
-                              {!isTerminalStage(deal.stageSlug) && (
-                                <div className="flex items-center gap-1.5 shrink-0">
-                                  {stageOptions.findIndex((s) => s.slug === deal.stageSlug) > 0 && (
-                                    <button
-                                      type="button"
-                                      aria-label="Eine Stage zurück"
-                                      data-tip="Eine Stage zurück"
-                                      disabled={updateStageMutation.isPending}
-                                      onClick={(e) => { e.stopPropagation(); handleRetreatStage(deal.stageSlug, deal.id); }}
-                                      className="w-8 h-8 rounded-full bg-app-bg text-text-muted hover:scale-105 transition-all flex items-center justify-center shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-default disabled:hover:scale-100"
-                                    >
-                                      <ArrowLeft className="w-4 h-4" />
-                                    </button>
-                                  )}
+                              {/* Aktionsgruppe Zurueck / Auge / Vor: Zurueck nur ab 2. Stage, Vor nur
+                                  nicht-terminal, Auge oeffnet das Panel (Deals-Tab, wie Karten-Klick). Alle gleich gross/teal. */}
+                              <div className="flex items-center gap-1 shrink-0">
+                                {!isTerminalStage(deal.stageSlug) && stageOptions.findIndex((s) => s.slug === deal.stageSlug) > 0 && (
+                                  <button
+                                    type="button"
+                                    aria-label="Eine Stage zurück"
+                                    data-tip="Eine Stage zurück"
+                                    disabled={updateStageMutation.isPending}
+                                    onClick={(e) => { e.stopPropagation(); handleRetreatStage(deal.stageSlug, deal.id); }}
+                                    className="w-8 h-8 rounded-full bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)] hover:scale-105 transition-all flex items-center justify-center shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-default disabled:hover:scale-100"
+                                  >
+                                    <ArrowLeft className="w-4 h-4" />
+                                  </button>
+                                )}
+                                <button
+                                  type="button"
+                                  aria-label="Kontakt öffnen"
+                                  data-tip="Kontakt öffnen"
+                                  onClick={(e) => { e.stopPropagation(); setInfoPanelTab('deals'); setInfoPanelLead(makeLead(deal.contactId ?? deal.id, deal.contactName, deal.contactJobTitle, deal.company, deal.initials, deal.icpScore ?? 75)); }}
+                                  className="w-8 h-8 rounded-full bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)] hover:scale-105 transition-all flex items-center justify-center shadow-sm cursor-pointer"
+                                >
+                                  <Eye className="w-4 h-4" />
+                                </button>
+                                {!isTerminalStage(deal.stageSlug) && (
                                   <button
                                     type="button"
                                     aria-label="Eine Stage weiter"
@@ -673,8 +790,8 @@ export default function ScreenHunting({
                                   >
                                     <ArrowRight className="w-4 h-4" />
                                   </button>
-                                </div>
-                              )}
+                                )}
+                              </div>
                             </div>
                           </div>
                         ))}
@@ -684,6 +801,7 @@ export default function ScreenHunting({
                 );
               })}
             </div>
+           </div>
           ) : (
             <div className="flex flex-col gap-3 pb-8">
               {/* Deals-Tabelle (Count + Filter sitzen in der Filterleiste oben) */}
