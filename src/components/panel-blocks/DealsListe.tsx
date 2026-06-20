@@ -150,10 +150,7 @@ function DealsListeReadonly({
         </span>
         <div className="min-w-0">
           <p className="typo-card-title text-text-primary leading-tight truncate">{d.name}</p>
-          {/* Verlorene Deals: Grund unter dem Namen (Honesty: nur wenn lost_reason vorhanden). */}
-          {d.stageSlug === LOST_STAGE_SLUG && d.lostReason && (
-            <p className="text-[11px] text-text-muted leading-tight truncate mt-0.5">Verloren: {d.lostReason}</p>
-          )}
+          {/* Abschluss-Vermerk (Won/Lost) NICHT mehr hier — eigener grauer Block unten (closeInfo). */}
           {/* Betrag = Leitzahl → prominent direkt unter dem Namen (links), daneben Owner · Abschluss.
               Stage-Badge sitzt allein oben rechts (Status-Konvention). */}
           <div className="flex items-center gap-2 mt-1 min-w-0">
@@ -258,6 +255,24 @@ function DealsListeReadonly({
     </div>
   );
 
+  // Abschluss-Vermerk (Won/Lost) — eigene graue Box ganz UNTEN auf der Karte (letztes Ereignis).
+  // Nur bei terminalem Deal + vorhandenem Grund/Notiz (Honesty: sonst nichts).
+  const closeInfo = (d: DealView) => {
+    const isLost = d.stageSlug === LOST_STAGE_SLUG;
+    const isWon = d.stageSlug === WON_STAGE_SLUG;
+    if (!isLost && !isWon) return null;
+    const reason = isLost ? d.lostReason : d.wonReason;
+    const note = isLost ? d.lostNote : d.wonNote;
+    if (!reason && !note) return null;
+    return (
+      <div className="mt-3 bg-app-bg rounded-[10px] px-3.5 py-2.5">
+        <span className="typo-section-label text-text-muted">{isLost ? "Verloren" : "Gewonnen"}</span>
+        {reason && <div className="text-[12px] font-semibold text-text-body mt-1">{reason}</div>}
+        {note && <div className="text-[11px] italic text-text-muted mt-0.5">„{note}"</div>}
+      </div>
+    );
+  };
+
   // ── COMPACT (Übersicht): alle Deals kompakt, primärer zuerst, ab >2 einklappbar, Edit navigiert. ──
   // Karten-Klasse: gewonnene Deals bekommen einen dezenten grünen linken Rand (Status-Highlight).
   const cardCls = (d: DealView) =>
@@ -319,6 +334,7 @@ function DealsListeReadonly({
                 </div>
               </div>
               {chipsRow(chips)}
+              {closeInfo(d)}
             </div>
           );
         })}
@@ -388,6 +404,7 @@ function DealsListeReadonly({
               ) : (
                 <>
                   <div className="mt-3 pt-3 border-t border-border"><DealSetup deal={d} embedded /></div>
+                  {closeInfo(d)}
                   {confirmDeleteId === d.id && <div className="mt-3">{confirmBar(d.id)}</div>}
                 </>
               )}

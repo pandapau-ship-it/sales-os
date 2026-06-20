@@ -465,13 +465,17 @@ export async function updateDealStage(
 export async function updateDealWon(
   dealId: string,
   organizationId: string,
+  opts?: { wonReason?: string; wonNote?: string },
 ): Promise<void> {
   const client = getSupabaseClient();
   if (!client) return;
   const now = new Date().toISOString();
+  const patch: Record<string, unknown> = { stage: WON_STAGE_SLUG, closed_at: now, stage_updated_at: now, stagnation_days: 0 };
+  if (opts?.wonReason !== undefined) patch.won_reason = opts.wonReason.trim() || null; // leer → null
+  if (opts?.wonNote !== undefined) patch.won_note = opts.wonNote.trim() || null;       // leer → null (kein Fake)
   const { error } = await client
     .from("deals")
-    .update({ stage: WON_STAGE_SLUG, closed_at: now, stage_updated_at: now, stagnation_days: 0 })
+    .update(patch)
     .eq("organization_id", organizationId)
     .eq("id", dealId);
   if (error) throw error;
@@ -479,22 +483,23 @@ export async function updateDealWon(
 
 /**
  * updateDealLost — Deal verloren (P8-3). Setzt stage=verloren + closed_at=now() +
- * lost_reason (Pflicht, App-seitig erzwungen) + stage_updated_at + Stagnation-Reset.
- * Optionale Notiz wird an den Grund angehängt (lost_reason ist eine Textspalte). Audit via Trigger.
+ * lost_reason (Pflicht, App-seitig erzwungen) + optionale lost_note (eigene Spalte, NICHT
+ * mehr an den Grund angehängt) + stage_updated_at + Stagnation-Reset. Audit via Trigger.
  */
 export async function updateDealLost(
   dealId: string,
   organizationId: string,
   lostReason: string,
-  note?: string,
+  lostNote?: string,
 ): Promise<void> {
   const client = getSupabaseClient();
   if (!client) return;
   const now = new Date().toISOString();
-  const reason = note && note.trim() ? `${lostReason} — ${note.trim()}` : lostReason;
+  const patch: Record<string, unknown> = { stage: LOST_STAGE_SLUG, closed_at: now, lost_reason: lostReason, stage_updated_at: now, stagnation_days: 0 };
+  if (lostNote !== undefined) patch.lost_note = lostNote.trim() || null; // leere Notiz → null (kein Fake)
   const { error } = await client
     .from("deals")
-    .update({ stage: LOST_STAGE_SLUG, closed_at: now, lost_reason: reason, stage_updated_at: now, stagnation_days: 0 })
+    .update(patch)
     .eq("organization_id", organizationId)
     .eq("id", dealId);
   if (error) throw error;

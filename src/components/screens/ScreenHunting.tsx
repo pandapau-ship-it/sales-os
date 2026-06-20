@@ -41,7 +41,7 @@ import { updateDealStage, updateDealWon, updateDealLost } from '@/lib/db';
 import { DEMO_ORGANIZATION_ID } from '@/lib/org';
 import { useToast } from '@/components/shared/Toast';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
-import { DealLostModal, DealCloseModal } from '@/components';
+import { DealLostModal, DealCloseModal, DealWonModal } from '@/components';
 import { triggerConfetti } from '@/lib/confetti';
 
 interface ScreenHuntingProps {
@@ -105,6 +105,7 @@ export default function ScreenHunting({
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [lostModal, setLostModal] = useState<{ open: boolean; dealId: string | null }>({ open: false, dealId: null });
+  const [wonModal, setWonModal] = useState<{ open: boolean; dealId: string | null }>({ open: false, dealId: null });
   const [closeDealModal, setCloseDealModal] = useState<{ open: boolean; dealId: string | null }>({ open: false, dealId: null });
   const invalidateDealsScope = () => {
     queryClient.invalidateQueries({ queryKey: ['dealsByContact', DEMO_ORGANIZATION_ID] });
@@ -119,17 +120,24 @@ export default function ScreenHunting({
     onError: () => toast('Stage konnte nicht geändert werden'),
   });
   const wonMutation = useMutation({
-    mutationFn: (dealId: string) => updateDealWon(dealId, DEMO_ORGANIZATION_ID),
-    onSuccess: () => { invalidateDealsScope(); triggerConfetti(); toast('Deal gewonnen ✓'); },
+    mutationFn: ({ dealId, wonReason, wonNote }: { dealId: string; wonReason?: string; wonNote?: string }) => updateDealWon(dealId, DEMO_ORGANIZATION_ID, { wonReason, wonNote }),
+    onSuccess: () => { invalidateDealsScope(); },
     onError: () => toast('Stage konnte nicht geändert werden'),
   });
+  // Won-Flow: Deal SOFORT gewinnen (Write) + Konfetti + Notiz-Modal öffnen. „Überspringen" braucht
+  // daher keinen Write mehr; „Speichern" hängt nur die optionale won_note an.
+  const startWonFlow = (dealId: string) => {
+    triggerConfetti();
+    setWonModal({ open: true, dealId });
+    wonMutation.mutate({ dealId }, { onSuccess: () => toast('Deal gewonnen ✓') });
+  };
   const lostMutation = useMutation({
     mutationFn: ({ dealId, lostReason, note }: { dealId: string; lostReason: string; note: string }) => updateDealLost(dealId, DEMO_ORGANIZATION_ID, lostReason, note),
     onSuccess: () => { invalidateDealsScope(); toast('Deal als verloren markiert'); setLostModal({ open: false, dealId: null }); },
     onError: () => toast('Stage konnte nicht geändert werden'),
   });
   const handleStageChange = (newSlug: string, dealId: string) => {
-    if (newSlug === WON_STAGE_SLUG) { wonMutation.mutate(dealId); return; }
+    if (newSlug === WON_STAGE_SLUG) { startWonFlow(dealId); return; }
     if (newSlug === LOST_STAGE_SLUG) { setLostModal({ open: true, dealId }); return; }
     updateStageMutation.mutate({ dealId, newSlug });
   };
@@ -997,17 +1005,25 @@ export default function ScreenHunting({
       {/* P8-3c: Close-Deal-Popup (letzter Kanban-Pfeil) → Gewonnen (direkt + Konfetti) / Verloren (Lost-Modal). */}
       <DealCloseModal
         open={closeDealModal.open}
-        onWon={() => { const id = closeDealModal.dealId; setCloseDealModal({ open: false, dealId: null }); if (id) wonMutation.mutate(id); }}
+        onWon={() => { const id = closeDealModal.dealId; setCloseDealModal({ open: false, dealId: null }); if (id) startWonFlow(id); }}
         onLost={() => { const id = closeDealModal.dealId; setCloseDealModal({ open: false, dealId: null }); setLostModal({ open: true, dealId: id }); }}
         onCancel={() => setCloseDealModal({ open: false, dealId: null })}
       />
 
-      {/* P8-3: Lost-Dialog bei Wechsel in „verloren" (Kanban-Pfeil/Liste-Dropdown). Won = kein Modal. */}
+      {/* P8-3: Lost-Dialog bei „verloren" (blockierend, Grund Pflicht + optionale Notiz → lost_note). */}
       <DealLostModal
         open={lostModal.open}
         pending={lostMutation.isPending}
         onCancel={() => setLostModal({ open: false, dealId: null })}
-        onConfirm={(lostReason, note) => { if (lostModal.dealId) lostMutation.mutate({ dealId: lostModal.dealId, lostReason, note }); }}
+        onConfirm={(lostReason, note) => { const id = lostModal.dealId; setLostModal({ open: false, dealId: null }); if (id) lostMutation.mutate({ dealId: id, lostReason, note }); }}
+      />
+
+      {/* Won-Notiz (nicht blockierend): Deal ist bereits gewonnen; „Speichern" hängt won_note an, „Überspringen" = kein Write. */}
+      <DealWonModal
+        open={wonModal.open}
+        pending={wonMutation.isPending}
+        onSave={(reason, note) => { const id = wonModal.dealId; setWonModal({ open: false, dealId: null }); if (id) wonMutation.mutate({ dealId: id, wonReason: reason, wonNote: note }, { onSuccess: () => toast('Gespeichert ✓') }); }}
+        onSkip={() => setWonModal({ open: false, dealId: null })}
       />
 
     </div>
