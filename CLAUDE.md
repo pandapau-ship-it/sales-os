@@ -1569,6 +1569,66 @@ Langfuse-Prompt erwähnen. Kein Umbau des Chats nötig.
 
 ---
 
+## Performance & Skalierung (Pflicht-Leitlinien)
+
+> Performance ist Empfehlung, nicht Blocker → `npm run audit` meldet diese Punkte als **WARN**
+> (Ausnahme: **N+1 in Production-Queries = FAIL**). Trotzdem verbindlich befolgen.
+
+### Edge Functions
+- **Batching Pflicht** bei potentiell > 1000 Datensätzen — nie `SELECT *` ohne `LIMIT` auf großen Tabellen.
+- Vor jeder neuen Query: **EXPLAIN ANALYZE** prüfen (läuft sie auf einem Index?).
+- Jede Function hat ein **explizites Timeout** (max. **30s** Cron, max. **10s** user-triggered).
+- Fehler **immer** in `error_log` — nie lautlos scheitern.
+- **Retry**: 3 Versuche mit exponential backoff (1s → 5s → 30s).
+
+### Frontend
+- **TanStack Query `staleTime` bewusst setzen** (Default 0 = immer refetch = zu aggressiv).
+  Empfehlung: **30s** für statische Daten, **5s** für Live-Daten.
+- **Keine N+1 Queries** — ein Query pro Liste, nie ein Query pro Zeile/Karte (`useQuery` in `.map()` = **FAIL**).
+- **Lazy Loading** für alle Drawer/Panels — nicht alles beim ersten Render laden.
+- **Bundle-Size**: keine Library > 50kb ohne Absprache.
+
+### Datenbank
+- Jede neue Tabelle **MUSS** Indizes haben auf: `organization_id` + `created_at` + alle **FK-Felder**.
+- RLS-Policies **Index-aware** — `EXPLAIN` auf jede neue Policy.
+- **Soft-Delete**: `deleted_at`-Index Pflicht (`WHERE deleted_at IS NULL` ohne Index = Seq-Scan).
+- **Keine rohen `SELECT *`** in Production-Queries — immer explizite Felder (Ausnahme: `getContactDetail`, volle CRM-Felder fürs Panel).
+
+### Enforcement (`npm run audit` + `structure-check`)
+- `Perf: N+1 Queries` (**FAIL**) · `Perf: staleTime gesetzt` (WARN) · `Perf: explizite Felder (kein SELECT *)` (WARN)
+  · `Perf: Edge-Function Timeout` (WARN) · structure-check: `CREATE TABLE` ohne `CREATE INDEX` (WARN).
+
+---
+
+## Signal-getriebene UI — Kern-Philosophie
+
+Kacheln erscheinen ausschließlich wenn der auslösende Zustand in der DB vorliegt. Nie vorher.
+
+Keine leeren Listen, keine Platzhalter, keine „noch keine Daten"-Zustände, keine Mock-Kacheln.
+
+| Tab / Bereich | Kachel erscheint wenn |
+|---|---|
+| Pipeline Stagniert | `deals.stagnation_days >= threshold` (aus settings) |
+| Keine Task | Deal aktiv + keine offene Task in `tasks` |
+| Follow-ups | `tasks.due_at <= heute` + `completed_at IS NULL` |
+| Signals | Eintrag in `signals` Tabelle vorhanden |
+| Neu in Pipeline | `deals.created_at` innerhalb Zeitfenster |
+| Churn (Farmer) | `contacts.churn_score >= threshold` |
+| Upsell (Farmer) | `contacts.upsell_score >= threshold` |
+| Mein Tag Zone 2 | Kombination der obigen Bedingungen |
+
+Leere Liste = positiver Zustand. Kein Follow-up fällig = gut. Keine Stagnation = gut.
+Keine Churn-Warnung = gut. Das System zeigt nur was wirklich gehandelt werden muss.
+
+Gilt für das gesamte System — Hunter, Farmer, AI SDR, Mein Tag. Keine Ausnahmen.
+
+Für jeden neuen Tab / jede neue Kachel gilt — vor dem Bauen definieren:
+1. **Was ist die auslösende Bedingung?** (DB-Feld + Schwellenwert)
+2. **Woher kommt der Schwellenwert?** (immer aus settings — nie hardcodiert)
+3. **Was passiert wenn die Liste leer ist?** (nichts anzeigen — kein Platzhalter)
+
+---
+
 ## 10. SaaS-Readiness — Technische Grundregeln
 
 > **Terminologie:** Das System verwendet `organization_id` / `organizations` als Standard.
