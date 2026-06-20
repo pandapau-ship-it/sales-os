@@ -299,4 +299,10 @@
 - **what:** Mehrere Telefonnummern pro Kontakt mit Typ (Mobil/Geschäftlich/Privat) und einer Favorit-Nummer. Anrufen und Kopieren direkt aus dem Kontakt; Anlegen/Bearbeiten/Löschen inline; Eingaben werden geprüft.
 - **how:** Kontakt öffnen → auf die Telefon-Pill klicken: Popover mit allen Nummern (Anrufen/Kopieren, Favorit setzen). Verwalten im Details-Tab der Vollansicht.
 - **value:** Alle Nummern eines Kontakts an einem Ort, sofort anrufbar — keine verstreuten Daten, schnellerer Erstkontakt, saubere Stammdaten.
+
+### Pipeline-Kennzahlen (Kanban)
+- **feature:** Pipeline-Kennzahlen (Kanban)
+- **what:** Kennzahlen-Kacheln über dem Kanban-Board: Pipeline-Gesamtwert, Gewichteter Wert (Wert × Stage-Wahrscheinlichkeit, mit Aufschlüsselung pro Stage beim Hover) und Heat-Verteilung (Anzahl aktiver Deals je Heat-Stufe).
+- **how:** Hunter → Pipeline → Ansicht „Kanban". Kacheln über dem Board; „Gewichteter Wert" zeigt beim Hover die Werte je Stage.
+- **value:** Forecast und Pipeline-Gesundheit auf einen Blick — realistischer gewichteter Wert statt Bruttosumme, plus Heat-Verteilung als Frühindikator.
 - **module:** hunter
