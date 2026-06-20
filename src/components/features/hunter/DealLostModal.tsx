@@ -29,13 +29,8 @@ export default function DealLostModal({
   useEffect(() => { if (open) { setReason(""); setNote(""); } }, [open]);
 
   return (
-    <Dialog open={open} onOpenChange={() => { /* blockierend: schließen nur über die Buttons */ }}>
-      <DialogContent
-        className="[&>button]:hidden max-w-md"
-        onEscapeKeyDown={(e) => e.preventDefault()}
-        onInteractOutside={(e) => e.preventDefault()}
-        onPointerDownOutside={(e) => e.preventDefault()}
-      >
+    <Dialog open={open} onOpenChange={(o) => { if (!o) onCancel(); }}>
+      <DialogContent className="max-w-md">{/* X/Escape/Außenklick = Abbrechen (kein Write); Grund bleibt Pflicht zum Bestätigen */}
         <DialogHeader>
           <DialogTitle className="typo-card-title text-text-primary">Deal als verloren markieren</DialogTitle>
           <DialogDescription className="text-[12px] text-text-muted">

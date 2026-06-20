@@ -1015,7 +1015,7 @@ export default function ScreenHunting({
         open={lostModal.open}
         pending={lostMutation.isPending}
         onCancel={() => setLostModal({ open: false, dealId: null })}
-        onConfirm={(lostReason, note) => { if (lostModal.dealId) lostMutation.mutate({ dealId: lostModal.dealId, lostReason, note }); }}
+        onConfirm={(lostReason, note) => { const id = lostModal.dealId; setLostModal({ open: false, dealId: null }); if (id) lostMutation.mutate({ dealId: id, lostReason, note }); }}
       />
 
       {/* Won-Notiz (nicht blockierend): Deal ist bereits gewonnen; „Speichern" hängt won_note an, „Überspringen" = kein Write. */}
