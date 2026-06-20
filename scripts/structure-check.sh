@@ -11,5 +11,21 @@ if [ -n "$WRONG" ]; then
   exit 1
 fi
 
+# Performance-Hinweis (WARN, blockt NICHT): Migration mit CREATE TABLE, aber ohne CREATE INDEX
+# (Pflicht-Indizes: organization_id + created_at + FK-Felder + deleted_at bei Soft-Delete).
+if [ -d supabase/migrations ]; then
+  MISSING_IDX=""
+  for f in supabase/migrations/*.sql; do
+    [ -f "$f" ] || continue
+    if grep -qi "create table" "$f" && ! grep -qi "create index" "$f"; then
+      MISSING_IDX="$MISSING_IDX $f"
+    fi
+  done
+  if [ -n "$MISSING_IDX" ]; then
+    echo "WARN: CREATE TABLE ohne CREATE INDEX (org_id/created_at/FK/deleted_at indizieren):"
+    for f in $MISSING_IDX; do echo "  - $f"; done
+  fi
+fi
+
 echo "PASS: Struktur korrekt"
 exit 0

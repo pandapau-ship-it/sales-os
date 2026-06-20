@@ -463,6 +463,86 @@ function checkTypographyTokens(): void {
 }
 checkTypographyTokens()
 
+// ── Performance & Skalierung (Empfehlungen → WARN; echtes N+1 in Production → FAIL) ──
+
+/** N+1: useQuery() INNERHALB einer .map()-Klammer (ein Query pro Zeile/Karte) — via Klammer-Matching. */
+function checkN1Queries(): void {
+  const offenders: string[] = []
+  for (const f of walk(SRC, ['.ts', '.tsx'])) {
+    const src = read(f)
+    let i = 0
+    let found = false
+    while ((i = src.indexOf('.map(', i)) !== -1) {
+      let depth = 0
+      let span = ''
+      for (let j = i + 4; j < src.length; j++) {
+        const c = src[j]
+        span += c
+        if (c === '(') depth++
+        else if (c === ')') { depth--; if (depth === 0) break }
+      }
+      if (/\buseQuery\s*\(/.test(span)) { found = true; break }
+      i += 5
+    }
+    if (found) offenders.push(rel(f))
+  }
+  add('Perf: N+1 Queries', offenders.length ? 'FAIL' : 'PASS',
+    offenders.length
+      ? `useQuery() innerhalb von .map() (Query pro Zeile) — als EIN Listen-Query bündeln:\n        ${offenders.join('\n        ')}`
+      : 'Kein useQuery innerhalb von .map() (kein N+1).')
+}
+checkN1Queries()
+
+/** staleTime: Dateien mit useQuery, aber ohne staleTime (Default 0 = aggressives Refetch). */
+function checkStaleTime(): void {
+  const offenders: string[] = []
+  for (const f of walk(SRC, ['.ts', '.tsx'])) {
+    const src = read(f)
+    if (/\buseQuery\s*\(/.test(src) && !/staleTime/.test(src)) offenders.push(rel(f))
+  }
+  add('Perf: staleTime gesetzt', offenders.length ? 'WARN' : 'PASS',
+    offenders.length
+      ? `useQuery ohne staleTime (Default 0 → refetcht aggressiv; Empf. 30s statisch / 5s live):\n        ${offenders.join('\n        ')}`
+      : 'Alle useQuery-Dateien setzen staleTime.')
+}
+checkStaleTime()
+
+/** SELECT *: inline `.select('*')` in db.ts (explizite Felder bevorzugen; Ausnahme getContactDetail). */
+function checkSelectStar(): void {
+  const p = join(ROOT, 'src/lib/db.ts')
+  if (!existsSync(p)) { add('Perf: explizite Felder (kein SELECT *)', 'SKIP', 'db.ts fehlt.'); return }
+  const sql = read(p)
+  const fns: { name: string; idx: number }[] = []
+  const fnRe = /export\s+async\s+function\s+(\w+)/g
+  let m: RegExpExecArray | null
+  while ((m = fnRe.exec(sql))) fns.push({ name: m[1], idx: m.index })
+  const fnAt = (idx: number): string => { let n = 'top'; for (const f of fns) { if (f.idx <= idx) n = f.name; else break } return n }
+  const offenders = new Set<string>()
+  const selRe = /\.select\(\s*[`'"]\s*\*/g
+  while ((m = selRe.exec(sql))) {
+    const fn = fnAt(m.index)
+    if (fn === 'getContactDetail') continue // bewusste Ausnahme (volle CRM-Felder fürs Panel)
+    offenders.add(fn)
+  }
+  add('Perf: explizite Felder (kein SELECT *)', offenders.size ? 'WARN' : 'PASS',
+    offenders.size
+      ? `SELECT * in db.ts (explizite Felder bevorzugen; Ausnahme getContactDetail): ${[...offenders].join(', ')}`
+      : 'Keine inline SELECT * in db.ts (außer bewusster Ausnahme).')
+}
+checkSelectStar()
+
+/** Edge Functions: index.ts ohne explizites Timeout-/Abort-Setting. */
+function checkEdgeFnTimeout(): void {
+  const files = walk(join(ROOT, 'supabase/functions'), ['.ts']).filter((f) => basename(f) === 'index.ts')
+  if (!files.length) { add('Perf: Edge-Function Timeout', 'PASS', 'Keine Edge Functions vorhanden.'); return }
+  const offenders = files.filter((f) => !/timeout|AbortSignal|AbortController|setTimeout/i.test(read(f))).map(rel)
+  add('Perf: Edge-Function Timeout', offenders.length ? 'WARN' : 'PASS',
+    offenders.length
+      ? `Edge Function ohne explizites Timeout (Empf. max 30s Cron / 10s User):\n        ${offenders.join('\n        ')}`
+      : 'Alle Edge Functions mit Timeout/Abort.')
+}
+checkEdgeFnTimeout()
+
 // ── Report ───────────────────────────────────────────────────────────────────
 
 const icon: Record<Status, string> = { PASS: '✓', WARN: '!', FAIL: '✗', SKIP: '·' }
