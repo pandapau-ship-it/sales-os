@@ -279,3 +279,10 @@
 - **how:** Hunter → Follow-ups. „Erledigt" hakt die Aufgabe ab (verschwindet sofort). Leer = alles erledigt.
 - **value:** Kein Follow-up fällt mehr durchs Raster — du arbeitest deine fälligen Aufgaben ab und hältst Deals warm, mit klarer Dringlichkeit auf einen Blick.
 - **module:** hunter
+
+### Pipeline-Kennzahlen (Kanban)
+- **feature:** Pipeline-Kennzahlen (Kanban)
+- **what:** Kennzahlen-Kacheln über dem Kanban-Board: Pipeline-Gesamtwert, Gewichteter Wert (Wert × Stage-Wahrscheinlichkeit, mit Aufschlüsselung pro Stage beim Hover) und Heat-Verteilung (Anzahl aktiver Deals je Heat-Stufe).
+- **how:** Hunter → Pipeline → Ansicht „Kanban". Kacheln über dem Board; „Gewichteter Wert" zeigt beim Hover die Werte je Stage.
+- **value:** Forecast und Pipeline-Gesundheit auf einen Blick — realistischer gewichteter Wert statt Bruttosumme, plus Heat-Verteilung als Frühindikator.
+- **module:** hunter
