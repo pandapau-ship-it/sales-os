@@ -451,6 +451,10 @@ export async function updateDealStage(
     .eq("organization_id", organizationId)
     .eq("id", dealId);
   if (error) throw error;
+  // Stagnation für genau diesen Deal neu bewerten (score_deal_health). Fire-and-forget: blockiert
+  // den Stage-Write nicht, Fehler werden geschluckt (der tägliche Cron korrigiert ohnehin nach).
+  // Hinweis: nach einem Stage-Wechsel ist stagnation_days bereits 0 → meist redundant, aber spec-konform.
+  void client.functions.invoke("score-deal-health", { body: { organizationId, dealId } }).catch(() => {});
 }
 
 /**
