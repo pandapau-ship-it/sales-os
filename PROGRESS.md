@@ -379,11 +379,18 @@ kam es, wie groß ist es** — und einen **klaren nächsten Schritt** anstoßen 
 - **Status:** Übersicht-KPIs (Pipeline-Wert/Heiße-Signale/Follow-ups) + Funnel (Deals/€ pro Stage) sind **read-seitig echt** (2026-06-18); Top-5 wartet auf diese Regel.
 - **User-Wunsch (Statistik-Kachel, später):** mögliche Übersicht-Kachel **„Anzahl erledigter Aufgaben über Zeit"** — Datenbasis ist da (`tasks.completed_at`, zusätzlich `deleted_at` für gelöschte). **Hinweis:** aussagekräftig erst mit **echter Nutzung über Wochen** (vorher zu wenig Datenpunkte). Gehört zum Statistik-/Berechnungs-Thema, nicht in den Read-Tab.
 
+### [D22] Cron Job: score-deal-health täglich 02:00 UTC (deferred)
+- **Migration 035** liegt bereits in `supabase/migrations/` (auf `main`) — `pg_cron`-Job 02:00 UTC → `net.http_post` auf die Edge Function.
+- **Edge Function `score-deal-health`** ist gebaut (`supabase/functions/`), aber **NOCH NICHT deployed** (verifiziert: `supabase functions list` = leer) → `supabase functions deploy score-deal-health`.
+- **Fehlt außerdem:** GUCs `app.supabase_url` + `app.service_role_key` via Supabase Vault setzen (Dashboard → Integrations → Vault), dann **Migration 035 pushen** (`supabase db push`).
+- **Ohne Cron:** Stagnation wird nur **bei Stage-Änderung** berechnet (fire-and-forget Trigger in `updateDealStage` aktiv).
+- **Kommt wenn:** der **Settings-Screen** gebaut wird (dort konfiguriert der User die Schwellenwerte → dann macht das Cron-Setup als Gesamtpaket Sinn).
+
 ### [TS] Deal-Typ ohne `product` — offener Faden
 - `src/types/hunter.ts` `Deal` hat **kein `product`** (Migration 014 fügte nur die DB-Spalte).
   Beim späteren Produkt-Anzeigen (Pipeline/Deal-Detail) `product?: string` im Typ ergänzen + mappen.
 
-> Anker-Tags `[D1]`–`[D21]` sind im Code referenzierbar (z.B. `hunterMappers.ts` → `[[leads-tab-read]]`).
+> Anker-Tags `[D1]`–`[D22]` sind im Code referenzierbar (z.B. `hunterMappers.ts` → `[[leads-tab-read]]`).
 > Vor Umsetzung eines Punkts: passende Referenz-Doku (`docs/sales_os_edge_functions_v2.md` etc.) lesen.
 
 ---
