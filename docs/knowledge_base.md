@@ -279,3 +279,24 @@
 - **how:** Hunter → Follow-ups. „Erledigt" hakt die Aufgabe ab (verschwindet sofort). Leer = alles erledigt.
 - **value:** Kein Follow-up fällt mehr durchs Raster — du arbeitest deine fälligen Aufgaben ab und hältst Deals warm, mit klarer Dringlichkeit auf einen Blick.
 - **module:** hunter
+
+### Deal-Stufe ändern
+- **feature:** Deal-Stufe ändern
+- **what:** Deals durch die Pipeline bewegen — direkt von der Kanban-Karte (Pfeile vor/zurück), per Klick auf den Stage-Badge in der Liste und im Kontakt (Deals-/Übersicht-Tab). Schreibt sofort in die Pipeline, überall synchron.
+- **how:** Pipeline → Kanban: Pfeile ← / → an der Karte. Oder Stage-Badge anklicken (Liste, Deals-Tab, Übersicht) und neue Stufe wählen.
+- **value:** Pipeline-Pflege in einem Klick statt Formular — der Status bleibt aktuell, Forecasts und Follow-ups stimmen, ohne Reibung.
+- **module:** hunter
+
+### Deal abschließen (Gewonnen / Verloren)
+- **feature:** Deal abschließen (Gewonnen / Verloren)
+- **what:** Deals sauber abschließen: „Gewonnen" markiert den Abschluss (mit kurzer Erfolgs-Animation), „Verloren" verlangt einen Grund plus optionale Notiz. Abschlussdatum wird automatisch gesetzt.
+- **how:** Letzte Pfeil-Stufe im Kanban → „Gewonnen" oder „Verloren" wählen; bei Verloren den Grund angeben.
+- **value:** Saubere Won/Lost-Daten als Basis für Win-Rate, Verlustgründe und bessere Forecasts — und ein motivierender Moment beim Gewinnen.
+- **module:** hunter
+
+### Telefonnummern am Kontakt
+- **feature:** Telefonnummern am Kontakt
+- **what:** Mehrere Telefonnummern pro Kontakt mit Typ (Mobil/Geschäftlich/Privat) und einer Favorit-Nummer. Anrufen und Kopieren direkt aus dem Kontakt; Anlegen/Bearbeiten/Löschen inline; Eingaben werden geprüft.
+- **how:** Kontakt öffnen → auf die Telefon-Pill klicken: Popover mit allen Nummern (Anrufen/Kopieren, Favorit setzen). Verwalten im Details-Tab der Vollansicht.
+- **value:** Alle Nummern eines Kontakts an einem Ort, sofort anrufbar — keine verstreuten Daten, schnellerer Erstkontakt, saubere Stammdaten.
+- **module:** hunter

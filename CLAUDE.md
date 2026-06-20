@@ -571,6 +571,17 @@ Alle prop-driven, Tokens-only, Dark-Mode automatisch.
 
 > Neuer panel-block → **sofort** in diese Tabelle **und** in `panel-blocks/index.ts` (Barrel) eintragen.
 
+### Komponenten in `features/hunter/` (Modul-Kompositionen, via `@/components`)
+
+| Komponente | Zweck |
+|---|---|
+| `HunterSidepanel` | 820px-Info-Panel (`variant='panel'|'full'`); Deeplinks `initialAction='task'` + `initialTab` (z.B. Kanban-Karten-Klick → Deals-Tab) |
+| `DealLostModal` | Blockierender Won/Lost-Dialog beim Wechsel auf „verloren" (P8-3): Pflicht-Grund (RadioGroup) + optionale Notiz → `onConfirm(reason, note)`; kein Escape/Außenklick/Close-X |
+| `DealCloseModal` | Nicht-blockierendes Popup am letzten Kanban-Pfeil (P8-3): Gewonnen (direkt + Konfetti) / Verloren (→ DealLostModal) / Abbrechen |
+| `AddSdrLeadPanel` `NoTaskDrawer` `SignalActionDrawer` `PipelineStagnatedDrawer` `ContactColdDrawer` `TaskDrawer` `ChatActionPanel` `FunnelAnalysis` | weitere Action-Panels/Drawer + Funnel |
+
+**Helfer:** `lib/confetti.ts` (`triggerConfetti()` — Won-Feedback) · `lib/validation.ts` (`isValidPhone` verdrahtet; `isValidEmail`/`normalizeUrl`/`isValidUrl` für P8 vorbereitet).
+
 ### Import-Regel — immer über `@/components` (nie tiefer als nötig)
 
 Es gibt ein zentrales Top-Level-Barrel **`src/components/index.ts`**, das `panel-blocks/` · `panels/`
