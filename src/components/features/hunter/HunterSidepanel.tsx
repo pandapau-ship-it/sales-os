@@ -4,6 +4,7 @@ import { DEMO_ORGANIZATION_ID } from '@/lib/org';
 import { getContactDetail, getPipelineSettings, getTasksByContact, createTask, completeTask, softDeleteTask, getNotesByContact, createNote, updateNote, softDeleteNote, getDealsByContact, getActivityByContact, getProducts, getOrgUsers, createDeal, updateDeal, updateDealStage, updateDealWon, updateDealLost, softDeleteDeal, createContactPhone, updateContactPhone, setContactPhonePrimary, deleteContactPhone } from '@/lib/db';
 import { contactToProfile, latestActiveDeal, dealToView, WON_STAGE_SLUG, LOST_STAGE_SLUG } from '@/lib/hunterMappers';
 import DealLostModal from './DealLostModal';
+import DealWonModal from './DealWonModal';
 import { triggerConfetti } from '@/lib/confetti';
 import {
   ArrowUpRight, ArrowLeft, X, Clock, Check,
@@ -264,6 +265,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
     onError: (e) => showToast(`Speichern fehlgeschlagen: ${(e as Error).message}`),
   });
   const [lostModal, setLostModal] = useState<{ open: boolean; dealId: string | null }>({ open: false, dealId: null });
+  const [wonModal, setWonModal] = useState<{ open: boolean; dealId: string | null }>({ open: false, dealId: null });
   // P8-2d/3 — Stage-Wechsel am Stage-Badge (Deals-/Übersicht-Tab). Drei Pfade, gleiche
   // Invalidierung: normaler Move (updateDealStage), gewonnen (updateDealWon, direkt, kein Modal),
   // verloren (DealLostModal → updateDealLost).
@@ -280,17 +282,23 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
     onError: () => showToast('Stage konnte nicht geändert werden'),
   });
   const wonMutation = useMutation({
-    mutationFn: (dealId: string) => updateDealWon(dealId, DEMO_ORGANIZATION_ID),
-    onSuccess: () => { invalidateDealsScope(); triggerConfetti(); showToast('Deal gewonnen ✓'); },
+    mutationFn: ({ dealId, wonReason, wonNote }: { dealId: string; wonReason?: string; wonNote?: string }) => updateDealWon(dealId, DEMO_ORGANIZATION_ID, { wonReason, wonNote }),
+    onSuccess: () => { invalidateDealsScope(); },
     onError: () => showToast('Stage konnte nicht geändert werden'),
   });
+  // Won-Flow: sofort gewinnen + Konfetti + Notiz-Modal öffnen; „Überspringen" = kein Write.
+  const startWonFlow = (dealId: string) => {
+    triggerConfetti();
+    setWonModal({ open: true, dealId });
+    wonMutation.mutate({ dealId }, { onSuccess: () => showToast('Deal gewonnen ✓') });
+  };
   const lostMutation = useMutation({
     mutationFn: ({ dealId, lostReason, note }: { dealId: string; lostReason: string; note: string }) => updateDealLost(dealId, DEMO_ORGANIZATION_ID, lostReason, note),
     onSuccess: () => { invalidateDealsScope(); showToast('Deal als verloren markiert'); setLostModal({ open: false, dealId: null }); },
     onError: () => showToast('Stage konnte nicht geändert werden'),
   });
   const handleStageChange = (dealId: string, newSlug: string) => {
-    if (newSlug === WON_STAGE_SLUG) { wonMutation.mutate(dealId); return; }
+    if (newSlug === WON_STAGE_SLUG) { startWonFlow(dealId); return; }
     if (newSlug === LOST_STAGE_SLUG) { setLostModal({ open: true, dealId }); return; }
     updateStageMutation.mutate({ dealId, newSlug });
   };
@@ -755,6 +763,14 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
         pending={lostMutation.isPending}
         onCancel={() => setLostModal({ open: false, dealId: null })}
         onConfirm={(lostReason, note) => { if (lostModal.dealId) lostMutation.mutate({ dealId: lostModal.dealId, lostReason, note }); }}
+      />
+
+      {/* Won-Notiz (nicht blockierend): Deal ist bereits gewonnen; „Speichern" hängt won_note an, „Überspringen" = kein Write. */}
+      <DealWonModal
+        open={wonModal.open}
+        pending={wonMutation.isPending}
+        onSave={(reason, note) => { const id = wonModal.dealId; setWonModal({ open: false, dealId: null }); if (id) wonMutation.mutate({ dealId: id, wonReason: reason, wonNote: note }, { onSuccess: () => showToast('Gespeichert ✓') }); }}
+        onSkip={() => setWonModal({ open: false, dealId: null })}
       />
     </>
   );

@@ -151,6 +151,9 @@ export type DealView = {
   expectedCloseDate?: string; // erwartetes Abschlussdatum (Forecast)
   closedAt?: string; // tatsächlicher Abschluss
   lostReason?: string; // deals.lost_reason (nur bei stage=verloren) — fehlt → ausgeblendet
+  lostNote?: string; // deals.lost_note (optionaler Freitext beim Verlieren) — fehlt → ausgeblendet
+  wonReason?: string; // deals.won_reason (optionaler Gewinn-Grund, Auswahl) — fehlt → ausgeblendet
+  wonNote?: string; // deals.won_note (optionaler Freitext beim Gewinnen) — fehlt → ausgeblendet
   endDate?: string; // Vertragsende/Churn
   mrr?: number; // BERECHNET: valueEur / termMonths
   arr?: number; // BERECHNET: mrr × 12
@@ -187,6 +190,9 @@ export function dealToView(
     expectedCloseDate: deal.expected_close_date ?? undefined,
     closedAt: deal.closed_at ?? undefined,
     lostReason: deal.lost_reason ?? undefined,
+    lostNote: deal.lost_note ?? undefined,
+    wonReason: deal.won_reason ?? undefined,
+    wonNote: deal.won_note ?? undefined,
     endDate: deal.end_date ?? undefined,
     mrr,
     arr,
