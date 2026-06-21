@@ -1,17 +1,19 @@
-// score-deal-health — berechnet deals.stagnation_days und markiert stagnierende Deals.
+// score-deal-health — berechnet ausschließlich deals.stagnation_days.
 //
 // Ablauf:
 //  1. organizationId (Pflicht) + optional dealId aus dem Body (Cron: nur org; Trigger: + dealId).
-//  2. Schwellenwerte aus settings.pipeline_stages[].stagnation_days laden — NIE hardcodiert,
-//     pro Org via AI-Chat änderbar → wird hier immer frisch gelesen.
-//  3. Aktive (nicht-terminale, nicht soft-gelöschte) Deals laden.
-//  4. Pro Deal: days_in_stage = floor(now - stage_updated_at). stagniert = days >= threshold(stage).
-//  5. Update NUR bei Änderung (stagnation_days neu ODER erstmals „stagniert") — kein unnötiger Write.
+//  2. Aktive (nicht-terminale, nicht soft-gelöschte) Deals laden.
+//  3. Pro Deal: days_in_stage = floor(now - stage_updated_at).
+//  4. Update NUR bei Änderung von stagnation_days — kein unnötiger Write.
 //     audit_log entsteht automatisch über den DB-Trigger trg_deals_audit (audit_write) bei jedem Update.
-//  6. Return { updated, stagnated, org_id }.
+//  5. Return { updated, org_id }.
 //
-// Schwellenwert nur aus settings; Terminal-Slugs sind eine stabile Konstante (Deno kann die
-// TS-Lib nicht importieren). heat_status='stagniert' ist Freitext (kein DB-Constraint), per CLAUDE.md-Spec.
+// Trennung der Konzepte: stagnation_days gehört zu deals (wie lange steckt der Deal in der Stage?).
+// heat_status gehört zu contacts und basiert auf contacts.last_contacted_at — das ist Aufgabe von
+// score_heat_status(), NICHT dieser Function. Hier wird KEIN heat_status geschrieben (weder deals
+// noch contacts). Die Function liefert nur die rohe Tageszahl; die UI entscheidet anhand von
+// stagnation_days vs. der Schwelle aus settings.pipeline_stages[].stagnation_days, ob ein Deal als
+// „stagniert" gilt. Terminal-Slugs sind eine stabile Konstante (Deno kann die TS-Lib nicht importieren).
 //
 // deploy: supabase functions deploy score-deal-health
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -32,22 +34,10 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
-    // 2. Schwellenwerte aus settings (eine Zeile pro Org).
-    const { data: settings, error: sErr } = await supabase
-      .from("settings")
-      .select("pipeline_stages")
-      .eq("organization_id", organizationId)
-      .single();
-    if (sErr) throw sErr;
-    const threshold: Record<string, number | null> = {};
-    for (const s of (settings?.pipeline_stages ?? []) as Array<{ slug: string; stagnation_days: number | null }>) {
-      threshold[s.slug] = s.stagnation_days;
-    }
-
-    // 3. Aktive Deals (nicht-terminal, nicht soft-gelöscht).
+    // 2. Aktive Deals (nicht-terminal, nicht soft-gelöscht).
     let q = supabase
       .from("deals")
-      .select("id, stage, stage_updated_at, stagnation_days, heat_status")
+      .select("id, stage, stage_updated_at, stagnation_days")
       .eq("organization_id", organizationId)
       .is("deleted_at", null)
       .not("stage", "in", "(gewonnen,verloren)");
@@ -57,31 +47,25 @@ Deno.serve(async (req) => {
 
     const now = Date.now();
     let updated = 0;
-    let stagnated = 0;
 
-    for (const d of (deals ?? []) as Array<{ id: string; stage: string; stage_updated_at: string | null; stagnation_days: number | null; heat_status: string | null }>) {
+    for (const d of (deals ?? []) as Array<{ id: string; stage: string; stage_updated_at: string | null; stagnation_days: number | null }>) {
       if (TERMINAL_STAGES.has(d.stage)) continue; // Sicherheitsnetz zusätzlich zum SQL-Filter
       const base = d.stage_updated_at ? new Date(d.stage_updated_at).getTime() : now;
       const days = Math.max(0, Math.floor((now - base) / DAY_MS));
-      const thr = threshold[d.stage];
-      const isStagnated = typeof thr === "number" && days >= thr;
 
-      const patch: Record<string, unknown> = {};
-      if (days !== (d.stagnation_days ?? 0)) patch.stagnation_days = days;
-      if (isStagnated && d.heat_status !== "stagniert") patch.heat_status = "stagniert";
-      if (Object.keys(patch).length === 0) continue; // kein unnötiger Write
+      // Nur stagnation_days schreiben — kein heat_status (gehört zu contacts / score_heat_status).
+      if (days === (d.stagnation_days ?? 0)) continue; // kein unnötiger Write
 
       const { error: uErr } = await supabase
         .from("deals")
-        .update(patch)
+        .update({ stagnation_days: days })
         .eq("organization_id", organizationId)
         .eq("id", d.id);
       if (uErr) throw uErr;
       updated++;
-      if (isStagnated) stagnated++;
     }
 
-    return json({ updated, stagnated, org_id: organizationId });
+    return json({ updated, org_id: organizationId });
   } catch (e) {
     return json({ error: String(e instanceof Error ? e.message : e) }, 500);
   }
