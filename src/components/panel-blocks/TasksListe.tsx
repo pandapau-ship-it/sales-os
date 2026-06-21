@@ -113,7 +113,7 @@ function DetailRow({ label, value }: { label: string; value: string }) {
 
 export default function TasksListe({
   onToast, autoEditId = null, onAutoEditConsumed,
-  taskRows, contactName = "", dealOptions, onCreate, onComplete, onDelete,
+  taskRows, contactName = "", dealOptions, initialDealId = null, onCreate, onComplete, onDelete,
 }: {
   onToast?: (msg: string) => void;
   autoEditId?: string | null;
@@ -122,6 +122,8 @@ export default function TasksListe({
   taskRows?: Record<string, any>[];
   contactName?: string;
   dealOptions?: { value: string; label: string }[];
+  /** Vorausgefüllter Deal (z.B. aus Keine-Task-Kachel) — nur beim Neu-Anlegen, dann readonly. */
+  initialDealId?: string | null;
   onCreate?: (values: TaskFormValues) => void;
   onComplete?: (taskId: string) => void;
   onDelete?: (taskId: string) => void;
@@ -148,8 +150,9 @@ export default function TasksListe({
       <div className="animate-fade-in">
         <TaskFormular
           mode={editing === "new" ? "create" : "edit"}
-          initial={task ? toInitial(task) : { contact: contactName }}
+          initial={task ? toInitial(task) : { contact: contactName, deal: initialDealId ?? undefined }}
           dealOptions={dealOptions}
+          lockDeal={editing === "new" && !!initialDealId}
           onClose={() => setEditing(null)}
           onSave={(values) => {
             if (editing === "new") onCreate?.(values);

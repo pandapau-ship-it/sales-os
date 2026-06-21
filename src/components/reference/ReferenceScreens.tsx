@@ -233,6 +233,7 @@ export function HunterReference() {
         leadsLoading={leadsQuery.isLoading}
         leadsError={leadsQuery.isError}
         dealsData={dealsData}
+        rawDealsData={dealsQuery.data as unknown as Record<string, unknown>[] | undefined}
         dealsLoading={dealsQuery.isLoading || stagesQuery.isLoading}
         dealsError={dealsQuery.isError || stagesQuery.isError}
         pipelineStages={stagesQuery.data ?? []}

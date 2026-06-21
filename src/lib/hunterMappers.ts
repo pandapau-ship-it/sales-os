@@ -468,6 +468,73 @@ export function signalToCardProps(
   };
 }
 
+// ── Pipeline-Task-Karten (Stagniert · Keine Task) ────────────────────────────
+// Aus rohen getDeals-Rows abgeleitet (stagnation_days + tasks-Embed). Identität/Heat/ICP
+// zentral über contactToProfile; Stage-Label über stageNameBySlug (deal.stage → Anzeige).
+export type StagnatedCardItem = {
+  dealId: string;
+  contactId?: string;
+  name: string;
+  jobTitle: string;
+  companyName: string;
+  initials: string;
+  icpScore?: number;
+  heatStatus?: HeatStatus;
+  stageLabel?: string;        // deal.stage → Anzeigename; fehlt → kein Badge
+  stagnationDays: number;     // deal.stagnation_days
+};
+
+export function dealToStagnatedCard(
+  deal: Record<string, any>,
+  stageNameBySlug: Record<string, string> = {},
+): StagnatedCardItem {
+  const p = contactToProfile(deal.contact);
+  return {
+    dealId: deal.id,
+    contactId: deal.contact?.id,
+    name: p.name,
+    jobTitle: p.jobTitle,
+    companyName: p.company,
+    initials: p.initials,
+    icpScore: p.icpScore,
+    heatStatus: p.heatStatus,
+    stageLabel: stageNameBySlug[deal.stage] ?? undefined,
+    stagnationDays: deal.stagnation_days ?? 0,
+  };
+}
+
+export type NoTaskCardItem = {
+  dealId: string;
+  contactId?: string;
+  name: string;
+  jobTitle: string;
+  companyName: string;
+  initials: string;
+  icpScore?: number;
+  heatStatus?: HeatStatus;
+  stageLabel?: string;
+  lastContactedAt: string | null; // contacts.last_contacted_at → „Letzter Kontakt vor X"; null → unsichtbar
+};
+
+export function dealToNoTaskCard(
+  deal: Record<string, any>,
+  stageNameBySlug: Record<string, string> = {},
+): NoTaskCardItem {
+  const p = contactToProfile(deal.contact);
+  return {
+    dealId: deal.id,
+    contactId: deal.contact?.id,
+    name: p.name,
+    jobTitle: p.jobTitle,
+    companyName: p.company,
+    initials: p.initials,
+    icpScore: p.icpScore,
+    heatStatus: p.heatStatus,
+    stageLabel: stageNameBySlug[deal.stage] ?? undefined,
+    lastContactedAt: deal.contact?.last_contacted_at ?? null,
+  };
+}
+
 // ── Kommunikation (036) ──────────────────────────────────────────────────────
 // DB-Row aus `communications` → View für den Kommunikations-Tab. Schmal: manuell
 // protokollierte Touchpoints tragen nur Kanal/Richtung/Zeit/Notiz (keine Mock-Rich-Felder).
