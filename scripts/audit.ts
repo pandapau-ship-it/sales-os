@@ -423,8 +423,8 @@ checkSingleSourceContactValues()
 function checkTypographyTokens(): void {
   const IN_SCOPE = new Set([
     'TasksListe', 'NotizenListe', 'DealsListe', 'KommunikationVerlauf', 'AktivitaetsVerlauf',
-    'KommunikationPreview', 'OffeneTasks', 'DealSetup', 'DealKurzinfo', 'KiKurzakte',
-    'AktiveSignale', 'ActiveSequenceChain',
+    'KommunikationPreview', 'KommunikationKompakt', 'OffeneTasks', 'DealSetup', 'DealKurzinfo', 'KiKurzakte',
+    'AktiveSignale', 'ActiveSequenceChain', 'LeadListRow',
   ])
   const dir = join(SRC, 'components', 'panel-blocks')
   const files = walk(dir, ['.tsx']).filter((f) => IN_SCOPE.has(basename(f, '.tsx')))

@@ -60,8 +60,8 @@ export default function LeadListRow({
             <Avatar name={lead.person.name} src={lead.person.avatarUrl} size={40} />
           </div>
           <div className="flex flex-col min-w-0">
-            <span className="text-[14px] font-bold text-[var(--text-primary)] font-sans">{lead.person.name}</span>
-            <span className="text-[12px] text-[var(--text-muted)] mt-0.5 max-w-[200px] truncate">
+            <span className="typo-card-title text-[var(--text-primary)]">{lead.person.name}</span>
+            <span className="typo-subline text-[var(--text-muted)] mt-0.5 max-w-[200px] truncate">
               {lead.person.jobTitle}, {lead.person.company}
             </span>
           </div>
@@ -78,10 +78,10 @@ export default function LeadListRow({
               unsichtbarer Platzhalter erhalten, damit Status/Heat nicht verrutschen. */}
           {lead.person.company ? (
             <div className="flex items-center gap-3 w-[140px] xl:w-[180px]">
-              <div className="bg-[var(--text-primary)] text-on-accent text-[14px] w-[40px] h-[40px] flex items-center justify-center rounded-[12px] font-bold shrink-0">
+              <div className="bg-[var(--text-primary)] text-on-accent typo-card-title w-[40px] h-[40px] flex items-center justify-center rounded-[12px] shrink-0">
                 {lead.person.company.charAt(0).toUpperCase()}
               </div>
-              <span className="text-[14px] text-[var(--sherloq-primary)] font-semibold w-[120px] truncate">{lead.person.company}</span>
+              <span className="typo-field-value text-[var(--sherloq-primary)] w-[120px] truncate">{lead.person.company}</span>
             </div>
           ) : (
             <div className="w-[140px] xl:w-[180px]" aria-hidden />
@@ -91,11 +91,11 @@ export default function LeadListRow({
         {/* Middle Stats (Simplified) */}
         <div className="hidden lg:flex items-center gap-4 px-4 border-l border-[var(--border-subtle)] shrink-0">
           <div className="flex flex-col items-center justify-center w-[80px] relative h-full">
-            <span className="absolute -top-[14px] text-[10px] font-bold text-[var(--icon-muted)] tracking-wider uppercase">{t('hunter.leadCard.statusLabel')}</span>
+            <span className="absolute -top-[14px] typo-field-label text-[var(--icon-muted)]">{t('hunter.leadCard.statusLabel')}</span>
             {lead.contactStatusLabel && <StageBadge stage={lead.contactStatusLabel} />}
           </div>
           <div className="flex flex-col items-center justify-center w-[120px] relative h-full">
-            <span className="absolute -top-[14px] text-[10px] font-bold text-[var(--icon-muted)] tracking-wider uppercase">{t('hunter.common.heat')}</span>
+            <span className="absolute -top-[14px] typo-field-label text-[var(--icon-muted)]">{t('hunter.common.heat')}</span>
             <HeatBadge status={lead.heatStatus} />
           </div>
         </div>
@@ -108,8 +108,8 @@ export default function LeadListRow({
             {/* „vor 0 Tagen" wird unterdrückt — erst ab 1 Tag. Überschrift wie STATUS/HEAT. */}
             {lastContactedDays !== null && lastContactedDays >= 1 && (
               <>
-                <span className="absolute -top-[14px] right-0 text-[10px] font-bold text-[var(--icon-muted)] tracking-wider uppercase">{t('hunter.common.lastContact')}</span>
-                <span className="text-[14px] font-bold text-[var(--text-primary)] whitespace-nowrap">
+                <span className="absolute -top-[14px] right-0 typo-field-label text-[var(--icon-muted)]">{t('hunter.common.lastContact')}</span>
+                <span className="typo-field-value text-[var(--text-primary)] whitespace-nowrap">
                   {t('hunter.common.ago', { label: t('hunter.common.daysAgo', { count: lastContactedDays }) })}
                 </span>
               </>
@@ -138,7 +138,7 @@ export default function LeadListRow({
           <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
             {/* Left Column (KI Kurzakte) */}
             <div className="md:col-span-7 bg-app-surface rounded-[12px] p-5 border border-[var(--border)]">
-              <div className="flex items-center gap-2 text-[11px] font-bold font-mono text-[var(--sherloq-primary)] uppercase tracking-wider mb-4">
+              <div className="flex items-center gap-2 typo-chevron-header text-[var(--sherloq-primary)] mb-4">
                 <Zap className="w-4 h-4 text-[var(--sherloq-primary)]" /> {t('hunter.common.kiKurzakte')}
               </div>
               <ul className="flex flex-col gap-3 text-[13px] text-[var(--text-body)] leading-relaxed">
