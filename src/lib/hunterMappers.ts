@@ -349,7 +349,8 @@ export type NewPipelineCardItem = {
   icpScore?: number;
   heatStatus?: HeatStatus;
   stage?: string; // zuletzt aktiver Deal des Kontakts; keiner → undefined → keine Stage
-  createdAt: string | null; // deal.created_at (Zeitfilter + „vor X Tagen"); null → unsichtbar
+  createdAt: string | null; // deal.created_at (Zeitfilter der Query); null → unsichtbar
+  lastContactedAt: string | null; // contacts.last_contacted_at → „Letzter Kontakt vor X"; null → unsichtbar
   source: "ai_sdr" | "manual";
   dealName?: string; // deal.name; fehlt → ausgeblendet (Honesty)
   dealValue?: number; // deal.value in Cent; fehlt → ausgeblendet
@@ -372,6 +373,7 @@ export function dealToNewPipelineRow(
     heatStatus: p.heatStatus,
     stage: contactActiveStage(deal.contact, stageNameBySlug),
     createdAt: deal.created_at ?? null,
+    lastContactedAt: deal.contact?.last_contacted_at ?? null, // echtes contacts.last_contacted_at (via contact-Embed)
     source: deal.source_lead_id ? "ai_sdr" : "manual",
     dealName: deal.name ?? undefined,
     dealValue: deal.value ?? undefined,

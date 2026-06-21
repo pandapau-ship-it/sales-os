@@ -89,7 +89,10 @@ export default function NewInPipelineCards({
         {list.length === 0 ? (
           <EmptyState icon={<Inbox className="w-6 h-6" />} title={t('hunter.newPipeline.emptyTitle')} description={t('hunter.newPipeline.emptyDesc')} />
         ) : list.map((it) => {
-          const days = daysSince(it.createdAt);
+          // „vor X Tagen" = echter letzter Kontakt (contacts.last_contacted_at), NICHT deal.created_at.
+          // NULL oder 0 Tage → kein Zeit-Block (Honesty: kein Fake, kein „vor 0 Tagen").
+          const days = daysSince(it.lastContactedAt);
+          const hasLastContact = days != null && days >= 1;
           const data: HunterCardData = {
             id: it.id,
             name: it.name,
@@ -98,8 +101,8 @@ export default function NewInPipelineCards({
             icpScore: it.icpScore, // fehlt → undefined → ICP-Ring unsichtbar
             stageLabel: it.stage ?? '', // kein aktiver Deal → keine Stage
             heatStatus: it.heatStatus, // echtes Heat; undefined → kein Badge
-            timeLabel: days != null ? t('hunter.common.ago', { label: t('hunter.common.daysAgo', { count: days }) }) : '',
-            timeSubLabel: <span className="text-text-muted font-semibold">{t('hunter.newPipeline.label')}</span>,
+            timeLabel: hasLastContact ? t('hunter.common.ago', { label: t('hunter.common.daysAgo', { count: days }) }) : '',
+            timeSubLabel: hasLastContact ? <span className="text-text-muted font-semibold">{t('hunter.common.lastContactSub')}</span> : undefined,
           };
 
           // Echte Deal-Infos für die Mitte — nur vorhandene Teile (Honesty: kein „—", keine 0).

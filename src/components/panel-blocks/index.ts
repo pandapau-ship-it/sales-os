@@ -19,6 +19,7 @@ export { default as ErledigtAction } from './ErledigtAction';
 export { default as HeatBadge } from './HeatBadge';
 export { default as HunterCard } from './HunterCard';
 export { default as KiKurzakte } from './KiKurzakte';
+export { default as KommunikationKompakt } from './KommunikationKompakt';
 export { default as KommunikationPreview } from './KommunikationPreview';
 export { default as KommunikationVerlauf } from './KommunikationVerlauf';
 export { default as KpiCard } from './KpiCard';
