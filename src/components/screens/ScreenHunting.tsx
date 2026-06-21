@@ -31,11 +31,11 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@
 import { heatFor } from '@/lib/constants';
 import { ICPDonut } from '@/components/shared/ICPDonut';
 import { NAV } from '@/lib/navBehavior';
-import { AddSdrLeadPanel, ContactColdDrawer, EmptyState, FunnelAnalysis, HeatBadge, HunterSidepanel, KpiCard, LeadListRow, LinkedinSignalCard, NewInPipelineCards, NoTaskDrawer, PipelineKeineTaskCard, PipelineStagnatedDrawer, PipelineStagniertCard, SequenceLeadCards, SignalActionDrawer, StageBadge, TaskDrawer } from '@/components';
+import { AddSdrLeadPanel, ContactColdDrawer, EmptyState, FunnelAnalysis, HeatBadge, HunterSidepanel, KpiCard, LeadListRow, LinkedinSignalCard, NewInPipelineCards, PipelineKeineTaskCard, PipelineStagniertCard, SequenceLeadCards, SignalActionDrawer, StageBadge, TaskDrawer } from '@/components';
 import type { SignalActionData } from '@/components';
 
 import Avatar from '@/components/shared/Avatar';
-import { signalToCardProps, taskToDueCard, dealToNewPipelineRow, newPipelineInPeriod, isTerminalStage, WON_STAGE_SLUG, LOST_STAGE_SLUG, type PipelineRow, type NewPipelinePeriod } from '@/lib/hunterMappers';
+import { signalToCardProps, taskToDueCard, dealToNewPipelineRow, dealToStagnatedCard, dealToNoTaskCard, newPipelineInPeriod, isTerminalStage, WON_STAGE_SLUG, LOST_STAGE_SLUG, type PipelineRow, type NewPipelinePeriod, type StagnatedCardItem, type NoTaskCardItem } from '@/lib/hunterMappers';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { updateDealStage, updateDealWon, updateDealLost } from '@/lib/db';
 import { DEMO_ORGANIZATION_ID } from '@/lib/org';
@@ -53,6 +53,9 @@ interface ScreenHuntingProps {
   leadsError?: boolean;
   // Slice A: echte Deals (org-gescoped) für die Pipeline-Listenansicht.
   dealsData?: PipelineRow[];
+  // Roh-Deals (vor dealToPipelineRow) — tragen stagnation_days + tasks(*)-Embed; nötig für
+  // die Pipeline-Task-Karten (Stagniert / Keine Task), die diese Felder ableiten.
+  rawDealsData?: Record<string, unknown>[];
   dealsLoading?: boolean;
   dealsError?: boolean;
   // Slice B: Pipeline-Stages (settings.pipeline_stages) für die Kanban-Spalten.
@@ -81,6 +84,7 @@ export default function ScreenHunting({
   leadsLoading,
   leadsError,
   dealsData,
+  rawDealsData,
   dealsLoading,
   dealsError,
   pipelineStages,
@@ -172,6 +176,20 @@ export default function ScreenHunting({
   // mit dem anon-Key (RLS) nicht prüfbar ist; auf '7d'/'today' per Filter umschaltbar.
   const [newPipelinePeriod, setNewPipelinePeriod] = useState<NewPipelinePeriod>('30d');
   const newPipelineItems = (newInPipelineData ?? []).map((d) => dealToNewPipelineRow(d, stageNameBySlug));
+
+  // Pipeline-Task-Karten aus den ROH-Deals ableiten (stagnation_days + tasks(*) sind nur dort).
+  // Schwellenwert je Stage aus settings (pipeline_stages.stagnation_days) — nie hardcodiert; Fallback 7.
+  const stagnationBySlug = Object.fromEntries((pipelineStages ?? []).map((s) => [s.slug, s.stagnation_days]));
+  const rawDeals = (rawDealsData ?? []) as Record<string, any>[];
+  const stagnatedItems: StagnatedCardItem[] = rawDeals
+    .filter((d) => !isTerminalStage(d.stage))
+    .filter((d) => (d.stagnation_days ?? 0) >= (stagnationBySlug[d.stage] ?? 7))
+    .sort((a, b) => (b.stagnation_days ?? 0) - (a.stagnation_days ?? 0))
+    .map((d) => dealToStagnatedCard(d, stageNameBySlug));
+  const noTaskItems: NoTaskCardItem[] = rawDeals
+    .filter((d) => !isTerminalStage(d.stage))
+    .filter((d) => ((d.tasks as unknown[]) ?? []).length === 0)
+    .map((d) => dealToNoTaskCard(d, stageNameBySlug));
   const newPipelineFiltered = newPipelineItems.filter((it) => newPipelineInPeriod(it.createdAt, newPipelinePeriod));
   // Übersicht-Aggregate (reine Reads, kein Write): wiederverwenden was schon geladen ist.
   const eur = (n: number) => `€ ${new Intl.NumberFormat('de-DE').format(Math.round(n))}`;
@@ -236,9 +254,8 @@ export default function ScreenHunting({
   const [expandedCols, setExpandedCols] = useState<Record<string, boolean>>({});
   // Pipeline-Tab: Listenansicht ↔ Kanban (Toggle); 'tasks' = jetzige Task-Liste (per Button).
   const [pipelineView, setPipelineView] = useState<'list' | 'kanban' | 'tasks'>('list');
-  // Task-Ansicht auf einen einzelnen Task fokussiert (aus Kanban-Pill heraus geöffnet).
-  const [focusedTask, setFocusedTask] = useState<'stagniert' | 'keine_task' | null>(null);
-  const openTaskCount = 2; // Mock — Phase 3: COUNT(tasks WHERE status='open')
+  // Anzahl offener Pipeline-Tasks = stagnierende Deals + Deals ohne offene Task (echt, abgeleitet).
+  const openTaskCount = stagnatedItems.length + noTaskItems.length;
 
   // Local state for Quick Lead Adder Dialog
   const [showAddModal, setShowAddModal] = useState(false);
@@ -248,14 +265,14 @@ export default function ScreenHunting({
   const [taskNote] = useState('Hallo Sarah,\n\nich habe gerade gesehen, dass CloudSphere stark skaliert. Da wir viele BDR-Teams im selben Bereich unterstützen, dachte ich, ein kurzer Connect macht Sinn.\n\nViele Grüße');
 
   const [selectedSignal, setSelectedSignal] = useState<SignalActionData | null>(null);
-  const [selectedStagnatedPerson, setSelectedStagnatedPerson] = useState<any | null>(null);
   const [selectedColdPerson, setSelectedColdPerson] = useState<any | null>(null);
-  const [selectedNoTaskPerson, setSelectedNoTaskPerson] = useState<any | null>(null);
   // Info-Panel (§22.1, 820px) — vorerst NUR im Leads-Tab inline rechts neben der Liste.
   const [infoPanelLead, setInfoPanelLead] = useState<Lead | null>(null);
   // Karten-Aktion (Mail/Task/Chat) → Info-Panel öffnet direkt mit dieser Aktion.
   const [infoPanelAction, setInfoPanelAction] = useState<'mail' | 'task' | 'chat' | null>(null);
   const [infoPanelTab, setInfoPanelTab] = useState<'overview' | 'deals' | 'tasks' | 'activity' | 'notes' | null>(null);
+  // Vorausgefüllter Deal für „Task anlegen" aus Pipeline-Task-Kachel → Deal-Dropdown readonly.
+  const [infoPanelDealId, setInfoPanelDealId] = useState<string | null>(null);
 
   const toggleLeadSelection = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -488,7 +505,7 @@ export default function ScreenHunting({
             <div className="flex items-center gap-2">
               {/* Task-Liste-Button mit Anzahl offener Tasks → öffnet die Task-Ansicht */}
               <button
-                onClick={() => { setFocusedTask(null); setPipelineView('tasks'); }}
+                onClick={() => setPipelineView('tasks')}
                 className={`px-3.5 py-1.5 rounded-[10px] text-[13px] font-bold flex items-center gap-2 border transition-colors cursor-pointer ${
                   pipelineView === 'tasks'
                     ? 'bg-[var(--sherloq-primary)] text-on-accent border-[var(--sherloq-primary)]'
@@ -596,34 +613,17 @@ export default function ScreenHunting({
 
           {pipelineView === 'tasks' ? (
             <div className="flex flex-col gap-4 w-full pb-8">
-              {focusedTask && (
-                <button onClick={() => setFocusedTask(null)} className="text-[12px] font-bold text-[var(--sherloq-primary)] hover:underline flex items-center gap-1.5 w-fit cursor-pointer">
-                  <ArrowLeft className="w-3.5 h-3.5" /> Alle Tasks anzeigen
-                </button>
-              )}
-              {(!focusedTask || focusedTask === 'stagniert') && (
-              <PipelineStagniertCard onSelectLead={setInfoPanelLead} onTaskAnlegen={() => setSelectedStagnatedPerson({
-                name: "Dr. Christian Brand",
-                company: "LogixFlow GmbH",
-                avatarUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150",
-                icpScore: 87,
-                daysStagnated: 8,
-                stageName: "Demo",
-                lastContactDays: 8,
-                arr: "12.500€",
-                probability: "100%",
-                aiRecommendation: "Kanalwechsel zu LinkedIn — Email ohne Response. Persönliche Nachricht mit Bezug auf letztes Gespräch.",
-                aiInsight: "Letztes Meeting: Demo positiv · Budget-Freeze erwähnt · Entscheider eingebunden",
-                tags: ["Email erschöpft", "LinkedIn noch nicht versucht", "ICP Score hoch"],
-                confidence: 87
-              })} />
-              )}
-              {(!focusedTask || focusedTask === 'keine_task') && (
-              <PipelineKeineTaskCard onSelectLead={setInfoPanelLead} onTaskAnlegen={() => setSelectedNoTaskPerson({
-                name: "Sarah Jenkins",
-                company: "CloudSphere"
-              })} />
-              )}
+              {/* Echte, signal-getriebene Listen aus rawDeals. Leer → Komponente rendert nichts. */}
+              <PipelineStagniertCard
+                items={stagnatedItems}
+                onSelectLead={(it) => setInfoPanelLead(makeLead(it.contactId ?? it.dealId, it.name, it.jobTitle, it.companyName, it.initials, it.icpScore ?? 75))}
+                onTaskAnlegen={(it) => { setInfoPanelDealId(it.dealId); setInfoPanelAction('task'); setInfoPanelLead(makeLead(it.contactId ?? it.dealId, it.name, it.jobTitle, it.companyName, it.initials, it.icpScore ?? 75)); }}
+              />
+              <PipelineKeineTaskCard
+                items={noTaskItems}
+                onSelectLead={(it) => setInfoPanelLead(makeLead(it.contactId ?? it.dealId, it.name, it.jobTitle, it.companyName, it.initials, it.icpScore ?? 75))}
+                onTaskAnlegen={(it) => { setInfoPanelDealId(it.dealId); setInfoPanelAction('task'); setInfoPanelLead(makeLead(it.contactId ?? it.dealId, it.name, it.jobTitle, it.companyName, it.initials, it.icpScore ?? 75)); }}
+              />
             </div>
           ) : pipelineView === 'kanban' ? (
            <div className="flex flex-col gap-4">
@@ -975,22 +975,9 @@ export default function ScreenHunting({
         onClose={() => setSelectedSignal(null)}
       />
 
-      <PipelineStagnatedDrawer
-        person={selectedStagnatedPerson}
-        onClose={() => setSelectedStagnatedPerson(null)}
-        onTakeAction={(text) => {
-          console.log('Took action with text:', text);
-        }}
-      />
-
       <ContactColdDrawer
         person={selectedColdPerson}
         onClose={() => setSelectedColdPerson(null)}
-      />
-
-      <NoTaskDrawer
-        person={selectedNoTaskPerson}
-        onClose={() => setSelectedNoTaskPerson(null)}
       />
 
       {/* Info Panel (§22.1, 820px) — Slide-in-Overlay, vorerst nur Leads-Tab.
@@ -999,7 +986,8 @@ export default function ScreenHunting({
         person={infoPanelLead?.person ?? null}
         initialAction={infoPanelAction}
         initialTab={infoPanelTab}
-        onClose={() => { setInfoPanelLead(null); setInfoPanelAction(null); setInfoPanelTab(null); }}
+        initialDealId={infoPanelDealId}
+        onClose={() => { setInfoPanelLead(null); setInfoPanelAction(null); setInfoPanelTab(null); setInfoPanelDealId(null); }}
       />
 
       {/* P8-3c: Close-Deal-Popup (letzter Kanban-Pfeil) → Gewonnen (direkt + Konfetti) / Verloren (Lost-Modal). */}

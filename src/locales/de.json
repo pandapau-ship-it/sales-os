@@ -288,6 +288,7 @@
     "card": {
       "pipelineStagnated": "Pipeline Stagniert",
       "stagnatedHint": "Achtung — Deal stagniert seit 14 Tagen, Follow-Up empfohlen",
+      "stagnatedSince": "Deal stagniert seit {{days}}t",
       "action": "Action",
       "timeCritical": "Zeitkritisch",
       "noTask": "Keine Task",

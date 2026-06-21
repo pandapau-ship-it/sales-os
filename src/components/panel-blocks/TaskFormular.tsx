@@ -57,12 +57,14 @@ export interface TaskFormValues {
 }
 
 export default function TaskFormular({
-  mode = "create", initial = {}, dealOptions, onClose, onSave,
+  mode = "create", initial = {}, dealOptions, lockDeal = false, onClose, onSave,
 }: {
   mode?: "create" | "edit";
   initial?: TaskFormInitial;
   /** Echte Deals des Kontakts (P3). Fehlt → nur „Kein Deal". */
   dealOptions?: { value: string; label: string }[];
+  /** Deal fest vorgegeben (z.B. aus Keine-Task-Kachel) → Dropdown readonly, nicht änderbar. */
+  lockDeal?: boolean;
   onClose: () => void;
   onSave: (values: TaskFormValues) => void;
   onToast?: (msg: string) => void;
@@ -130,17 +132,27 @@ export default function TaskFormular({
             </div>
             <div className="space-y-1.5">
               <label className={LABEL}>{t("hunter.drawers.noTask.deal")}</label>
-              <Select value={deal} onValueChange={setDeal}>
-                <SelectTrigger className="w-full px-3.5 py-2.5 rounded-[10px] border-border bg-app-bg text-[13px] font-semibold text-text-primary">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {(dealOptions ?? []).map((o) => (
-                    <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                  ))}
-                  <SelectItem value="none">Kein Deal verknüpft</SelectItem>
-                </SelectContent>
-              </Select>
+              {lockDeal ? (
+                // Deal aus der Kachel vorgegeben → readonly (wie Kontakt), nicht änderbar.
+                <input
+                  type="text"
+                  value={(dealOptions ?? []).find((o) => o.value === deal)?.label ?? deal}
+                  readOnly
+                  className={`${INPUT} cursor-not-allowed text-text-muted`}
+                />
+              ) : (
+                <Select value={deal} onValueChange={setDeal}>
+                  <SelectTrigger className="w-full px-3.5 py-2.5 rounded-[10px] border-border bg-app-bg text-[13px] font-semibold text-text-primary">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(dealOptions ?? []).map((o) => (
+                      <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                    ))}
+                    <SelectItem value="none">Kein Deal verknüpft</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
             </div>
           </div>
 

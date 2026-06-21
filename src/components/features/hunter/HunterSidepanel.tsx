@@ -50,7 +50,7 @@ const DEFAULT_DETAILS = {
 // DetailField · DetailSection · StatusBadge · DetailPhoneList → ausgelagert nach
 // src/components/panel-blocks/ (siehe Imports). Hier nur noch deren Komposition.
 
-export default function HunterSidepanel({ person: personProp, onClose, onExit, variant = 'panel', initialAction = null, initialTab = null }: { person: any; onClose: () => void; onExit?: () => void; variant?: 'panel' | 'full'; initialAction?: 'mail' | 'task' | 'chat' | null; initialTab?: 'overview' | 'deals' | 'tasks' | 'activity' | 'notes' | null }) {
+export default function HunterSidepanel({ person: personProp, onClose, onExit, variant = 'panel', initialAction = null, initialTab = null, initialDealId = null }: { person: any; onClose: () => void; onExit?: () => void; variant?: 'panel' | 'full'; initialAction?: 'mail' | 'task' | 'chat' | null; initialTab?: 'overview' | 'deals' | 'tasks' | 'activity' | 'notes' | null; initialDealId?: string | null }) {
   const [activeTab, setActiveTab] = useState(variant === 'full' ? 'details' : 'overview');
   // Aus der Übersicht „Deal/Task bearbeiten" → Ziel-Tab öffnet die Bearbeiten-Kachel direkt.
   const [dealsAutoEditId, setDealsAutoEditId] = useState<string | null>(null); // Übersicht „Bearbeiten" → Deal-id im Deals-Tab
@@ -122,6 +122,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
   const invalidateTasks = () => {
     queryClient.invalidateQueries({ queryKey: ['tasksByContact', DEMO_ORGANIZATION_ID, contactId] });
     queryClient.invalidateQueries({ queryKey: ['dueTasks', DEMO_ORGANIZATION_ID] }); // Follow-ups-Tab mitziehen
+    queryClient.invalidateQueries({ queryKey: ['deals', DEMO_ORGANIZATION_ID] }); // Pipeline-Task-Karten (Keine-Task/Stagniert) neu ableiten
   };
   // Echte Deals des Kontakts als Auswahl im „Neue Task"-Formular (Deal optional).
   const dealOptions = ((contactRow?.deals as Record<string, any>[] | undefined) ?? [])
@@ -537,6 +538,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
             taskRows={tasksQuery.data ?? []}
             contactName={profile.name}
             dealOptions={dealOptions}
+            initialDealId={initialDealId}
             onCreate={(v) => createTaskMutation.mutate(v)}
             onComplete={(id) => completeTaskMutation.mutate(id)}
             onDelete={(id) => deleteTaskMutation.mutate(id)}
@@ -786,7 +788,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
       )}
 
       {variant !== 'full' && showVollansicht && (
-        <HunterSidepanel person={display} onClose={() => setShowVollansicht(false)} onExit={onClose} variant="full" />
+        <HunterSidepanel person={display} onClose={() => setShowVollansicht(false)} onExit={onClose} variant="full" initialDealId={initialDealId} />
       )}
 
       <KommunikationLogModal
