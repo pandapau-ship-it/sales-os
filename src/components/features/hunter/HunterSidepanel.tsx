@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import Avatar from '@/components/shared/Avatar';
-import { AktiveSignale, AktivitaetsVerlauf, DealsListe, DetailField, DetailPhoneList, DetailSection, HeatBadge, KommunikationVerlauf, KontaktZeile, NotizenListe, OffeneTasks, PanelTabs, StatusBadge, TasksListe } from '@/components';
+import { AktiveSignale, AktivitaetsVerlauf, DealsListe, DetailField, DetailPhoneList, DetailSection, HeatBadge, KommunikationKompakt, KommunikationVerlauf, KontaktZeile, NotizenListe, OffeneTasks, PanelTabs, StatusBadge, TasksListe } from '@/components';
 
 // EditableInline → panel-blocks/EditableInline (importiert). PhoneField → panel-blocks/PhoneField.
 
@@ -194,8 +194,9 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
   const commsQuery = useQuery({
     queryKey: ['communications', DEMO_ORGANIZATION_ID, contactId],
     queryFn: () => getContactCommunications(DEMO_ORGANIZATION_ID, contactId as string),
-    enabled: !!contactId && isOpen && activeTab === 'communication',
+    enabled: !!contactId && isOpen && (activeTab === 'communication' || activeTab === 'overview'), // Übersicht nutzt denselben Cache
   });
+  const commsView = (commsQuery.data ?? []).map(communicationToView);
   const createCommMutation = useMutation({
     mutationFn: (v: { channel: CommunicationChannel; direction: CommunicationDirection; occurredAt: string; note: string }) =>
       createCommunication(DEMO_ORGANIZATION_ID, contactId as string, v),
@@ -509,8 +510,11 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
               onDelete={(id) => deleteTaskMutation.mutate(id)}
             />
 
+            {/* Kompakter „Letzter Kontakt"-Block: 3 neueste echte Touchpoints; leer → ausgeblendet. */}
+            <KommunikationKompakt items={commsView} onShowAll={() => setActiveTab('communication')} />
+
             {/* Deferred (PROGRESS): KI-Kurzakte (KI-Pipeline) · Active Sequence (contact_sequences) ·
-                externe/LinkedIn-Signale (Signal-Quelle) · Kommunikations-Vorschau (P7, Quelle fehlt). */}
+                externe/LinkedIn-Signale (Signal-Quelle). */}
           </div>
         )}
 
@@ -520,7 +524,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
 
         {activeTab === 'communication' && (
           <KommunikationVerlauf
-            items={(commsQuery.data ?? []).map(communicationToView)}
+            items={commsView}
             onLog={() => setLogOpen(true)}
           />
         )}

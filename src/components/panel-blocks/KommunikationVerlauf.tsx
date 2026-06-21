@@ -30,6 +30,11 @@ function ChannelGlyph({ channel, className }: { channel: CommunicationChannel; c
 function relTime(iso?: string): string {
   if (!iso) return "";
   const diff = Date.now() - new Date(iso).getTime();
+  // Zukunft (geplanter Touchpoint) → „Ausstehend" + exaktes Datum/Uhrzeit.
+  // Ist der Zeitpunkt erreicht (diff >= 0), greift automatisch die relative Anzeige.
+  if (diff < 0) {
+    return `Ausstehend · ${new Date(iso).toLocaleString("de-DE", { day: "2-digit", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}`;
+  }
   const min = Math.round(diff / 60_000);
   if (min < 1) return "gerade eben";
   if (min < 60) return `vor ${min} Min`;
