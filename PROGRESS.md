@@ -405,11 +405,17 @@ kam es, wie groß ist es** — und einen **klaren nächsten Schritt** anstoßen 
 - Wenn ein Kontakt protokolliert wird (call/meeting/email/linkedin via `communications`, 036) → KI-Kurzakte des Kontakts wird automatisch aktualisiert (`analyze_personality` + Kurzakte-Update).
 - **Kommt wenn:** KI-Kurzakte gebaut wird (AI-SDR-Phase).
 
+### [D27] Technische Schuld — nach Action Panels erledigen (deferred)
+1. **`window.confirm` → shadcn `AlertDialog`.** Betrifft das Löschen der letzten Telefonnummer (`PhoneField.tsx` + `DetailPhoneList.tsx`). Browser-Popup durch unseren shadcn `AlertDialog` ersetzen. Klein, ~1 Stunde.
+2. **Typo-Kanon: alle fehlenden Komponenten in Audit-Scope.** Diagnose, welche panel-blocks + features noch rohe `text-[Xpx]`-Klassen haben → alle auf `typo-*`-Primitive heben + in die Audit-`IN_SCOPE` aufnehmen. ~1 Tag.
+3. **Inline-JSX-Blöcke extrahieren.** Blöcke >20 Zeilen, die in mehreren Dateien ähnlich aussehen → als panel-block auslagern (kürzere Dateien + wiederverwendbar).
+- **Kommt nach:** Action Panels komplett verdrahtet. **Vor:** Auth/Org-Wiring [D21].
+
 ### [TS] Deal-Typ ohne `product` — offener Faden
 - `src/types/hunter.ts` `Deal` hat **kein `product`** (Migration 014 fügte nur die DB-Spalte).
   Beim späteren Produkt-Anzeigen (Pipeline/Deal-Detail) `product?: string` im Typ ergänzen + mappen.
 
-> Anker-Tags `[D1]`–`[D26]` sind im Code referenzierbar (z.B. `hunterMappers.ts` → `[[leads-tab-read]]`).
+> Anker-Tags `[D1]`–`[D27]` sind im Code referenzierbar (z.B. `hunterMappers.ts` → `[[leads-tab-read]]`).
 > Vor Umsetzung eines Punkts: passende Referenz-Doku (`docs/sales_os_edge_functions_v2.md` etc.) lesen.
 
 ---
