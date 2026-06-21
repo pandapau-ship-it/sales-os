@@ -386,11 +386,26 @@ kam es, wie groß ist es** — und einen **klaren nächsten Schritt** anstoßen 
 - **Ohne Cron:** Stagnation wird nur **bei Stage-Änderung** berechnet (fire-and-forget Trigger in `updateDealStage` aktiv).
 - **Kommt wenn:** der **Settings-Screen** gebaut wird (dort konfiguriert der User die Schwellenwerte → dann macht das Cron-Setup als Gesamtpaket Sinn).
 
+### [D23] Custom Webhook Actions + Rule Builder (deferred)
+- **Webhooks empfangen:** via Edge Function `receive-webhook()`.
+- **`signals`-Tabelle** empfängt + speichert (Schema vorhanden).
+- **`action_rules`-Tabelle anlegen:** `trigger_type`, `condition jsonb`, `card_title`, `card_text`, `cta_label`, `cta_action`, `ai_prompt`, `langfuse_prompt_id`, `organization_id`.
+- **Signal-getriebene UI:** Kachel erscheint automatisch, wenn eine Rule matcht (siehe CLAUDE.md → „Signal-getriebene UI").
+- **White Label:** Admin definiert eigene Rules + Kacheln via Rule Builder in Settings.
+- **Kommt wenn:** Settings-Screen + Auth/Org-Wiring ([D21]) fertig.
+
+### [D24] Org-spezifische AI Prompts via Langfuse (deferred)
+- Jede Organization kann einen eigenen Prompt pro Action hinterlegen.
+- Gespeichert in `action_rules.ai_prompt` + `langfuse_prompt_id`.
+- AI-Call nutzt den org-spezifischen Prompt statt des Defaults.
+- Ermöglicht White-Label-AI-Logik ohne Code-Änderung.
+- **Kommt wenn:** Langfuse integriert + Action Rules ([D23]) gebaut.
+
 ### [TS] Deal-Typ ohne `product` — offener Faden
 - `src/types/hunter.ts` `Deal` hat **kein `product`** (Migration 014 fügte nur die DB-Spalte).
   Beim späteren Produkt-Anzeigen (Pipeline/Deal-Detail) `product?: string` im Typ ergänzen + mappen.
 
-> Anker-Tags `[D1]`–`[D22]` sind im Code referenzierbar (z.B. `hunterMappers.ts` → `[[leads-tab-read]]`).
+> Anker-Tags `[D1]`–`[D24]` sind im Code referenzierbar (z.B. `hunterMappers.ts` → `[[leads-tab-read]]`).
 > Vor Umsetzung eines Punkts: passende Referenz-Doku (`docs/sales_os_edge_functions_v2.md` etc.) lesen.
 
 ---
