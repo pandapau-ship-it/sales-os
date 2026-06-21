@@ -710,6 +710,10 @@ export async function createCommunication(
     note: input.note?.trim() || null,
   });
   if (error) throw error;
+  // Heat für genau diesen Kontakt neu bewerten (score-heat-status). last_contacted_at wird per
+  // DB-Trigger (036) gesetzt; diese Function liest es. Fire-and-forget: blockiert den Insert nicht,
+  // Fehler werden geschluckt (der tägliche Cron korrigiert ohnehin nach).
+  void client.functions.invoke("score-heat-status", { body: { organizationId, contactId } }).catch(() => {});
 }
 
 /**
