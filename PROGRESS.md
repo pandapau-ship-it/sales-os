@@ -401,11 +401,15 @@ kam es, wie groß ist es** — und einen **klaren nächsten Schritt** anstoßen 
 - Ermöglicht White-Label-AI-Logik ohne Code-Änderung.
 - **Kommt wenn:** Langfuse integriert + Action Rules ([D23]) gebaut.
 
+### [D26] Manuell protokollierte Kommunikation → KI-Kurzakte (deferred)
+- Wenn ein Kontakt protokolliert wird (call/meeting/email/linkedin via `communications`, 036) → KI-Kurzakte des Kontakts wird automatisch aktualisiert (`analyze_personality` + Kurzakte-Update).
+- **Kommt wenn:** KI-Kurzakte gebaut wird (AI-SDR-Phase).
+
 ### [TS] Deal-Typ ohne `product` — offener Faden
 - `src/types/hunter.ts` `Deal` hat **kein `product`** (Migration 014 fügte nur die DB-Spalte).
   Beim späteren Produkt-Anzeigen (Pipeline/Deal-Detail) `product?: string` im Typ ergänzen + mappen.
 
-> Anker-Tags `[D1]`–`[D24]` sind im Code referenzierbar (z.B. `hunterMappers.ts` → `[[leads-tab-read]]`).
+> Anker-Tags `[D1]`–`[D26]` sind im Code referenzierbar (z.B. `hunterMappers.ts` → `[[leads-tab-read]]`).
 > Vor Umsetzung eines Punkts: passende Referenz-Doku (`docs/sales_os_edge_functions_v2.md` etc.) lesen.
 
 ---

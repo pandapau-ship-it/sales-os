@@ -25,6 +25,7 @@ export { default as DealLostModal } from './features/hunter/DealLostModal';
 export { default as DealWonModal } from './features/hunter/DealWonModal';
 export { default as FunnelAnalysis } from './features/hunter/FunnelAnalysis';
 export { default as HunterSidepanel } from './features/hunter/HunterSidepanel';
+export { default as KommunikationLogModal } from './features/hunter/KommunikationLogModal';
 export { default as NoTaskDrawer } from './features/hunter/NoTaskDrawer';
 export * from './features/hunter/NoTaskDrawer';
 export { default as PipelineStagnatedDrawer } from './features/hunter/PipelineStagnatedDrawer';

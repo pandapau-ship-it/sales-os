@@ -669,6 +669,50 @@ export async function createNote(
 }
 
 /**
+ * getContactCommunications — protokollierte Touchpoints eines Kontakts (Kommunikations-Tab),
+ * neueste zuerst. Explizite Felder (kein SELECT *), org-gescoped. Quelle: communications (036).
+ */
+export async function getContactCommunications(
+  organizationId: string,
+  contactId: string,
+): Promise<Record<string, unknown>[]> {
+  const client = getSupabaseClient();
+  if (!client) return [];
+  const { data, error } = await client
+    .from("communications")
+    .select("id, contact_id, occurred_at, channel, direction, note, created_at")
+    .eq("organization_id", organizationId)
+    .eq("contact_id", contactId)
+    .order("occurred_at", { ascending: false })
+    .limit(50);
+  if (error) throw error;
+  return data ?? [];
+}
+
+/**
+ * createCommunication — einen Touchpoint protokollieren. contacts.last_contacted_at wird per
+ * DB-Trigger (036, nur vorwärts) gesetzt → speist die Heat-Berechnung. audit_log via Trigger.
+ * created_by bleibt NULL (wie notes/tasks — auth.uid() vs. users.id ungeklärt, [D21]).
+ */
+export async function createCommunication(
+  organizationId: string,
+  contactId: string,
+  input: { channel: string; direction: string; occurredAt: string; note?: string },
+): Promise<void> {
+  const client = getSupabaseClient();
+  if (!client) return;
+  const { error } = await client.from("communications").insert({
+    organization_id: organizationId,
+    contact_id: contactId,
+    channel: input.channel,
+    direction: input.direction,
+    occurred_at: input.occurredAt,
+    note: input.note?.trim() || null,
+  });
+  if (error) throw error;
+}
+
+/**
  * getDealsByContact — Deals eines Kontakts fürs Panel (P5a, nur Read), neueste zuerst.
  * Embed: Owner (owner_id → users.full_name). Stage bleibt Slug → Anzeigename mappt der
  * Screen über settings.pipeline_stages (etablierte Stage-Auflösung).

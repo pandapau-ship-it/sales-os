@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DEMO_ORGANIZATION_ID } from '@/lib/org';
-import { getContactDetail, getPipelineSettings, getTasksByContact, createTask, completeTask, softDeleteTask, getNotesByContact, createNote, updateNote, softDeleteNote, getDealsByContact, getActivityByContact, getProducts, getOrgUsers, createDeal, updateDeal, updateDealStage, updateDealWon, updateDealLost, softDeleteDeal, createContactPhone, updateContactPhone, setContactPhonePrimary, deleteContactPhone } from '@/lib/db';
-import { contactToProfile, latestActiveDeal, dealToView, WON_STAGE_SLUG, LOST_STAGE_SLUG } from '@/lib/hunterMappers';
+import { getContactDetail, getPipelineSettings, getTasksByContact, createTask, completeTask, softDeleteTask, getNotesByContact, createNote, updateNote, softDeleteNote, getDealsByContact, getActivityByContact, getContactCommunications, createCommunication, getProducts, getOrgUsers, createDeal, updateDeal, updateDealStage, updateDealWon, updateDealLost, softDeleteDeal, createContactPhone, updateContactPhone, setContactPhonePrimary, deleteContactPhone } from '@/lib/db';
+import { contactToProfile, latestActiveDeal, dealToView, communicationToView, WON_STAGE_SLUG, LOST_STAGE_SLUG, type CommunicationChannel, type CommunicationDirection } from '@/lib/hunterMappers';
 import DealLostModal from './DealLostModal';
 import DealWonModal from './DealWonModal';
+import KommunikationLogModal from './KommunikationLogModal';
 import { triggerConfetti } from '@/lib/confetti';
 import {
   ArrowUpRight, ArrowLeft, X, Clock, Check,
@@ -13,7 +14,7 @@ import {
 } from 'lucide-react';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import Avatar from '@/components/shared/Avatar';
-import { AktiveSignale, AktivitaetsVerlauf, DealsListe, DetailField, DetailPhoneList, DetailSection, HeatBadge, KontaktZeile, NotizenListe, OffeneTasks, PanelTabs, StatusBadge, TasksListe } from '@/components';
+import { AktiveSignale, AktivitaetsVerlauf, DealsListe, DetailField, DetailPhoneList, DetailSection, HeatBadge, KommunikationVerlauf, KontaktZeile, NotizenListe, OffeneTasks, PanelTabs, StatusBadge, TasksListe } from '@/components';
 
 // EditableInline → panel-blocks/EditableInline (importiert). PhoneField → panel-blocks/PhoneField.
 
@@ -59,6 +60,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
   const [notesAutoCompose, setNotesAutoCompose] = useState(false);
   const [showVollansicht, setShowVollansicht] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [logOpen, setLogOpen] = useState(false); // Kommunikation-protokollieren-Modal
 
   // Vom User editierbare Felder (kein System-Wert) — lokaler Mock-State.
   const [contact, setContact] = useState({ email: '', linkedin: '', web: '' });
@@ -187,6 +189,23 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
     queryKey: ['activityByContact', DEMO_ORGANIZATION_ID, contactId],
     queryFn: () => getActivityByContact(DEMO_ORGANIZATION_ID, contactId as string),
     enabled: !!contactId && isOpen && activeTab === 'activity', // erst laden, wenn der Tab offen ist
+  });
+  // Kommunikation-Tab: manuell protokollierte Touchpoints (communications, 036).
+  const commsQuery = useQuery({
+    queryKey: ['communications', DEMO_ORGANIZATION_ID, contactId],
+    queryFn: () => getContactCommunications(DEMO_ORGANIZATION_ID, contactId as string),
+    enabled: !!contactId && isOpen && activeTab === 'communication',
+  });
+  const createCommMutation = useMutation({
+    mutationFn: (v: { channel: CommunicationChannel; direction: CommunicationDirection; occurredAt: string; note: string }) =>
+      createCommunication(DEMO_ORGANIZATION_ID, contactId as string, v),
+    onSuccess: () => {
+      setLogOpen(false);
+      queryClient.invalidateQueries({ queryKey: ['communications', DEMO_ORGANIZATION_ID, contactId] });
+      queryClient.invalidateQueries({ queryKey: ['contactDetail', DEMO_ORGANIZATION_ID, contactId] }); // last_contacted_at via Trigger
+      showToast('Kontakt protokolliert ✓');
+    },
+    onError: (e) => showToast(`Protokollieren fehlgeschlagen: ${(e as Error).message}`), // nicht still abfangen
   });
   // Übersicht „Deal Setup" zeigt den primären Deal = zuletzt aktiver, sonst neuester
   // (getDealsByContact sortiert created_at desc). Werte zentral über dealToView.
@@ -443,6 +462,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
       tabs={[
         { id: 'overview', label: 'Übersicht' },
         { id: 'activity', label: 'Aktivität' },
+        { id: 'communication', label: 'Kommunikation' },
         { id: 'tasks', label: 'Tasks' },
         { id: 'deals', label: 'Deals' },
         { id: 'notes', label: 'Notizen' },
@@ -496,6 +516,13 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
 
         {activeTab === 'activity' && (
           <AktivitaetsVerlauf rows={activityQuery.data ?? []} />
+        )}
+
+        {activeTab === 'communication' && (
+          <KommunikationVerlauf
+            items={(commsQuery.data ?? []).map(communicationToView)}
+            onLog={() => setLogOpen(true)}
+          />
         )}
 
         {activeTab === 'tasks' && (
@@ -678,6 +705,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
     { id: 'details', label: 'Details' },
     { id: 'overview', label: 'Übersicht' },
     { id: 'activity', label: 'Aktivität' },
+    { id: 'communication', label: 'Kommunikation' },
     { id: 'tasks', label: 'Tasks' },
     { id: 'deals', label: 'Deals' },
     { id: 'notes', label: 'Notizen' },
@@ -756,6 +784,13 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
       {variant !== 'full' && showVollansicht && (
         <HunterSidepanel person={display} onClose={() => setShowVollansicht(false)} onExit={onClose} variant="full" />
       )}
+
+      <KommunikationLogModal
+        open={logOpen}
+        pending={createCommMutation.isPending}
+        onSave={(v) => createCommMutation.mutate(v)}
+        onCancel={() => setLogOpen(false)}
+      />
 
       {/* P8-3: Lost-Dialog bei Wechsel in „verloren" (Stage-Badge im Deals-/Übersicht-Tab). Won = kein Modal. */}
       <DealLostModal
