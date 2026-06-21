@@ -465,3 +465,27 @@ export function signalToCardProps(
     stage: contactActiveStage(signal.contact, stageNameBySlug),
   };
 }
+
+// ── Kommunikation (036) ──────────────────────────────────────────────────────
+// DB-Row aus `communications` → View für den Kommunikations-Tab. Schmal: manuell
+// protokollierte Touchpoints tragen nur Kanal/Richtung/Zeit/Notiz (keine Mock-Rich-Felder).
+export type CommunicationChannel = "email" | "linkedin" | "call" | "meeting";
+export type CommunicationDirection = "outbound" | "inbound";
+
+export interface CommunicationView {
+  id: string;
+  channel: CommunicationChannel;
+  direction: CommunicationDirection;
+  occurredAt: string; // ISO
+  note?: string;      // fehlt → kein Notiz-Body (kein Fake)
+}
+
+export function communicationToView(row: Record<string, any>): CommunicationView {
+  return {
+    id: String(row.id),
+    channel: row.channel as CommunicationChannel,
+    direction: row.direction as CommunicationDirection,
+    occurredAt: String(row.occurred_at),
+    note: row.note ?? undefined,
+  };
+}

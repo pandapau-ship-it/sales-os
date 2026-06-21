@@ -95,6 +95,7 @@
     "common": {
       "stage": "STAGE",
       "heat": "HEAT",
+      "lastContact": "LAST",
       "status": "Status",
       "confidence": "Confidence {{n}}%",
       "regenerate": "Neu generieren",

@@ -104,11 +104,15 @@ export default function LeadListRow({
         <div className="flex items-center gap-4 pl-4 border-l border-[var(--border-subtle)] shrink-0 justify-between md:justify-end">
           {/* Zeit-Spalte: Wrapper bleibt als unsichtbarer Platzhalter (kein Layout-Sprung);
               bei last_contacted_at=NULL wird nichts gerendert (kein „—"). */}
-          <div className="flex flex-col items-end hidden sm:flex w-[130px]">
-            {lastContactedDays !== null && (
-              <span className="text-[14px] font-bold text-[var(--text-primary)] whitespace-nowrap">
-                {t('hunter.common.ago', { label: t('hunter.common.daysAgo', { count: lastContactedDays }) })}
-              </span>
+          <div className="flex flex-col items-end justify-center hidden sm:flex w-[130px] relative h-full">
+            {/* „vor 0 Tagen" wird unterdrückt — erst ab 1 Tag. Überschrift wie STATUS/HEAT. */}
+            {lastContactedDays !== null && lastContactedDays >= 1 && (
+              <>
+                <span className="absolute -top-[14px] right-0 text-[10px] font-bold text-[var(--icon-muted)] tracking-wider uppercase">{t('hunter.common.lastContact')}</span>
+                <span className="text-[14px] font-bold text-[var(--text-primary)] whitespace-nowrap">
+                  {t('hunter.common.ago', { label: t('hunter.common.daysAgo', { count: lastContactedDays }) })}
+                </span>
+              </>
             )}
           </div>
           <div className="flex items-center gap-3 relative w-[90px] justify-end">
