@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DEMO_ORGANIZATION_ID } from '@/lib/org';
 import { getContactDetail, getPipelineSettings, getTasksByContact, createTask, completeTask, softDeleteTask, getNotesByContact, createNote, updateNote, softDeleteNote, getDealsByContact, getActivityByContact, getContactCommunications, createCommunication, updateContact, updateCompany, getProducts, getOrgUsers, createDeal, updateDeal, updateDealStage, updateDealWon, updateDealLost, softDeleteDeal, createContactPhone, updateContactPhone, setContactPhonePrimary, deleteContactPhone } from '@/lib/db';
-import { contactToProfile, latestActiveDeal, dealToView, communicationToView, WON_STAGE_SLUG, LOST_STAGE_SLUG, type CommunicationChannel, type CommunicationDirection } from '@/lib/hunterMappers';
+import { contactToProfile, latestActiveDeal, dealToView, communicationToView, CONTACT_STATUS_LABEL, CONTACT_STATUS_SELECTABLE, WON_STAGE_SLUG, LOST_STAGE_SLUG, type CommunicationChannel, type CommunicationDirection } from '@/lib/hunterMappers';
 import { isValidEmail, normalizeUrl, isValidUrl } from '@/lib/validation';
 import DealLostModal from './DealLostModal';
 import DealWonModal from './DealWonModal';
@@ -11,11 +11,11 @@ import { triggerConfetti } from '@/lib/confetti';
 import {
   ArrowUpRight, ArrowLeft, X, Clock, Check,
   Plus, Briefcase,
-  StickyNote, User, Building2, Tag, CheckCircle2
+  StickyNote, User, Building2, Tag
 } from 'lucide-react';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import Avatar from '@/components/shared/Avatar';
-import { AktiveSignale, AktivitaetsVerlauf, DealsListe, DetailField, DetailPhoneList, DetailSection, HeatBadge, KommunikationKompakt, KommunikationVerlauf, KontaktZeile, NotizenListe, OffeneTasks, PanelTabs, StatusBadge, TasksListe } from '@/components';
+import { AktiveSignale, AktivitaetsVerlauf, DealsListe, DetailField, DetailPhoneList, DetailSection, HeatBadge, KommunikationKompakt, KommunikationVerlauf, KontaktZeile, NotizenListe, OffeneTasks, PanelTabs, TasksListe } from '@/components';
 
 // EditableInline → panel-blocks/EditableInline (importiert). PhoneField → panel-blocks/PhoneField.
 
@@ -35,17 +35,11 @@ const LAND_OPTS = ['Deutschland', 'Österreich', 'Schweiz', 'Andere'];
 const BRANCHE_OPTS = ['SaaS', 'Fintech', 'E-Commerce', 'Healthcare', 'Industrie', 'Andere'];
 const GROESSE_OPTS = ['1–10', '11–50', '51–200', '201–500', '500+'];
 const PHONE_TYPES = ['Mobil', 'Geschäftlich', 'Privat', 'Weitere'];
-// Kanonischer contacts.contact_status (Slug ↔ Label). Der Lead-Status-Dropdown schreibt diese
-// Slugs auf contacts.contact_status (NICHT lead_status).
-const CONTACT_STATUS_OPTIONS: { slug: string; label: string }[] = [
-  { slug: 'ohne_campaign', label: 'Kein Campaign' },
-  { slug: 'in_campaign', label: 'In Campaign' },
-  { slug: 'pipeline', label: 'In Pipeline' },
-  { slug: 'kunde', label: 'Kunde' },
-  { slug: 'archiviert', label: 'Archiviert' },
-];
+// Lead-Status-Dropdown: Slugs + Labels aus der EINEN Quelle (CONTACT_STATUS_LABEL in hunterMappers),
+// identisch zum Kopf-Badge (contactToProfile.statusLabel). Schreibt auf contacts.contact_status.
+const CONTACT_STATUS_OPTIONS = CONTACT_STATUS_SELECTABLE.map((slug) => ({ slug, label: CONTACT_STATUS_LABEL[slug] }));
 const LEAD_STATUS_OPTS = CONTACT_STATUS_OPTIONS.map((o) => o.label);
-const contactStatusLabel = (slug?: string) => CONTACT_STATUS_OPTIONS.find((o) => o.slug === slug)?.label ?? '';
+const contactStatusLabel = (slug?: string) => (slug ? CONTACT_STATUS_LABEL[slug] ?? '' : '');
 const contactStatusSlug = (label: string) => CONTACT_STATUS_OPTIONS.find((o) => o.label === label)?.slug;
 
 const DEFAULT_DETAILS = {
@@ -83,7 +77,7 @@ const DETAIL_MAP: Record<string, { table: 'contact' | 'company'; col: string }> 
 // DetailField · DetailSection · StatusBadge · DetailPhoneList → ausgelagert nach
 // src/components/panel-blocks/ (siehe Imports). Hier nur noch deren Komposition.
 
-export default function HunterSidepanel({ person: personProp, onClose, onExit, variant = 'panel', initialAction = null, initialTab = null, initialDealId = null }: { person: any; onClose: () => void; onExit?: () => void; variant?: 'panel' | 'full'; initialAction?: 'mail' | 'task' | 'chat' | null; initialTab?: 'overview' | 'deals' | 'tasks' | 'activity' | 'notes' | null; initialDealId?: string | null }) {
+export default function HunterSidepanel({ person: personProp, onClose, onExit, variant = 'panel', initialAction = null, initialTab = null, initialDealId = null, initialFocusField = null }: { person: any; onClose: () => void; onExit?: () => void; variant?: 'panel' | 'full'; initialAction?: 'mail' | 'task' | 'chat' | null; initialTab?: 'overview' | 'deals' | 'tasks' | 'activity' | 'notes' | null; initialDealId?: string | null; initialFocusField?: string | null }) {
   const [activeTab, setActiveTab] = useState(variant === 'full' ? 'details' : 'overview');
   // Aus der Übersicht „Deal/Task bearbeiten" → Ziel-Tab öffnet die Bearbeiten-Kachel direkt.
   const [dealsAutoEditId, setDealsAutoEditId] = useState<string | null>(null); // Übersicht „Bearbeiten" → Deal-id im Deals-Tab
@@ -92,6 +86,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
   const [dealsAutoNew, setDealsAutoNew] = useState(false);
   const [notesAutoCompose, setNotesAutoCompose] = useState(false);
   const [showVollansicht, setShowVollansicht] = useState(false);
+  const [focusField, setFocusField] = useState<string | null>(null); // Deep-Link aus dem Panel-Stift in die Vollansicht
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [logOpen, setLogOpen] = useState(false); // Kommunikation-protokollieren-Modal
 
@@ -108,7 +103,8 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
       // Editierbare Felder beim Öffnen zurücksetzen (Kontaktzeile wird unten aus dem Fetch geseedet).
       setDetails(DEFAULT_DETAILS);
       // Karten-Aktion: Panel direkt mit der passenden Aktion öffnen. ('mail' deferred — Kommunikation P7.)
-      if (initialAction === 'task') { setTasksAutoEditId('new'); setActiveTab('tasks'); }
+      if (initialFocusField) { setActiveTab('details'); } // Deep-Link Panel-Stift → Vollansicht Details-Tab
+      else if (initialAction === 'task') { setTasksAutoEditId('new'); setActiveTab('tasks'); }
       else if (initialTab) { setActiveTab(initialTab); } // Deeplink z.B. Kanban-Karten-Klick → Deals-Tab
       else setActiveTab(variant === 'full' ? 'details' : 'overview');
     }
@@ -544,6 +540,8 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
       contact={contact}
       phones={profile.phones}
       onSaveField={(f, v) => saveContactField(f as 'email' | 'linkedin' | 'web', v)}
+      // Stift im readonly-Panel → Vollansicht öffnen + auf das Feld fokussieren (web → website).
+      onEditField={(f) => { setFocusField(f === 'web' ? 'website' : f); setShowVollansicht(true); }}
       onCopyField={(f) => showToast(`${FIELD_LABEL[f]} kopiert`)}
       onSetFavorite={(id) => setPhonePrimaryMutation.mutate(id)}
       onUpdateNumber={(id, number) => updatePhoneMutation.mutate({ phoneId: id, number })}
@@ -696,9 +694,9 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
         {/* Kontaktdaten — in dezenter grauer Sub-Kachel (nur dieser Bereich grau) */}
         <div className="sm:col-span-2 bg-app-bg rounded-[10px] p-5">
           <div className="grid sm:grid-cols-2 gap-x-8 gap-y-5">
-            <DetailField label="E-Mail" type="email" copyable value={contact.email} validate={isValidEmail} onCopy={() => showToast('Kopiert ✓')} onSave={(v) => saveContactField('email', v)} />
-            <DetailField label="LinkedIn" copyable value={contact.linkedin} href={`https://www.linkedin.com/${contact.linkedin.replace(/^\/+/, '')}`} onCopy={() => showToast('Kopiert ✓')} onSave={(v) => saveContactField('linkedin', v)} />
-            <DetailField label="Webadresse" copyable value={contact.web} validate={(v) => isValidUrl(normalizeUrl(v))} href={`https://${contact.web.replace(/^https?:\/\//, '')}`} onCopy={() => showToast('Kopiert ✓')} onSave={(v) => saveContactField('web', v)} />
+            <DetailField label="E-Mail" type="email" copyable value={contact.email} validate={isValidEmail} autoEdit={initialFocusField === 'email'} onCopy={() => showToast('Kopiert ✓')} onSave={(v) => saveContactField('email', v)} />
+            <DetailField label="LinkedIn" copyable value={contact.linkedin} autoEdit={initialFocusField === 'linkedin'} href={`https://www.linkedin.com/${contact.linkedin.replace(/^\/+/, '')}`} onCopy={() => showToast('Kopiert ✓')} onSave={(v) => saveContactField('linkedin', v)} />
+            <DetailField label="Webadresse" copyable value={contact.web} validate={(v) => isValidUrl(normalizeUrl(v))} autoEdit={initialFocusField === 'website'} href={`https://${contact.web.replace(/^https?:\/\//, '')}`} onCopy={() => showToast('Kopiert ✓')} onSave={(v) => saveContactField('web', v)} />
           </div>
           <div className="mt-5">
             <DetailPhoneList
@@ -729,13 +727,8 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
         <DetailField label="Owner" value={details.owner} onSave={(v) => setDetail('owner', v)} />
         <DetailField label="Tags" value={details.tags} onSave={(v) => setDetail('tags', v)} />
 
-        {/* System-gesetzte Status → read-only Badges (keine Input-Felder).
-            Stage (läuft echt über primaryDeal.stageLabel im Deal-Setup) und Heat
-            (über contactToProfile.heatStatus) waren hier hardcodiert → entfernt (Honesty). */}
-        <div className="min-w-0">
-          <div className="text-[10px] font-extrabold text-text-muted uppercase tracking-widest mb-1.5">E-Mail verifiziert</div>
-          <StatusBadge tone="success" icon={CheckCircle2} label="Verifiziert" />
-        </div>
+        {/* E-Mail-Verifiziert-Badge entfernt: war hardcodiert „Verifiziert" (Mock). Kommt erst echt
+            mit dem email_verification-Modul (settings.modules) zurück (Honesty: kein Fake-Status). */}
       </DetailSection>
 
       <DetailSection title="Notizen" icon={StickyNote} cols={1}>
@@ -883,7 +876,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
       )}
 
       {variant !== 'full' && showVollansicht && (
-        <HunterSidepanel person={display} onClose={() => setShowVollansicht(false)} onExit={onClose} variant="full" initialDealId={initialDealId} />
+        <HunterSidepanel person={display} onClose={() => { setShowVollansicht(false); setFocusField(null); }} onExit={onClose} variant="full" initialDealId={initialDealId} initialFocusField={focusField} />
       )}
 
       <KommunikationLogModal
