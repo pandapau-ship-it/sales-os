@@ -3,7 +3,7 @@ import type { MouseEvent, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import {
-  Check, ChevronDown, ChevronUp, ArrowRight, Zap, Plus, FileText, Mail,
+  Check, ChevronDown, ChevronUp, ArrowRight, Zap, CheckSquare, FileText, Mail,
 } from "lucide-react";
 import Avatar from "@/components/shared/Avatar";
 import { ICPDonut } from "@/components/shared/ICPDonut";
@@ -179,7 +179,7 @@ export default function HunterCard({
               {expanded && (
                 <>
                   <button onClick={(e) => { e.stopPropagation(); act('task'); }} aria-label={t("hunter.leadCard.task")} data-tip={t("hunter.leadCard.task")} className="w-9 h-9 rounded-full flex items-center justify-center text-text-muted hover:text-[var(--sherloq-primary)] hover:bg-[var(--signal-teal-bg)] transition-colors cursor-pointer">
-                    <Plus className="w-5 h-5" />
+                    <CheckSquare className="w-5 h-5" />
                   </button>
                   <button onClick={(e) => { e.stopPropagation(); act('note'); }} aria-label="Notiz" data-tip="Notiz" className="w-9 h-9 rounded-full flex items-center justify-center text-text-muted hover:text-[var(--sherloq-primary)] hover:bg-[var(--signal-teal-bg)] transition-colors cursor-pointer">
                     <FileText className="w-5 h-5" />
