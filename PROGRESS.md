@@ -443,11 +443,21 @@ kam es, wie groß ist es** — und einen **klaren nächsten Schritt** anstoßen 
 - **Realtime Subscriptions statt Polling:** `realtime.ts` ist aktuell ein No-op-Stub → echte Subscriptions in Phase 5.
 - **Kommt wenn:** alle Screens fertig + Auth/Org [D21] steht.
 
+### [D29] Einladungs-Email via Edge Function (deferred)
+- Einladung wird bereits in `invitations` gespeichert (Migration 042) ✓
+- Provisioning-Trigger ordnet Org + Rolle zu, wenn der User sich registriert (Migration 043) ✓
+- **Fehlt noch:** der Email-Versand — `supabase.auth.admin.inviteUserByEmail` braucht den
+  `service_role`-Key → **nur in einer Edge Function**, nie im Client.
+- **Was die Edge Function tun muss:** `inviteUserByEmail(email)` aufrufen → Supabase schickt
+  automatisch die Einladungs-Email mit Magic Link zur Registrierung.
+- **Kommt wenn:** Settings-Screen fertig + Email-Provider in Supabase konfiguriert.
+- **Bis dahin:** Einladung nur in der DB, kein Mailversand (UI-Hinweis weist darauf hin).
+
 ### [TS] Deal-Typ ohne `product` — offener Faden
 - `src/types/hunter.ts` `Deal` hat **kein `product`** (Migration 014 fügte nur die DB-Spalte).
   Beim späteren Produkt-Anzeigen (Pipeline/Deal-Detail) `product?: string` im Typ ergänzen + mappen.
 
-> Anker-Tags `[D1]`–`[D28]` sind im Code referenzierbar (z.B. `hunterMappers.ts` → `[[leads-tab-read]]`).
+> Anker-Tags `[D1]`–`[D29]` sind im Code referenzierbar (z.B. `hunterMappers.ts` → `[[leads-tab-read]]`).
 > Vor Umsetzung eines Punkts: passende Referenz-Doku (`docs/sales_os_edge_functions_v2.md` etc.) lesen.
 
 ---
