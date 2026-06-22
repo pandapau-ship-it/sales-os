@@ -14,6 +14,7 @@ export { default as DealSetup } from './DealSetup';
 export { default as DetailField } from './DetailField';
 export { default as DetailPhoneList } from './DetailPhoneList';
 export { default as DetailSection } from './DetailSection';
+export { default as ExpandedCardContent } from './ExpandedCardContent';
 export { default as EditableInline } from './EditableInline';
 export { default as ErledigtAction } from './ErledigtAction';
 export { default as HeatBadge } from './HeatBadge';

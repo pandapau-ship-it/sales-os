@@ -6,20 +6,15 @@
  */
 import type { MouseEvent } from "react";
 import { useTranslation } from "react-i18next";
-import { useQuery } from "@tanstack/react-query";
 import {
-  Check, ChevronUp, ChevronDown, ArrowRight, Zap, CheckSquare, FileText, Mail,
+  Check, ChevronUp, ChevronDown, ArrowRight, CheckSquare, FileText, Mail,
 } from "lucide-react";
 import Avatar from "@/components/shared/Avatar";
 import { ICPDonut } from "@/components/shared/ICPDonut";
-import CommunicationChain from "@/components/shared/CommunicationChain";
 import HeatBadge from './HeatBadge';
 import StageBadge from './StageBadge';
 import { type DealCardAction } from './DealKurzinfo';
-import DealsListe from './DealsListe';
-import { DEMO_ORGANIZATION_ID } from "@/lib/org";
-import { getContactCommunications, getDealsByContact, getPipelineSettings } from "@/lib/db";
-import { communicationToView } from "@/lib/hunterMappers";
+import ExpandedCardContent from './ExpandedCardContent';
 
 export default function LeadListRow({
   lead, isExpanded, selected, onToggleExpand, onToggleSelect, onOpenInfo, onAction,
@@ -42,29 +37,8 @@ export default function LeadListRow({
     ? Math.max(0, Math.floor((Date.now() - new Date(lead.lastContactedAt).getTime()) / 86400000))
     : null;
 
-  // Lazy Expand: Deals + Kommunikation + Stages erst beim Aufklappen (lead.id = contact_id).
+  // lead.id = contact_id → für den geteilten, lazy ladenden Expand-Inhalt.
   const contactId: string | undefined = lead.id;
-  const lazy = isExpanded && !!contactId;
-  const dealsQuery = useQuery({
-    queryKey: ['dealsByContact', DEMO_ORGANIZATION_ID, contactId],
-    queryFn: () => getDealsByContact(DEMO_ORGANIZATION_ID, contactId as string),
-    enabled: lazy,
-  });
-  const commsQuery = useQuery({
-    queryKey: ['communications', DEMO_ORGANIZATION_ID, contactId],
-    queryFn: () => getContactCommunications(DEMO_ORGANIZATION_ID, contactId as string),
-    enabled: lazy,
-  });
-  const stagesQuery = useQuery({
-    queryKey: ['pipelineStages', DEMO_ORGANIZATION_ID],
-    queryFn: () => getPipelineSettings(DEMO_ORGANIZATION_ID),
-    enabled: lazy,
-  });
-  const stageMap = Object.fromEntries((stagesQuery.data ?? []).map((s) => [s.slug, s.name]));
-  const stageProbMap = Object.fromEntries((stagesQuery.data ?? []).map((s) => [s.slug, s.probability]));
-  const stagnationBySlug = Object.fromEntries((stagesQuery.data ?? []).map((s) => [s.slug, s.stagnation_days]));
-  const commsView = (commsQuery.data ?? []).map(communicationToView);
-  const dealRows = dealsQuery.data ?? [];
 
   return (
     <div
@@ -178,34 +152,9 @@ export default function LeadListRow({
         </div>
       </div>
 
-      {/* EXPANDED CONTENT — zweispaltig (KI-Kurzakte | Deal), Kette darunter volle Breite. */}
+      {/* EXPANDED CONTENT — geteilter Inhalt (KI-Kurzakte · Deals · Kommunikation), lazy. */}
       {isExpanded && (
-        <div className="flex flex-col gap-5 border-t border-[var(--border-subtle)] pt-5 mt-2" onClick={(e) => e.stopPropagation()}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-stretch">
-            {/* KI-Kurzakte — Label außerhalb (wie „Deals"), Box darunter. Platzhalter bis AI-Pipeline ([D5]). */}
-            <div className="h-full flex flex-col gap-2">
-              <span className="px-1 typo-section-label text-text-muted inline-flex items-center gap-1.5">
-                <Zap className="w-3.5 h-3.5 text-[var(--sherloq-primary)]" /> {t('hunter.common.kiKurzakte')}
-                <span className="px-1.5 py-0.5 rounded-full bg-app-bg text-text-muted text-[9px] font-extrabold uppercase tracking-wide">Folgt</span>
-              </span>
-              <div className="flex-1 bg-app-surface rounded-[12px] p-5 border border-[var(--border)]">
-                <p className="text-[13px] text-text-muted italic leading-relaxed">KI-Kurzakte folgt mit der AI-Pipeline ([D5]).</p>
-              </div>
-            </div>
-
-            {/* Deals — echt; Bleistift → Deals-Tab dieses Deals im Edit-Modus. Kein Deal → ausgeblendet. */}
-            {dealRows.length > 0 && (
-              <DealsListe variant="compact" dealRows={dealRows} stageNameBySlug={stageMap} stageProbBySlug={stageProbMap} stagnationBySlug={stagnationBySlug} onEditDeal={(dealId) => act('editDeal', dealId)} />
-            )}
-          </div>
-
-          {/* Kommunikation — volle Breite, echte Kette mit Hover; leer → ehrlicher Hinweis. */}
-          {commsView.length > 0 ? (
-            <CommunicationChain items={commsView} />
-          ) : (
-            <p className="px-1 text-[12px] text-text-muted">Noch keine Kommunikation protokolliert.</p>
-          )}
-        </div>
+        <ExpandedCardContent contactId={contactId} onEditDeal={(dealId) => act('editDeal', dealId)} />
       )}
     </div>
   );
