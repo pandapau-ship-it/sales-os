@@ -31,11 +31,11 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@
 import { heatFor } from '@/lib/constants';
 import { ICPDonut } from '@/components/shared/ICPDonut';
 import { NAV } from '@/lib/navBehavior';
-import { AddSdrLeadPanel, ContactColdDrawer, EmptyState, FunnelAnalysis, HeatBadge, HunterSidepanel, KpiCard, LeadListRow, LinkedinSignalCard, NewInPipelineCards, PipelineKeineTaskCard, PipelineStagniertCard, SequenceLeadCards, SignalActionDrawer, StageBadge, TaskDrawer } from '@/components';
+import { AddSdrLeadPanel, ContactColdDrawer, EmptyState, FollowUpKaltCard, FunnelAnalysis, HeatBadge, HunterSidepanel, KpiCard, LeadListRow, LinkedinSignalCard, NewInPipelineCards, PipelineKeineTaskCard, PipelineStagniertCard, SequenceLeadCards, SignalActionDrawer, StageBadge, TaskDrawer } from '@/components';
 import type { SignalActionData } from '@/components';
 
 import Avatar from '@/components/shared/Avatar';
-import { signalToCardProps, taskToDueCard, dealToNewPipelineRow, dealToStagnatedCard, dealToNoTaskCard, newPipelineInPeriod, isTerminalStage, WON_STAGE_SLUG, LOST_STAGE_SLUG, type PipelineRow, type NewPipelinePeriod, type StagnatedCardItem, type NoTaskCardItem } from '@/lib/hunterMappers';
+import { signalToCardProps, signalToActionData, contactToColdPerson, contactToProfile, taskToDueCard, dealToNewPipelineRow, dealToStagnatedCard, dealToNoTaskCard, newPipelineInPeriod, isTerminalStage, WON_STAGE_SLUG, LOST_STAGE_SLUG, type PipelineRow, type NewPipelinePeriod, type StagnatedCardItem, type NoTaskCardItem } from '@/lib/hunterMappers';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { updateDealStage, updateDealWon, updateDealLost } from '@/lib/db';
 import { DEMO_ORGANIZATION_ID } from '@/lib/org';
@@ -69,6 +69,8 @@ interface ScreenHuntingProps {
   dueTasksData?: Record<string, unknown>[];
   // Neu-in-Pipeline: frisch angelegte Deals (inkl. contact + company + deals-Embed).
   newInPipelineData?: Record<string, unknown>[];
+  // Cold/Inaktiv: Kontakte mit heat_status 'kalt'/'tot' (für den Reaktivierungs-Opener).
+  coldContactsData?: Record<string, unknown>[];
   onSelectLead: (lead: Lead) => void;
   // T4a: Task erledigt markieren (Follow-ups). org-Scoping/Mutation liegt im Container.
   onCompleteTask?: (taskId: string) => void;
@@ -93,6 +95,7 @@ export default function ScreenHunting({
   signalsError,
   dueTasksData,
   newInPipelineData,
+  coldContactsData,
   onCompleteTask,
   onAddLead,
   onSelectCommunication,
@@ -416,7 +419,36 @@ export default function ScreenHunting({
       )}
 
       {subTab === 'follow_ups' && (
-        <SequenceLeadCards items={dueTaskCards} onSelectLead={setInfoPanelLead} onComplete={onCompleteTask} />
+        <div className="flex flex-col gap-6">
+          <SequenceLeadCards items={dueTaskCards} onSelectLead={setInfoPanelLead} onComplete={onCompleteTask} />
+
+          {/* Cold/Inaktiv — echte Kontakte mit heat_status 'kalt'/'tot'. Leer → Sektion ausgeblendet (Signal-Prinzip). */}
+          {(coldContactsData ?? []).length > 0 && (
+            <div className="flex flex-col gap-4">
+              <span className="typo-section-label text-text-muted px-1">{t('hunter.followUps.coldSection')}</span>
+              {(coldContactsData ?? []).map((raw) => {
+                const p = contactToProfile(raw);
+                const cp = contactToColdPerson(raw);
+                const timeAgoLabel = cp.lastContactDays != null
+                  ? t('hunter.common.ago', { label: t('hunter.common.daysAgo', { count: cp.lastContactDays }) })
+                  : '';
+                return (
+                  <FollowUpKaltCard
+                    key={String((raw as { id?: string }).id ?? p.name)}
+                    name={p.name}
+                    role={p.jobTitle}
+                    companyName={p.company}
+                    icpScore={p.icpScore}
+                    heatStatus={p.heatStatus}
+                    timeAgoLabel={timeAgoLabel}
+                    onSelectLead={setInfoPanelLead}
+                    onOutreachClick={() => setSelectedColdPerson(cp)}
+                  />
+                );
+              })}
+            </div>
+          )}
+        </div>
       )}
 
       {/* NEW LEADS VIEW */}
@@ -933,7 +965,7 @@ export default function ScreenHunting({
               description="Neue Signale erscheinen hier automatisch"
             />
           ) : (
-            signalCards.map(({ id, ...cardProps }) => (
+            signalCards.map(({ id, ...cardProps }, i) => (
               <LinkedinSignalCard
                 key={id}
                 {...cardProps}
@@ -942,6 +974,8 @@ export default function ScreenHunting({
                 selected={selectedSignalIds.includes(id)}
                 onToggleSelect={(e) => toggleSignalSelection(id, e)}
                 onOpenInfo={setInfoPanelLead}
+                // Opener → SignalActionDrawer mit echten Daten (AI-Felder als Platzhalter, [D5]).
+                onOpenAction={() => { const raw = (signalsData ?? [])[i]; if (raw) setSelectedSignal(signalToActionData(raw, t)); }}
               />
             ))
           )}

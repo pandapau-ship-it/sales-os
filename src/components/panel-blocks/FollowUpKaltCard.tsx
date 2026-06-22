@@ -145,7 +145,8 @@ export function FollowUpKaltCard({
           <Snowflake className="w-[11px] h-[11px]" /> Cold
         </span>
         <span className={ACTION_ROW.strongText}>
-          Kontakt wird kalt. Letzter Kanal Email ohne Response. AI empfiehlt Kanalwechsel zu LinkedIn.
+          {/* Faktisch aus heat_status — keine erfundene AI-Begründung (AI-Empfehlung folgt [D5]). */}
+          Kontakt ist kalt — Reaktivierung empfohlen.
         </span>
       </div>
 

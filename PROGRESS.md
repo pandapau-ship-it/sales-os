@@ -246,6 +246,7 @@
   `last_contacted_at` ist im Seed NULL → Zeit-Spalte leer (gewollt).
 - **Später:** Berechnung/Befüllung per **Edge Functions (Cron)** — erst **nachdem alle
   Screens verdrahtet** sind. Business-Logik nie im Frontend (CLAUDE.md → Heat/Churn/ICP/Scores → Edge Functions).
+- **Update 2026-06-22:** `stagnation_days` (score-deal-health) + `heat_status` (score-heat-status) sind jetzt **echt berechnet** (Edge Functions live). Offen bleibt die **AI-Draft/Recommendation-Pipeline**: `SignalActionDrawer` + `ContactColdDrawer` zeigen `aiRecommendation`, Entwurf, `confidence` und Reaktionsfenster aktuell als **sichtbar markierte „Folgt"-Platzhalter** (grau/kursiv + Badge „Folgt", „Draft generieren" disabled) — **kein erfundener Text**. Echte AI-Drafts + Empfehlungen kommen mit der **AI-SDR-Phase** (Quelle: `messages` status='draft' / AI-Pipeline).
 
 ### [D6] Org-Provisionierung von Seed-Konfig (knowledge_base + settings.signal_windows) · Zielphase: SaaS / Onboarding
 - **Status heute:** Mehrere produktweit-gleiche Konfig-/Inhaltsblöcke werden per Migration **nur auf die

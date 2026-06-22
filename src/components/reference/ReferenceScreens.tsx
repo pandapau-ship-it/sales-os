@@ -217,6 +217,17 @@ export function HunterReference() {
     queryKey: ["newInPipeline", DEMO_ORGANIZATION_ID],
     queryFn: () => getNewInPipeline(DEMO_ORGANIZATION_ID),
   });
+  // Cold/Inaktiv: Kontakte mit heat_status 'kalt' bzw. 'tot' (Reaktivierungs-Opener).
+  const coldQuery = useQuery({
+    queryKey: ["coldContacts", DEMO_ORGANIZATION_ID],
+    queryFn: async () => {
+      const [kalt, tot] = await Promise.all([
+        getContacts(DEMO_ORGANIZATION_ID, { heatStatus: "kalt" }),
+        getContacts(DEMO_ORGANIZATION_ID, { heatStatus: "tot" }),
+      ]);
+      return [...kalt, ...tot];
+    },
+  });
   // T4a (erster Write): Task erledigt → completed_at; onSuccess Follow-ups neu laden
   // (kein Optimistic — invalidate-on-success). Fehler bewusst nicht stillschweigend
   // abfangen: bei RLS/Login-Problem wird der Error sichtbar (Konsole/Network).
@@ -242,6 +253,7 @@ export function HunterReference() {
         signalsError={signalsQuery.isError}
         dueTasksData={dueTasksQuery.data}
         newInPipelineData={newInPipelineQuery.data}
+        coldContactsData={coldQuery.data as unknown as Record<string, unknown>[] | undefined}
         onCompleteTask={(taskId) => completeTaskMutation.mutate(taskId)}
         onSelectLead={s.selectPerson}
         onUpdateLeadStage={s.updateLeadStage}

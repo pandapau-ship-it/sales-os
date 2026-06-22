@@ -44,7 +44,8 @@ export interface ChatActionConfig {
   headerBadge: { label: string; tone: Tone };
   statusDotTone: Tone;
   banner: { tone: Tone; icon: ReactNode; label: string; text: string };
-  recommendation: { text: string; confidence: number };
+  recommendation: { text: string; confidence?: number | null };
+  /** null → AI-Pipeline fehlt noch ([D5]): „Draft generieren" disabled statt erfundenem Entwurf. */
   draft: {
     channel: "email" | "linkedin";
     to: string;
@@ -52,7 +53,7 @@ export interface ChatActionConfig {
     body: string;
     /** Body nach „Neu generieren" (Fallback: leichte Variation). */
     regenerated?: string;
-  };
+  } | null;
   intro: string;
   outro?: string;
   actions: ChatPanelAction[];
@@ -67,6 +68,7 @@ interface ChatActionPanelProps {
 type ChatMessage =
   | { id: number; role: "ai"; kind: "text"; text: string }
   | { id: number; role: "ai"; kind: "draft" }
+  | { id: number; role: "ai"; kind: "draftPlaceholder" }
   | { id: number; role: "user"; kind: "text"; text: string };
 
 export default function ChatActionPanel({ open, config, onClose }: ChatActionPanelProps) {
@@ -87,12 +89,13 @@ export default function ChatActionPanel({ open, config, onClose }: ChatActionPan
     if (open && !prevOpen.current && config) {
       setDisplay(config);
       setEditing(false);
-      setBody(config.draft.body);
+      setBody(config.draft?.body ?? "");
       const seeded: ChatMessage[] = [
         { id: nextId(), role: "ai", kind: "text", text: config.intro },
-        { id: nextId(), role: "ai", kind: "draft" },
+        // Echter Entwurf vs. ehrlicher „Folgt"-Platzhalter (keine AI-Pipeline → kein Fake-Draft).
+        { id: nextId(), role: "ai", kind: config.draft ? "draft" : "draftPlaceholder" },
       ];
-      if (config.outro) seeded.push({ id: nextId(), role: "ai", kind: "text", text: config.outro });
+      if (config.outro && config.draft) seeded.push({ id: nextId(), role: "ai", kind: "text", text: config.outro });
       setMessages(seeded);
     }
     prevOpen.current = open;
@@ -117,10 +120,10 @@ export default function ChatActionPanel({ open, config, onClose }: ChatActionPan
   };
 
   const handleRegenerate = () => {
-    if (!s) return;
+    if (!s?.draft) return;
     setIsRegenerating(true);
     setTimeout(() => {
-      setBody(s.draft.regenerated ?? `Hi ${firstName},\n\nich wollte kurz nachfassen — passt das Thema bei euch gerade? Gerne teile ich konkrete Zahlen. Hättest du diese Woche 15 Minuten?\n\nViele Grüße`);
+      setBody(s.draft!.regenerated ?? `Hi ${firstName},\n\nich wollte kurz nachfassen — passt das Thema bei euch gerade? Gerne teile ich konkrete Zahlen. Hättest du diese Woche 15 Minuten?\n\nViele Grüße`);
       setIsRegenerating(false);
       showToast("Entwurf neu generiert");
     }, 700);
@@ -142,7 +145,7 @@ export default function ChatActionPanel({ open, config, onClose }: ChatActionPan
     }, 450);
   };
 
-  const isEmail = s?.draft.channel === "email";
+  const isEmail = s?.draft?.channel === "email";
 
   return (
     <>
@@ -189,11 +192,17 @@ export default function ChatActionPanel({ open, config, onClose }: ChatActionPan
                     <span className="flex items-center gap-1.5 text-[10px] font-extrabold text-[var(--sherloq-primary)] uppercase tracking-widest">
                       <Sparkles className="w-3 h-3" /> AI-Empfehlung
                     </span>
-                    <span className="px-2 py-0.5 rounded-full bg-[var(--signal-success-bg)] text-[var(--signal-success-text)] text-[9px] font-extrabold">
-                      {s.recommendation.confidence}% sicher
-                    </span>
+                    {s.recommendation.confidence != null ? (
+                      <span className="px-2 py-0.5 rounded-full bg-[var(--signal-success-bg)] text-[var(--signal-success-text)] text-[9px] font-extrabold">
+                        {s.recommendation.confidence}% sicher
+                      </span>
+                    ) : (
+                      <span className="px-2 py-0.5 rounded-full bg-app-bg text-text-muted text-[9px] font-extrabold uppercase tracking-wide">
+                        Folgt
+                      </span>
+                    )}
                   </div>
-                  <p className="text-[13px] text-text-body font-medium leading-relaxed">{s.recommendation.text}</p>
+                  <p className={`text-[13px] leading-relaxed ${s.recommendation.confidence != null ? "text-text-body font-medium" : "text-text-muted italic"}`}>{s.recommendation.text}</p>
                   <div className="flex justify-start mt-2.5">
                     <ErledigtAction onDone={onClose} />
                   </div>
@@ -220,6 +229,27 @@ export default function ChatActionPanel({ open, config, onClose }: ChatActionPan
                       <div className="flex-1 min-w-0">
                         {m.kind === "text" ? (
                           <p className="text-[13px] text-text-body leading-relaxed pt-1">{m.text}</p>
+                        ) : m.kind === "draftPlaceholder" ? (
+                          // Kein AI-Entwurf (Pipeline folgt, [D5]) — ehrlicher Platzhalter statt Fake-Text.
+                          <div className="rounded-[12px] border border-dashed border-border bg-app-surface overflow-hidden">
+                            <div className="px-4 py-2.5 bg-app-bg border-b border-border flex items-center gap-2">
+                              <span className="flex items-center gap-2 text-[11px] font-bold text-text-muted uppercase tracking-wider">
+                                <BrandLogo name={isEmail ? "outlook" : "linkedin"} tile className="w-5 h-5 rounded-[5px] shrink-0" />
+                                {isEmail ? "E-Mail-Entwurf" : "LinkedIn-Nachricht"}
+                              </span>
+                              <span className="ml-auto px-2 py-0.5 rounded-full bg-app-surface border border-border text-text-muted text-[9px] font-extrabold uppercase tracking-wide">Folgt</span>
+                            </div>
+                            <div className="p-4 space-y-3">
+                              <p className="text-[13px] text-text-muted italic leading-relaxed">KI-Entwurf folgt mit der AI-Pipeline ([D5]).</p>
+                              <button
+                                disabled
+                                data-tip="Folgt mit AI-Pipeline"
+                                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-[10px] bg-app-bg border border-border text-text-muted text-[12px] font-bold opacity-60 cursor-not-allowed"
+                              >
+                                <Sparkles className="w-3.5 h-3.5" /> Draft generieren
+                              </button>
+                            </div>
+                          </div>
                         ) : (
                           // Entwurf-Karte (E-Mail oder LinkedIn) — Claude-Code-Stil.
                           <div className="rounded-[12px] border border-border bg-app-surface shadow-[var(--shadow-card)] overflow-hidden">
@@ -239,9 +269,9 @@ export default function ChatActionPanel({ open, config, onClose }: ChatActionPan
                             <div className="p-4 space-y-2">
                               <div className="flex gap-2 text-[12px]">
                                 <span className="text-text-muted w-12 shrink-0">An</span>
-                                <span className="font-semibold text-text-body truncate">{s.draft.to}</span>
+                                <span className="font-semibold text-text-body truncate">{s.draft?.to}</span>
                               </div>
-                              {isEmail && s.draft.subject && (
+                              {isEmail && s.draft?.subject && (
                                 <div className="flex gap-2 text-[12px]">
                                   <span className="text-text-muted w-12 shrink-0">Betreff</span>
                                   <span className="font-semibold text-text-body truncate">{s.draft.subject}</span>
@@ -292,10 +322,12 @@ export default function ChatActionPanel({ open, config, onClose }: ChatActionPan
                 <div ref={msgEndRef} />
               </div>
 
-              {/* CHAT-EINGABE (sticky) + Disclaimer */}
-              <ActionFooter>
-                <ActionComposer placeholder={`Sherloq zu ${firstName} fragen…`} onSend={handleSend} />
-              </ActionFooter>
+              {/* CHAT-EINGABE (sticky) — nur mit echtem AI-Entwurf (ohne Pipeline kein Fake-Dialog, [D5]) */}
+              {s.draft && (
+                <ActionFooter>
+                  <ActionComposer placeholder={`Sherloq zu ${firstName} fragen…`} onSend={handleSend} />
+                </ActionFooter>
+              )}
             </>
           )}
         </SheetContent>
