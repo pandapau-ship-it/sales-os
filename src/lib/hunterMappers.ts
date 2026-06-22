@@ -29,7 +29,8 @@ const DB_HEAT_TO_UI: Record<string, HeatStatus> = {
 // Aufgeschoben (Details in PROGRESS.md → "Offene Konzept-Entscheidungen / Deferred Logic"):
 //   [D1] automatische Lifecycle-Übergänge (Edge Function) · [D2] Labels user-konfigurierbar
 //   (settings) · [D3] opt_out/archiviert-Filter im Leads-Tab.
-const CONTACT_STATUS_LABEL: Record<string, string> = {
+// Single-Source der contact_status-Labels (Kopf-Badge via contactToProfile UND Details-Dropdown).
+export const CONTACT_STATUS_LABEL: Record<string, string> = {
   ohne_campaign: "Neu",
   in_campaign: "Aktiv",
   pipeline: "In Pipeline",
@@ -37,6 +38,8 @@ const CONTACT_STATUS_LABEL: Record<string, string> = {
   archiviert: "Inaktiv",
   opt_out: "Opt-out",
 };
+// Manuell im Dropdown wählbare Stati (opt_out ist rechtlicher Hard-Block → nicht manuell setzbar).
+export const CONTACT_STATUS_SELECTABLE = ["ohne_campaign", "in_campaign", "pipeline", "kunde", "archiviert"] as const;
 
 // ── Zentrale Kontakt-Auflösung (Single-Source für alle Tabs) ──────────────────
 // Identitäts-/Status-Werte kommen IMMER vom Kontakt. heatStatus IMMER aus

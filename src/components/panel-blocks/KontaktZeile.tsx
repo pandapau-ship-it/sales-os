@@ -23,6 +23,8 @@ interface KontaktZeileProps {
   onCopied?: () => void;
   onSaveField?: (field: ContactField, value: string) => void;
   onCopyField?: (field: ContactField) => void;
+  /** Read-only Deep-Link: Stift öffnet die Vollansicht mit Fokus auf dieses Feld (statt Inline-Edit). */
+  onEditField?: (field: ContactField) => void;
   onSetFavorite?: (id: string) => void;
   onUpdateNumber?: (id: string, number: string) => void;
   onCopyPhone?: () => void;
@@ -40,7 +42,7 @@ const HOVER_BTN = "opacity-0 group-hover/item:opacity-100 focus-within:opacity-1
 type ReadItem = { key: string; Icon: ComponentType<{ className?: string }>; value: string; href: string; ext?: boolean };
 
 /** Read-only Kontaktzeile (P2): nur vorhandene Werte als Link; Hover → Copy (echt) + Stift (P8, deaktiviert). */
-function KontaktZeileReadonly({ contact, phones, onCopied, onSetFavorite, onUpdateNumber, onAddPhone, onRemovePhone, onUpdateLabel, phoneTypes }: { contact: { email: string; linkedin: string; web: string }; phones: PhoneEntry[]; onCopied?: () => void; onSetFavorite?: (id: string) => void; onUpdateNumber?: (id: string, number: string) => void; onAddPhone?: () => void; onRemovePhone?: (id: string) => void; onUpdateLabel?: (id: string, label: string) => void; phoneTypes?: string[] }) {
+function KontaktZeileReadonly({ contact, phones, onCopied, onEditField, onSetFavorite, onUpdateNumber, onAddPhone, onRemovePhone, onUpdateLabel, phoneTypes }: { contact: { email: string; linkedin: string; web: string }; phones: PhoneEntry[]; onCopied?: () => void; onEditField?: (field: ContactField) => void; onSetFavorite?: (id: string) => void; onUpdateNumber?: (id: string, number: string) => void; onAddPhone?: () => void; onRemovePhone?: (id: string) => void; onUpdateLabel?: (id: string, label: string) => void; phoneTypes?: string[] }) {
   // Telefon im readonly: Popover immer. Schreiben (Favorit/Edit/Add/Löschen/Label) nur mit echten Handlern (PH3).
   const phonesEditable = !!(onSetFavorite || onUpdateNumber || onAddPhone);
   const { t } = useTranslation();
@@ -100,13 +102,13 @@ function KontaktZeileReadonly({ contact, phones, onCopied, onSetFavorite, onUpda
               >
                 {copied === it.key ? <Check className="w-3 h-3 text-[var(--sherloq-primary)]" /> : <Copy className="w-3 h-3" />}
               </button>
-              {/* Bearbeiten — sichtbar, aber deaktiviert (echtes Edit kommt mit P8) */}
+              {/* Bearbeiten — öffnet die Vollansicht mit Fokus auf dieses Feld (Deep-Link), statt Inline-Edit. */}
               <button
-                disabled
-                aria-label={t("hunter.panel.editComing")} data-tip={t("hunter.panel.editComing")}
-                className={`${HOVER_BTN} text-text-muted cursor-not-allowed`}
+                onClick={() => onEditField?.(it.key as ContactField)}
+                aria-label={t("hunter.common.edit")} data-tip={t("hunter.common.edit")}
+                className={`${HOVER_BTN} text-text-muted hover:text-[var(--sherloq-primary)] cursor-pointer`}
               >
-                <Pencil className="w-3 h-3 opacity-40" />
+                <Pencil className="w-3 h-3" />
               </button>
             </span>
           </Fragment>
@@ -118,11 +120,11 @@ function KontaktZeileReadonly({ contact, phones, onCopied, onSetFavorite, onUpda
 
 export default function KontaktZeile({
   contact, phones, readonly, onCopied,
-  onSaveField = () => {}, onCopyField = () => {}, onSetFavorite,
+  onSaveField = () => {}, onCopyField = () => {}, onEditField, onSetFavorite,
   onUpdateNumber, onCopyPhone = () => {}, onAddPhone, onRemovePhone, onUpdateLabel, phoneTypes,
 }: KontaktZeileProps) {
   // readonly-Zeile: Telefon-Popover bleibt; Schreiben nur, wenn echte Phone-Handler übergeben werden (PH3).
-  if (readonly) return <KontaktZeileReadonly contact={contact} phones={phones} onCopied={onCopied} onSetFavorite={onSetFavorite} onUpdateNumber={onUpdateNumber} onAddPhone={onAddPhone} onRemovePhone={onRemovePhone} onUpdateLabel={onUpdateLabel} phoneTypes={phoneTypes} />;
+  if (readonly) return <KontaktZeileReadonly contact={contact} phones={phones} onCopied={onCopied} onEditField={onEditField} onSetFavorite={onSetFavorite} onUpdateNumber={onUpdateNumber} onAddPhone={onAddPhone} onRemovePhone={onRemovePhone} onUpdateLabel={onUpdateLabel} phoneTypes={phoneTypes} />;
   return (
     <div className="bg-app-surface border border-border-subtle rounded-full px-5 py-3 flex items-center justify-between gap-3 text-[12px] text-text-muted shadow-sm">
       <span className="flex items-center gap-1.5 min-w-0">
