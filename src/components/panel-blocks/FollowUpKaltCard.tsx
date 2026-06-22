@@ -16,6 +16,8 @@ const SNOOZE_OPTIONS = [
 ];
 
 interface FollowUpKaltCardProps {
+  /** Echte contact_id → lazy Expand-Queries in HunterCard. */
+  contactId?: string;
   name: string;
   role: string;
   companyName: string;
@@ -45,6 +47,7 @@ interface FollowUpKaltCardProps {
  * Cold-Outreach-Action-Row (Badge + Text + Start Outreach/Snooze) im Neu-in-Pipeline-Stil.
  */
 export function FollowUpKaltCard({
+  contactId,
   name,
   role,
   avatarInitials,
@@ -176,6 +179,7 @@ export function FollowUpKaltCard({
     <div className={`transition-opacity duration-300 ${isSnoozed ? "opacity-60" : ""}`}>
       <HunterCard
         data={data}
+        contactId={contactId}
         onOpenInfo={onSelectLead ? () => onSelectLead(buildLead()) : undefined}
         actionRow={actionRow}
       />

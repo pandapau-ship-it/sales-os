@@ -179,6 +179,7 @@ export function LinkedinSignalCard({
   return (
     <HunterCard
       data={data}
+      contactId={contactId}
       onOpenInfo={onOpenInfo ? () => onOpenInfo(buildLead()) : undefined}
       actionRow={actionRow}
       selected={selected}

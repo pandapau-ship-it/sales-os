@@ -1,16 +1,21 @@
 import { useState } from "react";
 import type { MouseEvent, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
+import { useQuery } from "@tanstack/react-query";
 import {
-  Check, ChevronDown, ChevronUp, ArrowRight, Zap,
+  Check, ChevronDown, ChevronUp, ArrowRight, Zap, Plus, FileText, Mail,
 } from "lucide-react";
 import Avatar from "@/components/shared/Avatar";
 import { ICPDonut } from "@/components/shared/ICPDonut";
 import CommunicationChain from "@/components/shared/CommunicationChain";
 import HeatBadge from './HeatBadge';
 import StageBadge from './StageBadge';
-import DealKurzinfo, { type DealCardAction } from './DealKurzinfo';
+import { type DealCardAction } from './DealKurzinfo';
+import DealsListe from './DealsListe';
 import { CARD, ACTION_ROW } from "@/lib/componentBehavior";
+import { DEMO_ORGANIZATION_ID } from "@/lib/org";
+import { getContactCommunications, getDealsByContact, getPipelineSettings } from "@/lib/db";
+import { communicationToView } from "@/lib/hunterMappers";
 import type { HeatStatusKey } from "@/lib/constants";
 import type { HeatStatus } from "@/types";
 
@@ -34,12 +39,12 @@ export interface HunterCardData {
 
 interface HunterCardProps {
   data: HunterCardData;
+  /** Echter Kontakt → lazy Queries (Deals/Kommunikation) beim Aufklappen. Fehlt → Expand ohne Daten. */
+  contactId?: string;
   /** Grüner Pfeil → 820px Info-Panel. */
   onOpenInfo?: () => void;
-  /** Karten-Aktion (Mail/Task/Chat) → öffnet das Kontakt-Panel mit der Aktion. */
-  onAction?: (action: DealCardAction) => void;
-  /** Für die Kommunikationskette in der Kurzansicht. */
-  onSelectCommunication?: (personId: string, tpId: string) => void;
+  /** Karten-Aktion → öffnet das Kontakt-Panel mit Tab/Aktion (editDeal trägt die dealId). */
+  onAction?: (action: DealCardAction, dealId?: string) => void;
   /** Optionale Action-Row unter dem Body (Signal/Follow-up/Neu-in-Pipeline). */
   actionRow?: ReactNode;
   /** Auswahl (Bulk). */
@@ -60,15 +65,40 @@ interface HunterCardProps {
  */
 export default function HunterCard({
   data,
+  contactId,
   onOpenInfo,
   onAction,
-  onSelectCommunication,
   actionRow,
   selected = false,
   onToggleSelect,
 }: HunterCardProps) {
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
+
+  // Lazy: Deals + Kommunikation + Pipeline-Stages erst beim Aufklappen laden (nicht vorher).
+  const lazy = expanded && !!contactId;
+  const dealsQuery = useQuery({
+    queryKey: ['dealsByContact', DEMO_ORGANIZATION_ID, contactId],
+    queryFn: () => getDealsByContact(DEMO_ORGANIZATION_ID, contactId as string),
+    enabled: lazy,
+  });
+  const commsQuery = useQuery({
+    queryKey: ['communications', DEMO_ORGANIZATION_ID, contactId],
+    queryFn: () => getContactCommunications(DEMO_ORGANIZATION_ID, contactId as string),
+    enabled: lazy,
+  });
+  const stagesQuery = useQuery({
+    queryKey: ['pipelineStages', DEMO_ORGANIZATION_ID],
+    queryFn: () => getPipelineSettings(DEMO_ORGANIZATION_ID),
+    enabled: lazy,
+  });
+  const stageMap = Object.fromEntries((stagesQuery.data ?? []).map((s) => [s.slug, s.name]));
+  const stageProbMap = Object.fromEntries((stagesQuery.data ?? []).map((s) => [s.slug, s.probability]));
+  const stagnationBySlug = Object.fromEntries((stagesQuery.data ?? []).map((s) => [s.slug, s.stagnation_days]));
+  const commsView = (commsQuery.data ?? []).map(communicationToView);
+  const dealRows = dealsQuery.data ?? [];
+  // Task/Notiz: echte Aktion wenn der Aufrufer onAction liefert, sonst Panel öffnen (onOpenInfo).
+  const act = (a: DealCardAction) => (onAction ? onAction(a) : onOpenInfo?.());
 
   return (
     <div className={`${CARD.shell} ${selected ? "bg-[var(--signal-teal-bg)]" : "bg-app-surface"}`}>
@@ -144,7 +174,21 @@ export default function HunterCard({
               <span className={CARD.timeMain}>{data.timeLabel}</span>
               {data.timeSubLabel && <div className={CARD.timeSub}>{data.timeSubLabel}</div>}
             </div>
-            <div className="flex items-center gap-3 relative w-[90px] justify-end">
+            <div className="flex items-center gap-2 relative justify-end">
+              {/* Quick-Actions nur im aufgeklappten Zustand — Icon-only, Tooltip on hover. */}
+              {expanded && (
+                <>
+                  <button onClick={(e) => { e.stopPropagation(); act('task'); }} aria-label={t("hunter.leadCard.task")} data-tip={t("hunter.leadCard.task")} className="w-9 h-9 rounded-full flex items-center justify-center text-text-muted hover:text-[var(--sherloq-primary)] hover:bg-[var(--signal-teal-bg)] transition-colors cursor-pointer">
+                    <Plus className="w-5 h-5" />
+                  </button>
+                  <button onClick={(e) => { e.stopPropagation(); act('note'); }} aria-label="Notiz" data-tip="Notiz" className="w-9 h-9 rounded-full flex items-center justify-center text-text-muted hover:text-[var(--sherloq-primary)] hover:bg-[var(--signal-teal-bg)] transition-colors cursor-pointer">
+                    <FileText className="w-5 h-5" />
+                  </button>
+                  <button disabled aria-label={t("hunter.leadCard.mail")} data-tip="Folgt mit Nango-Anbindung" className="w-9 h-9 rounded-full flex items-center justify-center text-text-muted opacity-40 hover:bg-app-bg cursor-not-allowed">
+                    <Mail className="w-5 h-5" />
+                  </button>
+                </>
+              )}
               <button onClick={() => setExpanded(!expanded)} className={CARD.chevronBtn}>
                 {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
               </button>
@@ -158,43 +202,33 @@ export default function HunterCard({
           </div>
         </div>
 
-        {/* CHEVRON-KURZANSICHT — überall identisch (Mock bis DB) */}
+        {/* CHEVRON-KURZANSICHT — echte, lazy geladene Daten. Zweispaltig: KI-Kurzakte | Deal. */}
         {expanded && (
-          <div className="flex flex-col gap-6 border-t border-[var(--border-subtle)] pt-5 mt-2">
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
-              {/* KI Kurzakte */}
-              <div className="md:col-span-7 bg-app-surface rounded-[12px] p-5 border border-[var(--border)]">
-                <div className="flex items-center gap-2 text-[11px] font-bold font-mono text-[var(--sherloq-primary)] uppercase tracking-wider mb-4">
-                  <Zap className="w-4 h-4 text-[var(--sherloq-primary)]" /> {t("hunter.common.kiKurzakte")}
+          <div className="flex flex-col gap-5 border-t border-[var(--border-subtle)] pt-5 mt-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-stretch">
+              {/* KI-Kurzakte — Label außerhalb (wie „Deals"), Box darunter. Platzhalter bis AI-Pipeline ([D5]). */}
+              <div className="h-full flex flex-col gap-2">
+                <span className="px-1 typo-section-label text-text-muted inline-flex items-center gap-1.5">
+                  <Zap className="w-3.5 h-3.5 text-[var(--sherloq-primary)]" /> {t("hunter.common.kiKurzakte")}
+                  <span className="px-1.5 py-0.5 rounded-full bg-app-bg text-text-muted text-[9px] font-extrabold uppercase tracking-wide">Folgt</span>
+                </span>
+                <div className="flex-1 bg-app-surface rounded-[12px] p-5 border border-[var(--border)]">
+                  <p className="text-[13px] text-text-muted italic leading-relaxed">KI-Kurzakte folgt mit der AI-Pipeline ([D5]).</p>
                 </div>
-                <ul className="flex flex-col gap-3 text-[13px] text-[var(--text-body)] leading-relaxed">
-                  <li className="flex items-start gap-2.5">
-                    <span className="w-1.5 h-1.5 bg-[var(--sherloq-primary)] rounded-full mt-1.5 shrink-0" />
-                    Hat Budget-Freeze bis Q3 bestätigt. Trotzdem starkes Interesse an Feature Y — fragte aktiv nach ROI-Zahlen.
-                  </li>
-                  <li className="flex items-start gap-2.5">
-                    <span className="w-1.5 h-1.5 bg-[var(--sherloq-primary)] rounded-full mt-1.5 shrink-0" />
-                    Persönlichkeit: Blau — analytisch, entscheidet auf Basis von Daten. Kein Smalltalk, direkt zum Punkt.
-                  </li>
-                  <li className="flex items-start gap-2.5">
-                    <span className="w-1.5 h-1.5 bg-[var(--sherloq-primary)] rounded-full mt-1.5 shrink-0" />
-                    Objection: Timing wegen Budget-Freeze. Echter Einwand — kein Vorwand. ROI-Argument ist der Schlüssel.
-                  </li>
-                  <li className="flex items-start gap-2.5">
-                    <span className="w-1.5 h-1.5 bg-[var(--sherloq-primary)] rounded-full mt-1.5 shrink-0" />
-                    Buying Signal: Demo sehr positiv, fragte nach Implementierungs-Zeitplan. Abschluss realistisch ab Q4.
-                  </li>
-                </ul>
               </div>
 
-              {/* Deal Details & Aktionen — geteilter Block */}
-              <div className="md:col-span-5 flex flex-col gap-5">
-                <DealKurzinfo stage={data.stageLabel} company={data.company} onAction={onAction} onOpenInfo={onOpenInfo} />
-              </div>
+              {/* Deals — echt; Bleistift → Deals-Tab dieses Deals im Edit-Modus. Kein Deal → ausgeblendet. */}
+              {dealRows.length > 0 && (
+                <DealsListe variant="compact" dealRows={dealRows} stageNameBySlug={stageMap} stageProbBySlug={stageProbMap} stagnationBySlug={stagnationBySlug} onEditDeal={(dealId) => (onAction ? onAction('editDeal', dealId) : onOpenInfo?.())} />
+              )}
             </div>
 
-            {/* Kommunikationskette */}
-            <CommunicationChain personId={data.id} onSelectCommunication={onSelectCommunication} />
+            {/* Kommunikation — volle Breite, echte Kette mit Hover; leer → ehrlicher Hinweis. */}
+            {commsView.length > 0 ? (
+              <CommunicationChain items={commsView} />
+            ) : (
+              <p className="px-1 text-[12px] text-text-muted">Noch keine Kommunikation protokolliert.</p>
+            )}
           </div>
         )}
       </div>

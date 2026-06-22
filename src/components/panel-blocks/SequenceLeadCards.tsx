@@ -111,6 +111,7 @@ export const SequenceLeadCards = ({
           <HunterCard
             key={it.id}
             data={data}
+            contactId={it.contactId}
             onOpenInfo={onSelectLead ? () => onSelectLead(buildLead(it)) : undefined}
             actionRow={actionRow}
           />

@@ -151,6 +151,7 @@ export default function NewInPipelineCards({
             <HunterCard
               key={it.id}
               data={data}
+              contactId={it.contactId}
               onOpenInfo={() => onSelectLead(buildLead(it))}
               actionRow={actionRow}
             />

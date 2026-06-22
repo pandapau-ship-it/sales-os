@@ -5,14 +5,14 @@
  * `user_id`/Name vorhanden — bei System/AI weggelassen, Honesty; Auth/[D21] offen).
  * Keine Einträge → ehrlich leerer Zustand, KEIN Mock. (≠ Kommunikation = externe Touchpoints.)
  */
-import { Briefcase, ListChecks, StickyNote, User, Activity, type LucideIcon } from "lucide-react";
+import { Briefcase, CheckSquare, FileText, User, Activity, type LucideIcon } from "lucide-react";
 
 // Lesbares Substantiv je Tabelle (audit_log.entity_type ist der Tabellenname, plural).
 const NOUN: Record<string, string> = {
   deals: "Deal", tasks: "Task", notes: "Notiz", contacts: "Kontakt", companies: "Company",
 };
 const ICON: Record<string, LucideIcon> = {
-  deals: Briefcase, tasks: ListChecks, notes: StickyNote, contacts: User, companies: Briefcase,
+  deals: Briefcase, tasks: CheckSquare, notes: FileText, contacts: User, companies: Briefcase,
 };
 // Verb + Farb-Ton je Operation.
 const VERB: Record<string, { label: string; fg: string; bg: string }> = {
