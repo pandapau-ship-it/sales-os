@@ -48,7 +48,7 @@ export default function TaskAnlegenForm({
           <Avatar name={s.name || "Sarah Jenkins"} size={44} className="shadow-sm" />
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="text-[15px] font-bold text-text-primary leading-none">{s.name || "Sarah Jenkins"}</h3>
+              <h3 className="typo-card-title text-text-primary leading-none">{s.name || "Sarah Jenkins"}</h3>
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[var(--signal-warn-bg)] border border-[var(--signal-warn-bg)] text-[var(--signal-warn-text)] text-[9px] font-extrabold tracking-wide">
                 <AlertTriangle className="w-2.5 h-2.5" /> {t("hunter.card.noTask")}
               </span>
@@ -65,14 +65,14 @@ export default function TaskAnlegenForm({
       <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-app-surface custom-scrollbar">
         {/* BLOCK 1: KONTEXT */}
         <section className="space-y-3">
-          <span className="text-[10px] font-extrabold text-[var(--signal-warn-text)] uppercase tracking-widest flex items-center gap-1.5">
+          <span className="typo-section-label text-[var(--signal-warn-text)] flex items-center gap-1.5">
             <AlertTriangle className="w-2.5 h-2.5" /> {t("hunter.drawers.noTask.noTaskStored")}
           </span>
           <div className="p-4 bg-[var(--signal-warn-bg)] border border-[var(--signal-warn-bg)] rounded-xl text-[13px] text-[var(--signal-warn-text)] font-semibold leading-relaxed">
             {t("hunter.drawers.noTask.everyDealNeedsTask")}
           </div>
           <div className="p-4 bg-app-surface border border-border rounded-xl shadow-sm">
-            <span className="text-[9px] font-extrabold text-text-muted uppercase tracking-widest block mb-1">
+            <span className="typo-section-label text-text-muted block mb-1">
               {t("hunter.drawers.noTask.dealInfo")}
             </span>
             <p className="text-[13px] text-text-body font-semibold leading-relaxed">
@@ -88,7 +88,7 @@ export default function TaskAnlegenForm({
             {t("hunter.drawers.noTask.kiSuggests")}
           </div>
           <div>
-            <h4 className="text-[15px] font-extrabold text-text-primary leading-tight">ROI-Dokument senden</h4>
+            <h4 className="typo-card-title text-text-primary leading-tight">ROI-Dokument senden</h4>
             <p className="text-[13px] font-medium text-text-body leading-relaxed mt-2">
               Demo war positiv — konkretes Angebot als nächster Schritt sinnvoll.
             </p>

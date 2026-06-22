@@ -29,7 +29,7 @@ export default function MailComposer({
         <div className="px-5 py-4 flex items-center justify-between border-b border-border-subtle">
           <div className="flex items-center gap-2">
             <Mail className="w-4 h-4 text-[var(--sherloq-primary)]" />
-            <h2 className="text-[15px] font-bold text-text-primary">Neue E-Mail</h2>
+            <h2 className="typo-card-title text-text-primary">Neue E-Mail</h2>
           </div>
           <button onClick={onClose} aria-label="Schließen" data-tip="Schließen" className="w-7 h-7 rounded-full flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-app-bg transition-colors cursor-pointer">
             <X className="w-4 h-4" />

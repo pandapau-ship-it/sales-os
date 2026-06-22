@@ -105,7 +105,7 @@ export default function AddSdrLeadPanel({ open, onClose, onAdd }: AddSdrLeadPane
       <header className="h-[70px] px-6 border-b border-border flex items-center justify-between shrink-0 bg-app-surface z-30">
         <div className="flex items-center gap-2">
           <Target className="w-5 h-5 text-[var(--sherloq-primary)]" />
-          <h3 className="text-[15px] font-bold text-text-primary">SDR Lead hinzufügen</h3>
+          <h3 className="typo-card-title text-text-primary">SDR Lead hinzufügen</h3>
         </div>
         <button type="button" onClick={onClose} aria-label="Schließen" data-tip="Schließen" className="w-8 h-8 rounded-full bg-app-bg flex items-center justify-center text-text-muted hover:text-text-primary transition-colors cursor-pointer">
           <X className="w-4 h-4" />
