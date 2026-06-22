@@ -435,12 +435,19 @@ kam es, wie groß ist es** — und einen **klaren nächsten Schritt** anstoßen 
 2. **Typo-Kanon: alle fehlenden Komponenten in Audit-Scope.** Diagnose, welche panel-blocks + features noch rohe `text-[Xpx]`-Klassen haben → alle auf `typo-*`-Primitive heben + in die Audit-`IN_SCOPE` aufnehmen. ~1 Tag.
 3. **Inline-JSX-Blöcke extrahieren.** Blöcke >20 Zeilen, die in mehreren Dateien ähnlich aussehen → als panel-block auslagern (kürzere Dateien + wiederverwendbar).
 - **Kommt nach:** Action Panels komplett verdrahtet. **Vor:** Auth/Org-Wiring [D21].
+- **Status (2026-06-22):** Punkte 1 + 2 **erledigt** (`AlertDialog`, Typo-Welle 1+2 + Audit-Scope). Punkt 3 (Inline-JSX-Dedup) teils erledigt (`ExpandedCardContent`).
+
+### [D28] Performance-Optimierungen (Phase 5 Politur) (deferred)
+- **Prefetching:** Daten laden bevor der User klickt (z.B. Panel-Daten prefetchen, wenn der User über eine Kachel hovert → sofortiges Öffnen).
+- **Supabase Pro:** bessere Edge-Function-Performance (Cold Starts reduzieren).
+- **Realtime Subscriptions statt Polling:** `realtime.ts` ist aktuell ein No-op-Stub → echte Subscriptions in Phase 5.
+- **Kommt wenn:** alle Screens fertig + Auth/Org [D21] steht.
 
 ### [TS] Deal-Typ ohne `product` — offener Faden
 - `src/types/hunter.ts` `Deal` hat **kein `product`** (Migration 014 fügte nur die DB-Spalte).
   Beim späteren Produkt-Anzeigen (Pipeline/Deal-Detail) `product?: string` im Typ ergänzen + mappen.
 
-> Anker-Tags `[D1]`–`[D27]` sind im Code referenzierbar (z.B. `hunterMappers.ts` → `[[leads-tab-read]]`).
+> Anker-Tags `[D1]`–`[D28]` sind im Code referenzierbar (z.B. `hunterMappers.ts` → `[[leads-tab-read]]`).
 > Vor Umsetzung eines Punkts: passende Referenz-Doku (`docs/sales_os_edge_functions_v2.md` etc.) lesen.
 
 ---
