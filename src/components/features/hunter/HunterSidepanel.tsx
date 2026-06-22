@@ -7,6 +7,7 @@ import { isValidEmail, normalizeUrl, isValidUrl } from '@/lib/validation';
 import DealLostModal from './DealLostModal';
 import DealWonModal from './DealWonModal';
 import KommunikationLogModal from './KommunikationLogModal';
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogFooter, AlertDialogTitle, AlertDialogDescription, AlertDialogAction, AlertDialogCancel } from '@/components/ui/alert-dialog';
 import { triggerConfetti } from '@/lib/confetti';
 import {
   ArrowUpRight, ArrowLeft, X, Clock, Check,
@@ -90,6 +91,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
   const [focusField, setFocusField] = useState<string | null>(null); // Deep-Link aus dem Panel-Stift in die Vollansicht
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [logOpen, setLogOpen] = useState(false); // Kommunikation-protokollieren-Modal
+  const [confirmPhoneDeleteId, setConfirmPhoneDeleteId] = useState<string | null>(null); // letzte Nummer löschen → AlertDialog
 
   // Vom User editierbare Felder (kein System-Wert) — lokaler Mock-State.
   const [contact, setContact] = useState({ email: '', linkedin: '', web: '' });
@@ -442,8 +444,8 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
   // Telefon-Handler (geteilt von Kontaktzeile-PhoneField + Details-DetailPhoneList).
   const phoneAdd = () => createPhoneMutation.mutate({ number: '', label: 'Weitere', isPrimary: profile.phones.length === 0 });
   const phoneDelete = (id: string) => {
-    // Sicherheitsabfrage nur, wenn es die einzige Nummer ist (sonst direkt löschen).
-    if (profile.phones.length <= 1 && !window.confirm('Das ist die einzige Telefonnummer. Wirklich löschen?')) return;
+    // Sicherheitsabfrage (shadcn AlertDialog) nur, wenn es die einzige Nummer ist — sonst direkt löschen.
+    if (profile.phones.length <= 1) { setConfirmPhoneDeleteId(id); return; }
     deletePhoneMutation.mutate(id);
   };
   // P5c-3 — Deal soft-löschen: deleted_at = now() (Audit via Trigger). Invalidation wie create/update.
@@ -891,6 +893,22 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
         onSave={(v) => createCommMutation.mutate(v)}
         onCancel={() => setLogOpen(false)}
       />
+
+      {/* Letzte Telefonnummer löschen — destruktive Bestätigung (shadcn AlertDialog statt window.confirm). */}
+      <AlertDialog open={confirmPhoneDeleteId !== null} onOpenChange={(o) => { if (!o) setConfirmPhoneDeleteId(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Nummer löschen</AlertDialogTitle>
+            <AlertDialogDescription>Das ist die einzige Nummer dieses Kontakts. Wirklich löschen?</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+            <AlertDialogAction onClick={() => { if (confirmPhoneDeleteId) deletePhoneMutation.mutate(confirmPhoneDeleteId); setConfirmPhoneDeleteId(null); }}>
+              Löschen
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* P8-3: Lost-Dialog bei Wechsel in „verloren" (Stage-Badge im Deals-/Übersicht-Tab). Won = kein Modal. */}
       <DealLostModal
