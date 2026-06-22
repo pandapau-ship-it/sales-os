@@ -31,7 +31,7 @@ import {
   createLead as dbCreateLead,
   upgradeSubscription as dbUpgradeSubscription,
 } from "@/lib/db";
-import { DEMO_ORGANIZATION_ID } from "@/lib/org";
+import { useCurrentOrg } from "@/hooks/useCurrentOrg";
 import { contactRowToLead, dealToPipelineRow } from "@/lib/hunterMappers";
 import type {
   Lead,
@@ -182,21 +182,22 @@ export function MeinTagReference() {
 
 export function HunterReference() {
   const s = useReferenceState();
+  const { organizationId } = useCurrentOrg();
   // Slice 1 (Read-only): echte org-gescopte Kontakte → Leads-Tab. Andere Tabs
   // bleiben auf Mock (s.leads). organization_id IMMER im Query-Key.
   const leadsQuery = useQuery({
-    queryKey: ["contacts", DEMO_ORGANIZATION_ID],
-    queryFn: () => getContacts(DEMO_ORGANIZATION_ID),
+    queryKey: ["contacts", organizationId],
+    queryFn: () => getContacts(organizationId),
   });
   const leadsData = leadsQuery.data?.map(contactRowToLead);
   // Slice A: Pipeline-Listenansicht — geteilte Queries (Slice B Kanban erbt sie).
   const dealsQuery = useQuery({
-    queryKey: ["deals", DEMO_ORGANIZATION_ID],
-    queryFn: () => getDeals(DEMO_ORGANIZATION_ID),
+    queryKey: ["deals", organizationId],
+    queryFn: () => getDeals(organizationId),
   });
   const stagesQuery = useQuery({
-    queryKey: ["pipelineStages", DEMO_ORGANIZATION_ID],
-    queryFn: () => getPipelineSettings(DEMO_ORGANIZATION_ID),
+    queryKey: ["pipelineStages", organizationId],
+    queryFn: () => getPipelineSettings(organizationId),
   });
   const stageNameBySlug = Object.fromEntries(
     (stagesQuery.data ?? []).map((stage) => [stage.slug, stage.name]),
@@ -204,26 +205,26 @@ export function HunterReference() {
   const dealsData = dealsQuery.data?.map((deal) => dealToPipelineRow(deal, stageNameBySlug));
   // S-2: hunter-geroutete, unverarbeitete Signals (Mapping zu Card-Props im Screen, braucht t).
   const signalsQuery = useQuery({
-    queryKey: ["signals", DEMO_ORGANIZATION_ID],
-    queryFn: () => getSignals(DEMO_ORGANIZATION_ID, { routedTo: "hunter", processed: false }),
+    queryKey: ["signals", organizationId],
+    queryFn: () => getSignals(organizationId, { routedTo: "hunter", processed: false }),
   });
   // Follow-ups (T2): fällige Tasks (completed_at IS NULL AND due_at <= now()).
   const dueTasksQuery = useQuery({
-    queryKey: ["dueTasks", DEMO_ORGANIZATION_ID],
-    queryFn: () => getDueTasks(DEMO_ORGANIZATION_ID),
+    queryKey: ["dueTasks", organizationId],
+    queryFn: () => getDueTasks(organizationId),
   });
   // Neu-in-Pipeline: frisch angelegte Deals (created_at desc); Zeitfenster filtert der Screen.
   const newInPipelineQuery = useQuery({
-    queryKey: ["newInPipeline", DEMO_ORGANIZATION_ID],
-    queryFn: () => getNewInPipeline(DEMO_ORGANIZATION_ID),
+    queryKey: ["newInPipeline", organizationId],
+    queryFn: () => getNewInPipeline(organizationId),
   });
   // Cold/Inaktiv: Kontakte mit heat_status 'kalt' bzw. 'tot' (Reaktivierungs-Opener).
   const coldQuery = useQuery({
-    queryKey: ["coldContacts", DEMO_ORGANIZATION_ID],
+    queryKey: ["coldContacts", organizationId],
     queryFn: async () => {
       const [kalt, tot] = await Promise.all([
-        getContacts(DEMO_ORGANIZATION_ID, { heatStatus: "kalt" }),
-        getContacts(DEMO_ORGANIZATION_ID, { heatStatus: "tot" }),
+        getContacts(organizationId, { heatStatus: "kalt" }),
+        getContacts(organizationId, { heatStatus: "tot" }),
       ]);
       return [...kalt, ...tot];
     },
@@ -233,8 +234,8 @@ export function HunterReference() {
   // abfangen: bei RLS/Login-Problem wird der Error sichtbar (Konsole/Network).
   const queryClient = useQueryClient();
   const completeTaskMutation = useMutation({
-    mutationFn: (taskId: string) => completeTask(taskId, DEMO_ORGANIZATION_ID),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["dueTasks", DEMO_ORGANIZATION_ID] }),
+    mutationFn: (taskId: string) => completeTask(taskId, organizationId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["dueTasks", organizationId] }),
   });
   return (
     <>

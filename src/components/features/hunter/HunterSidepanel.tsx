@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { DEMO_ORGANIZATION_ID } from '@/lib/org';
+import { useCurrentOrg } from '@/hooks/useCurrentOrg';
 import { getContactDetail, getPipelineSettings, getTasksByContact, createTask, completeTask, softDeleteTask, getNotesByContact, createNote, updateNote, softDeleteNote, getDealsByContact, getActivityByContact, getContactCommunications, createCommunication, updateContact, updateCompany, getProducts, getOrgUsers, createDeal, updateDeal, updateDealStage, updateDealWon, updateDealLost, softDeleteDeal, createContactPhone, updateContactPhone, setContactPhonePrimary, deleteContactPhone } from '@/lib/db';
 import { contactToProfile, latestActiveDeal, dealToView, communicationToView, CONTACT_STATUS_LABEL, CONTACT_STATUS_SELECTABLE, WON_STAGE_SLUG, LOST_STAGE_SLUG, type CommunicationChannel, type CommunicationDirection } from '@/lib/hunterMappers';
 import { isValidEmail, normalizeUrl, isValidUrl } from '@/lib/validation';
@@ -80,6 +80,7 @@ const DETAIL_MAP: Record<string, { table: 'contact' | 'company'; col: string }> 
 // src/components/panel-blocks/ (siehe Imports). Hier nur noch deren Komposition.
 
 export default function HunterSidepanel({ person: personProp, onClose, onExit, variant = 'panel', initialAction = null, initialTab = null, initialDealId = null, initialDealEditId = null, initialFocusField = null }: { person: any; onClose: () => void; onExit?: () => void; variant?: 'panel' | 'full'; initialAction?: 'mail' | 'task' | 'chat' | null; initialTab?: 'overview' | 'deals' | 'tasks' | 'activity' | 'notes' | null; initialDealId?: string | null; initialDealEditId?: string | null; initialFocusField?: string | null }) {
+  const { organizationId } = useCurrentOrg();
   const [activeTab, setActiveTab] = useState(variant === 'full' ? 'details' : 'overview');
   // Aus der Übersicht „Deal/Task bearbeiten" → Ziel-Tab öffnet die Bearbeiten-Kachel direkt.
   const [dealsAutoEditId, setDealsAutoEditId] = useState<string | null>(null); // Übersicht „Bearbeiten" → Deal-id im Deals-Tab
@@ -121,13 +122,13 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
   // contactActiveStage. KEINE hardcodierten Kopf-Literale mehr (Heat-Bug behoben).
   const contactId: string | null = person?.id ?? null;
   const contactQuery = useQuery({
-    queryKey: ['contactDetail', DEMO_ORGANIZATION_ID, contactId],
-    queryFn: () => getContactDetail(DEMO_ORGANIZATION_ID, contactId as string),
+    queryKey: ['contactDetail', organizationId, contactId],
+    queryFn: () => getContactDetail(organizationId, contactId as string),
     enabled: !!contactId && isOpen,
   });
   const stagesQuery = useQuery({
-    queryKey: ['pipelineStages', DEMO_ORGANIZATION_ID],
-    queryFn: () => getPipelineSettings(DEMO_ORGANIZATION_ID),
+    queryKey: ['pipelineStages', organizationId],
+    queryFn: () => getPipelineSettings(organizationId),
   });
   const stageMap = Object.fromEntries((stagesQuery.data ?? []).map((s) => [s.slug, s.name]));
   // P5c-2b: Stage→Probability (für abgeleitete Probability-Anzeige) + Stage-Liste fürs Create-Dropdown (in Pipeline-Reihenfolge).
@@ -165,14 +166,14 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
   // P3 — Tasks-Tab: echte Tasks des Kontakts + Anlegen/Abhaken (erster Panel-Write).
   const queryClient = useQueryClient();
   const tasksQuery = useQuery({
-    queryKey: ['tasksByContact', DEMO_ORGANIZATION_ID, contactId],
-    queryFn: () => getTasksByContact(DEMO_ORGANIZATION_ID, contactId as string),
+    queryKey: ['tasksByContact', organizationId, contactId],
+    queryFn: () => getTasksByContact(organizationId, contactId as string),
     enabled: !!contactId && isOpen,
   });
   const invalidateTasks = () => {
-    queryClient.invalidateQueries({ queryKey: ['tasksByContact', DEMO_ORGANIZATION_ID, contactId] });
-    queryClient.invalidateQueries({ queryKey: ['dueTasks', DEMO_ORGANIZATION_ID] }); // Follow-ups-Tab mitziehen
-    queryClient.invalidateQueries({ queryKey: ['deals', DEMO_ORGANIZATION_ID] }); // Pipeline-Task-Karten (Keine-Task/Stagniert) neu ableiten
+    queryClient.invalidateQueries({ queryKey: ['tasksByContact', organizationId, contactId] });
+    queryClient.invalidateQueries({ queryKey: ['dueTasks', organizationId] }); // Follow-ups-Tab mitziehen
+    queryClient.invalidateQueries({ queryKey: ['deals', organizationId] }); // Pipeline-Task-Karten (Keine-Task/Stagniert) neu ableiten
   };
   // Echte Deals des Kontakts als Auswahl im „Neue Task"-Formular (Deal optional).
   const dealOptions = ((contactRow?.deals as Record<string, any>[] | undefined) ?? [])
@@ -182,7 +183,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
   const createTaskMutation = useMutation({
     mutationFn: (v: { title: string; description: string; channel: string; priority: string; dueDate: string; dueTime: string; deal: string }) =>
       createTask({
-        organizationId: DEMO_ORGANIZATION_ID,
+        organizationId: organizationId,
         contactId: contactId as string,
         dealId: v.deal && v.deal !== 'none' ? v.deal : undefined,
         title: v.title,
@@ -196,79 +197,79 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
     onError: (e) => showToast(`Anlegen fehlgeschlagen: ${(e as Error).message}`), // nicht still abfangen
   });
   const completeTaskMutation = useMutation({
-    mutationFn: (taskId: string) => completeTask(taskId, DEMO_ORGANIZATION_ID),
+    mutationFn: (taskId: string) => completeTask(taskId, organizationId),
     onSuccess: () => { invalidateTasks(); showToast('Task erledigt ✓'); },
     onError: (e) => showToast(`Abhaken fehlgeschlagen: ${(e as Error).message}`),
   });
   const deleteTaskMutation = useMutation({
-    mutationFn: (taskId: string) => softDeleteTask(taskId, DEMO_ORGANIZATION_ID),
+    mutationFn: (taskId: string) => softDeleteTask(taskId, organizationId),
     onSuccess: () => { invalidateTasks(); showToast('Aufgabe gelöscht ✓'); },
     onError: (e) => showToast(`Löschen fehlgeschlagen: ${(e as Error).message}`), // nicht still abfangen
   });
 
   // P4 — Notizen-Tab: echte Notizen des Kontakts + Anlegen.
   const notesQuery = useQuery({
-    queryKey: ['notesByContact', DEMO_ORGANIZATION_ID, contactId],
-    queryFn: () => getNotesByContact(DEMO_ORGANIZATION_ID, contactId as string),
+    queryKey: ['notesByContact', organizationId, contactId],
+    queryFn: () => getNotesByContact(organizationId, contactId as string),
     enabled: !!contactId && isOpen,
   });
-  const invalidateNotes = () => queryClient.invalidateQueries({ queryKey: ['notesByContact', DEMO_ORGANIZATION_ID, contactId] });
+  const invalidateNotes = () => queryClient.invalidateQueries({ queryKey: ['notesByContact', organizationId, contactId] });
   const createNoteMutation = useMutation({
-    mutationFn: (body: string) => createNote(DEMO_ORGANIZATION_ID, contactId as string, body),
+    mutationFn: (body: string) => createNote(organizationId, contactId as string, body),
     onSuccess: () => { invalidateNotes(); showToast('Notiz angelegt ✓'); },
     onError: (e) => showToast(`Notiz fehlgeschlagen: ${(e as Error).message}`), // nicht still abfangen
   });
   const updateNoteMutation = useMutation({
-    mutationFn: (v: { id: string; body: string }) => updateNote(v.id, DEMO_ORGANIZATION_ID, v.body),
+    mutationFn: (v: { id: string; body: string }) => updateNote(v.id, organizationId, v.body),
     onSuccess: () => { invalidateNotes(); showToast('Notiz aktualisiert ✓'); },
     onError: (e) => showToast(`Aktualisieren fehlgeschlagen: ${(e as Error).message}`),
   });
   const deleteNoteMutation = useMutation({
-    mutationFn: (noteId: string) => softDeleteNote(noteId, DEMO_ORGANIZATION_ID),
+    mutationFn: (noteId: string) => softDeleteNote(noteId, organizationId),
     onSuccess: () => { invalidateNotes(); showToast('Notiz gelöscht ✓'); },
     onError: (e) => showToast(`Löschen fehlgeschlagen: ${(e as Error).message}`),
   });
 
   // P5a — Deals-Tab: echte Deals des Kontakts (lesen). Stage-Anzeige über stageMap.
   const dealsQuery = useQuery({
-    queryKey: ['dealsByContact', DEMO_ORGANIZATION_ID, contactId],
-    queryFn: () => getDealsByContact(DEMO_ORGANIZATION_ID, contactId as string),
+    queryKey: ['dealsByContact', organizationId, contactId],
+    queryFn: () => getDealsByContact(organizationId, contactId as string),
     enabled: !!contactId && isOpen,
   });
   // Aktivität-Tab: echter Feed aus audit_log (Kontakt + seine Deals/Tasks/Notes).
   const activityQuery = useQuery({
-    queryKey: ['activityByContact', DEMO_ORGANIZATION_ID, contactId],
-    queryFn: () => getActivityByContact(DEMO_ORGANIZATION_ID, contactId as string),
+    queryKey: ['activityByContact', organizationId, contactId],
+    queryFn: () => getActivityByContact(organizationId, contactId as string),
     enabled: !!contactId && isOpen && activeTab === 'activity', // erst laden, wenn der Tab offen ist
   });
   // Kommunikation-Tab: manuell protokollierte Touchpoints (communications, 036).
   const commsQuery = useQuery({
-    queryKey: ['communications', DEMO_ORGANIZATION_ID, contactId],
-    queryFn: () => getContactCommunications(DEMO_ORGANIZATION_ID, contactId as string),
+    queryKey: ['communications', organizationId, contactId],
+    queryFn: () => getContactCommunications(organizationId, contactId as string),
     enabled: !!contactId && isOpen && (activeTab === 'communication' || activeTab === 'overview'), // Übersicht nutzt denselben Cache
   });
   const commsView = (commsQuery.data ?? []).map(communicationToView);
   const createCommMutation = useMutation({
     mutationFn: (v: { channel: CommunicationChannel; direction: CommunicationDirection; occurredAt: string; note: string }) =>
-      createCommunication(DEMO_ORGANIZATION_ID, contactId as string, v),
+      createCommunication(organizationId, contactId as string, v),
     onSuccess: () => {
       setLogOpen(false);
-      queryClient.invalidateQueries({ queryKey: ['communications', DEMO_ORGANIZATION_ID, contactId] });
-      queryClient.invalidateQueries({ queryKey: ['contactDetail', DEMO_ORGANIZATION_ID, contactId] }); // last_contacted_at via Trigger
+      queryClient.invalidateQueries({ queryKey: ['communications', organizationId, contactId] });
+      queryClient.invalidateQueries({ queryKey: ['contactDetail', organizationId, contactId] }); // last_contacted_at via Trigger
       showToast('Kontakt protokolliert ✓');
     },
     onError: (e) => showToast(`Protokollieren fehlgeschlagen: ${(e as Error).message}`), // nicht still abfangen
   });
 
   // Details-Tab / Kontakt-Inline-Edit: echte Writes auf contacts/companies. last_contacted_at-frei.
-  const invalidateContact = () => queryClient.invalidateQueries({ queryKey: ['contactDetail', DEMO_ORGANIZATION_ID, contactId] });
+  const invalidateContact = () => queryClient.invalidateQueries({ queryKey: ['contactDetail', organizationId, contactId] });
   const updateContactMutation = useMutation({
-    mutationFn: (fields: Record<string, unknown>) => updateContact(contactId as string, DEMO_ORGANIZATION_ID, fields),
+    mutationFn: (fields: Record<string, unknown>) => updateContact(contactId as string, organizationId, fields),
     onSuccess: () => { invalidateContact(); showToast('Gespeichert ✓'); },
     onError: (e) => showToast(`Fehler beim Speichern: ${(e as Error).message}`),
   });
   const updateCompanyMutation = useMutation({
-    mutationFn: (fields: Record<string, unknown>) => updateCompany(companyId as string, DEMO_ORGANIZATION_ID, fields),
+    mutationFn: (fields: Record<string, unknown>) => updateCompany(companyId as string, organizationId, fields),
     onSuccess: () => { invalidateContact(); showToast('Gespeichert ✓'); },
     onError: (e) => showToast(`Fehler beim Speichern: ${(e as Error).message}`),
   });
@@ -316,19 +317,19 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
   const primaryStagnationDays = (primaryDealRow as { stagnation_days?: number } | undefined)?.stagnation_days ?? 0;
   // P5b — Produkt-Katalog (Dropdown) + Deal anlegen.
   const productsQuery = useQuery({
-    queryKey: ['products', DEMO_ORGANIZATION_ID],
-    queryFn: () => getProducts(DEMO_ORGANIZATION_ID),
+    queryKey: ['products', organizationId],
+    queryFn: () => getProducts(organizationId),
   });
   const productOptions = (productsQuery.data ?? []).map((p) => (p as { name: string }).name);
   // P5c-1 — Owner-Dropdown: User der Org (id + Name).
   const usersQuery = useQuery({
-    queryKey: ['orgUsers', DEMO_ORGANIZATION_ID],
-    queryFn: () => getOrgUsers(DEMO_ORGANIZATION_ID),
+    queryKey: ['orgUsers', organizationId],
+    queryFn: () => getOrgUsers(organizationId),
   });
   const ownerOptions = (usersQuery.data ?? []).map((u) => ({ id: (u as { id: string }).id, name: (u as { full_name?: string }).full_name ?? '' })).filter((o) => o.name);
   const createDealMutation = useMutation({
     mutationFn: (v: { name: string; product: string; value: string; termMonths: string; noticePeriodDays: string; expectedCloseDate: string; ownerId: string; stage: string }) =>
-      createDeal(DEMO_ORGANIZATION_ID, {
+      createDeal(organizationId, {
         name: v.name,
         product: v.product || undefined,
         valueEur: v.value && !Number.isNaN(Number(v.value)) ? Number(v.value) : undefined, // € → Cent in createDeal
@@ -342,11 +343,11 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
       }),
     onSuccess: () => {
       // Alle von Deals abhängigen Listen mit-invalidieren → neuer Deal sofort überall (ohne Reload):
-      queryClient.invalidateQueries({ queryKey: ['dealsByContact', DEMO_ORGANIZATION_ID, contactId] }); // Panel
-      queryClient.invalidateQueries({ queryKey: ['deals', DEMO_ORGANIZATION_ID] });                     // Pipeline Liste/Kanban + Übersicht-KPIs/Funnel
-      queryClient.invalidateQueries({ queryKey: ['newInPipeline', DEMO_ORGANIZATION_ID] });              // Neu-in-Pipeline-Tab
-      queryClient.invalidateQueries({ queryKey: ['dueTasks', DEMO_ORGANIZATION_ID] });                  // Follow-ups: aktive-Deal-Stage der Karte
-      queryClient.invalidateQueries({ queryKey: ['signals', DEMO_ORGANIZATION_ID] });                   // Signals: aktive-Deal-Stage der Karte
+      queryClient.invalidateQueries({ queryKey: ['dealsByContact', organizationId, contactId] }); // Panel
+      queryClient.invalidateQueries({ queryKey: ['deals', organizationId] });                     // Pipeline Liste/Kanban + Übersicht-KPIs/Funnel
+      queryClient.invalidateQueries({ queryKey: ['newInPipeline', organizationId] });              // Neu-in-Pipeline-Tab
+      queryClient.invalidateQueries({ queryKey: ['dueTasks', organizationId] });                  // Follow-ups: aktive-Deal-Stage der Karte
+      queryClient.invalidateQueries({ queryKey: ['signals', organizationId] });                   // Signals: aktive-Deal-Stage der Karte
       showToast('Deal angelegt ✓');
     },
     onError: (e) => showToast(`Anlegen fehlgeschlagen: ${(e as Error).message}`), // nicht still abfangen
@@ -355,7 +356,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
   // updateDealStage (setzt stage_updated_at + Stagnation-Reset). leer → null (Feld geleert).
   const updateDealMutation = useMutation({
     mutationFn: async (p: { dealId: string; v: { name: string; product: string; value: string; termMonths: string; noticePeriodDays: string; expectedCloseDate: string; ownerId: string; stage: string } }) => {
-      await updateDeal(DEMO_ORGANIZATION_ID, p.dealId, {
+      await updateDeal(organizationId, p.dealId, {
         name: p.v.name,
         product: p.v.product || undefined,
         valueEur: p.v.value && !Number.isNaN(Number(p.v.value)) ? Number(p.v.value) : undefined,
@@ -367,16 +368,16 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
       // Stage nur bei echtem Wechsel schreiben (sonst würde stage_updated_at/Stagnation unnötig resetten).
       const current = (dealsQuery.data ?? []).find((d) => (d as { id: string }).id === p.dealId) as { stage?: string } | undefined;
       if (p.v.stage && p.v.stage !== current?.stage) {
-        await updateDealStage(p.dealId, p.v.stage, DEMO_ORGANIZATION_ID);
+        await updateDealStage(p.dealId, p.v.stage, organizationId);
       }
     },
     onSuccess: () => {
       // Gleiche Keys wie createDeal → Änderung sofort überall (Deals-Tab + Übersicht + Pipeline):
-      queryClient.invalidateQueries({ queryKey: ['dealsByContact', DEMO_ORGANIZATION_ID, contactId] });
-      queryClient.invalidateQueries({ queryKey: ['deals', DEMO_ORGANIZATION_ID] });
-      queryClient.invalidateQueries({ queryKey: ['newInPipeline', DEMO_ORGANIZATION_ID] });
-      queryClient.invalidateQueries({ queryKey: ['dueTasks', DEMO_ORGANIZATION_ID] }); // Follow-ups: aktive-Deal-Stage der Karte
-      queryClient.invalidateQueries({ queryKey: ['signals', DEMO_ORGANIZATION_ID] });  // Signals: aktive-Deal-Stage der Karte
+      queryClient.invalidateQueries({ queryKey: ['dealsByContact', organizationId, contactId] });
+      queryClient.invalidateQueries({ queryKey: ['deals', organizationId] });
+      queryClient.invalidateQueries({ queryKey: ['newInPipeline', organizationId] });
+      queryClient.invalidateQueries({ queryKey: ['dueTasks', organizationId] }); // Follow-ups: aktive-Deal-Stage der Karte
+      queryClient.invalidateQueries({ queryKey: ['signals', organizationId] });  // Signals: aktive-Deal-Stage der Karte
       showToast('Deal aktualisiert ✓');
     },
     onError: (e) => showToast(`Speichern fehlgeschlagen: ${(e as Error).message}`),
@@ -387,19 +388,19 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
   // Invalidierung: normaler Move (updateDealStage), gewonnen (updateDealWon, direkt, kein Modal),
   // verloren (DealLostModal → updateDealLost).
   const invalidateDealsScope = () => {
-    queryClient.invalidateQueries({ queryKey: ['dealsByContact', DEMO_ORGANIZATION_ID, contactId] });
-    queryClient.invalidateQueries({ queryKey: ['deals', DEMO_ORGANIZATION_ID] });
-    queryClient.invalidateQueries({ queryKey: ['newInPipeline', DEMO_ORGANIZATION_ID] });
-    queryClient.invalidateQueries({ queryKey: ['dueTasks', DEMO_ORGANIZATION_ID] }); // Follow-ups: aktive-Deal-Stage der Karte
-    queryClient.invalidateQueries({ queryKey: ['signals', DEMO_ORGANIZATION_ID] });  // Signals: aktive-Deal-Stage der Karte
+    queryClient.invalidateQueries({ queryKey: ['dealsByContact', organizationId, contactId] });
+    queryClient.invalidateQueries({ queryKey: ['deals', organizationId] });
+    queryClient.invalidateQueries({ queryKey: ['newInPipeline', organizationId] });
+    queryClient.invalidateQueries({ queryKey: ['dueTasks', organizationId] }); // Follow-ups: aktive-Deal-Stage der Karte
+    queryClient.invalidateQueries({ queryKey: ['signals', organizationId] });  // Signals: aktive-Deal-Stage der Karte
   };
   const updateStageMutation = useMutation({
-    mutationFn: ({ dealId, newSlug }: { dealId: string; newSlug: string }) => updateDealStage(dealId, newSlug, DEMO_ORGANIZATION_ID),
+    mutationFn: ({ dealId, newSlug }: { dealId: string; newSlug: string }) => updateDealStage(dealId, newSlug, organizationId),
     onSuccess: () => { invalidateDealsScope(); showToast('Stage geändert ✓'); },
     onError: () => showToast('Stage konnte nicht geändert werden'),
   });
   const wonMutation = useMutation({
-    mutationFn: ({ dealId, wonReason, wonNote }: { dealId: string; wonReason?: string; wonNote?: string }) => updateDealWon(dealId, DEMO_ORGANIZATION_ID, { wonReason, wonNote }),
+    mutationFn: ({ dealId, wonReason, wonNote }: { dealId: string; wonReason?: string; wonNote?: string }) => updateDealWon(dealId, organizationId, { wonReason, wonNote }),
     onSuccess: () => { invalidateDealsScope(); },
     onError: () => showToast('Stage konnte nicht geändert werden'),
   });
@@ -410,7 +411,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
     wonMutation.mutate({ dealId }, { onSuccess: () => showToast('Deal gewonnen ✓') });
   };
   const lostMutation = useMutation({
-    mutationFn: ({ dealId, lostReason, note }: { dealId: string; lostReason: string; note: string }) => updateDealLost(dealId, DEMO_ORGANIZATION_ID, lostReason, note),
+    mutationFn: ({ dealId, lostReason, note }: { dealId: string; lostReason: string; note: string }) => updateDealLost(dealId, organizationId, lostReason, note),
     onSuccess: () => { invalidateDealsScope(); showToast('Deal als verloren markiert'); setLostModal({ open: false, dealId: null }); },
     onError: () => showToast('Stage konnte nicht geändert werden'),
   });
@@ -420,24 +421,24 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
     updateStageMutation.mutate({ dealId, newSlug });
   };
   // PH3 — Telefonnummern schreiben (contact_phones). Invalidiert nur contactDetail (Phones-Embed).
-  const invalidatePhones = () => queryClient.invalidateQueries({ queryKey: ['contactDetail', DEMO_ORGANIZATION_ID, contactId] });
+  const invalidatePhones = () => queryClient.invalidateQueries({ queryKey: ['contactDetail', organizationId, contactId] });
   const setPhonePrimaryMutation = useMutation({
-    mutationFn: (phoneId: string) => setContactPhonePrimary(DEMO_ORGANIZATION_ID, contactId as string, phoneId),
+    mutationFn: (phoneId: string) => setContactPhonePrimary(organizationId, contactId as string, phoneId),
     onSuccess: () => { invalidatePhones(); showToast('Favorit-Nummer gesetzt ✓'); },
     onError: () => showToast('Favorit konnte nicht gesetzt werden'),
   });
   const updatePhoneMutation = useMutation({
-    mutationFn: (p: { phoneId: string; number?: string; label?: string }) => updateContactPhone(DEMO_ORGANIZATION_ID, p.phoneId, { number: p.number, label: p.label }),
+    mutationFn: (p: { phoneId: string; number?: string; label?: string }) => updateContactPhone(organizationId, p.phoneId, { number: p.number, label: p.label }),
     onSuccess: () => { invalidatePhones(); showToast('Nummer gespeichert ✓'); },
     onError: () => showToast('Nummer konnte nicht gespeichert werden'),
   });
   const createPhoneMutation = useMutation({
-    mutationFn: (p: { number: string; label?: string; isPrimary?: boolean }) => createContactPhone(DEMO_ORGANIZATION_ID, contactId as string, p),
+    mutationFn: (p: { number: string; label?: string; isPrimary?: boolean }) => createContactPhone(organizationId, contactId as string, p),
     onSuccess: () => { invalidatePhones(); showToast('Nummer hinzugefügt ✓'); },
     onError: () => showToast('Nummer konnte nicht hinzugefügt werden'),
   });
   const deletePhoneMutation = useMutation({
-    mutationFn: (phoneId: string) => deleteContactPhone(DEMO_ORGANIZATION_ID, phoneId),
+    mutationFn: (phoneId: string) => deleteContactPhone(organizationId, phoneId),
     onSuccess: () => { invalidatePhones(); showToast('Nummer entfernt'); },
     onError: () => showToast('Nummer konnte nicht entfernt werden'),
   });
@@ -450,13 +451,13 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
   };
   // P5c-3 — Deal soft-löschen: deleted_at = now() (Audit via Trigger). Invalidation wie create/update.
   const deleteDealMutation = useMutation({
-    mutationFn: (dealId: string) => softDeleteDeal(dealId, DEMO_ORGANIZATION_ID),
+    mutationFn: (dealId: string) => softDeleteDeal(dealId, organizationId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['dealsByContact', DEMO_ORGANIZATION_ID, contactId] });
-      queryClient.invalidateQueries({ queryKey: ['deals', DEMO_ORGANIZATION_ID] });
-      queryClient.invalidateQueries({ queryKey: ['newInPipeline', DEMO_ORGANIZATION_ID] });
-      queryClient.invalidateQueries({ queryKey: ['dueTasks', DEMO_ORGANIZATION_ID] }); // Follow-ups: aktive-Deal-Stage der Karte
-      queryClient.invalidateQueries({ queryKey: ['signals', DEMO_ORGANIZATION_ID] });  // Signals: aktive-Deal-Stage der Karte
+      queryClient.invalidateQueries({ queryKey: ['dealsByContact', organizationId, contactId] });
+      queryClient.invalidateQueries({ queryKey: ['deals', organizationId] });
+      queryClient.invalidateQueries({ queryKey: ['newInPipeline', organizationId] });
+      queryClient.invalidateQueries({ queryKey: ['dueTasks', organizationId] }); // Follow-ups: aktive-Deal-Stage der Karte
+      queryClient.invalidateQueries({ queryKey: ['signals', organizationId] });  // Signals: aktive-Deal-Stage der Karte
       showToast('Deal gelöscht');
     },
     onError: (e) => showToast(`Löschen fehlgeschlagen: ${(e as Error).message}`),

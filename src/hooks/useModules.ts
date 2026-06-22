@@ -17,7 +17,7 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getModules } from "@/lib/db";
-import { DEMO_ORGANIZATION_ID } from "@/lib/org";
+import { useCurrentOrg } from "@/hooks/useCurrentOrg";
 
 export const MODULE_KEYS = [
   "core_crm",
@@ -42,11 +42,12 @@ export function useModules(): {
   modules: Set<ModuleKey>;
   loading: boolean;
 } {
+  const { organizationId } = useCurrentOrg();
   // settings.modules der Org (org_id im Query-Key). getModules liefert {} ohne
   // Backend/Settings → Fallback unten greift.
   const { data, isLoading } = useQuery({
-    queryKey: ["modules", DEMO_ORGANIZATION_ID],
-    queryFn: () => getModules(DEMO_ORGANIZATION_ID),
+    queryKey: ["modules", organizationId],
+    queryFn: () => getModules(organizationId),
   });
 
   const modules = useMemo<Set<ModuleKey>>(() => {

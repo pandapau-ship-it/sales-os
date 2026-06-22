@@ -38,7 +38,7 @@ import Avatar from '@/components/shared/Avatar';
 import { signalToCardProps, signalToActionData, contactToColdPerson, contactToProfile, taskToDueCard, dealToNewPipelineRow, dealToStagnatedCard, dealToNoTaskCard, newPipelineInPeriod, isTerminalStage, stagnationFlag, WON_STAGE_SLUG, LOST_STAGE_SLUG, type PipelineRow, type NewPipelinePeriod, type StagnatedCardItem, type NoTaskCardItem } from '@/lib/hunterMappers';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { updateDealStage, updateDealWon, updateDealLost } from '@/lib/db';
-import { DEMO_ORGANIZATION_ID } from '@/lib/org';
+import { useCurrentOrg } from '@/hooks/useCurrentOrg';
 import { useToast } from '@/components/shared/Toast';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { DealLostModal, DealCloseModal, DealWonModal } from '@/components';
@@ -101,6 +101,7 @@ export default function ScreenHunting({
   onSelectCommunication,
 }: ScreenHuntingProps) {
   const { t } = useTranslation();
+  const { organizationId } = useCurrentOrg();
   // Leads-Tab-Quelle: echte DB-Leads, sonst Mock-Fallback. Nur dieser Tab + sein
   // Count/Select nutzen leadRows; Pipeline/Overview/Signals bleiben auf `leads`.
   const leadRows = leadsData ?? leads;
@@ -115,19 +116,19 @@ export default function ScreenHunting({
   const [wonModal, setWonModal] = useState<{ open: boolean; dealId: string | null }>({ open: false, dealId: null });
   const [closeDealModal, setCloseDealModal] = useState<{ open: boolean; dealId: string | null }>({ open: false, dealId: null });
   const invalidateDealsScope = () => {
-    queryClient.invalidateQueries({ queryKey: ['dealsByContact', DEMO_ORGANIZATION_ID] });
-    queryClient.invalidateQueries({ queryKey: ['deals', DEMO_ORGANIZATION_ID] });
-    queryClient.invalidateQueries({ queryKey: ['newInPipeline', DEMO_ORGANIZATION_ID] });
-    queryClient.invalidateQueries({ queryKey: ['dueTasks', DEMO_ORGANIZATION_ID] }); // Follow-ups: aktive-Deal-Stage der Karte
-    queryClient.invalidateQueries({ queryKey: ['signals', DEMO_ORGANIZATION_ID] });  // Signals: aktive-Deal-Stage der Karte
+    queryClient.invalidateQueries({ queryKey: ['dealsByContact', organizationId] });
+    queryClient.invalidateQueries({ queryKey: ['deals', organizationId] });
+    queryClient.invalidateQueries({ queryKey: ['newInPipeline', organizationId] });
+    queryClient.invalidateQueries({ queryKey: ['dueTasks', organizationId] }); // Follow-ups: aktive-Deal-Stage der Karte
+    queryClient.invalidateQueries({ queryKey: ['signals', organizationId] });  // Signals: aktive-Deal-Stage der Karte
   };
   const updateStageMutation = useMutation({
-    mutationFn: ({ dealId, newSlug }: { dealId: string; newSlug: string }) => updateDealStage(dealId, newSlug, DEMO_ORGANIZATION_ID),
+    mutationFn: ({ dealId, newSlug }: { dealId: string; newSlug: string }) => updateDealStage(dealId, newSlug, organizationId),
     onSuccess: () => { invalidateDealsScope(); toast('Stage geändert ✓'); },
     onError: () => toast('Stage konnte nicht geändert werden'),
   });
   const wonMutation = useMutation({
-    mutationFn: ({ dealId, wonReason, wonNote }: { dealId: string; wonReason?: string; wonNote?: string }) => updateDealWon(dealId, DEMO_ORGANIZATION_ID, { wonReason, wonNote }),
+    mutationFn: ({ dealId, wonReason, wonNote }: { dealId: string; wonReason?: string; wonNote?: string }) => updateDealWon(dealId, organizationId, { wonReason, wonNote }),
     onSuccess: () => { invalidateDealsScope(); },
     onError: () => toast('Stage konnte nicht geändert werden'),
   });
@@ -139,7 +140,7 @@ export default function ScreenHunting({
     wonMutation.mutate({ dealId }, { onSuccess: () => toast('Deal gewonnen ✓') });
   };
   const lostMutation = useMutation({
-    mutationFn: ({ dealId, lostReason, note }: { dealId: string; lostReason: string; note: string }) => updateDealLost(dealId, DEMO_ORGANIZATION_ID, lostReason, note),
+    mutationFn: ({ dealId, lostReason, note }: { dealId: string; lostReason: string; note: string }) => updateDealLost(dealId, organizationId, lostReason, note),
     onSuccess: () => { invalidateDealsScope(); toast('Deal als verloren markiert'); setLostModal({ open: false, dealId: null }); },
     onError: () => toast('Stage konnte nicht geändert werden'),
   });

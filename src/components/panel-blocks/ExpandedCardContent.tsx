@@ -9,7 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Zap } from "lucide-react";
 import CommunicationChain from "@/components/shared/CommunicationChain";
 import DealsListe from "./DealsListe";
-import { DEMO_ORGANIZATION_ID } from "@/lib/org";
+import { useCurrentOrg } from "@/hooks/useCurrentOrg";
 import { getContactCommunications, getDealsByContact, getPipelineSettings } from "@/lib/db";
 import { communicationToView } from "@/lib/hunterMappers";
 
@@ -21,22 +21,23 @@ export default function ExpandedCardContent({
   onEditDeal?: (dealId: string) => void;
 }) {
   const { t } = useTranslation();
+  const { organizationId } = useCurrentOrg();
 
   // Lazy: nur laden, wenn es einen Kontakt gibt (die Komponente wird nur im aufgeklappten Zustand gemountet).
   const enabled = !!contactId;
   const dealsQuery = useQuery({
-    queryKey: ['dealsByContact', DEMO_ORGANIZATION_ID, contactId],
-    queryFn: () => getDealsByContact(DEMO_ORGANIZATION_ID, contactId as string),
+    queryKey: ['dealsByContact', organizationId, contactId],
+    queryFn: () => getDealsByContact(organizationId, contactId as string),
     enabled,
   });
   const commsQuery = useQuery({
-    queryKey: ['communications', DEMO_ORGANIZATION_ID, contactId],
-    queryFn: () => getContactCommunications(DEMO_ORGANIZATION_ID, contactId as string),
+    queryKey: ['communications', organizationId, contactId],
+    queryFn: () => getContactCommunications(organizationId, contactId as string),
     enabled,
   });
   const stagesQuery = useQuery({
-    queryKey: ['pipelineStages', DEMO_ORGANIZATION_ID],
-    queryFn: () => getPipelineSettings(DEMO_ORGANIZATION_ID),
+    queryKey: ['pipelineStages', organizationId],
+    queryFn: () => getPipelineSettings(organizationId),
     enabled,
   });
   const stageMap = Object.fromEntries((stagesQuery.data ?? []).map((s) => [s.slug, s.name]));
