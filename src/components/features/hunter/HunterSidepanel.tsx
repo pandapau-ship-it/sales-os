@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useCurrentOrg } from '@/hooks/useCurrentOrg';
+import { useAuth } from '@/hooks/useAuth';
 import { getContactDetail, getPipelineSettings, getTasksByContact, createTask, completeTask, softDeleteTask, getNotesByContact, createNote, updateNote, softDeleteNote, getDealsByContact, getActivityByContact, getContactCommunications, createCommunication, updateContact, updateCompany, getProducts, getOrgUsers, createDeal, updateDeal, updateDealStage, updateDealWon, updateDealLost, softDeleteDeal, createContactPhone, updateContactPhone, setContactPhonePrimary, deleteContactPhone } from '@/lib/db';
 import { contactToProfile, latestActiveDeal, dealToView, communicationToView, CONTACT_STATUS_LABEL, CONTACT_STATUS_SELECTABLE, WON_STAGE_SLUG, LOST_STAGE_SLUG, type CommunicationChannel, type CommunicationDirection } from '@/lib/hunterMappers';
 import { isValidEmail, normalizeUrl, isValidUrl } from '@/lib/validation';
@@ -81,6 +82,7 @@ const DETAIL_MAP: Record<string, { table: 'contact' | 'company'; col: string }> 
 
 export default function HunterSidepanel({ person: personProp, onClose, onExit, variant = 'panel', initialAction = null, initialTab = null, initialDealId = null, initialDealEditId = null, initialFocusField = null }: { person: any; onClose: () => void; onExit?: () => void; variant?: 'panel' | 'full'; initialAction?: 'mail' | 'task' | 'chat' | null; initialTab?: 'overview' | 'deals' | 'tasks' | 'activity' | 'notes' | null; initialDealId?: string | null; initialDealEditId?: string | null; initialFocusField?: string | null }) {
   const { organizationId } = useCurrentOrg();
+  const { user } = useAuth(); // [D21]: created_by/owner_id der Writes = eingeloggter User (Fallback NULL)
   const [activeTab, setActiveTab] = useState(variant === 'full' ? 'details' : 'overview');
   // Aus der Übersicht „Deal/Task bearbeiten" → Ziel-Tab öffnet die Bearbeiten-Kachel direkt.
   const [dealsAutoEditId, setDealsAutoEditId] = useState<string | null>(null); // Übersicht „Bearbeiten" → Deal-id im Deals-Tab
@@ -191,7 +193,8 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
         channel: CH_TO_DB[v.channel] ?? 'other',         // mail→email
         dueAt: new Date(`${v.dueDate}T${v.dueTime || '09:00'}:00`).toISOString(),
         priority: v.priority,
-        source: 'manual',                                  // assigned_to bleibt NULL (P3)
+        source: 'manual',
+        assignedTo: user?.id ?? undefined,                 // [D21]: verantwortlicher User; ohne Session → NULL
       }),
     onSuccess: () => { invalidateTasks(); showToast('Task angelegt ✓'); },
     onError: (e) => showToast(`Anlegen fehlgeschlagen: ${(e as Error).message}`), // nicht still abfangen
@@ -215,7 +218,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
   });
   const invalidateNotes = () => queryClient.invalidateQueries({ queryKey: ['notesByContact', organizationId, contactId] });
   const createNoteMutation = useMutation({
-    mutationFn: (body: string) => createNote(organizationId, contactId as string, body),
+    mutationFn: (body: string) => createNote(organizationId, contactId as string, body, user?.id ?? undefined),
     onSuccess: () => { invalidateNotes(); showToast('Notiz angelegt ✓'); },
     onError: (e) => showToast(`Notiz fehlgeschlagen: ${(e as Error).message}`), // nicht still abfangen
   });
@@ -251,7 +254,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
   const commsView = (commsQuery.data ?? []).map(communicationToView);
   const createCommMutation = useMutation({
     mutationFn: (v: { channel: CommunicationChannel; direction: CommunicationDirection; occurredAt: string; note: string }) =>
-      createCommunication(organizationId, contactId as string, v),
+      createCommunication(organizationId, contactId as string, v, user?.id ?? undefined),
     onSuccess: () => {
       setLogOpen(false);
       queryClient.invalidateQueries({ queryKey: ['communications', organizationId, contactId] });
@@ -337,7 +340,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
         termMonths: v.termMonths && !Number.isNaN(Number(v.termMonths)) ? Math.trunc(Number(v.termMonths)) : undefined,
         noticePeriodDays: v.noticePeriodDays && !Number.isNaN(Number(v.noticePeriodDays)) ? Math.trunc(Number(v.noticePeriodDays)) : undefined,
         expectedCloseDate: v.expectedCloseDate || undefined, // 'YYYY-MM-DD' aus dem Datumsfeld
-        ownerId: v.ownerId || undefined, // gewählter Owner (User-ID); leer → undefined → null
+        ownerId: v.ownerId || user?.id || undefined, // gewählter Owner; sonst anlegender User ([D21]); ohne Session → null
         stage: v.stage || undefined, // gewählte Stage (Slug); leer → undefined → Default 'backlog'
         contactId: contactId as string,
       }),
