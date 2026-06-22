@@ -4,7 +4,13 @@
 
 ---
 
-## Current Status: Phase 3 (DB-Wiring Hunter) — Panel/Tabs · P8 · Telefon · P7 Kommunikation · Stagnation/Heat Edge Functions · Pipeline Task-Liste ✅ · **Action Panels verdrahtet** (Signal- + Kalt-Opener mit echten Daten, AI-Platzhalter [D5]) · **Details-Tab + Kontakt-Inline-Edit schreiben echt** (Migr. 039) · **Aufgeklappte Kachel echt** (Deals+Kommunikation lazy, Stagnations-Warnung, Icon-Konsistenz) → alles auf `main` (`8d33001`). Next: **[D27] Tech-Schuld** · Auth/Org [D21] · Realtime (Phase 5)
+## Current Status: Phase 3 (DB-Wiring Hunter) — Panel/Tabs · P8 · Telefon · P7 Kommunikation · Stagnation/Heat Edge Functions · Pipeline Task-Liste · Action-Opener · Details-Write · Aufgeklappte Kachel ✅ · **[D27] Tech-Schuld erledigt** (ExpandedCardContent-Dedup · window.confirm→AlertDialog · Typo-Kanon Welle 1+2 + IN_SCOPE-Pflicht) → alles auf `main` (`66a815b`). Next: **Auth/Org [D21]** · Realtime (Phase 5) · AI-Pipeline (löst „Folgt"-Platzhalter [D5]/[D26])
+
+> **Session 2026-06-22 (Teil 2, [D27] Tech-Schuld) — fertig (auf `main`, `66a815b`; Spanne `3ddf89b..HEAD`):**
+> **ExpandedCardContent extrahiert** (panel-blocks): geteilter aufgeklappter Karten-Inhalt (lazy Deals/Kommunikation/Stages, KI-Platzhalter, Stagnations-Warnung) — HunterCard + LeadListRow je ~47 doppelte Zeilen entfernt. Reine Extraktion.
+> **`window.confirm` → shadcn `AlertDialog`** (neues UI-Primitive `ui/alert-dialog.tsx` + Dep `@radix-ui/react-alert-dialog`): letzte-Telefonnummer-Löschen im HunterSidepanel (Cancel=outline / Löschen=destructive). Kein `window.confirm` mehr im Code.
+> **Typo-Kanon Welle 1+2:** 14 Komponenten (Formulare/Panels + Karten/Felder) auf `typo-*`-Primitive; `audit.ts` walkt jetzt **panel-blocks/ + features/**; alle in `IN_SCOPE` (erzwungen). **CLAUDE.md-PFLICHT:** neue Komponente mit Typo-Klassen → SOFORT in `IN_SCOPE`; Pre-Push-Checkbox ergänzt.
+> Kein DB-Change diese Periode → keine neue Migration/KB.
 
 > **Session 2026-06-22 — fertig (auf `main`, `8d33001`; Spanne `8011f49..HEAD`):**
 > **Signal- + Kalt-Opener echt** verdrahtet: `signalToActionData`/`contactToColdPerson`/`ColdPersonData`/`SignalActionData` (hunterMappers), `LinkedinSignalCard` „Antworten"→`SignalActionDrawer`, Kalt-Sektion (Follow-ups, `getContacts({heatStatus:'kalt'|'tot'})`)→`ContactColdDrawer`. **`ChatActionPanel` AI-noch-nicht-da-Modus** (recommendation/draft nullable → „Folgt"-Platzhalter, disabled „Draft generieren", Chat-Footer aus). PROGRESS [D5] aktualisiert.

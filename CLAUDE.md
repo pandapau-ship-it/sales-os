@@ -153,9 +153,10 @@ Diese Regel gilt absolut. Kein Ausnahme für "schneller selbst gebaut".
 
 **shadcn-Primitive bevorzugen, wenn vorhanden. Nur hand-rollen, wenn KEIN passendes Primitiv existiert.**
 Vor JEDER neuen Komponente zwingend `src/components/ui/` prüfen. Aktuell vorhanden:
-`button`, `card`, `command`, `dialog`, `dropdown-menu`, `input`, `select`, `sheet`, `tooltip`.
+`alert-dialog`, `button`, `card`, `command`, `dialog`, `dropdown-menu`, `input`, `popover`, `select`, `sheet`, `tooltip`.
 Pflicht-Zuordnung: Side-Panels / Drawer → **`sheet`** · Dropdowns → **`select`** ·
-Modals → **`dialog`** · Buttons → **`button`** · Tooltips → **`tooltip`** · Cmd+K → **`command`**.
+Modals → **`dialog`** · **destruktive Bestätigung (Löschen) → `alert-dialog`** (nie `window.confirm`) ·
+Buttons → **`button`** · Tooltips → **`tooltip`** · Cmd+K → **`command`**.
 Ein natives `<select>`/`<button>` oder ein eigener `fixed`-Overlay statt `sheet` ist ein
 **Regelverstoß, kein Stilfrage**. Fehlt ein Primitiv: `npx shadcn add [component]`.
 
@@ -571,6 +572,7 @@ Alle prop-driven, Tokens-only, Dark-Mode automatisch.
 | `PersonalityBadge` | Persönlichkeitsprofil-Pill (3 Dimensionen) — für künftiges Persönlichkeits-Feature (ab Confidence ≥ 60 %) |
 | `KpiCard` | KPI-Kachel (Hunter-Übersicht): Titel + Icon-Box · große Zahl · Subtitle/Trend (Icon/Farben/Subtitle als Node) |
 | `LeadListRow` | Lead-Listenzeile (Hunter „Leads"): Top-Row (Avatar/ICP/Company/Stage/Heat/Zeit/Pfeil) + aufklappbar (KI-Kurzakte · Deal · Aktionen · Communication Chain); prop-driven (`isExpanded`/`selected`/`onToggleExpand`/`onToggleSelect`/`onOpenInfo`/`onSelectCommunication`) |
+| `ExpandedCardContent` | **Geteilter aufgeklappter Karten-Inhalt** (HunterCard + LeadListRow, [D27]-Dedup): lazy Queries (Deals/Kommunikation/Stages, `enabled: !!contactId`) · 2-Spalten-Grid (KI-Kurzakte „Folgt"-Platzhalter \| `DealsListe variant="compact"` mit `stagnationBySlug`) · `CommunicationChain` echt bzw. „Noch keine Kommunikation protokolliert" · Stagnations-Warnung. Props `contactId?`/`onEditDeal?`. Single Source statt ~47 doppelter Zeilen je Karte |
 | `TaskAnlegenForm` | „Keine Task"-Action-Panel-Inhalt (Header + Kontext-/KI-Meldungen) des `NoTaskDrawer`; das Formular kommt aus `TaskFormular` (geteilt, identisch zum Info-Panel); `person`/`onClose`/`onToast` |
 | `TaskEntwurfForm` | Task-Entwurf (Header + Kontakt-Bar + Kanal/Titel/AI-Entwurf/Priorität + Speichern) — Inhalt des `TaskDrawer` (850px-Overlay) |
 | `KontaktZeile` `KiKurzakte` `PanelHeader` `PanelField` `NewDealCard` `ErledigtAction` `KommunikationPreview` `OffeneTasks` `ActiveSequenceChain` `AktiveSignale` `PanelFooter` `ActionFooter` `ActionComposer` `PhoneNumbersField` `HunterCard` `SignalRow` `FollowUpKaltCard` `PipelineStagniertCard` `PipelineKeineTaskCard` `LinkedinSignalCard` `NewInPipelineCards` `SequenceLeadCards` | weitere Blöcke (Panel-/Karten-/Formular-Komposition) |
