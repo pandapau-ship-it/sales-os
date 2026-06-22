@@ -141,17 +141,17 @@ export function LinkedinSignalCard({
         <div className="flex items-center gap-4 shrink-0">
           <div className="flex flex-col w-[200px]">
             <div className="flex justify-between items-center mb-1.5">
-              <span className="flex items-center gap-1 text-[13px] font-extrabold text-[var(--signal-urgent-text)]">
+              <span className="flex items-center gap-1 typo-field-value text-[var(--signal-urgent-text)]">
                 <Flame className="w-3 h-3" /> {t("hunter.common.hot")}
               </span>
-              <span className="text-[13px] font-extrabold text-[var(--signal-urgent-text)]">
+              <span className="typo-field-value text-[var(--signal-urgent-text)]">
                 {t("hunter.common.hoursLeft", { hours: timeLeftHours })}
               </span>
             </div>
             <div className="w-full h-1.5 bg-app-bg rounded-full overflow-hidden">
               <div className="h-full bg-[var(--signal-urgent-text)] rounded-full" style={{ width: `${timeProgress}%` }} />
             </div>
-            <span className="mt-1 text-[10px] font-bold text-[var(--icon-muted)] uppercase tracking-widest text-right">
+            <span className="mt-1 typo-section-label text-[var(--icon-muted)] text-right">
               {t("hunter.common.hoursWindow", { hours: windowHours })}
             </span>
           </div>

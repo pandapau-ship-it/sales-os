@@ -116,6 +116,7 @@ Für jedes neue DB-Feature das in diesem Push enthalten ist:
 □ Function Call nötig oder reicht system_config?
 □ api_usage geprüft vor AI Calls?
 □ Routine mit service_role → audit_log actor: 'routine' gesetzt?
+□ Neue Komponenten in `audit.ts` `IN_SCOPE` aufgenommen (Typo-Kanon, panel-blocks/ + features/)?
 
 → Wenn eine Checkbox offen ist: NICHT pushen. Erst beheben.
 
@@ -471,9 +472,12 @@ nie roh als `text-[Npx] font-*` an diesen Stellen wiederholen. **Farbe bleibt be
   arbitrary `font-[…]`-Family, inline `fontFamily`/`font-family`). Schrift-ART wird **auch neben einem
   `typo-*`** geflaggt (das Primitive setzt die Schrift selbst). Buttons/Container via `rounded-`/`py-`
   ausgenommen. Läuft im **pre-push-Hook** → blockt den Push (mit Terminal), wie die Single-Source-Regel.
-- **Scope:** Panel-Blocks + Tab-Listen-Komponenten (dort tritt der Drift auf). Neue solche Komponente →
-  `IN_SCOPE` in `scripts/audit.ts` (`checkTypographyTokens`) ergänzen. Andere Bereiche (Forms/Drawer/
-  Detail-Felder) folgen später. Neue Stufe nötig → erst `typo-*`-Klasse in `index.css`, dann nutzen.
+- **Scope:** `panel-blocks/` **UND** `features/` (der Check walkt beide). Neue solche Komponente →
+  `IN_SCOPE` in `scripts/audit.ts` (`checkTypographyTokens`) ergänzen. Neue Stufe nötig → erst
+  `typo-*`-Klasse in `index.css`, dann nutzen.
+- **PFLICHT:** Jede neue Komponente, die Typo-Klassen nutzt, muss **SOFORT** in `IN_SCOPE`
+  (`scripts/audit.ts`) aufgenommen werden — nie erst beim nächsten Cleanup. Gilt für
+  `panel-blocks/` UND `features/`.
 
 ### Tailwind Token-Klassen (via @theme inline)
 ```

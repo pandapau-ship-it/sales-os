@@ -67,7 +67,7 @@ export default function NewInPipelineCards({
       {/* Header + Zeitfilter */}
       <header className="flex items-end justify-between gap-4 mb-6">
         <div className="space-y-1">
-          <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest">{t('hunter.newPipeline.breadcrumb')}</span>
+          <span className="typo-section-label text-text-muted">{t('hunter.newPipeline.breadcrumb')}</span>
           <h1 className="text-[28px] font-extrabold tracking-tight text-text-primary leading-tight">{t('hunter.newPipeline.title')}</h1>
           <p className="text-[13px] text-text-muted font-medium">{t('hunter.newPipeline.subtitle')}</p>
         </div>

@@ -52,7 +52,7 @@ export default function EditableInline({
 
       <PopoverContent portal={false} align="start" sideOffset={8} className="w-[300px] space-y-3">
         <div className="space-y-1.5">
-          <label className="text-[10px] font-extrabold text-text-muted uppercase tracking-widest">{label}</label>
+          <label className="typo-field-label text-text-muted">{label}</label>
           <input
             autoFocus
             type={type}
