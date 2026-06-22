@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DEMO_ORGANIZATION_ID } from '@/lib/org';
-import { getContactDetail, getPipelineSettings, getTasksByContact, createTask, completeTask, softDeleteTask, getNotesByContact, createNote, updateNote, softDeleteNote, getDealsByContact, getActivityByContact, getContactCommunications, createCommunication, getProducts, getOrgUsers, createDeal, updateDeal, updateDealStage, updateDealWon, updateDealLost, softDeleteDeal, createContactPhone, updateContactPhone, setContactPhonePrimary, deleteContactPhone } from '@/lib/db';
+import { getContactDetail, getPipelineSettings, getTasksByContact, createTask, completeTask, softDeleteTask, getNotesByContact, createNote, updateNote, softDeleteNote, getDealsByContact, getActivityByContact, getContactCommunications, createCommunication, updateContact, updateCompany, getProducts, getOrgUsers, createDeal, updateDeal, updateDealStage, updateDealWon, updateDealLost, softDeleteDeal, createContactPhone, updateContactPhone, setContactPhonePrimary, deleteContactPhone } from '@/lib/db';
 import { contactToProfile, latestActiveDeal, dealToView, communicationToView, WON_STAGE_SLUG, LOST_STAGE_SLUG, type CommunicationChannel, type CommunicationDirection } from '@/lib/hunterMappers';
+import { isValidEmail, normalizeUrl, isValidUrl } from '@/lib/validation';
 import DealLostModal from './DealLostModal';
 import DealWonModal from './DealWonModal';
 import KommunikationLogModal from './KommunikationLogModal';
@@ -34,7 +35,18 @@ const LAND_OPTS = ['Deutschland', 'Österreich', 'Schweiz', 'Andere'];
 const BRANCHE_OPTS = ['SaaS', 'Fintech', 'E-Commerce', 'Healthcare', 'Industrie', 'Andere'];
 const GROESSE_OPTS = ['1–10', '11–50', '51–200', '201–500', '500+'];
 const PHONE_TYPES = ['Mobil', 'Geschäftlich', 'Privat', 'Weitere'];
-const LEAD_STATUS_OPTS = ['Lead', 'Qualified Lead', 'Marketing Qualified Lead (MQL)', 'Sales Qualified Lead (SQL)', 'Customer', 'Churned'];
+// Kanonischer contacts.contact_status (Slug ↔ Label). Der Lead-Status-Dropdown schreibt diese
+// Slugs auf contacts.contact_status (NICHT lead_status).
+const CONTACT_STATUS_OPTIONS: { slug: string; label: string }[] = [
+  { slug: 'ohne_campaign', label: 'Kein Campaign' },
+  { slug: 'in_campaign', label: 'In Campaign' },
+  { slug: 'pipeline', label: 'In Pipeline' },
+  { slug: 'kunde', label: 'Kunde' },
+  { slug: 'archiviert', label: 'Archiviert' },
+];
+const LEAD_STATUS_OPTS = CONTACT_STATUS_OPTIONS.map((o) => o.label);
+const contactStatusLabel = (slug?: string) => CONTACT_STATUS_OPTIONS.find((o) => o.slug === slug)?.label ?? '';
+const contactStatusSlug = (label: string) => CONTACT_STATUS_OPTIONS.find((o) => o.label === label)?.slug;
 
 const DEFAULT_DETAILS = {
   anrede: 'Herr', vorname: 'Christian', nachname: 'Brand',
@@ -45,6 +57,27 @@ const DEFAULT_DETAILS = {
   leadStatus: 'Sales Qualified Lead (SQL)', icp: '87',
   tags: 'Enterprise · ROI-Fokus · Outreach', owner: 'Oliver Prossi',
   notiz: 'Budget-Freeze bis Q3 — der ROI-Case ist der Hebel. Demo lief sehr positiv, Abschluss ab Q4 realistisch.',
+};
+
+// Details-Tab-Feld → DB-Spalte. table='contact' → contacts, 'company' → companies.
+// Nur gemappte Felder werden persistiert; ungemappte (Klassifizierung) bleiben lokal.
+const DETAIL_MAP: Record<string, { table: 'contact' | 'company'; col: string }> = {
+  anrede: { table: 'contact', col: 'salutation' },
+  sprache: { table: 'contact', col: 'language' },
+  vorname: { table: 'contact', col: 'first_name' },
+  nachname: { table: 'contact', col: 'last_name' },
+  jobtitel: { table: 'contact', col: 'job_title' },
+  seniority: { table: 'contact', col: 'seniority' },
+  abteilung: { table: 'contact', col: 'department' },
+  stadt: { table: 'contact', col: 'city' },
+  land: { table: 'contact', col: 'country' },
+  twitter: { table: 'contact', col: 'twitter_handle' },
+  firma: { table: 'company', col: 'name' },
+  branche: { table: 'company', col: 'industry' },
+  groesse: { table: 'company', col: 'size_range' },
+  domain: { table: 'company', col: 'domain' },
+  firmaStadt: { table: 'company', col: 'city' },
+  firmaLand: { table: 'company', col: 'country' },
 };
 
 // DetailField · DetailSection · StatusBadge · DetailPhoneList → ausgelagert nach
@@ -103,6 +136,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
   const contactRow = contactQuery.data ?? null;
   const profile = contactToProfile(contactRow);              // zentrale Leitung
   const headLoading = !!contactId && contactQuery.isLoading && !contactRow;
+  const companyId = (contactRow as { company_id?: string } | null)?.company_id ?? null;
 
   // P2 — Kontaktzeile aus dem echten Kontakt seeden (email/linkedin_url + Firmen-Website).
   // Werte zentral über contactToProfile; fehlend → leer → Read-Zeile blendet das Element aus.
@@ -110,6 +144,21 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
   useEffect(() => {
     if (!contactRow) return;
     setContact({ email: profile.email ?? '', linkedin: profile.linkedinUrl ?? '', web: profile.website ?? '' });
+    // Details-Tab aus echten DB-Werten seeden (NULL → leer, kein Fake-Default). Klassifizierung
+    // (Lead Status/ICP/Owner/Tags) bleibt vorerst lokal (außerhalb dieses Slices).
+    const c = contactRow as Record<string, any>;
+    const co = (c.company ?? {}) as Record<string, any>;
+    setDetails((d) => ({
+      ...d,
+      anrede: c.salutation ?? '', sprache: c.language ?? '',
+      vorname: c.first_name ?? '', nachname: c.last_name ?? '', // single-source-ok: Details-Tab seedet editierbare Roh-Stammdaten (contactToProfile deckt sie nicht ab)
+      jobtitel: c.job_title ?? '', seniority: c.seniority ?? '', // single-source-ok: editierbares Roh-Feld für den Details-Tab
+      abteilung: c.department ?? '', stadt: c.city ?? '', land: c.country ?? '',
+      twitter: c.twitter_handle ?? '',
+      firma: co.name ?? '', branche: co.industry ?? '', groesse: co.size_range ?? '',
+      domain: co.domain ?? '', firmaStadt: co.city ?? '', firmaLand: co.country ?? '',
+      leadStatus: contactStatusLabel(c.contact_status), // echtes contacts.contact_status → Label
+    }));
   }, [contactRow]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // P3 — Tasks-Tab: echte Tasks des Kontakts + Anlegen/Abhaken (erster Panel-Write).
@@ -209,6 +258,52 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
     },
     onError: (e) => showToast(`Protokollieren fehlgeschlagen: ${(e as Error).message}`), // nicht still abfangen
   });
+
+  // Details-Tab / Kontakt-Inline-Edit: echte Writes auf contacts/companies. last_contacted_at-frei.
+  const invalidateContact = () => queryClient.invalidateQueries({ queryKey: ['contactDetail', DEMO_ORGANIZATION_ID, contactId] });
+  const updateContactMutation = useMutation({
+    mutationFn: (fields: Record<string, unknown>) => updateContact(contactId as string, DEMO_ORGANIZATION_ID, fields),
+    onSuccess: () => { invalidateContact(); showToast('Gespeichert ✓'); },
+    onError: (e) => showToast(`Fehler beim Speichern: ${(e as Error).message}`),
+  });
+  const updateCompanyMutation = useMutation({
+    mutationFn: (fields: Record<string, unknown>) => updateCompany(companyId as string, DEMO_ORGANIZATION_ID, fields),
+    onSuccess: () => { invalidateContact(); showToast('Gespeichert ✓'); },
+    onError: (e) => showToast(`Fehler beim Speichern: ${(e as Error).message}`),
+  });
+
+  // Details-Feld speichern: optimistisch lokal + Persist auf die gemappte Spalte (NULL bei leer).
+  const saveDetail = (key: string, value: string) => {
+    setDetails((d) => ({ ...d, [key]: value })); // optimistisch (UI bleibt responsiv)
+    const target = DETAIL_MAP[key];
+    if (!target) return; // ungemappt (Klassifizierung) → nur lokal, kein Persist
+    const v = value.trim();
+    const payload = { [target.col]: v === '' ? null : v };
+    if (target.table === 'contact') updateContactMutation.mutate(payload);
+    else if (companyId) updateCompanyMutation.mutate(payload);
+    else showToast('Keine Firma verknüpft');
+  };
+
+  // Kontaktwege (E-Mail/LinkedIn/Web). Validierung: E-Mail → isValidEmail; Web → normalizeUrl+isValidUrl
+  // (LinkedIn ist Handle/Pfad → nur trimmen). Ungültig → kein Write (DetailField zeigt den roten Rand).
+  const saveContactField = (field: 'email' | 'linkedin' | 'web', value: string) => {
+    const v = value.trim();
+    if (field === 'email') {
+      if (v !== '' && !isValidEmail(v)) { showToast('Ungültige E-Mail'); return; }
+      setContact((c) => ({ ...c, email: v }));
+      updateContactMutation.mutate({ email: v === '' ? null : v });
+    } else if (field === 'linkedin') {
+      setContact((c) => ({ ...c, linkedin: v }));
+      updateContactMutation.mutate({ linkedin_url: v === '' ? null : v });
+    } else { // web → company.website
+      const url = v === '' ? '' : normalizeUrl(v);
+      if (url !== '' && !isValidUrl(url)) { showToast('Ungültige URL'); return; }
+      setContact((c) => ({ ...c, web: url }));
+      if (companyId) updateCompanyMutation.mutate({ website: url === '' ? null : url });
+      else showToast('Keine Firma verknüpft');
+    }
+  };
+
   // Übersicht „Deal Setup" zeigt den primären Deal = zuletzt aktiver, sonst neuester
   // (getDealsByContact sortiert created_at desc). Werte zentral über dealToView.
   const dealRows = dealsQuery.data ?? [];
@@ -448,7 +543,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
       onCopied={() => showToast('Kopiert ✓')}
       contact={contact}
       phones={profile.phones}
-      onSaveField={(f, v) => { setContact((c) => ({ ...c, [f]: v })); showToast(`${FIELD_LABEL[f]} gespeichert`); }}
+      onSaveField={(f, v) => saveContactField(f as 'email' | 'linkedin' | 'web', v)}
       onCopyField={(f) => showToast(`${FIELD_LABEL[f]} kopiert`)}
       onSetFavorite={(id) => setPhonePrimaryMutation.mutate(id)}
       onUpdateNumber={(id, number) => updatePhoneMutation.mutate({ phoneId: id, number })}
@@ -587,23 +682,23 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
   const detailsContent = person && (
     <div className="space-y-5 animate-fade-in">
       <DetailSection title="Person" icon={User}>
-        <DetailField label="Anrede" value={details.anrede} options={ANREDE_OPTS} onSelect={(v) => setDetail('anrede', v)} />
-        <DetailField label="Sprache" value={details.sprache} options={SPRACHE_OPTS} onSelect={(v) => setDetail('sprache', v)} />
-        <DetailField label="Vorname" value={details.vorname} onSave={(v) => setDetail('vorname', v)} />
-        <DetailField label="Nachname" value={details.nachname} onSave={(v) => setDetail('nachname', v)} />
-        <DetailField label="Jobtitel" value={details.jobtitel} onSave={(v) => setDetail('jobtitel', v)} />
-        <DetailField label="Seniority" value={details.seniority} options={SENIORITY_OPTS} onSelect={(v) => setDetail('seniority', v)} />
-        <DetailField label="Abteilung" value={details.abteilung} onSave={(v) => setDetail('abteilung', v)} />
-        <DetailField label="Standort / Stadt" value={details.stadt} onSave={(v) => setDetail('stadt', v)} />
-        <DetailField label="Land" value={details.land} options={LAND_OPTS} onSelect={(v) => setDetail('land', v)} />
-        <DetailField label="Twitter / X" value={details.twitter} onSave={(v) => setDetail('twitter', v)} />
+        <DetailField label="Anrede" value={details.anrede} options={ANREDE_OPTS} onSelect={(v) => saveDetail('anrede', v)} />
+        <DetailField label="Sprache" value={details.sprache} options={SPRACHE_OPTS} onSelect={(v) => saveDetail('sprache', v)} />
+        <DetailField label="Vorname" value={details.vorname} onSave={(v) => saveDetail('vorname', v)} />
+        <DetailField label="Nachname" value={details.nachname} onSave={(v) => saveDetail('nachname', v)} />
+        <DetailField label="Jobtitel" value={details.jobtitel} onSave={(v) => saveDetail('jobtitel', v)} />
+        <DetailField label="Seniority" value={details.seniority} options={SENIORITY_OPTS} onSelect={(v) => saveDetail('seniority', v)} />
+        <DetailField label="Abteilung" value={details.abteilung} onSave={(v) => saveDetail('abteilung', v)} />
+        <DetailField label="Standort / Stadt" value={details.stadt} onSave={(v) => saveDetail('stadt', v)} />
+        <DetailField label="Land" value={details.land} options={LAND_OPTS} onSelect={(v) => saveDetail('land', v)} />
+        <DetailField label="Twitter / X" value={details.twitter} onSave={(v) => saveDetail('twitter', v)} />
 
         {/* Kontaktdaten — in dezenter grauer Sub-Kachel (nur dieser Bereich grau) */}
         <div className="sm:col-span-2 bg-app-bg rounded-[10px] p-5">
           <div className="grid sm:grid-cols-2 gap-x-8 gap-y-5">
-            <DetailField label="E-Mail" type="email" copyable value={contact.email} onCopy={() => showToast('Kopiert ✓')} onSave={(v) => { setContact((c) => ({ ...c, email: v })); showToast('Gespeichert'); }} />
-            <DetailField label="LinkedIn" copyable value={contact.linkedin} href={`https://www.linkedin.com/${contact.linkedin.replace(/^\/+/, '')}`} onCopy={() => showToast('Kopiert ✓')} onSave={(v) => { setContact((c) => ({ ...c, linkedin: v })); showToast('Gespeichert'); }} />
-            <DetailField label="Webadresse" copyable value={contact.web} href={`https://${contact.web.replace(/^https?:\/\//, '')}`} onCopy={() => showToast('Kopiert ✓')} onSave={(v) => { setContact((c) => ({ ...c, web: v })); showToast('Gespeichert'); }} />
+            <DetailField label="E-Mail" type="email" copyable value={contact.email} validate={isValidEmail} onCopy={() => showToast('Kopiert ✓')} onSave={(v) => saveContactField('email', v)} />
+            <DetailField label="LinkedIn" copyable value={contact.linkedin} href={`https://www.linkedin.com/${contact.linkedin.replace(/^\/+/, '')}`} onCopy={() => showToast('Kopiert ✓')} onSave={(v) => saveContactField('linkedin', v)} />
+            <DetailField label="Webadresse" copyable value={contact.web} validate={(v) => isValidUrl(normalizeUrl(v))} href={`https://${contact.web.replace(/^https?:\/\//, '')}`} onCopy={() => showToast('Kopiert ✓')} onSave={(v) => saveContactField('web', v)} />
           </div>
           <div className="mt-5">
             <DetailPhoneList
@@ -620,16 +715,16 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
       </DetailSection>
 
       <DetailSection title="Firma" icon={Building2}>
-        <DetailField label="Firma" value={details.firma} onSave={(v) => setDetail('firma', v)} />
-        <DetailField label="Branche" value={details.branche} options={BRANCHE_OPTS} onSelect={(v) => setDetail('branche', v)} />
-        <DetailField label="Unternehmensgröße" value={details.groesse} options={GROESSE_OPTS} onSelect={(v) => setDetail('groesse', v)} />
-        <DetailField label="Domain" copyable value={details.domain} href={`https://${details.domain.replace(/^https?:\/\//, '')}`} onCopy={() => showToast('Kopiert ✓')} onSave={(v) => setDetail('domain', v)} />
-        <DetailField label="Stadt / HQ" value={details.firmaStadt} onSave={(v) => setDetail('firmaStadt', v)} />
-        <DetailField label="Land" value={details.firmaLand} options={LAND_OPTS} onSelect={(v) => setDetail('firmaLand', v)} />
+        <DetailField label="Firma" value={details.firma} onSave={(v) => saveDetail('firma', v)} />
+        <DetailField label="Branche" value={details.branche} options={BRANCHE_OPTS} onSelect={(v) => saveDetail('branche', v)} />
+        <DetailField label="Unternehmensgröße" value={details.groesse} options={GROESSE_OPTS} onSelect={(v) => saveDetail('groesse', v)} />
+        <DetailField label="Domain" copyable value={details.domain} href={`https://${details.domain.replace(/^https?:\/\//, '')}`} onCopy={() => showToast('Kopiert ✓')} onSave={(v) => saveDetail('domain', v)} />
+        <DetailField label="Stadt / HQ" value={details.firmaStadt} onSave={(v) => saveDetail('firmaStadt', v)} />
+        <DetailField label="Land" value={details.firmaLand} options={LAND_OPTS} onSelect={(v) => saveDetail('firmaLand', v)} />
       </DetailSection>
 
       <DetailSection title="Klassifizierung" icon={Tag}>
-        <DetailField label="Lead Status" value={details.leadStatus} options={LEAD_STATUS_OPTS} onSelect={(v) => setDetail('leadStatus', v)} />
+        <DetailField label="Lead Status" value={details.leadStatus} options={LEAD_STATUS_OPTS} onSelect={(v) => { setDetails((d) => ({ ...d, leadStatus: v })); const slug = contactStatusSlug(v); if (slug) updateContactMutation.mutate({ contact_status: slug }); }} />
         <DetailField label="ICP Score" value={details.icp} onSave={(v) => setDetail('icp', v)} />
         <DetailField label="Owner" value={details.owner} onSave={(v) => setDetail('owner', v)} />
         <DetailField label="Tags" value={details.tags} onSave={(v) => setDetail('tags', v)} />

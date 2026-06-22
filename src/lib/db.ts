@@ -282,13 +282,51 @@ export async function getContactDetail(
   const { data, error } = await client
     .from("contacts")
     .select(
-      `*, ${CONTACT_COMPANY_EMBED}, deals(id, name, stage, updated_at, stage_updated_at, closed_at, created_at, deleted_at), contact_phones(id, number, label, is_primary, created_at)`,
+      // Firmen-Embed hier breiter als CONTACT_COMPANY_EMBED: der Details-Tab seedet/schreibt auch
+      // Branche/Größe/Stadt/Land der Firma.
+      `*, company:companies!company_id(name, website, domain, industry, size_range, city, country), deals(id, name, stage, updated_at, stage_updated_at, closed_at, created_at, deleted_at), contact_phones(id, number, label, is_primary, created_at)`,
     )
     .eq("organization_id", organizationId)
     .eq("id", contactId)
     .single();
   if (error) return null;
   return data ?? null;
+}
+
+/**
+ * updateContact — Stammdatenfelder eines Kontakts schreiben (Details-Tab / Inline-Edit). Nur die
+ * übergebenen Felder (Partial), org-gescoped (RLS), Audit via Trigger. Aufrufer validiert vorher
+ * (E-Mail/URL) und schreibt NULL statt Leerstring, wenn der User ein Feld geleert hat.
+ */
+export async function updateContact(
+  contactId: string,
+  organizationId: string,
+  fields: Record<string, unknown>,
+): Promise<void> {
+  const client = getSupabaseClient();
+  if (!client || Object.keys(fields).length === 0) return;
+  const { error } = await client
+    .from("contacts")
+    .update(fields)
+    .eq("organization_id", organizationId)
+    .eq("id", contactId);
+  if (error) throw error;
+}
+
+/** updateCompany — Firmen-Stammdaten (Details-Tab Firma-Sektion). Wie updateContact, auf companies. */
+export async function updateCompany(
+  companyId: string,
+  organizationId: string,
+  fields: Record<string, unknown>,
+): Promise<void> {
+  const client = getSupabaseClient();
+  if (!client || Object.keys(fields).length === 0) return;
+  const { error } = await client
+    .from("companies")
+    .update(fields)
+    .eq("organization_id", organizationId)
+    .eq("id", companyId);
+  if (error) throw error;
 }
 
 // ── contact_phones Writes (PH3) ──────────────────────────────────────────────

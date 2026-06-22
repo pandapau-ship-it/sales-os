@@ -27,13 +27,16 @@ export interface DetailFieldProps {
   readonly?: boolean;
   type?: string;
   placeholder?: string;
+  /** Soft-Validation: leerer Wert ist immer ok; sonst false → roter Rand + kein onSave. */
+  validate?: (v: string) => boolean;
 }
 
 export default function DetailField({
-  label, value, onSave, options, onSelect, href, copyable, onCopy, readonly, type = "text", placeholder,
+  label, value, onSave, options, onSelect, href, copyable, onCopy, readonly, type = "text", placeholder, validate,
 }: DetailFieldProps) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value);
+  const [invalid, setInvalid] = useState(false);
   useEffect(() => { setDraft(value); }, [value]);
   const filled = value.trim().length > 0;
 
@@ -90,13 +93,20 @@ export default function DetailField({
           type={type}
           value={draft}
           placeholder={placeholder}
-          onChange={(e) => setDraft(e.target.value)}
-          onBlur={() => { if (draft.trim() !== value.trim()) onSave?.(draft.trim()); setEditing(false); }}
+          onChange={(e) => { setDraft(e.target.value); if (invalid) setInvalid(false); }}
+          onBlur={() => {
+            const v = draft.trim();
+            // Soft-Validation: ungültig (nicht leer) → roter Rand, kein Write, im Edit-Modus bleiben.
+            if (v !== "" && validate && !validate(v)) { setInvalid(true); return; }
+            if (v !== value.trim()) onSave?.(v);
+            setInvalid(false);
+            setEditing(false);
+          }}
           onKeyDown={(e) => {
             if (e.key === "Enter") e.currentTarget.blur();
-            if (e.key === "Escape") { setDraft(value); setEditing(false); }
+            if (e.key === "Escape") { setDraft(value); setInvalid(false); setEditing(false); }
           }}
-          className="w-full rounded-[8px] border border-[var(--sherloq-primary)] bg-app-surface px-2.5 py-1.5 text-[14px] font-semibold text-text-primary outline-none placeholder-[var(--text-muted)]"
+          className={`w-full rounded-[8px] border bg-app-surface px-2.5 py-1.5 text-[14px] font-semibold text-text-primary outline-none placeholder-[var(--text-muted)] ${invalid ? "border-[var(--signal-urgent-text)]" : "border-[var(--sherloq-primary)]"}`}
         />
       </div>
     );
