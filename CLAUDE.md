@@ -1706,6 +1706,68 @@ Service Role Key nur in Edge Functions — nie im Client.
 > Migration 012). Danach durch die echte Session-`organization_id` ersetzen.
 > Hängt mit dem offenen `useModules`-Punkt zusammen (CHECKLIST.md).
 
+### Auth/Org-Wiring [D21] — Entscheidungen (verbindlich)
+
+> Festgelegt 2026-06-22. Umsetzung in der Auth/Org-Phase ([D21], siehe PROGRESS → Deferred).
+
+#### Login-Methoden (entschieden)
+- **Magic Link (primär)** — einmalig, läuft nach **1h** ab
+- **Google SSO**
+- **Microsoft SSO**
+- **Kein Passwort-Login**
+
+#### 2FA (entschieden)
+- **TOTP** (Authenticator App) — Supabase nativ
+- **Kein SMS-2FA** (unsicher — SIM-Swapping)
+- **Member:** optional
+- **Admin:** empfohlen (Hinweis beim ersten Login)
+- **Owner:** Pflicht (nicht deaktivierbar)
+- **Magic Link + SSO gelten als impliziter zweiter Faktor**
+
+#### Teams (entschieden)
+- Teams existieren **innerhalb einer Org**
+- **Kontakte:** alle Members sehen alle Kontakte der Org
+- **Deals:** Standard = eigene Deals, Switch auf „alle" möglich
+- Teams dienen zur **gegenseitigen Vertretung**
+
+#### Einladungs-Flow (entschieden)
+- Supabase Auth schickt die Email
+- **Branding:** Org-Logo + Org-Name in der Email
+- Magic Link in der Email, läuft nach **7 Tagen** ab
+- **Erster User einer neuen Org = automatisch Owner**
+
+#### Onboarding-Flow (entschieden)
+1. Name + Avatar
+2. Team einladen (überspringbar)
+3. Pipeline konfigurieren (überspringbar)
+4. Fertig → Dashboard
+
+#### Session-Länge (entschieden)
+- **30 Tage** eingeloggt bleiben
+- Refresh Token verlängert sich bei Aktivität
+- **Auto-Logout nach 90 Tagen** ohne Aktivität
+- **Sofort-Logout** bei: manuell / Sicherheitsvorfall
+
+#### `teams` + `team_members` Tabellen (neu — in der [D21]-Phase anlegen)
+```sql
+teams (
+  id               uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id  uuid NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  name             text NOT NULL,
+  created_by       uuid REFERENCES users(id),
+  created_at       timestamptz DEFAULT now()
+)
+
+team_members (
+  team_id    uuid REFERENCES teams(id) ON DELETE CASCADE,
+  user_id    uuid REFERENCES users(id) ON DELETE CASCADE,
+  joined_at  timestamptz DEFAULT now(),
+  PRIMARY KEY (team_id, user_id)
+)
+```
+> Beide Tabellen folgen den SaaS-Pflichtregeln: `organization_id` + RLS (`org_isolation`) +
+> `ON DELETE CASCADE`. RLS team-aware (→ PRODUCT BACKLOG: Team-Management).
+
 ### 3. Benutzer & Einladungen
 
 ```sql
