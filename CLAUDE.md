@@ -1617,7 +1617,7 @@ Keine leeren Listen, keine Platzhalter, keine „noch keine Daten"-Zustände, ke
 | Tab / Bereich | Kachel erscheint wenn |
 |---|---|
 | Pipeline Stagniert | `deals.stagnation_days >= threshold` (aus settings) |
-| Keine Task | Deal aktiv + keine offene Task in `tasks` |
+| Keine Task | **Kontakt** hat mindestens einen aktiven Deal (nicht terminal) UND keine offene Task → **eine** Kachel pro **Kontakt** (zeigt Kontakt + alle seine Deals), **nicht** pro Deal eine eigene Kachel. Grund: ein SDR denkt in Personen, nicht in Deals — eine Task deckt alle Deals dieser Person ab |
 | Follow-ups | `tasks.due_at <= heute` + `completed_at IS NULL` |
 | Signals | Eintrag in `signals` Tabelle vorhanden |
 | Neu in Pipeline | `deals.created_at` innerhalb Zeitfenster |

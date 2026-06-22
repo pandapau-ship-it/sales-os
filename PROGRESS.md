@@ -1031,6 +1031,14 @@ neuer Produkt-Code. Nächster echter Bau-Block = Phase 5 (Supabase).
 
 ## Nächste Schritte — Phase 5: Supabase Setup
 
+> ⭐ **MORGEN ZUERST — Keine-Task-Logik korrigieren (Kontakt-basiert statt Deal-basiert):**
+> - **Aktuell:** pro Deal ohne Task eine eigene Kachel.
+> - **Neu:** pro **Kontakt** ohne Task eine Kachel — sofern der Kontakt **mindestens einen aktiven
+>   (nicht terminalen) Deal** hat. Die Kachel zeigt den Kontakt + **alle** seine Deals (eine Task
+>   deckt alle ab; ein SDR denkt in Personen, nicht in Deals).
+> - **Umsetzung:** Query-Änderung in `db.ts` + Mapper + Kachel-Text anpassen.
+> - **Geschätzt:** 30–45 Minuten. (Entscheidung dokumentiert in CLAUDE.md → „Signal-getriebene UI".)
+
 ### Priorität 1 — Datenbank
 - [ ] Supabase Projekt erstellen
 - [ ] Schema SQL ausführen (alle Tabellen: workspaces, users, contacts, companies, pipeline_deals, communications, tasks, sequences, sequence_rules, kurzakte_entries, user_modules, ai_usage, system_config, audit_log)
