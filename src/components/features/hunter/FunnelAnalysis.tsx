@@ -32,7 +32,7 @@ export default function FunnelAnalysis({ stages }: { stages: FunnelStage[] }) {
       <div className="w-full bg-app-surface rounded-[16px] p-7 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.04)]">
         {/* Header */}
         <div className="mb-8">
-          <span className="text-[10px] font-extrabold text-[var(--text-muted)] uppercase tracking-widest leading-none">
+          <span className="typo-section-label text-[var(--text-muted)] leading-none">
             {t('hunter.funnel.header')}
           </span>
         </div>
@@ -64,7 +64,7 @@ export default function FunnelAnalysis({ stages }: { stages: FunnelStage[] }) {
 
                   {/* Deals-Anzahl + €-Summe */}
                   <div className="text-center h-[48px] flex flex-col justify-end pb-2.5">
-                    <span className="text-[14px] font-bold text-[var(--text-primary)] leading-none">
+                    <span className="typo-field-value text-[var(--text-primary)] leading-none">
                       {t('hunter.funnel.deals', { count: stage.deals })}
                     </span>
                     <span className="text-[12px] font-semibold text-[var(--text-muted)] mt-1.5 leading-none">
@@ -90,7 +90,7 @@ export default function FunnelAnalysis({ stages }: { stages: FunnelStage[] }) {
 
                   {/* Stage-Name */}
                   <div className="absolute bottom-0 text-center w-full">
-                    <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest block leading-none py-1">
+                    <span className="typo-section-label text-[var(--text-muted)] block leading-none py-1">
                       {stage.name}
                     </span>
                   </div>

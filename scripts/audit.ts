@@ -428,6 +428,9 @@ function checkTypographyTokens(): void {
     // [D27] Typo-Kanon Welle 1 — Formulare/Panels (auch features/hunter)
     'TaskAnlegenForm', 'TaskFormular', 'TaskEntwurfForm', 'MailComposer',
     'AddSdrLeadPanel', 'ChatActionPanel', 'HunterSidepanel',
+    // [D27] Typo-Kanon Welle 2 — Karten/Felder
+    'LinkedinSignalCard', 'NewInPipelineCards', 'KpiCard', 'EditableInline',
+    'DetailField', 'DetailPhoneList', 'FunnelAnalysis',
   ])
   // panel-blocks/ + features/hunter/ (dort liegen ChatActionPanel/AddSdrLeadPanel/HunterSidepanel).
   const files = [

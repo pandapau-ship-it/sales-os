@@ -58,7 +58,7 @@ export default function DetailPhoneList({
 
   return (
     <div className="min-w-0">
-      <div className="text-[10px] font-extrabold text-text-muted uppercase tracking-widest mb-2">Telefonnummern</div>
+      <div className="typo-section-label text-text-muted mb-2">Telefonnummern</div>
       <div className="flex flex-col gap-1.5">
         {phones.length === 0 && <div className="text-[13px] text-text-muted">Keine Nummer hinterlegt.</div>}
         {phones.map((p) => (

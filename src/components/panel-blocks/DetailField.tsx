@@ -47,7 +47,7 @@ export default function DetailField({
   useEffect(() => { setDraft(value); }, [value]);
   const filled = value.trim().length > 0;
 
-  const Label = <div className="text-[10px] font-extrabold text-text-muted uppercase tracking-widest mb-1">{label}</div>;
+  const Label = <div className="typo-field-label text-text-muted mb-1">{label}</div>;
 
   const copy = async () => {
     try { await navigator.clipboard.writeText(value); } catch { /* clipboard n/a */ }
