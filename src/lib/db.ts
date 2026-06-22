@@ -853,6 +853,25 @@ export async function getOrgUsers(
 }
 
 /**
+ * getUserOrgRole — organization_id + role des eingeloggten Users aus public.users
+ * ([D21], Single-Source fürs Session→Org-Wiring). null wenn kein Backend oder kein
+ * passender users-Datensatz (dann greift im Hook der DEMO_ORGANIZATION_ID-Fallback).
+ */
+export async function getUserOrgRole(
+  userId: string,
+): Promise<{ organization_id: string; role: string } | null> {
+  const client = getSupabaseClient();
+  if (!client) return null;
+  const { data, error } = await client
+    .from("users")
+    .select("organization_id, role")
+    .eq("id", userId)
+    .single();
+  if (error) return null; // kein Treffer / RLS → Fallback im Hook
+  return data as { organization_id: string; role: string };
+}
+
+/**
  * createDeal — neuen Deal anlegen (P5b, einfacher User-Write). Audit via DB-Trigger,
  * keine Edge Function. value: € → Cent (×100). stage = Default `backlog` (kein Stage-Wechsel).
  * owner_id bleibt NULL (vgl. [D21] — Auto-Set des Session-Users kommt mit Auth/Org-Wiring).
