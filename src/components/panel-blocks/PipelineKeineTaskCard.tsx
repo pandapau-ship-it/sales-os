@@ -59,6 +59,7 @@ export const PipelineKeineTaskCard = ({ items, onTaskAnlegen, onSelectLead }: {
           <HunterCard
             key={it.dealId}
             data={data}
+            contactId={it.contactId}
             onOpenInfo={onSelectLead ? () => onSelectLead(it) : undefined}
             actionRow={actionRow}
             statusDotClass="bg-[var(--icp-medium)]"

@@ -11,7 +11,8 @@ import { triggerConfetti } from '@/lib/confetti';
 import {
   ArrowUpRight, ArrowLeft, X, Clock, Check,
   Plus, Briefcase,
-  StickyNote, User, Building2, Tag
+  User, Building2, Tag,
+  LayoutDashboard, Activity, MessageSquare, CheckSquare, FileText
 } from 'lucide-react';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import Avatar from '@/components/shared/Avatar';
@@ -77,7 +78,7 @@ const DETAIL_MAP: Record<string, { table: 'contact' | 'company'; col: string }> 
 // DetailField · DetailSection · StatusBadge · DetailPhoneList → ausgelagert nach
 // src/components/panel-blocks/ (siehe Imports). Hier nur noch deren Komposition.
 
-export default function HunterSidepanel({ person: personProp, onClose, onExit, variant = 'panel', initialAction = null, initialTab = null, initialDealId = null, initialFocusField = null }: { person: any; onClose: () => void; onExit?: () => void; variant?: 'panel' | 'full'; initialAction?: 'mail' | 'task' | 'chat' | null; initialTab?: 'overview' | 'deals' | 'tasks' | 'activity' | 'notes' | null; initialDealId?: string | null; initialFocusField?: string | null }) {
+export default function HunterSidepanel({ person: personProp, onClose, onExit, variant = 'panel', initialAction = null, initialTab = null, initialDealId = null, initialDealEditId = null, initialFocusField = null }: { person: any; onClose: () => void; onExit?: () => void; variant?: 'panel' | 'full'; initialAction?: 'mail' | 'task' | 'chat' | null; initialTab?: 'overview' | 'deals' | 'tasks' | 'activity' | 'notes' | null; initialDealId?: string | null; initialDealEditId?: string | null; initialFocusField?: string | null }) {
   const [activeTab, setActiveTab] = useState(variant === 'full' ? 'details' : 'overview');
   // Aus der Übersicht „Deal/Task bearbeiten" → Ziel-Tab öffnet die Bearbeiten-Kachel direkt.
   const [dealsAutoEditId, setDealsAutoEditId] = useState<string | null>(null); // Übersicht „Bearbeiten" → Deal-id im Deals-Tab
@@ -104,6 +105,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
       setDetails(DEFAULT_DETAILS);
       // Karten-Aktion: Panel direkt mit der passenden Aktion öffnen. ('mail' deferred — Kommunikation P7.)
       if (initialFocusField) { setActiveTab('details'); } // Deep-Link Panel-Stift → Vollansicht Details-Tab
+      else if (initialDealEditId) { setDealsAutoEditId(initialDealEditId); setActiveTab('deals'); } // Karten-Bleistift → Deal im Edit-Modus
       else if (initialAction === 'task') { setTasksAutoEditId('new'); setActiveTab('tasks'); }
       else if (initialTab) { setActiveTab(initialTab); } // Deeplink z.B. Kanban-Karten-Klick → Deals-Tab
       else setActiveTab(variant === 'full' ? 'details' : 'overview');
@@ -128,6 +130,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
   const stageMap = Object.fromEntries((stagesQuery.data ?? []).map((s) => [s.slug, s.name]));
   // P5c-2b: Stage→Probability (für abgeleitete Probability-Anzeige) + Stage-Liste fürs Create-Dropdown (in Pipeline-Reihenfolge).
   const stageProbMap = Object.fromEntries((stagesQuery.data ?? []).map((s) => [s.slug, s.probability]));
+  const stagnationBySlug = Object.fromEntries((stagesQuery.data ?? []).map((s) => [s.slug, s.stagnation_days]));
   const stageOptions = [...(stagesQuery.data ?? [])].sort((a, b) => a.order - b.order).map((s) => ({ slug: s.slug, name: s.name }));
   const contactRow = contactQuery.data ?? null;
   const profile = contactToProfile(contactRow);              // zentrale Leitung
@@ -469,7 +472,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
   const ACTIONS = [
     { icon: Plus, label: 'Task', onClick: () => { setTasksAutoEditId('new'); setActiveTab('tasks'); } },
     { icon: Briefcase, label: 'Deal', onClick: () => { setDealsAutoNew(true); setActiveTab('deals'); } },
-    { icon: StickyNote, label: 'Notiz', onClick: () => { setNotesAutoCompose(true); setActiveTab('notes'); } },
+    { icon: FileText, label: 'Notiz', onClick: () => { setNotesAutoCompose(true); setActiveTab('notes'); } },
   ];
   const renderActions = (btnClass: string) =>
     ACTIONS.map((a) => {
@@ -555,12 +558,12 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
   const tabNav = (
     <PanelTabs
       tabs={[
-        { id: 'overview', label: 'Übersicht' },
-        { id: 'activity', label: 'Aktivität' },
-        { id: 'communication', label: 'Kommunikation' },
-        { id: 'tasks', label: 'Tasks' },
-        { id: 'deals', label: 'Deals' },
-        { id: 'notes', label: 'Notizen' },
+        { id: 'overview', label: 'Übersicht', icon: <LayoutDashboard className="w-3.5 h-3.5" /> },
+        { id: 'activity', label: 'Aktivität', icon: <Activity className="w-3.5 h-3.5" /> },
+        { id: 'communication', label: 'Kommunikation', icon: <MessageSquare className="w-3.5 h-3.5" /> },
+        { id: 'tasks', label: 'Tasks', icon: <CheckSquare className="w-3.5 h-3.5" /> },
+        { id: 'deals', label: 'Deals', icon: <Briefcase className="w-3.5 h-3.5" /> },
+        { id: 'notes', label: 'Notizen', icon: <FileText className="w-3.5 h-3.5" /> },
       ]}
       active={activeTab}
       onChange={setActiveTab}
@@ -587,6 +590,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
               dealRows={dealsQuery.data ?? []}
               stageNameBySlug={stageMap}
               stageProbBySlug={stageProbMap}
+              stagnationBySlug={stagnationBySlug}
               stageOptions={stageOptions}
               primaryDealId={primaryDeal?.id}
               onEditDeal={(id) => { setDealsAutoEditId(id); setActiveTab('deals'); }}
@@ -648,6 +652,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
             dealRows={dealsQuery.data ?? []}
             stageNameBySlug={stageMap}
             stageProbBySlug={stageProbMap}
+            stagnationBySlug={stagnationBySlug}
             productOptions={productOptions}
             ownerOptions={ownerOptions}
             stageOptions={stageOptions}
@@ -731,7 +736,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
             mit dem email_verification-Modul (settings.modules) zurück (Honesty: kein Fake-Status). */}
       </DetailSection>
 
-      <DetailSection title="Notizen" icon={StickyNote} cols={1}>
+      <DetailSection title="Notizen" icon={FileText} cols={1}>
         <textarea
           value={details.notiz}
           onChange={(e) => setDetails((d) => ({ ...d, notiz: e.target.value }))}
@@ -796,13 +801,13 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
   // Voll-Variante — echte Seite. Die gesamte Seite scrollt (ein Scroll-Container);
   // nur Topbar und Tab-Leiste bleiben per sticky oben stehen. Kein Panel-Inner-Scroll.
   const FULL_TABS = [
-    { id: 'details', label: 'Details' },
-    { id: 'overview', label: 'Übersicht' },
-    { id: 'activity', label: 'Aktivität' },
-    { id: 'communication', label: 'Kommunikation' },
-    { id: 'tasks', label: 'Tasks' },
-    { id: 'deals', label: 'Deals' },
-    { id: 'notes', label: 'Notizen' },
+    { id: 'details', label: 'Details', icon: <Tag className="w-3.5 h-3.5" /> },
+    { id: 'overview', label: 'Übersicht', icon: <LayoutDashboard className="w-3.5 h-3.5" /> },
+    { id: 'activity', label: 'Aktivität', icon: <Activity className="w-3.5 h-3.5" /> },
+    { id: 'communication', label: 'Kommunikation', icon: <MessageSquare className="w-3.5 h-3.5" /> },
+    { id: 'tasks', label: 'Tasks', icon: <CheckSquare className="w-3.5 h-3.5" /> },
+    { id: 'deals', label: 'Deals', icon: <Briefcase className="w-3.5 h-3.5" /> },
+    { id: 'notes', label: 'Notizen', icon: <FileText className="w-3.5 h-3.5" /> },
   ];
   const fullBody = person && (
     <div className="fixed inset-0 z-[120] bg-app-bg font-sans overflow-y-auto animate-fade-in">
@@ -836,8 +841,9 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`relative py-4 text-[13px] font-bold transition-colors shrink-0 ${activeTab === tab.id ? 'text-[var(--sherloq-primary)]' : 'text-text-muted hover:text-text-body'}`}
+              className={`relative py-4 text-[13px] font-bold transition-colors shrink-0 inline-flex items-center gap-1.5 ${activeTab === tab.id ? 'text-[var(--sherloq-primary)]' : 'text-text-muted hover:text-text-body'}`}
             >
+              {tab.icon}
               {tab.label}
               {activeTab === tab.id && (
                 <div className="absolute left-0 right-0 bottom-0 bg-[var(--sherloq-primary)] rounded-t-full" style={{ height: '2px' }} />

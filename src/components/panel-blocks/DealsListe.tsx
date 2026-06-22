@@ -12,7 +12,8 @@ import { Plus, Briefcase, Pencil, Trash2, Check, X, CheckCircle2 } from "lucide-
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { HOVER_ACTIONS } from "@/lib/componentBehavior";
-import { dealToView, WON_STAGE_SLUG, LOST_STAGE_SLUG, type DealView } from "@/lib/hunterMappers";
+import { dealToView, stagnationFlag, WON_STAGE_SLUG, LOST_STAGE_SLUG, type DealView } from "@/lib/hunterMappers";
+import StagnationHint from "./StagnationHint";
 import StageBadge from "./StageBadge";
 import DealSetup from "./DealSetup";
 import NewDealCard, { type DealDraft } from "./NewDealCard";
@@ -36,12 +37,14 @@ function DealsListeReadonly({
   variant = "detail", primaryDealId,
   onCreate, onUpdate, onDelete, onEditDeal,
   autoNew = false, autoEditId, onAutoConsumed,
-  onChangeStage, stageChangePendingId,
+  onChangeStage, stageChangePendingId, stagnationBySlug,
 }: {
   items: DealView[];
   productOptions?: string[];
   ownerOptions?: { id: string; name: string }[];
   stageOptions?: { slug: string; name: string }[];
+  /** Schwellen je Stage (settings.pipeline_stages.stagnation_days) → Stagnations-Hinweis. */
+  stagnationBySlug?: Record<string, number | null>;
   /** Stage-Badge klickbar machen: Auswahl → onChangeStage(dealId, newSlug). Fehlt → Badge bleibt dekorativ. */
   onChangeStage?: (dealId: string, newSlug: string) => void;
   /** dealId dessen Stage-Write gerade läuft → dessen Badge disabled. */
@@ -289,8 +292,10 @@ function DealsListeReadonly({
       );
     }
     if (!d.stageLabel) return null;
-    if (!onChangeStage) return <StageBadge stage={d.stageLabel} />;
-    return (
+    const flag = stagnationFlag(d.stageSlug, d.stagnationDays, stagnationBySlug ?? {});
+    const badge = !onChangeStage ? (
+      <StageBadge stage={d.stageLabel} />
+    ) : (
       <DropdownMenu>
         <DropdownMenuTrigger asChild disabled={stageChangePendingId === d.id}>
           <button type="button" aria-label={t("hunter.common.edit")} data-tip="Stage ändern" className="cursor-pointer disabled:opacity-50 disabled:cursor-default rounded-full">
@@ -305,6 +310,12 @@ function DealsListeReadonly({
           ))}
         </DropdownMenuContent>
       </DropdownMenu>
+    );
+    return (
+      <span className="inline-flex items-center gap-2">
+        {badge}
+        {flag != null && <StagnationHint days={flag} />}
+      </span>
     );
   };
 
@@ -428,7 +439,7 @@ const fmtDate = (d: string) => (d ? new Date(d).toLocaleDateString("de-DE", { da
 let seq = 0;
 
 export default function DealsListe({
-  onToast, autoEdit = false, autoNew = false, onAutoEditConsumed, dealRows, stageNameBySlug, stageProbBySlug, productOptions, ownerOptions, stageOptions, variant, primaryDealId, onCreateDeal, onUpdateDeal, onDeleteDeal, onEditDeal, autoEditId, onChangeStage, stageChangePendingId,
+  onToast, autoEdit = false, autoNew = false, onAutoEditConsumed, dealRows, stageNameBySlug, stageProbBySlug, stagnationBySlug, productOptions, ownerOptions, stageOptions, variant, primaryDealId, onCreateDeal, onUpdateDeal, onDeleteDeal, onEditDeal, autoEditId, onChangeStage, stageChangePendingId,
 }: {
   onToast?: (msg: string) => void;
   autoEdit?: boolean;
@@ -439,6 +450,8 @@ export default function DealsListe({
   stageNameBySlug?: Record<string, string>;
   /** Stage→Probability (settings.pipeline_stages) — Probability wird daraus abgeleitet (P5c-2b). */
   stageProbBySlug?: Record<string, number>;
+  /** Stage→Stagnations-Schwelle (settings.pipeline_stages.stagnation_days) → roter Hinweis. */
+  stagnationBySlug?: Record<string, number | null>;
   /** Produkt-Katalog (Namen) fürs Dropdown (P5b). */
   productOptions?: string[];
   /** Owner-Auswahl (User der Org) fürs Dropdown (P5c-1). */
@@ -473,6 +486,7 @@ export default function DealsListe({
         productOptions={productOptions}
         ownerOptions={ownerOptions}
         stageOptions={stageOptions}
+        stagnationBySlug={stagnationBySlug}
         variant={variant}
         primaryDealId={primaryDealId}
         onCreate={onCreateDeal}

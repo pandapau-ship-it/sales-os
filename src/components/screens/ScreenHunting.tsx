@@ -31,11 +31,11 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@
 import { heatFor } from '@/lib/constants';
 import { ICPDonut } from '@/components/shared/ICPDonut';
 import { NAV } from '@/lib/navBehavior';
-import { AddSdrLeadPanel, ContactColdDrawer, EmptyState, FollowUpKaltCard, FunnelAnalysis, HeatBadge, HunterSidepanel, KpiCard, LeadListRow, LinkedinSignalCard, NewInPipelineCards, PipelineKeineTaskCard, PipelineStagniertCard, SequenceLeadCards, SignalActionDrawer, StageBadge, TaskDrawer } from '@/components';
+import { AddSdrLeadPanel, ContactColdDrawer, EmptyState, FollowUpKaltCard, FunnelAnalysis, HeatBadge, HunterSidepanel, KpiCard, LeadListRow, LinkedinSignalCard, NewInPipelineCards, PipelineKeineTaskCard, PipelineStagniertCard, SequenceLeadCards, SignalActionDrawer, StageBadge, StagnationHint, TaskDrawer } from '@/components';
 import type { SignalActionData } from '@/components';
 
 import Avatar from '@/components/shared/Avatar';
-import { signalToCardProps, signalToActionData, contactToColdPerson, contactToProfile, taskToDueCard, dealToNewPipelineRow, dealToStagnatedCard, dealToNoTaskCard, newPipelineInPeriod, isTerminalStage, WON_STAGE_SLUG, LOST_STAGE_SLUG, type PipelineRow, type NewPipelinePeriod, type StagnatedCardItem, type NoTaskCardItem } from '@/lib/hunterMappers';
+import { signalToCardProps, signalToActionData, contactToColdPerson, contactToProfile, taskToDueCard, dealToNewPipelineRow, dealToStagnatedCard, dealToNoTaskCard, newPipelineInPeriod, isTerminalStage, stagnationFlag, WON_STAGE_SLUG, LOST_STAGE_SLUG, type PipelineRow, type NewPipelinePeriod, type StagnatedCardItem, type NoTaskCardItem } from '@/lib/hunterMappers';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { updateDealStage, updateDealWon, updateDealLost } from '@/lib/db';
 import { DEMO_ORGANIZATION_ID } from '@/lib/org';
@@ -276,6 +276,17 @@ export default function ScreenHunting({
   const [infoPanelTab, setInfoPanelTab] = useState<'overview' | 'deals' | 'tasks' | 'activity' | 'notes' | null>(null);
   // Vorausgefüllter Deal für „Task anlegen" aus Pipeline-Task-Kachel → Deal-Dropdown readonly.
   const [infoPanelDealId, setInfoPanelDealId] = useState<string | null>(null);
+  // Deal im Edit-Modus öffnen (Karten-Bleistift im aufgeklappten Bereich).
+  const [infoPanelDealEditId, setInfoPanelDealEditId] = useState<string | null>(null);
+
+  // Zentrale Karten-Aktion (aufgeklappter Bereich): Task/Notiz/Deal-Edit → Panel mit passendem Tab.
+  const handleCardAction = (action: string, lead: Lead, dealId?: string) => {
+    setInfoPanelLead(lead);
+    if (action === 'task') setInfoPanelAction('task');
+    else if (action === 'note') setInfoPanelTab('notes');
+    else if (action === 'editDeal') { setInfoPanelTab('deals'); setInfoPanelDealEditId(dealId ?? null); }
+    else if (action === 'mail' || action === 'chat') setInfoPanelAction(action);
+  };
 
   const toggleLeadSelection = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -435,6 +446,7 @@ export default function ScreenHunting({
                 return (
                   <FollowUpKaltCard
                     key={String((raw as { id?: string }).id ?? p.name)}
+                    contactId={(raw as { id?: string }).id}
                     name={p.name}
                     role={p.jobTitle}
                     companyName={p.company}
@@ -518,7 +530,7 @@ export default function ScreenHunting({
                 onToggleExpand={() => setExpandedLeadId(isExpanded ? null : lead.id)}
                 onToggleSelect={(e) => toggleLeadSelection(lead.id, e)}
                 onOpenInfo={() => setInfoPanelLead(lead)}
-                onAction={(a) => { setInfoPanelAction(a); setInfoPanelLead(lead); }}
+                onAction={(a, dealId) => handleCardAction(a, lead, dealId)}
                 onSelectCommunication={onSelectCommunication}
               />
             );
@@ -880,7 +892,7 @@ export default function ScreenHunting({
                         <span className="text-[12px] text-text-muted">—</span>
                       )}
                     </div>
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex items-center gap-2">
                       {/* P8-2d: Stage-Badge klickbar → Inline-Dropdown → Stage wechseln (echter Write).
                           Dekorativer StageBadge bleibt read-only; nur der Wrapper trägt onClick. */}
                       <DropdownMenu>
@@ -897,6 +909,7 @@ export default function ScreenHunting({
                           ))}
                         </DropdownMenuContent>
                       </DropdownMenu>
+                      {(() => { const f = stagnationFlag(deal.stageSlug, deal.stagnationDays, stagnationBySlug); return f != null ? <StagnationHint days={f} /> : null; })()}
                     </div>
                     <span className="text-[12px] text-text-body font-medium truncate">{deal.ownerLabel}</span>
                     <span className="text-[12px] font-bold text-text-primary">
@@ -1021,7 +1034,8 @@ export default function ScreenHunting({
         initialAction={infoPanelAction}
         initialTab={infoPanelTab}
         initialDealId={infoPanelDealId}
-        onClose={() => { setInfoPanelLead(null); setInfoPanelAction(null); setInfoPanelTab(null); setInfoPanelDealId(null); }}
+        initialDealEditId={infoPanelDealEditId}
+        onClose={() => { setInfoPanelLead(null); setInfoPanelAction(null); setInfoPanelTab(null); setInfoPanelDealId(null); setInfoPanelDealEditId(null); }}
       />
 
       {/* P8-3c: Close-Deal-Popup (letzter Kanban-Pfeil) → Gewonnen (direkt + Konfetti) / Verloren (Lost-Modal). */}

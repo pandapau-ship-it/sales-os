@@ -10,7 +10,7 @@ import { useTranslation } from "react-i18next";
 import { Briefcase, Target, Mail, CalendarCheck, MessageSquare } from "lucide-react";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 
-export type DealCardAction = "mail" | "task" | "chat";
+export type DealCardAction = "mail" | "task" | "chat" | "note" | "editDeal";
 
 // Kanonische Default-Stages (bis settings/pipeline_stages aus der DB kommen).
 const STAGES = ["Backlog", "Demo vereinbart", "Follow-up offen", "Onboarding offen", "Free Trial", "Gewonnen"];

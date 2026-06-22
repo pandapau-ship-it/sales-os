@@ -6,18 +6,23 @@
  */
 import type { MouseEvent } from "react";
 import { useTranslation } from "react-i18next";
+import { useQuery } from "@tanstack/react-query";
 import {
-  Check, ChevronUp, ChevronDown, ArrowRight, Zap,
+  Check, ChevronUp, ChevronDown, ArrowRight, Zap, Plus, FileText, Mail,
 } from "lucide-react";
 import Avatar from "@/components/shared/Avatar";
 import { ICPDonut } from "@/components/shared/ICPDonut";
 import CommunicationChain from "@/components/shared/CommunicationChain";
 import HeatBadge from './HeatBadge';
 import StageBadge from './StageBadge';
-import DealKurzinfo, { type DealCardAction } from './DealKurzinfo';
+import { type DealCardAction } from './DealKurzinfo';
+import DealsListe from './DealsListe';
+import { DEMO_ORGANIZATION_ID } from "@/lib/org";
+import { getContactCommunications, getDealsByContact, getPipelineSettings } from "@/lib/db";
+import { communicationToView } from "@/lib/hunterMappers";
 
 export default function LeadListRow({
-  lead, isExpanded, selected, onToggleExpand, onToggleSelect, onOpenInfo, onAction, onSelectCommunication,
+  lead, isExpanded, selected, onToggleExpand, onToggleSelect, onOpenInfo, onAction,
 }: {
   lead: any;
   isExpanded: boolean;
@@ -25,14 +30,41 @@ export default function LeadListRow({
   onToggleExpand: () => void;
   onToggleSelect: (e: MouseEvent) => void;
   onOpenInfo: () => void;
-  onAction?: (action: DealCardAction) => void;
-  onSelectCommunication: any;
+  /** Karten-Aktion → Panel mit Tab/Aktion (editDeal trägt dealId). Fehlt → Fallback onOpenInfo. */
+  onAction?: (action: DealCardAction, dealId?: string) => void;
+  // Weiter akzeptiert (Aufrufer-Kompatibilität), im neuen Expand nicht genutzt.
+  onSelectCommunication?: (personId: string, tpId: string) => void;
 }) {
+  const act = (a: DealCardAction, dealId?: string) => (onAction ? onAction(a, dealId) : onOpenInfo());
   const { t } = useTranslation();
   // „vor X Tagen" aus contacts.last_contacted_at (reine Anzeige). null → „—".
   const lastContactedDays = lead.lastContactedAt
     ? Math.max(0, Math.floor((Date.now() - new Date(lead.lastContactedAt).getTime()) / 86400000))
     : null;
+
+  // Lazy Expand: Deals + Kommunikation + Stages erst beim Aufklappen (lead.id = contact_id).
+  const contactId: string | undefined = lead.id;
+  const lazy = isExpanded && !!contactId;
+  const dealsQuery = useQuery({
+    queryKey: ['dealsByContact', DEMO_ORGANIZATION_ID, contactId],
+    queryFn: () => getDealsByContact(DEMO_ORGANIZATION_ID, contactId as string),
+    enabled: lazy,
+  });
+  const commsQuery = useQuery({
+    queryKey: ['communications', DEMO_ORGANIZATION_ID, contactId],
+    queryFn: () => getContactCommunications(DEMO_ORGANIZATION_ID, contactId as string),
+    enabled: lazy,
+  });
+  const stagesQuery = useQuery({
+    queryKey: ['pipelineStages', DEMO_ORGANIZATION_ID],
+    queryFn: () => getPipelineSettings(DEMO_ORGANIZATION_ID),
+    enabled: lazy,
+  });
+  const stageMap = Object.fromEntries((stagesQuery.data ?? []).map((s) => [s.slug, s.name]));
+  const stageProbMap = Object.fromEntries((stagesQuery.data ?? []).map((s) => [s.slug, s.probability]));
+  const stagnationBySlug = Object.fromEntries((stagesQuery.data ?? []).map((s) => [s.slug, s.stagnation_days]));
+  const commsView = (commsQuery.data ?? []).map(communicationToView);
+  const dealRows = dealsQuery.data ?? [];
 
   return (
     <div
@@ -115,7 +147,21 @@ export default function LeadListRow({
               </>
             )}
           </div>
-          <div className="flex items-center gap-3 relative w-[90px] justify-end">
+          <div className="flex items-center gap-2 relative justify-end">
+            {/* Quick-Actions nur im aufgeklappten Zustand — Icon-only, Tooltip on hover. */}
+            {isExpanded && (
+              <>
+                <button onClick={(e) => { e.stopPropagation(); act('task'); }} aria-label={t('hunter.leadCard.task')} data-tip={t('hunter.leadCard.task')} className="w-9 h-9 rounded-full flex items-center justify-center text-text-muted hover:text-[var(--sherloq-primary)] hover:bg-[var(--signal-teal-bg)] transition-colors cursor-pointer">
+                  <Plus className="w-5 h-5" />
+                </button>
+                <button onClick={(e) => { e.stopPropagation(); act('note'); }} aria-label="Notiz" data-tip="Notiz" className="w-9 h-9 rounded-full flex items-center justify-center text-text-muted hover:text-[var(--sherloq-primary)] hover:bg-[var(--signal-teal-bg)] transition-colors cursor-pointer">
+                  <FileText className="w-5 h-5" />
+                </button>
+                <button disabled aria-label={t('hunter.leadCard.mail')} data-tip="Folgt mit Nango-Anbindung" className="w-9 h-9 rounded-full flex items-center justify-center text-text-muted opacity-40 hover:bg-app-bg cursor-not-allowed">
+                  <Mail className="w-5 h-5" />
+                </button>
+              </>
+            )}
             <button className="w-8 h-8 flex items-center justify-center text-[var(--icon-muted)] hover:text-[var(--text-primary)] transition-colors rounded-full hover:bg-[var(--app-bg)]">
               {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             </button>
@@ -132,46 +178,33 @@ export default function LeadListRow({
         </div>
       </div>
 
-      {/* EXPANDED CONTENT */}
+      {/* EXPANDED CONTENT — zweispaltig (KI-Kurzakte | Deal), Kette darunter volle Breite. */}
       {isExpanded && (
-        <div className="flex flex-col gap-6 border-t border-[var(--border-subtle)] pt-5 mt-2" onClick={(e) => e.stopPropagation()}>
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
-            {/* Left Column (KI Kurzakte) */}
-            <div className="md:col-span-7 bg-app-surface rounded-[12px] p-5 border border-[var(--border)]">
-              <div className="flex items-center gap-2 typo-chevron-header text-[var(--sherloq-primary)] mb-4">
-                <Zap className="w-4 h-4 text-[var(--sherloq-primary)]" /> {t('hunter.common.kiKurzakte')}
+        <div className="flex flex-col gap-5 border-t border-[var(--border-subtle)] pt-5 mt-2" onClick={(e) => e.stopPropagation()}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-stretch">
+            {/* KI-Kurzakte — Label außerhalb (wie „Deals"), Box darunter. Platzhalter bis AI-Pipeline ([D5]). */}
+            <div className="h-full flex flex-col gap-2">
+              <span className="px-1 typo-section-label text-text-muted inline-flex items-center gap-1.5">
+                <Zap className="w-3.5 h-3.5 text-[var(--sherloq-primary)]" /> {t('hunter.common.kiKurzakte')}
+                <span className="px-1.5 py-0.5 rounded-full bg-app-bg text-text-muted text-[9px] font-extrabold uppercase tracking-wide">Folgt</span>
+              </span>
+              <div className="flex-1 bg-app-surface rounded-[12px] p-5 border border-[var(--border)]">
+                <p className="text-[13px] text-text-muted italic leading-relaxed">KI-Kurzakte folgt mit der AI-Pipeline ([D5]).</p>
               </div>
-              <ul className="flex flex-col gap-3 text-[13px] text-[var(--text-body)] leading-relaxed">
-                <li className="flex items-start gap-2.5">
-                  <span className="w-1.5 h-1.5 bg-[var(--sherloq-primary)] rounded-full mt-1.5 shrink-0" />
-                  Hat Budget-Freeze bis Q3 bestätigt. Trotzdem starkes Interesse an Feature Y — fragte aktiv nach ROI-Zahlen.
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className="w-1.5 h-1.5 bg-[var(--sherloq-primary)] rounded-full mt-1.5 shrink-0" />
-                  Persönlichkeit: Blau — analytisch, entscheidet auf Basis von Daten. Kein Smalltalk, direkt zum Punkt.
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className="w-1.5 h-1.5 bg-[var(--sherloq-primary)] rounded-full mt-1.5 shrink-0" />
-                  Objection: Timing wegen Budget-Freeze. Echter Einwand — kein Vorwand. ROI-Argument ist der Schlüssel.
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className="w-1.5 h-1.5 bg-[var(--sherloq-primary)] rounded-full mt-1.5 shrink-0" />
-                  Buying Signal: Demo sehr positiv, fragte nach Implementierungs-Zeitplan. Abschluss realistisch ab Q4.
-                </li>
-              </ul>
             </div>
 
-            {/* Right Column (Deal Details & Aktionen) — geteilter Block */}
-            <div className="md:col-span-5 flex flex-col gap-5">
-              <DealKurzinfo stage="Demo vereinbart" company={lead.person.company} onAction={onAction} onOpenInfo={onOpenInfo} />
-            </div>
+            {/* Deals — echt; Bleistift → Deals-Tab dieses Deals im Edit-Modus. Kein Deal → ausgeblendet. */}
+            {dealRows.length > 0 && (
+              <DealsListe variant="compact" dealRows={dealRows} stageNameBySlug={stageMap} stageProbBySlug={stageProbMap} stagnationBySlug={stagnationBySlug} onEditDeal={(dealId) => act('editDeal', dealId)} />
+            )}
           </div>
 
-          {/* Bottom Row - Communication Chain */}
-          <CommunicationChain
-            personId={lead.id}
-            onSelectCommunication={onSelectCommunication}
-          />
+          {/* Kommunikation — volle Breite, echte Kette mit Hover; leer → ehrlicher Hinweis. */}
+          {commsView.length > 0 ? (
+            <CommunicationChain items={commsView} />
+          ) : (
+            <p className="px-1 text-[12px] text-text-muted">Noch keine Kommunikation protokolliert.</p>
+          )}
         </div>
       )}
     </div>

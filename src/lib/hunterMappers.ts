@@ -160,7 +160,22 @@ export type DealView = {
   endDate?: string; // Vertragsende/Churn
   mrr?: number; // BERECHNET: valueEur / termMonths
   arr?: number; // BERECHNET: mrr × 12
+  stagnationDays?: number; // deals.stagnation_days (Edge Function score-deal-health)
 };
+
+// Stagnations-Hinweis: Tage zurück, wenn Stage nicht terminal UND stagnation_days >= Schwelle
+// (settings.pipeline_stages.stagnation_days). Sonst null → kein Hinweis. Schwelle nie hardcodiert.
+export function stagnationFlag(
+  stageSlug: string,
+  stagnationDays: number | null | undefined,
+  thresholds: Record<string, number | null>,
+): number | null {
+  if (isTerminalStage(stageSlug)) return null;
+  const thr = thresholds[stageSlug];
+  if (typeof thr !== "number") return null;
+  const d = stagnationDays ?? 0;
+  return d >= thr ? d : null;
+}
 
 export function dealToView(
   deal: Record<string, any>,
@@ -199,6 +214,7 @@ export function dealToView(
     endDate: deal.end_date ?? undefined,
     mrr,
     arr,
+    stagnationDays: typeof deal.stagnation_days === "number" ? deal.stagnation_days : undefined,
   };
 }
 
@@ -220,6 +236,7 @@ export type PipelineRow = {
   icpScore: number | null; // deal.contact.icp_score; null → ICP-Ring nicht gerendert
   ownerId: string | null; // deals.owner_id (Filter-Key)
   ownerLabel: string; // owner:users.full_name (Slice C); null → „—" (kein Fake-Name)
+  stagnationDays: number; // deals.stagnation_days (für Stagnations-Hinweis an der Stage)
 };
 
 export function dealToPipelineRow(
@@ -243,6 +260,7 @@ export function dealToPipelineRow(
     icpScore: p.icpScore ?? null,
     ownerId: deal.owner_id ?? null,
     ownerLabel: d.owner ?? "—", // null → ehrliches „—", kein Fake-Name
+    stagnationDays: typeof deal.stagnation_days === "number" ? deal.stagnation_days : 0,
   };
 }
 
