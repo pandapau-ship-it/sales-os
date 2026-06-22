@@ -327,3 +327,24 @@
 - **how:** Passiv — Kontakte protokollieren, Heat-Badges aktualisieren sich selbst. Schwellen in den Einstellungen konfigurierbar.
 - **value:** Heat zeigt immer den echten Beziehungszustand statt manueller Pflege — verlässlicher Frühindikator.
 - **module:** hunter
+
+### Signal-Antwort (Opener)
+- **feature:** Signal-Antwort (Opener)
+- **what:** Aus einem LinkedIn-Signal direkt antworten — Action-Panel mit echtem Kontext (Name/Firma/ICP/Aktionstext/Zeit). KI-Entwurf + Empfehlung als „Folgt"-Platzhalter (AI-Pipeline).
+- **how:** Hunter → Signals → „Antworten" auf einer Signal-Kachel.
+- **value:** Vom Signal zur Reaktion in einem Klick — kein Reaktionsfenster geht verloren.
+- **module:** hunter
+
+### Kontakt reaktivieren (Kalt)
+- **feature:** Kontakt reaktivieren (Kalt)
+- **what:** Action-Panel für kalte/inaktive Kontakte (heat_status kalt/tot), echter Kontext + „vor X Tagen". Reaktivierungs-Entwurf als „Folgt"-Platzhalter. Nur sichtbar bei kalten Kontakten.
+- **how:** Hunter → Follow-ups → Sektion „Kalt & Inaktiv" → „Start Outreach".
+- **value:** Abkühlende Beziehungen aktiv hochgespült + mit einem Klick reaktiviert.
+- **module:** hunter
+
+### Stagnations-Warnung am Deal
+- **feature:** Stagnations-Warnung am Deal
+- **what:** Roter „⚠ Xt"-Hinweis neben der Stage, sobald ein Deal über der Stage-Schwelle ohne Fortschritt steckt. Überall sichtbar (Liste, Kacheln, Übersicht, Expand). Terminal → kein Hinweis.
+- **how:** Passiv; Schwelle pro Stage in den Einstellungen.
+- **value:** Frühwarnung ohne Reporting-Umweg — festhängende Deals fallen sofort auf.
+- **module:** hunter

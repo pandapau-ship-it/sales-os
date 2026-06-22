@@ -561,6 +561,7 @@ Alle prop-driven, Tokens-only, Dark-Mode automatisch.
 | `TaskFormular` | Generische Task-Maske (Anlegen + Bearbeiten) — **nur das Formular**, ohne Kontext-/KI-Meldungen (Optik wie TaskAnlegenForm BLOCK 3); `mode`/`initial`/`onSave`/`onClose`/`onToast` |
 | `KommunikationVerlauf` | Kommunikations-Tab: **echte** protokollierte Touchpoints (`communications` via `communicationToView`) als grüner Zeitstrahl — Kanal-/Richtungs-/Manuell-Badge, occurred_at als Datum, zukünftige Termine als „Ausstehend". Leer → CTA „Ersten Kontakt protokollieren". `items`/`onLog` |
 | `KommunikationKompakt` | Übersicht-Tab „Letzter Kontakt"-Block: 3 neueste Touchpoints (Kanal-Icon · Richtung · occurred_at · Notiz-Vorschau 60 Z.), „Alle anzeigen →" → Kommunikations-Tab. Leer → `null` (Honesty). `items`/`onShowAll` |
+| `StagnationHint` | Roter Stagnations-Hinweis (`AlertTriangle` + „Xt", Token `--signal-urgent-text`) neben dem Stage-Label — überall wo ein Deal erscheint. Entscheidung via `stagnationFlag(stageSlug, days, stagnationBySlug)` (Schwelle aus settings; terminal/0 → kein Hinweis). `days` |
 | `AktivitaetsVerlauf` | Aktivität-Tab: historischer Zeitstrahl (aktuell Empty-State, CRM-Sync folgt) |
 | `NotizenListe` | Notizen-Tab: manuelle Notizen (Datum + Uhrzeit + Autor); „Neue Notiz" → Inline-Composer, Bearbeiten inline, Löschen/Bearbeiten on-hover; datengetrieben (`NotizItem`) (`onToast`) |
 | `PersonalityBadge` | Persönlichkeitsprofil-Pill (3 Dimensionen) — für künftiges Persönlichkeits-Feature (ab Confidence ≥ 60 %) |
