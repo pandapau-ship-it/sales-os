@@ -625,6 +625,7 @@ export async function createTask(task: {
   dueAt: string;
   priority: string;
   source: "manual";
+  assignedTo?: string; // [D21]: verantwortlicher User (= anlegender User); fehlt → NULL (Demo)
 }): Promise<void> {
   const client = getSupabaseClient();
   if (!client) return;
@@ -632,6 +633,7 @@ export async function createTask(task: {
     organization_id: task.organizationId,
     contact_id: task.contactId ?? null,
     deal_id: task.dealId ?? null,
+    assigned_to: task.assignedTo ?? null, // tasks hat kein created_by → assigned_to ist die User-Spalte
     title: task.title,
     description: task.description ?? null,
     channel: task.channel ?? null,
@@ -698,12 +700,13 @@ export async function softDeleteNote(
  * createNote — manuelle Notiz anlegen (P4, User-Write). RLS = eingeloggter User.
  * HINWEIS: `notes` hat (anders als `tasks`) KEINEN audit_write-Trigger → dieser Write
  * landet NICHT im audit_log (für einfache User-Notizen akzeptiert; Trigger ggf. später).
- * `created_by` bleibt NULL (wie `tasks.assigned_to` — users.id vs. auth.uid() ungeklärt).
+ * createdBy ([D21]): users.id des anlegenden Users; fehlt → NULL (Demo-kompatibel).
  */
 export async function createNote(
   organizationId: string,
   contactId: string,
   body: string,
+  createdBy?: string,
 ): Promise<void> {
   const client = getSupabaseClient();
   if (!client) return;
@@ -711,6 +714,7 @@ export async function createNote(
     organization_id: organizationId,
     contact_id: contactId,
     content: body,
+    created_by: createdBy ?? null,
   });
   if (error) throw error;
 }
@@ -739,12 +743,13 @@ export async function getContactCommunications(
 /**
  * createCommunication — einen Touchpoint protokollieren. contacts.last_contacted_at wird per
  * DB-Trigger (036, nur vorwärts) gesetzt → speist die Heat-Berechnung. audit_log via Trigger.
- * created_by bleibt NULL (wie notes/tasks — auth.uid() vs. users.id ungeklärt, [D21]).
+ * createdBy ([D21]): users.id des protokollierenden Users; fehlt → NULL (Demo-kompatibel).
  */
 export async function createCommunication(
   organizationId: string,
   contactId: string,
   input: { channel: string; direction: string; occurredAt: string; note?: string },
+  createdBy?: string,
 ): Promise<void> {
   const client = getSupabaseClient();
   if (!client) return;
@@ -755,6 +760,7 @@ export async function createCommunication(
     direction: input.direction,
     occurred_at: input.occurredAt,
     note: input.note?.trim() || null,
+    created_by: createdBy ?? null,
   });
   if (error) throw error;
   // Heat für genau diesen Kontakt neu bewerten (score-heat-status). last_contacted_at wird per
