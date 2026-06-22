@@ -25,6 +25,7 @@ import { isSupabaseConfigured } from "@/lib/db";
 import Sidebar from "@/components/layout/Sidebar";
 import TopBar from "@/components/layout/TopBar";
 import Login from "@/components/auth/Login";
+import AuthCallback from "@/components/auth/AuthCallback";
 import CommandPalette from "@/components/shared/CommandPalette";
 import { ToastProvider } from "@/components/shared/Toast";
 import TooltipLayer from "@/components/shared/TooltipLayer";
@@ -92,6 +93,7 @@ export default function App() {
         <BrowserRouter>
         <Routes>
         <Route path="/" element={<Login />} />
+        <Route path="/auth/callback" element={<AuthCallback />} />
         <Route
           path="/app"
           element={
