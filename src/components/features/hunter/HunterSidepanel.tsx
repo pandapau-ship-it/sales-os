@@ -10,7 +10,7 @@ import KommunikationLogModal from './KommunikationLogModal';
 import { triggerConfetti } from '@/lib/confetti';
 import {
   ArrowUpRight, ArrowLeft, X, Clock, Check,
-  Plus, Briefcase,
+  Briefcase,
   User, Building2, Tag,
   LayoutDashboard, Activity, MessageSquare, CheckSquare, FileText
 } from 'lucide-react';
@@ -470,7 +470,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
 
   // Footer-Quick-Actions (Task/Mail/Deal/Notiz) — öffnen direkt das jeweilige Anlege-Panel.
   const ACTIONS = [
-    { icon: Plus, label: 'Task', onClick: () => { setTasksAutoEditId('new'); setActiveTab('tasks'); } },
+    { icon: CheckSquare, label: 'Task', onClick: () => { setTasksAutoEditId('new'); setActiveTab('tasks'); } },
     { icon: Briefcase, label: 'Deal', onClick: () => { setDealsAutoNew(true); setActiveTab('deals'); } },
     { icon: FileText, label: 'Notiz', onClick: () => { setNotesAutoCompose(true); setActiveTab('notes'); } },
   ];
