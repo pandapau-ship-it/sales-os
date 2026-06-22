@@ -161,7 +161,7 @@ export default function ChatActionPanel({ open, config, onClose }: ChatActionPan
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <h3 className="text-[15px] font-bold text-text-primary leading-none truncate">{s.person.name}</h3>
+                      <h3 className="typo-card-title text-text-primary leading-none truncate">{s.person.name}</h3>
                       <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold tracking-wide shrink-0" style={{ background: TONE[s.headerBadge.tone].bg, color: TONE[s.headerBadge.tone].text }}>
                         {s.headerBadge.label}
                       </span>
@@ -179,7 +179,7 @@ export default function ChatActionPanel({ open, config, onClose }: ChatActionPan
               {/* FIX OBEN: Hinweis-Banner + kurze AI-Empfehlung */}
               <div className="px-6 pt-4 pb-4 space-y-3 shrink-0 border-b border-border-subtle bg-app-surface">
                 <div className="p-3.5 rounded-[12px] border" style={{ background: TONE[s.banner.tone].bg, borderColor: TONE[s.banner.tone].bg }}>
-                  <div className="flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-widest" style={{ color: TONE[s.banner.tone].text }}>
+                  <div className="flex items-center gap-1.5 typo-section-label" style={{ color: TONE[s.banner.tone].text }}>
                     {s.banner.icon} {s.banner.label}
                   </div>
                   <p className="text-[13px] font-semibold leading-relaxed mt-1" style={{ color: TONE[s.banner.tone].text }}>
@@ -189,7 +189,7 @@ export default function ChatActionPanel({ open, config, onClose }: ChatActionPan
 
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <span className="flex items-center gap-1.5 text-[10px] font-extrabold text-[var(--sherloq-primary)] uppercase tracking-widest">
+                    <span className="flex items-center gap-1.5 typo-section-label text-[var(--sherloq-primary)]">
                       <Sparkles className="w-3 h-3" /> AI-Empfehlung
                     </span>
                     {s.recommendation.confidence != null ? (

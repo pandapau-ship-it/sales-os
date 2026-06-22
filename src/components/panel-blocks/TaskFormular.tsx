@@ -95,7 +95,7 @@ export default function TaskFormular({
         <div className="px-5 py-4 flex items-center justify-between border-b border-border-subtle">
           <div className="flex items-center gap-2">
             <ClipboardList className="w-4 h-4 text-[var(--sherloq-primary)]" />
-            <h2 className="text-[15px] font-bold text-text-primary">
+            <h2 className="typo-card-title text-text-primary">
               {mode === "edit" ? t("hunter.drawers.noTask.editTask") : t("hunter.drawers.noTask.newTask")}
             </h2>
           </div>

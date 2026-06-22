@@ -187,7 +187,7 @@ export default function TaskEntwurfForm({
                       <span className="text-[12px] font-bold text-[var(--text-muted)] uppercase tracking-wider">{t('hunter.drawers.task.dueDate')}</span>
                       <div className="bg-app-surface border border-[var(--border)] rounded-xl px-4 py-3.5 flex items-center gap-3">
                           <span className="text-[var(--text-muted)]"><Calendar className="w-4 h-4" /></span>
-                          <span className="text-[var(--text-primary)] text-[15px] font-bold">{date}</span>
+                          <span className="text-[var(--text-primary)] typo-field-value">{date}</span>
                       </div>
                   </div>
                   <div className="flex flex-col gap-3">

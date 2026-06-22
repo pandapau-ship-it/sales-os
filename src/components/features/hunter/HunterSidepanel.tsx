@@ -519,7 +519,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
     <>
       {profile.statusLabel && (
         <div className="flex flex-col items-center">
-          <span className="text-[9px] font-extrabold text-text-muted uppercase tracking-widest mb-2">Status</span>
+          <span className="typo-section-label text-text-muted mb-2">Status</span>
           <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-app-bg border border-border text-text-body text-[12px] font-extrabold leading-none">
             {profile.statusLabel}
           </span>
@@ -528,7 +528,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
 
       {profile.heatStatus && (
         <div className="flex flex-col items-center">
-          <span className="text-[9px] font-extrabold text-text-muted uppercase tracking-widest mb-2">Heat</span>
+          <span className="typo-section-label text-text-muted mb-2">Heat</span>
           <HeatBadge status={profile.heatStatus} />
         </div>
       )}

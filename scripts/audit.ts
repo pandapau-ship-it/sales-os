@@ -425,9 +425,15 @@ function checkTypographyTokens(): void {
     'TasksListe', 'NotizenListe', 'DealsListe', 'KommunikationVerlauf', 'AktivitaetsVerlauf',
     'KommunikationPreview', 'KommunikationKompakt', 'OffeneTasks', 'DealSetup', 'DealKurzinfo', 'KiKurzakte',
     'AktiveSignale', 'ActiveSequenceChain', 'LeadListRow',
+    // [D27] Typo-Kanon Welle 1 — Formulare/Panels (auch features/hunter)
+    'TaskAnlegenForm', 'TaskFormular', 'TaskEntwurfForm', 'MailComposer',
+    'AddSdrLeadPanel', 'ChatActionPanel', 'HunterSidepanel',
   ])
-  const dir = join(SRC, 'components', 'panel-blocks')
-  const files = walk(dir, ['.tsx']).filter((f) => IN_SCOPE.has(basename(f, '.tsx')))
+  // panel-blocks/ + features/hunter/ (dort liegen ChatActionPanel/AddSdrLeadPanel/HunterSidepanel).
+  const files = [
+    ...walk(join(SRC, 'components', 'panel-blocks'), ['.tsx']),
+    ...walk(join(SRC, 'components', 'features'), ['.tsx']),
+  ].filter((f) => IN_SCOPE.has(basename(f, '.tsx')))
 
   const TYPO = /\btypo-(section-label|chevron-header|card-title|field-value|field-label|subline|chip)\b/
   const hits: string[] = []
