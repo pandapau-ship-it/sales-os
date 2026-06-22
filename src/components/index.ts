@@ -33,6 +33,9 @@ export { default as SignalActionDrawer } from './features/hunter/SignalActionDra
 export * from './features/hunter/SignalActionDrawer';
 export { default as TaskDrawer } from './features/hunter/TaskDrawer';
 
+// ── features/settings/ ──────────────────────────────────────────────────────
+export { default as TeamSettings } from './features/settings/TeamSettings';
+
 // ── shared/ (Atome) ─────────────────────────────────────────────────────────
 export { default as Avatar } from './shared/Avatar';
 export { default as Badge } from './shared/Badge';

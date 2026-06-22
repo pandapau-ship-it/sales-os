@@ -165,7 +165,18 @@
 - [ ] Triggers: Cluster-Vererbung, Audit Log, Heat-Timestamp, updated_at — *nichts vergessen*
 - [ ] `system_config` Seed: alle `automation_*`, `sequence_dynamic_*`, `automation_risk_*`, `followup_auto_days`
 - [ ] TypeScript Types generieren (`supabase gen types typescript`)
-- [ ] Supabase Auth (Email + Passwort)
+- [x] **Supabase Auth (Email + Passwort)** — Login Email+Passwort + Google/Microsoft SSO + Passwort-Reset; `lib/auth.ts`, `Login.tsx`, `AuthCallback` + `/auth/callback`, db-Client-Auth-Optionen (persistSession/autoRefresh/detectSessionInUrl) — *2026-06-22*
+
+### Auth/Org-Wiring [D21] (Session 2026-06-22 teil3)
+- [x] **Provisioning-Trigger** (Migr. **041**) — `handle_new_user()` auf `auth.users` INSERT → neue Org + Owner-User; **db push erfolgt** — *2026-06-22*
+- [x] **`useCurrentOrg()`-Hook** — Session→`organization_id`+`role` (via `getUserOrgRole`), Fallback `DEMO_ORGANIZATION_ID` — *2026-06-22*
+- [x] **`DEMO_ORGANIZATION_ID` → `useCurrentOrg()`** in 5 Consumern (ReferenceScreens/HunterSidepanel/ScreenHunting/ExpandedCardContent/useModules); `lib/org.ts` bleibt Fallback — *2026-06-22*
+- [x] **`created_by`/`assigned_to`/`owner_id` aus `auth.uid()`** — createNote/createTask/createCommunication/createDeal optional, Fallback NULL — *2026-06-22*
+- [x] **Invitations + Teams** (Migr. **042** Tabellen+RLS+Audit, **043** Trigger-Einladungs-Pfad) — `TeamSettings`-UI unter `/app/settings`; db.ts `getTeamMembers`/`getInvitations`/`createInvitation`/`deleteInvitation`/`updateUserRole`; **db push offen** — *2026-06-22*
+- [x] **KB Migration 044** (Team & Einladungen, module=core) — geschrieben, **db push offen** — *2026-06-22*
+- [x] **Auth/2FA-Entscheidungen** in CLAUDE.md ([D21]-Block): Email+Passwort+SSO · TOTP-2FA (Owner Pflicht) · Teams · Onboarding · Session-Länge — *2026-06-22*
+- [ ] **[D29] Einladungs-Mail** via Edge Function (`auth.admin.inviteUserByEmail`) — service_role, deferred
+- [ ] **2FA (TOTP)** UI + Enforcement (Owner Pflicht) — deferred
 
 ---
 

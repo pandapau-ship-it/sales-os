@@ -588,6 +588,12 @@ Alle prop-driven, Tokens-only, Dark-Mode automatisch.
 | `KommunikationLogModal` | shadcn-Dialog zum Protokollieren eines Touchpoints: Kanal-Pills (E-Mail/LinkedIn/Anruf/Meeting, Token-Farben) · Richtung · Datum+Uhrzeit (Default jetzt) · Notiz (max 300) → `onSave({channel,direction,occurredAt,note})` / `onCancel` |
 | `AddSdrLeadPanel` `NoTaskDrawer` `SignalActionDrawer` `PipelineStagnatedDrawer` `ContactColdDrawer` `TaskDrawer` `ChatActionPanel` `FunnelAnalysis` | weitere Action-Panels/Drawer + Funnel |
 
+### Komponenten in `features/settings/` (via `@/components`)
+
+| Komponente | Zweck |
+|---|---|
+| `TeamSettings` | Settings → Team ([D21]): Mitglieder-Tabelle (Name/Email/Rolle/Seit), Rollen-Dropdown (nur Owner), „Mitglied einladen" (Owner/Admin → shadcn-Dialog, Email+Rolle), offene Einladungen mit „Zurückziehen". Org/Rolle aus `useCurrentOrg`, `invited_by` aus `useAuth`; Writes über `getTeamMembers`/`getInvitations`/`createInvitation`/`deleteInvitation`/`updateUserRole`. Gerendert unter `/app/settings`. Mailversand der Einladung = Edge Function (deferred [D29]) |
+
 **Helfer:** `lib/confetti.ts` (`triggerConfetti()` — Won-Feedback) · `lib/validation.ts` (`isValidPhone` verdrahtet; `isValidEmail`/`normalizeUrl`/`isValidUrl` für P8 vorbereitet).
 
 ### Import-Regel — immer über `@/components` (nie tiefer als nötig)

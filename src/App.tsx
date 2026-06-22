@@ -26,6 +26,7 @@ import Sidebar from "@/components/layout/Sidebar";
 import TopBar from "@/components/layout/TopBar";
 import Login from "@/components/auth/Login";
 import AuthCallback from "@/components/auth/AuthCallback";
+import TeamSettings from "@/components/features/settings/TeamSettings";
 import CommandPalette from "@/components/shared/CommandPalette";
 import { ToastProvider } from "@/components/shared/Toast";
 import TooltipLayer from "@/components/shared/TooltipLayer";
@@ -109,7 +110,7 @@ export default function App() {
           <Route path="farmer" element={<FarmerReference />} />
           <Route path="kontakte" element={<ComingSoon nameKey="nav.kontakte" />} />
           <Route path="companies" element={<ComingSoon nameKey="nav.companies" />} />
-          <Route path="settings" element={<ComingSoon nameKey="nav.settings" />} />
+          <Route path="settings" element={<TeamSettings />} />
         </Route>
           <Route path="*" element={<Navigate to="/app/meintag" replace />} />
         </Routes>

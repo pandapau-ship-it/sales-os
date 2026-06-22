@@ -39,6 +39,37 @@
     "designToken": {
       "title": "Design Token System",
       "body": "shadcn/ui + Tailwind CSS v4 + CSS Variables. Alle Tokens in src/index.css."
+    },
+    "team": {
+      "title": "Team",
+      "subtitle": "Manage members and invite new people.",
+      "members": "Members",
+      "colMember": "Member",
+      "colEmail": "Email",
+      "colRole": "Role",
+      "colSince": "Since",
+      "noMembers": "No members yet.",
+      "invite": "Invite member",
+      "pending": "Pending invitations",
+      "noPending": "No pending invitations.",
+      "expires": "expires {{date}}",
+      "withdraw": "Withdraw",
+      "modalTitle": "Invite member",
+      "emailLabel": "Email",
+      "emailPlaceholder": "name@company.com",
+      "roleLabel": "Role",
+      "send": "Send invitation",
+      "sending": "Sending…",
+      "cancel": "Cancel",
+      "invited": "Invitation created ✓",
+      "withdrawn": "Invitation withdrawn",
+      "roleChanged": "Role changed ✓",
+      "roleOwner": "Owner",
+      "roleAdmin": "Admin",
+      "roleMember": "Member",
+      "roleViewer": "Viewer",
+      "onlyOwnerAdmin": "Only owners/admins can invite.",
+      "emailHint": "Email delivery follows (Edge Function). The invitation is already saved."
     }
   },
   "language": {
