@@ -219,7 +219,8 @@
       "dueAgo": "fällig vor {{label}}",
       "markDone": "Erledigt",
       "emptyTitle": "Keine fälligen Tasks",
-      "emptyDesc": "Nichts zu tun — alle Follow-ups erledigt."
+      "emptyDesc": "Nichts zu tun — alle Follow-ups erledigt.",
+      "coldSection": "Kalt & Inaktiv"
     },
     "signals": {
       "channel": {
@@ -237,6 +238,7 @@
         "custom": "Neues Signal — {{topic}}"
       },
       "actNow": "Act now",
+      "openAction": "Antworten",
       "signalDetails": "Signal Details",
       "repliedToComment": "Replied to a comment",
       "kiRecommendation": "KI Empfehlung",

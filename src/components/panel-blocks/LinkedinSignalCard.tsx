@@ -1,9 +1,9 @@
 import type { MouseEvent, ComponentType } from "react";
 import { useTranslation } from "react-i18next";
-import { Flame } from "lucide-react";
+import { Flame, Sparkles } from "lucide-react";
 import LinkedinIcon from "@/components/shared/LinkedinIcon";
 import HunterCard, { type HunterCardData } from './HunterCard';
-import type { SignalActionData } from '../features/hunter/SignalActionDrawer';
+import type { SignalActionData } from '@/lib/hunterMappers';
 import { ACTION_ROW } from "@/lib/componentBehavior";
 import type { Lead, HeatStatus } from "@/types";
 
@@ -35,6 +35,8 @@ interface LinkedinSignalCardProps {
   quoteText?: string;
   aiRecommendation?: string;
   onActNow?: (signal: SignalActionData) => void;
+  /** Opener: öffnet den SignalActionDrawer (Antwort-Aktion). Aufrufer liefert die Daten. */
+  onOpenAction?: () => void;
   selected?: boolean;
   onToggleSelect?: (e: MouseEvent) => void;
   onOpenInfo?: (lead: Lead) => void;
@@ -70,6 +72,7 @@ export function LinkedinSignalCard({
   commentText,
   aiRecommendation,
   onActNow,
+  onOpenAction,
   selected = false,
   onToggleSelect,
   onOpenInfo,
@@ -98,14 +101,14 @@ export function LinkedinSignalCard({
     name,
     company: companyName,
     avatarUrl,
-    icpScore: icpScore ?? 0,
+    icpScore,
     actionText,
     timeAgoLabel: timeAgoLabel ?? timeAgo,
     timeLeftHours,
     windowHours,
     commentText,
     aiRecommendation: aiRecommendation ?? "",
-    confidence: 91,
+    confidence: null, // echte Confidence kommt mit AI-Pipeline ([D5])
   });
 
   const data: HunterCardData = {
@@ -159,6 +162,16 @@ export function LinkedinSignalCard({
             {t("hunter.signals.actNow")}
           </button>
         </div>
+      )}
+
+      {/* Opener (Signals-Tab, ohne Urgency-Block): öffnet den SignalActionDrawer. */}
+      {onOpenAction && !showUrgency && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onOpenAction(); }}
+          className={`${ACTION_ROW.ctaSecondary} inline-flex items-center gap-1.5 shrink-0`}
+        >
+          <Sparkles className="w-3.5 h-3.5" /> {t("hunter.signals.openAction")}
+        </button>
       )}
     </>
   );

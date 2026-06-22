@@ -558,3 +558,78 @@ export function communicationToView(row: Record<string, any>): CommunicationView
     note: row.note ?? undefined,
   };
 }
+
+// ── Action-Opener (Signal · Kalt) ────────────────────────────────────────────
+// Daten für SignalActionDrawer / ContactColdDrawer. Echte Felder aus Kontakt/Signal;
+// AI-Felder (Empfehlung/Draft/Confidence/Reaktionsfenster) bleiben NULL → die Panels
+// zeigen einen ehrlichen „Folgt"-Platzhalter (AI-Pipeline siehe PROGRESS [D5]). Kein Fake-Text.
+export const AI_PENDING_LABEL = "[D5] KI-Empfehlung folgt";
+
+export interface SignalActionData {
+  name: string;
+  company: string;
+  avatarUrl?: string;
+  icpScore?: number;            // fehlt → Badge ausgeblendet
+  actionText: string;
+  timeAgoLabel: string;
+  timeLeftHours?: number | null; // null → Reaktionsfenster ausgeblendet
+  windowHours?: number | null;
+  commentText?: string;
+  aiRecommendation: string;     // Platzhalter, bis AI-Pipeline da ist
+  confidence?: number | null;   // null → „Folgt"-Badge statt „X% sicher"
+  draft?: string | null;        // null → kein Entwurf, „Draft generieren" disabled
+}
+
+/** Echtes Signal → SignalActionData. AI-Felder = ehrliche Platzhalter ([D5]). */
+export function signalToActionData(
+  signal: Record<string, any>,
+  t: (key: string, opts?: Record<string, unknown>) => string,
+): SignalActionData {
+  const p = contactToProfile(signal.contact);
+  return {
+    name: p.name,
+    company: p.company,
+    avatarUrl: p.avatarUrl,
+    icpScore: p.icpScore,
+    actionText: resolveSignalText(signal, t),
+    timeAgoLabel: relTimeShort(signal.created_at),
+    timeLeftHours: null, // Reaktionsfenster-Logik fehlt → ausgeblendet
+    windowHours: null,
+    aiRecommendation: AI_PENDING_LABEL,
+    confidence: null,
+    draft: null,
+  };
+}
+
+export interface ColdPersonData {
+  name: string;
+  company: string;
+  avatarUrl?: string;
+  lastContactDays: number | null;        // aus last_contacted_at; null → ausgeblendet
+  lastContactChannel?: string | null;    // aus letztem communications-Eintrag (Embed fehlt → null)
+  lastConversationSentiment?: string | null;
+  aiRecommendation: string;              // Platzhalter ([D5])
+  confidence?: number | null;
+  tags?: string[];
+  draft?: string | null;
+}
+
+/** Kalter Kontakt → ColdPersonData. AI-Felder = ehrliche Platzhalter ([D5]). */
+export function contactToColdPerson(contact: Record<string, any>): ColdPersonData {
+  const p = contactToProfile(contact);
+  const lc = contact?.last_contacted_at
+    ? Math.max(0, Math.floor((Date.now() - new Date(contact.last_contacted_at).getTime()) / 86_400_000))
+    : null;
+  return {
+    name: p.name,
+    company: p.company,
+    avatarUrl: p.avatarUrl,
+    lastContactDays: lc,
+    lastContactChannel: null, // getContacts embeddet keine communications → ausgeblendet (Honesty)
+    lastConversationSentiment: null,
+    aiRecommendation: AI_PENDING_LABEL,
+    confidence: null,
+    tags: [],
+    draft: null,
+  };
+}

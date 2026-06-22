@@ -83,6 +83,12 @@
 - [x] **Task abhaken = erster echter Write** — `completeTask` (UPDATE `completed_at`, org-gescoped, Audit via Trigger), `useMutation` + invalidate-on-success (T4a) — *2026-06-17*
 - [x] **knowledge_base Migration 024** — Einträge `Hunter Signals` · `Neu in Pipeline` · `Follow-ups` (module='hunter'); idempotent `ON CONFLICT DO UPDATE` — *2026-06-17*
 - [x] **Task ANLEGEN (T4b)** — `createTask` verdrahtet (Panel Tasks-Tab + Neu-in-Pipeline-Deeplink `initialAction='task'`), `createTaskMutation` + invalidate — *2026-06-18*
+- [x] **Kanban-Optik** — graue Lanes, weiße Kacheln, ← / Auge / → -Aktionen, KPI-Übersicht (volle Breite) + Filter-Disclosure; KB 033 — *2026-06-21*
+- [x] **Won/Lost Notiz+Grund** — Migr. 034 (`lost_note`/`won_reason`/`won_note`), `DealWonModal` (Auswahl+Notiz, nicht blockierend), Abschluss-Box auf der Kachel, `DealLostModal` dismissbar — *2026-06-21*
+- [x] **P7 Kommunikation protokollieren** — Migr. 036 `communications` (RLS/Indizes/Audit + `bump_contact_last_contacted`-Trigger), `getContactCommunications`/`createCommunication`, Kommunikations-Tab (`KommunikationVerlauf` echt) + `KommunikationLogModal` + `KommunikationKompakt` (Übersicht), Manuell-Badge, occurred_at-Sortierung, „Ausstehend" — *2026-06-21*
+- [x] **„Letzter Kontakt" durchgängig** — Neu-in-Pipeline + LeadListRow auf `last_contacted_at` (vor 0 Tagen unterdrückt); LeadListRow komplett auf `typo-*` + Audit-Scope — *2026-06-21*
+- [x] **Pipeline Task-Liste echt** — `PipelineStagniertCard`/`PipelineKeineTaskCard` prop-getrieben aus `getDeals` (Stagniert via Schwelle/settings · Keine-Task via `tasks.length===0`), Badge echt, `['deals']`-Invalidierung, Deal vorausgefüllt+readonly (`lockDeal`) — *2026-06-21*
+- [ ] **KB Migration 038** (Kommunikation protokollieren · Pipeline Task-Liste · Heat-Automatik) — geschrieben, **db push offen** — *2026-06-21*
 - [x] **820px Info-Panel READ+WRITE (P1–P5c)** — Kopf/Kontaktzeile/Tasks/Notizen/Deals echt; `dealToView`-Resolver; Übersicht (KPIs+Funnel) + Aktivität (audit_log) + Pipeline-Liste echt; Migr. **028** (products) **029** (Vertragsfelder) **030** (Deal soft-delete) — *2026-06-18/19*
 - [x] **P8 Stage-Write + Won/Lost** — Terminal-Slugs Single-Source (`WON_/LOST_STAGE_SLUG`/`isTerminalStage`); Stage-Wechsel Kanban(←/→)+Stage-Badge-Dropdown (Liste/Deals/Übersicht) → `updateDealStage`; **Won** (`updateDealWon`+`closed_at`+Konfetti) / **Lost** (`DealLostModal`→`updateDealLost`+`lost_reason`); `closed_at`/`lost_reason` aus Migr. 004 (keine neue Spalte) — *2026-06-19*
 - [x] **P8-4 Cache-Konsistenz** — alle Deal-Writes invalidieren `dealsByContact`/`deals`/`newInPipeline` **+ `dueTasks`/`signals`** (aktive-Deal-Stage) — *2026-06-20*
@@ -170,8 +176,8 @@
 - [ ] Tages-Fortschritt als Supabase View — *kein Frontend-Calc*
 
 ### Scoring, Briefing & Verifizierung (Session Juni 2026)
-- [ ] `score_heat_status()` (täglich) — *aus `last_contacted_at`; Tasks pausieren Heat nicht*
-- [ ] `score_deal_health()` (täglich + bei Stage-Wechsel) — *Stagnation aus `stage_updated_at` vs. Schwellenwert*
+- [x] `score_heat_status()` (täglich + nach Touchpoint) — *`contacts.heat_status` aus `last_contacted_at`, Schwellen aus `settings.thresholds.heat_status`, NULL→übersprungen; Edge Function deployed + Cron 037 + fire-and-forget nach `createCommunication`* — *2026-06-21*
+- [x] `score_deal_health()` (täglich + bei Stage-Wechsel) — *`deals.stagnation_days` aus `stage_updated_at`; Edge Function deployed + Cron 035 (Vault) + Stage-Trigger; schreibt nur stagnation_days (kein heat_status)* — *2026-06-21*
 - [ ] `score_churn_risk()` + `score_upsell()` — *Basis-Signale fix + Gewichtung (v1) + `churn_rules`/`upsell_rules` (v2); geben `main_drivers[]` zurück (Hover-Tooltip ohne extra Call)*
 - [ ] `morning_briefing()` (07:00) — *Top-5-Auswahl nach Prio-Tabelle + Tiebreaker, nur aktive Module → `daily_briefings`*
 - [ ] `analyze_personality()` — *ab ≥3 Nachrichten, nach jedem Reply; 3-Dimensionen + Confidence*

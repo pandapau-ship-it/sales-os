@@ -306,3 +306,24 @@
 - **how:** Hunter → Pipeline → Ansicht „Kanban". Kacheln über dem Board; „Gewichteter Wert" zeigt beim Hover die Werte je Stage.
 - **value:** Forecast und Pipeline-Gesundheit auf einen Blick — realistischer gewichteter Wert statt Bruttosumme, plus Heat-Verteilung als Frühindikator.
 - **module:** hunter
+
+### Kommunikation protokollieren
+- **feature:** Kommunikation protokollieren
+- **what:** Manuelles Erfassen eines Touchpoints (E-Mail · LinkedIn · Anruf · Meeting) mit Richtung, Datum/Uhrzeit und optionaler Notiz. Erscheint im Kommunikations-Tab und als kompakter „Letzter Kontakt"-Block in der Übersicht; aktualisiert „zuletzt kontaktiert".
+- **how:** Kontakt öffnen → Tab „Kommunikation" → „Protokollieren". Kanal + Richtung wählen, Zeitpunkt setzen, optional Notiz, speichern.
+- **value:** Lückenlose Kontakt-Historie ohne Pflege-Frust — jeder Touchpoint zählt sofort in „zuletzt kontaktiert" und in die Heat-Einstufung.
+- **module:** hunter
+
+### Pipeline Task-Liste (Stagniert / Keine Task)
+- **feature:** Pipeline Task-Liste (Stagniert / Keine Task)
+- **what:** Signal-getriebene Aufgaben-Liste: stagnierende Deals (über Stage-Schwelle ohne Fortschritt) + aktive Deals ohne offene Task. Echte Daten; „Task anlegen" mit vorausgefülltem Deal. Leere Liste → nichts angezeigt.
+- **how:** Hunter → Pipeline → „Task Liste". Zähler zeigt Anzahl; „Task anlegen" auf einer Karte → Deal ist bereits gewählt.
+- **value:** Kein Deal fällt durchs Raster — Stagnation und fehlende Folgeaufgaben werden aktiv hochgespült.
+- **module:** hunter
+
+### Automatische Heat-Einstufung
+- **feature:** Automatische Heat-Einstufung
+- **what:** Heat-Status (Engaged/Warm/Cooling/Cold/Gone) wird automatisch aus dem letzten Kontaktzeitpunkt berechnet — nach jedem Touchpoint + täglich. Ohne Kontaktdatum bleibt der Status leer.
+- **how:** Passiv — Kontakte protokollieren, Heat-Badges aktualisieren sich selbst. Schwellen in den Einstellungen konfigurierbar.
+- **value:** Heat zeigt immer den echten Beziehungszustand statt manueller Pflege — verlässlicher Frühindikator.
+- **module:** hunter

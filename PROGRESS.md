@@ -4,7 +4,15 @@
 
 ---
 
-## Current Status: Phase 3 (DB-Wiring Hunter) — 820px Info-Panel READ+WRITE fertig (P1–P5c) · Pipeline Stage-Write + Won/Lost (P8) · Telefon PH1–PH4 · Cache konsistent (P8-4) ✅ → **auf `main` gemergt (22c3cad)**. Next: P7 Kommunikation · Stagnation/Heat Edge Functions · Auth/Org [D21] · Realtime (Phase 5)
+## Current Status: Phase 3 (DB-Wiring Hunter) — Panel P1–P5c · P8 Stage/Won-Lost · Telefon PH1–PH4 ✅ · **P7 Kommunikation protokollieren LIVE** (Migr. 036) · **Stagnation + Heat Edge Functions deployed** (`score-deal-health`/`score-heat-status` + Cron 035/037) · **Pipeline Task-Liste echt verdrahtet** (Stagniert/Keine-Task) → alles auf `main` (`8785da2`). Next: Auth/Org [D21] · Realtime (Phase 5) · Action Panels → dann [D27] Tech-Schuld
+
+> **Session 2026-06-21 — fertig (auf `main`, `8785da2`; Spanne `20ca624..HEAD`):**
+> **Kanban-Optik** überarbeitet (graue Lanes, weiße Kacheln, ← / Auge / → -Aktionen, KPI-Übersicht volle Breite + Filter-Disclosure; KB 033). **Won/Lost Notiz+Grund** (Migr. **034** `lost_note`/`won_reason`/`won_note`, `DealWonModal` nicht-blockierend mit Auswahl+Notiz, Abschluss-Box unten auf der Kachel, `DealLostModal` dismissbar). **Performance & Signal-getriebene-UI-Regeln** in CLAUDE.md + 4 Audit-Perf-Checks (N+1 FAIL · staleTime/SELECT*/Edge-Timeout WARN) + Structure-Check (CREATE TABLE ohne INDEX → WARN).
+> **Stagnation (`score-deal-health`):** Edge Function (`deals.stagnation_days` aus `stage_updated_at`), Cron **035** (Vault-Methode), Stage-Trigger (fire-and-forget); später bereinigt → schreibt **nur** `stagnation_days`, **kein** `heat_status` (Konzept-Trennung).
+> **Kommunikation protokollieren (P7):** Migr. **036** `communications` (RLS, Indizes, `audit_write`, Trigger `bump_contact_last_contacted` = `last_contacted_at` nur vorwärts), `getContactCommunications`/`createCommunication`, **Kommunikations-Tab** (`KommunikationVerlauf` echt) + **`KommunikationLogModal`** + **`KommunikationKompakt`** (Übersicht-Block), Manuell-Badge, occurred_at-Sortierung/Vorschau, „Ausstehend" für Zukunfts-Termine. **Neu-in-Pipeline** + **LeadListRow** auf `last_contacted_at` („Letzter Kontakt"/„ZULETZT", „vor 0 Tagen" unterdrückt); **LeadListRow** komplett auf `typo-*`-Primitive + im Audit-Scope.
+> **Pipeline Task-Liste:** `dealToStagnatedCard`/`dealToNoTaskCard`, `PipelineStagniertCard`/`PipelineKeineTaskCard` von Mock → prop-getrieben (leer→`null`), aus `getDeals` abgeleitet (Schwelle aus settings, keine-Task = `tasks.length===0`); Badge-Zähler echt; `['deals']`-Invalidierung nach Task-Anlegen → Kachel verschwindet; **Deal vorausgefüllt + readonly** im Task-Formular (`lockDeal`/`initialDealId`); Mock-Drawer + `focusedTask` entfernt.
+> **Heat (`score-heat-status`):** Edge Function (`contacts.heat_status` aus `last_contacted_at`, Schwellen aus `settings.thresholds.heat_status`, NULL→übersprungen), Cron **037**, fire-and-forget-Trigger nach `createCommunication`. **Deployed.**
+> **PROGRESS:** [D22] Cron · [D23]/[D24] Webhook Actions + org-AI-Prompts · [D26] Komm.→KI-Kurzakte · [D27] Tech-Schuld. **KB 038** (Kommunikation protokollieren · Pipeline Task-Liste · Heat-Automatik) geschrieben — **nicht gepusht**.
 
 > **Session 2026-06-18→20 — fertig (Merge-Commit `22c3cad`):**
 > **820px-Info-Panel verdrahtet (P1–P5c):** Kopf (P1, zentrale `contactToProfile`/`contactActiveStage`-Leitung) · Kontaktzeile (P2) · Tasks-Tab read+anlegen/abhaken/soft-delete (P3/P3b) · Notizen read+anlegen/edit/soft-delete (P4/P4b) · Deals-Tab read+anlegen+bearbeiten+soft-löschen, Owner/Stage/Probability, Vertragsfelder (P5a–P5c, Migr. 028/029/030) · zentraler **`dealToView`**-Resolver · Übersicht-Tab echt (KPIs+Funnel) · Aktivität-Tab echt (audit_log) · Pipeline-Listenansicht echt · Typo-Kanon (zentrale `typo-*`-Primitive + Audit-Gate) · Single-Source-Audit-Check.
@@ -23,6 +31,14 @@
 ---
 
 ## Offen — Nächste Session (Phase 3 DB-Wiring, Reihenfolge)
+
+> **Stand 2026-06-21:** Das Panel-Thema (B) ist verdrahtet, **P7 Kommunikation** + **Stagnation/Heat Edge Functions** sind gebaut & deployed, **Pipeline Task-Liste** ist echt. Reihenfolge ab jetzt:
+> 1. **db push am Sessionstart:** Migration **037** (Heat-Cron) ist gepusht; **038** (knowledge_base) **noch offen**. Vault-Secrets (`app_supabase_url`/`app_service_role_key`) für die Crons setzen, falls noch nicht.
+> 2. **Action Panels** komplett verdrahten (letzter großer Hunter-Block) → danach **[D27] Tech-Schuld** abarbeiten (window.confirm→AlertDialog · Typo-Kanon vervollständigen · Inline-JSX extrahieren).
+> 3. **[D21] Auth/Org** — `owner_id`/`created_by`/`user_id` auto-setzen (Activity-„Wer", Owner-Default, Heat-Cron je echter Org statt fixer Demo-UUID).
+> 4. **Realtime (Phase 5)** — `lib/realtime.ts` aktivieren statt nur Query-Invalidierung.
+> 5. **[D23]/[D24]** Webhook Actions + Rule Builder + org-spezifische AI-Prompts (nach Settings/Auth).
+> Die folgenden Detail-Notizen (B0–B5) sind historischer Planungskontext — die meisten Punkte sind erledigt.
 
 **~~A. Pipeline-Tab~~ ✅ erledigt** (Liste/Kanban/Filter/Owner, Session 2026-06-17). Offen bleibt dort
    nur die **Task-Liste-Ansicht** (→ Panel-Thema **B4**, [D13]) + **Stage-Writes/Stagnation** (→ **B5**, [D8]/[D9])
@@ -230,6 +246,7 @@
   `last_contacted_at` ist im Seed NULL → Zeit-Spalte leer (gewollt).
 - **Später:** Berechnung/Befüllung per **Edge Functions (Cron)** — erst **nachdem alle
   Screens verdrahtet** sind. Business-Logik nie im Frontend (CLAUDE.md → Heat/Churn/ICP/Scores → Edge Functions).
+- **Update 2026-06-22:** `stagnation_days` (score-deal-health) + `heat_status` (score-heat-status) sind jetzt **echt berechnet** (Edge Functions live). Offen bleibt die **AI-Draft/Recommendation-Pipeline**: `SignalActionDrawer` + `ContactColdDrawer` zeigen `aiRecommendation`, Entwurf, `confidence` und Reaktionsfenster aktuell als **sichtbar markierte „Folgt"-Platzhalter** (grau/kursiv + Badge „Folgt", „Draft generieren" disabled) — **kein erfundener Text**. Echte AI-Drafts + Empfehlungen kommen mit der **AI-SDR-Phase** (Quelle: `messages` status='draft' / AI-Pipeline).
 
 ### [D6] Org-Provisionierung von Seed-Konfig (knowledge_base + settings.signal_windows) · Zielphase: SaaS / Onboarding
 - **Status heute:** Mehrere produktweit-gleiche Konfig-/Inhaltsblöcke werden per Migration **nur auf die

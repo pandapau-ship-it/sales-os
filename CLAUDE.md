@@ -559,7 +559,8 @@ Alle prop-driven, Tokens-only, Dark-Mode automatisch.
 | `DealsListe` | Deals des Kontakts (Panel), **DB-verdrahtet** (`DealView` aus `dealToView`, Single Source). `variant="compact"` (Übersicht: kompakte Karten aller Deals, primärer zuerst, ab >2 einklappbar, Betrag-Pill unter dem Namen, Edit navigiert) · `variant="detail"` (Deals-Tab: jede Karte zeigt die Detail-Box `<DealSetup embedded>` direkt, Hover-Edit/Löschen). Anlegen/Bearbeiten/Soft-Löschen echt (`createDeal`/`updateDeal`/`updateDealStage`/`softDeleteDeal`); Stage+Owner-Dropdowns, Probability aus Stage abgeleitet. Ohne `dealRows` → Mock (`NewDealCard`) |
 | `DealSetup` | Deal-Kennzahlen-Grid (Produkt/Stage/Owner/Probability/ARR/MRR/Laufzeit/Kündigung/Erw.Abschluss) aus `DealView` — Honesty: fehlende Felder ausgeblendet, MRR/ARR berechnet. `embedded`-Modus = nur das Grid (in DealsListe-Detailkarte); ohne `embedded` = volle Box mit Header |
 | `TaskFormular` | Generische Task-Maske (Anlegen + Bearbeiten) — **nur das Formular**, ohne Kontext-/KI-Meldungen (Optik wie TaskAnlegenForm BLOCK 3); `mode`/`initial`/`onSave`/`onClose`/`onToast` |
-| `KommunikationVerlauf` | Kommunikations-Tab: Touchpoints mit Marken-Kanal-Logo + aufklappbarem Volltext (Expand-State intern) — ≠ `KommunikationPreview` (Übersicht-Vorschau) |
+| `KommunikationVerlauf` | Kommunikations-Tab: **echte** protokollierte Touchpoints (`communications` via `communicationToView`) als grüner Zeitstrahl — Kanal-/Richtungs-/Manuell-Badge, occurred_at als Datum, zukünftige Termine als „Ausstehend". Leer → CTA „Ersten Kontakt protokollieren". `items`/`onLog` |
+| `KommunikationKompakt` | Übersicht-Tab „Letzter Kontakt"-Block: 3 neueste Touchpoints (Kanal-Icon · Richtung · occurred_at · Notiz-Vorschau 60 Z.), „Alle anzeigen →" → Kommunikations-Tab. Leer → `null` (Honesty). `items`/`onShowAll` |
 | `AktivitaetsVerlauf` | Aktivität-Tab: historischer Zeitstrahl (aktuell Empty-State, CRM-Sync folgt) |
 | `NotizenListe` | Notizen-Tab: manuelle Notizen (Datum + Uhrzeit + Autor); „Neue Notiz" → Inline-Composer, Bearbeiten inline, Löschen/Bearbeiten on-hover; datengetrieben (`NotizItem`) (`onToast`) |
 | `PersonalityBadge` | Persönlichkeitsprofil-Pill (3 Dimensionen) — für künftiges Persönlichkeits-Feature (ab Confidence ≥ 60 %) |
@@ -576,8 +577,10 @@ Alle prop-driven, Tokens-only, Dark-Mode automatisch.
 | Komponente | Zweck |
 |---|---|
 | `HunterSidepanel` | 820px-Info-Panel (`variant='panel'|'full'`); Deeplinks `initialAction='task'` + `initialTab` (z.B. Kanban-Karten-Klick → Deals-Tab) |
-| `DealLostModal` | Blockierender Won/Lost-Dialog beim Wechsel auf „verloren" (P8-3): Pflicht-Grund (RadioGroup) + optionale Notiz → `onConfirm(reason, note)`; kein Escape/Außenklick/Close-X |
+| `DealLostModal` | Blockierender Won/Lost-Dialog beim Wechsel auf „verloren" (P8-3): Pflicht-Grund (RadioGroup) + optionale Notiz → `onConfirm(reason, note)`; dismissbar (X/Escape/Außenklick = Abbrechen) |
+| `DealWonModal` | Nicht-blockierendes Modal nach „Gewonnen" (P8-3): optionaler Grund (RadioGroup) + Notiz → `onSave(reason, note)` / `onSkip`; Konfetti+Won-Write passieren bereits beim Öffnen (Lucide PartyPopper, kein Emoji) |
 | `DealCloseModal` | Nicht-blockierendes Popup am letzten Kanban-Pfeil (P8-3): Gewonnen (direkt + Konfetti) / Verloren (→ DealLostModal) / Abbrechen |
+| `KommunikationLogModal` | shadcn-Dialog zum Protokollieren eines Touchpoints: Kanal-Pills (E-Mail/LinkedIn/Anruf/Meeting, Token-Farben) · Richtung · Datum+Uhrzeit (Default jetzt) · Notiz (max 300) → `onSave({channel,direction,occurredAt,note})` / `onCancel` |
 | `AddSdrLeadPanel` `NoTaskDrawer` `SignalActionDrawer` `PipelineStagnatedDrawer` `ContactColdDrawer` `TaskDrawer` `ChatActionPanel` `FunnelAnalysis` | weitere Action-Panels/Drawer + Funnel |
 
 **Helfer:** `lib/confetti.ts` (`triggerConfetti()` — Won-Feedback) · `lib/validation.ts` (`isValidPhone` verdrahtet; `isValidEmail`/`normalizeUrl`/`isValidUrl` für P8 vorbereitet).
