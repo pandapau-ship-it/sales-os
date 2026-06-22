@@ -41,6 +41,32 @@ export function TeamsIcon({ className }: BrandIconProps) {
   );
 }
 
+/** Google (Auth) — blaues Tile, weißes „G". */
+export function GoogleIcon({ className }: BrandIconProps) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
+      <rect x="3" y="3" width="18" height="18" rx="5" fill="var(--brand-google)" />
+      <path
+        d="M12 8.2c1.05 0 1.99.36 2.73 1.07l1.45-1.45A6 6 0 1 0 18 12c0-.4-.04-.79-.11-1.16H12v2.2h3.36a2.9 2.9 0 0 1-1.25 1.9 3.5 3.5 0 0 1-1.9.53 3.5 3.5 0 1 1 0-7Z"
+        fill="var(--on-accent)"
+      />
+    </svg>
+  );
+}
+
+/** Microsoft (Auth) — graphit Tile, weißes 2×2-Fenster-Raster. */
+export function MicrosoftIcon({ className }: BrandIconProps) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
+      <rect x="3" y="3" width="18" height="18" rx="5" fill="var(--brand-microsoft)" />
+      <rect x="7" y="7" width="4.2" height="4.2" fill="var(--on-accent)" />
+      <rect x="12.8" y="7" width="4.2" height="4.2" fill="var(--on-accent)" />
+      <rect x="7" y="12.8" width="4.2" height="4.2" fill="var(--on-accent)" />
+      <rect x="12.8" y="12.8" width="4.2" height="4.2" fill="var(--on-accent)" />
+    </svg>
+  );
+}
+
 /** Google Meet — grünes Tile, weiße Videokamera. */
 export function GoogleMeetIcon({ className }: BrandIconProps) {
   return (

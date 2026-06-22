@@ -72,6 +72,15 @@ export function getSupabaseClient(): SupabaseClient | null {
   _client = createClient(
     import.meta.env.VITE_SUPABASE_URL,
     import.meta.env.VITE_SUPABASE_ANON_KEY,
+    {
+      // Session über Reloads halten + Token automatisch erneuern; Magic-Link/OAuth
+      // kehren mit der Session in der URL zurück → detectSessionInUrl liest sie aus ([D21]).
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+      },
+    },
   );
   return _client;
 }

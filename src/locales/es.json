@@ -70,15 +70,21 @@
     "newDeal": "Neuer Deal"
   },
   "login": {
-    "title": "Bei Sales OS anmelden",
-    "subtitle": "Willkommen zurück",
-    "email": "E-Mail",
-    "password": "Passwort",
-    "emailPlaceholder": "name@firma.de",
-    "passwordPlaceholder": "••••••••",
-    "submit": "Anmelden",
-    "loading": "Wird angemeldet…",
-    "error": "Ungültige Anmeldedaten"
+    "title": "Bienvenido de nuevo",
+    "subtitle": "Inicia sesión para continuar",
+    "email": "Correo electrónico",
+    "emailPlaceholder": "nombre@empresa.com",
+    "magicSubmit": "Enviar enlace mágico →",
+    "magicLoading": "Enviando…",
+    "or": "o",
+    "google": "Continuar con Google",
+    "microsoft": "Continuar con Microsoft",
+    "hint": "Te enviaremos un enlace de un solo uso — sin contraseña",
+    "sentTitle": "Te hemos enviado un enlace.",
+    "sentBody": "Revisa tu bandeja de entrada.",
+    "resend": "Solicitar otro enlace",
+    "callback": "Finalizando el inicio de sesión…",
+    "error": "No funcionó ahora mismo — inténtalo de nuevo"
   },
   "hunter": {
     "title": "Hunter",

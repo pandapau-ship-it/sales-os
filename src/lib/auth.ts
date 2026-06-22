@@ -5,8 +5,10 @@
  * und nie `@supabase/supabase-js` importieren (Audit-Regel: nur in lib/).
  * Der Client kommt ausschließlich über getSupabaseClient() aus db.ts.
  *
- * Env-tolerant: ohne konfigurierte Supabase-Env liefert getSupabaseClient() null —
- * dann wirft signIn() eine freundliche Meldung, der Rest verhält sich „leer".
+ * Passwortlos ([D21]): Magic Link (signInWithMagicLink) + Google/Microsoft SSO —
+ * kein Passwort-Login. Env-tolerant: ohne konfigurierte Supabase-Env liefert
+ * getSupabaseClient() null — dann werfen die Sign-in-Funktionen eine freundliche
+ * Meldung, der Rest verhält sich „leer".
  */
 
 import { getSupabaseClient } from "@/lib/db";
@@ -16,13 +18,46 @@ import type { Session, User } from "@supabase/supabase-js";
 // aus @supabase/supabase-js zu importieren (Audit-Regel).
 export type { Session, User };
 
-/** Email + Passwort Login. Wirft, wenn Supabase nicht konfiguriert ist. */
-export async function signIn(email: string, password: string) {
+// Passwortlosser Login ([D21]): Magic Link (primär) + Google/Microsoft SSO.
+// Kein Passwort-Login mehr. OAuth + Magic Link kehren über /auth/callback zurück
+// (detectSessionInUrl in db.ts liest die Session aus der URL).
+const callbackUrl = () =>
+  typeof window !== "undefined" ? `${window.location.origin}/auth/callback` : undefined;
+
+/** Magic Link (OTP) an die Email senden. Wirft, wenn Supabase nicht konfiguriert ist. */
+export async function signInWithMagicLink(email: string) {
   const client = getSupabaseClient();
   if (!client) {
     throw new Error("Auth ist nicht konfiguriert (Supabase-Env fehlt).");
   }
-  return client.auth.signInWithPassword({ email, password });
+  return client.auth.signInWithOtp({
+    email,
+    options: { emailRedirectTo: callbackUrl() },
+  });
+}
+
+/** Google SSO (Redirect-Flow). */
+export async function signInWithGoogle() {
+  const client = getSupabaseClient();
+  if (!client) {
+    throw new Error("Auth ist nicht konfiguriert (Supabase-Env fehlt).");
+  }
+  return client.auth.signInWithOAuth({
+    provider: "google",
+    options: { redirectTo: callbackUrl() },
+  });
+}
+
+/** Microsoft SSO (Azure AD, Redirect-Flow). */
+export async function signInWithMicrosoft() {
+  const client = getSupabaseClient();
+  if (!client) {
+    throw new Error("Auth ist nicht konfiguriert (Supabase-Env fehlt).");
+  }
+  return client.auth.signInWithOAuth({
+    provider: "azure",
+    options: { redirectTo: callbackUrl() },
+  });
 }
 
 /** Logout. No-op, wenn nicht konfiguriert. */
