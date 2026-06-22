@@ -1710,11 +1710,13 @@ Service Role Key nur in Edge Functions — nie im Client.
 
 > Festgelegt 2026-06-22. Umsetzung in der Auth/Org-Phase ([D21], siehe PROGRESS → Deferred).
 
-#### Login-Methoden (entschieden)
-- **Magic Link (primär)** — einmalig, läuft nach **1h** ab
+#### Login-Methoden (entschieden — korrigiert 2026-06-22)
+- **Email + Passwort (primär)** — `signInWithPassword`
+- **Passwort vergessen** → Reset-Link per Email (`resetPasswordForEmail`)
 - **Google SSO**
-- **Microsoft SSO**
-- **Kein Passwort-Login**
+- **Microsoft SSO** (Azure)
+- **Kein Magic Link** — bewusst verworfen: B2B-Sales-Tool mit täglicher Nutzung,
+  Magic Link = zu viel Friction (jeder Login ein Postfach-Umweg).
 
 #### 2FA (entschieden)
 - **TOTP** (Authenticator App) — Supabase nativ
@@ -1722,7 +1724,7 @@ Service Role Key nur in Edge Functions — nie im Client.
 - **Member:** optional
 - **Admin:** empfohlen (Hinweis beim ersten Login)
 - **Owner:** Pflicht (nicht deaktivierbar)
-- **Magic Link + SSO gelten als impliziter zweiter Faktor**
+- **SSO (Google/Microsoft) gilt als impliziter zweiter Faktor** (MFA beim IdP)
 
 #### Teams (entschieden)
 - Teams existieren **innerhalb einer Org**
@@ -1733,7 +1735,8 @@ Service Role Key nur in Edge Functions — nie im Client.
 #### Einladungs-Flow (entschieden)
 - Supabase Auth schickt die Email
 - **Branding:** Org-Logo + Org-Name in der Email
-- Magic Link in der Email, läuft nach **7 Tagen** ab
+- Einladungs-Link in der Email, läuft nach **7 Tagen** ab (Einladung ≠ Login-Methode;
+  nach Annahme setzt der User sein Passwort)
 - **Erster User einer neuen Org = automatisch Owner**
 
 #### Onboarding-Flow (entschieden)

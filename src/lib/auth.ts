@@ -5,8 +5,9 @@
  * und nie `@supabase/supabase-js` importieren (Audit-Regel: nur in lib/).
  * Der Client kommt ausschließlich über getSupabaseClient() aus db.ts.
  *
- * Passwortlos ([D21]): Magic Link (signInWithMagicLink) + Google/Microsoft SSO —
- * kein Passwort-Login. Env-tolerant: ohne konfigurierte Supabase-Env liefert
+ * Login ([D21]): Email + Passwort (primär) + Google/Microsoft SSO. Passwort-Reset
+ * per Email-Link. Magic Link bewusst NICHT (B2B-Tool, tägliche Nutzung → zu viel
+ * Friction). Env-tolerant: ohne konfigurierte Supabase-Env liefert
  * getSupabaseClient() null — dann werfen die Sign-in-Funktionen eine freundliche
  * Meldung, der Rest verhält sich „leer".
  */
@@ -18,22 +19,27 @@ import type { Session, User } from "@supabase/supabase-js";
 // aus @supabase/supabase-js zu importieren (Audit-Regel).
 export type { Session, User };
 
-// Passwortlosser Login ([D21]): Magic Link (primär) + Google/Microsoft SSO.
-// Kein Passwort-Login mehr. OAuth + Magic Link kehren über /auth/callback zurück
-// (detectSessionInUrl in db.ts liest die Session aus der URL).
+// Login ([D21]): Email + Passwort (primär) + Google/Microsoft SSO. OAuth kehrt
+// über /auth/callback zurück (detectSessionInUrl in db.ts liest die Session aus der URL).
 const callbackUrl = () =>
   typeof window !== "undefined" ? `${window.location.origin}/auth/callback` : undefined;
 
-/** Magic Link (OTP) an die Email senden. Wirft, wenn Supabase nicht konfiguriert ist. */
-export async function signInWithMagicLink(email: string) {
+/** Email + Passwort Login. Wirft, wenn Supabase nicht konfiguriert ist. */
+export async function signInWithEmail(email: string, password: string) {
   const client = getSupabaseClient();
   if (!client) {
     throw new Error("Auth ist nicht konfiguriert (Supabase-Env fehlt).");
   }
-  return client.auth.signInWithOtp({
-    email,
-    options: { emailRedirectTo: callbackUrl() },
-  });
+  return client.auth.signInWithPassword({ email, password });
+}
+
+/** Passwort-Reset-Link an die Email senden. */
+export async function resetPassword(email: string) {
+  const client = getSupabaseClient();
+  if (!client) {
+    throw new Error("Auth ist nicht konfiguriert (Supabase-Env fehlt).");
+  }
+  return client.auth.resetPasswordForEmail(email, { redirectTo: callbackUrl() });
 }
 
 /** Google SSO (Redirect-Flow). */
