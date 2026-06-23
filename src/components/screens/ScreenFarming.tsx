@@ -6,7 +6,7 @@
 import { useState } from 'react';
 import { AlertTriangle, TrendingUp, Sparkles, Check, X, Clock, Trash, Zap } from 'lucide-react';
 import type { Customer } from '@/types';
-import { FarmerKpiCards, FarmerHealthOverview, FarmerKundenKachel, FarmerRetentionKachel, SubscriptionBadge, LinkedinSignalCard, EmptyState, type RetentionItem } from '@/components';
+import { FarmerKpiCards, FarmerHealthOverview, FarmerKundenKachel, FarmerRetentionKachel, FarmerUpsellKachel, SubscriptionBadge, LinkedinSignalCard, EmptyState, type RetentionItem, type UpsellItem } from '@/components';
 import { useToast } from '@/components/shared/Toast';
 import { NAV } from '@/lib/navBehavior';
 
@@ -34,6 +34,23 @@ const RETENTION_ITEMS: RetentionItem[] = [
     icpScore: 65, heatStatus: 'WARM', sherloqStatus: 'cancelled', timeLabel: 'vor 2 Tagen',
     type: 'cancelled',
     text: 'Kündigung eingegangen. Sofortiger persönlicher Anruf empfohlen.',
+  },
+];
+
+/**
+ * Upsell-Tab Mock-Kacheln — 1 Typ (Upsell Potential, grüne Zap-Badge). Bis Score-/Signal-
+ * Anbindung. HEAT über kanonischen Enum→HeatBadge: Warm→WARM, Engaged→HOT.
+ */
+const UPSELL_ITEMS: UpsellItem[] = [
+  {
+    id: 'ups-1', name: 'Sarah Jenkins', jobTitle: 'Head of Growth', company: 'CloudSphere',
+    icpScore: 84, heatStatus: 'WARM', sherloqStatus: 'active', timeLabel: 'vor 3 Tagen',
+    text: 'Nutzung des Features stark gestiegen. AI empfiehlt Upsell-Option.',
+  },
+  {
+    id: 'ups-2', name: 'Thomas Müller', jobTitle: 'BDR Enablement Specialist', company: 'HiringMate Ltd',
+    icpScore: 49, heatStatus: 'HOT', sherloqStatus: 'active', timeLabel: 'vor 1 Tag',
+    text: 'Enrichment-Limit zu 85% ausgeschöpft. AI empfiehlt Plan-Upgrade.',
   },
 ];
 
@@ -159,12 +176,21 @@ export default function ScreenFarming({
         </div>
       )}
 
-      {/* 4. VIEW UPSELL — Feed folgt (eigener Slice) */}
+      {/* 4. VIEW UPSELL — Upsell Potential (FarmerUpsellKachel = HunterCard-Wrapper, Mock) */}
       {subTab === 'upsell' && (
-        <div className="bg-app-surface rounded-[16px] p-10 shadow-card flex flex-col items-center text-center gap-2">
-          <TrendingUp className="w-6 h-6 text-text-muted" />
-          <h3 className="text-[14px] font-semibold text-text-primary">Upsell-Empfehlungen</h3>
-          <p className="text-[12px] text-text-muted">Der Upsell-Feed (Potenzial-Signale + AI-Empfehlung) folgt in einem eigenen Slice.</p>
+        <div className="flex flex-col gap-3">
+          {UPSELL_ITEMS.map((item) => (
+            <FarmerUpsellKachel
+              key={item.id}
+              item={item}
+              onOpenPanel={() => {
+                const cust = customers.find((c) => c.person.name === item.name);
+                if (cust) onSelectCustomer(cust);
+                else toast('Kontakt-Panel folgt mit DB-Wiring', 'info');
+              }}
+              onAction={() => toast('Action Panel folgt ([D34])', 'info')}
+            />
+          ))}
         </div>
       )}
 
