@@ -433,11 +433,14 @@ function checkTypographyTokens(): void {
     'DetailField', 'DetailPhoneList', 'FunnelAnalysis',
     // [D21] Scheibe 8
     'MfaBanner',
+    // Farmer-Übersicht
+    'FarmerKpiCards', 'FarmerHealthOverview',
   ])
-  // panel-blocks/ + features/hunter/ (dort liegen ChatActionPanel/AddSdrLeadPanel/HunterSidepanel).
+  // panel-blocks/ + features/ + farming/ (Farmer-Hilfskomponenten).
   const files = [
     ...walk(join(SRC, 'components', 'panel-blocks'), ['.tsx']),
     ...walk(join(SRC, 'components', 'features'), ['.tsx']),
+    ...walk(join(SRC, 'components', 'farming'), ['.tsx']),
   ].filter((f) => IN_SCOPE.has(basename(f, '.tsx')))
 
   const TYPO = /\btypo-(section-label|chevron-header|card-title|field-value|field-label|subline|chip)\b/

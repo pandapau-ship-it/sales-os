@@ -20,10 +20,12 @@ import {
   ChevronUp,
   Zap,
   CalendarCheck,
-  MessageSquare
+  MessageSquare,
+  TrendingUp,
+  Sparkles
 } from 'lucide-react';
 import type { Customer, SherloqStatus } from '@/types';
-import { HeatBadge } from '@/components';
+import { HeatBadge, FarmerKpiCards, FarmerHealthOverview } from '@/components';
 import { ICPDonut } from '@/components/shared/ICPDonut';
 import { NAV } from '@/lib/navBehavior';
 import CommunicationChain from '@/components/shared/CommunicationChain';
@@ -41,7 +43,7 @@ export default function ScreenFarming({
   onUpgradeSubscription: _onUpgradeSubscription,
   onSelectCommunication
 }: ScreenFarmingProps) {
-  const [subTab, setSubTab] = useState<'overview' | 'kunden' | 'health' | 'upsell'>('kunden');
+  const [subTab, setSubTab] = useState<'overview' | 'kunden' | 'churn' | 'upsell' | 'signals'>('overview');
   
   const [expandedCustomerId, setExpandedCustomerId] = useState<string | null>(null);
   const [selectedCustomerIds, setSelectedCustomerIds] = useState<string[]>([]);
@@ -55,10 +57,15 @@ export default function ScreenFarming({
   const selectAll = () => setSelectedCustomerIds(customers.map(c => c.id));
   const deselectAll = () => setSelectedCustomerIds([]);
 
-  const menuItems = [
+  // Demo-Badges: Kunden = echte Mock-Länge; Churn = abgeleitet (heatScore <= 2);
+  // Upsell (€-Summe) + Signals sind Mock bis zur Score-/Signal-Anbindung.
+  const churnCount = customers.filter((c) => c.heatScore <= 2).length;
+  const menuItems: { id: string; label: string; icon?: React.ReactNode; count?: string | number }[] = [
     { id: 'overview', label: 'Übersicht' },
     { id: 'kunden', label: 'Kunden', count: customers.length },
-    { id: 'health', label: 'Health & Churn Escalation' }
+    { id: 'churn', label: 'Churn & Trial', icon: <AlertTriangle className="w-3.5 h-3.5" />, count: churnCount },
+    { id: 'upsell', label: 'Upsell', icon: <TrendingUp className="w-3.5 h-3.5" />, count: '4.2k€' },
+    { id: 'signals', label: 'Signals', icon: <Sparkles className="w-3.5 h-3.5" />, count: 2 },
   ];
 
   // Status badge config — Lucide icons only, never emoji. Matches Heat-Badge pattern from Design Invariants.
@@ -88,7 +95,7 @@ export default function ScreenFarming({
       </div>
 
       {/* Sub-Navigation (Section 12) */}
-      <div className={`${NAV.container} ${NAV.surface} ${NAV.radius}`}>
+      <div className={`${NAV.container} ${NAV.surface} ${NAV.subRadius}`}>
         {menuItems.map((item) => {
           const isActive = subTab === item.id;
           return (
@@ -96,8 +103,9 @@ export default function ScreenFarming({
               key={item.id}
               onClick={() => setSubTab(item.id as any)}
               style={isActive ? { background: NAV.activeBg } : undefined}
-              className={`${NAV.subTab} ${NAV.radius} ${isActive ? NAV.active : NAV.inactive}`}
+              className={`${NAV.subTab} ${NAV.subTabRadius} ${isActive ? NAV.active : NAV.inactive}`}
             >
+              {item.icon}
               <span>{item.label}</span>
               {item.count !== undefined && (
                 <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-[5px] ${isActive ? NAV.badgeActive : NAV.badgeInactive}`}>
@@ -109,54 +117,11 @@ export default function ScreenFarming({
         })}
       </div>
 
-      {/* 1. VIEW OVERVIEW */}
+      {/* 1. VIEW OVERVIEW — KPIs + Customer Health Overview (ausgelagert nach farming/) */}
       {subTab === 'overview' && (
         <div className="flex flex-col gap-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-app-surface rounded-[16px] p-6 shadow-card">
-              <span className="text-[10px] text-text-muted uppercase font-semibold">Active Customers (AM)</span>
-              <h3 className="text-[28px] font-bold text-text-primary mt-1">14 Companies</h3>
-              <p className="text-[12px] text-signal-success mt-1.5">✓ 92% Annual Retention rate</p>
-            </div>
-            <div className="bg-app-surface rounded-[16px] p-6 shadow-card">
-              <span className="text-[10px] text-text-muted uppercase font-semibold">Upsell Pipeline</span>
-              <h3 className="text-[28px] font-bold text-text-primary mt-1">4.250€ MRR</h3>
-              <p className="text-[12px] text-text-body mt-1.5">Soll-Abschluss für Q2</p>
-            </div>
-            <div className="bg-app-surface rounded-[16px] p-6 shadow-card ring-1 ring-red-100">
-              <span className="text-[10px] text-[var(--signal-urgent-text)] uppercase font-semibold">Churn Risk At Risk</span>
-              <h3 className="text-[28px] font-bold text-text-primary mt-1">1 Account</h3>
-              <p className="text-[12px] text-[var(--signal-urgent-text)] font-medium mt-1.5">Logistify DE (CS-Support benötigt)</p>
-            </div>
-          </div>
-
-          <div className="bg-app-surface rounded-[16px] p-6 text-center shadow-card">
-            <h3 className="text-[14px] font-semibold text-text-primary">AM Login Frequency</h3>
-            <p className="text-[11px] text-text-muted mt-1">Nutzung aller eingerichteten Seats per Account</p>
-            <div className="mt-6 flex flex-col gap-3">
-              <div className="flex items-center justify-between text-[11px]">
-                <span className="font-semibold text-text-body w-24 text-left">PayGuard AG</span>
-                <div className="flex-1 bg-app-bg h-2.5 rounded-pill overflow-hidden mx-4">
-                  <div className="bg-sherloq-primary h-full" style={{ width: '92%' }} />
-                </div>
-                <span className="font-mono text-text-muted w-12 text-right">92%</span>
-              </div>
-              <div className="flex items-center justify-between text-[11px]">
-                <span className="font-semibold text-text-body w-24 text-left">HiringMate Ltd</span>
-                <div className="flex-1 bg-app-bg h-2.5 rounded-pill overflow-hidden mx-4">
-                  <div className="bg-sherloq-primary h-full" style={{ width: '68%' }} />
-                </div>
-                <span className="font-mono text-text-muted w-12 text-right">68%</span>
-              </div>
-              <div className="flex items-center justify-between text-[11px]">
-                <span className="font-semibold text-text-body w-24 text-left">Logistify DE</span>
-                <div className="flex-1 bg-app-bg h-2.5 rounded-pill overflow-hidden mx-4">
-                  <div className="bg-[var(--icp-low)] h-full" style={{ width: '8%' }} />
-                </div>
-                <span className="font-mono text-[var(--icp-low)] w-12 text-right inline-flex items-center justify-end gap-1">8% <AlertTriangle className="w-3 h-3" /></span>
-              </div>
-            </div>
-          </div>
+          <FarmerKpiCards />
+          <FarmerHealthOverview onShowAll={() => setSubTab('kunden')} />
         </div>
       )}
 
@@ -404,7 +369,7 @@ export default function ScreenFarming({
       )}
 
       {/* 3. VIEW HEALTH & CHURN INDEX */}
-      {subTab === 'health' && (
+      {subTab === 'churn' && (
         <div className="flex flex-col gap-4 text-left">
           <div className="bg-app-surface rounded-[16px] p-6 shadow-card">
             <h3 className="text-[14px] font-semibold text-text-primary mb-4">Risiko-Ranking der Accounts (Churn Prevention Mode)</h3>
@@ -471,6 +436,24 @@ export default function ScreenFarming({
               })}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* 4. VIEW UPSELL — Feed folgt (eigener Slice) */}
+      {subTab === 'upsell' && (
+        <div className="bg-app-surface rounded-[16px] p-10 shadow-card flex flex-col items-center text-center gap-2">
+          <TrendingUp className="w-6 h-6 text-text-muted" />
+          <h3 className="text-[14px] font-semibold text-text-primary">Upsell-Empfehlungen</h3>
+          <p className="text-[12px] text-text-muted">Der Upsell-Feed (Potenzial-Signale + AI-Empfehlung) folgt in einem eigenen Slice.</p>
+        </div>
+      )}
+
+      {/* 5. VIEW SIGNALS — Feed folgt (eigener Slice) */}
+      {subTab === 'signals' && (
+        <div className="bg-app-surface rounded-[16px] p-10 shadow-card flex flex-col items-center text-center gap-2">
+          <Sparkles className="w-6 h-6 text-text-muted" />
+          <h3 className="text-[14px] font-semibold text-text-primary">Farmer-Signale</h3>
+          <p className="text-[12px] text-text-muted">Der Signal-Feed (Churn-/Upsell-/Trial-Signale) folgt in einem eigenen Slice.</p>
         </div>
       )}
 

@@ -36,6 +36,10 @@ export { default as TaskDrawer } from './features/hunter/TaskDrawer';
 // ── features/settings/ ──────────────────────────────────────────────────────
 export { default as TeamSettings } from './features/settings/TeamSettings';
 
+// ── farming/ (Farmer-Screen-Hilfskomponenten, analog shared/) ────────────────
+export { default as FarmerKpiCards } from './farming/FarmerKpiCards';
+export { default as FarmerHealthOverview } from './farming/FarmerHealthOverview';
+
 // ── shared/ (Atome) ─────────────────────────────────────────────────────────
 export { default as Avatar } from './shared/Avatar';
 export { default as Badge } from './shared/Badge';

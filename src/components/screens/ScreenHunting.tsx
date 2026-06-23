@@ -417,7 +417,7 @@ export default function ScreenHunting({
       </div>
 
       {/* Sub-Navigation (Section 12) */}
-      <div className={`${NAV.container} ${NAV.surface} ${NAV.radius}`}>
+      <div className={`${NAV.container} ${NAV.surface} ${NAV.subRadius}`}>
         {menuItems.map((item) => {
           const isActive = subTab === item.id;
           return (
@@ -425,7 +425,7 @@ export default function ScreenHunting({
               key={item.id}
               onClick={() => setSubTab(item.id as any)}
               style={isActive ? { background: NAV.activeBg } : undefined}
-              className={`${NAV.subTab} ${NAV.radius} ${isActive ? NAV.active : NAV.inactive}`}
+              className={`${NAV.subTab} ${NAV.subTabRadius} ${isActive ? NAV.active : NAV.inactive}`}
             >
               <span>{item.label}</span>
               {item.count !== null && (
