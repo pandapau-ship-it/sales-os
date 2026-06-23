@@ -56,7 +56,7 @@ export default function ScreenFarming({
   const menuItems: { id: string; label: string; icon?: React.ReactNode; count?: string | number }[] = [
     { id: 'overview', label: 'Übersicht' },
     { id: 'kunden', label: 'Kunden', count: customers.length },
-    { id: 'churn', label: 'Churn & Trial', icon: <AlertTriangle className="w-3.5 h-3.5" />, count: churnCount },
+    { id: 'churn', label: 'Retention', icon: <AlertTriangle className="w-3.5 h-3.5" />, count: churnCount },
     { id: 'upsell', label: 'Upsell', icon: <TrendingUp className="w-3.5 h-3.5" />, count: '4.2k€' },
     { id: 'signals', label: 'Signals', icon: <Sparkles className="w-3.5 h-3.5" />, count: signalRows.length },
   ];
