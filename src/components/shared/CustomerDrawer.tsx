@@ -275,7 +275,7 @@ export default function CustomerDrawer({
                         </div>
                       </div>
                       {/* Task 2 - Normal */}
-                      <div className="bg-app-bg border border-border rounded-[12px] p-4 flex items-start gap-4 cursor-pointer hover:shadow-xs transition-shadow">
+                      <div className="bg-app-bg border border-[var(--border-card)] rounded-[12px] p-4 flex items-start gap-4 cursor-pointer hover:shadow-xs transition-shadow">
                         <div className="w-7 h-7 rounded-pill bg-app-surface border-2 border-border flex items-center justify-center mt-0.5 shrink-0" />
                         <div className="flex flex-col">
                           <span className="text-[13px] font-bold text-text-primary">
@@ -455,7 +455,7 @@ export default function CustomerDrawer({
                         <p className="text-[13px] text-text-body leading-relaxed">
                           <strong>Warum Upsell erkannt:</strong> {castedCustomer.upsellOpportunity.description}
                         </p>
-                        <div className="bg-app-bg border border-border rounded-[12px] p-4 text-[13px] font-medium text-text-primary">
+                        <div className="bg-app-bg border border-[var(--border-card)] rounded-[12px] p-4 text-[13px] font-medium text-text-primary">
                           <strong>Konkreter Vorschlag:</strong> {castedCustomer.upsellOpportunity.value}
                         </div>
                       </div>
@@ -468,7 +468,7 @@ export default function CustomerDrawer({
                       OFFENE TASKS
                     </h3>
                     <div className="flex flex-col gap-3">
-                      <div className="bg-app-bg border border-border rounded-[12px] p-4 flex items-start gap-4 cursor-pointer hover:shadow-xs transition-shadow">
+                      <div className="bg-app-bg border border-[var(--border-card)] rounded-[12px] p-4 flex items-start gap-4 cursor-pointer hover:shadow-xs transition-shadow">
                         <div className="w-7 h-7 rounded-pill bg-app-surface border-2 border-border flex items-center justify-center mt-0.5 shrink-0" />
                         <div className="flex flex-col">
                           <span className="text-[13px] font-bold text-text-primary">
