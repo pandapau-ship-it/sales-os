@@ -40,6 +40,7 @@ export { default as TeamSettings } from './features/settings/TeamSettings';
 export { default as FarmerKpiCards } from './farming/FarmerKpiCards';
 export { default as FarmerHealthOverview } from './farming/FarmerHealthOverview';
 export { default as FarmerKundenKachel } from './farming/FarmerKundenKachel';
+export { default as SubscriptionBadge } from './farming/SubscriptionBadge';
 
 // ── shared/ (Atome) ─────────────────────────────────────────────────────────
 export { default as Avatar } from './shared/Avatar';

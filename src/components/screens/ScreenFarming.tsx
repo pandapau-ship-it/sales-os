@@ -4,10 +4,23 @@
  */
 
 import { useState } from 'react';
-import { AlertTriangle, TrendingUp, Sparkles } from 'lucide-react';
+import { AlertTriangle, TrendingUp, Sparkles, Check, X, Clock, Trash, Zap } from 'lucide-react';
 import type { Customer } from '@/types';
-import { FarmerKpiCards, FarmerHealthOverview, FarmerKundenKachel } from '@/components';
+import { FarmerKpiCards, FarmerHealthOverview, FarmerKundenKachel, SubscriptionBadge, LinkedinSignalCard, EmptyState } from '@/components';
+import { useToast } from '@/components/shared/Toast';
 import { NAV } from '@/lib/navBehavior';
+
+/**
+ * Mock-Signale je Kunde (Company-gematcht) — NUR echte Aktivitäts-/LinkedIn-Signale (wie Hunter).
+ * Churn & Upsell sind KEINE Signale → eigene Tabs („Churn & Trial" / „Upsell"). Bis zur echten
+ * Signal-Anbindung ([D34]).
+ */
+type FarmerSignalMeta = { company: string; actionText: string };
+const FARMER_SIGNALS: FarmerSignalMeta[] = [
+  { company: 'PayGuard AG', actionText: 'Hat euren Produkt-Post auf LinkedIn geliked' },
+  { company: 'Logistify DE', actionText: 'Hat dein LinkedIn-Profil besucht' },
+  { company: 'HiringMate Ltd', actionText: 'Hat auf einen LinkedIn-Kommentar geantwortet' },
+];
 
 interface ScreenFarmingProps {
   customers: Customer[];
@@ -22,6 +35,20 @@ export default function ScreenFarming({
   onUpgradeSubscription: _onUpgradeSubscription,
 }: ScreenFarmingProps) {
   const [subTab, setSubTab] = useState<'overview' | 'kunden' | 'churn' | 'upsell' | 'signals'>('overview');
+  const { toast } = useToast();
+
+  // Signals: Mock-Meta auf echte Kunden mappen (Company-Match). Nur Treffer erscheinen (Honesty).
+  const signalRows = FARMER_SIGNALS
+    .map((sig) => ({ sig, customer: customers.find((c) => c.person.company === sig.company) }))
+    .filter((r): r is { sig: FarmerSignalMeta; customer: Customer } => !!r.customer);
+
+  // Auswahl + Bulk-Leiste (gleiche Mechanik wie Hunter Signals). IDs = customer.id.
+  const [selectedSignalIds, setSelectedSignalIds] = useState<string[]>([]);
+  const signalIds = signalRows.map((r) => r.customer.id);
+  const toggleSignalSelection = (id: string) =>
+    setSelectedSignalIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  const selectAllSignals = () => setSelectedSignalIds(signalIds);
+  const deselectAllSignals = () => setSelectedSignalIds([]);
 
   // Demo-Badges: Kunden = echte Mock-Länge; Churn = abgeleitet (heatScore <= 2);
   // Upsell (€-Summe) + Signals sind Mock bis zur Score-/Signal-Anbindung.
@@ -31,7 +58,7 @@ export default function ScreenFarming({
     { id: 'kunden', label: 'Kunden', count: customers.length },
     { id: 'churn', label: 'Churn & Trial', icon: <AlertTriangle className="w-3.5 h-3.5" />, count: churnCount },
     { id: 'upsell', label: 'Upsell', icon: <TrendingUp className="w-3.5 h-3.5" />, count: '4.2k€' },
-    { id: 'signals', label: 'Signals', icon: <Sparkles className="w-3.5 h-3.5" />, count: 2 },
+    { id: 'signals', label: 'Signals', icon: <Sparkles className="w-3.5 h-3.5" />, count: signalRows.length },
   ];
 
   return (
@@ -166,12 +193,67 @@ export default function ScreenFarming({
         </div>
       )}
 
-      {/* 5. VIEW SIGNALS — Feed folgt (eigener Slice) */}
+      {/* 5. VIEW SIGNALS — 1:1 Hunter-Signals-Muster (LinkedinSignalCard + HunterCard).
+          Unterschiede: SUBSCRIPTION statt STAGE · Kunden-Heat · Churn/Upsell/LinkedIn-Signaltypen.
+          Daten = Mock (FARMER_SIGNALS), CTA = Platzhalter-Toast bis Action-Panel ([D34]). */}
       {subTab === 'signals' && (
-        <div className="bg-app-surface rounded-[16px] p-10 shadow-card flex flex-col items-center text-center gap-2">
-          <Sparkles className="w-6 h-6 text-text-muted" />
-          <h3 className="text-[14px] font-semibold text-text-primary">Farmer-Signale</h3>
-          <p className="text-[12px] text-text-muted">Der Signal-Feed (Churn-/Upsell-/Trial-Signale) folgt in einem eigenen Slice.</p>
+        <div className="flex flex-col gap-4">
+
+          {/* Bulk-Aktionsleiste — gleiche Leiste wie Hunter Signals */}
+          <div className={`transition-all duration-300 flex items-center justify-between px-2 ${selectedSignalIds.length > 0 ? 'opacity-100 h-10 mb-2' : 'opacity-0 h-0 overflow-hidden'}`}>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={selectedSignalIds.length === signalIds.length ? deselectAllSignals : selectAllSignals}
+                className="flex items-center justify-center w-[22px] h-[22px] rounded-md bg-[var(--sherloq-primary)] border border-[var(--sherloq-primary)]"
+              >
+                <Check className="w-3.5 h-3.5 text-on-accent" strokeWidth={3} />
+              </button>
+              <span className="text-[13px] font-bold text-[var(--text-primary)]">
+                {selectedSignalIds.length} {selectedSignalIds.length === 1 ? 'Signal' : 'Signale'} ausgewählt
+              </span>
+              <button onClick={deselectAllSignals} className="ml-2 text-[12px] text-[var(--text-muted)] hover:text-[var(--text-body)] font-semibold underline underline-offset-2">Auswahl aufheben</button>
+            </div>
+            <div className="flex items-center gap-2">
+              <button onClick={() => toast('Bulk-Aktionen folgen mit dem Action-Panel ([D34])', 'info')} className="bg-app-surface border text-[var(--text-body)] border-[var(--border)] hover:border-[var(--icon-muted)] hover:bg-[var(--app-bg)] px-3 py-1.5 rounded-full text-[12px] font-semibold flex items-center gap-1.5 transition-colors">
+                <X className="w-3.5 h-3.5" /> Ignorieren
+              </button>
+              <button onClick={() => toast('Bulk-Aktionen folgen mit dem Action-Panel ([D34])', 'info')} className="bg-app-surface border text-[var(--text-body)] border-[var(--border)] hover:border-[var(--icon-muted)] hover:bg-[var(--app-bg)] px-3 py-1.5 rounded-full text-[12px] font-semibold flex items-center gap-1.5 transition-colors">
+                <Clock className="w-3.5 h-3.5" /> Snoozen
+              </button>
+              <button onClick={() => toast('Bulk-Aktionen folgen mit dem Action-Panel ([D34])', 'info')} className="bg-app-surface border border-[var(--signal-urgent-bg)] text-[var(--signal-urgent-text)] hover:bg-[var(--signal-urgent-bg)] px-3 py-1.5 rounded-full text-[12px] font-semibold flex items-center gap-1.5 transition-colors">
+                <Trash className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+
+          {signalRows.length === 0 ? (
+            <EmptyState
+              icon={<Zap className="w-6 h-6" />}
+              title="Keine Signale heute"
+              description="Neue Kunden-Signale (LinkedIn-Aktivität) erscheinen hier automatisch"
+            />
+          ) : (
+            signalRows.map(({ sig, customer }) => (
+              <LinkedinSignalCard
+                key={customer.id}
+                contactId={customer.person.id}
+                name={customer.person.name}
+                role={customer.person.jobTitle}
+                companyName={customer.person.company}
+                avatarUrl={customer.person.avatarUrl}
+                icpScore={customer.icpScore}
+                heatStatus={customer.heatStatus}
+                timeAgoLabel={customer.lastLogin}
+                showUrgency={false}
+                actionText={sig.actionText}
+                statusBadge={{ label: 'SUBSCRIPTION', node: <SubscriptionBadge status={customer.sherloqStatus} /> }}
+                selected={selectedSignalIds.includes(customer.id)}
+                onToggleSelect={() => toggleSignalSelection(customer.id)}
+                onOpenInfo={() => onSelectCustomer(customer)}
+                onOpenAction={() => toast('Antworten: Action-Panel folgt ([D34])', 'info')}
+              />
+            ))
+          )}
         </div>
       )}
 

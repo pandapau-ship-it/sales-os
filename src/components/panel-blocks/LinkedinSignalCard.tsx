@@ -1,4 +1,4 @@
-import type { MouseEvent, ComponentType } from "react";
+import type { MouseEvent, ComponentType, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Flame, Sparkles } from "lucide-react";
 import LinkedinIcon from "@/components/shared/LinkedinIcon";
@@ -23,6 +23,8 @@ interface LinkedinSignalCardProps {
   /** Kanal-Badge (i18n-Key + Icon) — prop-driven (S-0 signalMetaFor). Default: LinkedIn. */
   channelLabelKey?: string;
   channelIcon?: ComponentType<{ className?: string }>;
+  /** Additiver Badge-Slot statt STAGE (z.B. Farmer SUBSCRIPTION) — wird an HunterCard durchgereicht. */
+  statusBadge?: { label: string; node: ReactNode };
   /** Deferred-Elemente gaten (S-2): Dringlichkeit/Restzeit/Act-now bzw. Stage. */
   showUrgency?: boolean;
   showStage?: boolean;
@@ -62,6 +64,7 @@ export function LinkedinSignalCard({
   heatStatus,
   channelLabelKey = "hunter.common.linkedinSignal",
   channelIcon: ChannelIcon = LinkedinIcon,
+  statusBadge,
   showUrgency = true,
   showStage = true,
   timeAgo = "2 Std.",
@@ -182,6 +185,7 @@ export function LinkedinSignalCard({
       contactId={contactId}
       onOpenInfo={onOpenInfo ? () => onOpenInfo(buildLead()) : undefined}
       actionRow={actionRow}
+      statusBadge={statusBadge}
       selected={selected}
       onToggleSelect={onToggleSelect}
     />
