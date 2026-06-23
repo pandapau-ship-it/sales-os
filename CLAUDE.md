@@ -321,6 +321,21 @@ nicht nur gleich aussehen. Beispiel: Lead-Kachel und Signal-Kachel teilen densel
 denselben Chevron-Expand und denselben „grüner Pfeil → 820px-Info-Panel". Abweichungen sind ein Bug,
 kein Feature. Bei neuem Verhalten: zuerst prüfen, ob das Element woanders schon existiert, und 1:1 übernehmen.
 
+**Visuelle Konsistenz — Pflichtregeln (Single Source visuell):**
+Wird dieselbe Komponente an mehreren Stellen verwendet, muss sie **überall identisch aussehen** und
+**dieselben Datenquellen** nutzen. Keine Stelle darf ein eigenes Format erfinden.
+
+- **Profilzeile (Zeile 1) — gilt für ALLE Kacheln** (Avatar · Name · Jobtitel · ICP-Ring · Company ·
+  Stage wenn vorhanden · Heat · „vor X Tagen" · Pfeil), gerendert ausschließlich über `HunterCard`:
+  - **Zeitformat:** immer `daysSince(last_contacted_at)` → **„vor X Tagen"**. **Nie** „Xd", **nie** „Xh".
+  - **Quelle:** immer `contacts.last_contacted_at` — nie `deal.created_at`, nie `signal.created_at`.
+  - **Hardcodierte Labels** (wie „Zeitkritisch") sind **verboten** — interne Scores/Bewertungen nie anzeigen.
+  - **NULL `last_contacted_at`** (oder „vor 0 Tagen") → Zeit **ausblenden** (Honesty).
+- **Action-Streifen (Zeile 2)** — der **einzige** Ort für kachel-spezifische Unterschiede
+  (z. B. „PIPELINE STAGNIERT · seit Xt", „KEINE TASK · …", „LINKEDIN SIGNAL · …").
+- **Erzwungen** (`npm run audit`): „Profilzeile: kein Kurz-Zeitformat" (WARN bei „Xd"/„Xh" in
+  panel-blocks) · „Design: keine internen Bewertungs-Labels" (**FAIL** bei „Zeitkritisch" o. ä. im Code).
+
 **Border-Hierarchie — was einen Rand bekommt, was nicht:**
 | Element | Border | Warum |
 |---|---|---|
