@@ -31,6 +31,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@
 import { heatFor } from '@/lib/constants';
 import { ICPDonut } from '@/components/shared/ICPDonut';
 import { NAV } from '@/lib/navBehavior';
+import { TABLE } from '@/lib/componentBehavior';
 import { AddSdrLeadPanel, ContactColdDrawer, EmptyState, FollowUpKaltCard, FunnelAnalysis, HeatBadge, HunterSidepanel, KpiCard, LeadListRow, LinkedinSignalCard, NewInPipelineCards, PipelineKeineTaskCard, PipelineStagniertCard, SequenceLeadCards, SignalActionDrawer, StageBadge, StagnationHint, TaskDrawer } from '@/components';
 import type { SignalActionData } from '@/components';
 
@@ -819,7 +820,7 @@ export default function ScreenHunting({
                 (w-fit) → wächst mit jeder vorhandenen Phase bis Bildschirmbreite. Client-seitig aus openDeals. */}
             <div className="flex flex-wrap gap-4 w-full items-stretch">
               {/* Tile 1 — Pipeline-Gesamtwert */}
-              <div className="flex-1 min-w-[180px] bg-app-surface rounded-[12px] p-5 shadow-[var(--shadow-card)] hover:shadow-md transition-shadow flex flex-col gap-3">
+              <div className="flex-1 min-w-[180px] bg-app-surface rounded-[12px] p-5 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-hover)] transition-shadow flex flex-col gap-3">
                 <div className="flex items-start justify-between gap-3">
                   <span className="text-[11px] font-bold text-text-muted uppercase tracking-widest">Pipeline-Gesamtwert</span>
                   <div className="w-9 h-9 rounded-[10px] bg-[var(--signal-info-bg)] text-[var(--signal-info-text)] flex items-center justify-center shrink-0"><TrendingUp size={16} strokeWidth={2.5} /></div>
@@ -828,7 +829,7 @@ export default function ScreenHunting({
               </div>
 
               {/* Tile 2 — Gewichteter Wert (Hover-Popover: gewichteter Wert pro Stage) */}
-              <div className="group relative flex-1 min-w-[180px] bg-app-surface rounded-[12px] p-5 shadow-[var(--shadow-card)] hover:shadow-md transition-shadow flex flex-col gap-3">
+              <div className="group relative flex-1 min-w-[180px] bg-app-surface rounded-[12px] p-5 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-hover)] transition-shadow flex flex-col gap-3">
                 <div className="flex items-start justify-between gap-3">
                   <span className="text-[11px] font-bold text-text-muted uppercase tracking-widest">Gewichteter Wert</span>
                   <div className="w-9 h-9 rounded-[10px] bg-[var(--signal-success-bg)] text-[var(--signal-success-text)] flex items-center justify-center shrink-0"><Percent size={16} strokeWidth={2.5} /></div>
@@ -856,7 +857,7 @@ export default function ScreenHunting({
 
               {/* Tile 3 — Heat-Verteilung: Baseline gleich groß wie die Wert-Kacheln (flex-1), wächst aber
                   mit den Phasen (min-w-fit, Chips ohne Umbruch) → die Wert-Kacheln links schrumpfen. */}
-              <div className="flex-1 min-w-fit max-w-full bg-app-surface rounded-[12px] p-5 shadow-[var(--shadow-card)] hover:shadow-md transition-shadow flex flex-col gap-3">
+              <div className="flex-1 min-w-fit max-w-full bg-app-surface rounded-[12px] p-5 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-hover)] transition-shadow flex flex-col gap-3">
                 <div className="flex items-start justify-between gap-6">
                   <span className="text-[11px] font-bold text-text-muted uppercase tracking-widest">Heat-Verteilung</span>
                   <div className="w-9 h-9 rounded-[10px] bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)] flex items-center justify-center shrink-0"><Flame size={16} strokeWidth={2.5} /></div>
@@ -928,7 +929,7 @@ export default function ScreenHunting({
                             role="button"
                             tabIndex={0}
                             onClick={() => { setInfoPanelTab('deals'); setInfoPanelLead(makeLead(deal.contactId ?? deal.id, deal.contactName, deal.contactJobTitle, deal.company, deal.initials, deal.icpScore ?? 75)); }}
-                            className="bg-app-surface rounded-[12px] p-4 shadow-[var(--shadow-card)] hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 relative group cursor-pointer"
+                            className="bg-app-surface rounded-[12px] p-4 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-hover)] hover:-translate-y-0.5 transition-all duration-300 relative group cursor-pointer"
                           >
                             <div className="flex justify-between items-start mb-3">
                               <div className="flex items-center gap-3 min-w-0">
@@ -1000,8 +1001,8 @@ export default function ScreenHunting({
           ) : (
             <div className="flex flex-col gap-3 pb-8">
               {/* Deals-Tabelle (Count + Filter sitzen in der Filterleiste oben) */}
-              <div className="bg-app-surface rounded-[12px] border border-border shadow-[var(--shadow-card)] overflow-hidden">
-                <div className="grid grid-cols-[1.8fr_1.6fr_1.3fr_1.1fr_0.9fr_1.1fr_auto] gap-4 px-4 py-2.5 bg-app-bg border-b border-border text-[10px] font-extrabold text-text-muted uppercase tracking-wider">
+              <div className={TABLE.container}>
+                <div className={`grid grid-cols-[1.8fr_1.6fr_1.3fr_1.1fr_0.9fr_1.1fr_auto] gap-4 px-4 py-2.5 ${TABLE.header} text-[10px] font-extrabold text-text-muted uppercase tracking-wider`}>
                   <span>Kontakt</span>
                   <span>Firma</span>
                   <span>Stage</span>
@@ -1017,7 +1018,7 @@ export default function ScreenHunting({
                 ) : listDealRows.length === 0 ? (
                   <div className="px-4 py-10 text-center text-[13px] text-text-muted">Keine Deals für diese Filter.</div>
                 ) : listDealRows.map((deal) => (
-                  <div key={deal.id} className="grid grid-cols-[1.8fr_1.6fr_1.3fr_1.1fr_0.9fr_1.1fr_auto] gap-4 px-4 py-3 items-center border-b border-border-subtle last:border-0 hover:bg-app-bg transition-colors">
+                  <div key={deal.id} className={`grid grid-cols-[1.8fr_1.6fr_1.3fr_1.1fr_0.9fr_1.1fr_auto] gap-4 px-4 py-3 items-center ${TABLE.row} transition-colors`}>
                     {/* KONTAKT: Avatar · Name (flex-1 → schiebt den ICP-Ring ans rechte Ende = bündig untereinander) · ICP-Ring. */}
                     <div className="flex items-center gap-3 min-w-0">
                       <Avatar name={deal.contactName} size={32} />

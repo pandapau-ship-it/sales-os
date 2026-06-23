@@ -42,7 +42,7 @@ export default function LeadListRow({
 
   return (
     <div
-      className={`group rounded-[12px] p-4 flex flex-col gap-4 shadow-[var(--shadow-card)] hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 cursor-pointer border border-[var(--border-card)] relative ${
+      className={`group rounded-[12px] p-4 flex flex-col gap-4 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-hover)] hover:-translate-y-0.5 transition-all duration-300 cursor-pointer border border-[var(--border-card)] relative ${
         selected ? 'bg-[var(--signal-teal-bg)]' : 'bg-app-surface'
       }`}
       onClick={onToggleExpand}

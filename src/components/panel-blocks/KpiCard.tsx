@@ -16,7 +16,7 @@ export default function KpiCard({
   subtitleClass: string;
 }) {
   return (
-    <div className="bg-app-surface rounded-[12px] p-6 shadow-[var(--shadow-card)] flex flex-col justify-between h-[160px] hover:shadow-md transition-shadow relative">
+    <div className="bg-app-surface rounded-[12px] p-6 shadow-[var(--shadow-card)] flex flex-col justify-between h-[160px] hover:shadow-[var(--shadow-hover)] transition-shadow relative">
       <div className="flex justify-between items-start">
         <span className="typo-section-label text-text-muted">{title}</span>
         <div className={`w-8 h-8 rounded-[12px] ${iconClass} flex items-center justify-center shrink-0`}>{icon}</div>

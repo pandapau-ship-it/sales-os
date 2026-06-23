@@ -55,7 +55,7 @@ export default function ExpandedCardContent({
             <Zap className="w-3.5 h-3.5 text-[var(--sherloq-primary)]" /> {t("hunter.common.kiKurzakte")}
             <span className="px-1.5 py-0.5 rounded-full bg-app-bg text-text-muted text-[9px] font-extrabold uppercase tracking-wide">Folgt</span>
           </span>
-          <div className="flex-1 bg-app-surface rounded-[12px] p-5 border border-[var(--border)]">
+          <div className="flex-1 bg-app-surface rounded-[12px] p-5 border border-[var(--border-card)]">
             <p className="text-[13px] text-text-muted italic leading-relaxed">KI-Kurzakte folgt mit der AI-Pipeline ([D5]).</p>
           </div>
         </div>

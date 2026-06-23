@@ -12,7 +12,7 @@ export default function ActiveSequenceChain() {
         <span className="typo-section-label text-text-muted">Active Sequence</span>
         <span className="text-[11px] font-bold text-[var(--sherloq-primary)]">Schritt 3 von 5</span>
       </div>
-      <div className="bg-app-surface rounded-[12px] p-6 border border-border shadow-sm flex items-start justify-between relative px-8">
+      <div className="bg-app-surface rounded-[12px] p-6 border border-[var(--border-card)] flex items-start justify-between relative px-8">
         <div className="absolute left-12 right-12 top-[42px] h-px bg-border z-0"></div>
         <div className="flex flex-col items-center gap-2 relative z-10">
           <div className="w-9 h-9 rounded-full flex items-center justify-center bg-[var(--sherloq-primary)] text-on-accent shadow-sm"><Mail className="w-[14px] h-[14px]" /></div>

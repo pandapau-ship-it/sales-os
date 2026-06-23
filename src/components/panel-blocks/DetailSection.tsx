@@ -12,15 +12,18 @@ export interface DetailSectionProps {
   collapsible?: boolean;
   defaultCollapsed?: boolean;
   cols?: 1 | 2;
+  /** Elevation-Kontext (Elevation-System): 'panel' = In-Panel-Box (kein Schatten) ·
+   *  'page' = Karte auf Seiten-Hintergrund (shadow-card). Default 'panel' (häufiger Fall). */
+  variant?: "panel" | "page";
   children: any;
 }
 
 export default function DetailSection({
-  title, icon: Icon, collapsible = false, defaultCollapsed = false, cols = 2, children,
+  title, icon: Icon, collapsible = false, defaultCollapsed = false, cols = 2, variant = "panel", children,
 }: DetailSectionProps) {
   const [open, setOpen] = useState(!defaultCollapsed);
   return (
-    <section className="bg-app-surface rounded-[12px] border border-border shadow-[var(--shadow-card)] overflow-hidden">
+    <section className={`bg-app-surface rounded-[12px] border border-[var(--border-card)] overflow-hidden${variant === "page" ? " shadow-[var(--shadow-card)]" : ""}`}>
       <button
         type="button"
         onClick={() => collapsible && setOpen((o) => !o)}

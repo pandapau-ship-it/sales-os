@@ -25,7 +25,7 @@ export default function MailComposer({
 
   return (
     <div className="space-y-3 animate-fade-in">
-      <div className="bg-app-surface rounded-[12px] border border-border shadow-[var(--shadow-card)] overflow-hidden">
+      <div className="bg-app-surface rounded-[12px] border border-[var(--border-card)] overflow-hidden">
         <div className="px-5 py-4 flex items-center justify-between border-b border-border-subtle">
           <div className="flex items-center gap-2">
             <Mail className="w-4 h-4 text-[var(--sherloq-primary)]" />

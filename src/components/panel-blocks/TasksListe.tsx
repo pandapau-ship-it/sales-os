@@ -184,7 +184,7 @@ export default function TasksListe({
           const ChannelIcon = ch.Icon;
           const prio = PRIORITY[task.priority];
           return (
-            <div key={task.id} className={`group bg-app-surface border border-border rounded-[12px] shadow-sm overflow-hidden ${task.completed ? "opacity-60" : ""}`}>
+            <div key={task.id} className={`group bg-app-surface border border-[var(--border-card)] rounded-[12px] overflow-hidden ${task.completed ? "opacity-60" : ""}`}>
               {/* Zusammenfassung — klickbar zum Aufklappen */}
               <div className="p-4 flex items-start justify-between gap-3 cursor-pointer select-none" onClick={() => setExpanded((p) => ({ ...p, [task.id]: !p[task.id] }))}>
                 <div className="min-w-0">

@@ -123,7 +123,7 @@ export default function NotizenListe({
 
       {/* Composer für neue Notiz */}
       {composerOpen && (
-        <div className="p-4 bg-app-surface border border-border rounded-[12px] shadow-sm animate-fade-in space-y-3">
+        <div className="p-4 bg-app-surface border border-[var(--border-card)] rounded-[12px] animate-fade-in space-y-3">
           <textarea autoFocus value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Notiz schreiben…" className={TEXTAREA} />
           <div className="flex items-center justify-end gap-2">
             <button onClick={() => { setComposerOpen(false); setDraft(""); }} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-text-muted hover:text-text-body text-[11px] font-bold transition-colors cursor-pointer">
@@ -142,7 +142,7 @@ export default function NotizenListe({
 
       <div className="space-y-3">
         {notes.map((note) => (
-          <div key={note.id} className="group p-4 bg-app-surface border border-border rounded-[12px] shadow-sm">
+          <div key={note.id} className="group p-4 bg-app-surface border border-[var(--border-card)] rounded-[12px]">
             <div className="flex items-start justify-between gap-3">
               <span className="text-[10px] text-text-muted font-bold">
                 {note.date} · {note.time}{note.author ? ` · ${note.author}` : ""}

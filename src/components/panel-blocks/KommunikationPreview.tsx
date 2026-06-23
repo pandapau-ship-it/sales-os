@@ -14,7 +14,7 @@ export default function KommunikationPreview({ onShowAll }: { onShowAll?: () => 
         </span>
         <button onClick={onShowAll} className="text-[11px] font-bold text-[var(--sherloq-primary)] hover:underline cursor-pointer">Alle anzeigen →</button>
       </div>
-      <div className="bg-app-surface rounded-[12px] p-5 border border-border shadow-sm divide-y divide-[var(--border-subtle)]">
+      <div className="bg-app-surface rounded-[12px] p-5 border border-[var(--border-card)] divide-y divide-[var(--border-subtle)]">
         <div className="py-3 first:pt-0">
           <div className="flex items-start gap-4">
             <BrandLogo name="teams" className="w-11 h-11 shrink-0 rounded-[12px] shadow-sm" tile />
