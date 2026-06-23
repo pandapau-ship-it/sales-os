@@ -515,11 +515,25 @@ kam es, wie groß ist es** — und einen **klaren nächsten Schritt** anstoßen 
   Dispatch-Registry — die abstrahiert man seriös erst mit ~3 echten Fällen (heute: 1). Steht auf
   [D5]/Sending-Layer, die noch fehlen → Engine jetzt = Bau auf Sand.
 
+### [D36] Hunter — „Trial läuft aus"-Kachel (deferred)
+- **Trigger:** `companies.trial_end_date <= now() + 2 Tage` **AND** `subscription_status = 'trial'`.
+- **Wo:** Hunter → **Follow-ups**-Tab.
+- **CTA:** „Abschluss sichern".
+- **Wann:** nach Hunter-Vervollständigung.
+- **Voraussetzung:** Feld `trial_end_date` in `companies` (Migration nötig) + `subscription_status`.
+
+### [D37] Hunter — „Trial abgelaufen ohne Conversion"-Kachel (deferred)
+- **Trigger:** `companies.trial_end_date < now()` **AND** `subscription_status = 'trial'`.
+- **Wo:** Hunter → **Follow-ups**-Tab.
+- **CTA:** „Jetzt konvertieren".
+- **Wann:** nach Hunter-Vervollständigung.
+- **Voraussetzung:** wie [D36] (`trial_end_date` + `subscription_status` in `companies`).
+
 ### [TS] Deal-Typ ohne `product` — offener Faden
 - `src/types/hunter.ts` `Deal` hat **kein `product`** (Migration 014 fügte nur die DB-Spalte).
   Beim späteren Produkt-Anzeigen (Pipeline/Deal-Detail) `product?: string` im Typ ergänzen + mappen.
 
-> Anker-Tags `[D1]`–`[D35]` sind im Code referenzierbar (z.B. `hunterMappers.ts` → `[[leads-tab-read]]`).
+> Anker-Tags `[D1]`–`[D37]` sind im Code referenzierbar (z.B. `hunterMappers.ts` → `[[leads-tab-read]]`).
 > Vor Umsetzung eines Punkts: passende Referenz-Doku (`docs/sales_os_edge_functions_v2.md` etc.) lesen.
 
 ---
