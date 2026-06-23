@@ -347,6 +347,34 @@ Wird dieselbe Komponente an mehreren Stellen verwendet, muss sie **überall iden
 | Buttons (primär) | ❌ Nein | Fill reicht |
 | Expanded-Content-Bereiche | ✅ Ja — `border-t border-[#F1F3F5]` | Trenner, kein Kasten |
 
+### Elevation-System (verbindlich für alle Screens, alle Komponenten)
+
+Drei Ebenen — **nie mischen.** Grundsatz: **Elevation nur EINMAL pro Kontext.** Trennung innen =
+Haarlinie + Weißraum + Label, nie ein zweiter Schatten.
+
+**Ebene 0 — Base (Tabellen / Listen):**
+- Zeilen-Trenner: nur `border-b border-[var(--border-card)]`
+- **Kein** Schatten pro Zeile
+- Der Tabellen-**Container** ist Ebene 1 · Header-Zeile: `bg-app-bg` + `border-b`
+
+**Ebene 1 — Card:**
+- **Kachel auf Seiten-Hintergrund:**
+  `border-[var(--border-card)]` + `shadow-[var(--shadow-card)]` + `hover:shadow-[var(--shadow-hover)]`
+- **Box INNERHALB eines Panels/Overlays:**
+  nur `border-[var(--border-card)]` — **KEIN Schatten** (das Panel liefert die Elevation)
+
+**Ebene 2 — Float (Panel / Dropdown / Toast):**
+- `shadow-[var(--shadow-dropdown)]` · kein/dezenter Rahmen
+- Innen gelten ausschließlich die Ebene-1-Regeln (= In-Panel-Box ohne Schatten)
+
+**NIEMALS:**
+- `shadow-sm` / `shadow-md` / `shadow-lg` (rohe Tailwind-Stufen) — **nur Token**
+- Schatten **innerhalb** von Panels (Schatten-im-Schatten)
+- `border-border` (voll sichtbar) auf Kacheln — Kacheln nutzen `border-[var(--border-card)]`
+
+> Vorbild im Code: `HunterCard` (Ebene 1, Liste) · `ExpandedCardContent` (Trenner statt Schatten-Box) ·
+> `HunterSidepanel` (Ebene 2, innen flache Ebene-1-Boxen). Quelle der Werte: `componentBehavior.ts`.
+
 **Hover-Aktionen — Edit / Löschen / Copy nur bei Hover (verbindlich für ALLE Kacheln):**
 Bearbeiten-, Löschen- und Copy-Buttons in einer Kachel/Zeile sind **standardmäßig unsichtbar**
 und erscheinen erst beim **Hover über die Kachel** (Tastatur: via `focus-within`). Reduziert
