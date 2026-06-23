@@ -474,6 +474,49 @@ function checkTypographyTokens(): void {
 }
 checkTypographyTokens()
 
+// ── Profilzeile-Konsistenz: Kurz-Zeitformate + verbotene interne Labels ──────
+
+/**
+ * WARN: hardcodierte Kurz-Zeitformate („6d“/„24h“) in panel-blocks. Die Profilzeile MUSS
+ * `daysSince(last_contacted_at)` → „vor X Tagen“ nutzen (Single Source). Kommentare und
+ * Enum-Werte (`value="7d"` in SelectItem) sind ausgenommen — sie sind kein Anzeige-Text.
+ */
+function checkHardcodedTimeFormats(): void {
+  const offenders: string[] = []
+  for (const f of walk(join(SRC, 'components', 'panel-blocks'), ['.tsx'])) {
+    const raw = read(f)
+    const noBlock = raw.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '))
+    noBlock.split('\n').forEach((lineRaw, i) => {
+      const line = lineRaw
+        .replace(/\/\/.*$/, '')                       // Zeilenkommentar
+        .replace(/\bvalue\s*=\s*["'][^"']*["']/g, '')  // Enum-/Select-Werte (kein Anzeige-Text)
+      if (/\b\d+[dh]\b/.test(line)) offenders.push(`${rel(f)}:${i + 1}`)
+    })
+  }
+  add('Profilzeile: kein Kurz-Zeitformat', offenders.length ? 'WARN' : 'PASS',
+    offenders.length
+      ? `Hardcodiertes Kurz-Zeitformat („Xd“/„Xh“) in Kacheln — Profilzeile muss daysSince(last_contacted_at) → „vor X Tagen“ nutzen:\n        ${offenders.join('\n        ')}`
+      : 'Keine hardcodierten Kurz-Zeitformate in Kacheln (Profilzeile = „vor X Tagen“).')
+}
+checkHardcodedTimeFormats()
+
+/**
+ * FAIL: interne Bewertungs-Labels (z. B. „Zeitkritisch“) dürfen nie im Code stehen —
+ * interne Scores/Bewertungen werden nie für den User gerendert.
+ */
+function checkForbiddenLabels(): void {
+  const FORBIDDEN = /zeitkritisch/i
+  const offenders: string[] = []
+  for (const f of walk(SRC, ['.ts', '.tsx', '.json'])) {
+    read(f).split('\n').forEach((l, i) => { if (FORBIDDEN.test(l)) offenders.push(`${rel(f)}:${i + 1}`) })
+  }
+  add('Design: keine internen Bewertungs-Labels', offenders.length ? 'FAIL' : 'PASS',
+    offenders.length
+      ? `Verbotenes internes Label („Zeitkritisch“ o. ä.) im Code — interne Scores nie anzeigen:\n        ${offenders.join('\n        ')}`
+      : 'Keine internen Bewertungs-Labels im Code.')
+}
+checkForbiddenLabels()
+
 // ── Performance & Skalierung (Empfehlungen → WARN; echtes N+1 in Production → FAIL) ──
 
 /** N+1: useQuery() INNERHALB einer .map()-Klammer (ein Query pro Zeile/Karte) — via Klammer-Matching. */
