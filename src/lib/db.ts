@@ -1057,6 +1057,15 @@ export async function getPipelineSettings(
   return (settings?.pipeline_stages as PipelineStage[] | undefined) ?? [];
 }
 
+/** settings.thresholds.hunter_priority_weights (Dringlichkeits-Score, org-tunebar). null → Default im Mapper. */
+export async function getHunterPriorityWeights(
+  organizationId: string,
+): Promise<Record<string, number> | null> {
+  const settings = await getSettings(organizationId);
+  const thresholds = settings?.thresholds as Record<string, unknown> | undefined;
+  return (thresholds?.hunter_priority_weights as Record<string, number> | undefined) ?? null;
+}
+
 /** settings.signal_windows (Dringlichkeits-Window je signal_type, org-tunebar). */
 export async function getSignalWindows(
   organizationId: string,

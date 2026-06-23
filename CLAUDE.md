@@ -4200,6 +4200,43 @@ Nur: **erkennen → empfehlen → Mensch entscheidet.**
 
 ---
 
+## Hunter Übersicht — Dringlichkeits-Score (zentrale Priorisierung)
+
+Der Übersicht-Tab listet die **wichtigsten Kontakte zuerst** — nach einem client-seitig
+berechneten **Dringlichkeits-Score** (`calculatePriorityScore` in `hunterMappers.ts`, aus
+`rawDeals` + `signals`). **Alle Gewichte aus `settings.thresholds.hunter_priority_weights`**
+(Migration 045, Demo-Org) — **nie hardcodiert**; Defaults (`PRIORITY_WEIGHTS_DEFAULT`) sind nur
+Fallback. Per AI-Chat/Settings änderbar („mache stagnierende Deals wichtiger" → schreibt settings
+→ Score ändert sich). **Signal-getrieben: Score 0 → Kontakt erscheint nicht** (ruhiger Platzhalter
+wenn die Liste leer ist).
+
+**Kandidaten:** jeder Kontakt mit ≥1 aktivem (nicht-terminalem) Deal.
+
+**Basis-Punkte (je aktivem Signal, addieren sich):**
+| Signal | Bedingung | Default |
+|---|---|---|
+| `linkedin_signal` | frischestes Signal < 24h alt | 40 |
+| `overdue_task` | offene Task (`completed_at`/`deleted_at` NULL) mit `due_at < heute` | 35 |
+| `stagnated` | aktiver Deal `stagnation_days ≥` Stage-Schwelle (settings) | 30 |
+| `going_cold` | Heat COLD/DEAD (über `contactToProfile`, nie Roh-`heat_status`) | 25 |
+| `no_task` | aktiver Deal vorhanden, aber keine offene Task | 20 |
+
+**Zeitdruck-Bonus:** Task überfällig > `overdue_bonus_days` (3) → +`overdue_bonus_points` (10) ·
+Stagniert ≥ 2× Schwelle → +`stagnated_double_bonus` (15) · Signal älter als 24h →
+−`signal_age_penalty_per_day` (5) **pro Tag**.
+
+**Multiplikatoren (multiplizieren sich):** ARR (Σ aktiver Deal-Werte in €) > `arr_high_threshold`
+(100k) → ×1.5, > `arr_mid_threshold` (50k) → ×1.2, sonst ×1.0 · ICP > `icp_high_threshold` (80) →
+×1.3, > `icp_mid_threshold` (60) → ×1.1, sonst ×1.0.
+
+**Formel:** `score = (Basis + Zeitdruck-Bonus) × ARR-Mult × ICP-Mult` (auf 0 geklemmt, gerundet).
+**Sortierung:** Score ↓ · bei Gleichstand ARR ↓ · ICP ↓ · ältestes Deal-Datum zuerst.
+`calculatePriorityScore` gibt `{ score, signals[], arr, icpScore }` zurück — `signals[]` speist den
+Hover-Tooltip (welche Signale aktiv). Lädt die Gewichte: `getHunterPriorityWeights(org)` →
+`settings.thresholds.hunter_priority_weights` (ReferenceScreens → `priorityWeights`-Prop an ScreenHunting).
+
+---
+
 ## Farmer Screen — UI-Struktur (Recommendation Feed, Bestandskunden)
 
 Wie Hunter, explizit als Recommendation Agent.

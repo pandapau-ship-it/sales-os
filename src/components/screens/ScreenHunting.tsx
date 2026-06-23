@@ -31,11 +31,11 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@
 import { heatFor } from '@/lib/constants';
 import { ICPDonut } from '@/components/shared/ICPDonut';
 import { NAV } from '@/lib/navBehavior';
-import { AddSdrLeadPanel, ContactColdDrawer, EmptyState, FollowUpKaltCard, FunnelAnalysis, HeatBadge, HunterSidepanel, KpiCard, LeadListRow, LinkedinSignalCard, NewInPipelineCards, PipelineKeineTaskCard, PipelineStagniertCard, SequenceLeadCards, SignalActionDrawer, StageBadge, StagnationHint, TaskDrawer } from '@/components';
+import { AddSdrLeadPanel, ContactColdDrawer, EmptyState, FollowUpKaltCard, FunnelAnalysis, HeatBadge, HunterCard, HunterSidepanel, KpiCard, LeadListRow, LinkedinSignalCard, NewInPipelineCards, PipelineKeineTaskCard, PipelineStagniertCard, SequenceLeadCards, SignalActionDrawer, StageBadge, StagnationHint, TaskDrawer, type HunterCardData } from '@/components';
 import type { SignalActionData } from '@/components';
 
 import Avatar from '@/components/shared/Avatar';
-import { signalToCardProps, signalToActionData, contactToColdPerson, contactToProfile, taskToDueCard, dealToNewPipelineRow, dealToStagnatedCard, contactToNoTaskCard, newPipelineInPeriod, isTerminalStage, stagnationFlag, WON_STAGE_SLUG, LOST_STAGE_SLUG, type PipelineRow, type NewPipelinePeriod, type StagnatedCardItem, type NoTaskCardItem } from '@/lib/hunterMappers';
+import { signalToCardProps, signalToActionData, contactToColdPerson, contactToProfile, taskToDueCard, dealToNewPipelineRow, dealToStagnatedCard, contactToNoTaskCard, calculatePriorityScore, newPipelineInPeriod, isTerminalStage, stagnationFlag, WON_STAGE_SLUG, LOST_STAGE_SLUG, type PipelineRow, type NewPipelinePeriod, type StagnatedCardItem, type NoTaskCardItem } from '@/lib/hunterMappers';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { updateDealStage, updateDealWon, updateDealLost } from '@/lib/db';
 import { useCurrentOrg } from '@/hooks/useCurrentOrg';
@@ -67,6 +67,8 @@ interface ScreenHuntingProps {
   // Follow-ups (T2): fällige Tasks (completed_at IS NULL AND due_at <= now()),
   // inkl. Kontakt-Embed (+ company + deals für contactActiveStage).
   dueTasksData?: Record<string, unknown>[];
+  // Dringlichkeits-Score-Gewichte (Übersicht-Tab) aus settings.thresholds; undefined → Default-Gewichte.
+  priorityWeights?: Record<string, number>;
   // Neu-in-Pipeline: frisch angelegte Deals (inkl. contact + company + deals-Embed).
   newInPipelineData?: Record<string, unknown>[];
   // Cold/Inaktiv: Kontakte mit heat_status 'kalt'/'tot' (für den Reaktivierungs-Opener).
@@ -94,6 +96,7 @@ export default function ScreenHunting({
   signalsLoading,
   signalsError,
   dueTasksData,
+  priorityWeights,
   newInPipelineData,
   coldContactsData,
   onCompleteTask,
@@ -206,6 +209,26 @@ export default function ScreenHunting({
   const noTaskItems: NoTaskCardItem[] = [...noTaskByContact.values()]
     .filter((deals) => deals.every((d) => !hasOpenTask(d))) // kein einziger Deal des Kontakts hat eine offene Task
     .map((deals) => contactToNoTaskCard(deals[0].contact, deals, stageNameBySlug));
+  // Übersicht — Dringlichkeits-Score: pro Kontakt (mit ≥1 aktivem Deal) aus aktiven Deals +
+  // seinen Signalen. Gewichte aus settings (priorityWeights) — Fallback Default im Mapper.
+  // Signal-getrieben: Score 0 → nicht anzeigen. Sortierung: Score → ARR → ICP → ältestes Deal-Datum.
+  const signalsByContact = new Map<string, Record<string, any>[]>();
+  for (const s of (signalsData ?? []) as Record<string, any>[]) {
+    const cid = (s.contact?.id ?? s.contact_id) as string | undefined;
+    if (!cid) continue;
+    if (!signalsByContact.has(cid)) signalsByContact.set(cid, []);
+    signalsByContact.get(cid)!.push(s);
+  }
+  const oldestDealMs = (deals: Record<string, any>[]) =>
+    Math.min(...deals.map((d) => new Date(d.created_at ?? 0).getTime() || Infinity));
+  const priorityItems = [...noTaskByContact.values()]
+    .map((deals) => {
+      const contact = deals[0].contact as Record<string, any>;
+      const res = calculatePriorityScore(contact, deals, signalsByContact.get(contact.id) ?? [], priorityWeights, stagnationBySlug);
+      return { contact, deals, oldest: oldestDealMs(deals), ...res };
+    })
+    .filter((it) => it.score > 0)
+    .sort((a, b) => b.score - a.score || b.arr - a.arr || (b.icpScore ?? 0) - (a.icpScore ?? 0) || a.oldest - b.oldest);
   const newPipelineFiltered = newPipelineItems.filter((it) => newPipelineInPeriod(it.createdAt, newPipelinePeriod));
   // Übersicht-Aggregate (reine Reads, kein Write): wiederverwenden was schon geladen ist.
   const eur = (n: number) => `€ ${new Intl.NumberFormat('de-DE').format(Math.round(n))}`;
@@ -426,17 +449,57 @@ export default function ScreenHunting({
 
           <FunnelAnalysis stages={funnelStages} />
 
-          {/* Top-5 „wichtigste Aufgaben" — gefüllt von der zentralen Priorisierungs-
-              Regel (= morning_briefing(), wie Mein Tag). Noch nicht gebaut → ruhiger
-              Platzhalter als sichtbare Tür, KEINE Fake-Karten. (PROGRESS: Regel-Thema.) */}
+          {/* Wichtigste Aufgaben — zentrale Dringlichkeits-Priorisierung (Score aus settings).
+              Signal-getrieben: nur Kontakte mit Score > 0; sonst ruhiger Platzhalter (keine Fake-Karten). */}
           <div className="mt-2">
             <span className="text-[10px] font-extrabold text-text-muted uppercase tracking-widest">{t('hunter.overview.top5Header')}</span>
             <div className="mt-3">
-              <EmptyState
-                icon={<ListChecks className="w-6 h-6" />}
-                title={t('hunter.overview.top5Title')}
-                description={t('hunter.overview.top5Hint')}
-              />
+              {priorityItems.length === 0 ? (
+                <EmptyState
+                  icon={<ListChecks className="w-6 h-6" />}
+                  title={t('hunter.overview.top5Title')}
+                  description={t('hunter.overview.top5Hint')}
+                />
+              ) : (
+                <div className="flex flex-col gap-4">
+                  {priorityItems.map((it) => {
+                    const p = contactToProfile(it.contact);
+                    const labels = it.signals.map((k) => t(`hunter.overview.prioSignal.${k}`));
+                    const data: HunterCardData = {
+                      id: it.contact.id as string,
+                      name: p.name,
+                      jobTitle: p.jobTitle,
+                      company: p.company,
+                      icpScore: p.icpScore,
+                      stageLabel: '',
+                      heatStatus: p.heatStatus,
+                      timeLabel: '',
+                    };
+                    const actionRow = (
+                      <>
+                        <div className="flex items-center gap-3 min-w-0">
+                          <span
+                            data-tip={labels.join(' · ')}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)] text-[10px] font-bold uppercase tracking-wider shrink-0"
+                          >
+                            {t('hunter.overview.prioScore', { score: it.score })}
+                          </span>
+                          <span className="text-[12px] text-text-muted truncate">{labels.join(' · ')}</span>
+                        </div>
+                      </>
+                    );
+                    return (
+                      <HunterCard
+                        key={it.contact.id as string}
+                        data={data}
+                        contactId={it.contact.id as string}
+                        onOpenInfo={() => setInfoPanelLead(makeLead(it.contact.id as string, p.name, p.jobTitle, p.company, p.initials, p.icpScore ?? 75))}
+                        actionRow={actionRow}
+                      />
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
         </div>
