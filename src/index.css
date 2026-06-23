@@ -28,7 +28,7 @@
   /* Borders */
   --border:           #E2E8F0;
   --border-strong:    #CBD5E1;
-  --border-card:      rgba(15, 23, 42, 0.07);
+  --border-card:      rgba(15, 23, 42, 0.11);
 
   /* Border Radius */
   --radius-card:      16px;
@@ -152,7 +152,7 @@
   /* Borders */
   --border:           #2A3548;
   --border-strong:    #3B4961;
-  --border-card:      rgba(255, 255, 255, 0.06);
+  --border-card:      rgba(255, 255, 255, 0.10);
 
   /* Shadows — kräftiger auf dunkel */
   --shadow-card:      0 1px 2px rgba(0, 0, 0, 0.30), 0 2px 6px rgba(0, 0, 0, 0.25);
