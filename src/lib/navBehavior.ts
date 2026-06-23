@@ -9,8 +9,12 @@
  * (analog CARD/ACTION_ROW in componentBehavior.ts)
  */
 export const NAV = {
-  /** Pill-Form für Container + Items — die eine Stellschraube für alle Nav-Leisten. */
+  /** Pill-Form für Container + Items — Top-Nav + Sidebar. */
   radius: "rounded-full",
+  /** Sub-Nav-Container (Hunter/Farmer/…) — gleiche Pill-Rundung wie die Top-Nav. */
+  subRadius: "rounded-full",
+  /** Sub-Nav-Tabs — gleiche Pill-Rundung wie die Top-Nav. */
+  subTabRadius: "rounded-full",
   /** Weiße Fläche der (horizontalen) Nav-Container. */
   surface: "bg-app-surface shadow-[var(--shadow-card)]",
   /** Innen-Layout horizontaler Nav-Container. */
