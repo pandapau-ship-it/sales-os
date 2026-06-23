@@ -461,11 +461,24 @@ kam es, wie groß ist es** — und einen **klaren nächsten Schritt** anstoßen 
 - **Kommt wenn:** Settings-Screen fertig + Email-Provider in Supabase konfiguriert.
 - **Bis dahin:** Einladung nur in der DB, kein Mailversand (UI-Hinweis weist darauf hin).
 
+### [D30] 2FA Pflicht für Owner (Enforcement) (deferred)
+- **Aktuell:** Empfehlung via `MfaBanner` (Scheibe 8) ✓ — kein Zwang, überspringbar.
+- **Fehlt:** Owner **MUSS** 2FA aktivieren, bevor er auf die App zugreifen kann.
+- **Umsetzung:** Supabase **AAL2**-Policy + Auth-Guard (Zugriff erst nach erfüllter 2FA).
+- **Kommt wenn:** Settings-Screen fertig + erste echte Kunden.
+
+### [D31] Google + Microsoft OAuth Setup (deferred)
+- **Code fertig:** `signInWithGoogle`/`signInWithMicrosoft` (Scheibe 2) ✓.
+- **Fehlt:** OAuth-Apps anlegen in **Google Cloud Console** + **Azure Portal**.
+- **Redirect-URL:** `[domain]/auth/callback`.
+- **Dauer:** ca. 20 Min pro Provider.
+- **Kommt wenn:** Production-Domain feststeht.
+
 ### [TS] Deal-Typ ohne `product` — offener Faden
 - `src/types/hunter.ts` `Deal` hat **kein `product`** (Migration 014 fügte nur die DB-Spalte).
   Beim späteren Produkt-Anzeigen (Pipeline/Deal-Detail) `product?: string` im Typ ergänzen + mappen.
 
-> Anker-Tags `[D1]`–`[D29]` sind im Code referenzierbar (z.B. `hunterMappers.ts` → `[[leads-tab-read]]`).
+> Anker-Tags `[D1]`–`[D31]` sind im Code referenzierbar (z.B. `hunterMappers.ts` → `[[leads-tab-read]]`).
 > Vor Umsetzung eines Punkts: passende Referenz-Doku (`docs/sales_os_edge_functions_v2.md` etc.) lesen.
 
 ---
