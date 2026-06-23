@@ -348,3 +348,10 @@
 - **how:** Passiv; Schwelle pro Stage in den Einstellungen.
 - **value:** Frühwarnung ohne Reporting-Umweg — festhängende Deals fallen sofort auf.
 - **module:** hunter
+
+### Team & Einladungen
+- **feature:** Team & Einladungen
+- **what:** Mitglieder der Organisation verwalten (Liste Name/E-Mail/Rolle/Seit), Rollen ändern (nur Owner), neue Personen per E-Mail einladen (Owner/Admin), offene Einladungen zurückziehen. Registrierung über eine Einladung ordnet Org + Rolle automatisch zu. Mailversand der Einladung folgt (Edge Function); Einladung ist bereits gespeichert.
+- **how:** Einstellungen → Team → „Mitglied einladen" (E-Mail + Rolle). Rollen per Dropdown in der Mitgliederliste; offene Einladungen mit „Zurückziehen".
+- **value:** Schnelles Team-Onboarding ohne IT — neue Kolleg:innen in Minuten startklar, Rollen steuern Zugriff sauber, gegenseitige Vertretung verhindert liegengebliebene Leads.
+- **module:** core

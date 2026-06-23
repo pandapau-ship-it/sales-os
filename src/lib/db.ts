@@ -877,6 +877,95 @@ export async function getUserOrgRole(
   return data as { organization_id: string; role: string };
 }
 
+// ── Team & Einladungen ([D21] Scheibe 7) ─────────────────────────────────────
+
+/** getTeamMembers — alle User der Organisation (Settings → Team), älteste zuerst. */
+export async function getTeamMembers(
+  organizationId: string,
+): Promise<Record<string, unknown>[]> {
+  const client = getSupabaseClient();
+  if (!client) return [];
+  const { data, error } = await client
+    .from("users")
+    .select("id, full_name, email, role, created_at")
+    .eq("organization_id", organizationId)
+    .order("created_at", { ascending: true });
+  if (error) throw error;
+  return data ?? [];
+}
+
+/** getInvitations — offene (noch nicht angenommene) Einladungen der Org, neueste zuerst. */
+export async function getInvitations(
+  organizationId: string,
+): Promise<Record<string, unknown>[]> {
+  const client = getSupabaseClient();
+  if (!client) return [];
+  const { data, error } = await client
+    .from("invitations")
+    .select("id, email, role, created_at, expires_at")
+    .eq("organization_id", organizationId)
+    .is("accepted_at", null)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return data ?? [];
+}
+
+/**
+ * createInvitation — Einladung anlegen (Settings → Team). Schreibt die invitations-Zeile;
+ * token + expires_at (now()+7d) kommen aus DB-Defaults (042). Audit via Trigger.
+ * HINWEIS: Der Einladungs-Mail-Versand läuft über die Supabase Admin-API
+ * (auth.admin.inviteUserByEmail) und braucht den service_role-Key → NICHT im Client
+ * möglich. Versand kommt als Edge Function (deferred); hier wird nur die Einladung
+ * persistiert. Beim späteren Registrieren greift der Provisioning-Trigger (043).
+ */
+export async function createInvitation(
+  organizationId: string,
+  email: string,
+  role: string,
+  invitedBy?: string,
+): Promise<void> {
+  const client = getSupabaseClient();
+  if (!client) return;
+  const { error } = await client.from("invitations").insert({
+    organization_id: organizationId,
+    email: email.trim().toLowerCase(),
+    role,
+    invited_by: invitedBy ?? null,
+  });
+  if (error) throw error;
+}
+
+/** deleteInvitation — offene Einladung zurückziehen, org-gescoped. */
+export async function deleteInvitation(
+  invitationId: string,
+  organizationId: string,
+): Promise<void> {
+  const client = getSupabaseClient();
+  if (!client) return;
+  const { error } = await client
+    .from("invitations")
+    .delete()
+    .eq("id", invitationId)
+    .eq("organization_id", organizationId);
+  if (error) throw error;
+}
+
+/** updateUserRole — Rolle eines Mitglieds ändern (nur Owner, RLS/Rechte serverseitig), org-gescoped. */
+export async function updateUserRole(
+  userId: string,
+  organizationId: string,
+  role: string,
+): Promise<void> {
+  const client = getSupabaseClient();
+  if (!client) return;
+  const { error } = await client
+    .from("users")
+    .update({ role })
+    .eq("id", userId)
+    .eq("organization_id", organizationId);
+  if (error) throw error;
+}
+
 /**
  * createDeal — neuen Deal anlegen (P5b, einfacher User-Write). Audit via DB-Trigger,
  * keine Edge Function. value: € → Cent (×100). stage = Default `backlog` (kein Stage-Wechsel).

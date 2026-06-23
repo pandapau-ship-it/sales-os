@@ -39,6 +39,37 @@
     "designToken": {
       "title": "Design Token System",
       "body": "shadcn/ui + Tailwind CSS v4 + CSS Variables. Alle Tokens in src/index.css."
+    },
+    "team": {
+      "title": "Equipo",
+      "subtitle": "Gestiona miembros e invita a nuevas personas.",
+      "members": "Miembros",
+      "colMember": "Miembro",
+      "colEmail": "Correo",
+      "colRole": "Rol",
+      "colSince": "Desde",
+      "noMembers": "Aún no hay miembros.",
+      "invite": "Invitar miembro",
+      "pending": "Invitaciones pendientes",
+      "noPending": "No hay invitaciones pendientes.",
+      "expires": "caduca {{date}}",
+      "withdraw": "Retirar",
+      "modalTitle": "Invitar miembro",
+      "emailLabel": "Correo",
+      "emailPlaceholder": "nombre@empresa.com",
+      "roleLabel": "Rol",
+      "send": "Enviar invitación",
+      "sending": "Enviando…",
+      "cancel": "Cancelar",
+      "invited": "Invitación creada ✓",
+      "withdrawn": "Invitación retirada",
+      "roleChanged": "Rol cambiado ✓",
+      "roleOwner": "Owner",
+      "roleAdmin": "Admin",
+      "roleMember": "Miembro",
+      "roleViewer": "Lector",
+      "onlyOwnerAdmin": "Solo owners/admins pueden invitar.",
+      "emailHint": "El envío del correo llegará (Edge Function). La invitación ya está guardada."
     }
   },
   "language": {

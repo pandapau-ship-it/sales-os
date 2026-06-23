@@ -4,13 +4,15 @@
 
 ---
 
-## Current Status: Phase 3 (DB-Wiring Hunter) — Panel/Tabs · P8 · Telefon · P7 Kommunikation · Stagnation/Heat Edge Functions · Pipeline Task-Liste · Action-Opener · Details-Write · Aufgeklappte Kachel ✅ · **[D27] Tech-Schuld erledigt** (ExpandedCardContent-Dedup · window.confirm→AlertDialog · Typo-Kanon Welle 1+2 + IN_SCOPE-Pflicht) → alles auf `main` (`66a815b`). Next: **Auth/Org [D21]** · Realtime (Phase 5) · AI-Pipeline (löst „Folgt"-Platzhalter [D5]/[D26])
+## Current Status: Phase 3 (DB-Wiring Hunter) abgeschlossen · **[D27] Tech-Schuld erledigt** · **Keine-Task-Kachel kontakt-basiert** ✅ · **Auth/Org [D21] Scheiben 1–7 gebaut**: Login Email+Passwort + Google/Microsoft SSO + Reset · Provisioning-Trigger (neue Org + Owner bzw. Einladung; Migr. 041/043) · `useCurrentOrg()` (Session→Org, Fallback DEMO) · `DEMO_ORGANIZATION_ID` → Hook in allen Consumern · `created_by`/`assigned_to`/`owner_id` aus `auth.uid()` · Team-Verwaltung + Einladungen (Migr. 042/043, `TeamSettings` unter `/app/settings`). Next: **[D29] Einladungs-Mail Edge Function** · 2FA (TOTP) · Realtime (Phase 5) · AI-Pipeline (löst „Folgt"-Platzhalter [D5])
 
-> **Session 2026-06-22 (Teil 2, [D27] Tech-Schuld) — fertig (auf `main`, `66a815b`; Spanne `3ddf89b..HEAD`):**
+> **Session 2026-06-22 (Teil 2, [D27] Tech-Schuld) — auf `main`:**
 > **ExpandedCardContent extrahiert** (panel-blocks): geteilter aufgeklappter Karten-Inhalt (lazy Deals/Kommunikation/Stages, KI-Platzhalter, Stagnations-Warnung) — HunterCard + LeadListRow je ~47 doppelte Zeilen entfernt. Reine Extraktion.
 > **`window.confirm` → shadcn `AlertDialog`** (neues UI-Primitive `ui/alert-dialog.tsx` + Dep `@radix-ui/react-alert-dialog`): letzte-Telefonnummer-Löschen im HunterSidepanel (Cancel=outline / Löschen=destructive). Kein `window.confirm` mehr im Code.
 > **Typo-Kanon Welle 1+2:** 14 Komponenten (Formulare/Panels + Karten/Felder) auf `typo-*`-Primitive; `audit.ts` walkt jetzt **panel-blocks/ + features/**; alle in `IN_SCOPE` (erzwungen). **CLAUDE.md-PFLICHT:** neue Komponente mit Typo-Klassen → SOFORT in `IN_SCOPE`; Pre-Push-Checkbox ergänzt.
-> Kein DB-Change diese Periode → keine neue Migration/KB.
+
+> **Session 2026-06-22/23 (Teil 3, Auth/Org [D21] Scheiben 2–7 + D28/D29):**
+> Login passwortlos→korrigiert auf **Email+Passwort + Google/Microsoft SSO + Passwort-Reset** (AuthCallback, db-Client-Auth-Optionen, Brand-Icons). **Provisioning-Trigger** 041 (+ 043 Einladungs-Pfad). **`useCurrentOrg()`**-Hook + Ersetzen von `DEMO_ORGANIZATION_ID` in 5 Consumern. **`created_by`/`assigned_to`/`owner_id`** aus `auth.uid()` (Fallback NULL). **Invitations + Teams** (042/043, `getTeamMembers`/`getInvitations`/`createInvitation`/`deleteInvitation`/`updateUserRole`, `TeamSettings`-UI unter `/app/settings`). KB **044** (Team & Einladungen). Auth/2FA-Entscheidungen in CLAUDE.md. Mailversand der Einladung deferred [D29].
 
 > **Session 2026-06-22 — fertig (auf `main`, `8d33001`; Spanne `8011f49..HEAD`):**
 > **Signal- + Kalt-Opener echt** verdrahtet: `signalToActionData`/`contactToColdPerson`/`ColdPersonData`/`SignalActionData` (hunterMappers), `LinkedinSignalCard` „Antworten"→`SignalActionDrawer`, Kalt-Sektion (Follow-ups, `getContacts({heatStatus:'kalt'|'tot'})`)→`ContactColdDrawer`. **`ChatActionPanel` AI-noch-nicht-da-Modus** (recommendation/draft nullable → „Folgt"-Platzhalter, disabled „Draft generieren", Chat-Footer aus). PROGRESS [D5] aktualisiert.
@@ -1037,13 +1039,10 @@ neuer Produkt-Code. Nächster echter Bau-Block = Phase 5 (Supabase).
 
 ## Nächste Schritte — Phase 5: Supabase Setup
 
-> ⭐ **MORGEN ZUERST — Keine-Task-Logik korrigieren (Kontakt-basiert statt Deal-basiert):**
-> - **Aktuell:** pro Deal ohne Task eine eigene Kachel.
-> - **Neu:** pro **Kontakt** ohne Task eine Kachel — sofern der Kontakt **mindestens einen aktiven
->   (nicht terminalen) Deal** hat. Die Kachel zeigt den Kontakt + **alle** seine Deals (eine Task
->   deckt alle ab; ein SDR denkt in Personen, nicht in Deals).
-> - **Umsetzung:** Query-Änderung in `db.ts` + Mapper + Kachel-Text anpassen.
-> - **Geschätzt:** 30–45 Minuten. (Entscheidung dokumentiert in CLAUDE.md → „Signal-getriebene UI".)
+> ✅ **ERLEDIGT (2026-06-23) — Keine-Task-Logik kontakt-basiert:** eine Kachel **pro Kontakt**
+> (mit ≥1 aktivem, nicht-terminalem Deal + ohne offene Task) statt pro Deal; die Kachel zeigt alle
+> Deals des Kontakts. `contactToNoTaskCard` (hunterMappers) + Gruppierung in ScreenHunting +
+> `PipelineKeineTaskCard` (Deals-Zeile). Auf `main` (`219fa3b`).
 
 ### Priorität 1 — Datenbank
 - [ ] Supabase Projekt erstellen
