@@ -519,21 +519,37 @@ kam es, wie groß ist es** — und einen **klaren nächsten Schritt** anstoßen 
 - **Trigger:** `companies.trial_end_date <= now() + 2 Tage` **AND** `subscription_status = 'trial'`.
 - **Wo:** Hunter → **Follow-ups**-Tab.
 - **CTA:** „Abschluss sichern".
-- **Wann:** nach Hunter-Vervollständigung.
+- **Wann:** nach Farmer komplett fertig (alle Tabs + Info-Panel [D33] + Action-Panel [D34]).
 - **Voraussetzung:** Feld `trial_end_date` in `companies` (Migration nötig) + `subscription_status`.
 
 ### [D37] Hunter — „Trial abgelaufen ohne Conversion"-Kachel (deferred)
 - **Trigger:** `companies.trial_end_date < now()` **AND** `subscription_status = 'trial'`.
 - **Wo:** Hunter → **Follow-ups**-Tab.
 - **CTA:** „Jetzt konvertieren".
-- **Wann:** nach Hunter-Vervollständigung.
+- **Wann:** nach Farmer komplett fertig (alle Tabs + Info-Panel [D33] + Action-Panel [D34]).
 - **Voraussetzung:** wie [D36] (`trial_end_date` + `subscription_status` in `companies`).
+
+### [D38] Lifecycle-Trigger: Trial → Kunde (deferred)
+- **Auslöser:** `subscription_status` wechselt von `'trial'` auf `'active'`.
+- **Effekt:**
+  - `contact_status → 'kunde'`
+  - Kontakt **verschwindet** aus Hunter
+  - Kontakt **erscheint** in Farmer
+- **Braucht:** Supabase-Trigger oder Edge Function.
+- **Wann:** nach Farmer komplett + Hunter-Trial-Kacheln ([D36]+[D37]) — alles zusammen mit der DB-Wiring-Phase.
+
+### [D39] Farmer Retention-Tab — „Kunde wird kalt"-Kachel (deferred)
+- **Trigger:** `contact_status = 'kunde'` **AND** `heat_status = 'kalt'`.
+- **Bedeutung:** Bestandskunde ohne Kontakt — **Churn-Vorstufe**, gehört in Farmer (nicht Hunter).
+- **Signal-Row-Hintergrund:** amber.
+- **CTA:** „Check-In starten".
+- **Wann:** Retention-Tab-Slice (nächster Schritt).
 
 ### [TS] Deal-Typ ohne `product` — offener Faden
 - `src/types/hunter.ts` `Deal` hat **kein `product`** (Migration 014 fügte nur die DB-Spalte).
   Beim späteren Produkt-Anzeigen (Pipeline/Deal-Detail) `product?: string` im Typ ergänzen + mappen.
 
-> Anker-Tags `[D1]`–`[D37]` sind im Code referenzierbar (z.B. `hunterMappers.ts` → `[[leads-tab-read]]`).
+> Anker-Tags `[D1]`–`[D39]` sind im Code referenzierbar (z.B. `hunterMappers.ts` → `[[leads-tab-read]]`).
 > Vor Umsetzung eines Punkts: passende Referenz-Doku (`docs/sales_os_edge_functions_v2.md` etc.) lesen.
 
 ---

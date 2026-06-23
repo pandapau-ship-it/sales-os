@@ -4275,9 +4275,38 @@ Hover-Tooltip (welche Signale aktiv). Lädt die Gewichte: `getHunterPriorityWeig
 Wie Hunter, explizit als Recommendation Agent.
 
 Aufbau:
-- Nav-Kacheln (Sub-Nav): **[Signale] [Churn & Trials] [Upsell]**
+- Nav-Kacheln (Sub-Nav): **[Übersicht] [Kunden] [Retention] [Upsell] [Signals]**
 - Hauptinhalt: Signal-Kacheln mit AI-Empfehlung inline
 - Gleiche Logik wie Hunter, aber für Bestandskunden
+
+### Farmer vs Hunter — Wer gehört wohin
+
+**FARMER (Bestandskunden — `contact_status = 'kunde'`):**
+- Subscription-Status: aktiv / gekündigt
+- Kachel-Typen im **Retention**-Tab:
+  - Churn Risk (`churn_score >= 61`)
+  - Kunde wird kalt (`heat_status = 'kalt'`)
+  - Upsell Potential (`upsell_score >= 70`)
+- Tab **„Retention"** (ehemals „Churn & Trial" — bereits umbenannt)
+
+**HUNTER (Leads + Trials — noch kein Kunde):**
+- Free-Trial-Personen bleiben in **Hunter**
+- Trial-Kacheln kommen später als **[D36] + [D37]** (in PROGRESS.md dokumentiert)
+- Conversion `trial → active`:
+  - `contact_status → 'kunde'`
+  - Kontakt **verschwindet** aus Hunter
+  - Kontakt **erscheint** in Farmer
+  - (Lifecycle-Trigger → **[D38]**)
+
+**SIGNAL-ROUTING-REGEL:**
+- `heat_status = 'kalt'` bei **Lead** → Hunter
+- `heat_status = 'kalt'` bei **Kunde** → Farmer **Retention**-Tab (Churn-Vorstufe)
+- **Nie beide gleichzeitig** — `contact_status` entscheidet das Routing.
+
+**WANN HUNTER ERWEITERN:**
+Erst wenn **Farmer komplett fertig** ist (alle Tabs + Info-Panel + Action-Panel) → dann
+Hunter um Trial-Kacheln erweitern ([D36] + [D37]) + Lifecycle-Trigger bauen ([D38]).
+**Reihenfolge:** Farmer fertig → Hunter Trial → DB-Wiring beide Screens.
 
 ---
 
