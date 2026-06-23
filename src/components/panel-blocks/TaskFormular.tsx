@@ -90,7 +90,7 @@ export default function TaskFormular({
 
   return (
     <div className="space-y-5 animate-fade-in">
-      <div className="bg-app-surface rounded-[12px] border border-border shadow-[var(--shadow-card)] overflow-hidden">
+      <div className="bg-app-surface rounded-[12px] border border-[var(--border-card)] overflow-hidden">
         {/* Header */}
         <div className="px-5 py-4 flex items-center justify-between border-b border-border-subtle">
           <div className="flex items-center gap-2">

@@ -70,7 +70,7 @@ export default function OffeneTasks({
             <div
               key={task.id as string}
               onClick={onOpenTasks}
-              className={`group p-4 rounded-[12px] flex items-center justify-between gap-3 shadow-sm cursor-pointer transition-all hover:shadow-md hover:-translate-y-0.5 ${due_now ? "bg-[var(--signal-warn-bg)] border border-[var(--signal-warn-bg)]" : "bg-app-surface border border-border hover:bg-app-bg"}`}
+              className={`group p-4 rounded-[12px] flex items-center justify-between gap-3 cursor-pointer transition-all ${due_now ? "bg-[var(--signal-warn-bg)] border border-[var(--border-card)]" : "bg-app-surface border border-[var(--border-card)] hover:bg-app-bg"}`}
             >
               <div className="min-w-0">
                 <p className={`text-xs font-bold truncate ${due_now ? "text-[var(--signal-warn-text)]" : "text-text-primary"}`}>{(task.title as string) || "Task"}</p>

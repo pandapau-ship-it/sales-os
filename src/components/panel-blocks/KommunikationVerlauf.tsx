@@ -69,7 +69,7 @@ export default function KommunikationVerlauf({
       </div>
 
       {items.length === 0 ? (
-        <div className="bg-app-surface rounded-[12px] p-8 border border-border shadow-sm text-center">
+        <div className="bg-app-surface rounded-[12px] p-8 border border-[var(--border-card)] text-center">
           <MessageSquarePlus className="w-6 h-6 mx-auto text-text-muted mb-2" />
           <p className="text-[12px] text-text-muted mb-4">Noch keine Kommunikation protokolliert.</p>
           {onLog && (
@@ -126,7 +126,7 @@ export default function KommunikationVerlauf({
                   </div>
 
                   {item.note && (
-                    <p className="mt-2 rounded-[10px] border border-border bg-app-surface px-3.5 py-3 text-[12px] text-text-body leading-relaxed">
+                    <p className="mt-2 rounded-[10px] border border-[var(--border-card)] bg-app-surface px-3.5 py-3 text-[12px] text-text-body leading-relaxed">
                       {item.note}
                     </p>
                   )}

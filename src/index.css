@@ -28,7 +28,7 @@
   /* Borders */
   --border:           #E2E8F0;
   --border-strong:    #CBD5E1;
-  --border-card:      rgba(15, 23, 42, 0.07);
+  --border-card:      rgba(15, 23, 42, 0.11);
 
   /* Border Radius */
   --radius-card:      16px;
@@ -47,7 +47,6 @@
                       0 2px 6px rgba(15, 23, 42, 0.025);
   --shadow-dropdown:  0 4px 6px rgba(15, 23, 42, 0.06),
                       0 12px 32px rgba(15, 23, 42, 0.10);
-  --shadow-panel:     -8px 0 30px rgba(15, 23, 42, 0.06);
 
   /* Signal Colors */
   --signal-urgent-bg:   #FEF4E9;
@@ -153,7 +152,7 @@
   /* Borders */
   --border:           #2A3548;
   --border-strong:    #3B4961;
-  --border-card:      rgba(255, 255, 255, 0.06);
+  --border-card:      rgba(255, 255, 255, 0.10);
 
   /* Shadows — kräftiger auf dunkel */
   --shadow-card:      0 1px 2px rgba(0, 0, 0, 0.30), 0 2px 6px rgba(0, 0, 0, 0.25);
@@ -161,7 +160,6 @@
   --shadow-brand:     0 2px 8px -2px rgba(42, 140, 138, 0.40);
   --shadow-nav:       0 1px 2px rgba(0, 0, 0, 0.30), 0 2px 6px rgba(0, 0, 0, 0.25);
   --shadow-dropdown:  0 4px 6px rgba(0, 0, 0, 0.40), 0 12px 32px rgba(0, 0, 0, 0.55);
-  --shadow-panel:     -8px 0 30px rgba(0, 0, 0, 0.45);
 
   /* Signal Colors — dunkel getönter bg, aufgehellter text */
   --signal-urgent-bg:   #3A2317; --signal-urgent-text: #FB923C;
@@ -289,7 +287,6 @@
   --shadow-brand:                var(--shadow-brand);
   --shadow-nav:                  var(--shadow-nav);
   --shadow-dropdown:             var(--shadow-dropdown);
-  --shadow-panel:                var(--shadow-panel);
 }
 
 /* ─── Base reset ─────────────────────────────────────────────────────────── */
@@ -431,7 +428,7 @@ body {
 /* Listen-Karten-Titel in Tabs (Tasks, Aktivität, Kommunikation, Deals) + Entitätsname */
 .typo-card-title     { font-size: 14px; font-weight: 700; }
 /* Feld-Label im Kennzahlen-Grid (PRODUKT, STAGE, …) */
-.typo-field-label    { font-size: 10px; font-weight: 400; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace; text-transform: uppercase; letter-spacing: 0.05em; }
+.typo-field-label    { font-size: 10px; font-weight: 400; text-transform: uppercase; letter-spacing: 0.05em; }
 /* Feld-Wert im Kennzahlen-Grid */
 .typo-field-value    { font-size: 14px; font-weight: 700; }
 /* Subzeile unter einem Karten-Titel (Meta: Wert · Owner · Datum) */

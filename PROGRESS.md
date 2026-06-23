@@ -545,11 +545,30 @@ kam es, wie groß ist es** — und einen **klaren nächsten Schritt** anstoßen 
 - **CTA:** „Check-In starten".
 - **Wann:** Retention-Tab-Slice (nächster Schritt).
 
+### [D41] ScreenMarketing + ScreenSherloqSystem auf Elevation-System (deferred)
+- **Problem:** Beide Screens nutzen einen abweichenden „Soft-Card"-Stil — `rounded-[24/32px]` +
+  rohe/hardcodierte Schatten (`shadow-[0_8px_30px_rgb(0,0,0,0.04)]` u.ä.), **kein** `border-card`.
+  Folgt dem Elevation-System (CLAUDE Design Invariants) **nicht**.
+- **Lösung:** eigener Sweep analog Hunter/Farmer — Container auf `rounded-[12/16px]` + `border-card` +
+  `shadow-[var(--shadow-card)]`; rohe Schatten → Token.
+- **Aufwand:** eigener Sweep, **Mittel**.
+- **Wann:** wenn diese Screens aktiv gebaut/verdrahtet werden — **nicht jetzt isoliert** (aktuell nicht Teil des Farmer/Hunter-Fokus).
+- *(Hinweis: `[D40]` = automation_rules-Schema, liegt auf Branch `chore/session-2026-06-23-farmer`.)*
+
+### [D42] TaskDrawer (850px) auf shadcn `Sheet` umbauen (deferred)
+- **Problem:** `features/hunter/TaskDrawer.tsx` baut seine Drawer-Hülle **von Hand** (eigenes
+  `fixed inset-0` Overlay + Panel-`<div>`) statt über das shadcn-`Sheet`-Primitiv — Verstoß gegen
+  CLAUDE „Side-Panels → `sheet`". (Schatten/Radius sind seit dem Elevation-Sweep schon Token-konform:
+  `shadow-[var(--shadow-dropdown)]` + `rounded-[16px]`.)
+- **Lösung:** auf `Sheet`/`SheetContent side="drawer"` umstellen (wie HunterSidepanel/CustomerDrawer) —
+  Overlay/Backdrop/Escape/Fokusfalle kommen dann gratis.
+- **Aufwand:** klein–mittel. **Wann:** wenn der AI-SDR-/Task-Drawer-Bereich aktiv drankommt.
+
 ### [TS] Deal-Typ ohne `product` — offener Faden
 - `src/types/hunter.ts` `Deal` hat **kein `product`** (Migration 014 fügte nur die DB-Spalte).
   Beim späteren Produkt-Anzeigen (Pipeline/Deal-Detail) `product?: string` im Typ ergänzen + mappen.
 
-> Anker-Tags `[D1]`–`[D39]` sind im Code referenzierbar (z.B. `hunterMappers.ts` → `[[leads-tab-read]]`).
+> Anker-Tags `[D1]`–`[D42]` sind im Code referenzierbar (z.B. `hunterMappers.ts` → `[[leads-tab-read]]`).
 > Vor Umsetzung eines Punkts: passende Referenz-Doku (`docs/sales_os_edge_functions_v2.md` etc.) lesen.
 
 ---

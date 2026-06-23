@@ -74,7 +74,7 @@ export default function KommunikationKompakt({
         )}
       </div>
 
-      <div className="bg-app-surface rounded-[12px] p-2 border border-border shadow-sm divide-y divide-[var(--border-subtle)]">
+      <div className="bg-app-surface rounded-[12px] p-2 border border-[var(--border-card)] divide-y divide-[var(--border-subtle)]">
         {top.map((item) => {
           const meta = CHANNEL[item.channel];
           return (

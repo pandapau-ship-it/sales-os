@@ -50,7 +50,7 @@ export default function TaskEntwurfForm({
                 <div className="flex flex-col justify-center">
                   <div className="flex items-center gap-3">
                     <h2 className="text-[20px] font-extrabold text-[var(--text-primary)] font-sans tracking-tight leading-none">{person.person.name}</h2>
-                    <div className="bg-[var(--signal-success-bg)] text-[var(--icp-high)] border border-[var(--icp-high)]/20 px-2.5 py-0.5 rounded-md text-[11px] font-bold tracking-wide">
+                    <div className="bg-[var(--signal-success-bg)] text-[var(--icp-high)] border border-[var(--icp-high)]/20 px-2.5 py-0.5 rounded-[6px] text-[11px] font-bold tracking-wide">
                       ICP: {person.icpScore ?? 87}
                     </div>
                   </div>
@@ -93,7 +93,7 @@ export default function TaskEntwurfForm({
             </div>
 
             {/* Contact Info Bar */}
-            <div className="bg-app-surface border border-[var(--border)] rounded-[24px] py-4 px-6 flex items-center justify-between shadow-[0_2px_10px_rgb(0,0,0,0.02)] w-full">
+            <div className="bg-app-surface border border-[var(--border-card)] rounded-[12px] py-4 px-6 flex items-center justify-between w-full">
               <div className="flex items-center gap-2.5 text-[var(--text-body)]">
                 <Mail className="w-4 h-4 text-[var(--icon-muted)]" />
                 <span className="text-[14px] font-semibold">c.brand@logixflow.de</span>
@@ -150,7 +150,7 @@ export default function TaskEntwurfForm({
               </div>
 
               {/* KI EMPFEHLUNG */}
-              <div className="bg-[var(--signal-teal-bg)] border border-[var(--signal-teal-bg)] rounded-2xl p-5 flex flex-col gap-3 relative overflow-hidden">
+              <div className="bg-[var(--signal-teal-bg)] border border-[var(--border-card)] rounded-[12px] p-5 flex flex-col gap-3 relative overflow-hidden">
                   <div className="flex items-center gap-2 text-[var(--icp-high)] font-bold text-[12px] tracking-wider uppercase">
                       <AlertTriangle className="w-4 h-4" /> {t('hunter.drawers.task.kiRecommendation')}
                   </div>
@@ -167,7 +167,7 @@ export default function TaskEntwurfForm({
                       type="text"
                       value={title}
                       onChange={e => setTitle(e.target.value)}
-                      className="w-full bg-app-surface border border-[var(--border)] rounded-xl px-4 py-3.5 text-[var(--text-body)] font-medium text-[15px] focus:outline-none focus:border-[var(--sherloq-primary)] focus:ring-1 focus:ring-[var(--sherloq-primary)]"
+                      className="w-full bg-app-surface border border-[var(--border)] rounded-[12px] px-4 py-3.5 text-[var(--text-body)] font-medium text-[15px] focus:outline-none focus:border-[var(--sherloq-primary)] focus:ring-1 focus:ring-[var(--sherloq-primary)]"
                   />
               </div>
 
@@ -177,7 +177,7 @@ export default function TaskEntwurfForm({
                   <textarea
                       value={note}
                       onChange={e => setNote(e.target.value)}
-                      className="w-full bg-app-surface border border-[var(--border)] rounded-xl px-4 py-3.5 text-[var(--text-body)] text-[15px] min-h-[140px] resize-none focus:outline-none focus:border-[var(--sherloq-primary)] focus:ring-1 focus:ring-[var(--sherloq-primary)]"
+                      className="w-full bg-app-surface border border-[var(--border)] rounded-[12px] px-4 py-3.5 text-[var(--text-body)] text-[15px] min-h-[140px] resize-none focus:outline-none focus:border-[var(--sherloq-primary)] focus:ring-1 focus:ring-[var(--sherloq-primary)]"
                   />
               </div>
 
@@ -185,19 +185,19 @@ export default function TaskEntwurfForm({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-0">
                   <div className="flex flex-col gap-3">
                       <span className="text-[12px] font-bold text-[var(--text-muted)] uppercase tracking-wider">{t('hunter.drawers.task.dueDate')}</span>
-                      <div className="bg-app-surface border border-[var(--border)] rounded-xl px-4 py-3.5 flex items-center gap-3">
+                      <div className="bg-app-surface border border-[var(--border)] rounded-[12px] px-4 py-3.5 flex items-center gap-3">
                           <span className="text-[var(--text-muted)]"><Calendar className="w-4 h-4" /></span>
                           <span className="text-[var(--text-primary)] typo-field-value">{date}</span>
                       </div>
                   </div>
                   <div className="flex flex-col gap-3">
                       <span className="text-[12px] font-bold text-[var(--text-muted)] uppercase tracking-wider">{t('hunter.drawers.task.priority')}</span>
-                      <div className="bg-[var(--border-subtle)] rounded-xl p-1 flex items-center">
+                      <div className="bg-[var(--border-subtle)] rounded-[12px] p-1 flex items-center">
                           {['Low', 'Medium', 'High', 'Urgent'].map(p => (
                               <button
                                   key={p}
                                   onClick={() => setPriority(p)}
-                                  className={`flex-1 py-3 rounded-lg text-[13px] font-bold transition-all ${
+                                  className={`flex-1 py-3 rounded-[8px] text-[13px] font-bold transition-all ${
                                       priority === p
                                       ? 'bg-app-surface text-[var(--text-primary)] shadow-sm'
                                       : 'text-[var(--text-muted)] hover:text-[var(--text-body)]'
@@ -216,7 +216,7 @@ export default function TaskEntwurfForm({
         <div className="pl-12 pr-8 py-5 border-t border-[var(--border)] bg-app-surface sticky bottom-0">
            <button
               onClick={() => onSave({ channel, title, note, date, priority })}
-              className="w-full bg-[var(--sherloq-primary)] hover:bg-[var(--sherloq-primary)]/95 text-on-accent text-[15px] font-bold py-3.5 rounded-2xl transition-all shadow-sm flex items-center justify-center gap-2"
+              className="w-full bg-[var(--sherloq-primary)] hover:bg-[var(--sherloq-primary)]/95 text-on-accent text-[15px] font-bold py-3.5 rounded-[16px] transition-all shadow-sm flex items-center justify-center gap-2"
            >
                {t('hunter.common.saveTask')}
            </button>

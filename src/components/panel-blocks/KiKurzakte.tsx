@@ -12,7 +12,7 @@ export default function KiKurzakte({ items, onSave }: { items: string[]; onSave:
   const [draft, setDraft] = useState("");
 
   return (
-    <div className="group bg-app-surface rounded-[12px] p-5 border border-border shadow-[var(--shadow-card)]">
+    <div className="group bg-app-surface rounded-[12px] p-5 border border-[var(--border-card)]">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2 typo-chevron-header text-[var(--sherloq-primary)]">
           <Zap className="w-4 h-4" /> KI Kurzakte

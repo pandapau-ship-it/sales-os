@@ -690,7 +690,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
   // PH3: Telefon-Liste schreibbar (echte contact_phones — Favorit/Edit/Add/Remove via Mutations).
   const detailsContent = person && (
     <div className="space-y-5 animate-fade-in">
-      <DetailSection title="Person" icon={User}>
+      <DetailSection title="Person" icon={User} variant="page">
         <DetailField label="Anrede" value={details.anrede} options={ANREDE_OPTS} onSelect={(v) => saveDetail('anrede', v)} />
         <DetailField label="Sprache" value={details.sprache} options={SPRACHE_OPTS} onSelect={(v) => saveDetail('sprache', v)} />
         <DetailField label="Vorname" value={details.vorname} onSave={(v) => saveDetail('vorname', v)} />
@@ -723,7 +723,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
         </div>
       </DetailSection>
 
-      <DetailSection title="Firma" icon={Building2}>
+      <DetailSection title="Firma" icon={Building2} variant="page">
         <DetailField label="Firma" value={details.firma} onSave={(v) => saveDetail('firma', v)} />
         <DetailField label="Branche" value={details.branche} options={BRANCHE_OPTS} onSelect={(v) => saveDetail('branche', v)} />
         <DetailField label="Unternehmensgröße" value={details.groesse} options={GROESSE_OPTS} onSelect={(v) => saveDetail('groesse', v)} />
@@ -732,7 +732,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
         <DetailField label="Land" value={details.firmaLand} options={LAND_OPTS} onSelect={(v) => saveDetail('firmaLand', v)} />
       </DetailSection>
 
-      <DetailSection title="Klassifizierung" icon={Tag}>
+      <DetailSection title="Klassifizierung" icon={Tag} variant="page">
         <DetailField label="Lead Status" value={details.leadStatus} options={LEAD_STATUS_OPTS} onSelect={(v) => { setDetails((d) => ({ ...d, leadStatus: v })); const slug = contactStatusSlug(v); if (slug) updateContactMutation.mutate({ contact_status: slug }); }} />
         <DetailField label="ICP Score" value={details.icp} onSave={(v) => setDetail('icp', v)} />
         <DetailField label="Owner" value={details.owner} onSave={(v) => setDetail('owner', v)} />
@@ -742,7 +742,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
             mit dem email_verification-Modul (settings.modules) zurück (Honesty: kein Fake-Status). */}
       </DetailSection>
 
-      <DetailSection title="Notizen" icon={FileText} cols={1}>
+      <DetailSection title="Notizen" icon={FileText} cols={1} variant="page">
         <textarea
           value={details.notiz}
           onChange={(e) => setDetails((d) => ({ ...d, notiz: e.target.value }))}
@@ -754,7 +754,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
       </DetailSection>
 
       {/* System-Felder ganz unten, zusammengeklappt by default */}
-      <DetailSection title="System" icon={Clock} collapsible defaultCollapsed>
+      <DetailSection title="System" icon={Clock} collapsible defaultCollapsed variant="page">
         <DetailField label="Lead-Quelle" value="Manuell" readonly />
         <DetailField label="Erstellt am" value="12. März 2026" readonly />
         <DetailField label="Letzter Kontakt" value="vor 2 Tagen · E-Mail" readonly />
@@ -881,7 +881,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
     )}
 
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-[200] bg-inverse-surface text-on-accent px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2 animate-fade-in">
+        <div className="fixed bottom-6 right-6 z-[200] bg-inverse-surface text-on-accent px-4 py-2.5 rounded-[12px] shadow-2xl flex items-center gap-2 animate-fade-in">
           <Check className="w-4 h-4 text-[var(--signal-success-text)]" />
           <span className="text-xs font-semibold">{toastMessage}</span>
         </div>

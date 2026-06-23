@@ -128,11 +128,11 @@ export default function DetailPhoneList({
             )}
 
             <div className="flex items-center gap-0.5 shrink-0 opacity-0 group-hover/ph:opacity-100 focus-within:opacity-100 transition">
-              <button onClick={() => copy(p.number)} aria-label="Kopieren" data-tip="Kopieren" className="w-7 h-7 rounded-md flex items-center justify-center text-text-muted hover:text-[var(--sherloq-primary)] hover:bg-app-surface transition-colors cursor-pointer">
+              <button onClick={() => copy(p.number)} aria-label="Kopieren" data-tip="Kopieren" className="w-7 h-7 rounded-[6px] flex items-center justify-center text-text-muted hover:text-[var(--sherloq-primary)] hover:bg-app-surface transition-colors cursor-pointer">
                 <Copy className="w-3.5 h-3.5" />
               </button>
               {!readonly && (
-                <button onClick={() => onRemove?.(p.id)} aria-label="Entfernen" data-tip="Entfernen" className="w-7 h-7 rounded-md flex items-center justify-center text-text-muted hover:text-[var(--signal-urgent-text)] hover:bg-[var(--signal-urgent-bg)] transition-colors cursor-pointer">
+                <button onClick={() => onRemove?.(p.id)} aria-label="Entfernen" data-tip="Entfernen" className="w-7 h-7 rounded-[6px] flex items-center justify-center text-text-muted hover:text-[var(--signal-urgent-text)] hover:bg-[var(--signal-urgent-bg)] transition-colors cursor-pointer">
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
               )}

@@ -109,7 +109,7 @@ export default function CustomerDrawer({
                     <h2 className="text-[18px] font-extrabold text-text-primary font-sans tracking-tight leading-none">
                       {person.person.name}
                     </h2>
-                    <div className="bg-[var(--signal-success-bg)] text-signal-success border border-[var(--signal-success-text)]/20 px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wide">
+                    <div className="bg-[var(--signal-success-bg)] text-signal-success border border-[var(--signal-success-text)]/20 px-2 py-0.5 rounded-[6px] text-[10px] font-bold tracking-wide">
                       ICP: 87
                     </div>
                   </div>
@@ -159,7 +159,7 @@ export default function CustomerDrawer({
             </div>
 
             {/* Contact Details Bar (White Pill) */}
-            <div className="bg-app-surface border border-border rounded-[14px] px-8 py-5 flex items-center justify-between text-[12px] text-text-body font-medium shadow-card w-full">
+            <div className="bg-app-surface border border-[var(--border-card)] rounded-[12px] px-8 py-5 flex items-center justify-between text-[12px] text-text-body font-medium shadow-card w-full">
               <div className="flex items-center gap-2.5 hover:text-text-primary cursor-pointer transition-colors flex-1 justify-center border-r border-border-subtle last:border-0 pl-0">
                 <Mail className="w-4 h-4 text-icon-muted" />
                 {person.contactEmail || "max@firma.com"}
@@ -183,7 +183,7 @@ export default function CustomerDrawer({
                 // --- HUNTING LAYOUT (Single Column, full width) ---
                 <div className="flex flex-col gap-6 mt-2">
                   {/* Kurzakte */}
-                  <div className="bg-app-surface border border-border rounded-[14px] p-6 shadow-card">
+                  <div className="bg-app-surface border border-[var(--border-card)] rounded-[12px] p-6 shadow-card">
                     <h3 className="text-[10px] font-bold text-icon-muted uppercase tracking-wider font-mono mb-4">
                       KURZAKTE
                     </h3>
@@ -194,7 +194,7 @@ export default function CustomerDrawer({
                   </div>
 
                   {/* Deal Setup */}
-                  <div className="bg-app-surface border border-border rounded-[14px] p-6 shadow-card">
+                  <div className="bg-app-surface border border-[var(--border-card)] rounded-[12px] p-6 shadow-card">
                     <h3 className="text-[10px] font-bold text-icon-muted uppercase tracking-wider font-mono mb-6">
                       DEAL SETUP
                     </h3>
@@ -243,7 +243,7 @@ export default function CustomerDrawer({
                         <span className="text-[10px] uppercase font-bold text-icon-muted font-mono tracking-wider">
                           IN STAGE SEIT
                         </span>
-                        <span className="text-[13px] font-bold text-signal-urgent flex items-center gap-1.5 bg-[var(--signal-urgent-bg)] px-2 py-0.5 rounded-md -ml-2">
+                        <span className="text-[13px] font-bold text-signal-urgent flex items-center gap-1.5 bg-[var(--signal-urgent-bg)] px-2 py-0.5 rounded-[6px] -ml-2">
                           8 Tagen{" "}
                           <AlertTriangle className="w-3.5 h-3.5 stroke-[2.5px]" />
                         </span>
@@ -252,7 +252,7 @@ export default function CustomerDrawer({
                   </div>
 
                   {/* Offene Tasks */}
-                  <div className="bg-app-surface border border-border rounded-[14px] p-6 shadow-card">
+                  <div className="bg-app-surface border border-[var(--border-card)] rounded-[12px] p-6 shadow-card">
                     <h3 className="text-[10px] font-bold text-icon-muted uppercase tracking-wider font-mono mb-4">
                       OFFENE TASKS
                     </h3>
@@ -275,7 +275,7 @@ export default function CustomerDrawer({
                         </div>
                       </div>
                       {/* Task 2 - Normal */}
-                      <div className="bg-app-bg border border-border rounded-[12px] p-4 flex items-start gap-4 cursor-pointer hover:shadow-xs transition-shadow">
+                      <div className="bg-app-bg border border-[var(--border-card)] rounded-[12px] p-4 flex items-start gap-4 cursor-pointer hover:shadow-xs transition-shadow">
                         <div className="w-7 h-7 rounded-pill bg-app-surface border-2 border-border flex items-center justify-center mt-0.5 shrink-0" />
                         <div className="flex flex-col">
                           <span className="text-[13px] font-bold text-text-primary">
@@ -290,12 +290,12 @@ export default function CustomerDrawer({
                   </div>
 
                   {/* Active Sequence */}
-                  <div className="bg-app-surface border border-border rounded-[14px] p-6 shadow-card">
+                  <div className="bg-app-surface border border-[var(--border-card)] rounded-[12px] p-6 shadow-card">
                     <div className="flex items-center justify-between mb-8">
                       <h3 className="text-[10px] font-bold text-icon-muted uppercase tracking-wider font-mono">
                         ACTIVE SEQUENCE
                       </h3>
-                      <div className="bg-[var(--sherloq-light)] text-signal-success font-bold text-[10px] px-2.5 py-1 rounded-md">
+                      <div className="bg-[var(--sherloq-light)] text-signal-success font-bold text-[10px] px-2.5 py-1 rounded-[6px]">
                         Schritt 3 von 5
                       </div>
                     </div>
@@ -323,7 +323,7 @@ export default function CustomerDrawer({
                 // --- FARMING LAYOUT (Single Column Flow) ---
                 <div className="flex flex-col gap-6 mt-2">
                   {/* Kurzakte */}
-                  <div className="bg-app-surface border border-border rounded-[14px] p-6 shadow-card">
+                  <div className="bg-app-surface border border-[var(--border-card)] rounded-[12px] p-6 shadow-card">
                     <h3 className="text-[10px] font-bold text-icon-muted uppercase tracking-wider font-mono mb-4">
                       KURZAKTE
                     </h3>
@@ -348,7 +348,7 @@ export default function CustomerDrawer({
                   </div>
 
                   {/* Sherloq Usage */}
-                  <div className="bg-app-surface border border-border rounded-[14px] p-6 shadow-card">
+                  <div className="bg-app-surface border border-[var(--border-card)] rounded-[12px] p-6 shadow-card">
                     <h3 className="text-[10px] font-bold text-icon-muted uppercase tracking-wider font-mono mb-4">
                       SHERLOQ USAGE
                     </h3>
@@ -399,7 +399,7 @@ export default function CustomerDrawer({
                   </div>
 
                   {/* Subscription */}
-                  <div className="bg-app-surface border border-border rounded-[14px] p-6 shadow-card">
+                  <div className="bg-app-surface border border-[var(--border-card)] rounded-[12px] p-6 shadow-card">
                     <h3 className="text-[10px] font-bold text-icon-muted uppercase tracking-wider font-mono mb-4">
                       SUBSCRIPTION
                     </h3>
@@ -424,13 +424,13 @@ export default function CustomerDrawer({
                   </div>
 
                   {/* Churn Risk */}
-                  <div className="border border-border rounded-[14px] p-6 shadow-card bg-gradient-to-r from-app-surface to-app-bg">
+                  <div className="border border-[var(--border-card)] rounded-[12px] p-6 shadow-card bg-gradient-to-r from-app-surface to-app-bg">
                     <h3 className="text-[10px] font-bold text-icon-muted uppercase tracking-wider font-mono mb-4">
                       CHURN RISK
                     </h3>
                     <div className="flex flex-col gap-3">
                       <div className="flex items-center gap-3">
-                        <div className="bg-[var(--signal-success-bg)] text-signal-success font-bold text-[13px] px-3 py-1.5 rounded-md flex items-center gap-1.5">
+                        <div className="bg-[var(--signal-success-bg)] text-signal-success font-bold text-[13px] px-3 py-1.5 rounded-[6px] flex items-center gap-1.5">
                           Low <CheckCircle2 className="w-3.5 h-3.5" />
                         </div>
                       </div>
@@ -442,20 +442,20 @@ export default function CustomerDrawer({
 
                   {/* Upsell Potential */}
                   {castedCustomer.upsellOpportunity && (
-                    <div className="bg-app-surface border border-border rounded-[14px] p-6 shadow-card border-l-4 border-l-[var(--signal-success-text)]">
+                    <div className="bg-app-surface border border-[var(--border-card)] rounded-[12px] p-6 shadow-card border-l-4 border-l-[var(--signal-success-text)]">
                       <h3 className="text-[10px] font-bold text-signal-success uppercase tracking-wider font-mono mb-4 flex items-center gap-2">
                         UPSELL POTENTIAL
                       </h3>
                       <div className="flex flex-col gap-4">
                         <div className="flex items-center gap-3">
-                          <div className="bg-[var(--signal-success-bg)] text-signal-success font-bold text-[13px] px-3 py-1.5 rounded-md flex items-center gap-1.5">
+                          <div className="bg-[var(--signal-success-bg)] text-signal-success font-bold text-[13px] px-3 py-1.5 rounded-[6px] flex items-center gap-1.5">
                             <TrendingUp className="w-3.5 h-3.5" /> {castedCustomer.upsellOpportunity.potential}
                           </div>
                         </div>
                         <p className="text-[13px] text-text-body leading-relaxed">
                           <strong>Warum Upsell erkannt:</strong> {castedCustomer.upsellOpportunity.description}
                         </p>
-                        <div className="bg-app-bg border border-border rounded-[12px] p-4 text-[13px] font-medium text-text-primary">
+                        <div className="bg-app-bg border border-[var(--border-card)] rounded-[12px] p-4 text-[13px] font-medium text-text-primary">
                           <strong>Konkreter Vorschlag:</strong> {castedCustomer.upsellOpportunity.value}
                         </div>
                       </div>
@@ -463,12 +463,12 @@ export default function CustomerDrawer({
                   )}
 
                   {/* Offene Tasks */}
-                  <div className="bg-app-surface border border-border rounded-[14px] p-6 shadow-card">
+                  <div className="bg-app-surface border border-[var(--border-card)] rounded-[12px] p-6 shadow-card">
                     <h3 className="text-[10px] font-bold text-icon-muted uppercase tracking-wider font-mono mb-4">
                       OFFENE TASKS
                     </h3>
                     <div className="flex flex-col gap-3">
-                      <div className="bg-app-bg border border-border rounded-[12px] p-4 flex items-start gap-4 cursor-pointer hover:shadow-xs transition-shadow">
+                      <div className="bg-app-bg border border-[var(--border-card)] rounded-[12px] p-4 flex items-start gap-4 cursor-pointer hover:shadow-xs transition-shadow">
                         <div className="w-7 h-7 rounded-pill bg-app-surface border-2 border-border flex items-center justify-center mt-0.5 shrink-0" />
                         <div className="flex flex-col">
                           <span className="text-[13px] font-bold text-text-primary">
@@ -483,7 +483,7 @@ export default function CustomerDrawer({
                   </div>
 
                   {/* Actions / Aktionen */}
-                  <div className="bg-app-surface border border-border rounded-[14px] p-6 shadow-card">
+                  <div className="bg-app-surface border border-[var(--border-card)] rounded-[12px] p-6 shadow-card">
                     <h3 className="text-[10px] font-bold text-icon-muted uppercase tracking-wider font-mono mb-4">
                       AKTIONEN
                     </h3>
@@ -510,7 +510,7 @@ export default function CustomerDrawer({
 
 
             {/* Kommunikation - FULL WIDTH */}
-            <div ref={commSectionRef} className="bg-app-surface border border-border rounded-[14px] p-6 shadow-card w-full mt-2">
+            <div ref={commSectionRef} className="bg-app-surface border border-[var(--border-card)] rounded-[12px] p-6 shadow-card w-full mt-2">
               <div className="flex items-center gap-3 mb-6">
                 <h3 className="text-[12px] font-bold text-text-muted uppercase tracking-wider font-mono">
                   KOMMUNIKATION

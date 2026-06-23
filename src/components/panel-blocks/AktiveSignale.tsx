@@ -25,13 +25,13 @@ export default function AktiveSignale({
       <span className="typo-section-label text-text-muted pl-1">Aktive Signale</span>
       <div className="space-y-3">
         {stagnant && (
-          <div className="p-4 bg-[var(--signal-urgent-bg)] border border-[var(--signal-urgent-bg)] rounded-[12px] flex items-center justify-between text-xs text-[var(--signal-urgent-text)] font-semibold shadow-sm">
+          <div className="p-4 bg-[var(--signal-urgent-bg)] border border-[var(--border-card)] rounded-[12px] flex items-center justify-between text-xs text-[var(--signal-urgent-text)] font-semibold">
             <span className="flex items-center gap-2"><AlertTriangle className="w-4 h-4" /> Stagniert — {stagnationDays}T in Stage {stageLabel}</span>
             <button onClick={onStagnant} className="text-[var(--signal-urgent-text)] hover:underline font-bold">Next Step →</button>
           </div>
         )}
         {noOpenTask && (
-          <div className="p-4 bg-[var(--signal-warn-bg)] border border-[var(--signal-warn-bg)] rounded-[12px] flex items-center justify-between text-xs text-[var(--signal-warn-text)] font-semibold shadow-sm">
+          <div className="p-4 bg-[var(--signal-warn-bg)] border border-[var(--border-card)] rounded-[12px] flex items-center justify-between text-xs text-[var(--signal-warn-text)] font-semibold">
             <span className="flex items-center gap-2"><Clock className="w-4 h-4" /> Keine Task hinterlegt</span>
             <button onClick={onNoTask} className="text-[var(--signal-warn-text)] hover:underline font-bold">Task anlegen →</button>
           </div>

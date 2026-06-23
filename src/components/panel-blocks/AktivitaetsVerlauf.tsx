@@ -57,12 +57,12 @@ export default function AktivitaetsVerlauf({ rows }: { rows?: Row[] }) {
       <span className="block pl-1 typo-section-label text-text-muted">Aktivitätsverlauf</span>
 
       {items.length === 0 ? (
-        <div className="bg-app-surface rounded-[12px] p-8 border border-border shadow-sm text-center">
+        <div className="bg-app-surface rounded-[12px] p-8 border border-[var(--border-card)] text-center">
           <Activity className="w-6 h-6 mx-auto text-text-muted mb-2" />
           <p className="text-[12px] text-text-muted">Noch keine Aktivität.</p>
         </div>
       ) : (
-        <div className="bg-app-surface rounded-[12px] p-5 border border-border shadow-sm">
+        <div className="bg-app-surface rounded-[12px] p-5 border border-[var(--border-card)]">
           <ol className="relative">
             {items.map((row, idx) => {
               const { label, icon: Icon, fg, bg } = describe(row);

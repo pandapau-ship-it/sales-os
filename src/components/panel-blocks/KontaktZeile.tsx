@@ -34,7 +34,7 @@ interface KontaktZeileProps {
   phoneTypes?: string[];
 }
 
-const PILL = "bg-app-surface border border-border-subtle rounded-full px-5 py-3 flex items-center gap-3 text-[12px] text-text-muted shadow-sm";
+const PILL = "bg-app-surface border border-[var(--border-card)] rounded-full px-5 py-3 flex items-center gap-3 text-[12px] text-text-muted";
 const LINK = "text-text-body hover:text-[var(--sherloq-primary)] transition-colors truncate";
 // Hover-Aktionen (CLAUDE.md HOVER_ACTIONS-Muster, benannte Group pro Eintrag).
 const HOVER_BTN = "opacity-0 group-hover/item:opacity-100 focus-within:opacity-100 transition shrink-0";
@@ -126,7 +126,7 @@ export default function KontaktZeile({
   // readonly-Zeile: Telefon-Popover bleibt; Schreiben nur, wenn echte Phone-Handler übergeben werden (PH3).
   if (readonly) return <KontaktZeileReadonly contact={contact} phones={phones} onCopied={onCopied} onEditField={onEditField} onSetFavorite={onSetFavorite} onUpdateNumber={onUpdateNumber} onAddPhone={onAddPhone} onRemovePhone={onRemovePhone} onUpdateLabel={onUpdateLabel} phoneTypes={phoneTypes} />;
   return (
-    <div className="bg-app-surface border border-border-subtle rounded-full px-5 py-3 flex items-center justify-between gap-3 text-[12px] text-text-muted shadow-sm">
+    <div className="bg-app-surface border border-[var(--border-card)] rounded-full px-5 py-3 flex items-center justify-between gap-3 text-[12px] text-text-muted">
       <span className="flex items-center gap-1.5 min-w-0">
         <Mail className="w-[13px] h-[13px] text-text-muted shrink-0" />
         <EditableInline label="E-Mail" type="email" value={contact.email} onSave={(v) => onSaveField('email', v)} onCopy={() => onCopyField('email')} />

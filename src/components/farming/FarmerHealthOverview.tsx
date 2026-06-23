@@ -37,7 +37,7 @@ const PILL_TONE: Record<BadgeTone, string> = {
 
 export default function FarmerHealthOverview({ onShowAll }: { onShowAll?: () => void }) {
   return (
-    <div className="bg-app-surface rounded-[16px] p-6 shadow-[var(--shadow-card)]">
+    <div className="bg-app-surface rounded-[16px] p-6 border border-[var(--border-card)] shadow-[var(--shadow-card)]">
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <span className="typo-section-label text-text-muted">Customer Health Overview</span>

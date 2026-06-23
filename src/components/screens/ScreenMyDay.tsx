@@ -184,7 +184,7 @@ export default function ScreenMyDay({
       )}
 
       {/* 3. AI-BRIEFING SENTENCE (Section 12) */}
-      <div className="bg-app-surface rounded-[16px] px-5 py-4 flex items-center justify-between shadow-card group/brief">
+      <div className="bg-app-surface rounded-[16px] px-5 py-4 flex items-center justify-between border border-[var(--border-card)] shadow-card group/brief">
         <div className="flex items-center gap-3.5 flex-1 min-w-0 pr-4">
           <div className="w-10 h-10 rounded-[14px] bg-[var(--sherloq-light)] flex items-center justify-center flex-shrink-0 shadow-sm">
             <Sparkles className="w-5 h-5 text-sherloq-primary" />
@@ -221,7 +221,7 @@ export default function ScreenMyDay({
           {priorities.slice(0, 5).map((prio, idx) => (
             <div 
               key={prio.id}
-              className="bg-app-surface rounded-[16px] p-5 shadow-card hover:shadow-hover transition-all duration-300 flex flex-col justify-between"
+              className="bg-app-surface rounded-[16px] p-5 border border-[var(--border-card)] shadow-card hover:shadow-hover transition-all duration-300 flex flex-col justify-between"
             >
               <div>
                 <div className="flex items-center justify-between mb-3.5">

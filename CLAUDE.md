@@ -304,7 +304,9 @@ gar nicht. Gleiche Ehrlichkeits-Linie wie „ICP/Heat null → unsichtbar" und d
 | Sub-Nav-Container | 12px | `rounded-[12px]` |
 | Nav-Tabs (aktiv/inaktiv, Sub-Nav) | 9px | `rounded-[9px]` |
 | Buttons (primär/sekundär) | 10px | `rounded-[10px]` |
+| Inputs / kleine Buttons | 8px | `rounded-[8px]` |
 | Badges, Pills | 7px | `rounded-[7px]` |
+| Checkboxen / Icon-Buttons / Mini-Badges | 6px | `rounded-[6px]` |
 | Count-Labels in Tabs | 5px | `rounded-[5px]` |
 | Avatare (Kontakte/Nutzer) | 9999px | `rounded-full` |
 | Status-Punkte | 9999px | `rounded-pill` |
@@ -346,6 +348,34 @@ Wird dieselbe Komponente an mehreren Stellen verwendet, muss sie **überall iden
 | Buttons (sekundär) | ✅ Ja | Abgrenzung ohne Fill |
 | Buttons (primär) | ❌ Nein | Fill reicht |
 | Expanded-Content-Bereiche | ✅ Ja — `border-t border-[#F1F3F5]` | Trenner, kein Kasten |
+
+### Elevation-System (verbindlich für alle Screens, alle Komponenten)
+
+Drei Ebenen — **nie mischen.** Grundsatz: **Elevation nur EINMAL pro Kontext.** Trennung innen =
+Haarlinie + Weißraum + Label, nie ein zweiter Schatten.
+
+**Ebene 0 — Base (Tabellen / Listen):**
+- Zeilen-Trenner: nur `border-b border-[var(--border-card)]`
+- **Kein** Schatten pro Zeile
+- Der Tabellen-**Container** ist Ebene 1 · Header-Zeile: `bg-app-bg` + `border-b`
+
+**Ebene 1 — Card:**
+- **Kachel auf Seiten-Hintergrund:**
+  `border-[var(--border-card)]` + `shadow-[var(--shadow-card)]` + `hover:shadow-[var(--shadow-hover)]`
+- **Box INNERHALB eines Panels/Overlays:**
+  nur `border-[var(--border-card)]` — **KEIN Schatten** (das Panel liefert die Elevation)
+
+**Ebene 2 — Float (Panel / Dropdown / Toast):**
+- `shadow-[var(--shadow-dropdown)]` · kein/dezenter Rahmen
+- Innen gelten ausschließlich die Ebene-1-Regeln (= In-Panel-Box ohne Schatten)
+
+**NIEMALS:**
+- `shadow-sm` / `shadow-md` / `shadow-lg` (rohe Tailwind-Stufen) — **nur Token**
+- Schatten **innerhalb** von Panels (Schatten-im-Schatten)
+- `border-border` (voll sichtbar) auf Kacheln — Kacheln nutzen `border-[var(--border-card)]`
+
+> Vorbild im Code: `HunterCard` (Ebene 1, Liste) · `ExpandedCardContent` (Trenner statt Schatten-Box) ·
+> `HunterSidepanel` (Ebene 2, innen flache Ebene-1-Boxen). Quelle der Werte: `componentBehavior.ts`.
 
 **Hover-Aktionen — Edit / Löschen / Copy nur bei Hover (verbindlich für ALLE Kacheln):**
 Bearbeiten-, Löschen- und Copy-Buttons in einer Kachel/Zeile sind **standardmäßig unsichtbar**
@@ -406,6 +436,7 @@ Vor jedem Commit gegen CLAUDE.md "Design Invariants" prüfen:
 - [ ] Token statt Hex
 - [ ] Kein Emoji in JSX — nur Lucide Icons
 - [ ] Neue Komponenten in audit.ts IN_SCOPE
+- [ ] Elevation/Radius-Wächter grün? (`npm run audit`)
 
 Gilt zusätzlich zu build/audit/structure Gates.
 
@@ -485,7 +516,7 @@ nie roh als `text-[Npx] font-*` an diesen Stellen wiederholen. **Farbe bleibt be
 | `.typo-section-label` | 10px · 800 · uppercase · tracking-widest | 820px-Panel-Sektion-Header (OFFENE TASKS, DEAL SETUP, DEALS, …) |
 | `.typo-chevron-header` | 11px · 700 · mono · uppercase · tracking-wider | Karten-Header der Chevron-Kurzansicht (DealKurzinfo, KiKurzakte, HunterCard) |
 | `.typo-card-title` | 14px · 700 | Listen-Karten-Titel in Tabs (Tasks · Aktivität · Kommunikation · Deals) + Entitätsname |
-| `.typo-field-label` | 10px · 400 · mono · uppercase · tracking-wider | Feld-Label im Kennzahlen-Grid (PRODUKT, STAGE, …) |
+| `.typo-field-label` | 10px · 400 · sans · uppercase · tracking-wider | Feld-Label im Kennzahlen-Grid (PRODUKT, STAGE, …) — Sans (Labels nie Monospace; Mono nur für Werte) |
 | `.typo-field-value` | 14px · 700 | Feld-Wert im Kennzahlen-Grid |
 | `.typo-subline` | 11px · 400 | Subzeile unter Karten-Titel (Wert · Owner · Datum) |
 | `.typo-chip` | 10px · 700 | Chip-/Badge-Text |
@@ -495,8 +526,9 @@ nie roh als `text-[Npx] font-*` an diesen Stellen wiederholen. **Farbe bleibt be
   sind bewusst getrennte Stufen — nicht verwechseln (Chevron-Kurzansicht ≠ Panel-Sektion).
 - **Schrift-ART verriegelt:** Die **Marken-Schrift (Plus Jakarta Sans)** ist **EINMAL global** auf
   `<body>` gesetzt (`index.css`) und wird überall vererbt — Komponenten deklarieren die Schriftart
-  **nie** selbst neu. **Monospace ausschließlich** über die Primitive `typo-chevron-header` /
-  `typo-field-label` (dort steckt die Mono-Family im CSS) — **kein rohes `font-mono` auf Text**.
+  **nie** selbst neu. **Monospace ausschließlich** über das Primitive `typo-chevron-header`
+  (dort steckt die Mono-Family im CSS) — **kein rohes `font-mono` auf Text**. Hinweis: Labels (inkl.
+  `typo-field-label`) sind **Sans** — Monospace ist nur für Werte/Zahlen, nie für Beschriftungen.
   **Fremde Schriften verboten:** kein `font-serif`, keine arbitrary `font-[family-name:…]`/`font-['…']`,
   kein inline `fontFamily`/`font-family`. `font-sans` = Marke (ok, aber redundant — Vererbung reicht).
 - **Erzwungen:** `npm run audit` → Check **„Typo-Kanon: Schrift-Stufen"** meldet **FAIL**, wenn in

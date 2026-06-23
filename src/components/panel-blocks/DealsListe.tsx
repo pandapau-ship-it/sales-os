@@ -279,7 +279,7 @@ function DealsListeReadonly({
   // ── COMPACT (Übersicht): alle Deals kompakt, primärer zuerst, ab >2 einklappbar, Edit navigiert. ──
   // Karten-Klasse: gewonnene Deals bekommen einen dezenten grünen linken Rand (Status-Highlight).
   const cardCls = (d: DealView) =>
-    `group p-4 bg-app-surface border border-border rounded-[12px] shadow-sm${d.stageSlug === WON_STAGE_SLUG ? " border-l-2 border-l-[var(--signal-success-text)]" : ""}`;
+    `group p-4 bg-app-surface border border-[var(--border-card)] rounded-[12px]${d.stageSlug === WON_STAGE_SLUG ? " border-l-2 border-l-[var(--signal-success-text)]" : ""}`;
 
   // Stage-Badge: gewonnen → grünes „Gewonnen"-Badge (Lucide-Icon, kein Emoji); sonst dekorativ
   // (ohne onChangeStage) ODER klickbar (Wrapper + Inline-Dropdown). StageBadge selbst unangetastet.
@@ -373,7 +373,7 @@ function DealsListeReadonly({
 
       {/* Anlege-Formular oben (eigene Karte) */}
       {composerOpen && (
-        <div className="p-4 bg-app-surface border border-border rounded-[12px] shadow-sm animate-fade-in">
+        <div className="p-4 bg-app-surface border border-[var(--border-card)] rounded-[12px] animate-fade-in">
           {renderForm()}
         </div>
       )}
@@ -568,7 +568,7 @@ function DealsListeMock({
 
       <div className="space-y-3">
         {deals.map((d) => (
-          <div key={d.id} className="group p-4 bg-app-surface border border-border rounded-[12px] shadow-sm">
+          <div key={d.id} className="group p-4 bg-app-surface border border-[var(--border-card)] rounded-[12px]">
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-center gap-3 min-w-0">
                 <span className="w-10 h-10 rounded-[10px] shrink-0 inline-flex items-center justify-center bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)]">

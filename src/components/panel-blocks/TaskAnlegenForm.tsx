@@ -68,10 +68,10 @@ export default function TaskAnlegenForm({
           <span className="typo-section-label text-[var(--signal-warn-text)] flex items-center gap-1.5">
             <AlertTriangle className="w-2.5 h-2.5" /> {t("hunter.drawers.noTask.noTaskStored")}
           </span>
-          <div className="p-4 bg-[var(--signal-warn-bg)] border border-[var(--signal-warn-bg)] rounded-xl text-[13px] text-[var(--signal-warn-text)] font-semibold leading-relaxed">
+          <div className="p-4 bg-[var(--signal-warn-bg)] border border-[var(--border-card)] rounded-[12px] text-[13px] text-[var(--signal-warn-text)] font-semibold leading-relaxed">
             {t("hunter.drawers.noTask.everyDealNeedsTask")}
           </div>
-          <div className="p-4 bg-app-surface border border-border rounded-xl shadow-sm">
+          <div className="p-4 bg-app-surface border border-[var(--border-card)] rounded-[12px]">
             <span className="typo-section-label text-text-muted block mb-1">
               {t("hunter.drawers.noTask.dealInfo")}
             </span>
@@ -82,7 +82,7 @@ export default function TaskAnlegenForm({
         </section>
 
         {/* BLOCK 2: KI VORSCHLAG */}
-        <section className="bg-[var(--signal-teal-bg)] border border-[var(--signal-success-bg)] rounded-xl p-4 space-y-3 animate-fade-in">
+        <section className="bg-[var(--signal-teal-bg)] border border-[var(--signal-success-bg)] rounded-[12px] p-4 space-y-3 animate-fade-in">
           <div className="flex items-center gap-1.5 text-[10px] font-bold text-[var(--sherloq-primary)] uppercase tracking-wider">
             <Sparkles className="w-3 h-3" />
             {t("hunter.drawers.noTask.kiSuggests")}

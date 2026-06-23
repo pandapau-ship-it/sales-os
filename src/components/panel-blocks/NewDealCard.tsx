@@ -30,7 +30,7 @@ export default function NewDealCard({
   };
 
   return (
-    <div className="rounded-[12px] border border-border bg-app-bg p-4 flex flex-col gap-3 shadow-[var(--shadow-card)]">
+    <div className="rounded-[12px] border border-[var(--border-card)] bg-app-bg p-4 flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Briefcase className="w-4 h-4 text-[var(--sherloq-primary)]" />
