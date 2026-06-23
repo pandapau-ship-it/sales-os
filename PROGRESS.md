@@ -549,11 +549,29 @@ kam es, wie groß ist es** — und einen **klaren nächsten Schritt** anstoßen 
 - **CTA:** „Check-In starten".
 - **Wann:** Retention-Tab-Slice (nächster Schritt).
 
+### [D40] automation_rules Schema-Korrektur (deferred)
+- **Problem:** Migration **006** legt `automation_rules` falsch an — **N Zeilen pro Org**
+  (`risk_level` × `action_type` × `is_auto_allowed`/`confidence_threshold`) statt der in
+  CLAUDE.md final entschiedenen Form **1 Zeile pro Org** (`low_risk_auto`/`medium_risk_auto`/
+  `medium_confidence`, High Risk bewusst ohne Feld). Keine gemeinsamen Spalten außer id/org/created_at.
+- **Lösung:** **Option A — `ALTER TABLE`** (risikoarm): alte 4 Spalten droppen, neue Felder +
+  `updated_at` hinzufügen, `UNIQUE(organization_id)`. Index `idx_automation_rules_org` und die
+  RLS-Policy hängen nur an `organization_id` → **bleiben automatisch erhalten** (kein Recreate,
+  kein Tenant-Leak-Risiko). Sicher, weil **0 Zeilen, 0 Leser, keine FKs/Functions** (geprüft).
+- **Dabei mitklären (sonst zweimal migrieren):**
+  - `settings.automation.hunter|farmer|mein_tag` (per-Modul) fehlt im Seed (012) — nur
+    `automation_defaults.default_automation_level` vorhanden.
+  - `execution_mode` (manual/semi_auto/full_auto) ist nur CLAUDE-Architektur-Text, **nicht** in der DB.
+  - `docs/sales_os_db_schema_v3.md` angleichen (006-Header nennt sie als maßgeblich → möglicher dritter Widerspruch).
+- **Wann:** gebündelt mit dem Bau der **Automation-Settings-UI** (Settings → AI SDR → Automation
+  Rules, Settings-Screen-Phase) — dann gegen echte Reads verifizierbar; eine isolierte 047 jetzt
+  wäre eine blinde Änderung an einer ungenutzten Tabelle.
+
 ### [TS] Deal-Typ ohne `product` — offener Faden
 - `src/types/hunter.ts` `Deal` hat **kein `product`** (Migration 014 fügte nur die DB-Spalte).
   Beim späteren Produkt-Anzeigen (Pipeline/Deal-Detail) `product?: string` im Typ ergänzen + mappen.
 
-> Anker-Tags `[D1]`–`[D39]` sind im Code referenzierbar (z.B. `hunterMappers.ts` → `[[leads-tab-read]]`).
+> Anker-Tags `[D1]`–`[D40]` sind im Code referenzierbar (z.B. `hunterMappers.ts` → `[[leads-tab-read]]`).
 > Vor Umsetzung eines Punkts: passende Referenz-Doku (`docs/sales_os_edge_functions_v2.md` etc.) lesen.
 
 ---
