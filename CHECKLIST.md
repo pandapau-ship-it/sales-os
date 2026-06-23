@@ -18,6 +18,7 @@
 - [x] **`npm run structure-check`** (`scripts/structure-check.sh`) — *FAIL bei falsch in shared/ platzierten Komponenten; im Pre-Push-Hook + Merge-Gate* — *2026-06-16*
 - [x] **panel-block-Library konsolidiert** — alle Inhalts-Blöcke in `panel-blocks/` (+ Barrel `index.ts`); HunterSidepanel/ChatActionPanel komplett panel-block-basiert; tote Dateien/Orphans entfernt; shared/ bereinigt — *2026-06-16*
 - [x] **Single-Source-Audit + pre-push-Kopplung** — `checkSingleSourceContactValues()` (Kontaktwerte nur über `contactToProfile`/`contactActiveStage`; FAIL `.heat_status`, WARN icp/company/name, Resolver-Marker + `// single-source-ok`-Opt-out); **`npm run audit` jetzt im pre-push-Hook** (blockt FAIL hart); CLAUDE.md-Regel „Gleiche Ausgabe = gleiche Quelle" — *2026-06-18*
+- [x] **Elevation- & Radius-System app-weit** — 3 Ebenen (Base/Card/Float) in CLAUDE Design Invariants; `--border-card` 0.11; `CARD_PANEL`/`TABLE`-Konstanten (`componentBehavior.ts`); Sweep über panel-blocks/Tabelle/Container; Radius-Hierarchie + benannte Radien normalisiert; Feld-Labels Sans. 3 Audit-Wächter + Pre-Commit-Check. — *2026-06-24* — siehe `docs/session_uebergabe_2026-06-24.md`
 - [ ] audit.ts an Pre-Commit-Hook hängen — *kein Commit mit hartem Verstoß*
 - [ ] audit.ts erweitern wenn neue Infrastruktur existiert (DB, lib/ai.ts …)
 
