@@ -10,7 +10,6 @@ import HeatBadge from './HeatBadge';
 import StageBadge from './StageBadge';
 import { type DealCardAction } from './DealKurzinfo';
 import ExpandedCardContent from './ExpandedCardContent';
-import { cn } from "@/lib/utils";
 import { CARD, ACTION_ROW } from "@/lib/componentBehavior";
 import type { HeatStatusKey } from "@/lib/constants";
 import type { HeatStatus } from "@/types";
@@ -50,8 +49,6 @@ interface HunterCardProps {
   statusDotClass?: string;
   /** Additiver Slot für die Badge-Spalte (statt STAGE), z.B. Farmer SUBSCRIPTION. Leer → wie bisher. */
   statusBadge?: { label: string; node: ReactNode };
-  /** Override für den Action-Row-Hintergrund (z.B. farbige Signal-Row im Retention-Tab). Leer → app-bg. */
-  actionRowClassName?: string;
 }
 
 /**
@@ -72,7 +69,6 @@ export default function HunterCard({
   selected = false,
   onToggleSelect,
   statusBadge,
-  actionRowClassName,
 }: HunterCardProps) {
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
@@ -196,8 +192,8 @@ export default function HunterCard({
         )}
       </div>
 
-      {/* ACTION-ROW (Slot) — Container überall identisch; optionaler bg-Override (Retention-Signal-Row). */}
-      {actionRow && <div className={cn(ACTION_ROW.container, actionRowClassName)}>{actionRow}</div>}
+      {/* ACTION-ROW (Slot) — Container überall identisch */}
+      {actionRow && <div className={ACTION_ROW.container}>{actionRow}</div>}
     </div>
   );
 }

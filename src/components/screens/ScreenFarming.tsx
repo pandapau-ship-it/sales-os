@@ -33,7 +33,7 @@ const RETENTION_ITEMS: RetentionItem[] = [
     id: 'ret-3', name: 'Jonas Weber', jobTitle: 'CEO', company: 'Scalify GmbH',
     icpScore: 65, heatStatus: 'WARM', sherloqStatus: 'cancelled', timeLabel: 'vor 2 Tagen',
     type: 'cancelled',
-    text: 'Kündigung eingegangen. Sofortiger persönlicher Anruf empfohlen — Grund verstehen bevor Kontakt kalt wird.',
+    text: 'Kündigung eingegangen. Sofortiger persönlicher Anruf empfohlen.',
   },
 ];
 

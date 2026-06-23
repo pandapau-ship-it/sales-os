@@ -34,36 +34,37 @@ const CTA_URGENT =
   "px-4 py-1.5 rounded-full text-[11px] font-black bg-[var(--signal-urgent-bg)] text-signal-urgent border border-[var(--signal-urgent-text)]/15 hover:opacity-90 transition-opacity cursor-pointer shrink-0";
 
 interface RetentionMeta {
-  rowBg: string;        // Hintergrund der Signal-Row (subtiler Tint, via actionRowClassName)
   icon: LucideIcon;
   badgeLabel: string;
+  badgeBg: string;      // Token-Tint der Badge
   badgeText: string;    // Token-Textfarbe der Badge
   cta: string;
   ctaClass: string;
 }
 
-// Badge sitzt als helle Pille (bg-app-surface) auf der getönten Row → Kontrast, rounded-full, kein Border.
+// Signal-Row-Hintergrund ist überall hellgrau (ACTION_ROW.container = app-bg, wie Hunter).
+// Badge = getönte Pille (rounded-full, kein Border, text-[12px]) auf der grauen Row.
 const RETENTION_META: Record<RetentionType, RetentionMeta> = {
   churn_risk: {
-    rowBg: "bg-[var(--signal-urgent-bg)]",
     icon: AlertTriangle,
     badgeLabel: "Churn Risk",
+    badgeBg: "bg-[var(--signal-urgent-bg)]",
     badgeText: "text-signal-urgent",
     cta: "Retention sichern",
     ctaClass: CTA_URGENT,
   },
   going_cold: {
-    rowBg: "bg-[var(--signal-warn-bg)]",
     icon: Thermometer,
     badgeLabel: "Wird kalt",
+    badgeBg: "bg-[var(--signal-warn-bg)]",
     badgeText: "text-signal-warn",
     cta: "Check-In starten",
     ctaClass: `${ACTION_ROW.ctaSecondary} shrink-0`,
   },
   cancelled: {
-    rowBg: "bg-[var(--signal-urgent-bg)]",
     icon: XCircle,
     badgeLabel: "Gekündigt",
+    badgeBg: "bg-[var(--signal-urgent-bg)]",
     badgeText: "text-signal-urgent",
     cta: "Jetzt anrufen",
     ctaClass: CTA_URGENT,
@@ -104,7 +105,8 @@ export default function FarmerRetentionKachel({ item, onOpenPanel, onAction }: F
       <div className="flex items-center gap-3 min-w-0 flex-1">
         <span
           className={cn(
-            "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-app-surface text-[12px] font-medium shrink-0",
+            "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] font-medium shrink-0",
+            meta.badgeBg,
             meta.badgeText,
           )}
         >
@@ -124,7 +126,6 @@ export default function FarmerRetentionKachel({ item, onOpenPanel, onAction }: F
       data={data}
       onOpenInfo={onOpenPanel}
       actionRow={actionRow}
-      actionRowClassName={meta.rowBg}
       statusBadge={statusBadge}
     />
   );
