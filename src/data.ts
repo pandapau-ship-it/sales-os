@@ -273,7 +273,7 @@ export const INITIAL_CUSTOMERS: Customer[] = [
     pipelineStage: 'lead',
     contactEmail: 't.mueller@hiringmate.com',
     dealValue: 6000,
-    sherloqStatus: 'TRIAL',
+    sherloqStatus: 'ACTIVE', // Trial-Status kommt später mit Billing (D-Backlog) — Mock = aktiver Kunde
     lastLogin: 'vor 1 Tag',
     profilesAdded: 44,
     subscriptionPlan: 'Starter',

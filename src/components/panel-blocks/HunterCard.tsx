@@ -47,6 +47,8 @@ interface HunterCardProps {
   onToggleSelect?: (e: MouseEvent) => void;
   /** Farbe des Status-Punkts am Avatar. */
   statusDotClass?: string;
+  /** Additiver Slot für die Badge-Spalte (statt STAGE), z.B. Farmer SUBSCRIPTION. Leer → wie bisher. */
+  statusBadge?: { label: string; node: ReactNode };
 }
 
 /**
@@ -66,6 +68,7 @@ export default function HunterCard({
   actionRow,
   selected = false,
   onToggleSelect,
+  statusBadge,
 }: HunterCardProps) {
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
@@ -121,12 +124,17 @@ export default function HunterCard({
           {/* Stage & Heat */}
           <div className={`hidden lg:flex items-center gap-4 px-4 ${CARD.divider} shrink-0`}>
             <div className="flex flex-col items-center justify-center w-[80px] relative h-full">
-              {data.stageLabel && (
+              {data.stageLabel ? (
                 <>
                   <span className={CARD.miniLabel}>{t("hunter.common.stage")}</span>
                   <StageBadge stage={data.stageLabel} />
                 </>
-              )}
+              ) : statusBadge ? (
+                <>
+                  <span className={CARD.miniLabel}>{statusBadge.label}</span>
+                  {statusBadge.node}
+                </>
+              ) : null}
             </div>
             <div className="flex flex-col items-center justify-center w-[120px] relative h-full">
               <span className={CARD.miniLabel}>{t("hunter.common.heat")}</span>

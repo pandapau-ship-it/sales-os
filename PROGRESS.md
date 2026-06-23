@@ -474,11 +474,28 @@ kam es, wie groß ist es** — und einen **klaren nächsten Schritt** anstoßen 
 - **Dauer:** ca. 20 Min pro Provider.
 - **Kommt wenn:** Production-Domain feststeht.
 
+### [D33] Farmer Info-Panel (820px) auf typo-Standard / HunterSidepanel-Muster (deferred)
+- **Aktuell:** Farmer-Kunden-Kachel öffnet beim Pfeil → den **alten `shared/CustomerDrawer.tsx`** (717 Z.).
+- **Problem:** durchzogen von rohem `font-mono` + rohen `text-[Npx]`-Klassen (nicht über `typo-*`-Primitive).
+  Liegt in `shared/` → vom `npm run audit` Typo-Check **nicht** gescannt (walkt nur `panel-blocks/` + `features/`)
+  → Verstöße rutschen durch. Zudem: Hunter nutzt `HunterSidepanel`, Farmer `CustomerDrawer` → 2 verschiedene Panels.
+- **Umsetzung:** CustomerDrawer auf typo-Kanon + Tokens bringen **oder** auf `HunterSidepanel`-Muster umstellen
+  (eine Info-Panel-Quelle für Hunter + Farmer). Danach Komponente in `audit.ts` IN_SCOPE aufnehmen.
+- **Eigener Slice** — Daten sind aktuell Mock (Reference-State).
+
+### [D34] Farmer Action-Panel (580px) + Signal-Feed (deferred)
+- **Aktuell:** existiert **nicht**. Kein `features/farmer/`-Action-Panel, keine „Check-In buchen"-CTA, kein Signal-Drawer.
+  Tabs `upsell`/`signals` in `ScreenFarming` sind reine Platzhalter („Feed folgt").
+- **Umsetzung:** Action-Panel (580px) analog Hunter-Drawer-Muster + Signal-/Upsell-Feed verdrahten.
+- **Eigener Slice** — folgt nach Score-/Signal-Anbindung.
+
+> Hinweis: `[D32]` bleibt bewusst unbelegt (Nummern-Lücke, keine offene Entscheidung).
+
 ### [TS] Deal-Typ ohne `product` — offener Faden
 - `src/types/hunter.ts` `Deal` hat **kein `product`** (Migration 014 fügte nur die DB-Spalte).
   Beim späteren Produkt-Anzeigen (Pipeline/Deal-Detail) `product?: string` im Typ ergänzen + mappen.
 
-> Anker-Tags `[D1]`–`[D31]` sind im Code referenzierbar (z.B. `hunterMappers.ts` → `[[leads-tab-read]]`).
+> Anker-Tags `[D1]`–`[D34]` sind im Code referenzierbar (z.B. `hunterMappers.ts` → `[[leads-tab-read]]`).
 > Vor Umsetzung eines Punkts: passende Referenz-Doku (`docs/sales_os_edge_functions_v2.md` etc.) lesen.
 
 ---

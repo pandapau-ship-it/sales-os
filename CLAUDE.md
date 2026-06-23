@@ -391,6 +391,24 @@ Heat-Badges verwenden einen farbigen **Dot-Kreis** (gerendertes `<span>`, **kein
 </div>
 ```
 
+### Pre-Commit Visual Check — PFLICHT
+
+**Zwei bewusst unterschiedliche Badge-Typen — nicht angleichen:**
+| Typ | Form | Marker | Border | Beispiel |
+|---|---|---|---|---|
+| **Heat-Pille** (Aktivitätslevel) | `rounded-full` | CSS-Dot (`<span>`, kein Icon) | kein Border | `HeatBadge` |
+| **Status-Badge** (Vertrags-/Subscription-/generischer Status) | `rounded-[7px]` | Lucide-Icon (kein Emoji) | nur `/15` Opacity | SUBSCRIPTION, `StatusBadge` |
+
+Vor jedem Commit gegen CLAUDE.md "Design Invariants" prüfen:
+- [ ] Heat-Pille: rounded-full + Dot, kein Border — Status-Badge: rounded-[7px] + Icon + Border /15
+- [ ] Status-Badge Border: nur /15 Opacity — nie volle Farbe
+- [ ] Schrift: Plus Jakarta Sans überall — kein font-mono
+- [ ] Token statt Hex
+- [ ] Kein Emoji in JSX — nur Lucide Icons
+- [ ] Neue Komponenten in audit.ts IN_SCOPE
+
+Gilt zusätzlich zu build/audit/structure Gates.
+
 **Heat-Status Labels (kanonisch, nie ändern ohne Entscheidung):**
 Engaged (0–3T) · Warm (4–7T) · Cooling (8–14T) · Cold (15–30T) · Gone (31+T)
 Farben: Grün · Gelb · Orange · Blau · Grau

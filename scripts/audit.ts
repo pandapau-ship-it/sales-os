@@ -433,8 +433,8 @@ function checkTypographyTokens(): void {
     'DetailField', 'DetailPhoneList', 'FunnelAnalysis',
     // [D21] Scheibe 8
     'MfaBanner',
-    // Farmer-Übersicht
-    'FarmerKpiCards', 'FarmerHealthOverview',
+    // Farmer-Übersicht + Kunden-Tab
+    'FarmerKpiCards', 'FarmerHealthOverview', 'FarmerKundenKachel',
   ])
   // panel-blocks/ + features/ + farming/ (Farmer-Hilfskomponenten).
   const files = [
