@@ -820,7 +820,7 @@ export default function ScreenHunting({
                 (w-fit) → wächst mit jeder vorhandenen Phase bis Bildschirmbreite. Client-seitig aus openDeals. */}
             <div className="flex flex-wrap gap-4 w-full items-stretch">
               {/* Tile 1 — Pipeline-Gesamtwert */}
-              <div className="flex-1 min-w-[180px] bg-app-surface rounded-[12px] p-5 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-hover)] transition-shadow flex flex-col gap-3">
+              <div className="flex-1 min-w-[180px] bg-app-surface rounded-[12px] p-5 border border-[var(--border-card)] shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-hover)] transition-shadow flex flex-col gap-3">
                 <div className="flex items-start justify-between gap-3">
                   <span className="text-[11px] font-bold text-text-muted uppercase tracking-widest">Pipeline-Gesamtwert</span>
                   <div className="w-9 h-9 rounded-[10px] bg-[var(--signal-info-bg)] text-[var(--signal-info-text)] flex items-center justify-center shrink-0"><TrendingUp size={16} strokeWidth={2.5} /></div>
@@ -829,7 +829,7 @@ export default function ScreenHunting({
               </div>
 
               {/* Tile 2 — Gewichteter Wert (Hover-Popover: gewichteter Wert pro Stage) */}
-              <div className="group relative flex-1 min-w-[180px] bg-app-surface rounded-[12px] p-5 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-hover)] transition-shadow flex flex-col gap-3">
+              <div className="group relative flex-1 min-w-[180px] bg-app-surface rounded-[12px] p-5 border border-[var(--border-card)] shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-hover)] transition-shadow flex flex-col gap-3">
                 <div className="flex items-start justify-between gap-3">
                   <span className="text-[11px] font-bold text-text-muted uppercase tracking-widest">Gewichteter Wert</span>
                   <div className="w-9 h-9 rounded-[10px] bg-[var(--signal-success-bg)] text-[var(--signal-success-text)] flex items-center justify-center shrink-0"><Percent size={16} strokeWidth={2.5} /></div>
@@ -857,7 +857,7 @@ export default function ScreenHunting({
 
               {/* Tile 3 — Heat-Verteilung: Baseline gleich groß wie die Wert-Kacheln (flex-1), wächst aber
                   mit den Phasen (min-w-fit, Chips ohne Umbruch) → die Wert-Kacheln links schrumpfen. */}
-              <div className="flex-1 min-w-fit max-w-full bg-app-surface rounded-[12px] p-5 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-hover)] transition-shadow flex flex-col gap-3">
+              <div className="flex-1 min-w-fit max-w-full bg-app-surface rounded-[12px] p-5 border border-[var(--border-card)] shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-hover)] transition-shadow flex flex-col gap-3">
                 <div className="flex items-start justify-between gap-6">
                   <span className="text-[11px] font-bold text-text-muted uppercase tracking-widest">Heat-Verteilung</span>
                   <div className="w-9 h-9 rounded-[10px] bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)] flex items-center justify-center shrink-0"><Flame size={16} strokeWidth={2.5} /></div>
@@ -908,7 +908,7 @@ export default function ScreenHunting({
                     </div>
 
                     {/* Übersichts-Kachel — weiß wie die Deal-Kacheln: Zahl links / „Opportunities" darunter · Volumen rechts */}
-                    <div className="bg-app-surface rounded-[12px] shadow-[var(--shadow-card)] px-4 py-3 mb-3 flex items-center justify-between gap-2">
+                    <div className="bg-app-surface rounded-[12px] border border-[var(--border-card)] shadow-[var(--shadow-card)] px-4 py-3 mb-3 flex items-center justify-between gap-2">
                       <div className="flex flex-col min-w-0">
                         <span className="text-[28px] font-extrabold leading-none tracking-tight text-[var(--text-primary)]">{count}</span>
                         <span className="text-[10px] text-text-muted font-bold uppercase tracking-wider mt-1">{t('hunter.pipeline.opportunities')}</span>
@@ -929,7 +929,7 @@ export default function ScreenHunting({
                             role="button"
                             tabIndex={0}
                             onClick={() => { setInfoPanelTab('deals'); setInfoPanelLead(makeLead(deal.contactId ?? deal.id, deal.contactName, deal.contactJobTitle, deal.company, deal.initials, deal.icpScore ?? 75)); }}
-                            className="bg-app-surface rounded-[12px] p-4 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-hover)] hover:-translate-y-0.5 transition-all duration-300 relative group cursor-pointer"
+                            className="bg-app-surface rounded-[12px] p-4 border border-[var(--border-card)] shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-hover)] hover:-translate-y-0.5 transition-all duration-300 relative group cursor-pointer"
                           >
                             <div className="flex justify-between items-start mb-3">
                               <div className="flex items-center gap-3 min-w-0">
