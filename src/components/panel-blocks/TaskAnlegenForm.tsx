@@ -68,7 +68,7 @@ export default function TaskAnlegenForm({
           <span className="typo-section-label text-[var(--signal-warn-text)] flex items-center gap-1.5">
             <AlertTriangle className="w-2.5 h-2.5" /> {t("hunter.drawers.noTask.noTaskStored")}
           </span>
-          <div className="p-4 bg-[var(--signal-warn-bg)] border border-[var(--signal-warn-bg)] rounded-xl text-[13px] text-[var(--signal-warn-text)] font-semibold leading-relaxed">
+          <div className="p-4 bg-[var(--signal-warn-bg)] border border-[var(--border-card)] rounded-[12px] text-[13px] text-[var(--signal-warn-text)] font-semibold leading-relaxed">
             {t("hunter.drawers.noTask.everyDealNeedsTask")}
           </div>
           <div className="p-4 bg-app-surface border border-[var(--border-card)] rounded-[12px]">

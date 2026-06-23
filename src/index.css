@@ -428,7 +428,7 @@ body {
 /* Listen-Karten-Titel in Tabs (Tasks, Aktivität, Kommunikation, Deals) + Entitätsname */
 .typo-card-title     { font-size: 14px; font-weight: 700; }
 /* Feld-Label im Kennzahlen-Grid (PRODUKT, STAGE, …) */
-.typo-field-label    { font-size: 10px; font-weight: 400; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace; text-transform: uppercase; letter-spacing: 0.05em; }
+.typo-field-label    { font-size: 10px; font-weight: 400; text-transform: uppercase; letter-spacing: 0.05em; }
 /* Feld-Wert im Kennzahlen-Grid */
 .typo-field-value    { font-size: 14px; font-weight: 700; }
 /* Subzeile unter einem Karten-Titel (Meta: Wert · Owner · Datum) */

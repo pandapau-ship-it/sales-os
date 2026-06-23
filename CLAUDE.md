@@ -513,7 +513,7 @@ nie roh als `text-[Npx] font-*` an diesen Stellen wiederholen. **Farbe bleibt be
 | `.typo-section-label` | 10px · 800 · uppercase · tracking-widest | 820px-Panel-Sektion-Header (OFFENE TASKS, DEAL SETUP, DEALS, …) |
 | `.typo-chevron-header` | 11px · 700 · mono · uppercase · tracking-wider | Karten-Header der Chevron-Kurzansicht (DealKurzinfo, KiKurzakte, HunterCard) |
 | `.typo-card-title` | 14px · 700 | Listen-Karten-Titel in Tabs (Tasks · Aktivität · Kommunikation · Deals) + Entitätsname |
-| `.typo-field-label` | 10px · 400 · mono · uppercase · tracking-wider | Feld-Label im Kennzahlen-Grid (PRODUKT, STAGE, …) |
+| `.typo-field-label` | 10px · 400 · sans · uppercase · tracking-wider | Feld-Label im Kennzahlen-Grid (PRODUKT, STAGE, …) — Sans (Labels nie Monospace; Mono nur für Werte) |
 | `.typo-field-value` | 14px · 700 | Feld-Wert im Kennzahlen-Grid |
 | `.typo-subline` | 11px · 400 | Subzeile unter Karten-Titel (Wert · Owner · Datum) |
 | `.typo-chip` | 10px · 700 | Chip-/Badge-Text |
@@ -523,8 +523,9 @@ nie roh als `text-[Npx] font-*` an diesen Stellen wiederholen. **Farbe bleibt be
   sind bewusst getrennte Stufen — nicht verwechseln (Chevron-Kurzansicht ≠ Panel-Sektion).
 - **Schrift-ART verriegelt:** Die **Marken-Schrift (Plus Jakarta Sans)** ist **EINMAL global** auf
   `<body>` gesetzt (`index.css`) und wird überall vererbt — Komponenten deklarieren die Schriftart
-  **nie** selbst neu. **Monospace ausschließlich** über die Primitive `typo-chevron-header` /
-  `typo-field-label` (dort steckt die Mono-Family im CSS) — **kein rohes `font-mono` auf Text**.
+  **nie** selbst neu. **Monospace ausschließlich** über das Primitive `typo-chevron-header`
+  (dort steckt die Mono-Family im CSS) — **kein rohes `font-mono` auf Text**. Hinweis: Labels (inkl.
+  `typo-field-label`) sind **Sans** — Monospace ist nur für Werte/Zahlen, nie für Beschriftungen.
   **Fremde Schriften verboten:** kein `font-serif`, keine arbitrary `font-[family-name:…]`/`font-['…']`,
   kein inline `fontFamily`/`font-family`. `font-sans` = Marke (ok, aber redundant — Vererbung reicht).
 - **Erzwungen:** `npm run audit` → Check **„Typo-Kanon: Schrift-Stufen"** meldet **FAIL**, wenn in
