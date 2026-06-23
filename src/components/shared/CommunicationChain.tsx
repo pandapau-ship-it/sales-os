@@ -156,7 +156,7 @@ export default function CommunicationChain({ items, personId, onSelectCommunicat
 
             {/* Hover-Tooltip: Kanal · Datum · Richtung · Notiz */}
             {hoveredId === tp.id && (
-              <div className="absolute bottom-16 left-1/2 -translate-x-1/2 w-48 bg-app-surface border border-[var(--border)] shadow-[0_10px_30px_rgb(0,0,0,0.1)] rounded-xl p-3 z-50 animate-fade-in text-left">
+              <div className="absolute bottom-16 left-1/2 -translate-x-1/2 w-48 bg-app-surface border border-[var(--border)] shadow-[0_10px_30px_rgb(0,0,0,0.1)] rounded-[12px] p-3 z-50 animate-fade-in text-left">
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-[11px] font-bold text-[var(--sherloq-primary)] font-mono">{tp.tooltip.channel}</span>
                   <span className="text-[10px] text-[var(--text-muted)]">{tp.tooltip.date}</span>

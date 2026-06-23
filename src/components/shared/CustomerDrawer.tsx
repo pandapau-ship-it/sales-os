@@ -109,7 +109,7 @@ export default function CustomerDrawer({
                     <h2 className="text-[18px] font-extrabold text-text-primary font-sans tracking-tight leading-none">
                       {person.person.name}
                     </h2>
-                    <div className="bg-[var(--signal-success-bg)] text-signal-success border border-[var(--signal-success-text)]/20 px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wide">
+                    <div className="bg-[var(--signal-success-bg)] text-signal-success border border-[var(--signal-success-text)]/20 px-2 py-0.5 rounded-[6px] text-[10px] font-bold tracking-wide">
                       ICP: 87
                     </div>
                   </div>
@@ -243,7 +243,7 @@ export default function CustomerDrawer({
                         <span className="text-[10px] uppercase font-bold text-icon-muted font-mono tracking-wider">
                           IN STAGE SEIT
                         </span>
-                        <span className="text-[13px] font-bold text-signal-urgent flex items-center gap-1.5 bg-[var(--signal-urgent-bg)] px-2 py-0.5 rounded-md -ml-2">
+                        <span className="text-[13px] font-bold text-signal-urgent flex items-center gap-1.5 bg-[var(--signal-urgent-bg)] px-2 py-0.5 rounded-[6px] -ml-2">
                           8 Tagen{" "}
                           <AlertTriangle className="w-3.5 h-3.5 stroke-[2.5px]" />
                         </span>
@@ -295,7 +295,7 @@ export default function CustomerDrawer({
                       <h3 className="text-[10px] font-bold text-icon-muted uppercase tracking-wider font-mono">
                         ACTIVE SEQUENCE
                       </h3>
-                      <div className="bg-[var(--sherloq-light)] text-signal-success font-bold text-[10px] px-2.5 py-1 rounded-md">
+                      <div className="bg-[var(--sherloq-light)] text-signal-success font-bold text-[10px] px-2.5 py-1 rounded-[6px]">
                         Schritt 3 von 5
                       </div>
                     </div>
@@ -430,7 +430,7 @@ export default function CustomerDrawer({
                     </h3>
                     <div className="flex flex-col gap-3">
                       <div className="flex items-center gap-3">
-                        <div className="bg-[var(--signal-success-bg)] text-signal-success font-bold text-[13px] px-3 py-1.5 rounded-md flex items-center gap-1.5">
+                        <div className="bg-[var(--signal-success-bg)] text-signal-success font-bold text-[13px] px-3 py-1.5 rounded-[6px] flex items-center gap-1.5">
                           Low <CheckCircle2 className="w-3.5 h-3.5" />
                         </div>
                       </div>
@@ -448,7 +448,7 @@ export default function CustomerDrawer({
                       </h3>
                       <div className="flex flex-col gap-4">
                         <div className="flex items-center gap-3">
-                          <div className="bg-[var(--signal-success-bg)] text-signal-success font-bold text-[13px] px-3 py-1.5 rounded-md flex items-center gap-1.5">
+                          <div className="bg-[var(--signal-success-bg)] text-signal-success font-bold text-[13px] px-3 py-1.5 rounded-[6px] flex items-center gap-1.5">
                             <TrendingUp className="w-3.5 h-3.5" /> {castedCustomer.upsellOpportunity.potential}
                           </div>
                         </div>

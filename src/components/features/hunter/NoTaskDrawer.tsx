@@ -42,7 +42,7 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
       </Sheet>
 
       {showToast && (
-        <div className="fixed bottom-6 right-6 z-[120] bg-inverse-surface text-on-accent px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 animate-fade-in">
+        <div className="fixed bottom-6 right-6 z-[120] bg-inverse-surface text-on-accent px-4 py-3 rounded-[12px] shadow-2xl flex items-center gap-2 animate-fade-in">
           <CheckCircle2 className="w-4 h-4 text-[var(--signal-success-text)]" />
           <span className="text-xs font-semibold">{toastMessage}</span>
         </div>

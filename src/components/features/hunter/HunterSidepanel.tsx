@@ -881,7 +881,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
     )}
 
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-[200] bg-inverse-surface text-on-accent px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2 animate-fade-in">
+        <div className="fixed bottom-6 right-6 z-[200] bg-inverse-surface text-on-accent px-4 py-2.5 rounded-[12px] shadow-2xl flex items-center gap-2 animate-fade-in">
           <Check className="w-4 h-4 text-[var(--signal-success-text)]" />
           <span className="text-xs font-semibold">{toastMessage}</span>
         </div>

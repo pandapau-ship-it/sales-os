@@ -533,7 +533,10 @@ checkForbiddenLabels()
 function checkRawShadows(): void {
   const dirs = ['panel-blocks', 'features', 'farming'].map((d) => join(SRC, 'components', d))
   const RAW = /\bshadow-(sm|md|lg|xl|2xl)\b|\bshadow-\[0/
-  const EXEMPT = /<button|cursor-pointer|<Avatar|BrandLogo|<footer|rounded-full|rounded-pill|rounded-2xl|pointer-events-none|\bfixed\b|\bw-\d+\s+h-\d+\b/
+  // Ausnahmen (kein Karten-/Box-Container): Buttons (<button/cursor-pointer/text-on-accent=Fill-CTA),
+  // Avatare, Icon-Chips/Toggle (feste w-N h-N), Pills, Footer, Toasts (fixed), Tooltips
+  // (pointer-events-none), Chat-Bubbles (asymmetrische Ecke rounded-tr-[6px]).
+  const EXEMPT = /<button|cursor-pointer|text-on-accent|<Avatar|BrandLogo|<footer|rounded-full|rounded-pill|rounded-tr-\[6px\]|pointer-events-none|\bfixed\b|\bw-\d+\s+h-\d+\b/
   const offenders: string[] = []
   for (const f of dirs.flatMap((d) => walk(d, ['.tsx']))) {
     const noBlock = read(f).replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '))
@@ -576,6 +579,28 @@ function checkBorderEqualsBg(): void {
       : 'Keine Karten/Boxen mit border = Hintergrundfarbe.')
 }
 checkBorderEqualsBg()
+
+// ── Radius-Hierarchie: keine benannten Tailwind-Radien ──────────────────────
+// CLAUDE Radius-Hierarchie nutzt EXPLIZITE px (16/12/10/8/7/6/5) + full/pill. Benannte Tailwind-
+// Stufen (rounded-sm/md/lg/xl/2xl/3xl/none, inkl. Richtungs-Varianten rounded-tr-md …) sind verboten
+// → unklare Zuordnung. Scope: components/ ohne ui/ (shadcn-Primitive).
+function checkNamedRadii(): void {
+  const NAMED = /\brounded(?:-(?:t|b|l|r|tl|tr|bl|br))?-(?:sm|md|lg|xl|2xl|3xl|none)\b/
+  const offenders: string[] = []
+  for (const f of walk(join(SRC, 'components'), ['.tsx', '.ts'])) {
+    if (rel(f).includes(`${join('components', 'ui')}`)) continue
+    const noBlock = read(f).replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '))
+    noBlock.split('\n').forEach((lineRaw, i) => {
+      const line = lineRaw.replace(/\/\/.*$/, '')
+      if (NAMED.test(line)) offenders.push(`${rel(f)}:${i + 1}`)
+    })
+  }
+  add('Radius: keine benannten Tailwind-Radien', offenders.length ? 'FAIL' : 'PASS',
+    offenders.length
+      ? `Benannter Radius — nutze explizite px aus der Hierarchie (16/12/10/8/7/6/5):\n        ${offenders.join('\n        ')}`
+      : 'Keine benannten Tailwind-Radien (nur explizite px + full/pill).')
+}
+checkNamedRadii()
 
 // ── Performance & Skalierung (Empfehlungen → WARN; echtes N+1 in Production → FAIL) ──
 

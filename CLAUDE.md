@@ -304,7 +304,9 @@ gar nicht. Gleiche Ehrlichkeits-Linie wie „ICP/Heat null → unsichtbar" und d
 | Sub-Nav-Container | 12px | `rounded-[12px]` |
 | Nav-Tabs (aktiv/inaktiv, Sub-Nav) | 9px | `rounded-[9px]` |
 | Buttons (primär/sekundär) | 10px | `rounded-[10px]` |
+| Inputs / kleine Buttons | 8px | `rounded-[8px]` |
 | Badges, Pills | 7px | `rounded-[7px]` |
+| Checkboxen / Icon-Buttons / Mini-Badges | 6px | `rounded-[6px]` |
 | Count-Labels in Tabs | 5px | `rounded-[5px]` |
 | Avatare (Kontakte/Nutzer) | 9999px | `rounded-full` |
 | Status-Punkte | 9999px | `rounded-pill` |

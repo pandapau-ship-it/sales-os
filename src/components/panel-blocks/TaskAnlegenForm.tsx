@@ -82,7 +82,7 @@ export default function TaskAnlegenForm({
         </section>
 
         {/* BLOCK 2: KI VORSCHLAG */}
-        <section className="bg-[var(--signal-teal-bg)] border border-[var(--signal-success-bg)] rounded-xl p-4 space-y-3 animate-fade-in">
+        <section className="bg-[var(--signal-teal-bg)] border border-[var(--signal-success-bg)] rounded-[12px] p-4 space-y-3 animate-fade-in">
           <div className="flex items-center gap-1.5 text-[10px] font-bold text-[var(--sherloq-primary)] uppercase tracking-wider">
             <Sparkles className="w-3 h-3" />
             {t("hunter.drawers.noTask.kiSuggests")}

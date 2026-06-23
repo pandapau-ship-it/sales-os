@@ -63,7 +63,7 @@ export const CARD = {
 
   /** Auswahl-Checkbox (Hover/Selected). */
   checkboxBase:
-    "absolute -left-3 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center w-[22px] h-[22px] rounded-md z-10 cursor-pointer",
+    "absolute -left-3 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center w-[22px] h-[22px] rounded-[6px] z-10 cursor-pointer",
 } as const;
 
 /**

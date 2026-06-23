@@ -205,7 +205,7 @@ export default function ScreenFarming({
             <div className="flex items-center gap-3">
               <button
                 onClick={selectedSignalIds.length === signalIds.length ? deselectAllSignals : selectAllSignals}
-                className="flex items-center justify-center w-[22px] h-[22px] rounded-md bg-[var(--sherloq-primary)] border border-[var(--sherloq-primary)]"
+                className="flex items-center justify-center w-[22px] h-[22px] rounded-[6px] bg-[var(--sherloq-primary)] border border-[var(--sherloq-primary)]"
               >
                 <Check className="w-3.5 h-3.5 text-on-accent" strokeWidth={3} />
               </button>

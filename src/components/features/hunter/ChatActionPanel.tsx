@@ -215,7 +215,7 @@ export default function ChatActionPanel({ open, config, onClose }: ChatActionPan
                   if (m.role === "user") {
                     return (
                       <div key={m.id} className="flex justify-end">
-                        <div className="max-w-[82%] bg-[var(--signal-info-bg)] text-text-primary rounded-2xl rounded-tr-md px-3.5 py-2 text-[13px] font-medium leading-relaxed shadow-sm">
+                        <div className="max-w-[82%] bg-[var(--signal-info-bg)] text-text-primary rounded-[16px] rounded-tr-[6px] px-3.5 py-2 text-[13px] font-medium leading-relaxed shadow-sm">
                           {m.text}
                         </div>
                       </div>
@@ -334,7 +334,7 @@ export default function ChatActionPanel({ open, config, onClose }: ChatActionPan
       </Sheet>
 
       {toast && (
-        <div className="fixed bottom-6 right-6 z-[120] bg-inverse-surface text-on-accent px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2 animate-fade-in">
+        <div className="fixed bottom-6 right-6 z-[120] bg-inverse-surface text-on-accent px-4 py-2.5 rounded-[12px] shadow-2xl flex items-center gap-2 animate-fade-in">
           <Check className="w-4 h-4 text-[var(--signal-success-text)]" />
           <span className="text-xs font-semibold">{toast}</span>
         </div>

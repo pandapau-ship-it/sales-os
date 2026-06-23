@@ -10,7 +10,7 @@ export default function KommunikationPreview({ onShowAll }: { onShowAll?: () => 
       <div className="flex justify-between items-center px-1">
         <span className="typo-section-label text-text-muted flex items-center gap-2">
           Kommunikation
-          <span className="px-1.5 py-0.5 bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)] text-[8px] font-extrabold rounded-md uppercase">klickbar</span>
+          <span className="px-1.5 py-0.5 bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)] text-[8px] font-extrabold rounded-[6px] uppercase">klickbar</span>
         </span>
         <button onClick={onShowAll} className="text-[11px] font-bold text-[var(--sherloq-primary)] hover:underline cursor-pointer">Alle anzeigen →</button>
       </div>
