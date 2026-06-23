@@ -27,6 +27,8 @@ import TopBar from "@/components/layout/TopBar";
 import Login from "@/components/auth/Login";
 import AuthCallback from "@/components/auth/AuthCallback";
 import TeamSettings from "@/components/features/settings/TeamSettings";
+import { MfaBanner } from "@/components";
+import { useCurrentOrg } from "@/hooks/useCurrentOrg";
 import CommandPalette from "@/components/shared/CommandPalette";
 import { ToastProvider } from "@/components/shared/Toast";
 import TooltipLayer from "@/components/shared/TooltipLayer";
@@ -50,6 +52,7 @@ function ComingSoon({ nameKey }: { nameKey: string }) {
 /** Layout-Shell: TopBar oben, Sidebar links, Screen im Outlet. */
 function AppLayout() {
   const [showPalette, setShowPalette] = useState(false);
+  const { role } = useCurrentOrg(); // 2FA-Empfehlung nur für Owner/Admin (MfaBanner entscheidet selbst)
 
   // Globaler Cmd/Ctrl+K Shortcut öffnet die Command Palette.
   useEffect(() => {
@@ -69,6 +72,7 @@ function AppLayout() {
       <div className="flex flex-1 relative">
         <Sidebar />
         <main className="flex-1 p-6 md:p-8 overflow-y-auto max-w-7xl mx-auto w-full">
+          <MfaBanner role={role} />
           <Outlet />
         </main>
       </div>

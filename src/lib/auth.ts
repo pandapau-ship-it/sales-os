@@ -89,6 +89,40 @@ export async function getCurrentUser(): Promise<User | null> {
   return data.user ?? null;
 }
 
+// ── 2FA / MFA (TOTP) — Supabase nativ ([D21] Scheibe 8) ──────────────────────
+
+/**
+ * getUserMfaStatus — ist ein TOTP-Faktor verifiziert eingerichtet?
+ * Ohne Backend/Session → { enrolled: true } (Banner soll dann NICHT erscheinen).
+ */
+export async function getUserMfaStatus(): Promise<{ enrolled: boolean }> {
+  const client = getSupabaseClient();
+  if (!client) return { enrolled: true };
+  const { data, error } = await client.auth.mfa.listFactors();
+  if (error || !data) return { enrolled: true }; // im Zweifel nicht nerven
+  const totp = (data.totp ?? []).filter((f) => f.status === "verified");
+  return { enrolled: totp.length > 0 };
+}
+
+/**
+ * enrollMfaTotp — neuen TOTP-Faktor anlegen. Liefert factorId + QR-Code (data-URL SVG)
+ * + Secret zum manuellen Eintippen. Wirft, wenn Auth nicht konfiguriert ist.
+ */
+export async function enrollMfaTotp(): Promise<{ factorId: string; qrCode: string; secret: string }> {
+  const client = getSupabaseClient();
+  if (!client) throw new Error("Auth ist nicht konfiguriert (Supabase-Env fehlt).");
+  const { data, error } = await client.auth.mfa.enroll({ factorType: "totp" });
+  if (error || !data) throw error ?? new Error("MFA-Enrollment fehlgeschlagen.");
+  return { factorId: data.id, qrCode: data.totp.qr_code, secret: data.totp.secret };
+}
+
+/** verifyMfaTotp — 6-stelligen Code prüfen (Challenge + Verify in einem). */
+export async function verifyMfaTotp(factorId: string, code: string) {
+  const client = getSupabaseClient();
+  if (!client) throw new Error("Auth ist nicht konfiguriert (Supabase-Env fehlt).");
+  return client.auth.mfa.challengeAndVerify({ factorId, code });
+}
+
 /**
  * Auth-State-Listener. Gibt eine Unsubscribe-Funktion zurück.
  * Bei fehlender Konfiguration ein No-op-Unsubscribe.
