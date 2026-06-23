@@ -29,7 +29,7 @@ export default function FunnelAnalysis({ stages }: { stages: FunnelStage[] }) {
 
   return (
     <div className="font-sans antialiased select-none mt-2 w-full">
-      <div className="w-full bg-app-surface rounded-[16px] p-7 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.04)]">
+      <div className="w-full bg-app-surface rounded-[16px] p-7 border border-[var(--border-card)] shadow-[var(--shadow-card)]">
         {/* Header */}
         <div className="mb-8">
           <span className="typo-section-label text-[var(--text-muted)] leading-none">
