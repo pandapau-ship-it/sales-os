@@ -661,3 +661,93 @@ export function contactToColdPerson(contact: Record<string, any>): ColdPersonDat
     draft: null,
   };
 }
+
+// ── Hunter-Übersicht: Dringlichkeits-Score (zentrale Priorisierung) ───────────
+// Client-seitig aus rawDeals + signals berechnet. ALLE Gewichte aus
+// settings.thresholds.hunter_priority_weights (nie hardcodiert) — Defaults nur Fallback.
+// Score = (Basis-Punkte + Zeitdruck-Bonus) × ARR-Mult × ICP-Mult. Mehrere Signale addieren.
+export type PriorityWeights = {
+  linkedin_signal: number; overdue_task: number; stagnated: number; going_cold: number; no_task: number;
+  arr_high_threshold: number; arr_mid_threshold: number; arr_high_mult: number; arr_mid_mult: number;
+  icp_high_threshold: number; icp_mid_threshold: number; icp_high_mult: number; icp_mid_mult: number;
+  overdue_bonus_days: number; overdue_bonus_points: number; stagnated_double_bonus: number;
+  signal_age_penalty_per_day: number;
+};
+
+export const PRIORITY_WEIGHTS_DEFAULT: PriorityWeights = {
+  linkedin_signal: 40, overdue_task: 35, stagnated: 30, going_cold: 25, no_task: 20,
+  arr_high_threshold: 100000, arr_mid_threshold: 50000, arr_high_mult: 1.5, arr_mid_mult: 1.2,
+  icp_high_threshold: 80, icp_mid_threshold: 60, icp_high_mult: 1.3, icp_mid_mult: 1.1,
+  overdue_bonus_days: 3, overdue_bonus_points: 10, stagnated_double_bonus: 15,
+  signal_age_penalty_per_day: 5,
+};
+
+/** Aktive Signal-Schlüssel (für Tooltip + Sortier-Nachweis). */
+export type PrioritySignalKey = "linkedin_signal" | "overdue_task" | "stagnated" | "going_cold" | "no_task";
+export type PriorityResult = { score: number; signals: PrioritySignalKey[]; arr: number; icpScore?: number };
+
+const PRIORITY_DAY_MS = 86_400_000;
+
+/**
+ * calculatePriorityScore — Dringlichkeit eines Kontakts aus seinen aktiven Deals + Signalen.
+ * `deals` = aktive (nicht-terminale) Deals des Kontakts (mit `tasks(*)`-Embed). `signals` =
+ * Signal-Rows des Kontakts (created_at für Alter). Heat über contactToProfile (Single Source,
+ * kein Roh-`heat_status`). `now` injizierbar (Tests). Score 0 → Kontakt erscheint nicht.
+ */
+export function calculatePriorityScore(
+  contact: Record<string, any>,
+  deals: Record<string, any>[],
+  signals: Record<string, any>[],
+  weights: Partial<PriorityWeights> | null | undefined,
+  stagnationBySlug: Record<string, number | null | undefined> = {},
+  now: number = Date.now(),
+): PriorityResult {
+  const w = { ...PRIORITY_WEIGHTS_DEFAULT, ...(weights ?? {}) };
+  const p = contactToProfile(contact);
+  const active: PrioritySignalKey[] = [];
+  let base = 0;
+  let bonus = 0;
+
+  // Signal-Alter: frischestes Signal. < 24h → Hot-Punkte; sonst Alters-Malus pro Tag.
+  const sigTimes = signals
+    .map((s) => new Date(s.created_at ?? s.occurred_at ?? 0).getTime())
+    .filter((tms) => !Number.isNaN(tms) && tms > 0);
+  if (sigTimes.length) {
+    const ageH = (now - Math.max(...sigTimes)) / 3_600_000;
+    if (ageH < 24) { base += w.linkedin_signal; active.push("linkedin_signal"); }
+    else { bonus -= Math.floor(ageH / 24) * w.signal_age_penalty_per_day; }
+  }
+
+  // Offene Tasks über alle Deals des Kontakts (completed_at & deleted_at NULL).
+  const openTasks = deals.flatMap((d) =>
+    ((d.tasks as Record<string, any>[]) ?? []).filter((tk) => tk.completed_at == null && tk.deleted_at == null));
+  const overdue = openTasks.filter((tk) => tk.due_at && new Date(tk.due_at).getTime() < now);
+  if (overdue.length) {
+    base += w.overdue_task; active.push("overdue_task");
+    const maxDays = Math.max(...overdue.map((tk) => Math.floor((now - new Date(tk.due_at).getTime()) / PRIORITY_DAY_MS)));
+    if (maxDays > w.overdue_bonus_days) bonus += w.overdue_bonus_points;
+  }
+
+  // Stagnation: Deal über Stage-Schwelle. Doppelte Schwelle → Extra-Bonus.
+  const stagnated = deals.filter((d) => (d.stagnation_days ?? 0) >= (stagnationBySlug[d.stage] ?? 7));
+  if (stagnated.length) {
+    base += w.stagnated; active.push("stagnated");
+    if (stagnated.some((d) => (d.stagnation_days ?? 0) >= 2 * (stagnationBySlug[d.stage] ?? 7))) bonus += w.stagnated_double_bonus;
+  }
+
+  // Wird kalt (Heat COLD/DEAD) — Single Source über contactToProfile.
+  if (p.heatStatus === "COLD" || p.heatStatus === "DEAD") { base += w.going_cold; active.push("going_cold"); }
+
+  // Aktiver Deal, aber keine offene Task.
+  if (deals.length && openTasks.length === 0) { base += w.no_task; active.push("no_task"); }
+
+  // Multiplikatoren: ARR (Σ aktiver Deal-Werte in €) + ICP. Beide multiplizieren.
+  const arr = deals.reduce((sum, d) => sum + (typeof d.value === "number" ? d.value : 0), 0) / 100;
+  const arrMult = arr > w.arr_high_threshold ? w.arr_high_mult : arr > w.arr_mid_threshold ? w.arr_mid_mult : 1;
+  const icp = p.icpScore;
+  const icpMult = icp != null && icp > w.icp_high_threshold ? w.icp_high_mult
+    : icp != null && icp > w.icp_mid_threshold ? w.icp_mid_mult : 1;
+
+  const score = Math.max(0, Math.round((base + bonus) * arrMult * icpMult));
+  return { score, signals: active, arr, icpScore: icp };
+}

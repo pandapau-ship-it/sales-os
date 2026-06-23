@@ -216,7 +216,15 @@
       "dueTasks": "fällige Aufgaben",
       "top5Header": "Wichtigste Aufgaben",
       "top5Title": "Deine wichtigsten Aufgaben erscheinen hier",
-      "top5Hint": "Sobald die Priorisierung aktiv ist, zeigt Sherloq hier die Top-Aufgaben aus allen Bereichen."
+      "top5Hint": "Sobald die Priorisierung aktiv ist, zeigt Sherloq hier die Top-Aufgaben aus allen Bereichen.",
+      "prioScore": "Prio {{score}}",
+      "prioSignal": {
+        "linkedin_signal": "Neues Signal",
+        "overdue_task": "Task überfällig",
+        "stagnated": "Stagniert",
+        "going_cold": "Wird kalt",
+        "no_task": "Keine Task"
+      }
     },
     "funnel": {
       "header": "Funnel Analyse · Pipeline Stufen",

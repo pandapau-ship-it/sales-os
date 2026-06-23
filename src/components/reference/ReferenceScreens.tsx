@@ -26,6 +26,7 @@ import {
   getDueTasks,
   completeTask,
   getNewInPipeline,
+  getHunterPriorityWeights,
   updateLeadStage as dbUpdateLeadStage,
   setTaskCompleted as dbSetTaskCompleted,
   createLead as dbCreateLead,
@@ -218,6 +219,12 @@ export function HunterReference() {
     queryKey: ["newInPipeline", organizationId],
     queryFn: () => getNewInPipeline(organizationId),
   });
+  // Dringlichkeits-Score-Gewichte (Übersicht-Tab) aus settings.thresholds — org-tunebar.
+  const priorityWeightsQuery = useQuery({
+    queryKey: ["hunterPriorityWeights", organizationId],
+    queryFn: () => getHunterPriorityWeights(organizationId),
+    staleTime: 5 * 60_000,
+  });
   // Cold/Inaktiv: Kontakte mit heat_status 'kalt' bzw. 'tot' (Reaktivierungs-Opener).
   const coldQuery = useQuery({
     queryKey: ["coldContacts", organizationId],
@@ -253,6 +260,7 @@ export function HunterReference() {
         signalsLoading={signalsQuery.isLoading}
         signalsError={signalsQuery.isError}
         dueTasksData={dueTasksQuery.data}
+        priorityWeights={priorityWeightsQuery.data ?? undefined}
         newInPipelineData={newInPipelineQuery.data}
         coldContactsData={coldQuery.data as unknown as Record<string, unknown>[] | undefined}
         onCompleteTask={(taskId) => completeTaskMutation.mutate(taskId)}
