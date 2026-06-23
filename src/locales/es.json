@@ -72,6 +72,22 @@
       "emailHint": "El envío del correo llegará (Edge Function). La invitación ya está guardada."
     }
   },
+  "mfa": {
+    "bannerTitle": "Protege tu cuenta con la autenticación de dos factores",
+    "bannerBody": "Recomendado para owners y admins — un código adicional al iniciar sesión protege contra accesos no autorizados.",
+    "setup": "Configurar 2FA →",
+    "later": "Más tarde",
+    "never": "No volver a recordar",
+    "setupTitle": "Configurar la autenticación de dos factores",
+    "setupHint": "Escanea el código QR con tu app de autenticación (p. ej. Google Authenticator, 1Password) e introduce el código de 6 dígitos.",
+    "codeLabel": "Código de 6 dígitos",
+    "confirm": "Confirmar",
+    "verifying": "Verificando…",
+    "cancel": "Cancelar",
+    "success": "2FA activado correctamente ✓",
+    "wrongCode": "Código incorrecto, inténtalo de nuevo",
+    "enrollError": "No se pudo iniciar la 2FA — inténtalo más tarde"
+  },
   "language": {
     "de": "Deutsch",
     "en": "English",

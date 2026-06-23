@@ -431,6 +431,8 @@ function checkTypographyTokens(): void {
     // [D27] Typo-Kanon Welle 2 — Karten/Felder
     'LinkedinSignalCard', 'NewInPipelineCards', 'KpiCard', 'EditableInline',
     'DetailField', 'DetailPhoneList', 'FunnelAnalysis',
+    // [D21] Scheibe 8
+    'MfaBanner',
   ])
   // panel-blocks/ + features/hunter/ (dort liegen ChatActionPanel/AddSdrLeadPanel/HunterSidepanel).
   const files = [
