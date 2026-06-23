@@ -12,6 +12,9 @@
 - [x] CHECKLIST.md als Single Source of Truth — *Umsetzungsstand zentral*
 - [x] `scripts/audit.ts` + `npm run audit` — *prüft die 5 Pflicht-Prüffragen automatisch*
 - [x] audit-Check „Design: nur Token-Farben" — *FAIL bei bg/text/border-white|black|gray-* oder Hex in .tsx*
+- [x] audit-Check „Elevation: keine rohen Shadow-Stufen" — *FAIL bei shadow-sm/md/lg/xl/2xl + hardcodierten shadow-[0…] in Karten/Boxen (panel-blocks/features/farming); nur Token-Schatten* — *2026-06-24*
+- [x] audit-Check „Elevation: Border ≠ Hintergrundfarbe" — *FAIL bei border-[var(--signal-*-bg)] = bg (unsichtbar); Karten/Boxen nutzen border-[var(--border-card)]* — *2026-06-24*
+- [x] audit-Check „Radius: keine benannten Tailwind-Radien" — *FAIL bei rounded-sm/md/lg/xl/2xl/3xl/none (+ Richtungs-Varianten); nur explizite px aus der Hierarchie (16/12/10/8/7/6/5) + full/pill* — *2026-06-24*
 - [x] **`npm run structure-check`** (`scripts/structure-check.sh`) — *FAIL bei falsch in shared/ platzierten Komponenten; im Pre-Push-Hook + Merge-Gate* — *2026-06-16*
 - [x] **panel-block-Library konsolidiert** — alle Inhalts-Blöcke in `panel-blocks/` (+ Barrel `index.ts`); HunterSidepanel/ChatActionPanel komplett panel-block-basiert; tote Dateien/Orphans entfernt; shared/ bereinigt — *2026-06-16*
 - [x] **Single-Source-Audit + pre-push-Kopplung** — `checkSingleSourceContactValues()` (Kontaktwerte nur über `contactToProfile`/`contactActiveStage`; FAIL `.heat_status`, WARN icp/company/name, Resolver-Marker + `// single-source-ok`-Opt-out); **`npm run audit` jetzt im pre-push-Hook** (blockt FAIL hart); CLAUDE.md-Regel „Gleiche Ausgabe = gleiche Quelle" — *2026-06-18*

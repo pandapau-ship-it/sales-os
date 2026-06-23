@@ -436,6 +436,7 @@ Vor jedem Commit gegen CLAUDE.md "Design Invariants" prüfen:
 - [ ] Token statt Hex
 - [ ] Kein Emoji in JSX — nur Lucide Icons
 - [ ] Neue Komponenten in audit.ts IN_SCOPE
+- [ ] Elevation/Radius-Wächter grün? (`npm run audit`)
 
 Gilt zusätzlich zu build/audit/structure Gates.
 
