@@ -630,7 +630,24 @@ Alle prop-driven, Tokens-only, Dark-Mode automatisch.
 |---|---|
 | `TeamSettings` | Settings → Team ([D21]): Mitglieder-Tabelle (Name/Email/Rolle/Seit), Rollen-Dropdown (nur Owner), „Mitglied einladen" (Owner/Admin → shadcn-Dialog, Email+Rolle), offene Einladungen mit „Zurückziehen". Org/Rolle aus `useCurrentOrg`, `invited_by` aus `useAuth`; Writes über `getTeamMembers`/`getInvitations`/`createInvitation`/`deleteInvitation`/`updateUserRole`. Gerendert unter `/app/settings`. Mailversand der Einladung = Edge Function (deferred [D29]) |
 
-**Helfer:** `lib/confetti.ts` (`triggerConfetti()` — Won-Feedback) · `lib/validation.ts` (`isValidPhone` verdrahtet; `isValidEmail`/`normalizeUrl`/`isValidUrl` für P8 vorbereitet).
+### Komponenten in `farming/` (Farmer-Screen-Hilfskomponenten, via `@/components`)
+
+Alle prop-driven, Tokens-only, Dark-Mode automatisch; Kacheln sind **dünne HunterCard-Wrapper**
+(CLAUDE-PFLICHT). Mock bis Farmer-DB-Wiring.
+
+| Komponente | Zweck |
+|---|---|
+| `FarmerKpiCards` | Farmer-Übersicht: 4 KPI-Kacheln (MRR Gesamt · Churn Risk MRR · Upsell Potenzial · NRR) |
+| `FarmerHealthOverview` | Farmer-Übersicht: Customer-Health-Bars + Dot-Pattern-Badges, „Alle anzeigen →" → Kunden-Tab |
+| `FarmerKundenKachel` | Kunden-Tab: HunterCard-Wrapper, `statusBadge`-Slot = SUBSCRIPTION (statt STAGE) |
+| `FarmerRetentionKachel` | Retention-Tab: HunterCard-Wrapper + Signal-Row je Typ — `churn_risk`/`cancelled` (getönte rote Badge + 1 CTA) · `going_cold` (1:1 Hunter Cold-Row: blaue Snowflake-„Cold"-Badge + Start Outreach + Snooze, nur bei `heat='COLD'`). Row hellgrau. CTA→Toast ([D34]) |
+| `FarmerUpsellKachel` | Upsell-Tab: HunterCard-Wrapper + grüne Zap-„Upsell Potential"-Badge auf grauer Row + „Action"-CTA. CTA→Toast ([D34]) |
+| `SubscriptionBadge` | Vertragsstatus-Pille (aktiv/gekündigt + Fallback) aus `customerStatusConfig`; Form 1:1 wie HeatBadge (`rounded-full`, kein Border, `text-[12px]`) mit Lucide-Icon statt Dot |
+
+Farmer-Signal-Kacheln nutzen den bestehenden `LinkedinSignalCard` (panel-blocks) mit `statusBadge`-Passthrough.
+Config: `customerStatusConfig.ts` (Status→Style, Flexibilitäts-Prinzip, nie hardcodiert).
+
+**Helfer:** `lib/confetti.ts` (`triggerConfetti()` — Won-Feedback) · `lib/validation.ts` (`isValidPhone` verdrahtet; `isValidEmail`/`normalizeUrl`/`isValidUrl` für P8 vorbereitet) · `lib/signalActions.tsx` (`signalActionConfig` — Signal→ChatActionConfig-Resolver, [D35] Phase 0).
 
 ### Import-Regel — immer über `@/components` (nie tiefer als nötig)
 

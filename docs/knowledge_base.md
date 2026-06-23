@@ -355,3 +355,38 @@
 - **how:** Einstellungen → Team → „Mitglied einladen" (E-Mail + Rolle). Rollen per Dropdown in der Mitgliederliste; offene Einladungen mit „Zurückziehen".
 - **value:** Schnelles Team-Onboarding ohne IT — neue Kolleg:innen in Minuten startklar, Rollen steuern Zugriff sauber, gegenseitige Vertretung verhindert liegengebliebene Leads.
 - **module:** core
+
+### Farmer-Übersicht (Kundengesundheit)
+- **feature:** Farmer-Übersicht (Kundengesundheit)
+- **what:** Einstieg in die Kundenpflege: Kennzahlen (laufender MRR, gefährdeter Umsatz durch Churn-Risiko, Upsell-Potenzial, NRR) + Gesundheits-Übersicht aller Bestandskunden mit Sprung in die Kundenliste.
+- **how:** Farmer → Tab „Übersicht"; „Alle anzeigen" → Kundenliste.
+- **value:** Sofort sehen, wo Umsatz wackelt und wo er wächst — ohne Report. Energie zuerst zu den Kunden, die sie am dringendsten brauchen oder am meisten Wachstum bringen.
+- **module:** farmer
+
+### Farmer-Kundenliste
+- **feature:** Farmer-Kundenliste
+- **what:** Alle Bestandskunden im einheitlichen Karten-Format (Person, Firma, ICP, Subscription-Status aktiv/gekündigt, Heat, letzter Kontakt). Aufklappbar (Kurzakte/Deals/Kommunikation); grüner Pfeil → volles Profil.
+- **how:** Farmer → Tab „Kunden". Karte aufklappen / Pfeil für Profil.
+- **value:** Alle Kunden an einem Ort, gleiches Format wie Leads — kein Umlernen. Status + letzter Kontakt sofort sichtbar.
+- **module:** farmer
+
+### Farmer-Retention (Churn-Prävention)
+- **feature:** Farmer-Retention (Churn-Prävention)
+- **what:** Gefährdete Kunden in drei Signal-Typen: akutes Churn-Risiko, „Kunde wird kalt" (kein Kontakt), eingegangene Kündigungen — je mit Empfehlung + Aktion (Retention sichern · Check-in starten · sofort anrufen).
+- **how:** Farmer → Tab „Retention"; empfohlene Aktion pro Karte.
+- **value:** Churn früh erkennen und handeln, bevor der Kunde weg ist — gerettete Bestandsumsätze sind günstiger als Neukundengewinnung.
+- **module:** farmer
+
+### Farmer-Upsell-Empfehlungen
+- **feature:** Farmer-Upsell-Empfehlungen
+- **what:** Kunden mit Wachstumspotenzial (steigende Feature-Nutzung, fast ausgeschöpfte Limits) als Upsell-Karten mit AI-Empfehlung + Aktion.
+- **how:** Farmer → Tab „Upsell"; Upsell-Aktion pro Karte.
+- **value:** Mehr Umsatz aus bestehenden Kunden — Upgrade-Chancen werden automatisch sichtbar.
+- **module:** farmer
+
+### Farmer-Signale
+- **feature:** Farmer-Signale
+- **what:** Aktivitäts-Signale rund um Bestandskunden (z. B. LinkedIn) im gleichen Signal-Format wie Hunter — Mehrfachauswahl + Antwort-Aktion.
+- **how:** Farmer → Tab „Signals"; Signal auswählen und reagieren.
+- **value:** Warme Momente bei Bestandskunden nutzen — wer interagiert, ist offen für Pflege oder Expansion.
+- **module:** farmer
