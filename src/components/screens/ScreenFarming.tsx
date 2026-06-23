@@ -4,26 +4,22 @@
  */
 
 import { useState } from 'react';
-import type { ComponentType } from 'react';
 import { AlertTriangle, TrendingUp, Sparkles, Check, X, Clock, Trash, Zap } from 'lucide-react';
 import type { Customer } from '@/types';
 import { FarmerKpiCards, FarmerHealthOverview, FarmerKundenKachel, SubscriptionBadge, LinkedinSignalCard, EmptyState } from '@/components';
 import { useToast } from '@/components/shared/Toast';
 import { NAV } from '@/lib/navBehavior';
 
-/** Mock-Signale je Kunde (Company-gematcht) — bis zur echten Signal-/Score-Anbindung ([D34]). */
-type FarmerSignalMeta = {
-  company: string;
-  tone: 'info' | 'urgent' | 'success';
-  channelLabel: string;
-  channelIcon?: ComponentType<{ className?: string }>; // fehlt → LinkedIn (Default der Card)
-  actionText: string;
-  cta: string;
-};
+/**
+ * Mock-Signale je Kunde (Company-gematcht) — NUR echte Aktivitäts-/LinkedIn-Signale (wie Hunter).
+ * Churn & Upsell sind KEINE Signale → eigene Tabs („Churn & Trial" / „Upsell"). Bis zur echten
+ * Signal-Anbindung ([D34]).
+ */
+type FarmerSignalMeta = { company: string; actionText: string };
 const FARMER_SIGNALS: FarmerSignalMeta[] = [
-  { company: 'PayGuard AG', tone: 'info', channelLabel: 'LINKEDIN SIGNAL', actionText: 'Hat euren Produkt-Post auf LinkedIn geliked', cta: 'Antworten' },
-  { company: 'HiringMate Ltd', tone: 'urgent', channelLabel: 'CHURN RISK', channelIcon: AlertTriangle, actionText: 'Daily Active Usage –62 % in den letzten 14 Tagen', cta: 'Check-In buchen' },
-  { company: 'Logistify DE', tone: 'success', channelLabel: 'UPSELL-POTENZIAL', channelIcon: TrendingUp, actionText: 'Nutzt 5 Seats über dem Growth-Limit — Upgrade möglich', cta: 'Upsell vorschlagen' },
+  { company: 'PayGuard AG', actionText: 'Hat euren Produkt-Post auf LinkedIn geliked' },
+  { company: 'Logistify DE', actionText: 'Hat dein LinkedIn-Profil besucht' },
+  { company: 'HiringMate Ltd', actionText: 'Hat auf einen LinkedIn-Kommentar geantwortet' },
 ];
 
 interface ScreenFarmingProps {
@@ -234,7 +230,7 @@ export default function ScreenFarming({
             <EmptyState
               icon={<Zap className="w-6 h-6" />}
               title="Keine Signale heute"
-              description="Neue Kunden-Signale (Churn · Upsell · LinkedIn) erscheinen hier automatisch"
+              description="Neue Kunden-Signale (LinkedIn-Aktivität) erscheinen hier automatisch"
             />
           ) : (
             signalRows.map(({ sig, customer }) => (
@@ -249,16 +245,12 @@ export default function ScreenFarming({
                 heatStatus={customer.heatStatus}
                 timeAgoLabel={customer.lastLogin}
                 showUrgency={false}
-                channelTone={sig.tone}
-                channelLabel={sig.channelLabel}
-                channelIcon={sig.channelIcon}
                 actionText={sig.actionText}
-                actionLabel={sig.cta}
                 statusBadge={{ label: 'SUBSCRIPTION', node: <SubscriptionBadge status={customer.sherloqStatus} /> }}
                 selected={selectedSignalIds.includes(customer.id)}
                 onToggleSelect={() => toggleSignalSelection(customer.id)}
                 onOpenInfo={() => onSelectCustomer(customer)}
-                onOpenAction={() => toast(`${sig.cta}: Action-Panel folgt ([D34])`, 'info')}
+                onOpenAction={() => toast('Antworten: Action-Panel folgt ([D34])', 'info')}
               />
             ))
           )}

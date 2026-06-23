@@ -22,15 +22,9 @@ interface LinkedinSignalCardProps {
   heatStatus?: HeatStatus;
   /** Kanal-Badge (i18n-Key + Icon) — prop-driven (S-0 signalMetaFor). Default: LinkedIn. */
   channelLabelKey?: string;
-  /** Klartext-Label (Vorrang vor channelLabelKey) — für nicht-i18n-Screens (Farmer). */
-  channelLabel?: string;
   channelIcon?: ComponentType<{ className?: string }>;
-  /** Tönung des Kanal-Badges. Default 'info' (blau) = Hunter-Verhalten unverändert. */
-  channelTone?: "info" | "urgent" | "success";
   /** Additiver Badge-Slot statt STAGE (z.B. Farmer SUBSCRIPTION) — wird an HunterCard durchgereicht. */
   statusBadge?: { label: string; node: ReactNode };
-  /** Klartext-Label des Opener-CTA (Vorrang vor i18n). Default: hunter.signals.openAction. */
-  actionLabel?: string;
   /** Deferred-Elemente gaten (S-2): Dringlichkeit/Restzeit/Act-now bzw. Stage. */
   showUrgency?: boolean;
   showStage?: boolean;
@@ -54,13 +48,6 @@ function deriveInitials(name: string): string {
   return name.split(" ").map((w) => w[0]).filter(Boolean).slice(0, 2).join("").toUpperCase();
 }
 
-// Kanal-Badge-Tönung (Token-only). 'info' = Default (Hunter LinkedIn, blau).
-const CHANNEL_TONE: Record<"info" | "urgent" | "success", string> = {
-  info: "bg-[var(--signal-info-bg)] text-[var(--signal-info-text)]",
-  urgent: "bg-[var(--signal-urgent-bg)] text-[var(--signal-urgent-text)]",
-  success: "bg-[var(--signal-success-bg)] text-[var(--signal-success-text)]",
-};
-
 /**
  * LinkedinSignalCard — Signals-Tab. Nutzt die geteilte HunterCard (einheitliche
  * Top-Row + Chevron-Kurzansicht + grüner Pfeil → Info-Panel) und liefert nur die
@@ -76,11 +63,8 @@ export function LinkedinSignalCard({
   icpScore,
   heatStatus,
   channelLabelKey = "hunter.common.linkedinSignal",
-  channelLabel,
   channelIcon: ChannelIcon = LinkedinIcon,
-  channelTone = "info",
   statusBadge,
-  actionLabel,
   showUrgency = true,
   showStage = true,
   timeAgo = "2 Std.",
@@ -147,9 +131,9 @@ export function LinkedinSignalCard({
   const actionRow = (
     <>
       <div className="flex items-center gap-3 min-w-0">
-        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full ${CHANNEL_TONE[channelTone]} text-[10px] font-bold uppercase tracking-wider shrink-0`}>
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--signal-info-bg)] text-[var(--signal-info-text)] text-[10px] font-bold uppercase tracking-wider shrink-0">
           <ChannelIcon className="w-[11px] h-[11px]" />
-          {channelLabel ?? t(channelLabelKey)}
+          {t(channelLabelKey)}
         </span>
         <span className={`${ACTION_ROW.strongText} truncate`}>{actionText}</span>
       </div>
@@ -189,7 +173,7 @@ export function LinkedinSignalCard({
           onClick={(e) => { e.stopPropagation(); onOpenAction(); }}
           className={`${ACTION_ROW.ctaSecondary} inline-flex items-center gap-1.5 shrink-0`}
         >
-          <Sparkles className="w-3.5 h-3.5" /> {actionLabel ?? t("hunter.signals.openAction")}
+          <Sparkles className="w-3.5 h-3.5" /> {t("hunter.signals.openAction")}
         </button>
       )}
     </>
