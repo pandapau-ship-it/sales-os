@@ -491,11 +491,31 @@ kam es, wie groß ist es** — und einen **klaren nächsten Schritt** anstoßen 
 
 > Hinweis: `[D32]` bleibt bewusst unbelegt (Nummern-Lücke, keine offene Entscheidung).
 
+### [D35] Dynamische Signal-Action-Rules — „wenn Signal X → Panel Y mit CTA Z" (deferred)
+- **Problem heute:** Signal→Action-Panel ist fest verdrahtet. `ChatActionPanel` ist zwar eine
+  config-getriebene Render-Engine (`ChatActionConfig`), aber die Config wird pro Drawer gebaut.
+  Neuer Signal-Typ/CTA = Code-Änderung (`SIGNAL_TYPE_META` in `constants.ts` + i18n + Drawer).
+  Keine `signal_action_rules`-Tabelle. (`automation_rules`/`sequence_rules` aus 006 regeln
+  AI-SDR-Automatik, **nicht** UI-Action-Panels.)
+- **✅ Phase 0 erledigt (dieser Branch):** Resolver `signalActionConfig` (`lib/signalActions.tsx`)
+  statt Inline-Config im `SignalActionDrawer` (verhaltens-identisch) + serialisierbare
+  **Action-Registry** (`SignalActionType` + `SIGNAL_ACTION_CATALOG`, Handler erst beim Dispatch
+  gebunden). Kein Schema-Lock-in. Macht Phase 1 deutlich kleiner.
+- **Phase 1 (Mittel, 2–3 T) — wenn [D5] AI-Pipeline + Sending-Layer + [D34] stehen:** Tabelle
+  `signal_action_rules` (org_id + RLS + CASCADE + Index; `condition` jsonb, `action_config` jsonb
+  = `ChatActionConfig`-Form, `priority`, `is_active`) + client-seitiger Resolver liest Regeln aus
+  DB + Dispatch-Registry (`action_type`-String → Handler). Noch ohne Builder-UI (Seed/Settings).
+- **Phase 2 (Groß, >1 Woche) — bei echter Nachfrage:** No-code Rule-Builder-UI (Settings) +
+  DB-basierte Signal-Definitionen (löst `SIGNAL_TYPE_META`).
+- **Warum gestaffelt:** Der teure/riskante Teil ist nicht die Tabelle, sondern Condition-Modell +
+  Dispatch-Registry — die abstrahiert man seriös erst mit ~3 echten Fällen (heute: 1). Steht auf
+  [D5]/Sending-Layer, die noch fehlen → Engine jetzt = Bau auf Sand.
+
 ### [TS] Deal-Typ ohne `product` — offener Faden
 - `src/types/hunter.ts` `Deal` hat **kein `product`** (Migration 014 fügte nur die DB-Spalte).
   Beim späteren Produkt-Anzeigen (Pipeline/Deal-Detail) `product?: string` im Typ ergänzen + mappen.
 
-> Anker-Tags `[D1]`–`[D34]` sind im Code referenzierbar (z.B. `hunterMappers.ts` → `[[leads-tab-read]]`).
+> Anker-Tags `[D1]`–`[D35]` sind im Code referenzierbar (z.B. `hunterMappers.ts` → `[[leads-tab-read]]`).
 > Vor Umsetzung eines Punkts: passende Referenz-Doku (`docs/sales_os_edge_functions_v2.md` etc.) lesen.
 
 ---
