@@ -1,12 +1,16 @@
 /**
  * FarmerRetentionKachel — Kachel im Farmer-Retention-Tab. Dünner Wrapper um die geteilte
  * HunterCard (CLAUDE-PFLICHT: Profilkarten IMMER HunterCard) → identische Profilzeile,
- * Progressive Disclosure und „grüner Pfeil → Panel" wie FarmerKundenKachel.
- * Unterschied: SUBSCRIPTION-Badge (statt STAGE) + eine farbige **Signal-Row** (Action-Row mit
- * getöntem Hintergrund, Status-Badge, AI-Text, CTA). Typ-spezifisch über RETENTION_META.
- * Mock bis Score-/Signal-Anbindung; CTA = Platzhalter-Toast bis Action-Panel ([D34]).
+ * Progressive Disclosure und „grüner Pfeil → Panel" wie FarmerKundenKachel. Unterschied:
+ * SUBSCRIPTION-Badge (statt STAGE) + eine Signal-Row (grauer Hintergrund wie Hunter).
+ *
+ * Signal-Row je Typ:
+ * - churn_risk / cancelled: getönte Badge (rot) + einzelner CTA.
+ * - going_cold: **1:1 Hunter Cold-Row** (FollowUpKaltCard Zustand 1): blaue Snowflake-„Cold"-
+ *   Badge + „Kontakt ist kalt …" + „Start Outreach" + „Snooze". Erscheint nur bei heat=COLD.
+ * Mock bis Score-/Signal-Anbindung; CTAs = Platzhalter-Toast bis Action-Panel ([D34]).
  */
-import { AlertTriangle, Thermometer, XCircle, type LucideIcon } from "lucide-react";
+import { AlertTriangle, XCircle, Snowflake, Clock, type LucideIcon } from "lucide-react";
 import type { HeatStatus } from "@/types";
 import { cn } from "@/lib/utils";
 import { ACTION_ROW } from "@/lib/componentBehavior";
@@ -33,18 +37,17 @@ export interface RetentionItem {
 const CTA_URGENT =
   "px-4 py-1.5 rounded-full text-[11px] font-black bg-[var(--signal-urgent-bg)] text-signal-urgent border border-[var(--signal-urgent-text)]/15 hover:opacity-90 transition-opacity cursor-pointer shrink-0";
 
-interface RetentionMeta {
+interface TintedMeta {
   icon: LucideIcon;
   badgeLabel: string;
-  badgeBg: string;      // Token-Tint der Badge
-  badgeText: string;    // Token-Textfarbe der Badge
+  badgeBg: string;   // Token-Tint der Badge
+  badgeText: string; // Token-Textfarbe der Badge
   cta: string;
   ctaClass: string;
 }
 
-// Signal-Row-Hintergrund ist überall hellgrau (ACTION_ROW.container = app-bg, wie Hunter).
-// Badge = getönte Pille (rounded-full, kein Border, text-[12px]) auf der grauen Row.
-const RETENTION_META: Record<RetentionType, RetentionMeta> = {
+// Badge = getönte Pille (rounded-full, kein Border, text-[12px]) auf grauer Row.
+const TINTED_META: Record<"churn_risk" | "cancelled", TintedMeta> = {
   churn_risk: {
     icon: AlertTriangle,
     badgeLabel: "Churn Risk",
@@ -52,14 +55,6 @@ const RETENTION_META: Record<RetentionType, RetentionMeta> = {
     badgeText: "text-signal-urgent",
     cta: "Retention sichern",
     ctaClass: CTA_URGENT,
-  },
-  going_cold: {
-    icon: Thermometer,
-    badgeLabel: "Wird kalt",
-    badgeBg: "bg-[var(--signal-warn-bg)]",
-    badgeText: "text-signal-warn",
-    cta: "Check-In starten",
-    ctaClass: `${ACTION_ROW.ctaSecondary} shrink-0`,
   },
   cancelled: {
     icon: XCircle,
@@ -80,9 +75,6 @@ interface FarmerRetentionKachelProps {
 }
 
 export default function FarmerRetentionKachel({ item, onOpenPanel, onAction }: FarmerRetentionKachelProps) {
-  const meta = RETENTION_META[item.type];
-  const Icon = meta.icon;
-
   const data: HunterCardData = {
     id: item.id,
     name: item.name,
@@ -100,24 +92,46 @@ export default function FarmerRetentionKachel({ item, onOpenPanel, onAction }: F
     node: <SubscriptionBadge status={item.sherloqStatus} />,
   };
 
-  const actionRow = (
+  // going_cold: 1:1 Hunter Cold-Row (blaue Snowflake-„Cold"-Badge + Start Outreach + Snooze).
+  const tinted = item.type !== "going_cold" ? TINTED_META[item.type] : null;
+  const TintedIcon = tinted?.icon ?? AlertTriangle;
+
+  const actionRow = tinted ? (
     <>
       <div className="flex items-center gap-3 min-w-0 flex-1">
         <span
           className={cn(
             "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] font-medium shrink-0",
-            meta.badgeBg,
-            meta.badgeText,
+            tinted.badgeBg,
+            tinted.badgeText,
           )}
         >
-          <Icon className="w-3 h-3" />
-          {meta.badgeLabel}
+          <TintedIcon className="w-3 h-3" />
+          {tinted.badgeLabel}
         </span>
         <span className={ACTION_ROW.strongText}>{item.text}</span>
       </div>
-      <button onClick={onAction} className={meta.ctaClass}>
-        {meta.cta}
+      <button onClick={onAction} className={tinted.ctaClass}>
+        {tinted.cta}
       </button>
+    </>
+  ) : (
+    /* going_cold — exakt wie Hunter FollowUpKaltCard (Zustand 1) */
+    <>
+      <div className="flex items-center gap-3 min-w-0">
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--signal-info-bg)] text-[var(--signal-info-text)] text-[10px] font-bold uppercase tracking-wider shrink-0">
+          <Snowflake className="w-[11px] h-[11px]" /> Cold
+        </span>
+        <span className={ACTION_ROW.strongText}>{item.text}</span>
+      </div>
+      <div className="flex items-center gap-2 shrink-0">
+        <button onClick={onAction} className={ACTION_ROW.ctaSecondary}>
+          Start Outreach
+        </button>
+        <button onClick={onAction} className={`${ACTION_ROW.ctaSecondary} inline-flex items-center gap-1.5`}>
+          <Clock className="w-3 h-3" /> Snooze
+        </button>
+      </div>
     </>
   );
 

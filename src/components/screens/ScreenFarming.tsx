@@ -143,7 +143,8 @@ export default function ScreenFarming({
       {/* 3. VIEW RETENTION — Churn Risk · Wird kalt · Gekündigt (FarmerRetentionKachel = HunterCard-Wrapper, Mock) */}
       {subTab === 'churn' && (
         <div className="flex flex-col gap-3">
-          {RETENTION_ITEMS.map((item) => (
+          {/* „Wird kalt" erscheint NUR bei heat_status='COLD'; churn_risk/cancelled sind nicht heat-gegatet. */}
+          {RETENTION_ITEMS.filter((item) => item.type !== 'going_cold' || item.heatStatus === 'COLD').map((item) => (
             <FarmerRetentionKachel
               key={item.id}
               item={item}
