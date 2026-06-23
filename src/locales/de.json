@@ -361,7 +361,6 @@
       "stagnatedHint": "Achtung — Deal stagniert seit 14 Tagen, Follow-Up empfohlen",
       "stagnatedSince": "Deal stagniert seit {{days}} Tagen",
       "action": "Action",
-      "timeCritical": "Zeitkritisch",
       "noTask": "Keine Task",
       "noTaskHint": "Pflicht — Deal braucht eine offene Aufgabe",
       "noTaskFollowup": "Kein Follow-up hinterlegt",
