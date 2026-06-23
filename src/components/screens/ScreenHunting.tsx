@@ -35,7 +35,7 @@ import { AddSdrLeadPanel, ContactColdDrawer, EmptyState, FollowUpKaltCard, Funne
 import type { SignalActionData } from '@/components';
 
 import Avatar from '@/components/shared/Avatar';
-import { signalToCardProps, signalToActionData, contactToColdPerson, contactToProfile, taskToDueCard, dealToNewPipelineRow, dealToStagnatedCard, dealToNoTaskCard, newPipelineInPeriod, isTerminalStage, stagnationFlag, WON_STAGE_SLUG, LOST_STAGE_SLUG, type PipelineRow, type NewPipelinePeriod, type StagnatedCardItem, type NoTaskCardItem } from '@/lib/hunterMappers';
+import { signalToCardProps, signalToActionData, contactToColdPerson, contactToProfile, taskToDueCard, dealToNewPipelineRow, dealToStagnatedCard, contactToNoTaskCard, newPipelineInPeriod, isTerminalStage, stagnationFlag, WON_STAGE_SLUG, LOST_STAGE_SLUG, type PipelineRow, type NewPipelinePeriod, type StagnatedCardItem, type NoTaskCardItem } from '@/lib/hunterMappers';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { updateDealStage, updateDealWon, updateDealLost } from '@/lib/db';
 import { useCurrentOrg } from '@/hooks/useCurrentOrg';
@@ -190,10 +190,22 @@ export default function ScreenHunting({
     .filter((d) => (d.stagnation_days ?? 0) >= (stagnationBySlug[d.stage] ?? 7))
     .sort((a, b) => (b.stagnation_days ?? 0) - (a.stagnation_days ?? 0))
     .map((d) => dealToStagnatedCard(d, stageNameBySlug));
-  const noTaskItems: NoTaskCardItem[] = rawDeals
-    .filter((d) => !isTerminalStage(d.stage))
-    .filter((d) => ((d.tasks as unknown[]) ?? []).length === 0)
-    .map((d) => dealToNoTaskCard(d, stageNameBySlug));
+  // „Keine Task" KONTAKT-basiert: aktive (nicht-terminale) Deals nach Kontakt gruppieren;
+  // ein Kontakt erscheint, wenn KEINER seiner Deals eine offene Task hat (completed_at &
+  // deleted_at NULL). Eine Kachel pro Kontakt mit allen seinen Deals. Deals ohne Kontakt → übersprungen.
+  const hasOpenTask = (d: Record<string, any>) =>
+    (((d.tasks as Record<string, any>[]) ?? []).some((tk) => tk.completed_at == null && tk.deleted_at == null));
+  const noTaskByContact = new Map<string, Record<string, any>[]>();
+  for (const d of rawDeals) {
+    if (isTerminalStage(d.stage)) continue;
+    const cid = d.contact?.id as string | undefined;
+    if (!cid) continue;
+    if (!noTaskByContact.has(cid)) noTaskByContact.set(cid, []);
+    noTaskByContact.get(cid)!.push(d);
+  }
+  const noTaskItems: NoTaskCardItem[] = [...noTaskByContact.values()]
+    .filter((deals) => deals.every((d) => !hasOpenTask(d))) // kein einziger Deal des Kontakts hat eine offene Task
+    .map((deals) => contactToNoTaskCard(deals[0].contact, deals, stageNameBySlug));
   const newPipelineFiltered = newPipelineItems.filter((it) => newPipelineInPeriod(it.createdAt, newPipelinePeriod));
   // Übersicht-Aggregate (reine Reads, kein Write): wiederverwenden was schon geladen ist.
   const eur = (n: number) => `€ ${new Intl.NumberFormat('de-DE').format(Math.round(n))}`;
@@ -666,8 +678,8 @@ export default function ScreenHunting({
               />
               <PipelineKeineTaskCard
                 items={noTaskItems}
-                onSelectLead={(it) => setInfoPanelLead(makeLead(it.contactId ?? it.dealId, it.name, it.jobTitle, it.companyName, it.initials, it.icpScore ?? 75))}
-                onTaskAnlegen={(it) => { setInfoPanelDealId(it.dealId); setInfoPanelAction('task'); setInfoPanelLead(makeLead(it.contactId ?? it.dealId, it.name, it.jobTitle, it.companyName, it.initials, it.icpScore ?? 75)); }}
+                onSelectLead={(it) => setInfoPanelLead(makeLead(it.contactId, it.name, it.jobTitle, it.companyName, it.initials, it.icpScore ?? 75))}
+                onTaskAnlegen={(it) => { setInfoPanelDealId(null); setInfoPanelAction('task'); setInfoPanelLead(makeLead(it.contactId, it.name, it.jobTitle, it.companyName, it.initials, it.icpScore ?? 75)); }}
               />
             </div>
           ) : pipelineView === 'kanban' ? (

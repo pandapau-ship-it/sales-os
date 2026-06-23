@@ -305,6 +305,8 @@
       "timeCritical": "Zeitkritisch",
       "noTask": "Keine Task",
       "noTaskHint": "Pflicht — Deal braucht eine offene Aufgabe",
+      "noTaskFollowup": "No follow-up scheduled",
+      "deals": "Deals",
       "createTask": "Task anlegen",
       "newInPipeline": "Neu in Pipeline"
     },

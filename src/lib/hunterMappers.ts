@@ -524,35 +524,42 @@ export function dealToStagnatedCard(
   };
 }
 
+// „Keine Task" ist KONTAKT-zentriert (nicht Deal-zentriert): eine Kachel pro Kontakt,
+// der ≥1 aktiven Deal hat und auf KEINEM dieser Deals eine offene Task. Die Kachel listet
+// alle aktiven Deals des Kontakts (eine Task deckt alle ab — SDR denkt in Personen).
+export type NoTaskDealRef = { name: string; stageLabel?: string; stagnationDays: number };
 export type NoTaskCardItem = {
-  dealId: string;
-  contactId?: string;
+  contactId: string;
   name: string;
   jobTitle: string;
   companyName: string;
   initials: string;
   icpScore?: number;
   heatStatus?: HeatStatus;
-  stageLabel?: string;
   lastContactedAt: string | null; // contacts.last_contacted_at → „Letzter Kontakt vor X"; null → unsichtbar
+  deals: NoTaskDealRef[];          // alle aktiven Deals des Kontakts (für die kompakte Deals-Zeile)
 };
 
-export function dealToNoTaskCard(
-  deal: Record<string, any>,
+export function contactToNoTaskCard(
+  contact: Record<string, any>,
+  deals: Record<string, any>[],
   stageNameBySlug: Record<string, string> = {},
 ): NoTaskCardItem {
-  const p = contactToProfile(deal.contact);
+  const p = contactToProfile(contact);
   return {
-    dealId: deal.id,
-    contactId: deal.contact?.id,
+    contactId: contact.id,
     name: p.name,
     jobTitle: p.jobTitle,
     companyName: p.company,
     initials: p.initials,
     icpScore: p.icpScore,
     heatStatus: p.heatStatus,
-    stageLabel: stageNameBySlug[deal.stage] ?? undefined,
-    lastContactedAt: deal.contact?.last_contacted_at ?? null,
+    lastContactedAt: contact.last_contacted_at ?? null,
+    deals: deals.map((d) => ({
+      name: d.name,
+      stageLabel: stageNameBySlug[d.stage] ?? undefined,
+      stagnationDays: d.stagnation_days ?? 0,
+    })),
   };
 }
 
