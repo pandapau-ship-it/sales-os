@@ -4,11 +4,15 @@
 
 ---
 
-## Current Status: Phase 3 (DB-Wiring Hunter) abgeschlossen · **[D27] Tech-Schuld erledigt** · **Keine-Task-Kachel kontakt-basiert** ✅ · **Auth/Org [D21] Scheiben 1–7 gebaut**: Login Email+Passwort + Google/Microsoft SSO + Reset · Provisioning-Trigger (neue Org + Owner bzw. Einladung; Migr. 041/043) · `useCurrentOrg()` (Session→Org, Fallback DEMO) · `DEMO_ORGANIZATION_ID` → Hook in allen Consumern · `created_by`/`assigned_to`/`owner_id` aus `auth.uid()` · Team-Verwaltung + Einladungen (Migr. 042/043, `TeamSettings` unter `/app/settings`). Next: **[D29] Einladungs-Mail Edge Function** · 2FA (TOTP) · Realtime (Phase 5) · AI-Pipeline (löst „Folgt"-Platzhalter [D5])
+## Current Status: Phase 3 (DB-Wiring Hunter) abgeschlossen · **[D27] Tech-Schuld erledigt** · **Auth/Org [D21] Scheiben 1–8** (inkl. MfaBanner 2FA-Empfehlung) · **Hunter-Übersicht Dringlichkeits-Score** (Migr. 045, settings-basiert) + Profilzeilen-Konsistenz erzwungen · **Farmer-Screen UI komplett (alle 5 Tabs: Übersicht · Kunden · Retention · Upsell · Signals — Mock, kein DB-Wiring)** · **[D35] Signal-Action-Resolver Phase 0**. Next (Reihenfolge laut [Farmer-vs-Hunter-Routing](#)): **Farmer DB-Wiring** (echte Scores/Signale) · **Hunter Trial-Kacheln [D36]/[D37]** · **Lifecycle-Trigger [D38]** · **[D29] Einladungs-Mail Edge Function** · AI-Pipeline (löst „Folgt"-Platzhalter [D5])
 
 > **Session 2026-06-23 (Farmer-Screen Slices 2–3) — auf `main` (Kunden-Tab) + Branch `feature/farmer-signals-tab` (Signals):**
 > **Kunden-Tab:** `FarmerKundenKachel` (Wrapper um `HunterCard`, additiver `statusBadge`-Slot statt STAGE) + `customerStatusConfig` (active/cancelled + grauer Fallback). **Subscription-Badge** = Form 1:1 wie HeatBadge (`rounded-full`, kein Border, `text-[12px] font-medium`) mit Lucide-Icon statt Dot. `data.ts` TRIAL→ACTIVE. CLAUDE.md: zwei bewusst getrennte Badge-Typen (Heat-Pille vs Status-Badge) dokumentiert.
 > **Signals-Tab (Slice 3):** 1:1 Hunter-Signals-Muster — `LinkedinSignalCard` additiv um `statusBadge`-Passthrough erweitert (**Hunter unverändert**, Default). Neue geteilte `SubscriptionBadge`-Komponente. **Nur echte Aktivitäts-/LinkedIn-Signale** (wie Hunter) — Churn & Upsell sind KEINE Signale (eigene Tabs). 3 LinkedIn-Mock-Signale, SUBSCRIPTION statt STAGE, Bulk-Auswahl-Leiste wie Hunter, CTA = Platzhalter-Toast ([D34]). Kein DB-Wiring. **[D33]/[D34]** dokumentiert (Farmer Info-/Action-Panel).
+> **Retention-Tab (Slice 4):** `FarmerRetentionKachel` (HunterCard-Wrapper) — Tab „Churn & Trial" → **„Retention"** umbenannt; alte bespoke Churn-UI (`font-mono`) ersetzt. 3 Mock-Typen: **Churn Risk** (rote Badge, „Retention sichern"), **Wird kalt** (= 1:1 Hunter Cold-Row: blaue Snowflake-„Cold"-Badge + „Start Outreach" + „Snooze", erscheint nur bei `heat_status='COLD'`), **Gekündigt** (rote Badge, „Jetzt anrufen"). Signal-Rows alle hellgrau (`app-bg`, wie Hunter). HEAT über kanonischen Enum→HeatBadge (Single Source — „Cold" bleibt englisch, Eindeutschung = separater Slice). CTA = Platzhalter-Toast.
+> **Upsell-Tab (Slice 5):** `FarmerUpsellKachel` (Struktur 1:1 wie Retention) — grüne Zap-„Upsell Potential"-Badge auf grauer Row + „Action"-CTA. 2 Mock-Kacheln. Kein DB-Wiring.
+> **[D35] Signal-Action-Resolver Phase 0:** `lib/signalActions.tsx` (`signalActionConfig` + serialisierbare `SignalActionType`/`SIGNAL_ACTION_CATALOG`) statt Inline-Config im `SignalActionDrawer` — verhaltens-identisch, Vorbereitung für spätere DB-Regeln (kein Schema). **[D36]–[D39]** dokumentiert (Hunter Trial-Kacheln · Lifecycle-Trigger · Farmer „Kunde wird kalt"). CLAUDE.md: **Farmer-vs-Hunter-Routing** (`contact_status` entscheidet) ergänzt.
+> **Davor in dieser Spanne (post-teil3):** [D21] Scheibe 8 `MfaBanner` (2FA-Empfehlung + TOTP-Setup) · Hunter-Übersicht **Dringlichkeits-Score** (`calculatePriorityScore`, Migr. **045**, settings-Gewichte) + PRIO-Badge raus + Top-5 aus mehreren Quellen · **Profilzeilen-Konsistenz** erzwungen (Audit: Kurz-Zeitformat WARN + internes-Label FAIL).
 
 > **Session 2026-06-22 (Teil 2, [D27] Tech-Schuld) — auf `main`:**
 > **ExpandedCardContent extrahiert** (panel-blocks): geteilter aufgeklappter Karten-Inhalt (lazy Deals/Kommunikation/Stages, KI-Platzhalter, Stagnations-Warnung) — HunterCard + LeadListRow je ~47 doppelte Zeilen entfernt. Reine Extraktion.
@@ -545,6 +549,24 @@ kam es, wie groß ist es** — und einen **klaren nächsten Schritt** anstoßen 
 - **CTA:** „Check-In starten".
 - **Wann:** Retention-Tab-Slice (nächster Schritt).
 
+### [D40] automation_rules Schema-Korrektur (deferred)
+- **Problem:** Migration **006** legt `automation_rules` falsch an — **N Zeilen pro Org**
+  (`risk_level` × `action_type` × `is_auto_allowed`/`confidence_threshold`) statt der in
+  CLAUDE.md final entschiedenen Form **1 Zeile pro Org** (`low_risk_auto`/`medium_risk_auto`/
+  `medium_confidence`, High Risk bewusst ohne Feld). Keine gemeinsamen Spalten außer id/org/created_at.
+- **Lösung:** **Option A — `ALTER TABLE`** (risikoarm): alte 4 Spalten droppen, neue Felder +
+  `updated_at` hinzufügen, `UNIQUE(organization_id)`. Index `idx_automation_rules_org` und die
+  RLS-Policy hängen nur an `organization_id` → **bleiben automatisch erhalten** (kein Recreate,
+  kein Tenant-Leak-Risiko). Sicher, weil **0 Zeilen, 0 Leser, keine FKs/Functions** (geprüft).
+- **Dabei mitklären (sonst zweimal migrieren):**
+  - `settings.automation.hunter|farmer|mein_tag` (per-Modul) fehlt im Seed (012) — nur
+    `automation_defaults.default_automation_level` vorhanden.
+  - `execution_mode` (manual/semi_auto/full_auto) ist nur CLAUDE-Architektur-Text, **nicht** in der DB.
+  - `docs/sales_os_db_schema_v3.md` angleichen (006-Header nennt sie als maßgeblich → möglicher dritter Widerspruch).
+- **Wann:** gebündelt mit dem Bau der **Automation-Settings-UI** (Settings → AI SDR → Automation
+  Rules, Settings-Screen-Phase) — dann gegen echte Reads verifizierbar; eine isolierte 047 jetzt
+  wäre eine blinde Änderung an einer ungenutzten Tabelle.
+
 ### [D41] ScreenMarketing + ScreenSherloqSystem auf Elevation-System (deferred)
 - **Problem:** Beide Screens nutzen einen abweichenden „Soft-Card"-Stil — `rounded-[24/32px]` +
   rohe/hardcodierte Schatten (`shadow-[0_8px_30px_rgb(0,0,0,0.04)]` u.ä.), **kein** `border-card`.
@@ -553,7 +575,6 @@ kam es, wie groß ist es** — und einen **klaren nächsten Schritt** anstoßen 
   `shadow-[var(--shadow-card)]`; rohe Schatten → Token.
 - **Aufwand:** eigener Sweep, **Mittel**.
 - **Wann:** wenn diese Screens aktiv gebaut/verdrahtet werden — **nicht jetzt isoliert** (aktuell nicht Teil des Farmer/Hunter-Fokus).
-- *(Hinweis: `[D40]` = automation_rules-Schema, liegt auf Branch `chore/session-2026-06-23-farmer`.)*
 
 ### [D42] TaskDrawer (850px) auf shadcn `Sheet` umbauen (deferred)
 - **Problem:** `features/hunter/TaskDrawer.tsx` baut seine Drawer-Hülle **von Hand** (eigenes

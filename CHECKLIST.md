@@ -241,7 +241,7 @@
 - [ ] `navConfig.tsx → roleAccess` an 4-Punkte-Struktur anpassen
 - [ ] **AI SDR Screen** (NEU bauen): Sequenzen · Outreach · Posteingang · Termine
 - [ ] **Hunter Screen** umbauen → Recommendation Feed (keine Sequenzen)
-- [ ] **Farmer Screen** → Recommendation Feed (Bestandskunden)
+- [~] **Farmer Screen** → Recommendation Feed (Bestandskunden) — *UI alle 5 Tabs fertig (Übersicht · Kunden · Retention · Upsell · Signals), Mock; DB-Wiring offen. Komponenten: FarmerKpiCards · FarmerHealthOverview · FarmerKundenKachel · FarmerRetentionKachel · FarmerUpsellKachel · SubscriptionBadge (alle HunterCard-Wrapper)*
 - [ ] **Mein Tag** → aggregierter Feed (keine eigene Datenquelle)
 - [ ] **Kontakte Screen** (NEU) — *zentrales Datenobjekt, eigener Sidebar-Icon*
 - [ ] Kontakte-Listenansicht — Spalten: Checkbox · Avatar+Name+Jobtitel+Company · Lead-Source-Badge · Status-Badge · Letzter Kontakt · ICP-Ring · Routing-Hinweis (Lucide, kein Emoji)
