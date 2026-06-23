@@ -12,7 +12,7 @@
 export const CARD = {
   /** Karten-Shell (ohne Padding — Body + Action-Row liegen darin). */
   shell:
-    "group relative rounded-[12px] flex flex-col shadow-[var(--shadow-card)] hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 border border-[var(--border-card)] overflow-hidden",
+    "group relative rounded-[12px] flex flex-col shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-hover)] hover:-translate-y-0.5 transition-all duration-300 border border-[var(--border-card)] overflow-hidden",
   /** Gepolsterter Body (Top-Row + Expand). 16px. */
   body: "p-4 flex flex-col gap-4",
   /** Top-Row-Container. */

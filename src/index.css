@@ -47,7 +47,6 @@
                       0 2px 6px rgba(15, 23, 42, 0.025);
   --shadow-dropdown:  0 4px 6px rgba(15, 23, 42, 0.06),
                       0 12px 32px rgba(15, 23, 42, 0.10);
-  --shadow-panel:     -8px 0 30px rgba(15, 23, 42, 0.06);
 
   /* Signal Colors */
   --signal-urgent-bg:   #FEF4E9;
@@ -161,7 +160,6 @@
   --shadow-brand:     0 2px 8px -2px rgba(42, 140, 138, 0.40);
   --shadow-nav:       0 1px 2px rgba(0, 0, 0, 0.30), 0 2px 6px rgba(0, 0, 0, 0.25);
   --shadow-dropdown:  0 4px 6px rgba(0, 0, 0, 0.40), 0 12px 32px rgba(0, 0, 0, 0.55);
-  --shadow-panel:     -8px 0 30px rgba(0, 0, 0, 0.45);
 
   /* Signal Colors — dunkel getönter bg, aufgehellter text */
   --signal-urgent-bg:   #3A2317; --signal-urgent-text: #FB923C;
@@ -289,7 +287,6 @@
   --shadow-brand:                var(--shadow-brand);
   --shadow-nav:                  var(--shadow-nav);
   --shadow-dropdown:             var(--shadow-dropdown);
-  --shadow-panel:                var(--shadow-panel);
 }
 
 /* ─── Base reset ─────────────────────────────────────────────────────────── */
