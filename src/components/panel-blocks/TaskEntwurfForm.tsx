@@ -93,7 +93,7 @@ export default function TaskEntwurfForm({
             </div>
 
             {/* Contact Info Bar */}
-            <div className="bg-app-surface border border-[var(--border)] rounded-[24px] py-4 px-6 flex items-center justify-between shadow-[0_2px_10px_rgb(0,0,0,0.02)] w-full">
+            <div className="bg-app-surface border border-[var(--border-card)] rounded-[12px] py-4 px-6 flex items-center justify-between w-full">
               <div className="flex items-center gap-2.5 text-[var(--text-body)]">
                 <Mail className="w-4 h-4 text-[var(--icon-muted)]" />
                 <span className="text-[14px] font-semibold">c.brand@logixflow.de</span>
@@ -150,7 +150,7 @@ export default function TaskEntwurfForm({
               </div>
 
               {/* KI EMPFEHLUNG */}
-              <div className="bg-[var(--signal-teal-bg)] border border-[var(--signal-teal-bg)] rounded-2xl p-5 flex flex-col gap-3 relative overflow-hidden">
+              <div className="bg-[var(--signal-teal-bg)] border border-[var(--border-card)] rounded-[12px] p-5 flex flex-col gap-3 relative overflow-hidden">
                   <div className="flex items-center gap-2 text-[var(--icp-high)] font-bold text-[12px] tracking-wider uppercase">
                       <AlertTriangle className="w-4 h-4" /> {t('hunter.drawers.task.kiRecommendation')}
                   </div>

@@ -520,6 +520,63 @@ function checkForbiddenLabels(): void {
 }
 checkForbiddenLabels()
 
+// ── Elevation-System: keine rohen Shadow-Stufen in Karten/Boxen ─────────────
+// CLAUDE Design Invariants → Elevation: Schatten NUR über Token (--shadow-card/-hover/-dropdown).
+// Verboten: rohe Tailwind-Stufen (shadow-sm/md/lg/xl/2xl) + hardcodierte arbitrary-Schatten
+// (shadow-[0_…]). Scope: panel-blocks/ + features/ + farming/.
+// AUSNAHMEN (kein Karten-/Box-Container, dürfen Schatten tragen): Buttons (cursor-pointer/<button),
+// Avatare (<Avatar), Icon-Chips/Toggle (feste w-N h-N), Pills/Badges (rounded-full/-pill),
+// Footer (Struktur-Chrome, <footer), schwebende Toasts (fixed), Chat-Bubbles (rounded-2xl).
+// Nur `className`-Element-Zeilen prüfen → Klassen-Fragmente (conditional strings / Config-Objekte /
+// return-Werte ohne `className`) fallen weg (waren die False Positives). Zusätzlich exempt:
+// `pointer-events-none` (schwebende Tooltips).
+function checkRawShadows(): void {
+  const dirs = ['panel-blocks', 'features', 'farming'].map((d) => join(SRC, 'components', d))
+  const RAW = /\bshadow-(sm|md|lg|xl|2xl)\b|\bshadow-\[0/
+  const EXEMPT = /<button|cursor-pointer|<Avatar|BrandLogo|<footer|rounded-full|rounded-pill|rounded-2xl|pointer-events-none|\bfixed\b|\bw-\d+\s+h-\d+\b/
+  const offenders: string[] = []
+  for (const f of dirs.flatMap((d) => walk(d, ['.tsx']))) {
+    const noBlock = read(f).replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '))
+    noBlock.split('\n').forEach((lineRaw, i) => {
+      const line = lineRaw.replace(/\/\/.*$/, '')
+      if (!/className/.test(line)) return // nur echte Element-Klassen, keine Config-Fragmente
+      if (RAW.test(line) && !EXEMPT.test(line)) offenders.push(`${rel(f)}:${i + 1}`)
+    })
+  }
+  add('Elevation: keine rohen Shadow-Stufen', offenders.length ? 'FAIL' : 'PASS',
+    offenders.length
+      ? `Rohe/hardcodierte Schatten in Karten/Boxen — nutze shadow-[var(--shadow-card)] / -hover / -dropdown:\n        ${offenders.join('\n        ')}`
+      : 'Keine rohen Shadow-Stufen in Karten/Boxen (nur Token-Schatten).')
+}
+checkRawShadows()
+
+// ── Elevation-System: Border ≠ Hintergrundfarbe (unsichtbarer Rahmen) ───────
+// FAIL: border-[var(--signal-*-bg)] zusammen mit bg-[var(--signal-*-bg)] auf derselben Zeile =
+// Rahmen unsichtbar (gleiche Farbe). Karten/Boxen sollen border-[var(--border-card)] nutzen.
+// Nur `className`-Element-Zeilen (Config-Fragmente/return-Strings fallen weg = waren False Positives).
+// Pills/Badges (rounded-full/-pill) sind ausgenommen — getönte Pille ist gewolltes Muster.
+function checkBorderEqualsBg(): void {
+  const offenders: string[] = []
+  for (const f of walk(join(SRC, 'components'), ['.tsx'])) {
+    if (rel(f).includes(`${join('components', 'ui')}`)) continue
+    const noBlock = read(f).replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '))
+    noBlock.split('\n').forEach((lineRaw, i) => {
+      const line = lineRaw.replace(/\/\/.*$/, '')
+      if (!/className/.test(line)) return // nur echte Element-Klassen, keine Config-Fragmente
+      if (/rounded-full|rounded-pill/.test(line)) return // Pills/Badges: getönt ist ok
+      const m = line.match(/bg-\[var\(--signal-(\w+)-bg\)\]/)
+      if (m && new RegExp(`border-\\[var\\(--signal-${m[1]}-bg\\)\\]`).test(line)) {
+        offenders.push(`${rel(f)}:${i + 1}`)
+      }
+    })
+  }
+  add('Elevation: Border ≠ Hintergrundfarbe', offenders.length ? 'FAIL' : 'PASS',
+    offenders.length
+      ? `Border hat gleiche Farbe wie Hintergrund (unsichtbar) — nutze border-[var(--border-card)]:\n        ${offenders.join('\n        ')}`
+      : 'Keine Karten/Boxen mit border = Hintergrundfarbe.')
+}
+checkBorderEqualsBg()
+
 // ── Performance & Skalierung (Empfehlungen → WARN; echtes N+1 in Production → FAIL) ──
 
 /** N+1: useQuery() INNERHALB einer .map()-Klammer (ein Query pro Zeile/Karte) — via Klammer-Matching. */

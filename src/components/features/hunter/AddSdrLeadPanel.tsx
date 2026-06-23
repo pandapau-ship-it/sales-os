@@ -228,7 +228,7 @@ export default function AddSdrLeadPanel({ open, onClose, onAdd }: AddSdrLeadPane
         {/* HINWEIS-BANNER — Stage gewählt, aber kein Deal */}
         {dealHint && (
           <div className="shrink-0 px-4 pt-3">
-            <div className="flex items-start gap-2 p-3 rounded-[10px] bg-[var(--signal-info-bg)] border border-[var(--signal-info-bg)]">
+            <div className="flex items-start gap-2 p-3 rounded-[10px] bg-[var(--signal-info-bg)] border border-[var(--border-card)]">
               <Info className="w-4 h-4 shrink-0 mt-px text-[var(--signal-teal-text)]" />
               <p className="text-[11px] font-semibold leading-relaxed text-[var(--signal-teal-text)]">
                 Fast geschafft — füge einen Deal hinzu oder speichere ohne Deal.
