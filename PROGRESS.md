@@ -551,7 +551,8 @@ kam es, wie groß ist es** — und einen **klaren nächsten Schritt** anstoßen 
   Folgt dem Elevation-System (CLAUDE Design Invariants) **nicht**.
 - **Lösung:** eigener Sweep analog Hunter/Farmer — Container auf `rounded-[12/16px]` + `border-card` +
   `shadow-[var(--shadow-card)]`; rohe Schatten → Token.
-- **Wann:** wenn diese Screens fachlich drankommen (aktuell nicht Teil des Farmer/Hunter-Fokus).
+- **Aufwand:** eigener Sweep, **Mittel**.
+- **Wann:** wenn diese Screens aktiv gebaut/verdrahtet werden — **nicht jetzt isoliert** (aktuell nicht Teil des Farmer/Hunter-Fokus).
 - *(Hinweis: `[D40]` = automation_rules-Schema, liegt auf Branch `chore/session-2026-06-23-farmer`.)*
 
 ### [TS] Deal-Typ ohne `product` — offener Faden
