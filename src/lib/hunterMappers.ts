@@ -291,6 +291,28 @@ function relTimeShort(iso: string | null | undefined): string {
   return h < 24 ? `${h}h` : `${Math.floor(h / 24)}d`;
 }
 
+/** Ganze Tage seit `iso` (>= 0); kein/ungültiges Datum → null. */
+export function daysSinceIso(iso: string | null | undefined): number | null {
+  if (!iso) return null;
+  const ms = Date.now() - new Date(iso).getTime();
+  if (Number.isNaN(ms)) return null;
+  return Math.max(0, Math.floor(ms / 86_400_000));
+}
+
+/**
+ * Profilzeilen-Zeit „vor X Tagen" — IMMER aus `contacts.last_contacted_at` (Single Source).
+ * NULL oder „vor 0 Tagen" → '' (Element bleibt unsichtbar, Honesty). Gilt für ALLE Hunter-Kacheln.
+ */
+export function lastContactedLabel(
+  contact: Record<string, any> | null | undefined,
+  t: (key: string, opts?: Record<string, unknown>) => string,
+): string {
+  const days = daysSinceIso(contact?.last_contacted_at);
+  return days != null && days >= 1
+    ? t("hunter.common.ago", { label: t("hunter.common.daysAgo", { count: days }) })
+    : "";
+}
+
 /** Card-Props für die LinkedinSignalCard (S-2). Echte Felder + S-0-Helfer. */
 export type SignalCardProps = {
   id: string;
@@ -484,7 +506,8 @@ export function signalToCardProps(
     actionText: resolveSignalText(signal, t),
     channelLabelKey: meta.channelLabelKey,
     channelIcon: meta.icon,
-    timeAgo: relTimeShort(signal.created_at),
+    // Profilzeile: „vor X Tagen" IMMER aus contacts.last_contacted_at (Single Source) — nie Signal-Alter („6d").
+    timeAgo: lastContactedLabel(signal.contact, t),
     stage: contactActiveStage(signal.contact, stageNameBySlug),
   };
 }
@@ -502,7 +525,8 @@ export type StagnatedCardItem = {
   icpScore?: number;
   heatStatus?: HeatStatus;
   stageLabel?: string;        // deal.stage → Anzeigename; fehlt → kein Badge
-  stagnationDays: number;     // deal.stagnation_days
+  stagnationDays: number;     // deal.stagnation_days (Action-Streifen — NICHT die Profilzeilen-Zeit)
+  lastContactedAt: string | null; // contacts.last_contacted_at → Profilzeile „vor X Tagen" (Single Source)
 };
 
 export function dealToStagnatedCard(
@@ -521,6 +545,7 @@ export function dealToStagnatedCard(
     heatStatus: p.heatStatus,
     stageLabel: stageNameBySlug[deal.stage] ?? undefined,
     stagnationDays: deal.stagnation_days ?? 0,
+    lastContactedAt: deal.contact?.last_contacted_at ?? null,
   };
 }
 
