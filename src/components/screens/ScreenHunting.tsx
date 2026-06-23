@@ -31,7 +31,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@
 import { heatFor } from '@/lib/constants';
 import { ICPDonut } from '@/components/shared/ICPDonut';
 import { NAV } from '@/lib/navBehavior';
-import { AddSdrLeadPanel, ContactColdDrawer, EmptyState, FollowUpKaltCard, FunnelAnalysis, HeatBadge, HunterCard, HunterSidepanel, KpiCard, LeadListRow, LinkedinSignalCard, NewInPipelineCards, PipelineKeineTaskCard, PipelineStagniertCard, SequenceLeadCards, SignalActionDrawer, StageBadge, StagnationHint, TaskDrawer, type HunterCardData } from '@/components';
+import { AddSdrLeadPanel, ContactColdDrawer, EmptyState, FollowUpKaltCard, FunnelAnalysis, HeatBadge, HunterSidepanel, KpiCard, LeadListRow, LinkedinSignalCard, NewInPipelineCards, PipelineKeineTaskCard, PipelineStagniertCard, SequenceLeadCards, SignalActionDrawer, StageBadge, StagnationHint, TaskDrawer } from '@/components';
 import type { SignalActionData } from '@/components';
 
 import Avatar from '@/components/shared/Avatar';
@@ -230,6 +230,39 @@ export default function ScreenHunting({
     .filter((it) => it.score > 0)
     .sort((a, b) => b.score - a.score || b.arr - a.arr || (b.icpScore ?? 0) - (a.icpScore ?? 0) || a.oldest - b.oldest);
   const newPipelineFiltered = newPipelineItems.filter((it) => newPipelineInPeriod(it.createdAt, newPipelinePeriod));
+
+  // Übersicht „Wichtigste Aufgaben" — Top 5 aus mehreren Quellen, in Reihenfolge bis 5 erreicht
+  // (dedupe per contactId, Signal-getrieben → weniger als 5 wenn nicht genug, nie leere Slots):
+  //   1. Kontakte mit Score > 0 (priorityItems) → dominante Signal-Kachel
+  //   2. LinkedIn-Signals (signalCards) · 3. Neu in Pipeline (newPipelineFiltered).
+  const TOP_N = 5;
+  const top5Shown = new Set<string>();
+  const top5ScoreItems = [] as typeof priorityItems;
+  for (const it of priorityItems) {
+    if (top5ScoreItems.length >= TOP_N) break;
+    const cid = it.contact.id as string;
+    if (top5Shown.has(cid)) continue;
+    top5Shown.add(cid);
+    top5ScoreItems.push(it);
+  }
+  const top5SignalSlots: { card: typeof signalCards[number]; index: number }[] = [];
+  (signalsData ?? []).forEach((_, i) => {
+    if (top5ScoreItems.length + top5SignalSlots.length >= TOP_N) return;
+    const card = signalCards[i];
+    const cid = card?.contactId as string | undefined;
+    if (cid && top5Shown.has(cid)) return;
+    if (cid) top5Shown.add(cid);
+    top5SignalSlots.push({ card, index: i });
+  });
+  const top5NewPipeline = [] as typeof newPipelineFiltered;
+  for (const it of newPipelineFiltered) {
+    if (top5ScoreItems.length + top5SignalSlots.length + top5NewPipeline.length >= TOP_N) break;
+    const cid = it.contactId as string | undefined;
+    if (cid && top5Shown.has(cid)) continue;
+    if (cid) top5Shown.add(cid);
+    top5NewPipeline.push(it);
+  }
+  const top5Count = top5ScoreItems.length + top5SignalSlots.length + top5NewPipeline.length;
   // Übersicht-Aggregate (reine Reads, kein Write): wiederverwenden was schon geladen ist.
   const eur = (n: number) => `€ ${new Intl.NumberFormat('de-DE').format(Math.round(n))}`;
   const openDeals = dealRows.filter((d) => !isTerminalStage(d.stageSlug));
@@ -449,12 +482,12 @@ export default function ScreenHunting({
 
           <FunnelAnalysis stages={funnelStages} />
 
-          {/* Wichtigste Aufgaben — zentrale Dringlichkeits-Priorisierung (Score aus settings).
-              Signal-getrieben: nur Kontakte mit Score > 0; sonst ruhiger Platzhalter (keine Fake-Karten). */}
+          {/* Wichtigste Aufgaben — Top 5 aus mehreren Quellen (Score-Reihenfolge intern, NIE als Badge).
+              Jede Quelle nutzt ihre bestehende Kachel 1:1. Signal-getrieben: nichts da → Platzhalter. */}
           <div className="mt-2">
             <span className="text-[10px] font-extrabold text-text-muted uppercase tracking-widest">{t('hunter.overview.top5Header')}</span>
             <div className="mt-3">
-              {priorityItems.length === 0 ? (
+              {top5Count === 0 ? (
                 <EmptyState
                   icon={<ListChecks className="w-6 h-6" />}
                   title={t('hunter.overview.top5Title')}
@@ -462,42 +495,76 @@ export default function ScreenHunting({
                 />
               ) : (
                 <div className="flex flex-col gap-4">
-                  {priorityItems.map((it) => {
-                    const p = contactToProfile(it.contact);
-                    const labels = it.signals.map((k) => t(`hunter.overview.prioSignal.${k}`));
-                    const data: HunterCardData = {
-                      id: it.contact.id as string,
-                      name: p.name,
-                      jobTitle: p.jobTitle,
-                      company: p.company,
-                      icpScore: p.icpScore,
-                      stageLabel: '',
-                      heatStatus: p.heatStatus,
-                      timeLabel: '',
-                    };
-                    const actionRow = (
-                      <>
-                        <div className="flex items-center gap-3 min-w-0">
-                          <span
-                            data-tip={labels.join(' · ')}
-                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)] text-[10px] font-bold uppercase tracking-wider shrink-0"
-                          >
-                            {t('hunter.overview.prioScore', { score: it.score })}
-                          </span>
-                          <span className="text-[12px] text-text-muted truncate">{labels.join(' · ')}</span>
-                        </div>
-                      </>
-                    );
+                  {/* Quelle 1 — Kontakte mit Score > 0 → dominante Signal-Kachel (1:1) */}
+                  {top5ScoreItems.map((it) => {
+                    const cid = it.contact.id as string;
+                    if (it.signals.includes('stagnated')) {
+                      const dealRaw = it.deals.find((d) => (d.stagnation_days ?? 0) >= (stagnationBySlug[d.stage] ?? 7)) ?? it.deals[0];
+                      return (
+                        <PipelineStagniertCard
+                          key={`s-${cid}`}
+                          items={[dealToStagnatedCard(dealRaw, stageNameBySlug)]}
+                          onSelectLead={(x) => setInfoPanelLead(makeLead(x.contactId ?? x.dealId, x.name, x.jobTitle, x.companyName, x.initials, x.icpScore ?? 75))}
+                          onTaskAnlegen={(x) => { setInfoPanelDealId(x.dealId); setInfoPanelAction('task'); setInfoPanelLead(makeLead(x.contactId ?? x.dealId, x.name, x.jobTitle, x.companyName, x.initials, x.icpScore ?? 75)); }}
+                        />
+                      );
+                    }
+                    if (it.signals.includes('going_cold')) {
+                      const p = contactToProfile(it.contact);
+                      const cp = contactToColdPerson(it.contact);
+                      const timeAgoLabel = cp.lastContactDays != null
+                        ? t('hunter.common.ago', { label: t('hunter.common.daysAgo', { count: cp.lastContactDays }) })
+                        : '';
+                      return (
+                        <FollowUpKaltCard
+                          key={`c-${cid}`}
+                          contactId={cid}
+                          name={p.name}
+                          role={p.jobTitle}
+                          companyName={p.company}
+                          icpScore={p.icpScore}
+                          heatStatus={p.heatStatus}
+                          timeAgoLabel={timeAgoLabel}
+                          onSelectLead={setInfoPanelLead}
+                          onOutreachClick={() => setSelectedColdPerson(cp)}
+                        />
+                      );
+                    }
                     return (
-                      <HunterCard
-                        key={it.contact.id as string}
-                        data={data}
-                        contactId={it.contact.id as string}
-                        onOpenInfo={() => setInfoPanelLead(makeLead(it.contact.id as string, p.name, p.jobTitle, p.company, p.initials, p.icpScore ?? 75))}
-                        actionRow={actionRow}
+                      <PipelineKeineTaskCard
+                        key={`n-${cid}`}
+                        items={[contactToNoTaskCard(it.contact, it.deals, stageNameBySlug)]}
+                        onSelectLead={(x) => setInfoPanelLead(makeLead(x.contactId, x.name, x.jobTitle, x.companyName, x.initials, x.icpScore ?? 75))}
+                        onTaskAnlegen={(x) => { setInfoPanelDealId(null); setInfoPanelAction('task'); setInfoPanelLead(makeLead(x.contactId, x.name, x.jobTitle, x.companyName, x.initials, x.icpScore ?? 75)); }}
                       />
                     );
                   })}
+
+                  {/* Quelle 2 — LinkedIn-Signals (1:1 wie im Signals-Tab) */}
+                  {top5SignalSlots.map(({ card, index }) => {
+                    const { id, ...cardProps } = card;
+                    return (
+                      <LinkedinSignalCard
+                        key={`sig-${id}`}
+                        {...cardProps}
+                        showUrgency={false}
+                        showStage={true}
+                        onOpenInfo={setInfoPanelLead}
+                        onOpenAction={() => { const raw = (signalsData ?? [])[index]; if (raw) setSelectedSignal(signalToActionData(raw, t)); }}
+                      />
+                    );
+                  })}
+
+                  {/* Quelle 3 — Neu in Pipeline (1:1; gerendert als eigener Block) */}
+                  {top5NewPipeline.length > 0 && (
+                    <NewInPipelineCards
+                      items={top5NewPipeline}
+                      period={newPipelinePeriod}
+                      onPeriodChange={setNewPipelinePeriod}
+                      onSelectLead={setInfoPanelLead}
+                      onCreateTask={(lead) => { setInfoPanelAction('task'); setInfoPanelLead(lead); }}
+                    />
+                  )}
                 </div>
               )}
             </div>
