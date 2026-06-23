@@ -93,3 +93,32 @@ export const ACTION_ROW = {
   ctaSecondary:
     "px-4 py-1.5 bg-app-surface border border-border hover:bg-app-bg text-text-body rounded-full text-[11px] font-black transition-colors shadow-sm cursor-pointer",
 } as const;
+
+/**
+ * CARD_PANEL — Box INNERHALB eines Panels/Overlays (Elevation-System Ebene 1, In-Panel).
+ *
+ * Wann nutzen: Inhalts-/Sektions-Box, die in einem schwebenden Panel sitzt (820px-Info-Panel,
+ * CustomerDrawer, Action-Panels). Das Panel selbst liefert die Elevation (Ebene 2) → die Box
+ * trägt NUR eine Haarlinie, KEINEN eigenen Schatten (sonst Schatten-im-Schatten).
+ * NICHT für Kacheln auf dem Seiten-Hintergrund — die nutzen `CARD.shell` (mit Schatten + Hover).
+ */
+export const CARD_PANEL =
+  "bg-app-surface border border-[var(--border-card)] rounded-[12px]" as const;
+
+/**
+ * TABLE — Daten-Tabelle/Liste (Elevation-System Ebene 0 in Ebene-1-Container).
+ *
+ * Wann nutzen: Tabellen/Listen, die schnell gescannt werden (Pipeline-Deals, Kontakte-Liste …).
+ * Die Tabelle ist EINE ruhende Karte (`container`); die Zeilen sind KEINE Karten — nur Haarlinien-
+ * Trenner + Hover-Tint, NIE ein Schatten/Box pro Zeile. Header durch `bg-app-bg` + Bottom-Border
+ * abgesetzt.
+ */
+export const TABLE = {
+  /** Äußerer Container = ruhende Karte (Ebene 1). */
+  container:
+    "bg-app-surface rounded-[12px] border border-[var(--border-card)] shadow-[var(--shadow-card)] overflow-hidden",
+  /** Kopfzeile — abgesetzt durch Hintergrund + Bottom-Border. */
+  header: "bg-app-bg border-b border-[var(--border-card)]",
+  /** Datenzeile — nur Trennlinie + Hover, kein Schatten/Box. */
+  row: "border-b border-[var(--border-card)] last:border-0 hover:bg-app-bg",
+} as const;
