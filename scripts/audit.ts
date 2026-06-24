@@ -435,6 +435,8 @@ function checkTypographyTokens(): void {
     'MfaBanner',
     // Farmer-Übersicht + Kunden-Tab + Signals-Tab + Retention-Tab + Upsell-Tab
     'FarmerKpiCards', 'FarmerHealthOverview', 'FarmerKundenKachel', 'FarmerRetentionKachel', 'FarmerUpsellKachel', 'SubscriptionBadge',
+    // [D33] Farmer Info-Panel
+    'FarmerSidepanel', 'SubscriptionBox', 'UsageBox',
   ])
   // panel-blocks/ + features/ + farming/ (Farmer-Hilfskomponenten).
   const files = [

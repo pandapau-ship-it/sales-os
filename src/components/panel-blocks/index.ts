@@ -49,7 +49,9 @@ export { default as SignalRow } from './SignalRow';
 export { default as StageBadge } from './StageBadge';
 export { default as StagnationHint } from './StagnationHint';
 export { default as StatusBadge } from './StatusBadge';
+export { default as SubscriptionBox } from './SubscriptionBox';
 export { default as TasksListe } from './TasksListe';
+export { default as UsageBox } from './UsageBox';
 
 // ── Named-Exports ──────────────────────────────────────────────────────────
 export { FollowUpKaltCard } from './FollowUpKaltCard';
@@ -67,4 +69,6 @@ export type { Phone } from './PhoneField';
 export type { PhoneRow } from './PhoneNumbersField';
 export type { DealDraft } from './NewDealCard';
 export type { HunterCardData } from './HunterCard';
+export type { SubscriptionData } from './SubscriptionBox';
+export type { UsageData } from './UsageBox';
 export type { SignalRowData } from './SignalRow';
