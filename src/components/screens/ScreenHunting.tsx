@@ -32,7 +32,8 @@ import { heatFor } from '@/lib/constants';
 import { ICPDonut } from '@/components/shared/ICPDonut';
 import { NAV } from '@/lib/navBehavior';
 import { TABLE } from '@/lib/componentBehavior';
-import { AddSdrLeadPanel, ContactColdDrawer, EmptyState, FollowUpKaltCard, FunnelAnalysis, HeatBadge, HunterSidepanel, KpiCard, LeadListRow, LinkedinSignalCard, NewInPipelineCards, PipelineKeineTaskCard, PipelineStagniertCard, SequenceLeadCards, SignalActionDrawer, StageBadge, StagnationHint, TaskDrawer } from '@/components';
+import { AddSdrLeadPanel, ContactColdDrawer, EmptyState, FollowUpKaltCard, FunnelAnalysis, HeatBadge, HunterSidepanel, KpiCard, LeadListRow, LinkedinSignalCard, NewInPipelineCards, PipelineKeineTaskCard, PipelineStagniertCard, PipelineStagnatedDrawer, SequenceLeadCards, SignalActionDrawer, StageBadge, StagnationHint, TaskDrawer } from '@/components';
+import type { StagnatedPerson } from '@/components';
 import type { SignalActionData } from '@/components';
 
 import Avatar from '@/components/shared/Avatar';
@@ -339,6 +340,13 @@ export default function ScreenHunting({
 
   const [selectedSignal, setSelectedSignal] = useState<SignalActionData | null>(null);
   const [selectedColdPerson, setSelectedColdPerson] = useState<any | null>(null);
+  const [selectedStagnated, setSelectedStagnated] = useState<StagnatedPerson | null>(null);
+  // Stagniert-CTA „Next Step" → Action-Panel (KI-Empfehlung „Folgt"), NICHT das Task-Formular.
+  const openStagnated = (x: StagnatedCardItem) => setSelectedStagnated({
+    name: x.name, company: x.companyName, icpScore: x.icpScore,
+    daysStagnated: x.stagnationDays, stageName: x.stageLabel ?? '',
+    lastContactDays: x.lastContactedAt ? Math.max(0, Math.floor((Date.now() - new Date(x.lastContactedAt).getTime()) / 86_400_000)) : undefined,
+  });
   // Info-Panel (§22.1, 820px) — vorerst NUR im Leads-Tab inline rechts neben der Liste.
   const [infoPanelLead, setInfoPanelLead] = useState<Lead | null>(null);
   // Karten-Aktion (Mail/Task/Chat) → Info-Panel öffnet direkt mit dieser Aktion.
@@ -348,6 +356,8 @@ export default function ScreenHunting({
   const [infoPanelDealId, setInfoPanelDealId] = useState<string | null>(null);
   // Deal im Edit-Modus öffnen (Karten-Bleistift im aufgeklappten Bereich).
   const [infoPanelDealEditId, setInfoPanelDealEditId] = useState<string | null>(null);
+  // „Ansehen" (Follow-up) → Tasks-Tab öffnen + diese Task aufklappen/aufleuchten (Deeplink-Highlight).
+  const [infoPanelTaskId, setInfoPanelTaskId] = useState<string | null>(null);
 
   // Zentrale Karten-Aktion (aufgeklappter Bereich): Task/Notiz/Deal-Edit → Panel mit passendem Tab.
   const handleCardAction = (action: string, lead: Lead, dealId?: string) => {
@@ -506,7 +516,7 @@ export default function ScreenHunting({
                           key={`s-${cid}`}
                           items={[dealToStagnatedCard(dealRaw, stageNameBySlug)]}
                           onSelectLead={(x) => setInfoPanelLead(makeLead(x.contactId ?? x.dealId, x.name, x.jobTitle, x.companyName, x.initials, x.icpScore ?? 75))}
-                          onTaskAnlegen={(x) => { setInfoPanelDealId(x.dealId); setInfoPanelAction('task'); setInfoPanelLead(makeLead(x.contactId ?? x.dealId, x.name, x.jobTitle, x.companyName, x.initials, x.icpScore ?? 75)); }}
+                          onNextStep={openStagnated}
                         />
                       );
                     }
@@ -575,7 +585,12 @@ export default function ScreenHunting({
 
       {subTab === 'follow_ups' && (
         <div className="flex flex-col gap-6">
-          <SequenceLeadCards items={dueTaskCards} onSelectLead={setInfoPanelLead} onComplete={onCompleteTask} />
+          <SequenceLeadCards
+            items={dueTaskCards}
+            onSelectLead={setInfoPanelLead}
+            onView={(lead, taskId) => { setInfoPanelTab('tasks'); setInfoPanelTaskId(taskId); setInfoPanelLead(lead); }}
+            onComplete={onCompleteTask}
+          />
 
           {/* Cold/Inaktiv — echte Kontakte mit heat_status 'kalt'/'tot'. Leer → Sektion ausgeblendet (Signal-Prinzip). */}
           {(coldContactsData ?? []).length > 0 && (
@@ -805,7 +820,7 @@ export default function ScreenHunting({
               <PipelineStagniertCard
                 items={stagnatedItems}
                 onSelectLead={(it) => setInfoPanelLead(makeLead(it.contactId ?? it.dealId, it.name, it.jobTitle, it.companyName, it.initials, it.icpScore ?? 75))}
-                onTaskAnlegen={(it) => { setInfoPanelDealId(it.dealId); setInfoPanelAction('task'); setInfoPanelLead(makeLead(it.contactId ?? it.dealId, it.name, it.jobTitle, it.companyName, it.initials, it.icpScore ?? 75)); }}
+                onNextStep={openStagnated}
               />
               <PipelineKeineTaskCard
                 items={noTaskItems}
@@ -1171,6 +1186,13 @@ export default function ScreenHunting({
         onClose={() => setSelectedColdPerson(null)}
       />
 
+      {/* Pipeline stagniert → „Next Step"-Action-Panel (KI-Empfehlung „Folgt"), nicht Task-Formular. */}
+      <PipelineStagnatedDrawer
+        person={selectedStagnated}
+        onClose={() => setSelectedStagnated(null)}
+        onTakeAction={() => setSelectedStagnated(null)}
+      />
+
       {/* Info Panel (§22.1, 820px) — Slide-in-Overlay, vorerst nur Leads-Tab.
           Immer gemountet für die Ausfahr-Animation; person=null → geschlossen. */}
       <HunterSidepanel
@@ -1179,7 +1201,8 @@ export default function ScreenHunting({
         initialTab={infoPanelTab}
         initialDealId={infoPanelDealId}
         initialDealEditId={infoPanelDealEditId}
-        onClose={() => { setInfoPanelLead(null); setInfoPanelAction(null); setInfoPanelTab(null); setInfoPanelDealId(null); setInfoPanelDealEditId(null); }}
+        initialTaskId={infoPanelTaskId}
+        onClose={() => { setInfoPanelLead(null); setInfoPanelAction(null); setInfoPanelTab(null); setInfoPanelDealId(null); setInfoPanelDealEditId(null); setInfoPanelTaskId(null); }}
       />
 
       {/* P8-3c: Close-Deal-Popup (letzter Kanban-Pfeil) → Gewonnen (direkt + Konfetti) / Verloren (Lost-Modal). */}

@@ -13,6 +13,8 @@ import {
 } from "lucide-react";
 import LinkedinIcon from "@/components/shared/LinkedinIcon";
 import { HOVER_ACTIONS } from "@/lib/componentBehavior";
+import { useDeeplinkHighlight } from "@/hooks/useDeeplinkHighlight";
+import { cn } from "@/lib/utils";
 import TaskFormular, { type TaskFormInitial, type TaskFormValues } from "./TaskFormular";
 
 type Channel = "mail" | "linkedin" | "phone" | "calendar" | "other";
@@ -112,12 +114,14 @@ function DetailRow({ label, value }: { label: string; value: string }) {
 }
 
 export default function TasksListe({
-  onToast, autoEditId = null, onAutoEditConsumed,
+  onToast, autoEditId = null, onAutoEditConsumed, highlightId = null,
   taskRows, contactName = "", dealOptions, initialDealId = null, onCreate, onComplete, onDelete,
 }: {
   onToast?: (msg: string) => void;
   autoEditId?: string | null;
   onAutoEditConsumed?: () => void;
+  /** Deeplink-Highlight ([D]: „Ansehen"): Task aufklappen + kurz aufleuchten (useDeeplinkHighlight). */
+  highlightId?: string | null;
   /** Echte DB-Task-Zeilen (P3). undefined → leer. */
   taskRows?: Record<string, any>[];
   contactName?: string;
@@ -135,6 +139,12 @@ export default function TasksListe({
   const [editing, setEditing] = useState<"new" | string | null>(validAuto);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+
+  // Deeplink-Highlight: Ziel-Task aufklappen (Liste steuert Expand selbst) + Flash/Scroll via Hook.
+  const flashId = useDeeplinkHighlight(highlightId);
+  useEffect(() => {
+    if (highlightId) setExpanded((p) => ({ ...p, [highlightId]: true }));
+  }, [highlightId]);
 
   // autoEditId (Footer „+ Task" / Übersicht) öffnet die Maske — auch wenn der Tab schon offen
   // ist (reagiert auf Prop-Änderung, nicht nur auf Mount). Danach im Parent zurücksetzen.
@@ -184,7 +194,7 @@ export default function TasksListe({
           const ChannelIcon = ch.Icon;
           const prio = PRIORITY[task.priority];
           return (
-            <div key={task.id} className={`group bg-app-surface border border-[var(--border-card)] rounded-[12px] overflow-hidden ${task.completed ? "opacity-60" : ""}`}>
+            <div key={task.id} data-flash-id={task.id} className={cn("group bg-app-surface border border-[var(--border-card)] rounded-[12px] overflow-hidden", task.completed && "opacity-60", flashId === task.id && "deeplink-flash")}>
               {/* Zusammenfassung — klickbar zum Aufklappen */}
               <div className="p-4 flex items-start justify-between gap-3 cursor-pointer select-none" onClick={() => setExpanded((p) => ({ ...p, [task.id]: !p[task.id] }))}>
                 <div className="min-w-0">

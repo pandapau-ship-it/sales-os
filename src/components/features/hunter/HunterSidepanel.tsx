@@ -80,7 +80,7 @@ const DETAIL_MAP: Record<string, { table: 'contact' | 'company'; col: string }> 
 // DetailField · DetailSection · StatusBadge · DetailPhoneList → ausgelagert nach
 // src/components/panel-blocks/ (siehe Imports). Hier nur noch deren Komposition.
 
-export default function HunterSidepanel({ person: personProp, onClose, onExit, variant = 'panel', initialAction = null, initialTab = null, initialDealId = null, initialDealEditId = null, initialFocusField = null }: { person: any; onClose: () => void; onExit?: () => void; variant?: 'panel' | 'full'; initialAction?: 'mail' | 'task' | 'chat' | null; initialTab?: 'overview' | 'deals' | 'tasks' | 'activity' | 'notes' | null; initialDealId?: string | null; initialDealEditId?: string | null; initialFocusField?: string | null }) {
+export default function HunterSidepanel({ person: personProp, onClose, onExit, variant = 'panel', initialAction = null, initialTab = null, initialDealId = null, initialDealEditId = null, initialFocusField = null, initialTaskId = null }: { person: any; onClose: () => void; onExit?: () => void; variant?: 'panel' | 'full'; initialAction?: 'mail' | 'task' | 'chat' | null; initialTab?: 'overview' | 'deals' | 'tasks' | 'activity' | 'notes' | null; initialDealId?: string | null; initialDealEditId?: string | null; initialFocusField?: string | null; initialTaskId?: string | null }) {
   const { organizationId } = useCurrentOrg();
   const { user } = useAuth(); // [D21]: created_by/owner_id der Writes = eingeloggter User (Fallback NULL)
   const [activeTab, setActiveTab] = useState(variant === 'full' ? 'details' : 'overview');
@@ -638,6 +638,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
             onToast={showToast}
             autoEditId={tasksAutoEditId}
             onAutoEditConsumed={() => setTasksAutoEditId(null)}
+            highlightId={initialTaskId}
             taskRows={tasksQuery.data ?? []}
             contactName={profile.name}
             dealOptions={dealOptions}
