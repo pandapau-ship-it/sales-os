@@ -771,7 +771,12 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
   // Panel-Variante — 820px Sheet (Layout unverändert).
   const panelBody = person && (
     <>
-      <header className="p-7 pb-0 bg-app-surface items-start relative z-10 border-b border-border-subtle shrink-0">
+      {/* Fixer weißer Panel-Kopf (Name/Kontaktzeile/Tabs); grauer `main` scrollt darunter.
+          Trennlinie bewusst NICHT hier (und NICHT an der PanelTabs-nav) — sonst zwei border-b
+          (nav eingerückt + header voll-breit) mit weißem Spalt dazwischen. Die EINE Trennlinie
+          sitzt als `border-t` an der Oberkante des grauen `main` → Grau beginnt bündig an der Linie.
+          (Gleiches Muster fürs Farmer-Info-Panel [D33] übernehmen.) */}
+      <header className="pt-7 px-7 bg-app-surface items-start relative z-10 shrink-0">
         <div className="flex items-start justify-between gap-6">
           {identityBlock}
           {/* Rechts auf Namens-Höhe: Status · Heat (wie in der Vollansicht), daneben Aktionen. */}
@@ -794,11 +799,11 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
         <div className="mt-6">{tabNav}</div>
       </header>
 
-      <main className="flex-1 overflow-y-auto p-7 space-y-7 bg-app-bg custom-scrollbar pb-28">
+      <main className="flex-1 min-h-0 overflow-y-auto p-7 space-y-7 bg-app-bg border-y border-border-subtle custom-scrollbar pb-28">
         {tabContent}
       </main>
 
-      <footer className="p-4 border-t border-border-subtle bg-app-surface shrink-0 flex items-center justify-between gap-2 shadow-sm relative z-10">
+      <footer className="px-4 py-2.5 bg-app-surface shrink-0 flex items-center justify-between gap-2 relative z-10">
         {renderActions(panelBtn)}
       </footer>
     </>
@@ -872,7 +877,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
       <Sheet open={isOpen && !showVollansicht} onOpenChange={(open) => { if (!open && !showVollansicht) onClose(); }}>
         <SheetContent
           side="drawer"
-          className="flex flex-col font-sans overflow-hidden p-0 bg-app-surface"
+          className="flex flex-col gap-0 h-full font-sans overflow-hidden p-0 bg-app-surface"
           style={{ width: 820, maxWidth: "95vw" }}
         >
           {panelBody}

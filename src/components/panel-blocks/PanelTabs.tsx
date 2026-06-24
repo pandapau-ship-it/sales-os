@@ -12,7 +12,7 @@ interface PanelTabsProps {
 
 export default function PanelTabs({ tabs, active, onChange }: PanelTabsProps) {
   return (
-    <nav className="flex flex-nowrap border-b border-border-subtle gap-7 overflow-x-auto scrollbar-none w-full">
+    <nav className="flex flex-nowrap gap-7 overflow-x-auto scrollbar-none w-full">
       {tabs.map((tab) => (
         <button
           key={tab.id}
