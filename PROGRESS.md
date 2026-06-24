@@ -598,11 +598,35 @@ kam es, wie groß ist es** — und einen **klaren nächsten Schritt** anstoßen 
   Overlay/Backdrop/Escape/Fokusfalle kommen dann gratis.
 - **Aufwand:** klein–mittel. **Wann:** wenn der AI-SDR-/Task-Drawer-Bereich aktiv drankommt.
 
+### [D43] Historisierung — Zeitreihen & Event-Log (Architektur-Prinzip, deferred)
+- **Grundsatz:** Alle über-Zeit-veränderlichen Daten werden **historisiert**, nicht nur als
+  Momentaufnahme. Vergangenheit ist nachträglich unwiederbringlich → bei JEDEM Daten-Wiring mitdenken.
+  Volle Regel in **CLAUDE.md → „Historisierung — Zeitreihen & Event-Log"**.
+- **Zwei Mechanismen:** (A) **periodische Snapshots** (`usage_snapshots` täglich · `score_snapshots`
+  täglich–wöchentlich · MRR/ARR/NRR monatlich) via Cron — (B) **Event-Log** (`subscription_events`:
+  gebucht/gekündigt/reaktiviert/upgraded/downgraded · `payment_history`) via Trigger/Webhook.
+  Delta-Berechnung in Edge Functions (z.B. `usage_change_pct`), nie im Frontend. Alle Tabellen mit
+  `organization_id` + RLS + CASCADE + Index `(org, customer, datum)`.
+- **Zweck:** AI-Chat-Auswertungen + KPI-Dashboards über Zeit (Typ-2-Query / Custom Dashboards v2/v3) —
+  „−10 % vs. letzter Monat", „in 10 Monaten X bezahlt", „schon mal gekündigt & reaktiviert".
+- **Einordnung (Vorschlag):** als **CLAUDE.md-Dauerregel** verankert (cross-cutting, gilt für ALLE
+  künftigen Daten). **Greift konkret zuerst beim Farmer-DB-Wiring** (erste historisierbare Kundendaten:
+  Usage/Health/Churn/Upsell/Subscription) — d.h. **bevor** die heutigen Farmer-Mock-Felder (Point-in-Time)
+  echt verdrahtet werden, müssen die Snapshot-/Event-Tabellen + Cron stehen. Danach Pflicht-Prüffrage vor
+  jeder neuen veränderlichen Tabelle (in CLAUDE.md hinterlegt). Verwandt: [[D5]] AI-Pipeline · KPI-Dashboards.
+
+### [D44] Flexible Daten-Tabellen (TanStack Table) (deferred)
+- **Bei Bau der Company- + Kontakt-Übersicht** eine **einheitliche Tabellen-Komponente auf TanStack
+  Table** aufsetzen: Spalten **sortieren · ein-/ausblenden · verschieben · filtern**. Gemeinsames
+  Fundament für **alle** Tabellen (Deals, Kontakte, Companies) — nicht pro Tabelle einzeln.
+- **Wann:** Kontakte/Companies-Phase. (Einordnung vorgegeben.) Beachtet die Performance-Leitlinien
+  (Virtualisierung > 50 Zeilen, Keyset-Pagination — siehe „Performance & Data Loading").
+
 ### [TS] Deal-Typ ohne `product` — offener Faden
 - `src/types/hunter.ts` `Deal` hat **kein `product`** (Migration 014 fügte nur die DB-Spalte).
   Beim späteren Produkt-Anzeigen (Pipeline/Deal-Detail) `product?: string` im Typ ergänzen + mappen.
 
-> Anker-Tags `[D1]`–`[D42]` sind im Code referenzierbar (z.B. `hunterMappers.ts` → `[[leads-tab-read]]`).
+> Anker-Tags `[D1]`–`[D44]` sind im Code referenzierbar (z.B. `hunterMappers.ts` → `[[leads-tab-read]]`).
 > Vor Umsetzung eines Punkts: passende Referenz-Doku (`docs/sales_os_edge_functions_v2.md` etc.) lesen.
 
 ---
