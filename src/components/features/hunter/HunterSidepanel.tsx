@@ -799,11 +799,11 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
         <div className="mt-6">{tabNav}</div>
       </header>
 
-      <main className="flex-1 overflow-y-auto p-7 space-y-7 bg-app-bg border-t border-border-subtle custom-scrollbar pb-28">
+      <main className="flex-1 overflow-y-auto p-7 space-y-7 bg-app-bg border-y border-border-subtle custom-scrollbar pb-28">
         {tabContent}
       </main>
 
-      <footer className="p-4 border-t border-border-subtle bg-app-surface shrink-0 flex items-center justify-between gap-2 shadow-sm relative z-10">
+      <footer className="p-4 bg-app-surface shrink-0 flex items-center justify-between gap-2 shadow-sm relative z-10">
         {renderActions(panelBtn)}
       </footer>
     </>
