@@ -803,7 +803,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
         {tabContent}
       </main>
 
-      <footer className="p-4 bg-app-surface shrink-0 flex items-center justify-between gap-2 shadow-sm relative z-10">
+      <footer className="p-4 bg-app-surface shrink-0 flex items-center justify-between gap-2 relative z-10">
         {renderActions(panelBtn)}
       </footer>
     </>
