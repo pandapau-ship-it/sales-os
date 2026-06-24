@@ -16,9 +16,10 @@ function daysSince(iso: string | null): number | null {
  * geteilte HunterCard. Honesty/Signal-getrieben: leere Liste → die Komponente rendert NICHTS
  * (kein Platzhalter). Daten kommen ausschließlich vom Aufrufer — kein Mock mehr.
  */
-export const PipelineStagniertCard = ({ items, onTaskAnlegen, onSelectLead }: {
+export const PipelineStagniertCard = ({ items, onNextStep, onSelectLead }: {
   items: StagnatedCardItem[];
-  onTaskAnlegen?: (item: StagnatedCardItem) => void;
+  /** „Next Step" → öffnet das Stagniert-Action-Panel (KI-Empfehlung), NICHT das Task-Formular. */
+  onNextStep?: (item: StagnatedCardItem) => void;
   onSelectLead?: (item: StagnatedCardItem) => void;
 }) => {
   const { t } = useTranslation();
@@ -50,8 +51,8 @@ export const PipelineStagniertCard = ({ items, onTaskAnlegen, onSelectLead }: {
               </span>
               <span className={ACTION_ROW.strongText}>{t('hunter.card.stagnatedSince', { days: it.stagnationDays })}</span>
             </div>
-            <button onClick={(e) => { e.stopPropagation(); onTaskAnlegen?.(it); }} className={ACTION_ROW.ctaSecondary}>
-              {t('hunter.card.action')}
+            <button onClick={(e) => { e.stopPropagation(); onNextStep?.(it); }} className={ACTION_ROW.ctaSecondary}>
+              {t('hunter.card.nextStep')}
             </button>
           </>
         );

@@ -1,21 +1,25 @@
 import { Clock, Send, ArrowUpRight } from "lucide-react";
 import { ChatActionPanel } from '@/components';
 import type { ChatActionConfig } from '@/components';
+import { AI_PENDING_LABEL } from '@/lib/hunterMappers';
 
-interface StagnatedPerson {
+/**
+ * StagnatedPerson — Datensatz fürs Stagniert-Action-Panel. KI-Felder sind OPTIONAL und bleiben
+ * bis zur AI-Pipeline ([D5]) NULL → ehrlicher „Folgt"-Platzhalter (kein Fake-Draft), exakt wie
+ * ContactColdDrawer/SignalActionDrawer/farmerActions.
+ */
+export interface StagnatedPerson {
   name: string;
   company: string;
   avatarUrl?: string;
-  icpScore: number;
+  icpScore?: number;
   daysStagnated: number;
   stageName: string;
-  lastContactDays: number;
-  arr: string;
-  probability: string;
-  aiRecommendation: string;
-  aiInsight: string;
-  tags: string[];
-  confidence: number;
+  lastContactDays?: number;
+  // KI-Felder — NULL bis AI-Pipeline [D5]
+  aiRecommendation?: string;
+  draft?: string | null;
+  confidence?: number | null;
 }
 
 interface PipelineStagnatedDrawerProps {
@@ -33,40 +37,47 @@ function nextStageFor(current: string): string {
 }
 
 /**
- * PipelineStagnatedDrawer — Action Panel für stagnierte Deals. Nutzt die gemeinsame
- * ChatActionPanel-Basis (identischer Aufbau/Design/Breite wie alle Action-Panels),
- * hier mit E-Mail-Reaktivierungs-Entwurf + „Senden + Stage wechseln".
+ * PipelineStagnatedDrawer — Action Panel für stagnierte Deals (Spec: „Next Step"). Nutzt die
+ * gemeinsame ChatActionPanel-Basis (UNVERÄNDERT — identischer Aufbau/Design/Breite wie alle
+ * Action-Panels). HONESTY: Empfehlung/Entwurf sind „Folgt"-Platzhalter bis [D5]; die Send-/
+ * Stage-Actions erscheinen automatisch, sobald ein echter KI-Draft existiert (wie bei Hunter/Farmer).
  */
 export default function PipelineStagnatedDrawer({ person, onClose, onTakeAction }: PipelineStagnatedDrawerProps) {
   const config: ChatActionConfig | null = person
     ? ((): ChatActionConfig => {
-        const fn = person.name.split(" ")[0];
         const next = nextStageFor(person.stageName);
         const rcpt = `${person.name.toLowerCase().replace(/[^a-z ]/g, "").trim().split(/\s+/).join(".")}@${person.company.toLowerCase().replace(/[^a-z]/g, "")}.de`;
+        const hasDraft = !!person.draft;
+        // Banner-Text nur aus echten Werten (Honesty: fehlt → weglassen).
+        const bannerText = [
+          `${person.daysStagnated} Tage in „${person.stageName}"`,
+          person.lastContactDays != null ? `seit ${person.lastContactDays} Tagen kein Kontakt` : null,
+        ].filter(Boolean).join(" · ");
         return {
           person: { name: person.name, company: person.company, avatarUrl: person.avatarUrl },
-          headerBadge: { label: `ICP: ${person.icpScore}`, tone: "success" },
+          headerBadge: person.icpScore != null
+            ? { label: `ICP: ${person.icpScore}`, tone: "success" }
+            : { label: "Stagniert", tone: "urgent" },
           statusDotTone: "urgent",
           banner: {
             tone: "urgent",
             icon: <Clock className="w-3 h-3" />,
             label: "Deal stagniert",
-            text: `${person.daysStagnated} Tage in „${person.stageName}" · seit ${person.lastContactDays} Tagen kein Kontakt`,
+            text: bannerText,
           },
-          recommendation: { text: person.aiRecommendation, confidence: person.confidence },
-          draft: {
-            channel: "email",
-            to: rcpt,
-            subject: "Kurzer Abgleich nach unserer Demo",
-            body: `Hi ${fn},\n\nnach unserer Demo ist es etwas ruhig geworden — ich wollte kurz nachfassen, ob das Thema BDR-Ramp-up bei euch intern noch Priorität hat.\n\nGerne teile ich einen kompakten ROI-Überblick, zugeschnitten auf euer Team. Hättest du diese Woche 15 Minuten für einen kurzen Austausch?\n\nViele Grüße`,
-            regenerated: `Hi ${fn},\n\ndanke nochmal für die Demo. Mich interessiert, ob das Thema intern weiter priorisiert wird — hast du diese Woche 15 Minuten für einen kurzen Abgleich? Ich bringe einen konkreten ROI-Case mit.\n\nViele Grüße`,
-          },
-          intro: `Der Deal stagniert seit ${person.daysStagnated} Tagen in „${person.stageName}". Ich habe einen Reaktivierungs-Entwurf vorbereitet:`,
-          outro: "Du kannst die E-Mail direkt senden, anpassen oder mir sagen, was ich ändern soll.",
-          actions: [
-            { label: "E-Mail senden", icon: <Send className="w-3.5 h-3.5" />, primary: true, toast: "E-Mail gesendet", run: onTakeAction },
-            { label: `Senden + Stage → ${next}`, icon: <ArrowUpRight className="w-3.5 h-3.5" />, toast: `Gesendet · Stage → ${next}`, run: onTakeAction },
-          ],
+          recommendation: { text: person.aiRecommendation ?? AI_PENDING_LABEL, confidence: person.confidence ?? null },
+          draft: person.draft ? { channel: "email", to: rcpt, subject: "Kurzer Abgleich", body: person.draft } : null,
+          intro: hasDraft
+            ? `Der Deal stagniert seit ${person.daysStagnated} Tagen in „${person.stageName}". Ich habe einen Reaktivierungs-Entwurf vorbereitet:`
+            : `Der Deal stagniert seit ${person.daysStagnated} Tagen in „${person.stageName}". Ein KI-Reaktivierungsentwurf folgt mit der AI-Pipeline:`,
+          outro: hasDraft ? "Du kannst die E-Mail direkt senden, anpassen oder mir sagen, was ich ändern soll." : undefined,
+          // Actions erscheinen nur mit echtem Draft (→ automatisch mit [D5]); vorher keine Send-Buttons.
+          actions: hasDraft
+            ? [
+                { label: "E-Mail senden", icon: <Send className="w-3.5 h-3.5" />, primary: true, toast: "E-Mail gesendet", run: onTakeAction },
+                { label: `Senden + Stage → ${next}`, icon: <ArrowUpRight className="w-3.5 h-3.5" />, toast: `Gesendet · Stage → ${next}`, run: onTakeAction },
+              ]
+            : [],
         };
       })()
     : null;

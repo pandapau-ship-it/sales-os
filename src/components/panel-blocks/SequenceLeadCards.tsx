@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { ClipboardList, CheckCircle2 } from 'lucide-react';
+import { ClipboardList, CheckCircle2, Eye } from 'lucide-react';
 import HunterCard, { type HunterCardData } from './HunterCard';
 import EmptyState from '@/components/shared/EmptyState';
 import { ACTION_ROW } from '@/lib/componentBehavior';
@@ -29,10 +29,13 @@ function overdueDays(iso: string | null): number | null {
 export const SequenceLeadCards = ({
   items,
   onSelectLead,
+  onView,
   onComplete,
 }: {
   items?: DueTaskCardItem[];
   onSelectLead?: (lead: Lead) => void;
+  /** „Ansehen" → öffnet die Task im Detail (Info-Panel, Tasks-Tab) + Deeplink-Highlight (Task-ID). */
+  onView?: (lead: Lead, taskId: string) => void;
   /** Task erledigt (T4a): setzt completed_at → Karte verschwindet nach Invalidate. */
   onComplete?: (taskId: string) => void;
 }) => {
@@ -95,15 +98,26 @@ export const SequenceLeadCards = ({
                 </>
               )}
             </div>
-            {onComplete && (
-              <button
-                onClick={(e) => { e.stopPropagation(); onComplete(it.id); }}
-                className={`${ACTION_ROW.ctaSecondary} inline-flex items-center gap-1.5 shrink-0`}
-              >
-                <CheckCircle2 className="w-3.5 h-3.5 text-[var(--signal-success-text)]" strokeWidth={2.5} />
-                {t('hunter.followUps.markDone')}
-              </button>
-            )}
+            <div className="flex items-center gap-2 shrink-0">
+              {onView && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); onView(buildLead(it), it.id); }}
+                  className={`${ACTION_ROW.ctaSecondary} inline-flex items-center gap-1.5 shrink-0`}
+                >
+                  <Eye className="w-3.5 h-3.5" />
+                  {t('hunter.followUps.view')}
+                </button>
+              )}
+              {onComplete && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); onComplete(it.id); }}
+                  className={`${ACTION_ROW.ctaSecondary} inline-flex items-center gap-1.5 shrink-0`}
+                >
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[var(--signal-success-text)]" strokeWidth={2.5} />
+                  {t('hunter.followUps.markDone')}
+                </button>
+              )}
+            </div>
           </>
         );
 

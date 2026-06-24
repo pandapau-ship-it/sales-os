@@ -283,6 +283,7 @@
       "dueToday": "heute fällig",
       "dueAgo": "fällig vor {{label}}",
       "markDone": "Erledigt",
+      "view": "Ansehen",
       "emptyTitle": "Keine fälligen Tasks",
       "emptyDesc": "Nichts zu tun — alle Follow-ups erledigt.",
       "coldSection": "Frío e inactivo"
@@ -357,6 +358,7 @@
       "stagnatedHint": "Achtung — Deal stagniert seit 14 Tagen, Follow-Up empfohlen",
       "stagnatedSince": "Deal estancado desde hace {{days}} días",
       "action": "Action",
+      "nextStep": "Next Step",
       "noTask": "Keine Task",
       "noTaskHint": "Pflicht — Deal braucht eine offene Aufgabe",
       "noTaskFollowup": "Sin seguimiento programado",

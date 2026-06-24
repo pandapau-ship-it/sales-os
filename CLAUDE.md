@@ -408,6 +408,21 @@ getönt, per Portal (kein Clipping durch overflow/scroll). **Kein** natives `tit
 - `data-tip` und `aria-label` gleich halten · `aria-label` bleibt Pflicht (A11y), `data-tip` ist der sichtbare Hover-Text.
 - Funktioniert auf JEDEM Element mit `data-tip` (nicht nur Buttons), app-weit, ohne weiteren Code.
 
+**Deeplink-Highlight (verbindlich für ALLE Sprünge zu einem bestimmten Element):**
+Immer wenn der User von einem Ort zu einem konkreten Ziel-Element springt (Ansehen-Button, Signal→Deal,
+„Alle anzeigen", Cmd+K-Navigation, Benachrichtigung→Element …), gilt:
+1. **Ziel kommt aufgeklappt/sichtbar an** — der User muss es NICHT erst suchen oder anklicken.
+2. **Ziel leuchtet kurz sanft auf** — reiner Flächen-Tint (**kein Ring/Border**), leichtes erkennbares
+   Grün (`color-mix` aus `--sherloq-primary` ~12 % — **nicht** der fast unsichtbare `--signal-teal-bg`;
+   **nie rot/gelb, nie grell**), verblasst nach ~1.5s. Sichtbar gegen den grauen App-BG, aber subtil.
+3. **Subtil + temporär** — nie dauerhaft markiert.
+Umsetzung **zentral, nicht pro Stelle neu**: CSS-Utility **`.deeplink-flash`** (`index.css`, respektiert
+`prefers-reduced-motion`) + Hook **`useDeeplinkHighlight(highlightId)`** (`hooks/`, übernimmt Scroll +
+Flash-Timing; Ziel-Element trägt `data-flash-id="<id>"`). Listen nehmen einen **`highlightId`-Prop**
+(klappen die Ziel-Row auf + setzen die Flash-Klasse) — analog zur `auto*`-Id-Konvention (`autoEditId` etc.).
+Erste Anwendung: Follow-up „Ansehen" → Tasks-Tab, Task aufgeklappt + Flash (`SequenceLeadCards.onView` →
+`HunterSidepanel.initialTaskId` → `TasksListe.highlightId`).
+
 **Badge / Status-Pill Muster (verbindlich für ALLE Screens):**
 
 NIEMALS Emojis in Badges (✅ ✖️ 🆕 ⌛ etc.) — immer Lucide-Icons.

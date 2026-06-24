@@ -29,6 +29,7 @@ export { default as KommunikationLogModal } from './features/hunter/Kommunikatio
 export { default as NoTaskDrawer } from './features/hunter/NoTaskDrawer';
 export * from './features/hunter/NoTaskDrawer';
 export { default as PipelineStagnatedDrawer } from './features/hunter/PipelineStagnatedDrawer';
+export type { StagnatedPerson } from './features/hunter/PipelineStagnatedDrawer';
 export { default as SignalActionDrawer } from './features/hunter/SignalActionDrawer';
 export * from './features/hunter/SignalActionDrawer';
 export { default as TaskDrawer } from './features/hunter/TaskDrawer';
