@@ -1,6 +1,6 @@
 /**
  * AddSdrLeadPanel — Side-Panel zum Anlegen eines SDR-Leads (Design).
- * Shell: panels/ActionPanel (50vw Sheet „drawer"). Nur Tokens aus index.css.
+ * Shell: panels/ActionPanel (720px Sheet „drawer", Action-Panel-Breite). Nur Tokens aus index.css.
  * Progressive Disclosure:
  *   Stufe 1 (immer sichtbar, Pflicht): Vorname/Nachname · E-Mail ODER LinkedIn · Firma
  *   Stufe 2 (aufklappbar): Anrede · Rolle · Telefon · Owner · Quelle · Stage · Notizen

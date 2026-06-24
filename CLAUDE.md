@@ -963,6 +963,44 @@ Full schema in `docs/database.md`. Key points:
 
 ---
 
+## Historisierung — Zeitreihen & Event-Log (Architektur-Prinzip, Pflicht)
+
+> **GRUNDSATZ: Alle Daten, die sich über Zeit ändern, werden HISTORISIERT — nicht nur als
+> Momentaufnahme gespeichert.** Wer nur den Ist-Wert hält, kann später keine Veränderung
+> auswerten („−10 % vs. letzter Monat", „schon mal gekündigt & reaktiviert"). Vergangenheit
+> ist nachträglich **unwiederbringlich verloren** — darum bei JEDEM Daten-Wiring von Anfang
+> an mitdenken. Roadmap-Anker: **[D43]** (greift spätestens beim Farmer-DB-Wiring, gilt aber
+> für ALLE künftigen über-Zeit-veränderlichen Daten).
+
+Zwei Mechanismen — je nach Natur des Werts:
+
+**A) Periodische Snapshots — für kontinuierlich veränderliche Werte.**
+Periode **pro Datentyp** nach Änderungsgeschwindigkeit (nicht starr monatlich für alles):
+- Usage-Metriken → **täglich** · Health/Churn/Upsell-Score → **täglich–wöchentlich** · MRR/ARR/NRR → **monatlich**.
+- Tabellen: `usage_snapshots`, `score_snapshots` mit `(organization_id, customer_id, snapshot_date, <werte>)`.
+- Befüllung: **Cron** (pg_cron / Edge Function), idempotent pro `(customer_id, snapshot_date)`.
+
+**B) Event-Log — für diskrete Ereignisse** (lückenlos, auch zwischen zwei Snapshots):
+- `subscription_events` `(organization_id, customer_id, event_type, occurred_at, details JSONB)` —
+  `event_type` = gebucht · gekündigt · reaktiviert · upgraded · downgraded.
+- `payment_history` `(organization_id, customer_id, amount, currency, paid_at, …)`.
+- Befüllung: DB-**Trigger** / Webhook (Billing), nie nur Frontend.
+
+**Regeln:**
+- **Delta-/Veränderungs-Berechnung läuft in Edge Functions** (kein Business-Logic im Frontend) und
+  wird als Feld/Filter exponiert (z.B. `usage_change_pct`) — die AI-Chat-Filter referenzieren nur dieses Feld.
+- Snapshot/Event-Tabellen folgen den SaaS-Pflichtregeln: `organization_id` + RLS (`org_isolation`) +
+  `ON DELETE CASCADE` + Index auf `(organization_id, customer_id, <datum>)`.
+- **Zweck:** spätere AI-Chat-Auswertungen + KPI-Dashboards über Zeit (siehe AI-Chat Typ 2 / Custom
+  Dashboards v2/v3) — z.B. „Kunden, die 10 % schlechter performen als letzten Monat" (Snapshots),
+  „in 10 Monaten X bezahlt" (payment_history), „schon mal gekündigt & reaktiviert" (subscription_events).
+
+**Prüffrage vor jeder neuen Tabelle/jedem Feld mit über-Zeit-veränderlichen Werten:**
+*„Will ich davon je eine Veränderung/Verlauf auswerten?"* → wenn ja: Snapshot **oder** Event-Log
+**mitbauen** (nicht nur den Ist-Wert). Niemals einen veränderlichen Kundenwert ohne Historie wiren.
+
+---
+
 ## Coding Standards
 
 ### Comments: English, Always WHY Not WHAT
@@ -4475,7 +4513,11 @@ Zwei klar getrennte Panel-Typen (verbindlich für Hunter, Farmer und alle Screen
 
 ### Action Panel
 - **Öffnet sich:** Klick auf CTA in Signal-Zeile (Next Step · Retention sichern · Task anlegen etc.)
-- **Breite:** 580px
+- **Breite:** **720px FIX** (nicht `50vw`/viewport-relativ). Breiter als der Standard-Default, weil die
+  Panels **Chat + KI-Drafts + längere Texte** enthalten; leicht schmaler als das Info-Panel (820px) =
+  eigene fokussierte Ebene. Zentral in `ChatActionPanel` (`SheetContent style={{ width: 720, maxWidth:
+  '95vw' }}`) → gilt automatisch für **alle** Action-Panels (Hunter **und** Farmer). `maxWidth 95vw` als
+  Überlauf-Schutz auf schmalen Viewports. **Nie auf `50vw` zurückdriften.**
 - **Schließt:** automatisch nach erfolgreicher Aktion
 - **Nach Aktion:** Toast unten rechts + Badge in Kachel aktualisiert sich + Realtime-Update ohne Reload
 - **Kein Tab-System** — einspaltiger Fokus auf eine Aktion

@@ -9,7 +9,7 @@ import BrandLogo from "@/components/shared/BrandLogo";
 /**
  * ChatActionPanel — gemeinsame Basis für ALLE Action-Panels (Deal stagniert,
  * LinkedIn Signal, Cold …). Identischer Aufbau, identisches Chat-Design, identische
- * Breite (50vw) — pro Aktion nur anderer Inhalt (Banner, AI-Empfehlung, Entwurf, Aktionen).
+ * Breite (720px fix) — pro Aktion nur anderer Inhalt (Banner, AI-Empfehlung, Entwurf, Aktionen).
  *
  * Aufbau:
  *   1. Header (Avatar · Name · Kontext-Badge · X)
@@ -150,7 +150,11 @@ export default function ChatActionPanel({ open, config, onClose }: ChatActionPan
   return (
     <>
       <Sheet open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
-        <SheetContent side="drawer" className="flex flex-col font-sans overflow-hidden p-0 bg-app-surface" style={{ width: "50vw", maxWidth: "95vw", minWidth: 480 }}>
+        {/* Action-Panel-Breite: 720px FIX (nicht viewport-relativ) — breiter als der Standard-Default,
+            weil die Panels Chat + KI-Drafts + längere Texte enthalten; leicht schmaler als das
+            820px-Info-Panel = eigene fokussierte Ebene. Zentral → gilt für alle Action-Panels
+            (Hunter+Farmer). maxWidth 95vw schützt schmale Viewports vor Überlauf. */}
+        <SheetContent side="drawer" className="flex flex-col font-sans overflow-hidden p-0 bg-app-surface" style={{ width: 720, maxWidth: "95vw" }}>
           {s && (
             <>
               {/* HEADER */}
