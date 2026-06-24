@@ -9,27 +9,29 @@
  *    (Slice 2: Flags als Mock; echte Score-/Signal-Logik kommt mit dem Farmer-DB-Wiring.)
  * Kein Signal aktiv → Sektion erscheint gar nicht.
  */
-import { AlertTriangle, Clock, Zap, Snowflake } from "lucide-react";
+import { AlertTriangle, Clock, Zap, Snowflake, XCircle } from "lucide-react";
 
 export default function AktiveSignale({
   stagnationDays, stageLabel, noOpenTask, onStagnant, onNoTask,
-  churnRisk, upsell, goingCold, onChurn, onUpsell, onCold,
+  churnRisk, upsell, goingCold, cancelled, onChurn, onUpsell, onCold, onCancelled,
 }: {
   stagnationDays?: number;
   stageLabel?: string;
   noOpenTask?: boolean;
   onStagnant?: () => void;
   onNoTask?: () => void;
-  // Farmer-Signale (additiv, [D33])
+  // Farmer-Signale (additiv, [D33]/[D34])
   churnRisk?: boolean;
   upsell?: boolean;
   goingCold?: boolean;
+  cancelled?: boolean;
   onChurn?: () => void;
   onUpsell?: () => void;
   onCold?: () => void;
+  onCancelled?: () => void;
 }) {
   const stagnant = (stagnationDays ?? 0) > 0 && !!stageLabel;
-  if (!stagnant && !noOpenTask && !churnRisk && !upsell && !goingCold) return null; // kein Signal → Sektion komplett weg
+  if (!stagnant && !noOpenTask && !churnRisk && !upsell && !goingCold && !cancelled) return null; // kein Signal → Sektion komplett weg
 
   return (
     <div className="space-y-2">
@@ -64,6 +66,12 @@ export default function AktiveSignale({
           <div className="p-4 bg-[var(--signal-info-bg)] border border-[var(--border-card)] rounded-[12px] flex items-center justify-between text-xs text-[var(--signal-info-text)] font-semibold">
             <span className="flex items-center gap-2"><Snowflake className="w-4 h-4" /> Kunde wird kalt</span>
             <button onClick={onCold} className="text-[var(--signal-info-text)] hover:underline font-bold">Start Outreach →</button>
+          </div>
+        )}
+        {cancelled && (
+          <div className="p-4 bg-[var(--signal-urgent-bg)] border border-[var(--border-card)] rounded-[12px] flex items-center justify-between text-xs text-[var(--signal-urgent-text)] font-semibold">
+            <span className="flex items-center gap-2"><XCircle className="w-4 h-4" /> Gekündigt</span>
+            <button onClick={onCancelled} className="text-[var(--signal-urgent-text)] hover:underline font-bold">Jetzt anrufen →</button>
           </div>
         )}
       </div>

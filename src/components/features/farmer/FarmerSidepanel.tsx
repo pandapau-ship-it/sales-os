@@ -8,11 +8,11 @@ import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 import Avatar from '@/components/shared/Avatar';
 import {
-  AktiveSignale, AktivitaetsVerlauf, HeatBadge, KommunikationKompakt, KommunikationVerlauf,
-  KontaktZeile, NotizenListe, OffeneTasks, PanelTabs, SubscriptionBadge, SubscriptionBox,
-  TasksListe, UsageBox,
+  AktiveSignale, AktivitaetsVerlauf, FarmerActionDrawer, HeatBadge, KommunikationKompakt,
+  KommunikationVerlauf, KontaktZeile, NotizenListe, OffeneTasks, PanelTabs, SubscriptionBadge,
+  SubscriptionBox, TasksListe, UsageBox,
 } from '@/components';
-import type { SubscriptionData, UsageData } from '@/components';
+import type { SubscriptionData, UsageData, FarmerActionData } from '@/components';
 import type { Lead, Customer } from '@/types';
 import type { CommunicationView } from '@/lib/hunterMappers';
 
@@ -45,6 +45,7 @@ type FarmerTab = 'overview' | 'activity' | 'communication' | 'tasks' | 'subscrip
 
 export default function FarmerSidepanel({ person: personProp, onClose }: { person: Lead | Customer | null; onClose: () => void }) {
   const [activeTab, setActiveTab] = useState<FarmerTab>('overview');
+  const [actionSignal, setActionSignal] = useState<FarmerActionData | null>(null); // [D34] Farmer Action Panel
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const showToast = (msg: string) => { setToastMessage(msg); setTimeout(() => setToastMessage(null), 1800); };
 
@@ -164,9 +165,25 @@ export default function FarmerSidepanel({ person: personProp, onClose }: { perso
             churnRisk
             upsell
             goingCold
-            onChurn={() => showToast('Action Panel folgt [D34]')}
-            onUpsell={() => showToast('Action Panel folgt [D34]')}
-            onCold={() => showToast('Action Panel folgt [D34]')}
+            cancelled
+            onChurn={() => setActionSignal({
+              kind: 'churn_risk', name: person.person.name, company: person.person.company,
+              avatarUrl: person.person.avatarUrl, icpScore: person.icpScore,
+              churnScore: 78, lastLoginDays: 21, usageDropPct: 40,
+            })}
+            onUpsell={() => setActionSignal({
+              kind: 'upsell_potential', name: person.person.name, company: person.person.company,
+              avatarUrl: person.person.avatarUrl, icpScore: person.icpScore,
+              seatUtilizationPct: 92, featureUsageUp: true, nps: 9,
+            })}
+            onCold={() => setActionSignal({
+              kind: 'going_cold', name: person.person.name, company: person.person.company,
+              avatarUrl: person.person.avatarUrl, lastContactDays: 18,
+            })}
+            onCancelled={() => setActionSignal({
+              kind: 'cancelled', name: person.person.name, company: person.person.company,
+              avatarUrl: person.person.avatarUrl, cancelledDate: '31.07.2026', cancelReason: 'Budget gestrichen',
+            })}
           />
           <OffeneTasks
             taskRows={MOCK_TASKS}
@@ -280,6 +297,16 @@ export default function FarmerSidepanel({ person: personProp, onClose }: { perso
           {panelBody}
         </SheetContent>
       </Sheet>
+
+      {/* [D34] Farmer Action Panel — Churn Risk / Kunde wird kalt. Renderer = ChatActionPanel (unverändert).
+          KI-Felder NULL → „Folgt"-Platzhalter; Buttons (Task/Snooze/Senden) erscheinen mit Draft ([D5]). */}
+      <FarmerActionDrawer
+        signal={actionSignal}
+        onClose={() => setActionSignal(null)}
+        onCreateTask={() => { setActionSignal(null); setActiveTab('tasks'); showToast('Task erstellt ✓'); }}
+        onWinbackCall={() => showToast('Anruf protokolliert ✓')}
+        onSnooze={() => showToast('Auf später verschoben')}
+      />
 
       {toastMessage && (
         <div className="fixed bottom-6 right-6 z-[200] bg-inverse-surface text-on-accent px-4 py-2.5 rounded-[12px] shadow-2xl flex items-center gap-2 animate-fade-in">

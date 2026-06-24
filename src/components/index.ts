@@ -35,6 +35,8 @@ export { default as TaskDrawer } from './features/hunter/TaskDrawer';
 
 // ── features/farmer/ ────────────────────────────────────────────────────────
 export { default as FarmerSidepanel } from './features/farmer/FarmerSidepanel';
+export { default as FarmerActionDrawer } from './features/farmer/FarmerActionDrawer';
+export type { FarmerActionData, FarmerSignalKind, FarmerActionType } from './features/farmer/FarmerActionDrawer';
 
 // ── features/settings/ ──────────────────────────────────────────────────────
 export { default as TeamSettings } from './features/settings/TeamSettings';

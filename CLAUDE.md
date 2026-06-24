@@ -4513,7 +4513,11 @@ Zwei klar getrennte Panel-Typen (verbindlich für Hunter, Farmer und alle Screen
 
 ### Action Panel
 - **Öffnet sich:** Klick auf CTA in Signal-Zeile (Next Step · Retention sichern · Task anlegen etc.)
-- **Breite:** 580px
+- **Breite:** **720px FIX** (nicht `50vw`/viewport-relativ). Breiter als der Standard-Default, weil die
+  Panels **Chat + KI-Drafts + längere Texte** enthalten; leicht schmaler als das Info-Panel (820px) =
+  eigene fokussierte Ebene. Zentral in `ChatActionPanel` (`SheetContent style={{ width: 720, maxWidth:
+  '95vw' }}`) → gilt automatisch für **alle** Action-Panels (Hunter **und** Farmer). `maxWidth 95vw` als
+  Überlauf-Schutz auf schmalen Viewports. **Nie auf `50vw` zurückdriften.**
 - **Schließt:** automatisch nach erfolgreicher Aktion
 - **Nach Aktion:** Toast unten rechts + Badge in Kachel aktualisiert sich + Realtime-Update ohne Reload
 - **Kein Tab-System** — einspaltiger Fokus auf eine Aktion
