@@ -799,7 +799,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
         <div className="mt-6">{tabNav}</div>
       </header>
 
-      <main className="flex-1 overflow-y-auto p-7 space-y-7 bg-app-bg border-y border-border-subtle custom-scrollbar pb-28">
+      <main className="flex-1 min-h-0 overflow-y-auto p-7 space-y-7 bg-app-bg border-y border-border-subtle custom-scrollbar pb-28">
         {tabContent}
       </main>
 
@@ -877,7 +877,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
       <Sheet open={isOpen && !showVollansicht} onOpenChange={(open) => { if (!open && !showVollansicht) onClose(); }}>
         <SheetContent
           side="drawer"
-          className="flex flex-col font-sans overflow-hidden p-0 bg-app-surface"
+          className="flex flex-col gap-0 h-full font-sans overflow-hidden p-0 bg-app-surface"
           style={{ width: 820, maxWidth: "95vw" }}
         >
           {panelBody}
