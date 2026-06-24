@@ -598,11 +598,27 @@ kam es, wie groß ist es** — und einen **klaren nächsten Schritt** anstoßen 
   Overlay/Backdrop/Escape/Fokusfalle kommen dann gratis.
 - **Aufwand:** klein–mittel. **Wann:** wenn der AI-SDR-/Task-Drawer-Bereich aktiv drankommt.
 
+### [D45] Deeplink-Highlight an allen relevanten Sprung-Stellen anwenden (deferred)
+> Hinweis: `[D43]` (Historisierung) + `[D44]` (flexible Daten-Tabellen) sind auf Branch
+> `feature/farmer-info-panel` vergeben (hier noch nicht gemergt) — daher direkt `[D45]`.
+- Das Muster (`useDeeplinkHighlight` + `.deeplink-flash` + `highlightId`-Prop) ist **zentral gebaut**
+  und als **globale Regel in CLAUDE.md** verankert (Design Invariants → „Deeplink-Highlight").
+- **Aktuell angewendet:** NUR der **„Ansehen"-Button** (fällige Task → Tasks-Tab, aufgeklappt + Flash).
+- **Noch anzuwenden — inkrementell** (jeweils wenn wir an der Stelle eh dran sind, NICHT als ein Block):
+  - Signal → betroffener Deal/Kontakt
+  - „Alle anzeigen" → Liste mit relevantem Eintrag oben/aufgeklappt
+  - Cmd+K-Navigation → Ziel-Element
+  - Benachrichtigung → auslösendes Element
+  - Dashboard / Mein Tag → Detail-Sprünge
+- Jede Anwendung = kleiner Handgriff (`highlightId` durchreichen + Liste pre-expand), **kein Neubau**.
+  **Beim Bau jeder neuen Sprung-Stelle prüfen, ob das Muster dort gehört.** Verwandt: [[D33]]/[[D34]].
+
 ### [TS] Deal-Typ ohne `product` — offener Faden
 - `src/types/hunter.ts` `Deal` hat **kein `product`** (Migration 014 fügte nur die DB-Spalte).
   Beim späteren Produkt-Anzeigen (Pipeline/Deal-Detail) `product?: string` im Typ ergänzen + mappen.
 
-> Anker-Tags `[D1]`–`[D42]` sind im Code referenzierbar (z.B. `hunterMappers.ts` → `[[leads-tab-read]]`).
+> Anker-Tags `[D1]`–`[D45]` sind im Code referenzierbar (z.B. `hunterMappers.ts` → `[[leads-tab-read]]`).
+> (`[D43]`/`[D44]` auf Branch `feature/farmer-info-panel`, hier noch nicht gemergt.)
 > Vor Umsetzung eines Punkts: passende Referenz-Doku (`docs/sales_os_edge_functions_v2.md` etc.) lesen.
 
 ---
