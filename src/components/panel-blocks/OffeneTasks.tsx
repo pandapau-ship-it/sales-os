@@ -73,7 +73,7 @@ export default function OffeneTasks({
               className={`group p-4 rounded-[12px] flex items-center justify-between gap-3 cursor-pointer transition-all ${due_now ? "bg-[var(--signal-warn-bg)] border border-[var(--border-card)]" : "bg-app-surface border border-[var(--border-card)] hover:bg-app-bg"}`}
             >
               <div className="min-w-0">
-                <p className={`text-xs font-bold truncate ${due_now ? "text-[var(--signal-warn-text)]" : "text-text-primary"}`}>{(task.title as string) || "Task"}</p>
+                <p className={`typo-card-title truncate ${due_now ? "text-[var(--signal-warn-text)]" : "text-text-primary"}`}>{(task.title as string) || "Task"}</p>
                 {(dueLabel || channel) && (
                   <span className={`text-[10px] font-semibold flex items-center gap-1.5 mt-1 ${due_now ? "text-[var(--signal-warn-text)]" : "text-text-muted"}`}>
                     {due_now && <AlertTriangle className="w-[10px] h-[10px]" />}
