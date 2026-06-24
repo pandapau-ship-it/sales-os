@@ -39,10 +39,11 @@ const sheetVariants = cva(
         left: "inset-y-0 left-0 h-full w-3/4 border-r border-border data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left sm:max-w-sm",
         right:
           "inset-y-0 right-0 h-full w-3/4 border-l border-border data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right sm:max-w-sm",
-        // Floating drawer variant — rounded panel with margin (used by CustomerDrawer)
-        // bg-app-bg → folgt Dark Mode · sheet-drawer → Slide-Animation (index.css)
+        // Full-bleed Arbeits-Panel: bündig oben/unten/rechts am Bildschirmrand, volle Höhe,
+        // nur die linke Kante (zum Inhalt) abgerundet + Border. bg-app-bg → Dark Mode ·
+        // sheet-drawer → Slide-Animation (index.css). Gilt für Hunter-Panel, CustomerDrawer u.a.
         drawer:
-          "top-2 bottom-2 right-2 w-full max-w-[850px] rounded-[16px] bg-app-bg border border-border sheet-drawer",
+          "inset-y-0 right-0 w-full max-w-[850px] rounded-l-[16px] rounded-r-none bg-app-bg border-l border-border sheet-drawer",
       },
     },
     defaultVariants: {

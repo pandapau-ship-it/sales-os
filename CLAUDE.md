@@ -160,6 +160,14 @@ Buttons → **`button`** · Tooltips → **`tooltip`** · Cmd+K → **`command`*
 Ein natives `<select>`/`<button>` oder ein eigener `fixed`-Overlay statt `sheet` ist ein
 **Regelverstoß, kein Stilfrage**. Fehlt ein Primitiv: `npx shadcn add [component]`.
 
+**Große Arbeits-Panels — Full-Bleed (verbindlich):** Hunter-Info-Panel, Farmer-Info-Panel ([D33]),
+Action-Panels ([D34]) u.a. nutzen `sheet` `side="drawer"` und sind **bündig am Bildschirmrand**
+(`inset-y-0 right-0`, volle Höhe), nur die **linke Kante** ist gerundet + hat Border
+(`rounded-l-[16px] rounded-r-none border-l`). **Kein schwebender Drawer-Stil** (kein `top-2 bottom-2`-Inset).
+Quelle: `ui/sheet.tsx` Drawer-Variante (zentral). Innen: `SheetContent` = `flex flex-col gap-0 h-full`,
+scrollender `main` = `flex-1 min-h-0 overflow-y-auto` (füllt bis zum Footer), Trennlinien als
+`border-y` am grauen `main` (nicht am Header/Footer).
+
 **Eingabe-im-Popover-Regel (Pflicht — sonst kann man nicht tippen):**
 Ein `Popover` (oder Dropdown) mit `<input>`/`<textarea>` **innerhalb eines modalen Sheets/Dialogs**
 MUSS `<PopoverContent portal={false}>` setzen. Sonst rendert der Inhalt per Portal außerhalb des
