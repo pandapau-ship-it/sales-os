@@ -771,6 +771,11 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
   // Panel-Variante — 820px Sheet (Layout unverändert).
   const panelBody = person && (
     <>
+      {/* Fixer weißer Panel-Kopf (Name/Kontaktzeile/Tabs); grauer `main` scrollt darunter.
+          WICHTIG: pt-7 px-7 statt `p-7 pb-0` — `p-7` (shorthand) kann `pb-0` je nach CSS-Reihenfolge
+          (v.a. Dev-Build) überschreiben → 28px weißes padding-bottom unter der Tab-Trennlinie.
+          Explizites pt-/px- setzt NIE padding-bottom → grauer Inhalt beginnt bündig an der Trennlinie.
+          (Gleiches Muster für das Farmer-Info-Panel [D33] übernehmen.) */}
       <header className="pt-7 px-7 bg-app-surface items-start relative z-10 border-b border-border-subtle shrink-0">
         <div className="flex items-start justify-between gap-6">
           {identityBlock}
