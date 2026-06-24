@@ -15,7 +15,7 @@ export interface NoTaskDrawerProps {
 }
 
 /**
- * NoTaskDrawer — Action Panel „Keine Task": Sheet-„drawer"-Shell (50vw) + Toast.
+ * NoTaskDrawer — Action Panel „Keine Task": Sheet-„drawer"-Shell (720px, Action-Panel-Breite) + Toast.
  * Der Inhalt (Header + Task-Formular) liegt im panel-block `TaskAnlegenForm`.
  */
 export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
@@ -36,7 +36,7 @@ export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
   return (
     <>
       <Sheet open={isOpen} onOpenChange={(o) => { if (!o) onClose(); }}>
-        <SheetContent side="drawer" className="flex flex-col font-sans overflow-hidden p-0 bg-app-surface" style={{ width: "50vw", maxWidth: "95vw", minWidth: 480 }}>
+        <SheetContent side="drawer" className="flex flex-col font-sans overflow-hidden p-0 bg-app-surface" style={{ width: 720, maxWidth: "95vw" }}>
           {display && <TaskAnlegenForm person={display} onClose={onClose} onToast={triggerToast} />}
         </SheetContent>
       </Sheet>
