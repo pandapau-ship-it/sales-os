@@ -656,11 +656,27 @@ kam es, wie groß ist es** — und einen **klaren nächsten Schritt** anstoßen 
   - **„Kunde wird kalt"** gehört zu **Follow-ups** (konkrete Handlungs-Aufforderung), NICHT zu
     Churn & Trials (Risiko-Signal). **Kein Inhalt erscheint in beiden Tabs.**
 
+### [D47] Farmer Vollansicht (gebaut)
+- `FarmerSidepanel` bekommt `variant='full'` analog HunterSidepanel: ArrowUpRight im Panel-Header →
+  `showVollansicht` → Vollseiten-Overlay (eigene Instanz, `onExit`/`onClose`). 7 Full-Tabs: **Details ·
+  Übersicht · Aktivität · Kommunikation · Tasks · Subscription · Notizen**. Farmer-spezifisch: Subscription-Tab
+  zeigt **SubscriptionBox + UsageBox** (kein eigener Usage-Tab in der Vollansicht); Übersicht = AktiveSignale
+  (Churn/Upsell/Kalt) + OffeneTasks + Usage-Kompakt. Generisch 1:1 vom Hunter: Aktivität/Kommunikation/Tasks/
+  Notizen + Details (KontaktZeile + Person/Firma via DetailSection/DetailField). Keine neuen panel-blocks.
+- Mock-Fix: Follow-up-Leads in ScreenFarming mit `sherloqStatus:'ACTIVE'` → SubscriptionBadge im Header/Hero.
+- **Offen:** echte Daten (Farmer-DB-Wiring) · D33-Vollverdrahtung der übrigen Farmer-Tabs (noch CustomerDrawer).
+- **Beim Farmer-DB-Wiring zwingend nachziehen** (heute Mock/hardcodiert, erscheint NICHT automatisch):
+  - **(a) KI-Kurzakte-Block fehlt komplett** im FarmerSidepanel Übersicht-Tab → beim Wiring einbauen
+    (analog Hunter, mit „Folgt"-Platzhalter bis [[D5]] aktiv ist).
+  - **(b) `AktiveSignale`-Flags sind hardcodiert** (alle literal `true`) → an echte Felder koppeln:
+    `cancelled={customer.sherloqStatus==='CANCELLED'}` · `churnRisk={churn_score >= 61}` ·
+    `upsell={upsell_score >= 70}` · `goingCold={heat==='COLD'}`.
+
 ### [TS] Deal-Typ ohne `product` — offener Faden
 - `src/types/hunter.ts` `Deal` hat **kein `product`** (Migration 014 fügte nur die DB-Spalte).
   Beim späteren Produkt-Anzeigen (Pipeline/Deal-Detail) `product?: string` im Typ ergänzen + mappen.
 
-> Anker-Tags `[D1]`–`[D46]` sind im Code referenzierbar (z.B. `hunterMappers.ts` → `[[leads-tab-read]]`).
+> Anker-Tags `[D1]`–`[D47]` sind im Code referenzierbar (z.B. `hunterMappers.ts` → `[[leads-tab-read]]`).
 > Vor Umsetzung eines Punkts: passende Referenz-Doku (`docs/sales_os_edge_functions_v2.md` etc.) lesen.
 
 ---

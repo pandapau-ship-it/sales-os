@@ -277,8 +277,8 @@ export default function ScreenFarming({
           {/* Fällige Tasks bei Bestandskunden — „Ansehen" öffnet FarmerSidepanel Tasks-Tab + Highlight. */}
           <SequenceLeadCards
             items={dueTaskCards}
-            onSelectLead={(lead) => { setInfoTab(null); setInfoTaskId(null); setInfoPerson(lead); }}
-            onView={(lead, taskId) => { setInfoTab('tasks'); setInfoTaskId(taskId); setInfoPerson(lead); }}
+            onSelectLead={(lead) => { setInfoTab(null); setInfoTaskId(null); setInfoPerson({ ...lead, sherloqStatus: 'ACTIVE' } as Customer); }}
+            onView={(lead, taskId) => { setInfoTab('tasks'); setInfoTaskId(taskId); setInfoPerson({ ...lead, sherloqStatus: 'ACTIVE' } as Customer); }}
             onComplete={() => toast('Task erledigt ✓', 'success')}
           />
 
@@ -292,7 +292,7 @@ export default function ScreenFarming({
             icpScore={78}
             heatStatus="COLD"
             timeAgoLabel="vor 28 Tagen"
-            onSelectLead={(lead) => { setInfoTab(null); setInfoTaskId(null); setInfoPerson(lead); }}
+            onSelectLead={(lead) => { setInfoTab(null); setInfoTaskId(null); setInfoPerson({ ...lead, sherloqStatus: 'ACTIVE' } as Customer); }}
             onOutreachClick={() => setColdSignal({ kind: 'going_cold', name: 'Laura Becker', company: 'Logistify DE', lastContactDays: 28 })}
           />
         </div>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import {
-  X, Check,
+  X, Check, ArrowUpRight, ArrowLeft, Tag, User, Building2,
   LayoutDashboard, Activity, MessageSquare, CheckSquare, CreditCard, BarChart3, FileText,
   Mail,
 } from 'lucide-react';
@@ -8,9 +8,9 @@ import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 import Avatar from '@/components/shared/Avatar';
 import {
-  AktiveSignale, AktivitaetsVerlauf, FarmerActionDrawer, HeatBadge, KommunikationKompakt,
-  KommunikationVerlauf, KontaktZeile, NotizenListe, OffeneTasks, PanelTabs, SubscriptionBadge,
-  SubscriptionBox, TasksListe, UsageBox,
+  AktiveSignale, AktivitaetsVerlauf, DetailField, DetailPhoneList, DetailSection, FarmerActionDrawer,
+  HeatBadge, KommunikationKompakt, KommunikationVerlauf, KontaktZeile, NotizenListe, OffeneTasks,
+  PanelTabs, SubscriptionBadge, SubscriptionBox, TasksListe, UsageBox,
 } from '@/components';
 import type { SubscriptionData, UsageData, FarmerActionData } from '@/components';
 import type { Lead, Customer } from '@/types';
@@ -43,11 +43,12 @@ const MOCK_COMMS: CommunicationView[] = [
   { id: 'fc-3', channel: 'linkedin', direction: 'inbound', occurredAt: new Date(Date.now() - 55 * 86_400_000).toISOString() },
 ];
 
-type FarmerTab = 'overview' | 'activity' | 'communication' | 'tasks' | 'subscription' | 'usage' | 'notes';
+type FarmerTab = 'details' | 'overview' | 'activity' | 'communication' | 'tasks' | 'subscription' | 'usage' | 'notes';
 
-export default function FarmerSidepanel({ person: personProp, onClose, initialTab = null, initialTaskId = null }: { person: Lead | Customer | null; onClose: () => void; initialTab?: FarmerTab | null; initialTaskId?: string | null }) {
-  const [activeTab, setActiveTab] = useState<FarmerTab>(initialTab ?? 'overview');
+export default function FarmerSidepanel({ person: personProp, onClose, onExit, variant = 'panel', initialTab = null, initialTaskId = null }: { person: Lead | Customer | null; onClose: () => void; onExit?: () => void; variant?: 'panel' | 'full'; initialTab?: FarmerTab | null; initialTaskId?: string | null }) {
+  const [activeTab, setActiveTab] = useState<FarmerTab>(variant === 'full' ? 'details' : (initialTab ?? 'overview'));
   const [actionSignal, setActionSignal] = useState<FarmerActionData | null>(null); // [D34] Farmer Action Panel
+  const [showVollansicht, setShowVollansicht] = useState(false); // [D47] Vollansicht (variant='full')
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const showToast = (msg: string) => { setToastMessage(msg); setTimeout(() => setToastMessage(null), 1800); };
 
@@ -55,8 +56,8 @@ export default function FarmerSidepanel({ person: personProp, onClose, initialTa
   // Ausfahr-Animation (person→null) nicht leer wird (gleiches Muster wie HunterSidepanel/CustomerDrawer).
   const [display, setDisplay] = useState<Lead | Customer | null>(personProp);
   useEffect(() => {
-    if (personProp) { setDisplay(personProp); setActiveTab(initialTab ?? 'overview'); }
-  }, [personProp, initialTab]);
+    if (personProp) { setDisplay(personProp); setActiveTab(variant === 'full' ? 'details' : (initialTab ?? 'overview')); }
+  }, [personProp, initialTab, variant]);
   const isOpen = personProp !== null;
   const person = display;
 
@@ -196,7 +197,8 @@ export default function FarmerSidepanel({ person: personProp, onClose, initialTa
             onDelete={() => showToast('Task gelöscht')}
           />
           <KommunikationKompakt items={MOCK_COMMS} onShowAll={() => setActiveTab('communication')} />
-          {/* Usage-Schnellhinweis (Vorgeschmack auf den Usage-Tab). */}
+          {/* Kompakte Schnellhinweise: erst Subscription (Plan·Status·MRR), dann Usage. */}
+          <SubscriptionBox variant="compact" data={mockSubscription} onShowAll={() => setActiveTab('subscription')} />
           <UsageBox variant="compact" data={mockUsage} onShowAll={() => setActiveTab('usage')} />
         </div>
       )}
@@ -219,7 +221,13 @@ export default function FarmerSidepanel({ person: personProp, onClose, initialTa
         />
       )}
 
-      {activeTab === 'subscription' && <div className="animate-fade-in"><SubscriptionBox data={mockSubscription} /></div>}
+      {activeTab === 'subscription' && (
+        <div className="space-y-7 animate-fade-in">
+          <SubscriptionBox data={mockSubscription} />
+          {/* Vollansicht hat keinen eigenen Usage-Tab → Usage hier im Subscription-Tab mit anzeigen. */}
+          {variant === 'full' && <UsageBox variant="full" data={mockUsage} />}
+        </div>
+      )}
       {activeTab === 'usage' && <div className="animate-fade-in"><UsageBox variant="full" data={mockUsage} /></div>}
 
       {activeTab === 'notes' && (
@@ -243,8 +251,81 @@ export default function FarmerSidepanel({ person: personProp, onClose, initialTa
     { icon: FileText, label: 'Notiz', onClick: () => setActiveTab('notes') },
   ];
   const btn = "px-3.5 py-2 border border-border text-text-body rounded-full text-[12px] font-bold flex-1 transition-colors shadow-sm flex items-center justify-center gap-1.5";
+  const btnFull = "px-4 py-2 border border-border text-text-body rounded-full text-[12px] font-bold transition-colors shadow-sm flex items-center justify-center gap-1.5";
   const btnActive = "hover:bg-app-bg cursor-pointer hover:-translate-y-0.5";
   const btnDisabled = "opacity-40 cursor-not-allowed";
+  const renderActions = (btnBase: string) =>
+    ACTIONS.map((a) => {
+      const Icon = a.icon;
+      return (
+        <button key={a.label} onClick={a.onClick} disabled={a.disabled} data-tip={a.tip} className={cn(btnBase, a.disabled ? btnDisabled : btnActive)}>
+          <Icon className="w-3.5 h-3.5" /> {a.label}
+        </button>
+      );
+    });
+
+  // Details-Tab (nur Vollansicht) — ausschließlich Library-Komponenten (DetailSection · DetailField ·
+  // DetailPhoneList · NotizenListe), kein eigenes Feld-Markup. 1:1 wie Hunter, Mock readonly.
+  const dn = person ? person.person.name.split(' ') : [];
+  const detailFirst = dn[0] ?? '';
+  const detailLast = dn.slice(1).join(' ');
+  const detailEmail = person?.contactEmail || `${detailFirst.toLowerCase()}@${(person?.person.company ?? 'firma').toLowerCase().replace(/[^a-z]+/g, '')}.com`;
+  const detailLinkedin = person ? `in/${person.person.name.toLowerCase().replace(/[^a-z]+/g, '-')}` : '';
+  const detailWeb = `${(person?.person.company ?? 'example').toLowerCase().replace(/[^a-z]+/g, '')}.com`;
+  const subLabel = subscriptionStatus === 'ACTIVE' ? 'Aktiv' : subscriptionStatus === 'CANCELLED' ? 'Gekündigt' : subscriptionStatus === 'TRIAL' ? 'Trial' : subscriptionStatus === 'TRIAL_EXPIRED' ? 'Trial abgelaufen' : '—';
+  const detailsContent = person && (
+    <div className="space-y-5 animate-fade-in">
+      <DetailSection title="Person" icon={User} variant="page">
+        <DetailField label="Anrede" value="Herr" readonly />
+        <DetailField label="Sprache" value="Deutsch" readonly />
+        <DetailField label="Vorname" value={detailFirst} readonly />
+        <DetailField label="Nachname" value={detailLast} readonly />
+        <DetailField label="Jobtitel" value={person.person.jobTitle} readonly />
+        <DetailField label="Seniority" value="Director" readonly />
+        <DetailField label="Abteilung" value="Customer Success" readonly />
+        <DetailField label="Standort / Stadt" value="München" readonly />
+        <DetailField label="Land" value="Deutschland" readonly />
+        <DetailField label="Twitter / X" value={`@${detailFirst.toLowerCase()}`} readonly />
+
+        {/* Kontaktdaten — in dezenter grauer Sub-Kachel (1:1 Hunter-Muster) */}
+        <div className="sm:col-span-2 bg-app-bg rounded-[10px] p-5">
+          <div className="grid sm:grid-cols-2 gap-x-8 gap-y-5">
+            <DetailField label="E-Mail" type="email" copyable value={detailEmail} onCopy={() => showToast('Kopiert ✓')} readonly />
+            <DetailField label="LinkedIn" copyable value={detailLinkedin} href={`https://www.linkedin.com/${detailLinkedin}`} onCopy={() => showToast('Kopiert ✓')} readonly />
+            <DetailField label="Webadresse" copyable value={detailWeb} href={`https://${detailWeb}`} onCopy={() => showToast('Kopiert ✓')} readonly />
+          </div>
+          <div className="mt-5">
+            <DetailPhoneList phones={mockPhones} types={['Mobil', 'Geschäftlich', 'Privat', 'Weitere']} readonly onCopy={() => showToast('Kopiert ✓')} />
+          </div>
+        </div>
+      </DetailSection>
+
+      <DetailSection title="Firma" icon={Building2} variant="page">
+        <DetailField label="Firma" value={person.person.company} readonly />
+        <DetailField label="Branche" value="SaaS" readonly />
+        <DetailField label="Unternehmensgröße" value="51–200" readonly />
+        <DetailField label="Domain" copyable value={detailWeb} href={`https://${detailWeb}`} onCopy={() => showToast('Kopiert ✓')} readonly />
+        <DetailField label="Stadt / HQ" value="München" readonly />
+        <DetailField label="Land" value="Deutschland" readonly />
+      </DetailSection>
+
+      {/* Farmer-spezifisch: Subscription-Status statt Lead Status */}
+      <DetailSection title="Klassifizierung" icon={Tag} variant="page">
+        <DetailField label="Subscription-Status" value={subLabel} readonly />
+        <DetailField label="ICP Score" value={person.icpScore != null ? String(person.icpScore) : ''} readonly />
+        <DetailField label="Owner" value="Oliver Prossi" readonly />
+        <DetailField label="Tags" value="Bestandskunde · Growth" readonly />
+      </DetailSection>
+
+      <NotizenListe
+        onToast={showToast}
+        noteRows={[]}
+        onCreate={() => showToast('Notiz gespeichert ✓')}
+        onUpdate={() => showToast('Notiz gespeichert ✓')}
+        onDelete={() => showToast('Notiz gelöscht')}
+      />
+    </div>
+  );
 
   const panelBody = person && (
     <>
@@ -256,6 +337,9 @@ export default function FarmerSidepanel({ person: personProp, onClose, initialTa
           <div className="flex items-start gap-6 shrink-0">
             <div className="hidden md:flex items-start gap-7">{statusBadges}</div>
             <div className="flex items-center gap-2">
+              <button onClick={() => setShowVollansicht(true)} aria-label="Vollansicht" data-tip="Vollansicht" className="w-9 h-9 rounded-full bg-app-bg flex items-center justify-center text-text-muted hover:text-[var(--sherloq-primary)] hover:bg-[var(--signal-teal-bg)] transition-colors">
+                <ArrowUpRight className="w-4 h-4" />
+              </button>
               <button onClick={onClose} className="w-9 h-9 rounded-full bg-app-bg flex items-center justify-center text-text-muted hover:text-[var(--signal-urgent-text)] hover:bg-[var(--signal-urgent-bg)] transition-colors">
                 <X className="w-4 h-4" />
               </button>
@@ -271,35 +355,87 @@ export default function FarmerSidepanel({ person: personProp, onClose, initialTa
       </main>
 
       <footer className="px-4 py-2.5 bg-app-surface shrink-0 flex items-center justify-between gap-2 relative z-10">
-        {ACTIONS.map((a) => {
-          const Icon = a.icon;
-          return (
-            <button
-              key={a.label}
-              onClick={a.onClick}
-              disabled={a.disabled}
-              data-tip={a.tip}
-              className={cn(btn, a.disabled ? btnDisabled : btnActive)}
-            >
-              <Icon className="w-3.5 h-3.5" /> {a.label}
-            </button>
-          );
-        })}
+        {renderActions(btn)}
       </footer>
     </>
   );
 
+  // Voll-Variante — echte Seite (analog HunterSidepanel). Ein Scroll-Container; Tabs sticky oben.
+  const FULL_TABS: { id: FarmerTab; label: string; icon: React.ReactNode }[] = [
+    { id: 'details', label: 'Details', icon: <Tag className="w-3.5 h-3.5" /> },
+    { id: 'overview', label: 'Übersicht', icon: <LayoutDashboard className="w-3.5 h-3.5" /> },
+    { id: 'activity', label: 'Aktivität', icon: <Activity className="w-3.5 h-3.5" /> },
+    { id: 'communication', label: 'Kommunikation', icon: <MessageSquare className="w-3.5 h-3.5" /> },
+    { id: 'tasks', label: 'Tasks', icon: <CheckSquare className="w-3.5 h-3.5" /> },
+    { id: 'subscription', label: 'Subscription', icon: <CreditCard className="w-3.5 h-3.5" /> },
+    { id: 'notes', label: 'Notizen', icon: <FileText className="w-3.5 h-3.5" /> },
+  ];
+  const fullBody = person && (
+    <div className="fixed inset-0 z-[120] bg-app-bg font-sans overflow-y-auto animate-fade-in">
+      {/* Steuer-Zeile — ← zurück zum Panel, ✕ schließt ganz. */}
+      <div className="max-w-[1100px] mx-auto px-5 sm:px-10 pt-5 flex items-center justify-between">
+        <button onClick={onClose} aria-label="Zurück" data-tip="Zurück" className="w-9 h-9 rounded-full flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-app-surface transition-colors cursor-pointer">
+          <ArrowLeft className="w-[18px] h-[18px]" />
+        </button>
+        <button onClick={() => (onExit ?? onClose)()} aria-label="Schließen" data-tip="Schließen" className="w-9 h-9 rounded-full flex items-center justify-center text-text-muted hover:text-[var(--signal-urgent-text)] hover:bg-app-surface transition-colors cursor-pointer">
+          <X className="w-[18px] h-[18px]" />
+        </button>
+      </div>
+
+      {/* Hero — randlos integriert (keine Kachel) */}
+      <div className="max-w-[1100px] mx-auto px-5 sm:px-10 pt-3 pb-7">
+        <div className="flex items-start justify-between gap-6 flex-wrap">
+          {identityBlock}
+          <div className="flex items-start gap-7 shrink-0">{statusBadges}</div>
+        </div>
+        <div className="flex items-center gap-2 flex-wrap mt-7">{renderActions(btnFull)}</div>
+        <div className="mt-6">{contactPill}</div>
+      </div>
+
+      {/* Tabs — sticky oben, volle Breite */}
+      <div className="sticky top-0 z-20 bg-app-bg border-b border-border-subtle">
+        <nav className="max-w-[1100px] mx-auto px-5 sm:px-10 flex flex-nowrap gap-8 overflow-x-auto scrollbar-none">
+          {FULL_TABS.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`relative py-4 text-[13px] font-bold transition-colors shrink-0 inline-flex items-center gap-1.5 ${activeTab === tab.id ? 'text-[var(--sherloq-primary)]' : 'text-text-muted hover:text-text-body'}`}
+            >
+              {tab.icon}
+              {tab.label}
+              {activeTab === tab.id && (
+                <div className="absolute left-0 right-0 bottom-0 bg-[var(--sherloq-primary)] rounded-t-full" style={{ height: '2px' }} />
+              )}
+            </button>
+          ))}
+        </nav>
+      </div>
+
+      {/* Inhalt — scrollt mit der Seite */}
+      <div className="max-w-[1100px] mx-auto px-5 sm:px-10 py-8">
+        {activeTab === 'details' ? detailsContent : tabContent}
+      </div>
+    </div>
+  );
+
   return (
     <>
-      <Sheet open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
-        <SheetContent
-          side="drawer"
-          className="flex flex-col gap-0 h-full font-sans overflow-hidden p-0 bg-app-surface"
-          style={{ width: 820, maxWidth: '95vw' }}
-        >
-          {panelBody}
-        </SheetContent>
-      </Sheet>
+      {variant === 'full' ? fullBody : (
+        <Sheet open={isOpen && !showVollansicht} onOpenChange={(open) => { if (!open && !showVollansicht) onClose(); }}>
+          <SheetContent
+            side="drawer"
+            className="flex flex-col gap-0 h-full font-sans overflow-hidden p-0 bg-app-surface"
+            style={{ width: 820, maxWidth: '95vw' }}
+          >
+            {panelBody}
+          </SheetContent>
+        </Sheet>
+      )}
+
+      {/* [D47] Vollansicht — eigene FarmerSidepanel-Instanz als Vollseiten-Overlay (analog Hunter). */}
+      {variant !== 'full' && showVollansicht && (
+        <FarmerSidepanel person={display} onClose={() => setShowVollansicht(false)} onExit={onClose} variant="full" />
+      )}
 
       {/* [D34] Farmer Action Panel — Churn Risk / Kunde wird kalt. Renderer = ChatActionPanel (unverändert).
           KI-Felder NULL → „Folgt"-Platzhalter; Buttons (Task/Snooze/Senden) erscheinen mit Draft ([D5]). */}
