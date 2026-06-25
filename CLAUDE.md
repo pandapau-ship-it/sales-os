@@ -686,6 +686,15 @@ Alle prop-driven, Tokens-only, Dark-Mode automatisch.
 |---|---|
 | `TeamSettings` | Settings → Team ([D21]): Mitglieder-Tabelle (Name/Email/Rolle/Seit), Rollen-Dropdown (nur Owner), „Mitglied einladen" (Owner/Admin → shadcn-Dialog, Email+Rolle), offene Einladungen mit „Zurückziehen". Org/Rolle aus `useCurrentOrg`, `invited_by` aus `useAuth`; Writes über `getTeamMembers`/`getInvitations`/`createInvitation`/`deleteInvitation`/`updateUserRole`. Gerendert unter `/app/settings`. Mailversand der Einladung = Edge Function (deferred [D29]) |
 
+### Komponenten in `features/farmer/` (via `@/components`)
+
+Eigene Farmer-Panels (NICHT Hunter-Flags), die geteilte panel-blocks/Renderer wiederverwenden. Mock bis Farmer-DB-Wiring.
+
+| Komponente | Zweck |
+|---|---|
+| `FarmerSidepanel` | [D33]/[D47] Farmer-Info-Panel (Full-Bleed Sheet), eigene Komponente analog `HunterSidepanel`. `variant='panel'|'full'`, `initialTab`/`initialTaskId`, `showVollansicht` + ArrowUpRight. Panel-Tabs: Übersicht (AktiveSignale Churn/Upsell/Kalt/Gekündigt · OffeneTasks · KommunikationKompakt · SubscriptionBox + UsageBox) · Aktivität · Kommunikation · Tasks · Subscription · Usage · Notizen. Vollansicht (`full`): 7 Tabs (Details · Übersicht · Aktivität · Kommunikation · Tasks · Subscription · Notizen) via `createPortal(document.body)` (fixed trotz transform-Vorfahre). KontaktZeile im Panel-Header (Mail synthetisiert bis DB-Wiring). Nutzt geteilte panel-blocks (DetailSection/DetailField/DetailPhoneList/NotizenListe/TasksListe/SubscriptionBox/UsageBox). |
+| `FarmerActionDrawer` | [D34] Farmer-Action-Panel — dünner Wrapper, rendert `ChatActionPanel` **unverändert** (720px) mit `farmerActionConfig(signal, handlers)` (`lib/farmerActions.tsx`). Kinds: `churn_risk`/`going_cold`/`upsell_potential`/`cancelled`. Option A: Actions erst mit echtem Draft, bis dahin „Folgt"-Platzhalter ([D5]). Props onRetention/onReactivation/onUpsell/onWinbackCall/onCreateTask/onSnooze. |
+
 ### Komponenten in `farming/` (Farmer-Screen-Hilfskomponenten, via `@/components`)
 
 Alle prop-driven, Tokens-only, Dark-Mode automatisch; Kacheln sind **dünne HunterCard-Wrapper**
@@ -703,7 +712,7 @@ Alle prop-driven, Tokens-only, Dark-Mode automatisch; Kacheln sind **dünne Hunt
 Farmer-Signal-Kacheln nutzen den bestehenden `LinkedinSignalCard` (panel-blocks) mit `statusBadge`-Passthrough.
 Config: `customerStatusConfig.ts` (Status→Style, Flexibilitäts-Prinzip, nie hardcodiert).
 
-**Helfer:** `lib/confetti.ts` (`triggerConfetti()` — Won-Feedback) · `lib/validation.ts` (`isValidPhone` verdrahtet; `isValidEmail`/`normalizeUrl`/`isValidUrl` für P8 vorbereitet) · `lib/signalActions.tsx` (`signalActionConfig` — Signal→ChatActionConfig-Resolver, [D35] Phase 0).
+**Helfer:** `lib/confetti.ts` (`triggerConfetti()` — Won-Feedback) · `lib/validation.ts` (`isValidPhone` verdrahtet; `isValidEmail`/`normalizeUrl`/`isValidUrl` für P8 vorbereitet) · `lib/signalActions.tsx` (`signalActionConfig` — Signal→ChatActionConfig-Resolver, [D35] Phase 0) · `lib/farmerActions.tsx` (`farmerActionConfig` + `FARMER_ACTION_CATALOG` — Farmer-Signal→ChatActionConfig-Resolver, [D34], Spiegel von signalActions) · `lib/prefetch.ts` (`prefetchContactPanel` — Panel-Daten on hover/intent vorladen; zentral in `HunterCard`, 120 ms Hover-Delay).
 
 ### Import-Regel — immer über `@/components` (nie tiefer als nötig)
 

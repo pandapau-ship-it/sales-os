@@ -4,7 +4,16 @@
 
 ---
 
-## Current Status: Phase 3 (DB-Wiring Hunter) abgeschlossen · **[D27] Tech-Schuld erledigt** · **Auth/Org [D21] Scheiben 1–8** (inkl. MfaBanner 2FA-Empfehlung) · **Hunter-Übersicht Dringlichkeits-Score** (Migr. 045, settings-basiert) + Profilzeilen-Konsistenz erzwungen · **Farmer-Screen UI komplett (alle 5 Tabs: Übersicht · Kunden · Retention · Upsell · Signals — Mock, kein DB-Wiring)** · **[D35] Signal-Action-Resolver Phase 0** · **Elevation- & Radius-System app-weit** (3 Ebenen, Token-Schatten/Haarlinie, Radius-Hierarchie 16/12/10/8/7/6/5; 3 Audit-Wächter) · **Drawer-Panels Full-Bleed** (bündig am Bildschirmrand, nur linke Kante gerundet — zentral in `sheet.tsx`). Next (Reihenfolge laut Farmer-vs-Hunter-Routing): **Farmer DB-Wiring** (echte Scores/Signale, inkl. [D33] Info-Panel + [D34] Action-Panel) · **Hunter Trial-Kacheln [D36]/[D37]** · **Lifecycle-Trigger [D38]** · **[D29] Einladungs-Mail Edge Function** · AI-Pipeline (löst „Folgt"-Platzhalter [D5]) · **db push Migration 046** (KB Farmer)
+## Current Status: Phase 3 (DB-Wiring Hunter) abgeschlossen · **[D27] Tech-Schuld erledigt** · **Auth/Org [D21] Scheiben 1–8** (inkl. MfaBanner 2FA-Empfehlung) · **Hunter-Übersicht Dringlichkeits-Score** (Migr. 045, settings-basiert) + Profilzeilen-Konsistenz erzwungen · **Farmer-Screen UI komplett (alle 6 Tabs: Übersicht · Kunden · Retention · Upsell · Signals · Follow-ups — Mock, kein DB-Wiring)** · **Farmer Info-Panel [D33] + Action-Panel [D34] + Follow-ups [D46] + Vollansicht [D47] gebaut** (eigene `FarmerSidepanel`/`FarmerActionDrawer`, Mock) · **ScreenFarming verdrahtet** (Panels + Action-CTAs + #7 LinkedIn-Signal-Antwort) · **Snooze/Ignorieren bei Signalen** (Hunter+Farmer, Single Source `constants.ts`) · **Panel-Performance** (Skeletons + Prefetch-on-hover + placeholderData) · **[D35] Signal-Action-Resolver Phase 0** · **Elevation- & Radius-System app-weit** · **Drawer-Panels Full-Bleed** (zentral in `sheet.tsx`). Next (Reihenfolge laut Farmer-vs-Hunter-Routing): **Farmer DB-Wiring** (echte Scores/Signale/Subscription + [D43] Historisierung zuerst; KI-Kurzakte + AktiveSignale-Flags an echte Felder — siehe [D47]-Nachzieh-Liste) · **Hunter Trial-Kacheln [D36]/[D37]** · **Lifecycle-Trigger [D38]** · **[D29] Einladungs-Mail Edge Function** · AI-Pipeline (löst „Folgt"-Platzhalter [D5])
+
+> **Session 2026-06-25 (Farmer Info-/Action-Panel + Follow-ups + Vollansicht + Verdrahtung + Panel-Perf) — auf `main`:**
+> Spanne: seit Übergabe `2026-06-24_teil2`. **[D33] Farmer Info-Panel** als eigene `features/farmer/FarmerSidepanel.tsx` (`variant='panel'|'full'`, typo-Kanon, Full-Bleed) — Tabs Übersicht/Aktivität/Kommunikation/Tasks/Subscription/Usage/Notizen; KontaktZeile im Header; reuse aller panel-blocks. **[D34] Farmer Action-Panel**: `lib/farmerActions.tsx` (Resolver `farmerActionConfig` + `FARMER_ACTION_CATALOG`, Spiegel von `signalActions`) + `FarmerActionDrawer` (rendert `ChatActionPanel` **unverändert** — Option A: Actions erst mit echtem Draft, sonst „Folgt"-Platzhalter bis [D5]). Action-Panel-Breite app-weit **720px fix**.
+> **[D46] Farmer Follow-ups-Tab** (fällige Tasks + „Kunde wird kalt"; Trennung Retention=Risiko vs Follow-ups=Aktion). **[D47] Farmer Vollansicht** (`variant='full'` + 7 Tabs + ArrowUpRight; Details via Library; SubscriptionBox compact; `createPortal`-Fix gegen transform-Vorfahre; KontaktZeile-Hero entfernt — konsistent Hunter/Farmer).
+> **ScreenFarming verdrahtet (Slice 3):** Kunden/Retention/Upsell/Signals → `openInfo()`→FarmerSidepanel; CTAs→FarmerActionDrawer; **#7** LinkedIn-Signal „Antworten"→`SignalActionDrawer` (reuse Hunter-Resolver).
+> **Snooze + Ignorieren bei Signalen (Hunter+Farmer):** `SNOOZE_MAX`/`SNOOZE_OPTIONS` → `constants.ts` (Single Source); Snooze 1:1 auf `LinkedinSignalCard` (Dropdown/Snoozed/Eskaliert); Ignorieren = lokaler `ignoredSignalIds`-Filter (Kachel verschwindet sofort) + Bulk-X verdrahtet (ScreenHunting + ScreenFarming).
+> **Hunter-Bugfixes:** „Ansehen" (fällige Task → Tasks-Tab + Deeplink-Highlight) · Pipeline-stagniert-CTA → `PipelineStagnatedDrawer` (Honesty). **[D45] Deeplink-Highlight-Muster** (`useDeeplinkHighlight` + `.deeplink-flash` + `highlightId`) als globale Regel + erste Anwendung. **[D43]/[D44]** Doku (Historisierung · TanStack-Table).
+> **Panel-Performance:** neuer panel-block **`PanelSkeleton`** (Token-only `animate-pulse`) in allen Info-Panel-Tabs während `isLoading` (statt leer) · **Prefetch-on-hover** (`lib/prefetch.ts` → `prefetchContactPanel`, zentral in `HunterCard`, 120 ms Hover-Intent) · **`placeholderData: keepPreviousData`** auf allen per-Contact-Queries (HunterSidepanel + ExpandedCardContent). **Fix:** Mail in Farmer-KontaktZeile (synthetisierter Fallback bis DB-Wiring).
+> Gates durchgehend grün (build/audit/structure). Kein DB-Wiring, keine Migration. Verifikation per User-Dev-Server (Preview-MCP blockiert).
 
 > **Session 2026-06-24 (Teil 2 — Panel-Übergänge & Full-Bleed-Drawer) — auf `main`:**
 > Reine UI-Politur am Hunter-Info-Panel (`HunterSidepanel`) + zentrale Drawer-Variante (`ui/sheet.tsx`). Kein neues Feature, kein DB, keine neuen Komponenten.
@@ -495,20 +504,29 @@ kam es, wie groß ist es** — und einen **klaren nächsten Schritt** anstoßen 
 - **Dauer:** ca. 20 Min pro Provider.
 - **Kommt wenn:** Production-Domain feststeht.
 
-### [D33] Farmer Info-Panel (820px) auf typo-Standard / HunterSidepanel-Muster (deferred)
-- **Aktuell:** Farmer-Kunden-Kachel öffnet beim Pfeil → den **alten `shared/CustomerDrawer.tsx`** (717 Z.).
-- **Problem:** durchzogen von rohem `font-mono` + rohen `text-[Npx]`-Klassen (nicht über `typo-*`-Primitive).
-  Liegt in `shared/` → vom `npm run audit` Typo-Check **nicht** gescannt (walkt nur `panel-blocks/` + `features/`)
-  → Verstöße rutschen durch. Zudem: Hunter nutzt `HunterSidepanel`, Farmer `CustomerDrawer` → 2 verschiedene Panels.
-- **Umsetzung:** CustomerDrawer auf typo-Kanon + Tokens bringen **oder** auf `HunterSidepanel`-Muster umstellen
-  (eine Info-Panel-Quelle für Hunter + Farmer). Danach Komponente in `audit.ts` IN_SCOPE aufnehmen.
-- **Eigener Slice** — Daten sind aktuell Mock (Reference-State).
+### [D33] Farmer Info-Panel (820px) — eigene `FarmerSidepanel`-Komponente (✅ gebaut, Mock)
+- **Erledigt (Sessions 2026-06-24/25):** Eigene `features/farmer/FarmerSidepanel.tsx` (NICHT der alte
+  `CustomerDrawer`, NICHT ein Hunter-Flag) — `variant='panel'|'full'`, typo-Kanon + Tokens, Full-Bleed-Sheet.
+  Tabs: Übersicht (AktiveSignale Churn/Upsell/Kalt/Gekündigt · OffeneTasks · KommunikationKompakt ·
+  SubscriptionBox + UsageBox) · Aktivität · Kommunikation · Tasks · Subscription · Usage · Notizen.
+  KontaktZeile im Panel-Header (Mail/Telefon/LinkedIn/Web). Reuse aller geteilten panel-blocks
+  (DetailSection/DetailField/DetailPhoneList/NotizenListe/TasksListe).
+- **Slice 3 (2026-06-25):** ScreenFarming verdrahtet — Kunden/Retention/Upsell/Signals → `openInfo()` öffnet
+  FarmerSidepanel mit echter Person-Shape (`itemToPerson`); CTAs → FarmerActionDrawer ([D34]); LinkedIn-Signal
+  „Antworten" → `SignalActionDrawer` (#7, reuse Hunter-Resolver).
+- **Offen (Farmer-DB-Wiring):** echte Daten statt Mock · KI-Kurzakte-Block · AktiveSignale-Flags an echte
+  Felder koppeln (siehe [[D47]] Nachzieh-Liste). Daten aktuell Mock (Reference-State).
 
-### [D34] Farmer Action-Panel (580px) + Signal-Feed (deferred)
-- **Aktuell:** existiert **nicht**. Kein `features/farmer/`-Action-Panel, keine „Check-In buchen"-CTA, kein Signal-Drawer.
-  Tabs `upsell`/`signals` in `ScreenFarming` sind reine Platzhalter („Feed folgt").
-- **Umsetzung:** Action-Panel (580px) analog Hunter-Drawer-Muster + Signal-/Upsell-Feed verdrahten.
-- **Eigener Slice** — folgt nach Score-/Signal-Anbindung.
+### [D34] Farmer Action-Panel (720px) + Signal-Feed (✅ gebaut, Mock — Option A)
+- **Erledigt (Sessions 2026-06-24/25):** `lib/farmerActions.tsx` (Resolver `farmerActionConfig` + serialisierbares
+  `FarmerActionType`/`FARMER_ACTION_CATALOG`, Spiegel von `signalActions.tsx`) + `features/farmer/FarmerActionDrawer.tsx`
+  (dünner Wrapper, rendert `ChatActionPanel` **unverändert**). Kinds: `churn_risk`/`going_cold`/`upsell_potential`/`cancelled`.
+- **Option A (bewusst):** ChatActionPanel-Renderer bleibt unverändert → Actions erscheinen erst mit echtem Draft;
+  bis [[D5]] AI-Pipeline ehrliche „Folgt"-Platzhalter (recommendation = AI_PENDING_LABEL, draft null). Actions
+  schon im Katalog definiert → DB-ready.
+- **Action-Panel-Breite** app-weit auf **720px fix** vereinheitlicht (ChatActionPanel zentral; NoTaskDrawer + ActionPanel).
+- **Verdrahtet (Slice 3):** ScreenFarming-CTAs (Retention/Upsell/Übersicht-Signale) → FarmerActionDrawer.
+- **Offen:** echte Drafts/Sending mit [[D5]] + Sending-Layer.
 
 > Hinweis: `[D32]` bleibt bewusst unbelegt (Nummern-Lücke, keine offene Entscheidung).
 
@@ -635,7 +653,11 @@ kam es, wie groß ist es** — und einen **klaren nächsten Schritt** anstoßen 
 - Jede Anwendung = kleiner Handgriff (`highlightId` durchreichen + Liste pre-expand), **kein Neubau**.
   **Beim Bau jeder neuen Sprung-Stelle prüfen, ob das Muster dort gehört.** Verwandt: [[D33]]/[[D34]].
 
-### [D46] Farmer Follow-ups Tab (deferred)
+### [D46] Farmer Follow-ups Tab (✅ gebaut, Mock)
+- **Erledigt (2026-06-24/25):** Follow-ups-Tab im Farmer gebaut — fällige Tasks bei Kunden (`SequenceLeadCards`,
+  1:1 Hunter) + „Kunde wird kalt"-Kacheln (`FollowUpKaltCard`). Trennung Retention/Churn = Risiko vs. Follow-ups =
+  Aktion umgesetzt; „Kunde wird kalt" liegt in Follow-ups; kein „Stagniert" (kein Deal/Stage). „Ansehen" →
+  Deeplink-Highlight ([[D45]]). Kein DB-Wiring (Mock).
 - Farmer bekommt einen **vierten Tab** in der Sub-Navigation: **Follow-ups** — analog Hunter Follow-ups.
 - **Navigation Farmer (final):** `[Signale] [Churn & Trials] [Upsell] [Follow-ups]`. Follow-ups steht
   bewusst **am Ende** (Signale/Churn/Upsell = dringender → vorne).
