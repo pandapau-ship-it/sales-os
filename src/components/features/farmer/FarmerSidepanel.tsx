@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
   X, Check, ArrowUpRight, ArrowLeft, Tag, User, Building2,
   LayoutDashboard, Activity, MessageSquare, CheckSquare, CreditCard, BarChart3, FileText,
@@ -420,7 +421,7 @@ export default function FarmerSidepanel({ person: personProp, onClose, onExit, v
 
   return (
     <>
-      {variant === 'full' ? fullBody : (
+      {variant === 'full' ? createPortal(fullBody, document.body) : (
         <Sheet open={isOpen && !showVollansicht} onOpenChange={(open) => { if (!open && !showVollansicht) onClose(); }}>
           <SheetContent
             side="drawer"

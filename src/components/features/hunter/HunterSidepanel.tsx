@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useCurrentOrg } from '@/hooks/useCurrentOrg';
 import { useAuth } from '@/hooks/useAuth';
@@ -874,7 +875,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
 
   return (
     <>
-    {variant === 'full' ? fullBody : (
+    {variant === 'full' ? createPortal(fullBody, document.body) : (
       <Sheet open={isOpen && !showVollansicht} onOpenChange={(open) => { if (!open && !showVollansicht) onClose(); }}>
         <SheetContent
           side="drawer"
