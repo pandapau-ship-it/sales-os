@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { useCurrentOrg } from '@/hooks/useCurrentOrg';
 import { useAuth } from '@/hooks/useAuth';
 import { getContactDetail, getPipelineSettings, getTasksByContact, createTask, completeTask, softDeleteTask, getNotesByContact, createNote, updateNote, softDeleteNote, getDealsByContact, getActivityByContact, getContactCommunications, createCommunication, updateContact, updateCompany, getProducts, getOrgUsers, createDeal, updateDeal, updateDealStage, updateDealWon, updateDealLost, softDeleteDeal, createContactPhone, updateContactPhone, setContactPhonePrimary, deleteContactPhone } from '@/lib/db';
@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import Avatar from '@/components/shared/Avatar';
-import { AktiveSignale, AktivitaetsVerlauf, DealsListe, DetailField, DetailPhoneList, DetailSection, HeatBadge, KommunikationKompakt, KommunikationVerlauf, KontaktZeile, NotizenListe, OffeneTasks, PanelTabs, TasksListe } from '@/components';
+import { AktiveSignale, AktivitaetsVerlauf, DealsListe, DetailField, DetailPhoneList, DetailSection, HeatBadge, KommunikationKompakt, KommunikationVerlauf, KontaktZeile, NotizenListe, OffeneTasks, PanelSkeleton, PanelTabs, TasksListe } from '@/components';
 
 // EditableInline → panel-blocks/EditableInline (importiert). PhoneField → panel-blocks/PhoneField.
 
@@ -128,6 +128,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
     queryKey: ['contactDetail', organizationId, contactId],
     queryFn: () => getContactDetail(organizationId, contactId as string),
     enabled: !!contactId && isOpen,
+    placeholderData: keepPreviousData, // vorigen Kontakt halten → weicher Übergang statt leerem Kopf
   });
   const stagesQuery = useQuery({
     queryKey: ['pipelineStages', organizationId],
@@ -172,6 +173,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
     queryKey: ['tasksByContact', organizationId, contactId],
     queryFn: () => getTasksByContact(organizationId, contactId as string),
     enabled: !!contactId && isOpen,
+    placeholderData: keepPreviousData,
   });
   const invalidateTasks = () => {
     queryClient.invalidateQueries({ queryKey: ['tasksByContact', organizationId, contactId] });
@@ -216,6 +218,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
     queryKey: ['notesByContact', organizationId, contactId],
     queryFn: () => getNotesByContact(organizationId, contactId as string),
     enabled: !!contactId && isOpen,
+    placeholderData: keepPreviousData,
   });
   const invalidateNotes = () => queryClient.invalidateQueries({ queryKey: ['notesByContact', organizationId, contactId] });
   const createNoteMutation = useMutation({
@@ -239,18 +242,21 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
     queryKey: ['dealsByContact', organizationId, contactId],
     queryFn: () => getDealsByContact(organizationId, contactId as string),
     enabled: !!contactId && isOpen,
+    placeholderData: keepPreviousData,
   });
   // Aktivität-Tab: echter Feed aus audit_log (Kontakt + seine Deals/Tasks/Notes).
   const activityQuery = useQuery({
     queryKey: ['activityByContact', organizationId, contactId],
     queryFn: () => getActivityByContact(organizationId, contactId as string),
     enabled: !!contactId && isOpen && activeTab === 'activity', // erst laden, wenn der Tab offen ist
+    placeholderData: keepPreviousData,
   });
   // Kommunikation-Tab: manuell protokollierte Touchpoints (communications, 036).
   const commsQuery = useQuery({
     queryKey: ['communications', organizationId, contactId],
     queryFn: () => getContactCommunications(organizationId, contactId as string),
     enabled: !!contactId && isOpen && (activeTab === 'communication' || activeTab === 'overview'), // Übersicht nutzt denselben Cache
+    placeholderData: keepPreviousData,
   });
   const commsView = (commsQuery.data ?? []).map(communicationToView);
   const createCommMutation = useMutation({
@@ -581,6 +587,9 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
         <>
 
         {activeTab === 'overview' && (
+          (dealsQuery.isLoading || tasksQuery.isLoading || commsQuery.isLoading) ? (
+            <PanelSkeleton rows={4} height={80} />
+          ) : (
           <div className="space-y-7 animate-fade-in">
             {/* Honesty: nur real ableitbare Signale (Stagnation > 0 · keine offene Task); sonst Sektion weg. */}
             <AktiveSignale
@@ -621,20 +630,23 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
             {/* Deferred (PROGRESS): KI-Kurzakte (KI-Pipeline) · Active Sequence (contact_sequences) ·
                 externe/LinkedIn-Signale (Signal-Quelle). */}
           </div>
+          )
         )}
 
         {activeTab === 'activity' && (
-          <AktivitaetsVerlauf rows={activityQuery.data ?? []} />
+          activityQuery.isLoading
+            ? <PanelSkeleton rows={5} height={56} />
+            : <AktivitaetsVerlauf rows={activityQuery.data ?? []} />
         )}
 
         {activeTab === 'communication' && (
-          <KommunikationVerlauf
-            items={commsView}
-            onLog={() => setLogOpen(true)}
-          />
+          commsQuery.isLoading
+            ? <PanelSkeleton rows={4} height={64} />
+            : <KommunikationVerlauf items={commsView} onLog={() => setLogOpen(true)} />
         )}
 
         {activeTab === 'tasks' && (
+          tasksQuery.isLoading ? <PanelSkeleton rows={3} height={72} /> : (
           <TasksListe
             onToast={showToast}
             autoEditId={tasksAutoEditId}
@@ -648,9 +660,11 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
             onComplete={(id) => completeTaskMutation.mutate(id)}
             onDelete={(id) => deleteTaskMutation.mutate(id)}
           />
+          )
         )}
 
         {activeTab === 'deals' && (
+          dealsQuery.isLoading ? <PanelSkeleton rows={2} height={140} /> : (
           <DealsListe
             variant="detail"
             onToast={showToast}
@@ -670,9 +684,11 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
             onChangeStage={(dealId, newSlug) => handleStageChange(dealId, newSlug)}
             stageChangePendingId={updateStageMutation.isPending ? (updateStageMutation.variables?.dealId ?? null) : null}
           />
+          )
         )}
 
         {activeTab === 'notes' && (
+          notesQuery.isLoading ? <PanelSkeleton rows={3} height={72} /> : (
           <NotizenListe
             onToast={showToast}
             autoCompose={notesAutoCompose}
@@ -682,6 +698,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
             onUpdate={(id, body) => updateNoteMutation.mutate({ id, body })}
             onDelete={(id) => deleteNoteMutation.mutate(id)}
           />
+          )
         )}
 
         </>
