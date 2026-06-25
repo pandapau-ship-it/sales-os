@@ -390,3 +390,26 @@
 - **how:** Farmer → Tab „Signals"; Signal auswählen und reagieren.
 - **value:** Warme Momente bei Bestandskunden nutzen — wer interagiert, ist offen für Pflege oder Expansion.
 - **module:** farmer
+
+<!-- Migration 047 (Session 2026-06-25) — Farmer Info-/Action-Panel + Follow-ups (UI, Mock) -->
+
+### Farmer-Kundenprofil (Info-Panel)
+- **feature:** Farmer-Kundenprofil (Info-Panel)
+- **what:** Vollständiges Kundenprofil als Panel/Vollansicht: Subscription & Nutzung, offene Aufgaben, Kommunikationsverlauf, Notizen, aktive Signale (Churn/Upsell/„wird kalt"/Kündigung); Kontaktzeile (Mail/Telefon/LinkedIn/Web) im Kopf.
+- **how:** Farmer → Kundenkarte → Pfeil öffnet Panel; Aufklapp-Symbol oben rechts → Vollansicht.
+- **value:** Alles über einen Kunden auf einen Blick, ohne Tool-Wechsel — schnellere, fundiertere Gespräche, kein Detail geht unter.
+- **module:** farmer
+
+### Farmer-Aktionspanel (Empfehlung → Aktion)
+- **feature:** Farmer-Aktionspanel (Empfehlung → Aktion)
+- **what:** Pro Kunden-Signal ein fokussiertes Aktionspanel mit AI-Empfehlung + passenden Aktionen (Retention-/Reaktivierungs-/Upsell-Nachricht, Winback-Anruf, Aufgabe, Snooze) — Format wie im Hunter.
+- **how:** Farmer → Signal/Karte → empfohlene Aktion klicken → Aktionspanel rechts.
+- **value:** Von der Erkenntnis direkt zur Handlung — die richtige Reaktion ist vorbereitet, der Mensch bestätigt nur.
+- **module:** farmer
+
+### Farmer-Follow-ups
+- **feature:** Farmer-Follow-ups
+- **what:** Tagesarbeits-Tab für Bestandskunden: fällige Aufgaben + „Kunde wird kalt"-Karten an einem Ort; Snooze/erledigen, „Ansehen" springt + hebt kurz hervor.
+- **how:** Farmer → Tab „Follow-ups"; Aufgaben abarbeiten, „Kunde wird kalt"-Karten mit Aktion/Snooze bearbeiten.
+- **value:** Klare Tagesliste für die Kundenpflege — nichts fällt durchs Raster, Beziehungen bleiben warm.
+- **module:** farmer

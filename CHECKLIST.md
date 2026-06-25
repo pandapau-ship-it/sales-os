@@ -64,7 +64,7 @@
 - [ ] AI-Chat **Red-Team-Gate** (`scripts/redteam-aichat.ts`, `npm run redteam`) bauen — Phase 7, vor Live
 
 ### Offen
-- [ ] Skeleton/Loading — kommt mit DB-Wiring via TanStack Query
+- [x] **Skeleton/Loading + Prefetch** — `PanelSkeleton` (panel-block) in allen Info-Panel-Tabs während `isLoading` · Prefetch-on-hover (`lib/prefetch.ts` zentral in `HunterCard`, 120 ms Intent) · `placeholderData: keepPreviousData` auf allen per-Contact-Queries (HunterSidepanel + ExpandedCardContent) — *2026-06-25*
 - [ ] Kanban-Mini-Karten angleichen (bauartbedingt separat)
 - [ ] DB-Wiring: Mock → `getDeals`/`getSignals`/`getPipelineSettings`, Realtime, Routing → echtes ScreenHunting; Deal-Felder `name`/`product` + Produktkatalog aus `system_config`
 
@@ -243,7 +243,7 @@
 - [ ] `navConfig.tsx → roleAccess` an 4-Punkte-Struktur anpassen
 - [ ] **AI SDR Screen** (NEU bauen): Sequenzen · Outreach · Posteingang · Termine
 - [ ] **Hunter Screen** umbauen → Recommendation Feed (keine Sequenzen)
-- [~] **Farmer Screen** → Recommendation Feed (Bestandskunden) — *UI alle 5 Tabs fertig (Übersicht · Kunden · Retention · Upsell · Signals), Mock; DB-Wiring offen. Komponenten: FarmerKpiCards · FarmerHealthOverview · FarmerKundenKachel · FarmerRetentionKachel · FarmerUpsellKachel · SubscriptionBadge (alle HunterCard-Wrapper)*
+- [~] **Farmer Screen** → Recommendation Feed (Bestandskunden) — *UI alle 6 Tabs fertig (Übersicht · Kunden · Retention · Upsell · Signals · Follow-ups [D46]), Mock; DB-Wiring offen. Hilfskomponenten: FarmerKpiCards · FarmerHealthOverview · FarmerKundenKachel · FarmerRetentionKachel · FarmerUpsellKachel · SubscriptionBadge (alle HunterCard-Wrapper). **Info-Panel [D33] (`FarmerSidepanel`, panel+full/Vollansicht [D47]) + Action-Panel [D34] (`FarmerActionDrawer` + `lib/farmerActions.tsx`) gebaut** (Mock); ScreenFarming verdrahtet (Panels + Action-CTAs + #7 LinkedIn-Signal-Antwort via SignalActionDrawer); Snooze/Ignorieren bei Signalen (Single Source `constants.ts`). Echte Daten/Scores/Subscription + KI-Kurzakte + AktiveSignale-Flags = Farmer-DB-Wiring (siehe PROGRESS [D47]-Nachzieh-Liste, [D43] Historisierung zuerst).*
 - [ ] **Mein Tag** → aggregierter Feed (keine eigene Datenquelle)
 - [ ] **Kontakte Screen** (NEU) — *zentrales Datenobjekt, eigener Sidebar-Icon*
 - [ ] Kontakte-Listenansicht — Spalten: Checkbox · Avatar+Name+Jobtitel+Company · Lead-Source-Badge · Status-Badge · Letzter Kontakt · ICP-Ring · Routing-Hinweis (Lucide, kein Emoji)
