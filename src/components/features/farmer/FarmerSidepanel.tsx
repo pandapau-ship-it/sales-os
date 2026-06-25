@@ -390,7 +390,6 @@ export default function FarmerSidepanel({ person: personProp, onClose, onExit, v
           <div className="flex items-start gap-7 shrink-0">{statusBadges}</div>
         </div>
         <div className="flex items-center gap-2 flex-wrap mt-7">{renderActions(btnFull)}</div>
-        <div className="mt-6">{contactPill}</div>
       </div>
 
       {/* Tabs — sticky oben, volle Breite */}
