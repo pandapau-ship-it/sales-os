@@ -6,14 +6,7 @@ import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import type { Lead, HeatStatus } from "@/types";
-
-// Snooze-Limits — später aus system_config (snooze_max_count / snooze_max_days).
-const SNOOZE_MAX = 3;
-const SNOOZE_OPTIONS = [
-  { label: "Morgen", days: 1 },
-  { label: "In 3 Tagen", days: 3 },
-  { label: "In 1 Woche", days: 7 },
-];
+import { SNOOZE_MAX, SNOOZE_OPTIONS } from "@/lib/constants"; // Single Source (Snooze-Limit + Optionen)
 
 interface FollowUpKaltCardProps {
   /** Echte contact_id → lazy Expand-Queries in HunterCard. */

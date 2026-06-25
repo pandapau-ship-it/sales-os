@@ -377,9 +377,14 @@ export default function ScreenHunting({
   const selectAll = () => setSelectedLeadIds(leadRows.map(l => l.id));
   const deselectAll = () => setSelectedLeadIds([]);
 
+  // Ignorierte Signale (lokaler State, kein Backend) → aus der Liste gefiltert. Kachel verschwindet sofort.
+  const [ignoredSignalIds, setIgnoredSignalIds] = useState<string[]>([]);
+  const ignoreSignals = (ids: string[]) => setIgnoredSignalIds((prev) => [...new Set([...prev, ...ids])]);
+  const visibleSignalCards = signalCards.filter((c) => !ignoredSignalIds.includes(c.id));
+
   // Signals-Auswahl (gleiche Mechanik wie Leads). IDs = Namen der Signal-Kacheln.
   const [selectedSignalIds, setSelectedSignalIds] = useState<string[]>([]);
-  const signalIds = signalCards.map((s) => s.id); // echte signals.id statt Namen
+  const signalIds = visibleSignalCards.map((s) => s.id); // echte signals.id (ohne ignorierte)
   const toggleSignalSelection = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     setSelectedSignalIds(prev =>
@@ -1130,14 +1135,15 @@ export default function ScreenHunting({
             </div>
           ) : signalsError ? (
             <div className="px-4 py-10 text-center text-[13px] text-[var(--signal-urgent-text)]">Signale konnten nicht geladen werden.</div>
-          ) : signalCards.length === 0 ? (
+          ) : visibleSignalCards.length === 0 ? (
             <EmptyState
               icon={<Zap className="w-6 h-6" />}
               title="Keine Signale heute"
               description="Neue Signale erscheinen hier automatisch"
             />
           ) : (
-            signalCards.map(({ id, ...cardProps }, i) => (
+            // Index `i` bleibt an signalsData gekoppelt (onOpenAction) → ignorierte per null-Render auslassen.
+            signalCards.map(({ id, ...cardProps }, i) => ignoredSignalIds.includes(id) ? null : (
               <LinkedinSignalCard
                 key={id}
                 {...cardProps}
@@ -1146,6 +1152,7 @@ export default function ScreenHunting({
                 selected={selectedSignalIds.includes(id)}
                 onToggleSelect={(e) => toggleSignalSelection(id, e)}
                 onOpenInfo={setInfoPanelLead}
+                onIgnore={() => ignoreSignals([id])}
                 // Opener → SignalActionDrawer mit echten Daten (AI-Felder als Platzhalter, [D5]).
                 onOpenAction={() => { const raw = (signalsData ?? [])[i]; if (raw) setSelectedSignal(signalToActionData(raw, t)); }}
               />
