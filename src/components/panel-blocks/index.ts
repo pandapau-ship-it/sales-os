@@ -42,6 +42,7 @@ export { default as OffeneTasks } from './OffeneTasks';
 export { default as PanelField } from './PanelField';
 export { default as PanelFooter } from './PanelFooter';
 export { default as PanelHeader } from './PanelHeader';
+export { default as PanelSkeleton } from './PanelSkeleton';
 export { default as PanelTabs } from './PanelTabs';
 export { default as PhoneField } from './PhoneField';
 export { default as PhoneNumbersField } from './PhoneNumbersField';

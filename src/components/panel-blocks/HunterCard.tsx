@@ -1,11 +1,14 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import type { MouseEvent, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   Check, ChevronDown, ChevronUp, ArrowRight, CheckSquare, FileText, Mail,
 } from "lucide-react";
 import Avatar from "@/components/shared/Avatar";
 import { ICPDonut } from "@/components/shared/ICPDonut";
+import { useCurrentOrg } from "@/hooks/useCurrentOrg";
+import { prefetchContactPanel } from "@/lib/prefetch";
 import HeatBadge from './HeatBadge';
 import StageBadge from './StageBadge';
 import { type DealCardAction } from './DealKurzinfo';
@@ -72,12 +75,36 @@ export default function HunterCard({
 }: HunterCardProps) {
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
+  const queryClient = useQueryClient();
+  const { organizationId } = useCurrentOrg();
 
   // Task/Notiz: echte Aktion wenn der Aufrufer onAction liefert, sonst Panel öffnen (onOpenInfo).
   const act = (a: DealCardAction) => (onAction ? onAction(a) : onOpenInfo?.());
 
+  // Prefetch-on-Intent: beim Drüberfahren die Panel-/Expand-Daten des Kontakts vorladen,
+  // damit sie beim Öffnen oft schon im Cache sind (gefühlt instant). Nur mit echter contactId.
+  // 120 ms Hover-Verzögerung (deutlich < Slide-in ~340 ms) → kein Prefetch-Sturm beim
+  // schnellen Drüberwischen, nur bei bewusstem Verweilen.
+  const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const startPrefetch = contactId
+    ? () => {
+        if (hoverTimer.current) return;
+        hoverTimer.current = setTimeout(() => {
+          prefetchContactPanel(queryClient, organizationId, contactId);
+          hoverTimer.current = null;
+        }, 120);
+      }
+    : undefined;
+  const cancelPrefetch = () => {
+    if (hoverTimer.current) { clearTimeout(hoverTimer.current); hoverTimer.current = null; }
+  };
+
   return (
-    <div className={`${CARD.shell} ${selected ? "bg-[var(--signal-teal-bg)]" : "bg-app-surface"}`}>
+    <div
+      className={`${CARD.shell} ${selected ? "bg-[var(--signal-teal-bg)]" : "bg-app-surface"}`}
+      onMouseEnter={startPrefetch}
+      onMouseLeave={contactId ? cancelPrefetch : undefined}
+    >
       <div className={CARD.body}>
         {/* TOP ROW */}
         <div className={CARD.topRow}>
