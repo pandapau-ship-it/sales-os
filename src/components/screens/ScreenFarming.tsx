@@ -4,17 +4,19 @@
  */
 
 import { useState } from 'react';
-import { AlertTriangle, TrendingUp, Sparkles, Check, X, Clock, Trash, Zap } from 'lucide-react';
-import type { Customer } from '@/types';
-import { FarmerKpiCards, FarmerHealthOverview, FarmerKundenKachel, FarmerRetentionKachel, FarmerUpsellKachel, SubscriptionBadge, LinkedinSignalCard, EmptyState, type RetentionItem, type UpsellItem } from '@/components';
+import { AlertTriangle, TrendingUp, Sparkles, Check, X, Clock, Trash, Zap, CheckSquare } from 'lucide-react';
+import type { Customer, Lead } from '@/types';
+import { FarmerKpiCards, FarmerHealthOverview, FarmerKundenKachel, FarmerRetentionKachel, FarmerUpsellKachel, SubscriptionBadge, LinkedinSignalCard, EmptyState, SequenceLeadCards, FollowUpKaltCard, FarmerSidepanel, FarmerActionDrawer, type RetentionItem, type UpsellItem, type FarmerActionData } from '@/components';
+import type { DueTaskCardItem } from '@/lib/hunterMappers';
 import { useToast } from '@/components/shared/Toast';
 import { NAV } from '@/lib/navBehavior';
 
 /**
- * Retention-Tab Mock-Kacheln — 3 Typen (Churn Risk · Wird kalt · Gekündigt). Bis Score-/Signal-
+ * Retention-Tab Mock-Kacheln — RISIKO-Übersicht: Churn Risk · Gekündigt. Bis Score-/Signal-
  * Anbindung. HEAT über kanonischen Enum (HeatBadge = Single Source): churn_risk→Cooling (LUKEWARM),
- * going_cold→Cold (COLD), cancelled→Warm (WARM). Alte Heat-Label-Wörter sind im Code audit-verboten
- * → daher ausschließlich der Enum, nie literale Labels.
+ * cancelled→Warm (WARM). Alte Heat-Label-Wörter sind im Code audit-verboten → nur der Enum.
+ * „Kunde wird kalt" (going_cold) gehört bewusst NICHT hierher, sondern in den Follow-ups-Tab
+ * (= Aktion, nicht Risiko) — siehe [D46] / CLAUDE.md „Farmer Follow-ups".
  */
 const RETENTION_ITEMS: RetentionItem[] = [
   {
@@ -22,12 +24,6 @@ const RETENTION_ITEMS: RetentionItem[] = [
     icpScore: 78, heatStatus: 'LUKEWARM', sherloqStatus: 'active', timeLabel: 'vor 7 Tagen',
     type: 'churn_risk',
     text: 'Nutzung der Plattform ist in den letzten 7 Tagen um 80% gefallen. AI empfiehlt sofortigen Check-in.',
-  },
-  {
-    id: 'ret-2', name: 'Laura Becker', jobTitle: 'Head of Customer Success', company: 'Logistify DE',
-    icpScore: 78, heatStatus: 'COLD', sherloqStatus: 'active', timeLabel: 'vor 28 Tagen',
-    type: 'going_cold',
-    text: 'Kein Kontakt seit 28 Tagen. AI empfiehlt Check-In bevor Kunde abwandert.',
   },
   {
     id: 'ret-3', name: 'Jonas Weber', jobTitle: 'CEO', company: 'Scalify GmbH',
@@ -78,8 +74,22 @@ export default function ScreenFarming({
   onSelectCustomer,
   onUpgradeSubscription: _onUpgradeSubscription,
 }: ScreenFarmingProps) {
-  const [subTab, setSubTab] = useState<'overview' | 'kunden' | 'churn' | 'upsell' | 'signals'>('overview');
+  const [subTab, setSubTab] = useState<'overview' | 'kunden' | 'churn' | 'upsell' | 'signals' | 'follow_ups'>('overview');
   const { toast } = useToast();
+
+  // [D46] Follow-ups: FarmerSidepanel-Deeplink (onView → Tasks-Tab + Highlight) + Action-Panel „Kunde wird kalt".
+  // FarmerSidepanel hier eigenständig gerendert (D33-Vollverdrahtung der übrigen Tabs folgt separat).
+  const [infoPerson, setInfoPerson] = useState<Customer | Lead | null>(null);
+  const [infoTab, setInfoTab] = useState<'tasks' | null>(null);
+  const [infoTaskId, setInfoTaskId] = useState<string | null>(null);
+  const [coldSignal, setColdSignal] = useState<FarmerActionData | null>(null);
+
+  // MOCK fällige Tasks (Honesty: realistische Werte, kein Fake-KI) — echte Werte mit Farmer-DB-Wiring.
+  const nowMs = Date.now();
+  const dueTaskCards: DueTaskCardItem[] = [
+    { id: 'fdt-1', contactId: customers[0]?.id, name: customers[0]?.person.name ?? 'Maximilian Krause', role: customers[0]?.person.jobTitle ?? 'Director Account Management', companyName: customers[0]?.person.company ?? 'PayGuard AG', initials: customers[0]?.person.initials ?? 'MK', icpScore: customers[0]?.icpScore, heatStatus: customers[0]?.heatStatus, taskTitle: 'Quartals-Business-Review terminieren', dueAt: new Date(nowMs + 86_400_000).toISOString() },
+    { id: 'fdt-2', contactId: customers[1]?.id, name: customers[1]?.person.name ?? 'Jonas Weber', role: customers[1]?.person.jobTitle ?? 'CEO', companyName: customers[1]?.person.company ?? 'Scalify GmbH', initials: customers[1]?.person.initials ?? 'JW', icpScore: customers[1]?.icpScore, heatStatus: customers[1]?.heatStatus, taskTitle: 'Onboarding-Status nachfassen', dueAt: new Date(nowMs - 86_400_000).toISOString() },
+  ];
 
   // Signals: Mock-Meta auf echte Kunden mappen (Company-Match). Nur Treffer erscheinen (Honesty).
   const signalRows = FARMER_SIGNALS
@@ -103,6 +113,7 @@ export default function ScreenFarming({
     { id: 'churn', label: 'Retention', icon: <AlertTriangle className="w-3.5 h-3.5" />, count: churnCount },
     { id: 'upsell', label: 'Upsell', icon: <TrendingUp className="w-3.5 h-3.5" />, count: '4.2k€' },
     { id: 'signals', label: 'Signals', icon: <Sparkles className="w-3.5 h-3.5" />, count: signalRows.length },
+    { id: 'follow_ups', label: 'Follow-ups', icon: <CheckSquare className="w-3.5 h-3.5" />, count: dueTaskCards.length + 1 },
   ];
 
   return (
@@ -160,8 +171,8 @@ export default function ScreenFarming({
       {/* 3. VIEW RETENTION — Churn Risk · Wird kalt · Gekündigt (FarmerRetentionKachel = HunterCard-Wrapper, Mock) */}
       {subTab === 'churn' && (
         <div className="flex flex-col gap-3">
-          {/* „Wird kalt" erscheint NUR bei heat_status='COLD'; churn_risk/cancelled sind nicht heat-gegatet. */}
-          {RETENTION_ITEMS.filter((item) => item.type !== 'going_cold' || item.heatStatus === 'COLD').map((item) => (
+          {/* Risiko-Übersicht: Churn Risk · Gekündigt. „Kunde wird kalt" liegt im Follow-ups-Tab ([D46]). */}
+          {RETENTION_ITEMS.map((item) => (
             <FarmerRetentionKachel
               key={item.id}
               item={item}
@@ -257,6 +268,50 @@ export default function ScreenFarming({
           )}
         </div>
       )}
+
+      {/* 6. VIEW FOLLOW-UPS ([D46]) — operative Tagesarbeit: fällige Tasks + „Kunde wird kalt".
+          Bewusste Trennung zu Retention (= Risiko-Übersicht). Kein „Stagniert" (kein Deal/Stage im Farmer).
+          Komponenten 1:1 wie Hunter (SequenceLeadCards · FollowUpKaltCard). „Ansehen" → Deeplink-Highlight. */}
+      {subTab === 'follow_ups' && (
+        <div className="flex flex-col gap-4">
+          {/* Fällige Tasks bei Bestandskunden — „Ansehen" öffnet FarmerSidepanel Tasks-Tab + Highlight. */}
+          <SequenceLeadCards
+            items={dueTaskCards}
+            onSelectLead={(lead) => { setInfoTab(null); setInfoTaskId(null); setInfoPerson({ ...lead, sherloqStatus: 'ACTIVE' } as Customer); }}
+            onView={(lead, taskId) => { setInfoTab('tasks'); setInfoTaskId(taskId); setInfoPerson({ ...lead, sherloqStatus: 'ACTIVE' } as Customer); }}
+            onComplete={() => toast('Task erledigt ✓', 'success')}
+          />
+
+          {/* „Kunde wird kalt" — gehört zu Follow-ups (Aktion), NICHT zu Retention (Risiko).
+              CTA „Start Outreach" → FarmerActionDrawer (going_cold-Config). */}
+          <FollowUpKaltCard
+            contactId="cust-2"
+            name="Laura Becker"
+            role="Head of Customer Success"
+            companyName="Logistify DE"
+            icpScore={78}
+            heatStatus="COLD"
+            timeAgoLabel="vor 28 Tagen"
+            onSelectLead={(lead) => { setInfoTab(null); setInfoTaskId(null); setInfoPerson({ ...lead, sherloqStatus: 'ACTIVE' } as Customer); }}
+            onOutreachClick={() => setColdSignal({ kind: 'going_cold', name: 'Laura Becker', company: 'Logistify DE', lastContactDays: 28 })}
+          />
+        </div>
+      )}
+
+      {/* [D46] FarmerSidepanel für Follow-ups-„Ansehen" (Deeplink: Tasks-Tab + Highlight). */}
+      <FarmerSidepanel
+        person={infoPerson}
+        initialTab={infoTab}
+        initialTaskId={infoTaskId}
+        onClose={() => { setInfoPerson(null); setInfoTab(null); setInfoTaskId(null); }}
+      />
+
+      {/* [D46] „Kunde wird kalt" → Action-Panel (going_cold). */}
+      <FarmerActionDrawer
+        signal={coldSignal}
+        onClose={() => setColdSignal(null)}
+        onSnooze={() => toast('Auf später verschoben', 'info')}
+      />
 
     </div>
   );
