@@ -6,8 +6,9 @@
 import { useState } from 'react';
 import { AlertTriangle, TrendingUp, Sparkles, Check, X, Clock, Trash, Zap, CheckSquare } from 'lucide-react';
 import type { Customer, Lead } from '@/types';
-import { FarmerKpiCards, FarmerHealthOverview, FarmerKundenKachel, FarmerRetentionKachel, FarmerUpsellKachel, SubscriptionBadge, LinkedinSignalCard, EmptyState, SequenceLeadCards, FollowUpKaltCard, FarmerSidepanel, FarmerActionDrawer, type RetentionItem, type UpsellItem, type FarmerActionData } from '@/components';
-import type { DueTaskCardItem } from '@/lib/hunterMappers';
+import { FarmerKpiCards, FarmerHealthOverview, FarmerKundenKachel, FarmerRetentionKachel, FarmerUpsellKachel, SubscriptionBadge, LinkedinSignalCard, EmptyState, SequenceLeadCards, FollowUpKaltCard, FarmerSidepanel, FarmerActionDrawer, SignalActionDrawer, type RetentionItem, type UpsellItem, type FarmerActionData } from '@/components';
+import type { DueTaskCardItem, SignalActionData } from '@/lib/hunterMappers';
+import { AI_PENDING_LABEL } from '@/lib/hunterMappers';
 import { useToast } from '@/components/shared/Toast';
 import { NAV } from '@/lib/navBehavior';
 
@@ -71,7 +72,7 @@ interface ScreenFarmingProps {
 
 export default function ScreenFarming({
   customers,
-  onSelectCustomer,
+  onSelectCustomer: _onSelectCustomer, // Slice 3: Panels öffnen jetzt FarmerSidepanel (nicht CustomerDrawer); Prop bleibt für ReferenceScreens
   onUpgradeSubscription: _onUpgradeSubscription,
 }: ScreenFarmingProps) {
   const [subTab, setSubTab] = useState<'overview' | 'kunden' | 'churn' | 'upsell' | 'signals' | 'follow_ups'>('overview');
@@ -82,7 +83,23 @@ export default function ScreenFarming({
   const [infoPerson, setInfoPerson] = useState<Customer | Lead | null>(null);
   const [infoTab, setInfoTab] = useState<'tasks' | null>(null);
   const [infoTaskId, setInfoTaskId] = useState<string | null>(null);
-  const [coldSignal, setColdSignal] = useState<FarmerActionData | null>(null);
+  const [actionSignal, setActionSignal] = useState<FarmerActionData | null>(null);
+  const [selectedFarmerSignal, setSelectedFarmerSignal] = useState<SignalActionData | null>(null); // #7 LinkedIn-Signal-Antwort (reuse SignalActionDrawer)
+
+  // Panel im Übersicht-Modus öffnen (Kunden/Retention/Upsell/Signals) — nicht im Tasks-Deeplink.
+  const openInfo = (p: Customer | Lead) => { setInfoTab(null); setInfoTaskId(null); setInfoPerson(p); };
+  // Retention-/Upsell-Item (kein Customer-Objekt) → minimaler Customer fürs FarmerSidepanel (Mock-Shaping).
+  const itemToPerson = (it: RetentionItem | UpsellItem): Customer => ({
+    id: it.id,
+    person: {
+      id: it.id, name: it.name, jobTitle: it.jobTitle, company: it.company,
+      initials: it.name.split(' ').filter(Boolean).map((w) => w[0]).slice(0, 2).join('').toUpperCase(),
+    },
+    icpScore: it.icpScore,
+    heatStatus: it.heatStatus,
+    sherloqStatus: (it.sherloqStatus ?? '').toUpperCase(),
+    contactEmail: '',
+  } as Customer);
 
   // MOCK fällige Tasks (Honesty: realistische Werte, kein Fake-KI) — echte Werte mit Farmer-DB-Wiring.
   const nowMs = Date.now();
@@ -91,10 +108,15 @@ export default function ScreenFarming({
     { id: 'fdt-2', contactId: customers[1]?.id, name: customers[1]?.person.name ?? 'Jonas Weber', role: customers[1]?.person.jobTitle ?? 'CEO', companyName: customers[1]?.person.company ?? 'Scalify GmbH', initials: customers[1]?.person.initials ?? 'JW', icpScore: customers[1]?.icpScore, heatStatus: customers[1]?.heatStatus, taskTitle: 'Onboarding-Status nachfassen', dueAt: new Date(nowMs - 86_400_000).toISOString() },
   ];
 
-  // Signals: Mock-Meta auf echte Kunden mappen (Company-Match). Nur Treffer erscheinen (Honesty).
+  // Ignorierte Signale (lokaler State, kein Backend) → aus der Liste gefiltert. Kachel verschwindet sofort.
+  const [ignoredSignalIds, setIgnoredSignalIds] = useState<string[]>([]);
+  const ignoreSignals = (ids: string[]) => setIgnoredSignalIds((prev) => [...new Set([...prev, ...ids])]);
+
+  // Signals: Mock-Meta auf echte Kunden mappen (Company-Match). Nur Treffer (Honesty), ohne Ignorierte.
   const signalRows = FARMER_SIGNALS
     .map((sig) => ({ sig, customer: customers.find((c) => c.person.company === sig.company) }))
-    .filter((r): r is { sig: FarmerSignalMeta; customer: Customer } => !!r.customer);
+    .filter((r): r is { sig: FarmerSignalMeta; customer: Customer } => !!r.customer)
+    .filter((r) => !ignoredSignalIds.includes(r.customer.id));
 
   // Auswahl + Bulk-Leiste (gleiche Mechanik wie Hunter Signals). IDs = customer.id.
   const [selectedSignalIds, setSelectedSignalIds] = useState<string[]>([]);
@@ -162,7 +184,7 @@ export default function ScreenFarming({
             <FarmerKundenKachel
               key={customer.id}
               contact={customer}
-              onOpenPanel={() => onSelectCustomer(customer)}
+              onOpenPanel={() => openInfo(customer)}
             />
           ))}
         </div>
@@ -176,12 +198,8 @@ export default function ScreenFarming({
             <FarmerRetentionKachel
               key={item.id}
               item={item}
-              onOpenPanel={() => {
-                const cust = customers.find((c) => c.person.name === item.name);
-                if (cust) onSelectCustomer(cust);
-                else toast('Kontakt-Panel folgt mit DB-Wiring', 'info');
-              }}
-              onAction={() => toast('Action Panel folgt ([D34])', 'info')}
+              onOpenPanel={() => openInfo(itemToPerson(item))}
+              onAction={() => setActionSignal({ kind: item.type, name: item.name, company: item.company, icpScore: item.icpScore })}
             />
           ))}
         </div>
@@ -194,12 +212,8 @@ export default function ScreenFarming({
             <FarmerUpsellKachel
               key={item.id}
               item={item}
-              onOpenPanel={() => {
-                const cust = customers.find((c) => c.person.name === item.name);
-                if (cust) onSelectCustomer(cust);
-                else toast('Kontakt-Panel folgt mit DB-Wiring', 'info');
-              }}
-              onAction={() => toast('Action Panel folgt ([D34])', 'info')}
+              onOpenPanel={() => openInfo(itemToPerson(item))}
+              onAction={() => setActionSignal({ kind: 'upsell_potential', name: item.name, company: item.company, icpScore: item.icpScore })}
             />
           ))}
         </div>
@@ -226,7 +240,7 @@ export default function ScreenFarming({
               <button onClick={deselectAllSignals} className="ml-2 text-[12px] text-[var(--text-muted)] hover:text-[var(--text-body)] font-semibold underline underline-offset-2">Auswahl aufheben</button>
             </div>
             <div className="flex items-center gap-2">
-              <button onClick={() => toast('Bulk-Aktionen folgen mit dem Action-Panel ([D34])', 'info')} className="bg-app-surface border text-[var(--text-body)] border-[var(--border)] hover:border-[var(--icon-muted)] hover:bg-[var(--app-bg)] px-3 py-1.5 rounded-full text-[12px] font-semibold flex items-center gap-1.5 transition-colors">
+              <button onClick={() => { ignoreSignals(selectedSignalIds); deselectAllSignals(); }} className="bg-app-surface border text-[var(--text-body)] border-[var(--border)] hover:border-[var(--icon-muted)] hover:bg-[var(--app-bg)] px-3 py-1.5 rounded-full text-[12px] font-semibold flex items-center gap-1.5 transition-colors">
                 <X className="w-3.5 h-3.5" /> Ignorieren
               </button>
               <button onClick={() => toast('Bulk-Aktionen folgen mit dem Action-Panel ([D34])', 'info')} className="bg-app-surface border text-[var(--text-body)] border-[var(--border)] hover:border-[var(--icon-muted)] hover:bg-[var(--app-bg)] px-3 py-1.5 rounded-full text-[12px] font-semibold flex items-center gap-1.5 transition-colors">
@@ -261,8 +275,19 @@ export default function ScreenFarming({
                 statusBadge={{ label: 'SUBSCRIPTION', node: <SubscriptionBadge status={customer.sherloqStatus} /> }}
                 selected={selectedSignalIds.includes(customer.id)}
                 onToggleSelect={() => toggleSignalSelection(customer.id)}
-                onOpenInfo={() => onSelectCustomer(customer)}
-                onOpenAction={() => toast('Antworten: Action-Panel folgt ([D34])', 'info')}
+                onIgnore={() => ignoreSignals([customer.id])}
+                onOpenInfo={() => openInfo(customer)}
+                onOpenAction={() => setSelectedFarmerSignal({
+                  name: customer.person.name,
+                  company: customer.person.company,
+                  avatarUrl: customer.person.avatarUrl,
+                  icpScore: customer.icpScore,
+                  actionText: sig.actionText,
+                  timeAgoLabel: (customer.lastLogin ?? '').replace(/^vor\s+/, ''),
+                  aiRecommendation: AI_PENDING_LABEL, // KI-Felder NULL → „Folgt" [D5]
+                  confidence: null,
+                  draft: null,
+                })}
               />
             ))
           )}
@@ -293,7 +318,7 @@ export default function ScreenFarming({
             heatStatus="COLD"
             timeAgoLabel="vor 28 Tagen"
             onSelectLead={(lead) => { setInfoTab(null); setInfoTaskId(null); setInfoPerson({ ...lead, sherloqStatus: 'ACTIVE' } as Customer); }}
-            onOutreachClick={() => setColdSignal({ kind: 'going_cold', name: 'Laura Becker', company: 'Logistify DE', lastContactDays: 28 })}
+            onOutreachClick={() => setActionSignal({ kind: 'going_cold', name: 'Laura Becker', company: 'Logistify DE', lastContactDays: 28 })}
           />
         </div>
       )}
@@ -308,9 +333,17 @@ export default function ScreenFarming({
 
       {/* [D46] „Kunde wird kalt" → Action-Panel (going_cold). */}
       <FarmerActionDrawer
-        signal={coldSignal}
-        onClose={() => setColdSignal(null)}
+        signal={actionSignal}
+        onClose={() => setActionSignal(null)}
+        onCreateTask={() => { setActionSignal(null); toast('Task erstellt ✓', 'success'); }}
+        onWinbackCall={() => toast('Anruf protokolliert ✓', 'success')}
         onSnooze={() => toast('Auf später verschoben', 'info')}
+      />
+
+      {/* #7 LinkedIn-Signal-Antwort — SignalActionDrawer 1:1 von Hunter (generisch, kein neuer Resolver). */}
+      <SignalActionDrawer
+        signal={selectedFarmerSignal}
+        onClose={() => setSelectedFarmerSignal(null)}
       />
 
     </div>

@@ -52,3 +52,14 @@ export const SIGNAL_TYPE_META: Record<string, { channelLabelKey: string; icon: L
 /** Meta für einen signal_type inkl. Fallback auf `custom` bei unbekanntem Typ. */
 export const signalMetaFor = (signalType: string | undefined) =>
   SIGNAL_TYPE_META[signalType ?? "custom"] ?? SIGNAL_TYPE_META.custom;
+
+/**
+ * Snooze — Single Source (Limit + Dauer-Optionen). Genutzt von FollowUpKaltCard (Kalt-Row)
+ * und LinkedinSignalCard (Signal-Snooze). Später aus system_config (snooze_max_count / snooze_max_days).
+ */
+export const SNOOZE_MAX = 3;
+export const SNOOZE_OPTIONS: { label: string; days: number }[] = [
+  { label: "Morgen", days: 1 },
+  { label: "In 3 Tagen", days: 3 },
+  { label: "In 1 Woche", days: 7 },
+];
