@@ -134,7 +134,10 @@ export default function FarmerSidepanel({ person: personProp, onClose, onExit, v
       readonly
       onCopied={() => showToast('Kopiert ✓')}
       contact={{
-        email: person.contactEmail ?? '',
+        // Mock: alle vier Kontaktwege synthetisieren (wie LinkedIn/Web), damit die Mail wie bei
+        // Hunter erscheint. Echte E-Mail kommt mit dem Farmer-DB-Wiring (person.contactEmail).
+        email: person.contactEmail
+          || `${person.person.name.toLowerCase().replace(/[^a-z]+/g, '.').replace(/^\.|\.$/g, '')}@${(customer?.person.company ?? 'example').toLowerCase().replace(/[^a-z]+/g, '')}.com`,
         linkedin: `in/${person.person.name.toLowerCase().replace(/[^a-z]+/g, '-')}`,
         web: `${(customer?.person.company ?? 'example').toLowerCase().replace(/[^a-z]+/g, '')}.com`,
       }}
