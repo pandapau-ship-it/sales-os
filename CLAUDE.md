@@ -4385,9 +4385,15 @@ Hover-Tooltip (welche Signale aktiv). Lädt die Gewichte: `getHunterPriorityWeig
 Wie Hunter, explizit als Recommendation Agent.
 
 Aufbau:
-- Nav-Kacheln (Sub-Nav): **[Übersicht] [Kunden] [Retention] [Upsell] [Signals]**
+- Nav-Kacheln (Sub-Nav): **[Übersicht] [Kunden] [Retention] [Upsell] [Signals] [Follow-ups]**
 - Hauptinhalt: Signal-Kacheln mit AI-Empfehlung inline
 - Gleiche Logik wie Hunter, aber für Bestandskunden
+
+**Farmer Follow-ups Tab ([D46]) — Inhalt:**
+(1) **fällige Tasks** bei Bestandskunden (`SequenceLeadCards`, 1:1 wie Hunter) · (2) **„Kunde wird kalt"**-Kacheln.
+→ **Retention/Churn & Trials = Risiko** („Was beobachte ich?") · **Follow-ups = Aktion** („Was tue ich heute?").
+**„Kunde wird kalt" gehört zu Follow-ups** (konkrete Handlung), nicht zur Risiko-Übersicht. **Niemals denselben
+Inhalt in beiden Tabs.** Kein „Stagniert" im Farmer (kein Deal/Stage). „Ansehen" → Deeplink-Highlight (Pflicht).
 
 ### Farmer vs Hunter — Wer gehört wohin
 

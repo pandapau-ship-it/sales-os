@@ -31,9 +31,11 @@ import type { CommunicationView } from '@/lib/hunterMappers';
 
 // ── MOCK (Slice 1) — echte Werte kommen mit dem Farmer-DB-Wiring (TanStack Query) ───────────
 // Übersicht braucht etwas Inhalt für die Slice-1-Abnahme; die Blöcke sind 1:1 die Hunter-Blöcke.
+// IDs/Titel match die Follow-up-Karten (ScreenFarming dueTaskCards: fdt-1/fdt-2), damit der
+// „Ansehen"-Deeplink (highlightId) im Tasks-Tab eine echte Row trifft → aufklappen + Flash.
 const MOCK_TASKS = [
-  { id: 'ft-1', title: 'Quartals-Review vorbereiten', due_at: new Date(Date.now() + 2 * 86_400_000).toISOString(), channel: 'meeting' },
-  { id: 'ft-2', title: 'Enterprise-Infomaterial nachfassen', due_at: new Date(Date.now() - 86_400_000).toISOString(), channel: 'email' },
+  { id: 'fdt-1', title: 'Quartals-Business-Review terminieren', due_at: new Date(Date.now() + 86_400_000).toISOString(), channel: 'meeting' },
+  { id: 'fdt-2', title: 'Onboarding-Status nachfassen', due_at: new Date(Date.now() - 86_400_000).toISOString(), channel: 'email' },
 ];
 const MOCK_COMMS: CommunicationView[] = [
   { id: 'fc-1', channel: 'email', direction: 'inbound', occurredAt: new Date(Date.now() - 2 * 86_400_000).toISOString(), note: 'Enterprise-Infomaterial angefragt' },
@@ -43,8 +45,8 @@ const MOCK_COMMS: CommunicationView[] = [
 
 type FarmerTab = 'overview' | 'activity' | 'communication' | 'tasks' | 'subscription' | 'usage' | 'notes';
 
-export default function FarmerSidepanel({ person: personProp, onClose }: { person: Lead | Customer | null; onClose: () => void }) {
-  const [activeTab, setActiveTab] = useState<FarmerTab>('overview');
+export default function FarmerSidepanel({ person: personProp, onClose, initialTab = null, initialTaskId = null }: { person: Lead | Customer | null; onClose: () => void; initialTab?: FarmerTab | null; initialTaskId?: string | null }) {
+  const [activeTab, setActiveTab] = useState<FarmerTab>(initialTab ?? 'overview');
   const [actionSignal, setActionSignal] = useState<FarmerActionData | null>(null); // [D34] Farmer Action Panel
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const showToast = (msg: string) => { setToastMessage(msg); setTimeout(() => setToastMessage(null), 1800); };
@@ -53,8 +55,8 @@ export default function FarmerSidepanel({ person: personProp, onClose }: { perso
   // Ausfahr-Animation (person→null) nicht leer wird (gleiches Muster wie HunterSidepanel/CustomerDrawer).
   const [display, setDisplay] = useState<Lead | Customer | null>(personProp);
   useEffect(() => {
-    if (personProp) { setDisplay(personProp); setActiveTab('overview'); }
-  }, [personProp]);
+    if (personProp) { setDisplay(personProp); setActiveTab(initialTab ?? 'overview'); }
+  }, [personProp, initialTab]);
   const isOpen = personProp !== null;
   const person = display;
 
@@ -208,6 +210,7 @@ export default function FarmerSidepanel({ person: personProp, onClose }: { perso
       {activeTab === 'tasks' && (
         <TasksListe
           onToast={showToast}
+          highlightId={initialTaskId}
           taskRows={MOCK_TASKS}
           contactName={person.person.name}
           onCreate={() => showToast('Task gespeichert ✓')}
