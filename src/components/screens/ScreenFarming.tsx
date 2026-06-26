@@ -65,14 +65,12 @@ const FARMER_SIGNALS: FarmerSignalMeta[] = [
 
 interface ScreenFarmingProps {
   customers: Customer[];
-  onSelectCustomer: (cust: Customer) => void;
   onUpgradeSubscription: (id: string, newPlan: 'Growth' | 'Enterprise') => void;
   onSelectCommunication?: (personId: string, tpId: string) => void;
 }
 
 export default function ScreenFarming({
   customers,
-  onSelectCustomer: _onSelectCustomer, // Slice 3: Panels öffnen jetzt FarmerSidepanel (nicht CustomerDrawer); Prop bleibt für ReferenceScreens
   onUpgradeSubscription: _onUpgradeSubscription,
 }: ScreenFarmingProps) {
   const [subTab, setSubTab] = useState<'overview' | 'kunden' | 'churn' | 'upsell' | 'signals' | 'follow_ups'>('overview');

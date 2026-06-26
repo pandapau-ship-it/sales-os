@@ -276,15 +276,15 @@ export function HunterReference() {
 
 export function FarmerReference() {
   const s = useReferenceState();
+  // Slice 4: ScreenFarming öffnet eigene Panels (FarmerSidepanel/FarmerActionDrawer) intern —
+  // kein CustomerDrawer mehr im Farmer. (CustomerDrawer bleibt für MeinTag/Hunter, bis migriert.)
   return (
     <>
       <ScreenFarming
         customers={s.customers}
-        onSelectCustomer={s.selectPerson}
         onUpgradeSubscription={s.upgradeSubscription}
         onSelectCommunication={s.selectCommunication}
       />
-      <Drawer s={s} />
     </>
   );
 }
