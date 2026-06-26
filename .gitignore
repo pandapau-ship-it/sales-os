@@ -30,3 +30,6 @@ dist-ssr
 
 # Claude Code local (per-clone) settings — not versioned
 .claude/settings.local.json
+
+# Supabase CLI local cache (per-clone, vom CLI bei db push/link verändert) — nicht versioniert
+supabase/.temp/
