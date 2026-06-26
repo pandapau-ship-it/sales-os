@@ -6,6 +6,22 @@
 
 ## Current Status: Phase 3 (DB-Wiring Hunter) abgeschlossen · **[D27] Tech-Schuld erledigt** · **Auth/Org [D21] Scheiben 1–8** (inkl. MfaBanner 2FA-Empfehlung) · **Hunter-Übersicht Dringlichkeits-Score** (Migr. 045, settings-basiert) + Profilzeilen-Konsistenz erzwungen · **Farmer-Screen UI komplett (alle 6 Tabs: Übersicht · Kunden · Retention · Upsell · Signals · Follow-ups — Mock, kein DB-Wiring)** · **Farmer Info-Panel [D33] + Action-Panel [D34] + Follow-ups [D46] + Vollansicht [D47] gebaut** (eigene `FarmerSidepanel`/`FarmerActionDrawer`, Mock) · **ScreenFarming verdrahtet** (Panels + Action-CTAs + #7 LinkedIn-Signal-Antwort) · **Snooze/Ignorieren bei Signalen** (Hunter+Farmer, Single Source `constants.ts`) · **Panel-Performance** (Skeletons + Prefetch-on-hover + placeholderData) · **[D35] Signal-Action-Resolver Phase 0** · **Elevation- & Radius-System app-weit** · **Drawer-Panels Full-Bleed** (zentral in `sheet.tsx`). Next (Reihenfolge laut Farmer-vs-Hunter-Routing): **Farmer DB-Wiring** (echte Scores/Signale/Subscription + [D43] Historisierung zuerst; KI-Kurzakte + AktiveSignale-Flags an echte Felder — siehe [D47]-Nachzieh-Liste) · **Hunter Trial-Kacheln [D36]/[D37]** · **Lifecycle-Trigger [D38]** · **[D29] Einladungs-Mail Edge Function** · AI-Pipeline (löst „Folgt"-Platzhalter [D5])
 
+> **Session 2026-06-27 (Aufräum-Session — Farmer Slice 4 + Repo-Hygiene) — auf `main`:**
+> Kleine Wartungs-Session, kein neues Feature, keine neue Komponente, kein DB-Wiring.
+> **Farmer Slice 4 — CustomerDrawer aufgeräumt:** in `ReferenceScreens.tsx → FarmerReference` war noch
+> `<Drawer s={s}/>` (alter `CustomerDrawer`) + `onSelectCustomer={s.selectPerson}` gerendert, öffnete aber
+> nie (ScreenFarming aliased die Prop als unbenutzt → öffnet intern `FarmerSidepanel`). Toten Pfad entfernt:
+> `<Drawer>` aus FarmerReference raus, `onSelectCustomer` ganz aus `ScreenFarming`-Props gestrichen (war voll
+> tot). **CustomerDrawer bleibt** — wird von **MeinTag** (`onPersonSelect`→`selectById`, aktiv genutzt, kein
+> eigenes Panel) und **Hunter** (`<Drawer>` noch gerendert; Hunter routet zwar intern auf `HunterSidepanel`,
+> CustomerDrawer dort ebenfalls toter Rest, aber out-of-scope) weiter eingebunden. Erst löschbar, wenn
+> MeinTag/Hunter migriert sind.
+> **Repo-Hygiene:** `supabase/.temp/` (CLI-Cache, vom `db push`/`link` verändert) aus dem Git-Tracking
+> entfernt (`git rm -r --cached`, 9 Dateien) + in `.gitignore` aufgenommen → erscheint nicht mehr bei
+> `git add -A`. **Migration 047** (KB Farmer-Panels, aus der 2026-06-25-Session) wurde diese Session via
+> `supabase db push` remote angewendet (remote jetzt auf **047**). Remote-Branch `chore/session-2026-06-25`
+> gelöscht. Gates grün (build/audit/structure).
+
 > **Session 2026-06-25 (Farmer Info-/Action-Panel + Follow-ups + Vollansicht + Verdrahtung + Panel-Perf) — auf `main`:**
 > Spanne: seit Übergabe `2026-06-24_teil2`. **[D33] Farmer Info-Panel** als eigene `features/farmer/FarmerSidepanel.tsx` (`variant='panel'|'full'`, typo-Kanon, Full-Bleed) — Tabs Übersicht/Aktivität/Kommunikation/Tasks/Subscription/Usage/Notizen; KontaktZeile im Header; reuse aller panel-blocks. **[D34] Farmer Action-Panel**: `lib/farmerActions.tsx` (Resolver `farmerActionConfig` + `FARMER_ACTION_CATALOG`, Spiegel von `signalActions`) + `FarmerActionDrawer` (rendert `ChatActionPanel` **unverändert** — Option A: Actions erst mit echtem Draft, sonst „Folgt"-Platzhalter bis [D5]). Action-Panel-Breite app-weit **720px fix**.
 > **[D46] Farmer Follow-ups-Tab** (fällige Tasks + „Kunde wird kalt"; Trennung Retention=Risiko vs Follow-ups=Aktion). **[D47] Farmer Vollansicht** (`variant='full'` + 7 Tabs + ArrowUpRight; Details via Library; SubscriptionBox compact; `createPortal`-Fix gegen transform-Vorfahre; KontaktZeile-Hero entfernt — konsistent Hunter/Farmer).
@@ -514,6 +530,9 @@ kam es, wie groß ist es** — und einen **klaren nächsten Schritt** anstoßen 
 - **Slice 3 (2026-06-25):** ScreenFarming verdrahtet — Kunden/Retention/Upsell/Signals → `openInfo()` öffnet
   FarmerSidepanel mit echter Person-Shape (`itemToPerson`); CTAs → FarmerActionDrawer ([D34]); LinkedIn-Signal
   „Antworten" → `SignalActionDrawer` (#7, reuse Hunter-Resolver).
+- **Slice 4 (2026-06-27):** alten `CustomerDrawer` aus dem Farmer-Pfad entfernt — `<Drawer>` aus
+  `FarmerReference` raus, `onSelectCustomer` ganz aus `ScreenFarming`-Props gestrichen (war toter Code; Farmer
+  öffnet ausschließlich `FarmerSidepanel`). CustomerDrawer bleibt nur noch für MeinTag (aktiv) + Hunter (Rest).
 - **Offen (Farmer-DB-Wiring):** echte Daten statt Mock · KI-Kurzakte-Block · AktiveSignale-Flags an echte
   Felder koppeln (siehe [[D47]] Nachzieh-Liste). Daten aktuell Mock (Reference-State).
 
