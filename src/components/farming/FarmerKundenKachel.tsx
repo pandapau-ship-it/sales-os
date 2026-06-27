@@ -5,6 +5,7 @@
  * Einziger Unterschied: statt STAGE der SUBSCRIPTION-Badge (aus customerStatusConfig, flexibel).
  * Heat-Badge identisch zu Hunter. Zeit = lastLogin (Honesty-Mock bis DB-Wiring).
  */
+import type { ReactNode } from "react";
 import type { Customer } from "@/types";
 import { cn } from "@/lib/utils";
 import HunterCard, { type HunterCardData } from "../panel-blocks/HunterCard";
@@ -14,9 +15,11 @@ interface FarmerKundenKachelProps {
   contact: Customer;
   /** Pfeil-Icon → öffnet das Side Panel. */
   onOpenPanel: () => void;
+  /** Aufgeklappter Inhalt (FarmerExpandedCardContent) — von ScreenFarming durchgereicht. */
+  expandedSlot?: ReactNode;
 }
 
-export default function FarmerKundenKachel({ contact, onOpenPanel }: FarmerKundenKachelProps) {
+export default function FarmerKundenKachel({ contact, onOpenPanel, expandedSlot }: FarmerKundenKachelProps) {
   const status = resolveCustomerStatus(contact.sherloqStatus);
   const StatusIcon = status.icon;
 
@@ -55,6 +58,7 @@ export default function FarmerKundenKachel({ contact, onOpenPanel }: FarmerKunde
       contactId={contact.id}
       onOpenInfo={onOpenPanel}
       statusBadge={statusBadge}
+      expandedSlot={expandedSlot}
     />
   );
 }

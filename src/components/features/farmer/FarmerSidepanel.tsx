@@ -8,9 +8,10 @@ import {
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 import Avatar from '@/components/shared/Avatar';
+import { useDeeplinkHighlight } from '@/hooks/useDeeplinkHighlight';
 import {
   AktiveSignale, AktivitaetsVerlauf, DetailField, DetailPhoneList, DetailSection, FarmerActionDrawer,
-  HeatBadge, KommunikationKompakt, KommunikationVerlauf, KontaktZeile, NotizenListe, OffeneTasks,
+  HeatBadge, KiKurzaktePlaceholder, KommunikationKompakt, KommunikationVerlauf, KontaktZeile, NotizenListe, OffeneTasks,
   PanelTabs, SubscriptionBadge, SubscriptionBox, TasksListe, UsageBox,
 } from '@/components';
 import type { SubscriptionData, UsageData, FarmerActionData } from '@/components';
@@ -44,10 +45,13 @@ const MOCK_COMMS: CommunicationView[] = [
   { id: 'fc-3', channel: 'linkedin', direction: 'inbound', occurredAt: new Date(Date.now() - 55 * 86_400_000).toISOString() },
 ];
 
-type FarmerTab = 'details' | 'overview' | 'activity' | 'communication' | 'tasks' | 'subscription' | 'usage' | 'notes';
+export type FarmerTab = 'details' | 'overview' | 'activity' | 'communication' | 'tasks' | 'subscription' | 'usage' | 'notes';
 
-export default function FarmerSidepanel({ person: personProp, onClose, onExit, variant = 'panel', initialTab = null, initialTaskId = null }: { person: Lead | Customer | null; onClose: () => void; onExit?: () => void; variant?: 'panel' | 'full'; initialTab?: FarmerTab | null; initialTaskId?: string | null }) {
+export default function FarmerSidepanel({ person: personProp, onClose, onExit, variant = 'panel', initialTab = null, initialTaskId = null, initialHighlightSection = null }: { person: Lead | Customer | null; onClose: () => void; onExit?: () => void; variant?: 'panel' | 'full'; initialTab?: FarmerTab | null; initialTaskId?: string | null; initialHighlightSection?: string | null }) {
   const [activeTab, setActiveTab] = useState<FarmerTab>(variant === 'full' ? 'details' : (initialTab ?? 'overview'));
+  // Sektions-Deeplink: ein Tab-Block (KI-Kurzakte/Subscription/Kommunikation) leuchtet kurz auf
+  // (gleiches Muster wie TasksListe-Row, zentral via useDeeplinkHighlight + .deeplink-flash).
+  const flashSection = useDeeplinkHighlight(initialHighlightSection);
   const [actionSignal, setActionSignal] = useState<FarmerActionData | null>(null); // [D34] Farmer Action Panel
   const [showVollansicht, setShowVollansicht] = useState(false); // [D47] Vollansicht (variant='full')
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -166,6 +170,8 @@ export default function FarmerSidepanel({ person: personProp, onClose, onExit, v
     <>
       {activeTab === 'overview' && (
         <div className="space-y-7 animate-fade-in">
+          {/* KI-Kurzakte — immer sichtbar (Honesty: „Folgt"-Platzhalter bis [D5]); Deeplink-Flash-Ziel. */}
+          <KiKurzaktePlaceholder flashId="kiakte" flash={flashSection === 'kiakte'} />
           {/* Farmer-Signale [D33] (Slice 2, Mock): Churn Risk · Upsell · Kunde wird kalt.
               Echte Score-/Signal-Logik kommt mit dem DB-Wiring; CTAs → Action-Panel [D34]. */}
           <AktiveSignale
@@ -210,7 +216,7 @@ export default function FarmerSidepanel({ person: personProp, onClose, onExit, v
       {activeTab === 'activity' && <AktivitaetsVerlauf rows={[]} />}
 
       {activeTab === 'communication' && (
-        <KommunikationVerlauf items={MOCK_COMMS} onLog={() => showToast('Kontakt protokollieren — folgt')} />
+        <KommunikationVerlauf items={MOCK_COMMS} onLog={() => showToast('Kontakt protokollieren — folgt')} flashId="communication" flash={flashSection === 'communication'} />
       )}
 
       {activeTab === 'tasks' && (
@@ -227,7 +233,7 @@ export default function FarmerSidepanel({ person: personProp, onClose, onExit, v
 
       {activeTab === 'subscription' && (
         <div className="space-y-7 animate-fade-in">
-          <SubscriptionBox data={mockSubscription} />
+          <SubscriptionBox data={mockSubscription} flashId="subscription" flash={flashSection === 'subscription'} />
           {/* Vollansicht hat keinen eigenen Usage-Tab → Usage hier im Subscription-Tab mit anzeigen. */}
           {variant === 'full' && <UsageBox variant="full" data={mockUsage} />}
         </div>

@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import Avatar from '@/components/shared/Avatar';
-import { AktiveSignale, AktivitaetsVerlauf, DealsListe, DetailField, DetailPhoneList, DetailSection, HeatBadge, KommunikationKompakt, KommunikationVerlauf, KontaktZeile, NotizenListe, OffeneTasks, PanelSkeleton, PanelTabs, TasksListe } from '@/components';
+import { AktiveSignale, AktivitaetsVerlauf, DealsListe, DetailField, DetailPhoneList, DetailSection, HeatBadge, KiKurzaktePlaceholder, KommunikationKompakt, KommunikationVerlauf, KontaktZeile, NotizenListe, OffeneTasks, PanelSkeleton, PanelTabs, TasksListe } from '@/components';
 
 // EditableInline → panel-blocks/EditableInline (importiert). PhoneField → panel-blocks/PhoneField.
 
@@ -591,6 +591,8 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
             <PanelSkeleton rows={4} height={80} />
           ) : (
           <div className="space-y-7 animate-fade-in">
+            {/* KI-Kurzakte — immer sichtbar (Honesty: „Folgt"-Platzhalter bis [D5]). */}
+            <KiKurzaktePlaceholder />
             {/* Honesty: nur real ableitbare Signale (Stagnation > 0 · keine offene Task); sonst Sektion weg. */}
             <AktiveSignale
               stagnationDays={primaryStagnationDays}

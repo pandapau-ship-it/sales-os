@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { AlertTriangle, Snowflake, Clock, RotateCcw } from "lucide-react";
 import HunterCard, { type HunterCardData } from './HunterCard';
 import { ACTION_ROW } from "@/lib/componentBehavior";
@@ -32,6 +32,8 @@ interface FollowUpKaltCardProps {
   onSelectLead?: (lead: Lead) => void;
   /** Optionaler Start-Snooze-Zustand (Mock/Demo). */
   initialSnooze?: { count: number; activeDays: number | null };
+  /** Aufgeklappter Inhalt statt Default-`ExpandedCardContent` (Farmer: FarmerExpandedCardContent). */
+  expandedSlot?: ReactNode;
 }
 
 /**
@@ -55,6 +57,7 @@ export function FollowUpKaltCard({
   onOutreachClick,
   onSelectLead,
   initialSnooze,
+  expandedSlot,
 }: FollowUpKaltCardProps) {
   // Snooze-Zustand (Mock — später aus DB/system_config). activeDays=null → nicht gesnoozed.
   const [snooze, setSnooze] = useState<{ count: number; activeDays: number | null }>(initialSnooze ?? { count: 0, activeDays: null });
@@ -175,6 +178,7 @@ export function FollowUpKaltCard({
         contactId={contactId}
         onOpenInfo={onSelectLead ? () => onSelectLead(buildLead()) : undefined}
         actionRow={actionRow}
+        expandedSlot={expandedSlot}
       />
     </div>
   );

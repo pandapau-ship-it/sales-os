@@ -439,6 +439,8 @@ function checkTypographyTokens(): void {
     'FarmerSidepanel', 'SubscriptionBox', 'UsageBox',
     // [D34] Farmer Action Panels (FarmerActionDrawer = Wrapper; farmerActions = lib/, außerhalb des Typo-Walks)
     'FarmerActionDrawer', 'farmerActions',
+    // Aufgeklappte Kachel — geteilter Platzhalter + Farmer-Expand
+    'KiKurzaktePlaceholder', 'FarmerExpandedCardContent',
   ])
   // panel-blocks/ + features/ + farming/ (Farmer-Hilfskomponenten).
   const files = [

@@ -49,12 +49,18 @@ function relTime(iso?: string): string {
 export default function KommunikationVerlauf({
   items = [],
   onLog,
+  flashId,
+  flash = false,
 }: {
   items?: CommunicationView[];
   onLog?: () => void;
+  /** Deeplink-Highlight: Scroll-Anker am Container + kurzes Aufleuchten der ersten Node-Kachel
+   *  (einzige --surface-Fläche im Zeitstrahl; endet sauber auf --surface, nicht permanent). */
+  flashId?: string;
+  flash?: boolean;
 }) {
   return (
-    <div className="space-y-4 animate-fade-in">
+    <div data-flash-id={flashId} className="space-y-4 animate-fade-in">
       <div className="flex items-center justify-between px-1">
         <span className="typo-section-label text-text-muted">Kommunikationsverlauf</span>
         {items.length > 0 && onLog && (
@@ -95,9 +101,9 @@ export default function KommunikationVerlauf({
                   <span className="absolute left-[21px] top-[40px] bottom-0 w-[2px] bg-[var(--accent-teal)]" aria-hidden="true" />
                 )}
 
-                {/* Node — kanal-getönte Icon-Kachel */}
+                {/* Node — kanal-getönte Icon-Kachel (erste Kachel = Deeplink-Flash-Ziel) */}
                 <span
-                  className="relative z-10 shrink-0 w-11 h-11 rounded-[12px] shadow-sm inline-flex items-center justify-center bg-app-surface border border-border"
+                  className={`relative z-10 shrink-0 w-11 h-11 rounded-[12px] shadow-sm inline-flex items-center justify-center bg-app-surface border border-border${idx === 0 && flash ? " deeplink-flash" : ""}`}
                   style={{ color: meta.accent }}
                 >
                   <ChannelGlyph channel={item.channel} className="w-5 h-5" />

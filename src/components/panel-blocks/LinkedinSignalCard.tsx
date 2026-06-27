@@ -51,6 +51,9 @@ interface LinkedinSignalCardProps {
   onIgnore?: () => void;
   /** Optionaler Start-Snooze-Zustand (Mock/Demo) — analog FollowUpKaltCard. */
   initialSnooze?: { count: number; activeDays: number | null };
+  /** Aufgeklappter Inhalt statt Default-`ExpandedCardContent` (Farmer: nur ScreenFarming reicht ihn
+   *  durch → Hunter-Nutzung bleibt undefined → behält die Hunter-Kurzansicht). */
+  expandedSlot?: ReactNode;
 }
 
 function deriveInitials(name: string): string {
@@ -90,6 +93,7 @@ export function LinkedinSignalCard({
   onOpenInfo,
   onIgnore,
   initialSnooze,
+  expandedSlot,
 }: LinkedinSignalCardProps) {
   const { t } = useTranslation();
   const timeProgress = windowHours > 0 ? Math.max(0, 100 - (timeLeftHours / windowHours) * 100) : 100;
@@ -255,6 +259,7 @@ export function LinkedinSignalCard({
       statusBadge={statusBadge}
       selected={selected}
       onToggleSelect={onToggleSelect}
+      expandedSlot={expandedSlot}
     />
     </div>
   );

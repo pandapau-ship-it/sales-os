@@ -52,6 +52,9 @@ interface HunterCardProps {
   statusDotClass?: string;
   /** Additiver Slot für die Badge-Spalte (statt STAGE), z.B. Farmer SUBSCRIPTION. Leer → wie bisher. */
   statusBadge?: { label: string; node: ReactNode };
+  /** Optionaler aufgeklappter Inhalt statt der Default-`ExpandedCardContent` (z.B. Farmer:
+   *  Subscription statt Deals). Leer → Hunter-Verhalten unverändert (Deals). */
+  expandedSlot?: ReactNode;
 }
 
 /**
@@ -72,6 +75,7 @@ export default function HunterCard({
   selected = false,
   onToggleSelect,
   statusBadge,
+  expandedSlot,
 }: HunterCardProps) {
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
@@ -210,12 +214,15 @@ export default function HunterCard({
           </div>
         </div>
 
-        {/* CHEVRON-KURZANSICHT — geteilter Inhalt (KI-Kurzakte · Deals · Kommunikation), lazy. */}
+        {/* CHEVRON-KURZANSICHT — Default = geteilter Hunter-Inhalt (KI-Kurzakte · Deals · Kommunikation),
+            lazy. expandedSlot überschreibt (z.B. Farmer: Subscription statt Deals). */}
         {expanded && (
-          <ExpandedCardContent
-            contactId={contactId}
-            onEditDeal={(dealId) => (onAction ? onAction('editDeal', dealId) : onOpenInfo?.())}
-          />
+          expandedSlot ?? (
+            <ExpandedCardContent
+              contactId={contactId}
+              onEditDeal={(dealId) => (onAction ? onAction('editDeal', dealId) : onOpenInfo?.())}
+            />
+          )
         )}
       </div>
 

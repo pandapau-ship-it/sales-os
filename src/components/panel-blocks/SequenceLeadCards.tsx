@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ClipboardList, CheckCircle2, Eye } from 'lucide-react';
 import HunterCard, { type HunterCardData } from './HunterCard';
@@ -31,6 +32,7 @@ export const SequenceLeadCards = ({
   onSelectLead,
   onView,
   onComplete,
+  renderExpanded,
 }: {
   items?: DueTaskCardItem[];
   onSelectLead?: (lead: Lead) => void;
@@ -38,6 +40,8 @@ export const SequenceLeadCards = ({
   onView?: (lead: Lead, taskId: string) => void;
   /** Task erledigt (T4a): setzt completed_at → Karte verschwindet nach Invalidate. */
   onComplete?: (taskId: string) => void;
+  /** Aufgeklappter Inhalt je Karte (Farmer: FarmerExpandedCardContent) — pro Lead, da kontaktspezifisch. */
+  renderExpanded?: (lead: Lead) => ReactNode;
 }) => {
   const { t } = useTranslation();
 
@@ -128,6 +132,7 @@ export const SequenceLeadCards = ({
             contactId={it.contactId}
             onOpenInfo={onSelectLead ? () => onSelectLead(buildLead(it)) : undefined}
             actionRow={actionRow}
+            expandedSlot={renderExpanded?.(buildLead(it))}
           />
         );
       })}
