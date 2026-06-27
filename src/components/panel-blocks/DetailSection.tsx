@@ -5,6 +5,7 @@
  */
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export interface DetailSectionProps {
   title: string;
@@ -15,15 +16,19 @@ export interface DetailSectionProps {
   /** Elevation-Kontext (Elevation-System): 'panel' = In-Panel-Box (kein Schatten) ·
    *  'page' = Karte auf Seiten-Hintergrund (shadow-card). Default 'panel' (häufiger Fall). */
   variant?: "panel" | "page";
+  /** Zusatz-Klassen auf der `<section>` (z.B. `deeplink-flash`). */
+  className?: string;
+  /** Deeplink-Highlight-Scroll-Anker auf der `<section>`. */
+  flashId?: string;
   children: any;
 }
 
 export default function DetailSection({
-  title, icon: Icon, collapsible = false, defaultCollapsed = false, cols = 2, variant = "panel", children,
+  title, icon: Icon, collapsible = false, defaultCollapsed = false, cols = 2, variant = "panel", className, flashId, children,
 }: DetailSectionProps) {
   const [open, setOpen] = useState(!defaultCollapsed);
   return (
-    <section className={`bg-app-surface rounded-[12px] border border-[var(--border-card)] overflow-hidden${variant === "page" ? " shadow-[var(--shadow-card)]" : ""}`}>
+    <section data-flash-id={flashId} className={cn("bg-app-surface rounded-[12px] border border-[var(--border-card)] overflow-hidden", variant === "page" && "shadow-[var(--shadow-card)]", className)}>
       <button
         type="button"
         onClick={() => collapsible && setOpen((o) => !o)}

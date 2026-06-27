@@ -34,11 +34,14 @@ function Field({ label, children }: { label: string; children: ReactNode }) {
 }
 
 export default function SubscriptionBox({
-  data, variant = 'full', onShowAll,
+  data, variant = 'full', onShowAll, flashId, flash = false,
 }: {
   data: SubscriptionData;
   variant?: 'full' | 'compact';
   onShowAll?: () => void;
+  /** Deeplink-Highlight (full-Variante): data-flash-id + deeplink-flash auf der DetailSection-Karte. */
+  flashId?: string;
+  flash?: boolean;
 }) {
   if (variant === 'compact') {
     // Kompakte Übersicht-Zeile (nur vorhandene Teile). Klick → voller Subscription-Tab.
@@ -76,7 +79,7 @@ export default function SubscriptionBox({
   }
 
   return (
-    <DetailSection title="Subscription" icon={CreditCard}>
+    <DetailSection title="Subscription" icon={CreditCard} flashId={flashId} className={flash ? 'deeplink-flash' : undefined}>
       {data.plan && <Field label="Plan">{data.plan}</Field>}
       {data.status && (
         <div className="flex flex-col gap-1.5 min-w-0">

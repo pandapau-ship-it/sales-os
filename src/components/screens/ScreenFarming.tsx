@@ -6,7 +6,7 @@
 import { useState } from 'react';
 import { AlertTriangle, TrendingUp, Sparkles, Check, X, Clock, Trash, Zap, CheckSquare } from 'lucide-react';
 import type { Customer, Lead } from '@/types';
-import { FarmerKpiCards, FarmerHealthOverview, FarmerKundenKachel, FarmerRetentionKachel, FarmerUpsellKachel, SubscriptionBadge, LinkedinSignalCard, EmptyState, SequenceLeadCards, FollowUpKaltCard, FarmerSidepanel, FarmerActionDrawer, SignalActionDrawer, type RetentionItem, type UpsellItem, type FarmerActionData } from '@/components';
+import { FarmerKpiCards, FarmerHealthOverview, FarmerKundenKachel, FarmerRetentionKachel, FarmerUpsellKachel, FarmerExpandedCardContent, SubscriptionBadge, LinkedinSignalCard, EmptyState, SequenceLeadCards, FollowUpKaltCard, FarmerSidepanel, FarmerActionDrawer, SignalActionDrawer, type RetentionItem, type UpsellItem, type FarmerActionData, type FarmerTab } from '@/components';
 import type { DueTaskCardItem, SignalActionData } from '@/lib/hunterMappers';
 import { AI_PENDING_LABEL } from '@/lib/hunterMappers';
 import { useToast } from '@/components/shared/Toast';
@@ -79,13 +79,17 @@ export default function ScreenFarming({
   // [D46] Follow-ups: FarmerSidepanel-Deeplink (onView → Tasks-Tab + Highlight) + Action-Panel „Kunde wird kalt".
   // FarmerSidepanel hier eigenständig gerendert (D33-Vollverdrahtung der übrigen Tabs folgt separat).
   const [infoPerson, setInfoPerson] = useState<Customer | Lead | null>(null);
-  const [infoTab, setInfoTab] = useState<'tasks' | null>(null);
+  const [infoTab, setInfoTab] = useState<FarmerTab | null>(null);
   const [infoTaskId, setInfoTaskId] = useState<string | null>(null);
+  const [infoHighlightSection, setInfoHighlightSection] = useState<string | null>(null); // Sektions-Deeplink (Tab-Block leuchtet auf)
   const [actionSignal, setActionSignal] = useState<FarmerActionData | null>(null);
   const [selectedFarmerSignal, setSelectedFarmerSignal] = useState<SignalActionData | null>(null); // #7 LinkedIn-Signal-Antwort (reuse SignalActionDrawer)
 
   // Panel im Übersicht-Modus öffnen (Kunden/Retention/Upsell/Signals) — nicht im Tasks-Deeplink.
-  const openInfo = (p: Customer | Lead) => { setInfoTab(null); setInfoTaskId(null); setInfoPerson(p); };
+  const openInfo = (p: Customer | Lead) => { setInfoTab(null); setInfoTaskId(null); setInfoHighlightSection(null); setInfoPerson(p); };
+  // Deeplink aus der aufgeklappten Kachel: FarmerSidepanel direkt auf dem passenden Tab öffnen,
+  // optional mit Sektions-ID → der Ziel-Block dort leuchtet kurz auf (Deeplink-Highlight).
+  const openOnTab = (p: Customer | Lead, tab: FarmerTab, section?: string) => { setInfoTaskId(null); setInfoTab(tab); setInfoHighlightSection(section ?? null); setInfoPerson(p); };
   // Retention-/Upsell-Item (kein Customer-Objekt) → minimaler Customer fürs FarmerSidepanel (Mock-Shaping).
   const itemToPerson = (it: RetentionItem | UpsellItem): Customer => ({
     id: it.id,
@@ -183,6 +187,7 @@ export default function ScreenFarming({
               key={customer.id}
               contact={customer}
               onOpenPanel={() => openInfo(customer)}
+              expandedSlot={<FarmerExpandedCardContent customer={customer} onOpenPanel={(tab, section) => openOnTab(customer, tab as FarmerTab, section)} />}
             />
           ))}
         </div>
@@ -198,6 +203,7 @@ export default function ScreenFarming({
               item={item}
               onOpenPanel={() => openInfo(itemToPerson(item))}
               onAction={() => setActionSignal({ kind: item.type, name: item.name, company: item.company, icpScore: item.icpScore })}
+              expandedSlot={<FarmerExpandedCardContent customer={itemToPerson(item)} onOpenPanel={(tab, section) => openOnTab(itemToPerson(item), tab as FarmerTab, section)} />}
             />
           ))}
         </div>
@@ -212,6 +218,7 @@ export default function ScreenFarming({
               item={item}
               onOpenPanel={() => openInfo(itemToPerson(item))}
               onAction={() => setActionSignal({ kind: 'upsell_potential', name: item.name, company: item.company, icpScore: item.icpScore })}
+              expandedSlot={<FarmerExpandedCardContent customer={itemToPerson(item)} onOpenPanel={(tab, section) => openOnTab(itemToPerson(item), tab as FarmerTab, section)} />}
             />
           ))}
         </div>
@@ -275,6 +282,7 @@ export default function ScreenFarming({
                 onToggleSelect={() => toggleSignalSelection(customer.id)}
                 onIgnore={() => ignoreSignals([customer.id])}
                 onOpenInfo={() => openInfo(customer)}
+                expandedSlot={<FarmerExpandedCardContent customer={customer} onOpenPanel={(tab, section) => openOnTab(customer, tab as FarmerTab, section)} />}
                 onOpenAction={() => setSelectedFarmerSignal({
                   name: customer.person.name,
                   company: customer.person.company,
@@ -303,6 +311,10 @@ export default function ScreenFarming({
             onSelectLead={(lead) => { setInfoTab(null); setInfoTaskId(null); setInfoPerson({ ...lead, sherloqStatus: 'ACTIVE' } as Customer); }}
             onView={(lead, taskId) => { setInfoTab('tasks'); setInfoTaskId(taskId); setInfoPerson({ ...lead, sherloqStatus: 'ACTIVE' } as Customer); }}
             onComplete={() => toast('Task erledigt ✓', 'success')}
+            renderExpanded={(lead) => {
+              const c = { ...lead, sherloqStatus: 'ACTIVE' } as Customer;
+              return <FarmerExpandedCardContent customer={c} onOpenPanel={(tab, section) => openOnTab(c, tab as FarmerTab, section)} />;
+            }}
           />
 
           {/* „Kunde wird kalt" — gehört zu Follow-ups (Aktion), NICHT zu Retention (Risiko).
@@ -317,6 +329,10 @@ export default function ScreenFarming({
             timeAgoLabel="vor 28 Tagen"
             onSelectLead={(lead) => { setInfoTab(null); setInfoTaskId(null); setInfoPerson({ ...lead, sherloqStatus: 'ACTIVE' } as Customer); }}
             onOutreachClick={() => setActionSignal({ kind: 'going_cold', name: 'Laura Becker', company: 'Logistify DE', lastContactDays: 28 })}
+            expandedSlot={(() => {
+              const c = { id: 'cust-2', person: { id: 'cust-2', name: 'Laura Becker', jobTitle: 'Head of Customer Success', company: 'Logistify DE', initials: 'LB' }, icpScore: 78, heatStatus: 'COLD', sherloqStatus: 'ACTIVE', lastLogin: 'vor 28 Tagen', contactEmail: '' } as Customer;
+              return <FarmerExpandedCardContent customer={c} onOpenPanel={(tab, section) => openOnTab(c, tab as FarmerTab, section)} />;
+            })()}
           />
         </div>
       )}
@@ -326,7 +342,8 @@ export default function ScreenFarming({
         person={infoPerson}
         initialTab={infoTab}
         initialTaskId={infoTaskId}
-        onClose={() => { setInfoPerson(null); setInfoTab(null); setInfoTaskId(null); }}
+        initialHighlightSection={infoHighlightSection}
+        onClose={() => { setInfoPerson(null); setInfoTab(null); setInfoTaskId(null); setInfoHighlightSection(null); }}
       />
 
       {/* [D46] „Kunde wird kalt" → Action-Panel (going_cold). */}

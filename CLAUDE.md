@@ -420,6 +420,12 @@ Umsetzung **zentral, nicht pro Stelle neu**: CSS-Utility **`.deeplink-flash`** (
 `prefers-reduced-motion`) + Hook **`useDeeplinkHighlight(highlightId)`** (`hooks/`, übernimmt Scroll +
 Flash-Timing; Ziel-Element trägt `data-flash-id="<id>"`). Listen nehmen einen **`highlightId`-Prop**
 (klappen die Ziel-Row auf + setzen die Flash-Klasse) — analog zur `auto*`-Id-Konvention (`autoEditId` etc.).
+Das Muster gilt nicht nur für Listen-Rows: auch **Tab-Sektionen** können Flash-Ziel sein (z.B. Klick auf
+einen Block der aufgeklappten Farmer-Kachel → Panel öffnet den Ziel-Tab + der Block leuchtet auf). Dafür
+trägt das Panel einen `initialHighlightSection`-Prop, ruft `useDeeplinkHighlight(section)` und setzt
+`data-flash-id` + `deeplink-flash` **auf der eigenen `--surface`-Fläche** des Ziel-Blocks (nie auf einem
+Wrapper dahinter — der Tint endet auf `--surface` und wäre hinter einer opaken Box unsichtbar bzw. würde
+einen transparenten Bereich dauerhaft einfärben).
 Erste Anwendung: Follow-up „Ansehen" → Tasks-Tab, Task aufgeklappt + Flash (`SequenceLeadCards.onView` →
 `HunterSidepanel.initialTaskId` → `TasksListe.highlightId`).
 
@@ -660,7 +666,9 @@ Alle prop-driven, Tokens-only, Dark-Mode automatisch.
 | `PersonalityBadge` | Persönlichkeitsprofil-Pill (3 Dimensionen) — für künftiges Persönlichkeits-Feature (ab Confidence ≥ 60 %) |
 | `KpiCard` | KPI-Kachel (Hunter-Übersicht): Titel + Icon-Box · große Zahl · Subtitle/Trend (Icon/Farben/Subtitle als Node) |
 | `LeadListRow` | Lead-Listenzeile (Hunter „Leads"): Top-Row (Avatar/ICP/Company/Stage/Heat/Zeit/Pfeil) + aufklappbar (KI-Kurzakte · Deal · Aktionen · Communication Chain); prop-driven (`isExpanded`/`selected`/`onToggleExpand`/`onToggleSelect`/`onOpenInfo`/`onSelectCommunication`) |
-| `ExpandedCardContent` | **Geteilter aufgeklappter Karten-Inhalt** (HunterCard + LeadListRow, [D27]-Dedup): lazy Queries (Deals/Kommunikation/Stages, `enabled: !!contactId`) · 2-Spalten-Grid (KI-Kurzakte „Folgt"-Platzhalter \| `DealsListe variant="compact"` mit `stagnationBySlug`) · `CommunicationChain` echt bzw. „Noch keine Kommunikation protokolliert" · Stagnations-Warnung. Props `contactId?`/`onEditDeal?`. Single Source statt ~47 doppelter Zeilen je Karte |
+| `ExpandedCardContent` | **Geteilter aufgeklappter Karten-Inhalt Hunter** (HunterCard + LeadListRow, [D27]-Dedup): lazy Queries (Deals/Kommunikation/Stages, `enabled: !!contactId`) · 2-Spalten-Grid (`KiKurzaktePlaceholder` \| `DealsListe variant="compact"` mit `stagnationBySlug`) · `CommunicationChain` echt bzw. „Noch keine Kommunikation protokolliert" · Stagnations-Warnung. Props `contactId?`/`onEditDeal?`. Single Source statt ~47 doppelter Zeilen je Karte |
+| `FarmerExpandedCardContent` | **Aufgeklappter Karten-Inhalt Farmer** — Pendant zu `ExpandedCardContent`, Design 1:1, nur RECHTS Subscription+Usage (compact) statt Deals. LINKS `KiKurzaktePlaceholder`, UNTEN `CommunicationChain` (Mock-`personId`). Prop-driven aus dem Mock-`Customer` (keine Queries; DB-Wiring folgt). Eingebunden via HunterCard `expandedSlot` von allen Farmer-Kacheln (inkl. Follow-ups). Props `{ customer: Customer, onOpenPanel?(tab) }` — jeder Block ist ein **Deeplink**: KI-Kurzakte→overview · Subscription/Usage→subscription · Kommunikation→communication. „Kein Hover ohne onClick" |
+| `KiKurzaktePlaceholder` | Geteilter „KI-Kurzakte folgt"-Block (Label + Box) — aufgeklappte Kacheln (`ExpandedCardContent`/`FarmerExpandedCardContent`) **und** Sidepanel-Übersicht-Tab (Hunter + Farmer, immer sichtbar, Honesty). Single Source bis AI-Pipeline ([D5]). Props `onClick?` (gesetzt → Box klickbar mit Hover; ohne → statisch, kein toter Hover) · `flashId?`/`flash?` (Deeplink-Highlight: `data-flash-id` + `deeplink-flash` auf der eigenen Fläche) |
 | `MfaBanner` | 2FA-Empfehlungs-Banner ([D21] Scheibe 8): erscheint für **Owner/Admin** wenn 2FA nicht eingerichtet (`useMfaStatus`) und nicht ausgeblendet (localStorage `mfa_banner_dismissed_until`: „Später" +7T / „Nicht mehr erinnern" +365T). „2FA einrichten" → shadcn-Dialog mit TOTP-Setup (QR aus `enrollMfaTotp`, Code → `verifyMfaTotp`, Supabase MFA nativ). Kein Zwang, immer überspringbar. In `AppLayout` über dem Outlet. Prop `role` |
 | `TaskAnlegenForm` | „Keine Task"-Action-Panel-Inhalt (Header + Kontext-/KI-Meldungen) des `NoTaskDrawer`; das Formular kommt aus `TaskFormular` (geteilt, identisch zum Info-Panel); `person`/`onClose`/`onToast` |
 | `TaskEntwurfForm` | Task-Entwurf (Header + Kontakt-Bar + Kanal/Titel/AI-Entwurf/Priorität + Speichern) — Inhalt des `TaskDrawer` (850px-Overlay) |

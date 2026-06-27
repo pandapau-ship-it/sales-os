@@ -5,6 +5,7 @@
  * grüner „Upsell Potential"-Badge (Zap) auf grauer Row + „Action"-CTA.
  * Mock bis Score-/Signal-Anbindung; CTA = Platzhalter-Toast bis Action-Panel ([D34]).
  */
+import type { ReactNode } from "react";
 import { Zap } from "lucide-react";
 import type { HeatStatus } from "@/types";
 import { cn } from "@/lib/utils";
@@ -31,9 +32,11 @@ interface FarmerUpsellKachelProps {
   onOpenPanel: () => void;
   /** CTA-Klick → Platzhalter-Toast bis Action-Panel ([D34]). */
   onAction: () => void;
+  /** Aufgeklappter Inhalt (FarmerExpandedCardContent) — von ScreenFarming durchgereicht. */
+  expandedSlot?: ReactNode;
 }
 
-export default function FarmerUpsellKachel({ item, onOpenPanel, onAction }: FarmerUpsellKachelProps) {
+export default function FarmerUpsellKachel({ item, onOpenPanel, onAction, expandedSlot }: FarmerUpsellKachelProps) {
   const data: HunterCardData = {
     id: item.id,
     name: item.name,
@@ -77,6 +80,7 @@ export default function FarmerUpsellKachel({ item, onOpenPanel, onAction }: Farm
       onOpenInfo={onOpenPanel}
       actionRow={actionRow}
       statusBadge={statusBadge}
+      expandedSlot={expandedSlot}
     />
   );
 }

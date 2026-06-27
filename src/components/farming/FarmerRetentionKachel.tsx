@@ -10,6 +10,7 @@
  *   Badge + „Kontakt ist kalt …" + „Start Outreach" + „Snooze". Erscheint nur bei heat=COLD.
  * Mock bis Score-/Signal-Anbindung; CTAs = Platzhalter-Toast bis Action-Panel ([D34]).
  */
+import type { ReactNode } from "react";
 import { AlertTriangle, XCircle, Snowflake, Clock, type LucideIcon } from "lucide-react";
 import type { HeatStatus } from "@/types";
 import { cn } from "@/lib/utils";
@@ -72,9 +73,11 @@ interface FarmerRetentionKachelProps {
   onOpenPanel: () => void;
   /** CTA-Klick → Platzhalter-Toast bis Action-Panel ([D34]). */
   onAction: () => void;
+  /** Aufgeklappter Inhalt (FarmerExpandedCardContent) — von ScreenFarming durchgereicht. */
+  expandedSlot?: ReactNode;
 }
 
-export default function FarmerRetentionKachel({ item, onOpenPanel, onAction }: FarmerRetentionKachelProps) {
+export default function FarmerRetentionKachel({ item, onOpenPanel, onAction, expandedSlot }: FarmerRetentionKachelProps) {
   const data: HunterCardData = {
     id: item.id,
     name: item.name,
@@ -141,6 +144,7 @@ export default function FarmerRetentionKachel({ item, onOpenPanel, onAction }: F
       onOpenInfo={onOpenPanel}
       actionRow={actionRow}
       statusBadge={statusBadge}
+      expandedSlot={expandedSlot}
     />
   );
 }

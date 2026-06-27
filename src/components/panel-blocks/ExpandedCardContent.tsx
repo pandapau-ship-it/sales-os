@@ -4,11 +4,10 @@
  * Lazy: Queries nur wenn contactId vorhanden.
  * Genutzt von: HunterCard, LeadListRow
  */
-import { useTranslation } from "react-i18next";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
-import { Zap } from "lucide-react";
 import CommunicationChain from "@/components/shared/CommunicationChain";
 import DealsListe from "./DealsListe";
+import KiKurzaktePlaceholder from "./KiKurzaktePlaceholder";
 import PanelSkeleton from "./PanelSkeleton";
 import { useCurrentOrg } from "@/hooks/useCurrentOrg";
 import { getContactCommunications, getDealsByContact, getPipelineSettings } from "@/lib/db";
@@ -21,7 +20,6 @@ export default function ExpandedCardContent({
   contactId?: string;
   onEditDeal?: (dealId: string) => void;
 }) {
-  const { t } = useTranslation();
   const { organizationId } = useCurrentOrg();
 
   // Lazy: nur laden, wenn es einen Kontakt gibt (die Komponente wird nur im aufgeklappten Zustand gemountet).
@@ -54,16 +52,8 @@ export default function ExpandedCardContent({
   return (
     <div className="flex flex-col gap-5 border-t border-[var(--border-subtle)] pt-5 mt-2" onClick={(e) => e.stopPropagation()}>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-stretch">
-        {/* KI-Kurzakte — Label außerhalb (wie „Deals"), Box darunter. Platzhalter bis AI-Pipeline ([D5]). */}
-        <div className="h-full flex flex-col gap-2">
-          <span className="px-1 typo-section-label text-text-muted inline-flex items-center gap-1.5">
-            <Zap className="w-3.5 h-3.5 text-[var(--sherloq-primary)]" /> {t("hunter.common.kiKurzakte")}
-            <span className="px-1.5 py-0.5 rounded-full bg-app-bg text-text-muted text-[9px] font-extrabold uppercase tracking-wide">Folgt</span>
-          </span>
-          <div className="flex-1 bg-app-surface rounded-[12px] p-5 border border-[var(--border-card)]">
-            <p className="text-[13px] text-text-muted italic leading-relaxed">KI-Kurzakte folgt mit der AI-Pipeline ([D5]).</p>
-          </div>
-        </div>
+        {/* KI-Kurzakte — geteilter Platzhalter-Block (Single Source mit Farmer), bis AI-Pipeline ([D5]). */}
+        <KiKurzaktePlaceholder />
 
         {/* Deals — echt; Bleistift → Deals-Tab dieses Deals im Edit-Modus. Kein Deal → ausgeblendet.
             Erstes Laden → Skeleton statt leerer Spalte. */}
