@@ -56,13 +56,13 @@ Deno.serve(async (req) => {
     if (sErr) throw sErr;
     const w: ChurnWeights = { ...DEFAULT_CHURN_WEIGHTS, ...(settings?.thresholds?.churn_weights ?? {}) };
 
-    // 3. Bestandskunden laden (contact_status='kunde', nicht soft-gelöscht).
+    // 3. Bestandskunden laden (contact_status='kunde'). contacts hat KEIN Soft-Delete (deleted_at) —
+    //    Inaktive laufen über contact_status='archiviert', also reicht der kunde-Filter.
     let cq = supabase
       .from("contacts")
       .select("id, last_contacted_at, last_reply_at, heat_status, churn_score, score_drivers, data_sources")
       .eq("organization_id", organizationId)
-      .eq("contact_status", "kunde")
-      .is("deleted_at", null);
+      .eq("contact_status", "kunde");
     if (contactId) cq = cq.eq("id", contactId);
     const { data: contacts, error: cErr } = await cq;
     if (cErr) throw cErr;
@@ -156,6 +156,9 @@ Deno.serve(async (req) => {
 
     return json({ updated, skipped, org_id: organizationId });
   } catch (e) {
-    return json({ error: String(e instanceof Error ? e.message : e) }, 500);
+    // Supabase-Fehler sind oft Plain-Objects (PostgrestError) → nicht Error-Instanz. Voll serialisieren.
+    const msg = e instanceof Error ? e.message
+      : (e && typeof e === "object" ? JSON.stringify(e) : String(e));
+    return json({ error: msg }, 500);
   }
 });
