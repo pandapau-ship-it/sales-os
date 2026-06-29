@@ -4,7 +4,7 @@
 
 ---
 
-## Current Status: Phase 3 (DB-Wiring Hunter) abgeschlossen · **[D27] Tech-Schuld erledigt** · **Auth/Org [D21] Scheiben 1–8** (inkl. MfaBanner 2FA-Empfehlung) · **Hunter-Übersicht Dringlichkeits-Score** (Migr. 045, settings-basiert) + Profilzeilen-Konsistenz erzwungen · **Farmer-Screen UI komplett (alle 6 Tabs: Übersicht · Kunden · Retention · Upsell · Signals · Follow-ups — Mock, kein DB-Wiring)** · **Farmer Info-Panel [D33] + Action-Panel [D34] + Follow-ups [D46] + Vollansicht [D47] gebaut** (eigene `FarmerSidepanel`/`FarmerActionDrawer`, Mock) · **ScreenFarming verdrahtet** (Panels + Action-CTAs + #7 LinkedIn-Signal-Antwort) · **Snooze/Ignorieren bei Signalen** (Hunter+Farmer, Single Source `constants.ts`) · **Panel-Performance** (Skeletons + Prefetch-on-hover + placeholderData) · **[D35] Signal-Action-Resolver Phase 0** · **Elevation- & Radius-System app-weit** · **Drawer-Panels Full-Bleed** (zentral in `sheet.tsx`). Next (Reihenfolge laut Farmer-vs-Hunter-Routing): **Farmer DB-Wiring** (echte Scores/Signale/Subscription + [D43] Historisierung zuerst; KI-Kurzakte + AktiveSignale-Flags an echte Felder — siehe [D47]-Nachzieh-Liste) · **Hunter Trial-Kacheln [D36]/[D37]** · **Lifecycle-Trigger [D38]** · **[D29] Einladungs-Mail Edge Function** · AI-Pipeline (löst „Folgt"-Platzhalter [D5])
+## Current Status: Phase 3 (DB-Wiring Hunter) abgeschlossen · **[D27] Tech-Schuld erledigt** · **Auth/Org [D21] Scheiben 1–8** (inkl. MfaBanner 2FA-Empfehlung) · **Hunter-Übersicht Dringlichkeits-Score** (Migr. 045, settings-basiert) + Profilzeilen-Konsistenz erzwungen · **Farmer-Screen UI komplett (alle 6 Tabs: Übersicht · Kunden · Retention · Upsell · Signals · Follow-ups — Mock, kein DB-Wiring)** · **Farmer Info-Panel [D33] + Action-Panel [D34] + Follow-ups [D46] + Vollansicht [D47] gebaut** (eigene `FarmerSidepanel`/`FarmerActionDrawer`, Mock) · **ScreenFarming verdrahtet** (Panels + Action-CTAs + #7 LinkedIn-Signal-Antwort) · **Snooze/Ignorieren bei Signalen** (Hunter+Farmer, Single Source `constants.ts`) · **Panel-Performance** (Skeletons + Prefetch-on-hover + placeholderData) · **[D35] Signal-Action-Resolver Phase 0** · **Elevation- & Radius-System app-weit** · **Drawer-Panels Full-Bleed** (zentral in `sheet.tsx`). Next (Reihenfolge entschieden 29.06.2026 — siehe [D43]): **1. Farmer DB-Wiring komplett** (echte Scores/Signale/Subscription/KI-Kurzakte + AktiveSignale-Flags an echte Felder — siehe [D47]-Nachzieh-Liste) · **2. Score-Funktionen aktivieren** (score_churn_risk/score_upsell/calculate_health_score → täglich echte Zahlen) · **3. [D43] Historisierung systemweit** (Hunter+Farmer zusammen, **hartes Gate: live vor erstem echten Kunden / Phase 4** — NICHT als Farmer-Insel/Erstschritt) · dann **Hunter Trial-Kacheln [D36]/[D37]** · **Lifecycle-Trigger [D38]** · **[D29] Einladungs-Mail Edge Function** · AI-Pipeline (löst „Folgt"-Platzhalter [D5])
 
 > **Session 2026-06-27 (Aufräum-Session — Farmer Slice 4 + Repo-Hygiene) — auf `main`:**
 > Kleine Wartungs-Session, kein neues Feature, keine neue Komponente, kein DB-Wiring.
@@ -591,6 +591,11 @@ kam es, wie groß ist es** — und einen **klaren nächsten Schritt** anstoßen 
   - Kontakt **erscheint** in Farmer
 - **Braucht:** Supabase-Trigger oder Edge Function.
 - **Wann:** nach Farmer komplett + Hunter-Trial-Kacheln ([D36]+[D37]) — alles zusammen mit der DB-Wiring-Phase.
+- **💡 IDEE (29.06.2026) — „Neue Kunden"-Tab im Farmer:** Wird ein Deal auf **Won** gesetzt und der
+  Kontakt wandert nach Farmer, landet er in einem neuen Tab **„Neue Kunden"** (analog „Neu in Pipeline"
+  beim Hunter). Dort **bestätigt der AM den MRR-Betrag**. Nach Bestätigung → `companies.mrr_monthly` wird
+  gesetzt, der Kontakt **verschwindet** aus diesem Tab. **Voraussetzung:** [D38] Lifecycle-Trigger muss
+  zuerst stehen. Verwandt: MRR/ARR-Übergangslösung unter [[D21]].
 
 ### [D39] Farmer Retention-Tab — „Kunde wird kalt"-Kachel (deferred)
 - **Trigger:** `contact_status = 'kunde'` **AND** `heat_status = 'kalt'`.
@@ -635,10 +640,22 @@ kam es, wie groß ist es** — und einen **klaren nächsten Schritt** anstoßen 
   Overlay/Backdrop/Escape/Fokusfalle kommen dann gratis.
 - **Aufwand:** klein–mittel. **Wann:** wenn der AI-SDR-/Task-Drawer-Bereich aktiv drankommt.
 
-### [D43] Historisierung — Zeitreihen & Event-Log (Architektur-Prinzip, deferred)
+### [D43] Historisierung — Zeitreihen & Event-Log (Architektur-Prinzip, deferred · Reihenfolge entschieden 29.06.2026)
 - **Grundsatz:** Alle über-Zeit-veränderlichen Daten werden **historisiert**, nicht nur als
   Momentaufnahme. Vergangenheit ist nachträglich unwiederbringlich → bei JEDEM Daten-Wiring mitdenken.
   Volle Regel in **CLAUDE.md → „Historisierung — Zeitreihen & Event-Log"**.
+- **🔑 ENTSCHEIDUNG (29.06.2026) — Reihenfolge:** [D43] wird **NICHT** als isolierter erster Schritt
+  gebaut. Neue Reihenfolge:
+  1. **Farmer DB-Wiring komplett** — echte Scores, Subscription, Signale, KI-Kurzakte.
+  2. **Score-Funktionen aktivieren** (`score_churn_risk`, `score_upsell`, `calculate_health_score`),
+     sodass **täglich echte Zahlen** entstehen.
+  3. **[D43] History als systemweite Schicht** — einmal sauber für **Hunter + Farmer zusammen**,
+     **NICHT** als Farmer-Insel.
+  - **HARTES GATE:** [D43] muss **live sein, BEVOR der erste echte Kunde reinkommt** (= vor
+    Billing-Go-Live / Phase 4). Sonst gehen echte Analyse-Daten **für immer** verloren.
+  - **Begründung:** `churn_score`/`upsell_score`/`health_score` existieren aktuell **noch gar nicht**
+    als DB-Felder (Diagnose 29.06.2026 bestätigt) → es gibt **noch nichts zu historisieren**. History
+    erst aufbauen, wenn echte Werte täglich laufen.
 - **Zwei Mechanismen:** (A) **periodische Snapshots** (`usage_snapshots` täglich · `score_snapshots`
   täglich–wöchentlich · MRR/ARR/NRR monatlich) via Cron — (B) **Event-Log** (`subscription_events`:
   gebucht/gekündigt/reaktiviert/upgraded/downgraded · `payment_history`) via Trigger/Webhook.
@@ -646,11 +663,12 @@ kam es, wie groß ist es** — und einen **klaren nächsten Schritt** anstoßen 
   `organization_id` + RLS + CASCADE + Index `(org, customer, datum)`.
 - **Zweck:** AI-Chat-Auswertungen + KPI-Dashboards über Zeit (Typ-2-Query / Custom Dashboards v2/v3) —
   „−10 % vs. letzter Monat", „in 10 Monaten X bezahlt", „schon mal gekündigt & reaktiviert".
-- **Einordnung (Vorschlag):** als **CLAUDE.md-Dauerregel** verankert (cross-cutting, gilt für ALLE
-  künftigen Daten). **Greift konkret zuerst beim Farmer-DB-Wiring** (erste historisierbare Kundendaten:
-  Usage/Health/Churn/Upsell/Subscription) — d.h. **bevor** die heutigen Farmer-Mock-Felder (Point-in-Time)
-  echt verdrahtet werden, müssen die Snapshot-/Event-Tabellen + Cron stehen. Danach Pflicht-Prüffrage vor
-  jeder neuen veränderlichen Tabelle (in CLAUDE.md hinterlegt). Verwandt: [[D5]] AI-Pipeline · KPI-Dashboards.
+- **Einordnung:** als **CLAUDE.md-Dauerregel** verankert (cross-cutting, gilt für ALLE künftigen Daten) +
+  Pflicht-Prüffrage vor jeder neuen veränderlichen Tabelle (in CLAUDE.md hinterlegt). Verwandt: [[D5]]
+  AI-Pipeline · KPI-Dashboards.
+  > ⚠️ **Überholt durch die Entscheidung oben (29.06.2026):** die frühere Einordnung „greift zuerst beim
+  > Farmer-DB-Wiring / Snapshot-Tabellen müssen vor dem Wiring stehen" gilt **nicht mehr**. Reihenfolge:
+  > Farmer-Wiring → Score-Funktionen aktiv → DANN [D43] systemweit (Hunter+Farmer), hartes Gate vor Phase 4.
 
 ### [D44] Flexible Daten-Tabellen (TanStack Table) (deferred)
 - **Bei Bau der Company- + Kontakt-Übersicht** eine **einheitliche Tabellen-Komponente auf TanStack
@@ -707,11 +725,23 @@ kam es, wie groß ist es** — und einen **klaren nächsten Schritt** anstoßen 
 - Mock-Fix: Follow-up-Leads in ScreenFarming mit `sherloqStatus:'ACTIVE'` → SubscriptionBadge im Header/Hero.
 - **Offen:** echte Daten (Farmer-DB-Wiring) · D33-Vollverdrahtung der übrigen Farmer-Tabs (noch CustomerDrawer).
 - **Beim Farmer-DB-Wiring zwingend nachziehen** (heute Mock/hardcodiert, erscheint NICHT automatisch):
-  - **(a) KI-Kurzakte-Block fehlt komplett** im FarmerSidepanel Übersicht-Tab → beim Wiring einbauen
-    (analog Hunter, mit „Folgt"-Platzhalter bis [[D5]] aktiv ist).
+  - **(a) KI-Kurzakte-Block im FarmerSidepanel Übersicht-Tab ✅ erledigt** (KiKurzaktePlaceholder
+    eingebaut, echte Daten folgen mit [[D5]]).
   - **(b) `AktiveSignale`-Flags sind hardcodiert** (alle literal `true`) → an echte Felder koppeln:
     `cancelled={customer.sherloqStatus==='CANCELLED'}` · `churnRisk={churn_score >= 61}` ·
     `upsell={upsell_score >= 70}` · `goingCold={heat==='COLD'}`.
+
+- **💰 MRR/ARR Übergangslösung (ENTSCHEIDUNG 29.06.2026)** — Teil des Farmer-DB-Wirings (Owner-/Auth-Bezug [[D21]]):
+  - **Slice 1** legt `mrr_monthly` + `arr_yearly` als Felder auf **`companies`** an (nullable). *(Korrigiert die
+    bisherige „MRR/ARR bekommen bewusst keine Spalten"-Linie von 029 — die galt nur für Deal-berechnete Werte;
+    auf Kunden-/Subscription-Ebene gibt es jetzt echte Felder.)*
+  - **Wiring (Slice 3+4):** MRR/ARR **zuerst aus dem gewonnenen Deal abgeleitet** (`dealToView`-Logik,
+    `value€ / term_months`) — Übergangslösung, bis der AM bestätigt.
+  - **Sobald [[D38]] + „Neue Kunden"-Tab gebaut:** AM **bestätigt den Betrag** → schreibt direkt in
+    `companies.mrr_monthly` (`arr_yearly = mrr × 12`).
+  - **Später:** **Stripe-Webhook** überschreibt `companies.mrr_monthly` automatisch.
+  - **UI-Pflicht (Honesty):** immer anzeigen, **woher** der Wert kommt — „aus Deal" · „bestätigt" · „Stripe"
+    (z.B. `companies.mrr_source` text: `deal | confirmed | stripe`).
 
 ### [TS] Deal-Typ ohne `product` — offener Faden
 - `src/types/hunter.ts` `Deal` hat **kein `product`** (Migration 014 fügte nur die DB-Spalte).
