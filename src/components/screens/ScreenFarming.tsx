@@ -70,6 +70,8 @@ interface ScreenFarmingProps {
   churnThreshold?: number;
   /** Upsell-Schwelle aus settings.thresholds.upsell_threshold (Fallback 70). */
   upsellThreshold?: number;
+  /** Fällige Tasks bei Bestandskunden (getDueTasks contactStatus='kunde' → taskToDueCard). */
+  dueTasks?: DueTaskCardItem[];
 }
 
 export default function ScreenFarming({
@@ -77,6 +79,7 @@ export default function ScreenFarming({
   onUpgradeSubscription: _onUpgradeSubscription,
   churnThreshold = 61,
   upsellThreshold = 70,
+  dueTasks = [],
 }: ScreenFarmingProps) {
   const [subTab, setSubTab] = useState<'overview' | 'kunden' | 'churn' | 'upsell' | 'signals' | 'follow_ups'>('overview');
   const { toast } = useToast();
@@ -96,12 +99,11 @@ export default function ScreenFarming({
   // optional mit Sektions-ID → der Ziel-Block dort leuchtet kurz auf (Deeplink-Highlight).
   const openOnTab = (p: Customer | Lead, tab: FarmerTab, section?: string) => { setInfoTaskId(null); setInfoTab(tab); setInfoHighlightSection(section ?? null); setInfoPerson(p); };
 
-  // MOCK fällige Tasks (Honesty: realistische Werte, kein Fake-KI) — echte Werte mit Farmer-DB-Wiring.
   const nowMs = Date.now();
-  const dueTaskCards: DueTaskCardItem[] = [
-    { id: 'fdt-1', contactId: customers[0]?.id, name: customers[0]?.person.name ?? 'Maximilian Krause', role: customers[0]?.person.jobTitle ?? 'Director Account Management', companyName: customers[0]?.person.company ?? 'PayGuard AG', initials: customers[0]?.person.initials ?? 'MK', icpScore: customers[0]?.icpScore, heatStatus: customers[0]?.heatStatus, taskTitle: 'Quartals-Business-Review terminieren', dueAt: new Date(nowMs + 86_400_000).toISOString() },
-    { id: 'fdt-2', contactId: customers[1]?.id, name: customers[1]?.person.name ?? 'Jonas Weber', role: customers[1]?.person.jobTitle ?? 'CEO', companyName: customers[1]?.person.company ?? 'Scalify GmbH', initials: customers[1]?.person.initials ?? 'JW', icpScore: customers[1]?.icpScore, heatStatus: customers[1]?.heatStatus, taskTitle: 'Onboarding-Status nachfassen', dueAt: new Date(nowMs - 86_400_000).toISOString() },
-  ];
+  // Echte Quelle: fällige Tasks (dueTasks-Prop) + kalte Kunden (heat COLD) — letzte Mock-Insel entfernt.
+  // ICP/Name/Firma überall aus contactToProfile (taskToDueCard bzw. customerRowToView) → Ring konsistent.
+  const coldCustomers = customers.filter((c) => c.heatStatus === 'COLD');
+  const customerById = (id: string): Customer | undefined => customers.find((c) => c.id === id);
 
   // Ignorierte Signale (lokaler State, kein Backend) → aus der Liste gefiltert. Kachel verschwindet sofort.
   const [ignoredSignalIds, setIgnoredSignalIds] = useState<string[]>([]);
@@ -117,7 +119,7 @@ export default function ScreenFarming({
   // ADDITIV/Honesty: churn/upsell_score NULL → diese Signale heute inaktiv; cancelled/going_cold/
   // overdue_task laufen sofort. Sortierung: Dominanz (Geld-Logik) → MRR → Score. Score nie als Badge.
   const overdueContactIds = new Set(
-    dueTaskCards
+    dueTasks
       .filter((tk) => tk.dueAt && new Date(tk.dueAt).getTime() < nowMs)
       .map((tk) => tk.contactId)
       .filter((id): id is string => !!id),
@@ -166,7 +168,7 @@ export default function ScreenFarming({
     { id: 'churn', label: 'Retention', icon: <AlertTriangle className="w-3.5 h-3.5" />, count: churnCount },
     { id: 'upsell', label: 'Upsell', icon: <TrendingUp className="w-3.5 h-3.5" />, count: upsellRows.length },
     { id: 'signals', label: 'Signals', icon: <Sparkles className="w-3.5 h-3.5" />, count: signalRows.length },
-    { id: 'follow_ups', label: 'Follow-ups', icon: <CheckSquare className="w-3.5 h-3.5" />, count: dueTaskCards.length + 1 },
+    { id: 'follow_ups', label: 'Follow-ups', icon: <CheckSquare className="w-3.5 h-3.5" />, count: dueTasks.length + coldCustomers.length },
   ];
 
   return (
@@ -283,7 +285,7 @@ export default function ScreenFarming({
                     return (
                       <SequenceLeadCards
                         key={`t-${c.id}`}
-                        items={dueTaskCards.filter((tk) => tk.contactId === c.id)}
+                        items={dueTasks.filter((tk) => tk.contactId === c.id)}
                         onSelectLead={() => openInfo(c)}
                         onView={(_lead, taskId) => { setInfoTab('tasks'); setInfoTaskId(taskId); setInfoPerson(c); }}
                         onComplete={() => toast('Task erledigt ✓', 'success')}
@@ -456,35 +458,54 @@ export default function ScreenFarming({
           Komponenten 1:1 wie Hunter (SequenceLeadCards · FollowUpKaltCard). „Ansehen" → Deeplink-Highlight. */}
       {subTab === 'follow_ups' && (
         <div className="flex flex-col gap-4">
-          {/* Fällige Tasks bei Bestandskunden — „Ansehen" öffnet FarmerSidepanel Tasks-Tab + Highlight. */}
-          <SequenceLeadCards
-            items={dueTaskCards}
-            onSelectLead={(lead) => { setInfoTab(null); setInfoTaskId(null); setInfoPerson({ ...lead, sherloqStatus: 'ACTIVE' } as Customer); }}
-            onView={(lead, taskId) => { setInfoTab('tasks'); setInfoTaskId(taskId); setInfoPerson({ ...lead, sherloqStatus: 'ACTIVE' } as Customer); }}
-            onComplete={() => toast('Task erledigt ✓', 'success')}
-            renderExpanded={(lead) => {
-              const c = { ...lead, sherloqStatus: 'ACTIVE' } as Customer;
-              return <FarmerExpandedCardContent customer={c} onOpenPanel={(tab, section) => openOnTab(c, tab as FarmerTab, section)} />;
-            }}
-          />
+          {dueTasks.length === 0 && coldCustomers.length === 0 ? (
+            <EmptyState
+              icon={<CheckSquare className="w-6 h-6" />}
+              title="Nichts zu tun"
+              description="Keine fälligen Tasks und kein Kunde wird kalt — alles erledigt."
+            />
+          ) : (
+            <>
+              {/* Fällige Tasks bei Bestandskunden — echt (getDueTasks, contactStatus='kunde').
+                  „Ansehen" öffnet FarmerSidepanel Tasks-Tab + Highlight; Panel zeigt den echten Kunden. */}
+              {dueTasks.length > 0 && (
+                <SequenceLeadCards
+                  items={dueTasks}
+                  onSelectLead={(lead) => { setInfoTab(null); setInfoTaskId(null); setInfoPerson(customerById(lead.person.id) ?? ({ ...lead, sherloqStatus: 'ACTIVE' } as Customer)); }}
+                  onView={(lead, taskId) => { setInfoTab('tasks'); setInfoTaskId(taskId); setInfoPerson(customerById(lead.person.id) ?? ({ ...lead, sherloqStatus: 'ACTIVE' } as Customer)); }}
+                  onComplete={() => toast('Task erledigt ✓', 'success')}
+                  renderExpanded={(lead) => {
+                    const c = customerById(lead.person.id) ?? ({ ...lead, sherloqStatus: 'ACTIVE' } as Customer);
+                    return <FarmerExpandedCardContent customer={c} onOpenPanel={(tab, section) => openOnTab(c, tab as FarmerTab, section)} />;
+                  }}
+                  renderStatusBadge={(it) => {
+                    // Farmer-Invariante: SUBSCRIPTION statt Pipeline-Stage (Single Source: companies.subscription_status via customerRowToView).
+                    const c = it.contactId ? customerById(it.contactId) : undefined;
+                    return c ? { label: 'SUBSCRIPTION', node: <SubscriptionBadge status={c.sherloqStatus} /> } : undefined;
+                  }}
+                />
+              )}
 
-          {/* „Kunde wird kalt" — gehört zu Follow-ups (Aktion), NICHT zu Retention (Risiko).
-              CTA „Start Outreach" → FarmerActionDrawer (going_cold-Config). */}
-          <FollowUpKaltCard
-            contactId="cust-2"
-            name="Laura Becker"
-            role="Head of Customer Success"
-            companyName="Logistify DE"
-            icpScore={78}
-            heatStatus="COLD"
-            timeAgoLabel="vor 28 Tagen"
-            onSelectLead={(lead) => { setInfoTab(null); setInfoTaskId(null); setInfoPerson({ ...lead, sherloqStatus: 'ACTIVE' } as Customer); }}
-            onOutreachClick={() => setActionSignal({ kind: 'going_cold', name: 'Laura Becker', company: 'Logistify DE', lastContactDays: 28 })}
-            expandedSlot={(() => {
-              const c = { id: 'cust-2', person: { id: 'cust-2', name: 'Laura Becker', jobTitle: 'Head of Customer Success', company: 'Logistify DE', initials: 'LB' }, icpScore: 78, heatStatus: 'COLD', sherloqStatus: 'ACTIVE', lastLogin: 'vor 28 Tagen', contactEmail: '' } as Customer;
-              return <FarmerExpandedCardContent customer={c} onOpenPanel={(tab, section) => openOnTab(c, tab as FarmerTab, section)} />;
-            })()}
-          />
+              {/* „Kunde wird kalt" — echte Kunden mit heat='kalt' (COLD). Gehört zu Follow-ups (Aktion),
+                  NICHT zu Retention (Risiko). CTA → FarmerActionDrawer (going_cold). ICP aus customerRowToView. */}
+              {coldCustomers.map((c) => (
+                <FollowUpKaltCard
+                  key={c.id}
+                  contactId={c.id}
+                  name={c.person.name}
+                  role={c.person.jobTitle}
+                  companyName={c.person.company}
+                  icpScore={c.icpScore}
+                  heatStatus={c.heatStatus}
+                  timeAgoLabel={c.lastLogin}
+                  onSelectLead={() => openInfo(c)}
+                  onOutreachClick={() => setActionSignal({ kind: 'going_cold', name: c.person.name, company: c.person.company })}
+                  statusBadge={{ label: 'SUBSCRIPTION', node: <SubscriptionBadge status={c.sherloqStatus} /> }}
+                  expandedSlot={<FarmerExpandedCardContent customer={c} onOpenPanel={(tab, section) => openOnTab(c, tab as FarmerTab, section)} />}
+                />
+              ))}
+            </>
+          )}
         </div>
       )}
 

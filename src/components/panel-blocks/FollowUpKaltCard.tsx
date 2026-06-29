@@ -34,6 +34,8 @@ interface FollowUpKaltCardProps {
   initialSnooze?: { count: number; activeDays: number | null };
   /** Aufgeklappter Inhalt statt Default-`ExpandedCardContent` (Farmer: FarmerExpandedCardContent). */
   expandedSlot?: ReactNode;
+  /** Status-Badge (Farmer: SUBSCRIPTION statt Pipeline-STAGE) — an HunterCard durchgereicht. */
+  statusBadge?: { label: string; node: ReactNode };
 }
 
 /**
@@ -58,6 +60,7 @@ export function FollowUpKaltCard({
   onSelectLead,
   initialSnooze,
   expandedSlot,
+  statusBadge,
 }: FollowUpKaltCardProps) {
   // Snooze-Zustand (Mock — später aus DB/system_config). activeDays=null → nicht gesnoozed.
   const [snooze, setSnooze] = useState<{ count: number; activeDays: number | null }>(initialSnooze ?? { count: 0, activeDays: null });
@@ -178,6 +181,7 @@ export function FollowUpKaltCard({
         contactId={contactId}
         onOpenInfo={onSelectLead ? () => onSelectLead(buildLead()) : undefined}
         actionRow={actionRow}
+        statusBadge={statusBadge}
         expandedSlot={expandedSlot}
       />
     </div>

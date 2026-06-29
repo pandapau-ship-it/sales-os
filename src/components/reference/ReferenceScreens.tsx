@@ -34,7 +34,7 @@ import {
   upgradeSubscription as dbUpgradeSubscription,
 } from "@/lib/db";
 import { useCurrentOrg } from "@/hooks/useCurrentOrg";
-import { contactRowToLead, customerRowToView, dealToPipelineRow } from "@/lib/hunterMappers";
+import { contactRowToLead, customerRowToView, dealToPipelineRow, taskToDueCard } from "@/lib/hunterMappers";
 import { useTranslation } from "react-i18next";
 import type {
   Lead,
@@ -296,6 +296,13 @@ export function FarmerReference() {
   const farmerThresholds = settingsQuery.data?.thresholds as Record<string, unknown> | undefined;
   const churnThreshold = (farmerThresholds?.churn_risk_threshold as number | undefined) ?? 61;
   const upsellThreshold = (farmerThresholds?.upsell_threshold as number | undefined) ?? 70;
+  // Fällige Tasks NUR bei Bestandskunden (contactStatus='kunde') → Follow-ups-Tab. taskToDueCard nutzt
+  // contactToProfile (gleiche ICP-Quelle wie customerRowToView → konsistenter Ring).
+  const dueTasksQuery = useQuery({
+    queryKey: ["farmerDueTasks", organizationId],
+    queryFn: () => getDueTasks(organizationId, { contactStatus: "kunde" }),
+  });
+  const dueTasksData = dueTasksQuery.data?.map((row) => taskToDueCard(row)) ?? [];
   // Slice 4: ScreenFarming öffnet eigene Panels (FarmerSidepanel/FarmerActionDrawer) intern —
   // kein CustomerDrawer mehr im Farmer. (CustomerDrawer bleibt für MeinTag/Hunter, bis migriert.)
   return (
@@ -304,6 +311,7 @@ export function FarmerReference() {
         customers={customersData}
         churnThreshold={churnThreshold}
         upsellThreshold={upsellThreshold}
+        dueTasks={dueTasksData}
         onUpgradeSubscription={s.upgradeSubscription}
         onSelectCommunication={s.selectCommunication}
       />
