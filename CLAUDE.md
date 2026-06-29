@@ -4407,6 +4407,11 @@ Pipeline-Stage. Pipeline-Stage (`free_trial`/`backlog`/… aus `deals.stage`) is
 und im Farmer semantisch falsch. Geteilte Hunter-Karten (`SequenceLeadCards`, `FollowUpKaltCard`, `HunterCard`)
 tragen den `statusBadge`-Slot (zeigt sich nur bei leerem `stageLabel`) — im Farmer wird er mit SUBSCRIPTION
 befüllt **und** `stageLabel` unterdrückt; Hunter bleibt unberührt (ohne Slot → Stage wie bisher).
+**Gilt für AUSNAHMSLOS jede Render-Stelle** (Übersicht-Top-5, Kunden, Retention, Upsell, Signals, Follow-ups,
+Panel) — nicht nur Follow-ups. Jede `SequenceLeadCards`/`FollowUpKaltCard`/`HunterCard`-Instanz im Farmer MUSS
+`renderStatusBadge`/`statusBadge` (SUBSCRIPTION aus `sherloqStatus`) gesetzt haben; fehlt der Slot, fällt die
+Karte auf `it.stage` zurück und leakt die Pipeline-Stage (so geschehen im Top-5 `overdue_task`/`going_cold`-Zweig,
+durch den Score-Fix→Signalwechsel sichtbar geworden). **Neue Farmer-Kartenstelle = Subscription-Slot nicht vergessen.**
 **Bei jedem Farmer-Slice prüfen: Status-Feld = Subscription, nicht Stage.**
 
 **INVARIANTE — Churn-Vorrang vor Upsell (verbindlich):**

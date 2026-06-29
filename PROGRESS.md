@@ -791,6 +791,20 @@ kam es, wie groß ist es** — und einen **klaren nächsten Schritt** anstoßen 
   Snooze-Regelwerk (max_count/max_days/Eskalation) liegt in CLAUDE.md „Snooze — Regelwerk" + `system_config`.
 - **Wann:** mit dem Signals-/Inbox-DB-Wiring (nach AI-SDR/Sending-Layer). Gilt für **Hunter + Farmer** gemeinsam.
 
+### [BUGFIX] Stage-Leak an Top-5 (overdue_task/going_cold) — Subscription-Invariante durchgesetzt (29.06.2026) ✅
+- **Symptom:** Sarah Klein zeigte in der **Übersicht Top-5** wieder „STAGE: free_trial" statt Subscription.
+- **Ursache:** **zweite Render-Stelle** ohne Subscription-Slot — der Slice-6-Fix (Commit 857bf89) war nur im
+  **Follow-ups-Tab** (SequenceLeadCards `renderStatusBadge` + FollowUpKaltCard `statusBadge`). Die identischen
+  Karten in der **Top-5** (`overdue_task`-Zweig `SequenceLeadCards`; `going_cold`-Zweig `FollowUpKaltCard`)
+  hatten den Slot nie. Sichtbar wurde es erst durch den **Score-Fix**: Sarahs churn 72→0 → `dominantSignal`
+  wechselte von `churn_risk` (FarmerRetentionKachel, hat Badge) zu `overdue_task` (SequenceLeadCards, kein Badge)
+  → `stageLabel` fiel auf `it.stage` zurück.
+- **Fix:** beide Top-5-Karten mit Subscription-Slot versorgt (1:1 wie Follow-ups), Badge direkt aus
+  `c.sherloqStatus` (customer in der `.map` verfügbar, kein Lookup). Audit aller Farmer-Render-Stellen: die
+  Kachel-Wrapper (`FarmerKundenKachel`/`FarmerRetentionKachel`/`FarmerUpsellKachel`) setzen bereits
+  `stageLabel:""` + `statusBadge` — **kein weiterer Leak**. **AUSNAHMSLOS jede Farmer-Karte zeigt jetzt
+  Subscription, nie Stage** (CLAUDE.md-Invariante gilt für ALLE Render-Stellen, präzisiert).
+
 ### [SCORE-FIX] heat_hot-bei-warm + overdue_tasks-Gewicht + 0-Punkte-Treiber (29.06.2026) ✅
 QA der Farmer-Scores ergab zwei systematische Verzerrungen — behoben (Score-Ebene, systemweit):
 - **(A) `score-upsell`: `heat_hot` zählte auch bei `heat='warm'`** (Bedingung `"heiss" || "warm"`). Falsch —
