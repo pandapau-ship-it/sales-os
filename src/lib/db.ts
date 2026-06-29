@@ -461,7 +461,7 @@ export async function getDueTasks(
 }
 
 export interface SignalFilters {
-  routedTo?: "hunter";
+  routedTo?: "hunter" | "farmer" | "ai_sdr" | "unrouted";
   processed?: boolean;
   limit?: number;
 }
