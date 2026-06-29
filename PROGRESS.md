@@ -730,6 +730,10 @@ kam es, wie groß ist es** — und einen **klaren nächsten Schritt** anstoßen 
   - **(b) `AktiveSignale`-Flags sind hardcodiert** (alle literal `true`) → an echte Felder koppeln:
     `cancelled={customer.sherloqStatus==='CANCELLED'}` · `churnRisk={churn_score >= 61}` ·
     `upsell={upsell_score >= 70}` · `goingCold={heat==='COLD'}`.
+  - **(c) KontaktZeile-Editierbarkeit (8e):** Die Sidepanel-KontaktZeile ist **read-only** (nur Copy) —
+    **Bearbeiten erfolgt in der Vollansicht/Details-Tab** (Stift verlinkt dorthin, DB-Write dort). **Telefon
+    (`contact_phones`) wird via `DetailPhoneList` in der Vollansicht editiert, NICHT inline im Sidepanel.**
+    (Slice 8a: KontaktZeile-Anzeige bereits echt via `contactToProfile`; Edit-Pfad = 8e.)
 
 - **💰 MRR/ARR Übergangslösung (ENTSCHEIDUNG 29.06.2026)** — Teil des Farmer-DB-Wirings (Owner-/Auth-Bezug [[D21]]):
   - **Slice 1** legt `mrr_monthly` + `arr_yearly` als Felder auf **`companies`** an (nullable). *(Korrigiert die
@@ -775,6 +779,19 @@ kam es, wie groß ist es** — und einen **klaren nächsten Schritt** anstoßen 
   `lib/db.ts`, `getSignals`-Filter berücksichtigt sie. Bulk-Snooze/Löschen (Hunter+Farmer) ebenfalls hier.
   Snooze-Regelwerk (max_count/max_days/Eskalation) liegt in CLAUDE.md „Snooze — Regelwerk" + `system_config`.
 - **Wann:** mit dem Signals-/Inbox-DB-Wiring (nach AI-SDR/Sending-Layer). Gilt für **Hunter + Farmer** gemeinsam.
+
+### [D49] Usage-Telemetrie (Produkt-Nutzung) (deferred)
+- **Status:** deferred, eigenes Vorhaben **nach** dem Farmer-Panel (Richtung echte Kunden / Billing).
+- **Was fehlt:** DB-Felder/Tabelle für Produkt-Nutzung (Messages gesendet · Enrichments verbraucht ·
+  Last Login · Seats aktiv · Onboarding-Status) + **Tracking-Mechanismus** (woher kommen die Zahlen —
+  Produkt schreibt selbst mit / extern via Sherloq-Webhook) + spätere **Churn-Score-Integration**
+  (Usage-Einbruch als Frühsignal, vgl. `score_churn_risk` „erweiterter Score").
+- **Bis dahin:** `UsageBox` zeigt **„Folgt"** (Honesty, modul-gated `sherloq_signals`) — **keine Fake-Zahlen**.
+- **WICHTIG (Einordnung):** Usage ist **optional + gewichtbar**, **kein Blocker**. Die Beziehungs-Daten
+  (Kommunikation/letzter Kontakt, Heat, Tasks, Aktivität) tragen die **Kern-Churn-Signale schon HEUTE**
+  und sind echt verdrahtet (Slice 4a/4c). Churn/Upsell-Gewichte liegen in `settings`
+  (`churn_weights`/`upsell_weights`) → per Einstellung änderbar, kein Code-Eingriff. Usage = Verfeinerung.
+- Verwandt: [[D43]] Historisierung (Usage-Snapshots) · `score_churn_risk`/`score_upsell` (additive Felder).
 
 ### [CLEANUP] `score_drivers` → `churn_drivers` umbenennen (Symmetrie mit `upsell_drivers`)
 - Heute: `contacts.score_drivers` (+ `data_sources`) = **Churn**-Treiber (048/score-churn-risk) ·
