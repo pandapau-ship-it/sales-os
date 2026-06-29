@@ -650,6 +650,41 @@ export async function createTask(task: {
 }
 
 /**
+ * updateTask — bestehende Task bearbeiten (P8): org-gescoped, Audit via DB-Trigger.
+ * Spiegelt das createTask-Feldmapping; aktualisiert nur die im TaskFormular editierbaren
+ * Felder (Titel/Beschreibung/Kanal/Fällig/Priorität/Deal). Kein `updated_at` (Spalte wie bei
+ * completeTask/softDeleteTask nicht gesetzt; Historie kommt aus dem audit_log-Trigger).
+ */
+export async function updateTask(
+  taskId: string,
+  organizationId: string,
+  patch: {
+    title: string;
+    description?: string;
+    channel?: string; // email | linkedin | phone | calendar | other (Caller mappt mail→email)
+    dueAt: string;
+    priority: string;
+    dealId?: string;
+  },
+): Promise<void> {
+  const client = getSupabaseClient();
+  if (!client) return;
+  const { error } = await client
+    .from("tasks")
+    .update({
+      title: patch.title,
+      description: patch.description ?? null,
+      channel: patch.channel ?? null,
+      due_at: patch.dueAt,
+      priority: patch.priority,
+      deal_id: patch.dealId ?? null,
+    })
+    .eq("id", taskId)
+    .eq("organization_id", organizationId);
+  if (error) throw error;
+}
+
+/**
  * getNotesByContact — Notizen eines Kontakts fürs Panel (P4), neueste zuerst.
  * Embed: Autor (created_by → users.full_name; NULL → kein Autor angezeigt).
  */

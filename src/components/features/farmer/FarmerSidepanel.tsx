@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { useQuery, keepPreviousData } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { useCurrentOrg } from '@/hooks/useCurrentOrg';
-import { getContactDetail, getTasksByContact, getContactCommunications, getActivityByContact, getNotesByContact } from '@/lib/db';
-import { contactToProfile, communicationToView } from '@/lib/hunterMappers';
+import { useAuth } from '@/hooks/useAuth';
+import { getContactDetail, getTasksByContact, getContactCommunications, getActivityByContact, getNotesByContact, createTask, updateTask, completeTask, softDeleteTask, createNote, updateNote, softDeleteNote, createCommunication } from '@/lib/db';
+import { contactToProfile, communicationToView, type CommunicationChannel, type CommunicationDirection } from '@/lib/hunterMappers';
+import KommunikationLogModal from '../hunter/KommunikationLogModal';
 import {
   X, Check, ArrowUpRight, ArrowLeft, Tag, User, Building2,
   LayoutDashboard, Activity, MessageSquare, CheckSquare, CreditCard, BarChart3, FileText,
@@ -101,6 +103,82 @@ export default function FarmerSidepanel({ person: personProp, onClose, onExit, v
     placeholderData: keepPreviousData,
   });
   const commsView = (commsQuery.data ?? []).map(communicationToView);
+
+  // 8b-write: ALLE Schreib-Aktionen echt (Einheitsgebot — 1:1 HunterSidepanel-Mutationsmuster).
+  // useQueryClient + useMutation + invalidate + Toast on success. Kein lokaler State, kein Schein-Toast.
+  const queryClient = useQueryClient();
+  const { user } = useAuth(); // [D21]: created_by/assigned_to der Writes = eingeloggter User (Fallback NULL)
+  const [logOpen, setLogOpen] = useState(false);             // „Kontakt protokollieren"-Modal
+  const [tasksAutoEditId, setTasksAutoEditId] = useState<string | null>(null); // Footer/Übersicht „+ Task" → Formular auf
+  const [notesAutoCompose, setNotesAutoCompose] = useState(false);             // Footer „Notiz" → Composer auf
+
+  // Echte Deals des Kontakts als Auswahl im „Neue Task"-Formular (Deal optional) — 1:1 Hunter.
+  const dealOptions = ((contactRow?.deals as Record<string, any>[] | undefined) ?? [])
+    .filter((d) => d?.id && d?.name)
+    .map((d) => ({ value: d.id as string, label: d.name as string }));
+  const CH_TO_DB: Record<string, string> = { mail: 'email', linkedin: 'linkedin', phone: 'phone', calendar: 'calendar', other: 'other' };
+
+  const invalidateTasks = () => {
+    queryClient.invalidateQueries({ queryKey: ['tasksByContact', organizationId, contactId] });
+    queryClient.invalidateQueries({ queryKey: ['dueTasks', organizationId] }); // Follow-ups-Tab mitziehen
+    queryClient.invalidateQueries({ queryKey: ['deals', organizationId] });
+  };
+  const invalidateNotes = () => queryClient.invalidateQueries({ queryKey: ['notesByContact', organizationId, contactId] });
+  const invalidateComms = () => {
+    queryClient.invalidateQueries({ queryKey: ['contactCommunications', organizationId, contactId] }); // Farmer-Key (8b)
+    queryClient.invalidateQueries({ queryKey: ['contactDetail', organizationId, contactId] }); // last_contacted_at via Trigger
+  };
+
+  type TaskFormVals = { title: string; description: string; channel: string; priority: string; dueDate: string; dueTime: string; deal: string };
+  const taskValsToDb = (v: TaskFormVals) => ({
+    title: v.title,
+    description: v.description || undefined,
+    channel: CH_TO_DB[v.channel] ?? 'other',                 // mail→email
+    dueAt: new Date(`${v.dueDate}T${v.dueTime || '09:00'}:00`).toISOString(),
+    priority: v.priority,
+    dealId: v.deal && v.deal !== 'none' ? v.deal : undefined,
+  });
+  const createTaskMutation = useMutation({
+    mutationFn: (v: TaskFormVals) => createTask({ organizationId, contactId: contactId as string, source: 'manual', assignedTo: user?.id ?? undefined, ...taskValsToDb(v) }),
+    onSuccess: () => { invalidateTasks(); showToast('Task angelegt ✓'); },
+    onError: (e) => showToast(`Anlegen fehlgeschlagen: ${(e as Error).message}`),
+  });
+  const updateTaskMutation = useMutation({
+    mutationFn: (p: { taskId: string; v: TaskFormVals }) => updateTask(p.taskId, organizationId, taskValsToDb(p.v)),
+    onSuccess: () => { invalidateTasks(); showToast('Task gespeichert ✓'); },
+    onError: (e) => showToast(`Speichern fehlgeschlagen: ${(e as Error).message}`),
+  });
+  const completeTaskMutation = useMutation({
+    mutationFn: (taskId: string) => completeTask(taskId, organizationId),
+    onSuccess: () => { invalidateTasks(); showToast('Task erledigt ✓'); },
+    onError: (e) => showToast(`Abhaken fehlgeschlagen: ${(e as Error).message}`),
+  });
+  const deleteTaskMutation = useMutation({
+    mutationFn: (taskId: string) => softDeleteTask(taskId, organizationId),
+    onSuccess: () => { invalidateTasks(); showToast('Aufgabe gelöscht ✓'); },
+    onError: (e) => showToast(`Löschen fehlgeschlagen: ${(e as Error).message}`),
+  });
+  const createNoteMutation = useMutation({
+    mutationFn: (body: string) => createNote(organizationId, contactId as string, body, user?.id ?? undefined),
+    onSuccess: () => { invalidateNotes(); showToast('Notiz angelegt ✓'); },
+    onError: (e) => showToast(`Notiz fehlgeschlagen: ${(e as Error).message}`),
+  });
+  const updateNoteMutation = useMutation({
+    mutationFn: (v: { id: string; body: string }) => updateNote(v.id, organizationId, v.body),
+    onSuccess: () => { invalidateNotes(); showToast('Notiz aktualisiert ✓'); },
+    onError: (e) => showToast(`Aktualisieren fehlgeschlagen: ${(e as Error).message}`),
+  });
+  const deleteNoteMutation = useMutation({
+    mutationFn: (noteId: string) => softDeleteNote(noteId, organizationId),
+    onSuccess: () => { invalidateNotes(); showToast('Notiz gelöscht ✓'); },
+    onError: (e) => showToast(`Löschen fehlgeschlagen: ${(e as Error).message}`),
+  });
+  const createCommMutation = useMutation({
+    mutationFn: (v: { channel: CommunicationChannel; direction: CommunicationDirection; occurredAt: string; note: string }) =>
+      createCommunication(organizationId, contactId as string, v, user?.id ?? undefined),
+    onSuccess: () => { setLogOpen(false); invalidateComms(); showToast('Kontakt protokolliert ✓'); },
+    onError: (e) => showToast(`Protokollieren fehlgeschlagen: ${(e as Error).message}`),
+  });
 
   // Header-Quellen aus dem Mock-Kontakt (Slice 1). Farmer = Kunde → Subscription-Status statt Stage.
   const customer = person as Customer | null;
@@ -237,11 +315,11 @@ export default function FarmerSidepanel({ person: personProp, onClose, onExit, v
             : (
               <OffeneTasks
                 taskRows={tasksQuery.data ?? []}
-                onAdd={() => setActiveTab('tasks')}
+                onAdd={() => { setTasksAutoEditId('new'); setActiveTab('tasks'); }}
                 onOpenTasks={() => setActiveTab('tasks')}
-                onEditTask={() => setActiveTab('tasks')}
-                onComplete={() => showToast('Task erledigt ✓')}
-                onDelete={() => showToast('Task gelöscht')}
+                onEditTask={(id) => { setTasksAutoEditId(id); setActiveTab('tasks'); }}
+                onComplete={(id) => completeTaskMutation.mutate(id)}
+                onDelete={(id) => deleteTaskMutation.mutate(id)}
               />
             )}
           {commsQuery.isLoading
@@ -262,7 +340,7 @@ export default function FarmerSidepanel({ person: personProp, onClose, onExit, v
       {activeTab === 'communication' && (
         commsQuery.isLoading
           ? <PanelSkeleton rows={4} height={64} />
-          : <KommunikationVerlauf items={commsView} onLog={() => showToast('Kontakt protokollieren — folgt')} flashId="communication" flash={flashSection === 'communication'} />
+          : <KommunikationVerlauf items={commsView} onLog={() => setLogOpen(true)} flashId="communication" flash={flashSection === 'communication'} />
       )}
 
       {activeTab === 'tasks' && (
@@ -271,12 +349,16 @@ export default function FarmerSidepanel({ person: personProp, onClose, onExit, v
           : (
             <TasksListe
               onToast={showToast}
+              autoEditId={tasksAutoEditId}
+              onAutoEditConsumed={() => setTasksAutoEditId(null)}
               highlightId={initialTaskId}
               taskRows={tasksQuery.data ?? []}
               contactName={person.person.name}
-              onCreate={() => showToast('Task gespeichert ✓')}
-              onComplete={() => showToast('Task erledigt ✓')}
-              onDelete={() => showToast('Task gelöscht')}
+              dealOptions={dealOptions}
+              onCreate={(v) => createTaskMutation.mutate(v)}
+              onUpdate={(id, v) => updateTaskMutation.mutate({ taskId: id, v })}
+              onComplete={(id) => completeTaskMutation.mutate(id)}
+              onDelete={(id) => deleteTaskMutation.mutate(id)}
             />
           )
       )}
@@ -296,10 +378,12 @@ export default function FarmerSidepanel({ person: personProp, onClose, onExit, v
           : (
             <NotizenListe
               onToast={showToast}
+              autoCompose={notesAutoCompose}
+              onAutoComposeConsumed={() => setNotesAutoCompose(false)}
               noteRows={notesQuery.data ?? []}
-              onCreate={() => showToast('Notiz gespeichert ✓')}
-              onUpdate={() => showToast('Notiz gespeichert ✓')}
-              onDelete={() => showToast('Notiz gelöscht')}
+              onCreate={(body) => createNoteMutation.mutate(body)}
+              onUpdate={(id, body) => updateNoteMutation.mutate({ id, body })}
+              onDelete={(id) => deleteNoteMutation.mutate(id)}
             />
           )
       )}
@@ -310,9 +394,9 @@ export default function FarmerSidepanel({ person: personProp, onClose, onExit, v
   // (HunterCard/LeadListRow-Mail): opacity-40 + cursor-not-allowed + data-tip „Folgt mit Nango-Anbindung".
   // Aktionen Slice 1 = Tab-Wechsel; Send-Aktionen folgen mit Action-Panels [D34] / Sending-Layer.
   const ACTIONS: { icon: typeof CheckSquare; label: string; onClick?: () => void; disabled?: boolean; tip?: string }[] = [
-    { icon: CheckSquare, label: 'Task', onClick: () => setActiveTab('tasks') },
+    { icon: CheckSquare, label: 'Task', onClick: () => { setTasksAutoEditId('new'); setActiveTab('tasks'); } },
     { icon: Mail, label: 'Mail', disabled: true, tip: 'Folgt mit Nango-Anbindung' },
-    { icon: FileText, label: 'Notiz', onClick: () => setActiveTab('notes') },
+    { icon: FileText, label: 'Notiz', onClick: () => { setNotesAutoCompose(true); setActiveTab('notes'); } },
   ];
   const btn = "px-3.5 py-2 border border-border text-text-body rounded-full text-[12px] font-bold flex-1 transition-colors shadow-sm flex items-center justify-center gap-1.5";
   const btnFull = "px-4 py-2 border border-border text-text-body rounded-full text-[12px] font-bold transition-colors shadow-sm flex items-center justify-center gap-1.5";
@@ -505,9 +589,17 @@ export default function FarmerSidepanel({ person: personProp, onClose, onExit, v
       <FarmerActionDrawer
         signal={actionSignal}
         onClose={() => setActionSignal(null)}
-        onCreateTask={() => { setActionSignal(null); setActiveTab('tasks'); showToast('Task erstellt ✓'); }}
-        onWinbackCall={() => showToast('Anruf protokolliert ✓')}
+        onCreateTask={() => { setActionSignal(null); setTasksAutoEditId('new'); setActiveTab('tasks'); }}
+        onWinbackCall={() => { setActionSignal(null); setLogOpen(true); }}
         onSnooze={() => showToast('Auf später verschoben')}
+      />
+
+      {/* „Kontakt protokollieren" — 1:1 Hunter; onSave → createCommunication (echt). */}
+      <KommunikationLogModal
+        open={logOpen}
+        pending={createCommMutation.isPending}
+        onSave={(v) => createCommMutation.mutate(v)}
+        onCancel={() => setLogOpen(false)}
       />
 
       {toastMessage && (

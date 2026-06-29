@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { useCurrentOrg } from '@/hooks/useCurrentOrg';
 import { useAuth } from '@/hooks/useAuth';
-import { getContactDetail, getPipelineSettings, getTasksByContact, createTask, completeTask, softDeleteTask, getNotesByContact, createNote, updateNote, softDeleteNote, getDealsByContact, getActivityByContact, getContactCommunications, createCommunication, updateContact, updateCompany, getProducts, getOrgUsers, createDeal, updateDeal, updateDealStage, updateDealWon, updateDealLost, softDeleteDeal, createContactPhone, updateContactPhone, setContactPhonePrimary, deleteContactPhone } from '@/lib/db';
+import { getContactDetail, getPipelineSettings, getTasksByContact, createTask, updateTask, completeTask, softDeleteTask, getNotesByContact, createNote, updateNote, softDeleteNote, getDealsByContact, getActivityByContact, getContactCommunications, createCommunication, updateContact, updateCompany, getProducts, getOrgUsers, createDeal, updateDeal, updateDealStage, updateDealWon, updateDealLost, softDeleteDeal, createContactPhone, updateContactPhone, setContactPhonePrimary, deleteContactPhone } from '@/lib/db';
 import { contactToProfile, latestActiveDeal, dealToView, communicationToView, CONTACT_STATUS_LABEL, CONTACT_STATUS_SELECTABLE, WON_STAGE_SLUG, LOST_STAGE_SLUG, type CommunicationChannel, type CommunicationDirection } from '@/lib/hunterMappers';
 import { isValidEmail, normalizeUrl, isValidUrl } from '@/lib/validation';
 import DealLostModal from './DealLostModal';
@@ -201,6 +201,19 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
       }),
     onSuccess: () => { invalidateTasks(); showToast('Task angelegt ✓'); },
     onError: (e) => showToast(`Anlegen fehlgeschlagen: ${(e as Error).message}`), // nicht still abfangen
+  });
+  const updateTaskMutation = useMutation({
+    mutationFn: (p: { taskId: string; v: { title: string; description: string; channel: string; priority: string; dueDate: string; dueTime: string; deal: string } }) =>
+      updateTask(p.taskId, organizationId, {
+        title: p.v.title,
+        description: p.v.description || undefined,
+        channel: CH_TO_DB[p.v.channel] ?? 'other',         // mail→email
+        dueAt: new Date(`${p.v.dueDate}T${p.v.dueTime || '09:00'}:00`).toISOString(),
+        priority: p.v.priority,
+        dealId: p.v.deal && p.v.deal !== 'none' ? p.v.deal : undefined,
+      }),
+    onSuccess: () => { invalidateTasks(); showToast('Task gespeichert ✓'); },
+    onError: (e) => showToast(`Speichern fehlgeschlagen: ${(e as Error).message}`),
   });
   const completeTaskMutation = useMutation({
     mutationFn: (taskId: string) => completeTask(taskId, organizationId),
@@ -659,6 +672,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
             dealOptions={dealOptions}
             initialDealId={initialDealId}
             onCreate={(v) => createTaskMutation.mutate(v)}
+            onUpdate={(id, v) => updateTaskMutation.mutate({ taskId: id, v })}
             onComplete={(id) => completeTaskMutation.mutate(id)}
             onDelete={(id) => deleteTaskMutation.mutate(id)}
           />
