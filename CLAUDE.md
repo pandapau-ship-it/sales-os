@@ -4420,7 +4420,10 @@ Handlungsempfehlung (Karte/Kachel). **Retention vor Expansion**: bei aktivem Chu
 wird Upsell unterdrückt. Single Source = `applyFarmerDisplayPrecedence` → `calculateFarmerPriority.displaySignals`
 (hunterMappers) — Panel **und** Kachel-Ebene nutzen denselben Resolver, nie im Panel dupliziert. Geld-Logik-
 Reihenfolge bleibt: **Gekündigt > Churn > Kalt > Upsell**. Scoring (`signals`/`score`/Top-5) bleibt unberührt —
-nur die Anzeige filtert.
+nur die Anzeige filtert. **Gilt auch für die dedizierten Tabs:** der **Upsell-Tab** listet nur Kunden mit
+`displaySignals.includes('upsell')` (nicht roh `upsellScore≥thr`) → ein churn-aktiver/gekündigter Kunde erscheint
+**nicht** zusätzlich im Upsell-Tab. Schwellen für den Resolver IMMER aus `settings` durchreichen (nicht Default),
+damit Top-5 ↔ Retention-/Upsell-Tab konsistent sind.
 
 **INVARIANTE — Details-Tab-Felder = Single Source (verbindlich):**
 Auswahl-Optionen (Anrede/Sprache/Seniorität/Land/Branche/Größe), das Feld→DB-Spalte-Mapping (`DETAIL_MAP`),

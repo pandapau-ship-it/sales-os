@@ -91,6 +91,15 @@ export default function UsageBox({
     );
   }
 
+  const hasAny = !!(data.lastLogin || data.lastUsage || data.profilesAdded || data.messages || data.enrichments || data.onboarding);
+  if (!hasAny) {
+    // Honesty [D49]: keine echte Produkt-Nutzungsquelle → ehrlicher „Folgt", keine erfundenen Zahlen.
+    return (
+      <DetailSection title="Usage" icon={BarChart3}>
+        <div className="sm:col-span-2 typo-field-value text-text-muted">Folgt — Produkt-Nutzungsdaten werden angebunden.</div>
+      </DetailSection>
+    );
+  }
   return (
     <DetailSection title="Usage" icon={BarChart3}>
       {data.lastLogin && <Field label="Last Login">{data.lastLogin}</Field>}

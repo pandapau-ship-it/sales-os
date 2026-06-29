@@ -117,7 +117,7 @@ export default function ScreenFarming({
       .filter((id): id is string => !!id),
   );
   const farmerTop5 = customers
-    .map((c) => ({ customer: c, prio: calculateFarmerPriority(c, undefined, { hasOverdueTask: overdueContactIds.has(c.id) }) }))
+    .map((c) => ({ customer: c, prio: calculateFarmerPriority(c, { churn_threshold: churnThreshold, upsell_threshold: upsellThreshold }, { hasOverdueTask: overdueContactIds.has(c.id) }) }))
     .filter((x) => x.prio.dominantSignal !== null)
     .sort((a, b) => {
       const ra = FARMER_SIGNAL_ORDER.indexOf(a.prio.dominantSignal!);
@@ -147,9 +147,12 @@ export default function ScreenFarming({
       return (b.c.churnScore ?? 0) - (a.c.churnScore ?? 0);
     });
 
-  // Upsell-Liste — echte Kunden mit upsellScore ≥ Schwelle (settings), nach Score absteigend.
+  // Upsell-Liste — Kunden mit upsellScore ≥ Schwelle, ABER mit Churn-Vorrang: bei aktivem Churn Risk
+  // oder Gekündigt wird Upsell unterdrückt (Retention vor Expansion). Single Source = derselbe Resolver
+  // wie Panel/Top-5 (`calculateFarmerPriority.displaySignals` → `applyFarmerDisplayPrecedence`), keine
+  // duplizierte Vorrang-Logik. So erscheint ein churn-aktiver Kunde NICHT zusätzlich im Upsell-Tab.
   const upsellRows = customers
-    .filter((c) => typeof c.upsellScore === 'number' && c.upsellScore >= upsellThreshold)
+    .filter((c) => calculateFarmerPriority(c, { churn_threshold: churnThreshold, upsell_threshold: upsellThreshold }).displaySignals.includes('upsell'))
     .sort((a, b) => (b.upsellScore ?? 0) - (a.upsellScore ?? 0));
 
   // Badge-Counts: Kunden + Retention + Upsell echt; Signals Mock bis zur Signal-Anbindung.
@@ -225,9 +228,7 @@ export default function ScreenFarming({
                         id: c.id, name: c.person.name, jobTitle: c.person.jobTitle, company: c.person.company,
                         avatarUrl: c.person.avatarUrl, icpScore: c.icpScore, heatStatus: c.heatStatus,
                         sherloqStatus: c.sherloqStatus, timeLabel: c.lastLogin, type: sig,
-                        text: sig === 'cancelled'
-                          ? 'Kündigung aktiv — persönlicher Anruf empfohlen.'
-                          : 'Churn-Score über Schwelle — Check-in empfohlen.',
+                        text: retentionText(sig, c.scoreDrivers), // Single Source (identisch zum Retention-Tab)
                       };
                       return (
                         <FarmerRetentionKachel

@@ -308,13 +308,10 @@ export default function FarmerSidepanel({ person: personProp, onClose, onExit, v
     cancellationPeriod: 'Folgt',                     // kein DB-Feld → Honesty
     nrr: 'Folgt',                                    // kein DB-Feld → [D49]/Billing
   };
-  const mockUsage: UsageData = {
-    lastLogin: customer?.lastLogin, lastUsage: customer?.lastLogin,
-    profilesAdded: customer?.profilesAdded != null ? { value: customer.profilesAdded.toLocaleString('de-DE'), trend: '+12%' } : undefined,
-    messages: { value: '1.240', trend: '+8%' },
-    enrichments: { used: 8500, limit: 10000 },
-    onboarding: 'Abgeschlossen',
-  };
+  // Usage: keine echte Produkt-Nutzungsquelle → „Folgt" [D49] (Honesty, konsistent mit dem aufgeklappten
+  // Bereich). Leeres Objekt → UsageBox compact rendert null (ausgeblendet), full zeigt „Folgt". KEINE Fake-
+  // Zahlen mehr (messages/enrichments/onboarding raus). lastLogin = last-CONTACTED, nicht Produkt-Login → raus.
+  const usage: UsageData = {};
 
   const identityBlock = person && (
     <div className="flex items-center gap-4 min-w-0">
@@ -464,7 +461,7 @@ export default function FarmerSidepanel({ person: personProp, onClose, onExit, v
             : <KommunikationKompakt items={commsView} onShowAll={() => setActiveTab('communication')} />}
           {/* Kompakte Schnellhinweise: erst Subscription (Plan·Status·MRR), dann Usage. */}
           <SubscriptionBox variant="compact" data={subscriptionData} onShowAll={() => setActiveTab('subscription')} />
-          <UsageBox variant="compact" data={mockUsage} onShowAll={() => setActiveTab('usage')} />
+          <UsageBox variant="compact" data={usage} onShowAll={() => setActiveTab('usage')} />
         </div>
       )}
 
@@ -504,10 +501,10 @@ export default function FarmerSidepanel({ person: personProp, onClose, onExit, v
         <div className="space-y-7 animate-fade-in">
           <SubscriptionBox data={subscriptionData} flashId="subscription" flash={flashSection === 'subscription'} />
           {/* Vollansicht hat keinen eigenen Usage-Tab → Usage hier im Subscription-Tab mit anzeigen. */}
-          {variant === 'full' && <UsageBox variant="full" data={mockUsage} />}
+          {variant === 'full' && <UsageBox variant="full" data={usage} />}
         </div>
       )}
-      {activeTab === 'usage' && <div className="animate-fade-in"><UsageBox variant="full" data={mockUsage} /></div>}
+      {activeTab === 'usage' && <div className="animate-fade-in"><UsageBox variant="full" data={usage} /></div>}
 
       {activeTab === 'notes' && (
         notesQuery.isLoading

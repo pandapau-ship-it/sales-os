@@ -882,6 +882,24 @@ QA der Farmer-Scores ergab zwei systematische Verzerrungen — behoben (Score-Eb
   (`churn_weights`/`upsell_weights`) → per Einstellung änderbar, kein Code-Eingriff. Usage = Verfeinerung.
 - Verwandt: [[D43]] Historisierung (Usage-Snapshots) · `score_churn_risk`/`score_upsell` (additive Felder).
 
+### [FARMER-ABSCHLUSS] 3 Audit-Lücken geschlossen (30.06.2026) ✅ — Farmer abgeschlossen
+Der Abschluss-Audit (Screen + Panel + Vollansicht) fand 3 Lücken — alle gefixt:
+- **(1) HONESTY — `mockUsage` Fake-Zahlen entfernt:** `messages '1.240'`, `enrichments 8500/10000`, `onboarding
+  'Abgeschlossen'`, `profilesAdded.trend '+12%'` + `lastLogin/lastUsage` (= last-CONTACTED, nicht Produkt-Login,
+  irreführend) → **raus**. FarmerSidepanel nutzt jetzt `const usage = {}` → `UsageBox` compact rendert null
+  (Übersicht-Kompakt ausgeblendet), full zeigt ehrlich **„Folgt — Produkt-Nutzungsdaten werden angebunden."**
+  [[D49]]. Konsistent mit dem aufgeklappten Bereich. `UsageBox` full bekam dafür einen `hasAny`-Leerzustand (geteilt).
+- **(2) INVARIANTE — Churn-Vorrang im Upsell-Tab:** `upsellRows` (ScreenFarming) filtert jetzt über
+  `calculateFarmerPriority(...).displaySignals.includes('upsell')` statt roh `upsellScore≥thr` → bei aktivem
+  Churn/Gekündigt wird Upsell unterdrückt (Single Source, **keine duplizierte Vorrang-Logik**). Ein churn-aktiver
+  Kunde erscheint NUR im Retention-Tab, nicht zusätzlich im Upsell-Tab. Top-5-Resolver zusätzlich auf die
+  settings-Schwellen ausgerichtet (statt Default 61/70) → Top-5 ↔ Tabs konsistent.
+- **(3) Kosmetik — Top-5 Retention-Text vereinheitlicht:** hardcodierter Text → `retentionText(sig, c.scoreDrivers)`
+  (dieselbe Funktion wie der Retention-Tab).
+- **Damit ist der Farmer vollständig echt/ehrlich/konsistent abgeschlossen** (Screen 6 Tabs + aufgeklappt · Panel
+  7 Tabs + Header/Footer/ActionDrawer · Vollansicht/Details). Verbleibend nur bewusst deferred: [[D5]] KI · [[D49]]
+  Usage · [[D29]] Mail · [[D48]] Snooze · [[D50]] Deals · [[D38]] Lifecycle.
+
 ### [BUGFIX] CommunicationChain-Linie bei 1 Eintrag (30.06.2026) ✅
 - **Bug (Hunter + Farmer, geteilte Komponente `shared/CommunicationChain`):** Die durchgehende grüne/graue
   Verbindungslinie (eine absolute Linie mit festen Insets `left/right-[75px]`, Fortschritt per `width: progress%`)
