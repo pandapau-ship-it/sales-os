@@ -4,11 +4,13 @@
  * (echter Kontakt-Write) an die Inline-Edit-Felder gehängt.
  */
 
-/** Telefon: nur + Ziffern Leerzeichen - ( ) und ≥ 5 Zeichen. */
+/** Telefon: erlaubt + Ziffern Leerzeichen - ( ) . — „+" optional, mind. 3 Ziffern. */
 export const PHONE_RE = /^[+\d\s\-().]+$/;
 export function isValidPhone(value: string): boolean {
   const t = value.trim();
-  return t.length >= 5 && PHONE_RE.test(t);
+  if (!PHONE_RE.test(t)) return false;          // nur +, Ziffern, Leerzeichen, - ( ) .
+  const digits = t.replace(/\D/g, "");          // „+" NICHT Pflicht; Formatzeichen toleriert
+  return digits.length >= 3;                      // mind. 3 Ziffern (z.B. „9384" gültig)
 }
 
 /** E-Mail (vorbereitet für P8). */

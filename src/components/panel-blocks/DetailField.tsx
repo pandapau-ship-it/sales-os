@@ -29,12 +29,14 @@ export interface DetailFieldProps {
   placeholder?: string;
   /** Soft-Validation: leerer Wert ist immer ok; sonst false → roter Rand + kein onSave. */
   validate?: (v: string) => boolean;
+  /** Freundlicher Hinweistext bei ungültiger Eingabe (unter dem Input). Default je type. */
+  errorText?: string;
   /** Deep-Link aus dem Panel: Feld startet im Edit-Modus + scrollt sich in den Blick. */
   autoEdit?: boolean;
 }
 
 export default function DetailField({
-  label, value, onSave, options, onSelect, href, copyable, onCopy, readonly, type = "text", placeholder, validate, autoEdit,
+  label, value, onSave, options, onSelect, href, copyable, onCopy, readonly, type = "text", placeholder, validate, errorText, autoEdit,
 }: DetailFieldProps) {
   const [editing, setEditing] = useState(!!autoEdit);
   const editRef = useRef<HTMLInputElement>(null);
@@ -116,6 +118,11 @@ export default function DetailField({
           }}
           className={`w-full rounded-[8px] border bg-app-surface px-2.5 py-1.5 text-[14px] font-semibold text-text-primary outline-none placeholder-[var(--text-muted)] ${invalid ? "border-[var(--signal-urgent-text)]" : "border-[var(--sherloq-primary)]"}`}
         />
+        {invalid && (
+          <div className="mt-1 text-[10px] font-semibold text-[var(--signal-urgent-text)]">
+            {errorText ?? (type === "email" ? "Bitte eine gültige E-Mail eingeben (mit @)." : "Bitte eine gültige Eingabe machen.")}
+          </div>
+        )}
       </div>
     );
   }
