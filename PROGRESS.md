@@ -767,6 +767,13 @@ kam es, wie groß ist es** — und einen **klaren nächsten Schritt** anstoßen 
   - **Reihenfolge-Empfehlung:** sinnvoll **nach** dem Score-Slice bauen (sonst überwiegend leer); Heat-/
     cancelled-Items könnten als Zwischenschritt schon vorher erscheinen. Verwandt: [[D5]] · Hunter-Top-5.
 
+### [CLEANUP] `score_drivers` → `churn_drivers` umbenennen (Symmetrie mit `upsell_drivers`)
+- Heute: `contacts.score_drivers` (+ `data_sources`) = **Churn**-Treiber (048/score-churn-risk) ·
+  `contacts.upsell_drivers` = **Upsell**-Treiber (050/score-upsell). Namen asymmetrisch.
+- Sauberer: `score_drivers` → `churn_drivers` (analog `upsell_drivers`). **Breaking-Change**: Migration
+  (rename) + `score-churn-risk` Edge Function + `Customer.scoreDrivers`→`churnDrivers` + Retention-Banner.
+- **Wann:** später bündeln (kein dringender Nutzen; bewusst aufgeschoben, 2026-06-29).
+
 ### [TS] Deal-Typ ohne `product` — offener Faden
 - `src/types/hunter.ts` `Deal` hat **kein `product`** (Migration 014 fügte nur die DB-Spalte).
   Beim späteren Produkt-Anzeigen (Pipeline/Deal-Detail) `product?: string` im Typ ergänzen + mappen.
