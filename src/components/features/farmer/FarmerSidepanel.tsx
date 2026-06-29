@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { useCurrentOrg } from '@/hooks/useCurrentOrg';
-import { getContactDetail } from '@/lib/db';
-import { contactToProfile } from '@/lib/hunterMappers';
+import { getContactDetail, getTasksByContact, getContactCommunications, getActivityByContact, getNotesByContact } from '@/lib/db';
+import { contactToProfile, communicationToView } from '@/lib/hunterMappers';
 import {
   X, Check, ArrowUpRight, ArrowLeft, Tag, User, Building2,
   LayoutDashboard, Activity, MessageSquare, CheckSquare, CreditCard, BarChart3, FileText,
@@ -20,7 +20,6 @@ import {
 } from '@/components';
 import type { SubscriptionData, UsageData, FarmerActionData } from '@/components';
 import type { Lead, Customer } from '@/types';
-import type { CommunicationView } from '@/lib/hunterMappers';
 
 /**
  * FarmerSidepanel — Info-Panel für Bestandskunden (Farmer, `contact_status='kunde'`), [D33].
@@ -30,24 +29,14 @@ import type { CommunicationView } from '@/lib/hunterMappers';
  * panel-blocks. Ersetzt langfristig den Alt-`CustomerDrawer` (font-mono, kein typo-Kanon).
  *
  * SLICE 1: Hülle + wiederverwendbare Tabs (Aktivität/Kommunikation/Tasks/Notizen 1:1; Übersicht
- * mit AktiveSignale/OffeneTasks/KommunikationKompakt). Daten sind MOCK (Honesty: kein DB-Wiring).
+ * mit AktiveSignale/OffeneTasks/KommunikationKompakt).
  * SLICE 2: Subscription-/Usage-Tab, Usage-Schnellhinweis, echte Farmer-Signal-Logik (Churn/Upsell/
  * Wird kalt). Verdrahtung (CustomerDrawer → FarmerSidepanel) = späterer Slice.
+ * SLICE 8a: KontaktZeile/Header echt via contactToProfile(getContactDetail).
+ * SLICE 8b: Tabs Tasks/Kommunikation/Aktivität/Notizen echt via *ByContact-Queries; Übersicht-
+ *   Kompakt (OffeneTasks/KommunikationKompakt) teilt sich die Query mit dem jeweiligen Tab.
+ *   Noch Mock: AktiveSignale-Flags (8c), Subscription/Usage (8d), Details-Tab (8e), KI-Kurzakte [D5].
  */
-
-// ── MOCK (Slice 1) — echte Werte kommen mit dem Farmer-DB-Wiring (TanStack Query) ───────────
-// Übersicht braucht etwas Inhalt für die Slice-1-Abnahme; die Blöcke sind 1:1 die Hunter-Blöcke.
-// IDs/Titel match die Follow-up-Karten (ScreenFarming dueTaskCards: fdt-1/fdt-2), damit der
-// „Ansehen"-Deeplink (highlightId) im Tasks-Tab eine echte Row trifft → aufklappen + Flash.
-const MOCK_TASKS = [
-  { id: 'fdt-1', title: 'Quartals-Business-Review terminieren', due_at: new Date(Date.now() + 86_400_000).toISOString(), channel: 'meeting' },
-  { id: 'fdt-2', title: 'Onboarding-Status nachfassen', due_at: new Date(Date.now() - 86_400_000).toISOString(), channel: 'email' },
-];
-const MOCK_COMMS: CommunicationView[] = [
-  { id: 'fc-1', channel: 'email', direction: 'inbound', occurredAt: new Date(Date.now() - 2 * 86_400_000).toISOString(), note: 'Enterprise-Infomaterial angefragt' },
-  { id: 'fc-2', channel: 'meeting', direction: 'outbound', occurredAt: new Date(Date.now() - 40 * 86_400_000).toISOString(), note: 'Review-Termin nach 30 Tagen' },
-  { id: 'fc-3', channel: 'linkedin', direction: 'inbound', occurredAt: new Date(Date.now() - 55 * 86_400_000).toISOString() },
-];
 
 export type FarmerTab = 'details' | 'overview' | 'activity' | 'communication' | 'tasks' | 'subscription' | 'usage' | 'notes';
 
@@ -83,6 +72,35 @@ export default function FarmerSidepanel({ person: personProp, onClose, onExit, v
   const contactRow = contactQuery.data ?? null;
   const profile = contactToProfile(contactRow);
   const contactLoading = !!contactId && contactQuery.isLoading && !contactRow;
+
+  // 8b: Tab-Daten aus den echten *ByContact-Queries (1:1 Hunter-Muster).
+  // KONSISTENZ: Übersicht-Kompakt (OffeneTasks/KommunikationKompakt) nutzt DIESELBE Query
+  // wie der jeweilige Tab — keine zweite Quelle.
+  const tasksQuery = useQuery({
+    queryKey: ['tasksByContact', organizationId, contactId],
+    queryFn: () => getTasksByContact(organizationId, contactId as string),
+    enabled: !!contactId && isOpen,
+    placeholderData: keepPreviousData,
+  });
+  const commsQuery = useQuery({
+    queryKey: ['contactCommunications', organizationId, contactId],
+    queryFn: () => getContactCommunications(organizationId, contactId as string),
+    enabled: !!contactId && isOpen,
+    placeholderData: keepPreviousData,
+  });
+  const activityQuery = useQuery({
+    queryKey: ['activityByContact', organizationId, contactId],
+    queryFn: () => getActivityByContact(organizationId, contactId as string),
+    enabled: !!contactId && isOpen,
+    placeholderData: keepPreviousData,
+  });
+  const notesQuery = useQuery({
+    queryKey: ['notesByContact', organizationId, contactId],
+    queryFn: () => getNotesByContact(organizationId, contactId as string),
+    enabled: !!contactId && isOpen,
+    placeholderData: keepPreviousData,
+  });
+  const commsView = (commsQuery.data ?? []).map(communicationToView);
 
   // Header-Quellen aus dem Mock-Kontakt (Slice 1). Farmer = Kunde → Subscription-Status statt Stage.
   const customer = person as Customer | null;
@@ -214,37 +232,53 @@ export default function FarmerSidepanel({ person: personProp, onClose, onExit, v
               avatarUrl: person.person.avatarUrl, cancelledDate: '31.07.2026', cancelReason: 'Budget gestrichen',
             })}
           />
-          <OffeneTasks
-            taskRows={MOCK_TASKS}
-            onAdd={() => setActiveTab('tasks')}
-            onOpenTasks={() => setActiveTab('tasks')}
-            onEditTask={() => setActiveTab('tasks')}
-            onComplete={() => showToast('Task erledigt ✓')}
-            onDelete={() => showToast('Task gelöscht')}
-          />
-          <KommunikationKompakt items={MOCK_COMMS} onShowAll={() => setActiveTab('communication')} />
+          {tasksQuery.isLoading
+            ? <PanelSkeleton rows={2} height={56} />
+            : (
+              <OffeneTasks
+                taskRows={tasksQuery.data ?? []}
+                onAdd={() => setActiveTab('tasks')}
+                onOpenTasks={() => setActiveTab('tasks')}
+                onEditTask={() => setActiveTab('tasks')}
+                onComplete={() => showToast('Task erledigt ✓')}
+                onDelete={() => showToast('Task gelöscht')}
+              />
+            )}
+          {commsQuery.isLoading
+            ? <PanelSkeleton rows={2} height={56} />
+            : <KommunikationKompakt items={commsView} onShowAll={() => setActiveTab('communication')} />}
           {/* Kompakte Schnellhinweise: erst Subscription (Plan·Status·MRR), dann Usage. */}
           <SubscriptionBox variant="compact" data={mockSubscription} onShowAll={() => setActiveTab('subscription')} />
           <UsageBox variant="compact" data={mockUsage} onShowAll={() => setActiveTab('usage')} />
         </div>
       )}
 
-      {activeTab === 'activity' && <AktivitaetsVerlauf rows={[]} />}
+      {activeTab === 'activity' && (
+        activityQuery.isLoading
+          ? <PanelSkeleton rows={5} height={56} />
+          : <AktivitaetsVerlauf rows={activityQuery.data ?? []} />
+      )}
 
       {activeTab === 'communication' && (
-        <KommunikationVerlauf items={MOCK_COMMS} onLog={() => showToast('Kontakt protokollieren — folgt')} flashId="communication" flash={flashSection === 'communication'} />
+        commsQuery.isLoading
+          ? <PanelSkeleton rows={4} height={64} />
+          : <KommunikationVerlauf items={commsView} onLog={() => showToast('Kontakt protokollieren — folgt')} flashId="communication" flash={flashSection === 'communication'} />
       )}
 
       {activeTab === 'tasks' && (
-        <TasksListe
-          onToast={showToast}
-          highlightId={initialTaskId}
-          taskRows={MOCK_TASKS}
-          contactName={person.person.name}
-          onCreate={() => showToast('Task gespeichert ✓')}
-          onComplete={() => showToast('Task erledigt ✓')}
-          onDelete={() => showToast('Task gelöscht')}
-        />
+        tasksQuery.isLoading
+          ? <PanelSkeleton rows={3} height={72} />
+          : (
+            <TasksListe
+              onToast={showToast}
+              highlightId={initialTaskId}
+              taskRows={tasksQuery.data ?? []}
+              contactName={person.person.name}
+              onCreate={() => showToast('Task gespeichert ✓')}
+              onComplete={() => showToast('Task erledigt ✓')}
+              onDelete={() => showToast('Task gelöscht')}
+            />
+          )
       )}
 
       {activeTab === 'subscription' && (
@@ -257,13 +291,17 @@ export default function FarmerSidepanel({ person: personProp, onClose, onExit, v
       {activeTab === 'usage' && <div className="animate-fade-in"><UsageBox variant="full" data={mockUsage} /></div>}
 
       {activeTab === 'notes' && (
-        <NotizenListe
-          onToast={showToast}
-          noteRows={[]}
-          onCreate={() => showToast('Notiz gespeichert ✓')}
-          onUpdate={() => showToast('Notiz gespeichert ✓')}
-          onDelete={() => showToast('Notiz gelöscht')}
-        />
+        notesQuery.isLoading
+          ? <PanelSkeleton rows={3} height={72} />
+          : (
+            <NotizenListe
+              onToast={showToast}
+              noteRows={notesQuery.data ?? []}
+              onCreate={() => showToast('Notiz gespeichert ✓')}
+              onUpdate={() => showToast('Notiz gespeichert ✓')}
+              onDelete={() => showToast('Notiz gelöscht')}
+            />
+          )
       )}
     </>
   );
