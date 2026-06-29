@@ -183,6 +183,7 @@ export function customerRowToView(
     upsellScore: typeof row.upsell_score === "number" ? row.upsell_score : undefined,
     healthScore: typeof row.health_score === "number" ? row.health_score : undefined,
     healthStatus: row.health_status ?? undefined,
+    mrrMonthly: typeof sub.mrr_monthly === "number" ? sub.mrr_monthly : undefined, // companies.mrr_monthly (Cent); NULL → undefined
   };
 }
 

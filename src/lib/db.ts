@@ -91,8 +91,8 @@ const ok = <T>(data: T): Promise<T> => Promise.resolve(data);
 // Firmen-Auflösung über den Kontakt — EINHEITLICH in der ganzen App. contacts hat
 // 2 FKs zu companies (company_id + primary_company_id) → expliziter !company_id-Hint
 // nötig (sonst PostgREST PGRST201). Single-Source für Leads (getContacts) + Signals (getSignals).
-// Firmen-Embed (additiv um Subscription-Felder erweitert für Farmer; Hunter ignoriert die Extra-Felder).
-const CONTACT_COMPANY_EMBED = "company:companies!company_id(name, website, domain, subscription_plan, subscription_status, subscription_since)";
+// Firmen-Embed (additiv um Subscription- + MRR-Felder erweitert für Farmer; Hunter ignoriert die Extra-Felder).
+const CONTACT_COMPANY_EMBED = "company:companies!company_id(name, website, domain, subscription_plan, subscription_status, subscription_since, mrr_monthly, arr_yearly)";
 
 // ── Reads ────────────────────────────────────────────────────────────────────
 
