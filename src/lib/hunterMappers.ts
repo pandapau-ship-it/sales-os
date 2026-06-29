@@ -7,7 +7,7 @@
  * Zeit-Felder werden in der Zeile (LeadListRow) ohnehin statisch gerendert, daher leer.
  */
 
-import type { Lead, HeatStatus } from "@/types";
+import type { Lead, Customer, SherloqStatus, HeatStatus } from "@/types";
 import type { DealStage } from "@/types/hunter";
 import type { LucideIcon } from "lucide-react";
 import { signalMetaFor } from "@/lib/constants";
@@ -128,6 +128,61 @@ export function contactRowToLead(row: Record<string, any>): LeadRow {
     contactEmail: row.email ?? "",
     contactStatusLabel: p.statusLabel, // aus zentraler Auflösung (contact_status → Label)
     lastContactedAt: row.last_contacted_at ?? null,
+  };
+}
+
+// Heat-Status (UI) → grober heatScore 0-5. Mock-Kompat: ScreenFarming.churnCount nutzt heatScore<=2,
+// bis der Retention-Slice auf churn_score umstellt. Fehlend → 3 (neutral).
+const HEAT_TO_SCORE: Record<HeatStatus, number> = { HOT: 5, WARM: 4, LUKEWARM: 3, COLD: 1, DEAD: 0 };
+
+// companies.subscription_status (trial|active|churned) → Customer.sherloqStatus (UPPERCASE-Union).
+// churned → CANCELLED (Badge „Gekündigt"). Kunde ohne Status → ACTIVE (Fallback, dokumentiert).
+function subStatusToSherloq(s: string | null | undefined): SherloqStatus {
+  if (s === "active") return "ACTIVE";
+  if (s === "churned") return "CANCELLED";
+  if (s === "trial") return "TRIAL";
+  return "ACTIVE";
+}
+
+/**
+ * customerRowToView — contacts-Zeile (status='kunde') → Customer-Sicht für den Farmer.
+ * Reuse `contactToProfile` (Single Source für Identität/ICP/Heat/Status). Subscription kommt aus
+ * dem company-Embed (primäre Company), Scores aus Migration 048 (NULL → undefined, Honesty).
+ * Mock-only Felder (kurzakte/timeline/profilesAdded) bleiben leer — im Kunden-Tab nicht angezeigt.
+ */
+export function customerRowToView(
+  row: Record<string, any>,
+  t: (key: string, opts?: Record<string, unknown>) => string,
+): Customer {
+  const p = contactToProfile(row);
+  const sub = row.company ?? {};
+  const planRaw = (sub.subscription_plan ?? "") as string;
+  const plan = (["Growth", "Enterprise", "Starter"] as const)
+    .find((x) => x.toLowerCase() === planRaw.toLowerCase()) ?? "Growth";
+  return {
+    id: row.id,
+    person: { id: row.id, name: p.name, jobTitle: p.jobTitle, company: p.company, initials: p.initials, avatarUrl: p.avatarUrl },
+    kurzakte: "",
+    fullTimeline: [],
+    engagementChain: [],
+    lastTouchpoints: [],
+    heatStatus: p.heatStatus ?? "DEAD",
+    heatScore: p.heatStatus ? HEAT_TO_SCORE[p.heatStatus] : 3,
+    icpScore: p.icpScore,
+    lastActivity: "",
+    pipelineStage: "pipeline",
+    signalsCount: 0,
+    contactEmail: p.email ?? "",
+    // Farmer-spezifisch (echt):
+    sherloqStatus: subStatusToSherloq(sub.subscription_status),
+    lastLogin: lastContactedLabel(row, t), // echte „vor X Tagen" aus last_contacted_at; null → '' (Honesty)
+    profilesAdded: 0,                       // Sherloq-Usage noch nicht in der DB (modul-gated, folgt)
+    subscriptionPlan: plan,
+    // Echte Scores (048; aktuell NULL bis die Score-Funktionen laufen → undefined). Honesty: nicht anzeigen.
+    churnScore: typeof row.churn_score === "number" ? row.churn_score : undefined,
+    upsellScore: typeof row.upsell_score === "number" ? row.upsell_score : undefined,
+    healthScore: typeof row.health_score === "number" ? row.health_score : undefined,
+    healthStatus: row.health_status ?? undefined,
   };
 }
 

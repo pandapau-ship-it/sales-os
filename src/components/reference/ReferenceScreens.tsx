@@ -33,7 +33,8 @@ import {
   upgradeSubscription as dbUpgradeSubscription,
 } from "@/lib/db";
 import { useCurrentOrg } from "@/hooks/useCurrentOrg";
-import { contactRowToLead, dealToPipelineRow } from "@/lib/hunterMappers";
+import { contactRowToLead, customerRowToView, dealToPipelineRow } from "@/lib/hunterMappers";
+import { useTranslation } from "react-i18next";
 import type {
   Lead,
   Customer,
@@ -276,12 +277,21 @@ export function HunterReference() {
 
 export function FarmerReference() {
   const s = useReferenceState();
+  const { organizationId } = useCurrentOrg();
+  const { t } = useTranslation();
+  // Slice 2 (DB-Wiring): echte Bestandskunden (contact_status='kunde') statt INITIAL_CUSTOMERS-Mock.
+  // organization_id IMMER im Query-Key. Subscription kommt über den company-Embed (CONTACT_COMPANY_EMBED).
+  const customersQuery = useQuery({
+    queryKey: ["farmerCustomers", organizationId],
+    queryFn: () => getContacts(organizationId, { status: "kunde" }),
+  });
+  const customersData = customersQuery.data?.map((row) => customerRowToView(row, t)) ?? [];
   // Slice 4: ScreenFarming öffnet eigene Panels (FarmerSidepanel/FarmerActionDrawer) intern —
   // kein CustomerDrawer mehr im Farmer. (CustomerDrawer bleibt für MeinTag/Hunter, bis migriert.)
   return (
     <>
       <ScreenFarming
-        customers={s.customers}
+        customers={customersData}
         onUpgradeSubscription={s.upgradeSubscription}
         onSelectCommunication={s.selectCommunication}
       />
