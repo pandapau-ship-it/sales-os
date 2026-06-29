@@ -882,6 +882,13 @@ QA der Farmer-Scores ergab zwei systematische Verzerrungen — behoben (Score-Eb
   (`churn_weights`/`upsell_weights`) → per Einstellung änderbar, kein Code-Eingriff. Usage = Verfeinerung.
 - Verwandt: [[D43]] Historisierung (Usage-Snapshots) · `score_churn_risk`/`score_upsell` (additive Felder).
 
+### [BUGFIX] CommunicationChain-Linie bei 1 Eintrag (30.06.2026) ✅
+- **Bug (Hunter + Farmer, geteilte Komponente `shared/CommunicationChain`):** Die durchgehende grüne/graue
+  Verbindungslinie (eine absolute Linie mit festen Insets `left/right-[75px]`, Fortschritt per `width: progress%`)
+  ragte bei **genau 1 Eintrag** nach rechts ins Leere (Punkt sitzt links, Linie spannt aber den ganzen Mittelbereich).
+- **Fix:** Linie nur noch bei `chain.length > 1` rendern → 1 Eintrag = keine Linie; ≥2 = Linie erste→letzte (unverändert).
+  Token-only, geteilt → wirkt Hunter + Farmer zugleich.
+
 ### [FARMER-EXPANDED] Aufgeklappter Kachelbereich echt (30.06.2026) ✅
 `FarmerExpandedCardContent` war komplett Mock (kein Query) — jetzt Lazy-Query-getrieben, 1:1 wie Hunters `ExpandedCardContent`:
 - **Kommunikationskette echt:** `getContactCommunications(org, customer.id)` → `communicationToView` → `CommunicationChain

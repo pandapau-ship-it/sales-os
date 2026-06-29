@@ -122,11 +122,14 @@ export default function CommunicationChain({ items, personId, onSelectCommunicat
       </div>
 
       <div className="relative flex justify-between items-start w-full px-2 md:px-10 mt-4">
-        {/* Durchgehende Linie + grüner Fortschritt */}
-        <div className="absolute left-[43px] md:left-[75px] right-[43px] md:right-[75px] top-[24px] z-0">
-          <div className="w-full h-[2px] bg-[var(--border)]" />
-          <div className="absolute left-0 top-0 h-[2px] bg-[var(--accent-teal)] transition-all" style={{ width: `${progress}%` }} />
-        </div>
+        {/* Durchgehende Linie + grüner Fortschritt — NUR bei ≥2 Punkten (sonst ragt sie bei 1 Eintrag
+            ins Leere; die Insets laufen von der Mitte des ersten bis zur Mitte des letzten Punkts). */}
+        {chain.length > 1 && (
+          <div className="absolute left-[43px] md:left-[75px] right-[43px] md:right-[75px] top-[24px] z-0">
+            <div className="w-full h-[2px] bg-[var(--border)]" />
+            <div className="absolute left-0 top-0 h-[2px] bg-[var(--accent-teal)] transition-all" style={{ width: `${progress}%` }} />
+          </div>
+        )}
 
         {chain.map((tp, idx) => (
           <div
