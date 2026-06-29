@@ -10,7 +10,7 @@
 //  6. Return { updated, skipped, org_id }.
 //
 // Basis-Trigger (immer aus Sales OS): hohe Antwortrate (last_reply_at > last_contacted_at) ·
-// letzter Kontakt < 7T · Heat heiss/warm · aktiver (nicht-terminaler) Deal vorhanden.
+// letzter Kontakt < 7T · Heat heiss (NUR hot) · aktiver (nicht-terminaler) Deal vorhanden.
 // positive_sentiment + no_upsell_attempt: keine Datenbasis → per Progressive Data Logic weggelassen.
 // Treiber landen in upsell_drivers (eigenes Feld; score_drivers gehört dem Churn-Score).
 //
@@ -103,22 +103,24 @@ Deno.serve(async (req) => {
 
         available += w.reply_rate;
         const replied = !!c.last_reply_at && new Date(c.last_reply_at).getTime() > new Date(c.last_contacted_at).getTime();
-        if (replied) { earned += w.reply_rate; drivers.push({ signal: "reply_rate", points: w.reply_rate, source: "messages" }); }
+        if (replied) { earned += w.reply_rate; if (w.reply_rate > 0) drivers.push({ signal: "reply_rate", points: w.reply_rate, source: "messages" }); }
 
         available += w.recent_contact;
-        if (days < RECENT_CONTACT_DAYS) { earned += w.recent_contact; drivers.push({ signal: "recent_contact", points: w.recent_contact, source: "messages" }); }
+        if (days < RECENT_CONTACT_DAYS) { earned += w.recent_contact; if (w.recent_contact > 0) drivers.push({ signal: "recent_contact", points: w.recent_contact, source: "messages" }); }
       }
 
       // ── Heat-Signal (verfügbar wenn heat_status gesetzt) ──
+      // SCORE-FIX (A): heat_hot zählt NUR bei echtem Hot ("heiss"), nicht bei "warm" — sonst werden
+      // Upsell-Scores fälschlich hochgetrieben (Demo: Sarah Klein bekam +20 trotz heat='warm').
       if (c.heat_status) {
         available += w.heat_hot;
-        if (c.heat_status === "heiss" || c.heat_status === "warm") { earned += w.heat_hot; drivers.push({ signal: "heat_hot", points: w.heat_hot, source: "activity" }); }
+        if (c.heat_status === "heiss") { earned += w.heat_hot; if (w.heat_hot > 0) drivers.push({ signal: "heat_hot", points: w.heat_hot, source: "activity" }); }
       }
 
       // ── Aktiver Deal (verfügbar wenn ≥1 Deal existiert) ──
       if (hasAnyDeal.has(c.id)) {
         available += w.active_deal;
-        if (hasActiveDeal.has(c.id)) { earned += w.active_deal; drivers.push({ signal: "active_deal", points: w.active_deal, source: "activity" }); }
+        if (hasActiveDeal.has(c.id)) { earned += w.active_deal; if (w.active_deal > 0) drivers.push({ signal: "active_deal", points: w.active_deal, source: "activity" }); }
       }
 
       // 4. Keine Datenbasis → SKIP (Honesty).

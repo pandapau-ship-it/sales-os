@@ -22,11 +22,11 @@ const DAY_MS = 86_400_000;
 const LAST_CONTACT_DAYS = 30; // „Letzter Kontakt > 30T"
 const INACTIVE_DAYS = 14;     // „Tage ohne Aktivität > 14T"
 
-// Default-Gewichte (nur Fallback, falls settings.thresholds.churn_weights fehlt) — Spiegel Seed 048.
+// Default-Gewichte (nur Fallback, falls settings.thresholds.churn_weights fehlt) — Spiegel Seed 048 + Fix 052.
 const DEFAULT_CHURN_WEIGHTS = {
   last_contact: 25,
   no_reply: 20,
-  overdue_tasks: 15,
+  overdue_tasks: 0,  // SCORE-FIX (052): misst AM-To-do-Disziplin, nicht Kundengesundheit → 0 bis D49-Usage da ist
   inactive_days: 20,
   heat_cold: 20,
 };
@@ -109,28 +109,29 @@ Deno.serve(async (req) => {
         const days = Math.max(0, Math.floor((now - new Date(c.last_contacted_at).getTime()) / DAY_MS));
 
         available += w.last_contact;
-        if (days > LAST_CONTACT_DAYS) { earned += w.last_contact; drivers.push({ signal: "last_contact", points: w.last_contact, source: "messages" }); }
+        if (days > LAST_CONTACT_DAYS) { earned += w.last_contact; if (w.last_contact > 0) drivers.push({ signal: "last_contact", points: w.last_contact, source: "messages" }); }
 
         available += w.inactive_days;
-        if (days > INACTIVE_DAYS) { earned += w.inactive_days; drivers.push({ signal: "inactive_days", points: w.inactive_days, source: "activity" }); }
+        if (days > INACTIVE_DAYS) { earned += w.inactive_days; if (w.inactive_days > 0) drivers.push({ signal: "inactive_days", points: w.inactive_days, source: "activity" }); }
 
         available += w.no_reply;
         const noReply = !c.last_reply_at || new Date(c.last_reply_at).getTime() < new Date(c.last_contacted_at).getTime();
-        if (noReply) { earned += w.no_reply; drivers.push({ signal: "no_reply", points: w.no_reply, source: "messages" }); }
+        if (noReply) { earned += w.no_reply; if (w.no_reply > 0) drivers.push({ signal: "no_reply", points: w.no_reply, source: "messages" }); }
       }
 
       // ── Aktivitäts-Signal: überfällige offene Tasks (nur verfügbar wenn ≥1 offene Task) ──
       if (hasOpenTask.has(c.id)) {
         sources.add("activity");
         available += w.overdue_tasks;
-        if (overdueTask.has(c.id)) { earned += w.overdue_tasks; drivers.push({ signal: "overdue_tasks", points: w.overdue_tasks, source: "activity" }); }
+        // 0-Punkte-Treiber NICHT listen (Gewicht aktuell 0, [052]/[D49]) — sonst "Überfällige Tasks +0" im Tooltip.
+        if (overdueTask.has(c.id)) { earned += w.overdue_tasks; if (w.overdue_tasks > 0) drivers.push({ signal: "overdue_tasks", points: w.overdue_tasks, source: "activity" }); }
       }
 
       // ── Heat-Signal (verfügbar wenn heat_status berechnet) ──
       if (c.heat_status) {
         sources.add("activity");
         available += w.heat_cold;
-        if (c.heat_status === "kalt" || c.heat_status === "tot") { earned += w.heat_cold; drivers.push({ signal: "heat_cold", points: w.heat_cold, source: "activity" }); }
+        if (c.heat_status === "kalt" || c.heat_status === "tot") { earned += w.heat_cold; if (w.heat_cold > 0) drivers.push({ signal: "heat_cold", points: w.heat_cold, source: "activity" }); }
       }
 
       // 4. Keine Datenbasis → SKIP (Honesty: kein Score, nicht 0).

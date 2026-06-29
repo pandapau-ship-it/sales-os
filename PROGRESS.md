@@ -791,6 +791,22 @@ kam es, wie groß ist es** — und einen **klaren nächsten Schritt** anstoßen 
   Snooze-Regelwerk (max_count/max_days/Eskalation) liegt in CLAUDE.md „Snooze — Regelwerk" + `system_config`.
 - **Wann:** mit dem Signals-/Inbox-DB-Wiring (nach AI-SDR/Sending-Layer). Gilt für **Hunter + Farmer** gemeinsam.
 
+### [SCORE-FIX] heat_hot-bei-warm + overdue_tasks-Gewicht + 0-Punkte-Treiber (29.06.2026) ✅
+QA der Farmer-Scores ergab zwei systematische Verzerrungen — behoben (Score-Ebene, systemweit):
+- **(A) `score-upsell`: `heat_hot` zählte auch bei `heat='warm'`** (Bedingung `"heiss" || "warm"`). Falsch —
+  „warm" ist nicht „hot". Trieb Upsell-Scores hoch (Sarah Klein +20 trotz warm). **Fix:** nur noch `=== "heiss"`.
+- **(B) `churn_weights.overdue_tasks` = 15 → 0.** „Überfällige offene Tasks" misst die **To-do-Disziplin des
+  AM**, nicht die **Kundengesundheit**. Solange die starke Usage-Schicht ([[D49]]: Login-Frequenz, Nutzung
+  hoch/runter) als **erweiterte Schicht** (Progressive Data Logic) fehlt, verzerrt dieses eine Basis-Signal
+  den Churn überproportional (Sarah: 72 aus diesem EINEN Signal). **Fix:** Gewicht 0 in **Live-`settings`
+  (Migration 052, `jsonb_set`)** + edge-fn-Default-Spiegel (`score-churn-risk`).
+- **(Cleanup) 0-Punkte-Treiber** werden NICHT mehr in `score_drivers`/`upsell_drivers` geschrieben
+  (`if (w.X > 0) drivers.push(...)`, beide Functions, Einheitsgebot) → kein „Überfällige Tasks +0" im Tooltip.
+- **Architektur unberührt:** `data_sources[]`, Normalisierung über verfügbare Punkte, alle anderen Gewichte/
+  Schwellen. Die starke Usage-Schicht dockt mit [[D49]] automatisch an (nur Gewicht/Bedingung geändert).
+- **Verifiziert (Re-Score Demo-Org):** Sarah churn **72→0** / upsell **100→33** (heat_hot weg); Anna 35→24 /
+  69→38; Eva 43→0 / 67→0. → 8c: Sarah jetzt Positiv-Zustand „Keine akuten Signale".
+
 ### [D49] Usage-Telemetrie (Produkt-Nutzung) (deferred)
 - **Status:** deferred, eigenes Vorhaben **nach** dem Farmer-Panel (Richtung echte Kunden / Billing).
 - **Was fehlt:** DB-Felder/Tabelle für Produkt-Nutzung (Messages gesendet · Enrichments verbraucht ·
