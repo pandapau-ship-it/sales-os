@@ -859,12 +859,24 @@ export const FARMER_PRIORITY_WEIGHTS_DEFAULT: FarmerPriorityWeights = {
 
 export type FarmerPriorityResult = {
   score: number;                          // Σ aktiver Signal-Gewichte (Tiebreaker, NIE als Badge)
-  signals: FarmerPrioritySignal[];
+  signals: FarmerPrioritySignal[];        // ALLE aktiven Signale (Scoring/Top-5; ungefiltert)
+  displaySignals: FarmerPrioritySignal[]; // Anzeige-Signale nach Vorrang-Regel (Retention vor Expansion)
   dominantSignal: FarmerPrioritySignal | null; // höchstpriorisiertes aktives Signal → Kachel-Wahl
   mrr: number;                            // mrr_monthly (Cent) für Tiebreaker (mehr Umsatz = wichtiger)
   churnScore?: number;
   upsellScore?: number;
 };
+
+/**
+ * INVARIANTE Churn-Vorrang: Bei aktivem Churn Risk ODER Gekündigt wird Upsell als
+ * Handlungsempfehlung unterdrückt (Retention vor Expansion — man verkauft keinem Kunden
+ * mehr, der gerade abwandert). Single Source für Panel UND Kachel-Ebene. Scoring (`signals`/
+ * `score`/`dominantSignal`) bleibt unberührt; nur die ANZEIGE filtert.
+ */
+export function applyFarmerDisplayPrecedence(active: FarmerPrioritySignal[]): FarmerPrioritySignal[] {
+  const retentionActive = active.includes("cancelled") || active.includes("churn_risk");
+  return active.filter((s) => !(s === "upsell" && retentionActive));
+}
 
 /**
  * calculateFarmerPriority — Dringlichkeit eines Bestandskunden aus seinen Farmer-Signalen.
@@ -893,5 +905,5 @@ export function calculateFarmerPriority(
   if (opts?.hasOverdueTask) { active.push("overdue_task"); score += w.overdue_task; }
 
   const dominantSignal = FARMER_SIGNAL_ORDER.find((s) => active.includes(s)) ?? null;
-  return { score, signals: active, dominantSignal, mrr: customer.mrrMonthly ?? 0, churnScore: customer.churnScore, upsellScore: customer.upsellScore };
+  return { score, signals: active, displaySignals: applyFarmerDisplayPrecedence(active), dominantSignal, mrr: customer.mrrMonthly ?? 0, churnScore: customer.churnScore, upsellScore: customer.upsellScore };
 }
