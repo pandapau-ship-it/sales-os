@@ -767,6 +767,15 @@ kam es, wie groß ist es** — und einen **klaren nächsten Schritt** anstoßen 
   - **Reihenfolge-Empfehlung:** sinnvoll **nach** dem Score-Slice bauen (sonst überwiegend leer); Heat-/
     cancelled-Items könnten als Zwischenschritt schon vorher erscheinen. Verwandt: [[D5]] · Hunter-Top-5.
 
+### [D48] Snooze/Ignorieren bei Signalen — Persistenz (deferred)
+- **Heute:** Snooze (`LinkedinSignalCard`-State) + Ignorieren (`ScreenFarming`/`ScreenHunting` `ignoredSignalIds`)
+  sind **rein lokaler React-State** — kein Backend, kein Write. Kachel verschwindet/dimmt nur in der Session;
+  nach Reload ist alles zurück. Bewusst so (Honesty: kein Fake-Persist).
+- **Später:** echte Persistenz — `signals.snoozed_until` / `signals.ignored_at` (+ `processed_at`), Writes via
+  `lib/db.ts`, `getSignals`-Filter berücksichtigt sie. Bulk-Snooze/Löschen (Hunter+Farmer) ebenfalls hier.
+  Snooze-Regelwerk (max_count/max_days/Eskalation) liegt in CLAUDE.md „Snooze — Regelwerk" + `system_config`.
+- **Wann:** mit dem Signals-/Inbox-DB-Wiring (nach AI-SDR/Sending-Layer). Gilt für **Hunter + Farmer** gemeinsam.
+
 ### [CLEANUP] `score_drivers` → `churn_drivers` umbenennen (Symmetrie mit `upsell_drivers`)
 - Heute: `contacts.score_drivers` (+ `data_sources`) = **Churn**-Treiber (048/score-churn-risk) ·
   `contacts.upsell_drivers` = **Upsell**-Treiber (050/score-upsell). Namen asymmetrisch.

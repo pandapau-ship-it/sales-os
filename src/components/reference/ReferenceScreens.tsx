@@ -34,7 +34,7 @@ import {
   upgradeSubscription as dbUpgradeSubscription,
 } from "@/lib/db";
 import { useCurrentOrg } from "@/hooks/useCurrentOrg";
-import { contactRowToLead, customerRowToView, dealToPipelineRow, taskToDueCard } from "@/lib/hunterMappers";
+import { contactRowToLead, customerRowToView, dealToPipelineRow, taskToDueCard, signalToCardProps } from "@/lib/hunterMappers";
 import { useTranslation } from "react-i18next";
 import type {
   Lead,
@@ -303,6 +303,13 @@ export function FarmerReference() {
     queryFn: () => getDueTasks(organizationId, { contactStatus: "kunde" }),
   });
   const dueTasksData = dueTasksQuery.data?.map((row) => taskToDueCard(row)) ?? [];
+  // Farmer-geroutete, unverarbeitete Signale → Signals-Tab. signalToCardProps nutzt contactToProfile
+  // (gleiche Quelle wie customerRowToView → konsistente Profilzeile/ICP). Stage wird im Farmer unterdrückt.
+  const signalsQuery = useQuery({
+    queryKey: ["farmerSignals", organizationId],
+    queryFn: () => getSignals(organizationId, { routedTo: "farmer", processed: false }),
+  });
+  const signalCardsData = signalsQuery.data?.map((row) => signalToCardProps(row as unknown as Record<string, unknown>, t)) ?? [];
   // Slice 4: ScreenFarming öffnet eigene Panels (FarmerSidepanel/FarmerActionDrawer) intern —
   // kein CustomerDrawer mehr im Farmer. (CustomerDrawer bleibt für MeinTag/Hunter, bis migriert.)
   return (
@@ -312,6 +319,7 @@ export function FarmerReference() {
         churnThreshold={churnThreshold}
         upsellThreshold={upsellThreshold}
         dueTasks={dueTasksData}
+        signalCards={signalCardsData}
         onUpgradeSubscription={s.upgradeSubscription}
         onSelectCommunication={s.selectCommunication}
       />

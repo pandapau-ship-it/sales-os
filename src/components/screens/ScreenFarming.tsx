@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { AlertTriangle, TrendingUp, Sparkles, Check, X, Clock, Trash, Zap, CheckSquare, ListChecks } from 'lucide-react';
 import type { Customer, Lead } from '@/types';
 import { FarmerKpiCards, FarmerHealthOverview, FarmerKundenKachel, FarmerRetentionKachel, FarmerUpsellKachel, FarmerExpandedCardContent, SubscriptionBadge, LinkedinSignalCard, EmptyState, SequenceLeadCards, FollowUpKaltCard, FarmerSidepanel, FarmerActionDrawer, SignalActionDrawer, type RetentionItem, type UpsellItem, type FarmerActionData, type FarmerTab } from '@/components';
-import type { DueTaskCardItem, SignalActionData } from '@/lib/hunterMappers';
+import type { DueTaskCardItem, SignalActionData, SignalCardProps } from '@/lib/hunterMappers';
 import { AI_PENDING_LABEL, calculateFarmerPriority, FARMER_SIGNAL_ORDER } from '@/lib/hunterMappers';
 import { useToast } from '@/components/shared/Toast';
 import { NAV } from '@/lib/navBehavior';
@@ -50,17 +50,6 @@ function upsellText(drivers?: { signal: string }[]): string {
     : 'Upsell-Score über Schwelle — Wachstumschance.'; // Honesty-Fallback (keine Treiber)
 }
 
-/**
- * Mock-Signale je Kunde (Company-gematcht) — NUR echte Aktivitäts-/LinkedIn-Signale (wie Hunter).
- * Churn & Upsell sind KEINE Signale → eigene Tabs („Churn & Trial" / „Upsell"). Bis zur echten
- * Signal-Anbindung ([D34]).
- */
-type FarmerSignalMeta = { company: string; actionText: string };
-const FARMER_SIGNALS: FarmerSignalMeta[] = [
-  { company: 'PayGuard AG', actionText: 'Hat euren Produkt-Post auf LinkedIn geliked' },
-  { company: 'Logistify DE', actionText: 'Hat dein LinkedIn-Profil besucht' },
-  { company: 'HiringMate Ltd', actionText: 'Hat auf einen LinkedIn-Kommentar geantwortet' },
-];
 
 interface ScreenFarmingProps {
   customers: Customer[];
@@ -72,6 +61,8 @@ interface ScreenFarmingProps {
   upsellThreshold?: number;
   /** Fällige Tasks bei Bestandskunden (getDueTasks contactStatus='kunde' → taskToDueCard). */
   dueTasks?: DueTaskCardItem[];
+  /** Farmer-geroutete Signale (getSignals routedTo='farmer' → signalToCardProps). */
+  signalCards?: SignalCardProps[];
 }
 
 export default function ScreenFarming({
@@ -80,6 +71,7 @@ export default function ScreenFarming({
   churnThreshold = 61,
   upsellThreshold = 70,
   dueTasks = [],
+  signalCards = [],
 }: ScreenFarmingProps) {
   const [subTab, setSubTab] = useState<'overview' | 'kunden' | 'churn' | 'upsell' | 'signals' | 'follow_ups'>('overview');
   const { toast } = useToast();
@@ -109,11 +101,11 @@ export default function ScreenFarming({
   const [ignoredSignalIds, setIgnoredSignalIds] = useState<string[]>([]);
   const ignoreSignals = (ids: string[]) => setIgnoredSignalIds((prev) => [...new Set([...prev, ...ids])]);
 
-  // Signals: Mock-Meta auf echte Kunden mappen (Company-Match). Nur Treffer (Honesty), ohne Ignorierte.
-  const signalRows = FARMER_SIGNALS
-    .map((sig) => ({ sig, customer: customers.find((c) => c.person.company === sig.company) }))
-    .filter((r): r is { sig: FarmerSignalMeta; customer: Customer } => !!r.customer)
-    .filter((r) => !ignoredSignalIds.includes(r.customer.id));
+  // Signals: echte farmer-geroutete Signale (signalToCardProps in FarmerReference). Customer-Bezug via
+  // contactId (Single Source) für SUBSCRIPTION/Panel/Expand. Ignorierte (lokaler State [D48]) rausfiltern.
+  const signalRows = signalCards
+    .filter((card) => !ignoredSignalIds.includes(card.id))
+    .map((card) => ({ card, customer: card.contactId ? customerById(card.contactId) : undefined }));
 
   // Übersicht Top-5 — priorisierte Empfehlungen über Bestandskunden (PROGRESS [D47] „Farmer Top-5").
   // ADDITIV/Honesty: churn/upsell_score NULL → diese Signale heute inaktiv; cancelled/going_cold/
@@ -136,9 +128,9 @@ export default function ScreenFarming({
     })
     .slice(0, 5);
 
-  // Auswahl + Bulk-Leiste (gleiche Mechanik wie Hunter Signals). IDs = customer.id.
+  // Auswahl + Bulk-Leiste (gleiche Mechanik wie Hunter Signals). IDs = signal.id.
   const [selectedSignalIds, setSelectedSignalIds] = useState<string[]>([]);
-  const signalIds = signalRows.map((r) => r.customer.id);
+  const signalIds = signalRows.map((r) => r.card.id);
   const toggleSignalSelection = (id: string) =>
     setSelectedSignalIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   const selectAllSignals = () => setSelectedSignalIds(signalIds);
@@ -377,9 +369,9 @@ export default function ScreenFarming({
         </div>
       )}
 
-      {/* 5. VIEW SIGNALS — 1:1 Hunter-Signals-Muster (LinkedinSignalCard + HunterCard).
-          Unterschiede: SUBSCRIPTION statt STAGE · Kunden-Heat · Churn/Upsell/LinkedIn-Signaltypen.
-          Daten = Mock (FARMER_SIGNALS), CTA = Platzhalter-Toast bis Action-Panel ([D34]). */}
+      {/* 5. VIEW SIGNALS — echte farmer-geroutete Signale (getSignals routedTo='farmer' → signalToCardProps).
+          1:1 Hunter-Signals-Muster (LinkedinSignalCard). SUBSCRIPTION statt STAGE (Farmer-Invariante).
+          Felder via contactToProfile (Single Source). Snooze/Ignorieren nur lokal ([D48]). */}
       {subTab === 'signals' && (
         <div className="flex flex-col gap-4">
 
@@ -417,32 +409,32 @@ export default function ScreenFarming({
               description="Neue Kunden-Signale (LinkedIn-Aktivität) erscheinen hier automatisch"
             />
           ) : (
-            signalRows.map(({ sig, customer }) => (
+            signalRows.map(({ card, customer }) => (
               <LinkedinSignalCard
-                key={customer.id}
-                contactId={customer.person.id}
-                name={customer.person.name}
-                role={customer.person.jobTitle}
-                companyName={customer.person.company}
-                avatarUrl={customer.person.avatarUrl}
-                icpScore={customer.icpScore}
-                heatStatus={customer.heatStatus}
-                timeAgoLabel={customer.lastLogin}
+                key={card.id}
+                contactId={card.contactId}
+                name={card.name}
+                role={card.role}
+                companyName={card.companyName}
+                icpScore={card.icpScore}
+                heatStatus={card.heatStatus}
+                timeAgoLabel={card.timeAgo}
+                channelLabelKey={card.channelLabelKey}
+                channelIcon={card.channelIcon}
                 showUrgency={false}
-                actionText={sig.actionText}
-                statusBadge={{ label: 'SUBSCRIPTION', node: <SubscriptionBadge status={customer.sherloqStatus} /> }}
-                selected={selectedSignalIds.includes(customer.id)}
-                onToggleSelect={() => toggleSignalSelection(customer.id)}
-                onIgnore={() => ignoreSignals([customer.id])}
-                onOpenInfo={() => openInfo(customer)}
-                expandedSlot={<FarmerExpandedCardContent customer={customer} onOpenPanel={(tab, section) => openOnTab(customer, tab as FarmerTab, section)} />}
+                actionText={card.actionText}
+                statusBadge={customer ? { label: 'SUBSCRIPTION', node: <SubscriptionBadge status={customer.sherloqStatus} /> } : undefined}
+                selected={selectedSignalIds.includes(card.id)}
+                onToggleSelect={() => toggleSignalSelection(card.id)}
+                onIgnore={() => ignoreSignals([card.id])}
+                onOpenInfo={customer ? () => openInfo(customer) : undefined}
+                expandedSlot={customer ? <FarmerExpandedCardContent customer={customer} onOpenPanel={(tab, section) => openOnTab(customer, tab as FarmerTab, section)} /> : undefined}
                 onOpenAction={() => setSelectedFarmerSignal({
-                  name: customer.person.name,
-                  company: customer.person.company,
-                  avatarUrl: customer.person.avatarUrl,
-                  icpScore: customer.icpScore,
-                  actionText: sig.actionText,
-                  timeAgoLabel: (customer.lastLogin ?? '').replace(/^vor\s+/, ''),
+                  name: card.name,
+                  company: card.companyName,
+                  icpScore: card.icpScore,
+                  actionText: card.actionText,
+                  timeAgoLabel: (card.timeAgo ?? '').replace(/^vor\s+/, ''),
                   aiRecommendation: AI_PENDING_LABEL, // KI-Felder NULL → „Folgt" [D5]
                   confidence: null,
                   draft: null,
