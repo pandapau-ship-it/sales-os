@@ -27,6 +27,7 @@ import {
   completeTask,
   getNewInPipeline,
   getHunterPriorityWeights,
+  getSettings,
   updateLeadStage as dbUpdateLeadStage,
   setTaskCompleted as dbSetTaskCompleted,
   createLead as dbCreateLead,
@@ -286,12 +287,20 @@ export function FarmerReference() {
     queryFn: () => getContacts(organizationId, { status: "kunde" }),
   });
   const customersData = customersQuery.data?.map((row) => customerRowToView(row, t)) ?? [];
+  // Churn-Schwelle aus settings.thresholds.churn_risk_threshold (Single Source; Fallback 61).
+  const settingsQuery = useQuery({
+    queryKey: ["settings", organizationId],
+    queryFn: () => getSettings(organizationId),
+    staleTime: 5 * 60_000,
+  });
+  const churnThreshold = ((settingsQuery.data?.thresholds as Record<string, unknown> | undefined)?.churn_risk_threshold as number | undefined) ?? 61;
   // Slice 4: ScreenFarming öffnet eigene Panels (FarmerSidepanel/FarmerActionDrawer) intern —
   // kein CustomerDrawer mehr im Farmer. (CustomerDrawer bleibt für MeinTag/Hunter, bis migriert.)
   return (
     <>
       <ScreenFarming
         customers={customersData}
+        churnThreshold={churnThreshold}
         onUpgradeSubscription={s.upgradeSubscription}
         onSelectCommunication={s.selectCommunication}
       />

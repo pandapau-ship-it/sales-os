@@ -184,6 +184,7 @@ export function customerRowToView(
     healthScore: typeof row.health_score === "number" ? row.health_score : undefined,
     healthStatus: row.health_status ?? undefined,
     mrrMonthly: typeof sub.mrr_monthly === "number" ? sub.mrr_monthly : undefined, // companies.mrr_monthly (Cent); NULL → undefined
+    scoreDrivers: Array.isArray(row.score_drivers) ? row.score_drivers : undefined, // Treiber des Churn-Scores (für Banner-Text)
   };
 }
 
