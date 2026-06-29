@@ -743,6 +743,30 @@ kam es, wie groß ist es** — und einen **klaren nächsten Schritt** anstoßen 
   - **UI-Pflicht (Honesty):** immer anzeigen, **woher** der Wert kommt — „aus Deal" · „bestätigt" · „Stripe"
     (z.B. `companies.mrr_source` text: `deal | confirmed | stripe`).
 
+- **🎯 FARMER ÜBERSICHT TOP-5 (ENTSCHEIDUNG 29.06.2026)** — Übersicht-Tab zeigt **nach** der Customer
+  Health Overview einen Top-5-Empfehlungsbereich (analog Hunter „Wichtigste Aufgaben").
+  - **Prioritätsreihenfolge (1 = wichtigster):**
+    1. **Gekündigt** — `subscription_status='churned'` → `FarmerRetentionKachel` (cancelled)
+    2. **Churn Risk** — `churn_score >= 61` → `FarmerRetentionKachel` (churn_risk)
+    3. **Kunde wird kalt** — `heat_status='kalt'` → `FollowUpKaltCard`
+    4. **Upsell Potenzial** — `upsell_score >= 70` → `FarmerUpsellKachel`
+    5. **Fällige Task** — `due_at < now()` → `SequenceLeadCards`
+  - **Logik (Honesty):** bis zu 5 anzeigen, **nie leere Slots**; weniger als 5 aktive Signale → weniger
+    anzeigen (kein Auffüllen mit Leerem); mehr Kandidaten → die 5 dringendsten gewinnen über Tiebreaker.
+  - **Tiebreaker (bei gleichem Signal-Typ, z.B. mehrere Churn-Risk-Kunden):** (1) MRR-Höhe (mehr Umsatz =
+    wichtiger) → (2) Score-Höhe (höherer churn/upsell_score) → (3) Zeitdruck (Kündigungsfrist näher /
+    Task länger überfällig).
+  - **Begründung (Geld-Logik):** verlorenes Geld (Gekündigt) > bedrohtes Geld (Churn) > kühlende
+    Beziehung (Kalt) > Wachstumschance (Upsell) > Routine (Task).
+  - **Datenrealität:** `heat='kalt'` + `cancelled` sofort verfügbar (echte Felder); `churn_score`/
+    `upsell_score` erst nach dem Score-Edge-Functions-Slice → erscheinen dann **automatisch** im Top-5
+    (Resolver muss sie **additiv** aufnehmen); fällige Tasks via `getDueTasks` (Farmer-gefiltert).
+  - **Umsetzung:** eigener **Farmer-Priorisierungs-Resolver** (Pendant zu `calculatePriorityScore`, rechnet
+    über **Kunden** statt Deals), Gewichte aus `settings.thresholds`. Render-Sektion in `ScreenFarming`
+    nach `FarmerHealthOverview` (im Übersicht-`<div>`), Kacheln 1:1 wiederverwendet, Score nie als Badge.
+  - **Reihenfolge-Empfehlung:** sinnvoll **nach** dem Score-Slice bauen (sonst überwiegend leer); Heat-/
+    cancelled-Items könnten als Zwischenschritt schon vorher erscheinen. Verwandt: [[D5]] · Hunter-Top-5.
+
 ### [TS] Deal-Typ ohne `product` — offener Faden
 - `src/types/hunter.ts` `Deal` hat **kein `product`** (Migration 014 fügte nur die DB-Spalte).
   Beim späteren Produkt-Anzeigen (Pipeline/Deal-Detail) `product?: string` im Typ ergänzen + mappen.

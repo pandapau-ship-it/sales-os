@@ -4,11 +4,11 @@
  */
 
 import { useState } from 'react';
-import { AlertTriangle, TrendingUp, Sparkles, Check, X, Clock, Trash, Zap, CheckSquare } from 'lucide-react';
+import { AlertTriangle, TrendingUp, Sparkles, Check, X, Clock, Trash, Zap, CheckSquare, ListChecks } from 'lucide-react';
 import type { Customer, Lead } from '@/types';
 import { FarmerKpiCards, FarmerHealthOverview, FarmerKundenKachel, FarmerRetentionKachel, FarmerUpsellKachel, FarmerExpandedCardContent, SubscriptionBadge, LinkedinSignalCard, EmptyState, SequenceLeadCards, FollowUpKaltCard, FarmerSidepanel, FarmerActionDrawer, SignalActionDrawer, type RetentionItem, type UpsellItem, type FarmerActionData, type FarmerTab } from '@/components';
 import type { DueTaskCardItem, SignalActionData } from '@/lib/hunterMappers';
-import { AI_PENDING_LABEL } from '@/lib/hunterMappers';
+import { AI_PENDING_LABEL, calculateFarmerPriority, FARMER_SIGNAL_ORDER } from '@/lib/hunterMappers';
 import { useToast } from '@/components/shared/Toast';
 import { NAV } from '@/lib/navBehavior';
 
@@ -120,6 +120,27 @@ export default function ScreenFarming({
     .filter((r): r is { sig: FarmerSignalMeta; customer: Customer } => !!r.customer)
     .filter((r) => !ignoredSignalIds.includes(r.customer.id));
 
+  // Übersicht Top-5 — priorisierte Empfehlungen über Bestandskunden (PROGRESS [D47] „Farmer Top-5").
+  // ADDITIV/Honesty: churn/upsell_score NULL → diese Signale heute inaktiv; cancelled/going_cold/
+  // overdue_task laufen sofort. Sortierung: Dominanz (Geld-Logik) → MRR → Score. Score nie als Badge.
+  const overdueContactIds = new Set(
+    dueTaskCards
+      .filter((tk) => tk.dueAt && new Date(tk.dueAt).getTime() < nowMs)
+      .map((tk) => tk.contactId)
+      .filter((id): id is string => !!id),
+  );
+  const farmerTop5 = customers
+    .map((c) => ({ customer: c, prio: calculateFarmerPriority(c, undefined, { hasOverdueTask: overdueContactIds.has(c.id) }) }))
+    .filter((x) => x.prio.dominantSignal !== null)
+    .sort((a, b) => {
+      const ra = FARMER_SIGNAL_ORDER.indexOf(a.prio.dominantSignal!);
+      const rb = FARMER_SIGNAL_ORDER.indexOf(b.prio.dominantSignal!);
+      if (ra !== rb) return ra - rb;                       // 1. Dominanz (Geld-Logik)
+      if (b.prio.mrr !== a.prio.mrr) return b.prio.mrr - a.prio.mrr; // 2. MRR-Höhe
+      return b.prio.score - a.prio.score;                  // 3. Score
+    })
+    .slice(0, 5);
+
   // Auswahl + Bulk-Leiste (gleiche Mechanik wie Hunter Signals). IDs = customer.id.
   const [selectedSignalIds, setSelectedSignalIds] = useState<string[]>([]);
   const signalIds = signalRows.map((r) => r.customer.id);
@@ -180,6 +201,92 @@ export default function ScreenFarming({
             rows={customers.map((c) => ({ id: c.id, initials: c.person.initials, name: c.person.company || c.person.name, score: c.healthScore }))}
             onShowAll={() => setSubTab('kunden')}
           />
+
+          {/* Wichtigste Aufgaben — Top-5 priorisiert über Bestandskunden (Geld-Logik [D47]). Jede Quelle
+              nutzt ihre bestehende Kachel 1:1. Signal-getrieben: nichts da → Platzhalter. Score nie als Badge. */}
+          <div className="mt-2">
+            <span className="text-[10px] font-extrabold text-text-muted uppercase tracking-widest">Wichtigste Aufgaben</span>
+            <div className="mt-3">
+              {farmerTop5.length === 0 ? (
+                <EmptyState
+                  icon={<ListChecks className="w-6 h-6" />}
+                  title="Alles im grünen Bereich"
+                  description="Keine dringenden Kunden-Signale heute."
+                />
+              ) : (
+                <div className="flex flex-col gap-4">
+                  {farmerTop5.map(({ customer: c, prio }) => {
+                    const sig = prio.dominantSignal;
+                    const expanded = <FarmerExpandedCardContent customer={c} onOpenPanel={(tab, section) => openOnTab(c, tab as FarmerTab, section)} />;
+                    if (sig === 'cancelled' || sig === 'churn_risk') {
+                      const item: RetentionItem = {
+                        id: c.id, name: c.person.name, jobTitle: c.person.jobTitle, company: c.person.company,
+                        avatarUrl: c.person.avatarUrl, icpScore: c.icpScore, heatStatus: c.heatStatus,
+                        sherloqStatus: c.sherloqStatus, timeLabel: c.lastLogin, type: sig,
+                        text: sig === 'cancelled'
+                          ? 'Kündigung aktiv — persönlicher Anruf empfohlen.'
+                          : 'Churn-Score über Schwelle — Check-in empfohlen.',
+                      };
+                      return (
+                        <FarmerRetentionKachel
+                          key={`r-${c.id}`}
+                          item={item}
+                          onOpenPanel={() => openInfo(c)}
+                          onAction={() => setActionSignal({ kind: sig, name: c.person.name, company: c.person.company, icpScore: c.icpScore })}
+                          expandedSlot={expanded}
+                        />
+                      );
+                    }
+                    if (sig === 'going_cold') {
+                      return (
+                        <FollowUpKaltCard
+                          key={`c-${c.id}`}
+                          contactId={c.id}
+                          name={c.person.name}
+                          role={c.person.jobTitle}
+                          companyName={c.person.company}
+                          icpScore={c.icpScore}
+                          heatStatus={c.heatStatus}
+                          timeAgoLabel={c.lastLogin}
+                          onSelectLead={() => openInfo(c)}
+                          onOutreachClick={() => setActionSignal({ kind: 'going_cold', name: c.person.name, company: c.person.company })}
+                          expandedSlot={expanded}
+                        />
+                      );
+                    }
+                    if (sig === 'upsell') {
+                      const item: UpsellItem = {
+                        id: c.id, name: c.person.name, jobTitle: c.person.jobTitle, company: c.person.company,
+                        avatarUrl: c.person.avatarUrl, icpScore: c.icpScore, heatStatus: c.heatStatus,
+                        sherloqStatus: c.sherloqStatus, timeLabel: c.lastLogin,
+                        text: 'Upsell-Score über Schwelle — Wachstumschance.',
+                      };
+                      return (
+                        <FarmerUpsellKachel
+                          key={`u-${c.id}`}
+                          item={item}
+                          onOpenPanel={() => openInfo(c)}
+                          onAction={() => setActionSignal({ kind: 'upsell_potential', name: c.person.name, company: c.person.company, icpScore: c.icpScore })}
+                          expandedSlot={expanded}
+                        />
+                      );
+                    }
+                    // overdue_task — fällige Task(s) dieses Kunden (1:1 SequenceLeadCards)
+                    return (
+                      <SequenceLeadCards
+                        key={`t-${c.id}`}
+                        items={dueTaskCards.filter((tk) => tk.contactId === c.id)}
+                        onSelectLead={() => openInfo(c)}
+                        onView={(_lead, taskId) => { setInfoTab('tasks'); setInfoTaskId(taskId); setInfoPerson(c); }}
+                        onComplete={() => toast('Task erledigt ✓', 'success')}
+                        renderExpanded={() => expanded}
+                      />
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
 

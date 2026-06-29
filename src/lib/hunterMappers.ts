@@ -832,3 +832,64 @@ export function calculatePriorityScore(
   const score = Math.max(0, Math.round((base + bonus) * arrMult * icpMult));
   return { score, signals: active, arr, icpScore: icp };
 }
+
+// ── Farmer-Übersicht: Top-5-Priorisierung (Pendant zu calculatePriorityScore, über KUNDEN) ──
+// Geld-Logik (PROGRESS [D47] „Farmer Übersicht Top-5"): verlorenes Geld (gekündigt) > bedrohtes
+// Geld (churn) > kühlende Beziehung (kalt) > Wachstumschance (upsell) > Routine (Task).
+// ADDITIV + Honesty: churn_score/upsell_score NULL → Signal inaktiv (kein Fehler). Heute laufen
+// 3 Signale (cancelled/going_cold/overdue_task), nach dem Score-Slice automatisch 5.
+export type FarmerPrioritySignal = "cancelled" | "churn_risk" | "going_cold" | "upsell" | "overdue_task";
+
+/** Dominanz-Reihenfolge (Index 0 = wichtigster) → bestimmt die Render-Kachel + Primär-Sortierung. */
+export const FARMER_SIGNAL_ORDER: FarmerPrioritySignal[] = [
+  "cancelled", "churn_risk", "going_cold", "upsell", "overdue_task",
+];
+
+export type FarmerPriorityWeights = {
+  cancelled: number; churn_risk: number; going_cold: number; upsell: number; overdue_task: number;
+  churn_threshold: number; upsell_threshold: number;
+};
+// Defaults nur Fallback — Override via settings.thresholds.farmer_priority_weights (wenn geseedet).
+export const FARMER_PRIORITY_WEIGHTS_DEFAULT: FarmerPriorityWeights = {
+  cancelled: 50, churn_risk: 40, going_cold: 30, upsell: 20, overdue_task: 10,
+  churn_threshold: 61, upsell_threshold: 70,
+};
+
+export type FarmerPriorityResult = {
+  score: number;                          // Σ aktiver Signal-Gewichte (Tiebreaker, NIE als Badge)
+  signals: FarmerPrioritySignal[];
+  dominantSignal: FarmerPrioritySignal | null; // höchstpriorisiertes aktives Signal → Kachel-Wahl
+  mrr: number;                            // mrr_monthly (Cent) für Tiebreaker (mehr Umsatz = wichtiger)
+  churnScore?: number;
+  upsellScore?: number;
+};
+
+/**
+ * calculateFarmerPriority — Dringlichkeit eines Bestandskunden aus seinen Farmer-Signalen.
+ * `customer` = gemappte Kunden-Sicht (customerRowToView). `hasOverdueTask` extern (Tasks hängen
+ * nicht am Customer). NULL-Scores → Signal inaktiv (Honesty). score 0 / dominantSignal null →
+ * Kunde erscheint nicht im Top-5.
+ */
+export function calculateFarmerPriority(
+  customer: Customer,
+  weights?: Partial<FarmerPriorityWeights> | null,
+  opts?: { hasOverdueTask?: boolean },
+): FarmerPriorityResult {
+  const w = { ...FARMER_PRIORITY_WEIGHTS_DEFAULT, ...(weights ?? {}) };
+  const active: FarmerPrioritySignal[] = [];
+  let score = 0;
+
+  // 1. Gekündigt — Subscription churned (verlorenes Geld).
+  if (customer.sherloqStatus === "CANCELLED") { active.push("cancelled"); score += w.cancelled; }
+  // 2. Churn Risk — churn_score ≥ Schwelle. NULL → inaktiv (kein Fehler).
+  if (typeof customer.churnScore === "number" && customer.churnScore >= w.churn_threshold) { active.push("churn_risk"); score += w.churn_risk; }
+  // 3. Kunde wird kalt — Heat COLD.
+  if (customer.heatStatus === "COLD") { active.push("going_cold"); score += w.going_cold; }
+  // 4. Upsell — upsell_score ≥ Schwelle. NULL → inaktiv.
+  if (typeof customer.upsellScore === "number" && customer.upsellScore >= w.upsell_threshold) { active.push("upsell"); score += w.upsell; }
+  // 5. Fällige Task — extern ermittelt (Tasks nicht am Customer-Embed).
+  if (opts?.hasOverdueTask) { active.push("overdue_task"); score += w.overdue_task; }
+
+  const dominantSignal = FARMER_SIGNAL_ORDER.find((s) => active.includes(s)) ?? null;
+  return { score, signals: active, dominantSignal, mrr: customer.mrrMonthly ?? 0, churnScore: customer.churnScore, upsellScore: customer.upsellScore };
+}
