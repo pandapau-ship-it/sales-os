@@ -437,21 +437,25 @@ export async function deleteContactPhone(
  */
 export async function getDueTasks(
   organizationId: string,
+  opts: { contactStatus?: string } = {},
 ): Promise<Record<string, unknown>[]> {
   const client = getSupabaseClient();
   if (!client) return [];
   const nowIso = new Date().toISOString();
-  const { data, error } = await client
+  // contactStatus-Filter → inner-join auf contacts (sonst kein Filter auf das Embed möglich).
+  // Ohne Filter: bisheriges Verhalten (Hunter) unverändert.
+  const contactEmbed = opts.contactStatus
+    ? `contact:contacts!inner(*, ${CONTACT_COMPANY_EMBED}, deals(stage, updated_at, stage_updated_at, closed_at, created_at, deleted_at))`
+    : `contact:contacts(*, ${CONTACT_COMPANY_EMBED}, deals(stage, updated_at, stage_updated_at, closed_at, created_at, deleted_at))`;
+  let q = client
     .from("tasks")
-    .select(
-      `id, title, due_at, priority, channel, contact:contacts(*, ${CONTACT_COMPANY_EMBED}, deals(stage, updated_at, stage_updated_at, closed_at, created_at, deleted_at))`,
-    )
+    .select(`id, title, due_at, priority, channel, ${contactEmbed}`)
     .eq("organization_id", organizationId)
     .is("deleted_at", null) // soft-gelöschte ausblenden
     .is("completed_at", null)
-    .lte("due_at", nowIso)
-    .order("due_at", { ascending: true })
-    .limit(50);
+    .lte("due_at", nowIso);
+  if (opts.contactStatus) q = q.eq("contact.contact_status", opts.contactStatus);
+  const { data, error } = await q.order("due_at", { ascending: true }).limit(50);
   if (error) throw error;
   return data ?? [];
 }

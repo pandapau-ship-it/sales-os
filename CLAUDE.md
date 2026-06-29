@@ -4400,6 +4400,15 @@ Hover-Tooltip (welche Signale aktiv). Lädt die Gewichte: `getHunterPriorityWeig
 
 ## Farmer Screen — UI-Struktur (Recommendation Feed, Bestandskunden)
 
+**INVARIANTE — Farmer-Kachel zeigt Subscription, NIE Pipeline-Stage (verbindlich):**
+Jede Farmer-Profilkachel zeigt den **Subscription-Status** (Aktiv/Gekündigt/Trial aus
+`companies.subscription_status`, via `customerRowToView` → `SubscriptionBadge`), **NIEMALS** eine
+Pipeline-Stage. Pipeline-Stage (`free_trial`/`backlog`/… aus `deals.stage`) ist ein **Hunter-Deal-Konzept**
+und im Farmer semantisch falsch. Geteilte Hunter-Karten (`SequenceLeadCards`, `FollowUpKaltCard`, `HunterCard`)
+tragen den `statusBadge`-Slot (zeigt sich nur bei leerem `stageLabel`) — im Farmer wird er mit SUBSCRIPTION
+befüllt **und** `stageLabel` unterdrückt; Hunter bleibt unberührt (ohne Slot → Stage wie bisher).
+**Bei jedem Farmer-Slice prüfen: Status-Feld = Subscription, nicht Stage.**
+
 Wie Hunter, explizit als Recommendation Agent.
 
 Aufbau:

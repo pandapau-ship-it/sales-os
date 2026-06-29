@@ -33,6 +33,7 @@ export const SequenceLeadCards = ({
   onView,
   onComplete,
   renderExpanded,
+  renderStatusBadge,
 }: {
   items?: DueTaskCardItem[];
   onSelectLead?: (lead: Lead) => void;
@@ -42,6 +43,9 @@ export const SequenceLeadCards = ({
   onComplete?: (taskId: string) => void;
   /** Aufgeklappter Inhalt je Karte (Farmer: FarmerExpandedCardContent) — pro Lead, da kontaktspezifisch. */
   renderExpanded?: (lead: Lead) => ReactNode;
+  /** Status-Badge pro Item (Farmer: SUBSCRIPTION statt Pipeline-STAGE). Gesetzt → Stage wird unterdrückt
+   *  + Badge an HunterCard. Ohne Prop → Hunter-Verhalten (Stage). */
+  renderStatusBadge?: (item: DueTaskCardItem) => { label: string; node: ReactNode } | undefined;
 }) => {
   const { t } = useTranslation();
 
@@ -77,13 +81,14 @@ export const SequenceLeadCards = ({
         // Überfällig = Warnung → rot; heute fällig → amber. (CLAUDE.md: Rot nur für Warnungen.)
         const dueClass = days != null && days > 0 ? 'text-[var(--signal-urgent-text)]' : 'text-[var(--signal-warn-text)]';
 
+        const statusBadge = renderStatusBadge?.(it); // Farmer: SUBSCRIPTION; gesetzt → Stage unterdrücken
         const data: HunterCardData = {
           id: it.id,
           name: it.name,
           jobTitle: it.role,
           company: it.companyName,
           icpScore: it.icpScore,       // fehlt → undefined → ICP-Ring unsichtbar
-          stageLabel: it.stage ?? '',  // kein aktiver Deal → keine Stage
+          stageLabel: statusBadge ? '' : (it.stage ?? ''), // Status-Badge gesetzt → keine Pipeline-Stage
           heatStatus: it.heatStatus,   // echtes Heat; undefined → kein Badge
           timeLabel: '',               // Fälligkeit steht im grauen Bereich unten
         };
@@ -132,6 +137,7 @@ export const SequenceLeadCards = ({
             contactId={it.contactId}
             onOpenInfo={onSelectLead ? () => onSelectLead(buildLead(it)) : undefined}
             actionRow={actionRow}
+            statusBadge={statusBadge}
             expandedSlot={renderExpanded?.(buildLead(it))}
           />
         );
