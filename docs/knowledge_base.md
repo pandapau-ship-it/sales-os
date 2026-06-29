@@ -413,3 +413,11 @@
 - **how:** Farmer → Tab „Follow-ups"; Aufgaben abarbeiten, „Kunde wird kalt"-Karten mit Aktion/Snooze bearbeiten.
 - **value:** Klare Tagesliste für die Kundenpflege — nichts fällt durchs Raster, Beziehungen bleiben warm.
 - **module:** farmer
+
+### Farmer-Kundengesundheit (Churn-/Upsell-Scoring)
+- **feature:** Farmer-Kundengesundheit (Churn-/Upsell-Scoring)
+- **what:** Jeder Bestandskunde bekommt automatisch täglich einen Churn-Risiko- und einen Upsell-Potenzial-Score (0–100) aus den Beziehungsdaten (letzter Kontakt, Antwortverhalten, Heat, Aktivität). Schwellen in den Einstellungen anpassbar; bei aktivem Churn/Kündigung hat Retention Vorrang vor Upsell. Fehlen Daten → Score leer statt geraten.
+- **how:** Läuft automatisch (tägliche Neuberechnung). Sichtbar als Churn-/Upsell-Signale, in der Übersicht-Top-5 + Retention-/Upsell-Tabs.
+- **value:** Risiko- und Wachstumskunden werden automatisch erkannt und priorisiert — keine manuellen Listen, Retention schlägt Expansion bei gefährdeten Kunden.
+- **module:** farmer
+- *(Migration 053, 2026-06-30)*
