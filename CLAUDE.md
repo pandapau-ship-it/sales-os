@@ -4409,6 +4409,14 @@ tragen den `statusBadge`-Slot (zeigt sich nur bei leerem `stageLabel`) — im Fa
 befüllt **und** `stageLabel` unterdrückt; Hunter bleibt unberührt (ohne Slot → Stage wie bisher).
 **Bei jedem Farmer-Slice prüfen: Status-Feld = Subscription, nicht Stage.**
 
+**INVARIANTE — Churn-Vorrang vor Upsell (verbindlich):**
+Churn/Gekündigt hat **Anzeige-Vorrang** vor Upsell — beide erscheinen **nie gleichzeitig** als
+Handlungsempfehlung (Karte/Kachel). **Retention vor Expansion**: bei aktivem Churn Risk oder Gekündigt
+wird Upsell unterdrückt. Single Source = `applyFarmerDisplayPrecedence` → `calculateFarmerPriority.displaySignals`
+(hunterMappers) — Panel **und** Kachel-Ebene nutzen denselben Resolver, nie im Panel dupliziert. Geld-Logik-
+Reihenfolge bleibt: **Gekündigt > Churn > Kalt > Upsell**. Scoring (`signals`/`score`/Top-5) bleibt unberührt —
+nur die Anzeige filtert.
+
 Wie Hunter, explizit als Recommendation Agent.
 
 Aufbau:

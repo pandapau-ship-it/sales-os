@@ -727,9 +727,16 @@ kam es, wie groß ist es** — und einen **klaren nächsten Schritt** anstoßen 
 - **Beim Farmer-DB-Wiring zwingend nachziehen** (heute Mock/hardcodiert, erscheint NICHT automatisch):
   - **(a) KI-Kurzakte-Block im FarmerSidepanel Übersicht-Tab ✅ erledigt** (KiKurzaktePlaceholder
     eingebaut, echte Daten folgen mit [[D5]]).
-  - **(b) `AktiveSignale`-Flags sind hardcodiert** (alle literal `true`) → an echte Felder koppeln:
-    `cancelled={customer.sherloqStatus==='CANCELLED'}` · `churnRisk={churn_score >= 61}` ·
-    `upsell={upsell_score >= 70}` · `goingCold={heat==='COLD'}`.
+  - **(b) `AktiveSignale`-Flags ✅ erledigt (8c/8c-final):** echt gekoppelt — `cancelled=sherloqStatus==='CANCELLED'` ·
+    `churnRisk=churn_score>=churn_risk_threshold` · `upsell=upsell_score>=upsell_threshold` · `goingCold=heat==='COLD'`.
+    Schwellen aus `settings.thresholds` (via `getSettings`), NULL-Score=inaktiv, Honesty-Positiv-Zustand
+    („Keine akuten Signale — Kunde stabil"). Quelle = **`calculateFarmerPriority`** (Single Source, Panel + Kachel).
+  - **[ENTSCHEIDUNG Churn-Vorrang] (29.06.2026):** Bei aktivem **Churn Risk ODER Gekündigt** wird **Upsell
+    unterdrückt** (Retention vor Expansion — man verkauft keinem Kunden mehr, der gerade abwandert). Gilt im
+    Panel; Kachel-Ebene nutzt denselben Resolver (`applyFarmerDisplayPrecedence` → `calculateFarmerPriority.displaySignals`).
+    Begründung: Geld-Logik-Priorisierung (Gekündigt > Churn > Kalt > Upsell) + moderne CS-Praxis (Gainsight/Catalyst/
+    Vitally). Scoring (`signals`/`score`/Top-5) bleibt unberührt — nur die **Anzeige** filtert. Churn/Upsell nie
+    gleichzeitig als Handlungsempfehlung.
   - **(c) KontaktZeile-Editierbarkeit (8e):** Die Sidepanel-KontaktZeile ist **read-only** (nur Copy) —
     **Bearbeiten erfolgt in der Vollansicht/Details-Tab** (Stift verlinkt dorthin, DB-Write dort). **Telefon
     (`contact_phones`) wird via `DetailPhoneList` in der Vollansicht editiert, NICHT inline im Sidepanel.**

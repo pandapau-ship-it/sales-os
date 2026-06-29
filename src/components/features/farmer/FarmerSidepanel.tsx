@@ -3,8 +3,8 @@ import { createPortal } from 'react-dom';
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { useCurrentOrg } from '@/hooks/useCurrentOrg';
 import { useAuth } from '@/hooks/useAuth';
-import { getContactDetail, getTasksByContact, getContactCommunications, getActivityByContact, getNotesByContact, createTask, updateTask, completeTask, softDeleteTask, createNote, updateNote, softDeleteNote, createCommunication } from '@/lib/db';
-import { contactToProfile, communicationToView, type CommunicationChannel, type CommunicationDirection } from '@/lib/hunterMappers';
+import { getContactDetail, getTasksByContact, getContactCommunications, getActivityByContact, getNotesByContact, getSettings, createTask, updateTask, completeTask, softDeleteTask, createNote, updateNote, softDeleteNote, createCommunication } from '@/lib/db';
+import { contactToProfile, communicationToView, calculateFarmerPriority, type CommunicationChannel, type CommunicationDirection } from '@/lib/hunterMappers';
 import KommunikationLogModal from '../hunter/KommunikationLogModal';
 import {
   X, Check, ArrowUpRight, ArrowLeft, Tag, User, Building2,
@@ -37,7 +37,8 @@ import type { Lead, Customer } from '@/types';
  * SLICE 8a: KontaktZeile/Header echt via contactToProfile(getContactDetail).
  * SLICE 8b: Tabs Tasks/Kommunikation/Aktivität/Notizen echt via *ByContact-Queries; Übersicht-
  *   Kompakt (OffeneTasks/KommunikationKompakt) teilt sich die Query mit dem jeweiligen Tab.
- *   Noch Mock: AktiveSignale-Flags (8c), Subscription/Usage (8d), Details-Tab (8e), KI-Kurzakte [D5].
+ * SLICE 8c: AktiveSignale echt — Flags aus customer-Scores/-Status, Schwellen aus settings.thresholds;
+ *   Positiv-Zustand statt Fake-Karten. Noch Mock: Subscription/Usage (8d), Details-Tab (8e), KI [D5].
  */
 
 export type FarmerTab = 'details' | 'overview' | 'activity' | 'communication' | 'tasks' | 'subscription' | 'usage' | 'notes';
@@ -184,6 +185,30 @@ export default function FarmerSidepanel({ person: personProp, onClose, onExit, v
   const customer = person as Customer | null;
   const subscriptionStatus = customer?.sherloqStatus ?? null;
 
+  // 8c: AktiveSignale echt — Schwellen aus settings.thresholds (Single Source, identisch zu den
+  // Score-Tabs/ReferenceScreens); Score-/Status-Werte kommen vom customer-Objekt (kein neuer Query).
+  const settingsQuery = useQuery({
+    queryKey: ['settings', organizationId],
+    queryFn: () => getSettings(organizationId),
+    enabled: !!organizationId && isOpen,
+    placeholderData: keepPreviousData,
+  });
+  const farmerThresholds = settingsQuery.data?.thresholds as Record<string, unknown> | undefined;
+  const churnThreshold = (farmerThresholds?.churn_risk_threshold as number | undefined) ?? 61;
+  const upsellThreshold = (farmerThresholds?.upsell_threshold as number | undefined) ?? 70;
+  // Signal-Resolver = Single Source (calculateFarmerPriority, hunterMappers) — identisch zur Kachel-Ebene.
+  // Schwellen aus settings durchgereicht. NULL-Score → inaktiv. displaySignals = nach Churn-Vorrang
+  // gefiltert (Retention vor Expansion: Upsell unterdrückt bei aktivem Churn/Gekündigt).
+  const farmerPriority = customer
+    ? calculateFarmerPriority(customer, { churn_threshold: churnThreshold, upsell_threshold: upsellThreshold })
+    : null;
+  const displaySignals = farmerPriority?.displaySignals ?? [];
+  const churnRiskActive = displaySignals.includes('churn_risk');
+  const upsellActive = displaySignals.includes('upsell');
+  const goingColdActive = displaySignals.includes('going_cold');
+  const cancelledActive = displaySignals.includes('cancelled');
+  const anyFarmerSignal = churnRiskActive || upsellActive || goingColdActive || cancelledActive;
+
   // MOCK (Slice 2) — echte Werte kommen mit dem Farmer-DB-Wiring. HONESTY: nur befüllte Felder rendern.
   const mockSubscription: SubscriptionData = {
     plan: customer?.subscriptionPlan,
@@ -284,32 +309,41 @@ export default function FarmerSidepanel({ person: personProp, onClose, onExit, v
         <div className="space-y-7 animate-fade-in">
           {/* KI-Kurzakte — immer sichtbar (Honesty: „Folgt"-Platzhalter bis [D5]); Deeplink-Flash-Ziel. */}
           <KiKurzaktePlaceholder flashId="kiakte" flash={flashSection === 'kiakte'} />
-          {/* Farmer-Signale [D33] (Slice 2, Mock): Churn Risk · Upsell · Kunde wird kalt.
-              Echte Score-/Signal-Logik kommt mit dem DB-Wiring; CTAs → Action-Panel [D34]. */}
-          <AktiveSignale
-            churnRisk
-            upsell
-            goingCold
-            cancelled
-            onChurn={() => setActionSignal({
-              kind: 'churn_risk', name: person.person.name, company: person.person.company,
-              avatarUrl: person.person.avatarUrl, icpScore: person.icpScore,
-              churnScore: 78, lastLoginDays: 21, usageDropPct: 40,
-            })}
-            onUpsell={() => setActionSignal({
-              kind: 'upsell_potential', name: person.person.name, company: person.person.company,
-              avatarUrl: person.person.avatarUrl, icpScore: person.icpScore,
-              seatUtilizationPct: 92, featureUsageUp: true, nps: 9,
-            })}
-            onCold={() => setActionSignal({
-              kind: 'going_cold', name: person.person.name, company: person.person.company,
-              avatarUrl: person.person.avatarUrl, lastContactDays: 18,
-            })}
-            onCancelled={() => setActionSignal({
-              kind: 'cancelled', name: person.person.name, company: person.person.company,
-              avatarUrl: person.person.avatarUrl, cancelledDate: '31.07.2026', cancelReason: 'Budget gestrichen',
-            })}
-          />
+          {/* Farmer-Signale [D33] (8c): echt — Flags aus customer-Scores/-Status, Schwellen aus settings.
+              NULL-Score = inaktiv. Action-Zahlen nur echte (churnScore/icpScore); erfundene weggelassen
+              (lastLogin/usageDrop/seat/nps/cancelDate folgen mit [D5]/8d). CTAs → Action-Panel [D34]. */}
+          {anyFarmerSignal ? (
+            <AktiveSignale
+              churnRisk={churnRiskActive}
+              upsell={upsellActive}
+              goingCold={goingColdActive}
+              cancelled={cancelledActive}
+              onChurn={() => setActionSignal({
+                kind: 'churn_risk', name: person.person.name, company: person.person.company,
+                avatarUrl: person.person.avatarUrl, icpScore: person.icpScore,
+                churnScore: customer?.churnScore,
+              })}
+              onUpsell={() => setActionSignal({
+                kind: 'upsell_potential', name: person.person.name, company: person.person.company,
+                avatarUrl: person.person.avatarUrl, icpScore: person.icpScore,
+              })}
+              onCold={() => setActionSignal({
+                kind: 'going_cold', name: person.person.name, company: person.person.company,
+                avatarUrl: person.person.avatarUrl,
+              })}
+              onCancelled={() => setActionSignal({
+                kind: 'cancelled', name: person.person.name, company: person.person.company,
+                avatarUrl: person.person.avatarUrl,
+              })}
+            />
+          ) : (
+            <div className="space-y-2">
+              <span className="typo-section-label text-text-muted pl-1">Aktive Signale</span>
+              <div className="p-4 bg-[var(--signal-success-bg)] border border-[var(--border-card)] rounded-[12px] flex items-center gap-2 text-xs text-[var(--signal-success-text)] font-semibold">
+                <Check className="w-4 h-4" /> Keine akuten Signale — Kunde stabil
+              </div>
+            </div>
+          )}
           {tasksQuery.isLoading
             ? <PanelSkeleton rows={2} height={56} />
             : (
