@@ -7,7 +7,7 @@
  * Controlled/prop-driven — State lebt beim Aufrufer.
  */
 import { useState, useEffect, useRef } from "react";
-import { Star, Copy, Trash2, Plus, Check, ChevronDown, Phone } from "lucide-react";
+import { Star, Copy, Trash2, Plus, Check, ChevronDown, Phone, Pencil } from "lucide-react";
 import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
@@ -83,7 +83,9 @@ export default function DetailPhoneList({
             ) : (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="group/t shrink-0 inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wider text-text-muted hover:text-[var(--sherloq-primary)] transition-colors cursor-pointer w-[88px]">
+                  {/* FIX 2: preventDefault auf mousedown → Typ-Wahl stiehlt dem Nummern-Input NICHT den Fokus,
+                      die Edit-Eingabe bleibt offen (kein Schließen/Verwerfen beim Typ-Wählen). */}
+                  <button onMouseDown={(e) => e.preventDefault()} className="group/t shrink-0 inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wider text-text-muted hover:text-[var(--sherloq-primary)] transition-colors cursor-pointer w-[88px]">
                     <span className="truncate">{p.type}</span>
                     <ChevronDown className="w-3 h-3 shrink-0 opacity-0 group-hover/t:opacity-100 transition-opacity" />
                   </button>
@@ -117,7 +119,7 @@ export default function DetailPhoneList({
                   }}
                   className={`w-[200px] max-w-full rounded-[8px] border bg-app-surface px-2.5 py-1.5 text-[14px] font-semibold text-text-primary outline-none placeholder-[var(--text-muted)] ${error ? "border-[var(--signal-urgent-text)]" : "border-[var(--sherloq-primary)]"}`}
                 />
-                {error && <div className="mt-1 text-[10px] font-semibold text-[var(--signal-urgent-text)]">Nur Ziffern und + erlaubt</div>}
+                {error && <div className="mt-1 text-[10px] font-semibold text-[var(--signal-urgent-text)]">Bitte eine gültige Telefonnummer eingeben (mind. 3 Ziffern).</div>}
               </div>
             ) : p.number ? (
               <button onClick={() => beginEdit(p)} className="text-left text-[14px] font-semibold text-text-primary truncate hover:text-[var(--sherloq-primary)] transition-colors cursor-text">{p.number}</button>
@@ -131,6 +133,11 @@ export default function DetailPhoneList({
               <button onClick={() => copy(p.number)} aria-label="Kopieren" data-tip="Kopieren" className="w-7 h-7 rounded-[6px] flex items-center justify-center text-text-muted hover:text-[var(--sherloq-primary)] hover:bg-app-surface transition-colors cursor-pointer">
                 <Copy className="w-3.5 h-3.5" />
               </button>
+              {!readonly && editId !== p.id && (
+                <button onClick={() => beginEdit(p)} aria-label="Bearbeiten" data-tip="Bearbeiten" className="w-7 h-7 rounded-[6px] flex items-center justify-center text-text-muted hover:text-[var(--sherloq-primary)] hover:bg-app-surface transition-colors cursor-pointer">
+                  <Pencil className="w-3.5 h-3.5" />
+                </button>
+              )}
               {!readonly && (
                 <button onClick={() => onRemove?.(p.id)} aria-label="Entfernen" data-tip="Entfernen" className="w-7 h-7 rounded-[6px] flex items-center justify-center text-text-muted hover:text-[var(--signal-urgent-text)] hover:bg-[var(--signal-urgent-bg)] transition-colors cursor-pointer">
                   <Trash2 className="w-3.5 h-3.5" />

@@ -6,6 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { getContactDetail, getPipelineSettings, getTasksByContact, createTask, updateTask, completeTask, softDeleteTask, getNotesByContact, createNote, updateNote, softDeleteNote, getDealsByContact, getActivityByContact, getContactCommunications, createCommunication, updateContact, updateCompany, getProducts, getOrgUsers, createDeal, updateDeal, updateDealStage, updateDealWon, updateDealLost, softDeleteDeal, createContactPhone, updateContactPhone, setContactPhonePrimary, deleteContactPhone } from '@/lib/db';
 import { contactToProfile, latestActiveDeal, dealToView, communicationToView, CONTACT_STATUS_LABEL, CONTACT_STATUS_SELECTABLE, WON_STAGE_SLUG, LOST_STAGE_SLUG, type CommunicationChannel, type CommunicationDirection } from '@/lib/hunterMappers';
 import { isValidEmail, normalizeUrl, isValidUrl } from '@/lib/validation';
+import { ANREDE_OPTS, SENIORITY_OPTS, SPRACHE_OPTS, LAND_OPTS, BRANCHE_OPTS, GROESSE_OPTS, PHONE_TYPES, DETAIL_MAP } from '@/lib/contactDetailFields';
 import DealLostModal from './DealLostModal';
 import DealWonModal from './DealWonModal';
 import KommunikationLogModal from './KommunikationLogModal';
@@ -32,13 +33,7 @@ import { AktiveSignale, AktivitaetsVerlauf, DealsListe, DetailField, DetailPhone
  */
 /** Dropdown-Optionen für die Detail-Felder (Vollansicht). Spiegeln die CRM-Felder
  *  aus CLAUDE.md → „KONTAKTE / COMPANIES". Später aus settings/Enums geladen. */
-const ANREDE_OPTS = ['Herr', 'Frau', 'Divers'];
-const SENIORITY_OPTS = ['C-Level', 'VP', 'Director', 'Manager', 'IC', 'Founder'];
-const SPRACHE_OPTS = ['Deutsch', 'Englisch', 'Französisch', 'Spanisch', 'Andere'];
-const LAND_OPTS = ['Deutschland', 'Österreich', 'Schweiz', 'Andere'];
-const BRANCHE_OPTS = ['SaaS', 'Fintech', 'E-Commerce', 'Healthcare', 'Industrie', 'Andere'];
-const GROESSE_OPTS = ['1–10', '11–50', '51–200', '201–500', '500+'];
-const PHONE_TYPES = ['Mobil', 'Geschäftlich', 'Privat', 'Weitere'];
+// Auswahl-Optionen + Feld→Spalte-Mapping = Single Source (geteilt mit Farmer, src/lib/contactDetailFields).
 // Lead-Status-Dropdown: Slugs + Labels aus der EINEN Quelle (CONTACT_STATUS_LABEL in hunterMappers),
 // identisch zum Kopf-Badge (contactToProfile.statusLabel). Schreibt auf contacts.contact_status.
 const CONTACT_STATUS_OPTIONS = CONTACT_STATUS_SELECTABLE.map((slug) => ({ slug, label: CONTACT_STATUS_LABEL[slug] }));
@@ -55,27 +50,6 @@ const DEFAULT_DETAILS = {
   leadStatus: 'Sales Qualified Lead (SQL)', icp: '87',
   tags: 'Enterprise · ROI-Fokus · Outreach', owner: 'Oliver Prossi',
   notiz: 'Budget-Freeze bis Q3 — der ROI-Case ist der Hebel. Demo lief sehr positiv, Abschluss ab Q4 realistisch.',
-};
-
-// Details-Tab-Feld → DB-Spalte. table='contact' → contacts, 'company' → companies.
-// Nur gemappte Felder werden persistiert; ungemappte (Klassifizierung) bleiben lokal.
-const DETAIL_MAP: Record<string, { table: 'contact' | 'company'; col: string }> = {
-  anrede: { table: 'contact', col: 'salutation' },
-  sprache: { table: 'contact', col: 'language' },
-  vorname: { table: 'contact', col: 'first_name' },
-  nachname: { table: 'contact', col: 'last_name' },
-  jobtitel: { table: 'contact', col: 'job_title' },
-  seniority: { table: 'contact', col: 'seniority' },
-  abteilung: { table: 'contact', col: 'department' },
-  stadt: { table: 'contact', col: 'city' },
-  land: { table: 'contact', col: 'country' },
-  twitter: { table: 'contact', col: 'twitter_handle' },
-  firma: { table: 'company', col: 'name' },
-  branche: { table: 'company', col: 'industry' },
-  groesse: { table: 'company', col: 'size_range' },
-  domain: { table: 'company', col: 'domain' },
-  firmaStadt: { table: 'company', col: 'city' },
-  firmaLand: { table: 'company', col: 'country' },
 };
 
 // DetailField · DetailSection · StatusBadge · DetailPhoneList → ausgelagert nach
@@ -742,7 +716,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
           <div className="grid sm:grid-cols-2 gap-x-8 gap-y-5">
             <DetailField label="E-Mail" type="email" copyable value={contact.email} validate={isValidEmail} autoEdit={initialFocusField === 'email'} onCopy={() => showToast('Kopiert ✓')} onSave={(v) => saveContactField('email', v)} />
             <DetailField label="LinkedIn" copyable value={contact.linkedin} autoEdit={initialFocusField === 'linkedin'} href={`https://www.linkedin.com/${contact.linkedin.replace(/^\/+/, '')}`} onCopy={() => showToast('Kopiert ✓')} onSave={(v) => saveContactField('linkedin', v)} />
-            <DetailField label="Webadresse" copyable value={contact.web} validate={(v) => isValidUrl(normalizeUrl(v))} autoEdit={initialFocusField === 'website'} href={`https://${contact.web.replace(/^https?:\/\//, '')}`} onCopy={() => showToast('Kopiert ✓')} onSave={(v) => saveContactField('web', v)} />
+            <DetailField label="Webadresse" copyable value={contact.web} validate={(v) => isValidUrl(normalizeUrl(v))} errorText="Bitte eine gültige Adresse eingeben (mit https://)." autoEdit={initialFocusField === 'website'} href={`https://${contact.web.replace(/^https?:\/\//, '')}`} onCopy={() => showToast('Kopiert ✓')} onSave={(v) => saveContactField('web', v)} />
           </div>
           <div className="mt-5">
             <DetailPhoneList

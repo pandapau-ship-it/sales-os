@@ -4422,6 +4422,22 @@ wird Upsell unterdrückt. Single Source = `applyFarmerDisplayPrecedence` → `ca
 Reihenfolge bleibt: **Gekündigt > Churn > Kalt > Upsell**. Scoring (`signals`/`score`/Top-5) bleibt unberührt —
 nur die Anzeige filtert.
 
+**INVARIANTE — Details-Tab-Felder = Single Source (verbindlich):**
+Auswahl-Optionen (Anrede/Sprache/Seniorität/Land/Branche/Größe), das Feld→DB-Spalte-Mapping (`DETAIL_MAP`),
+`PHONE_TYPES` und das Seed-Mapping (`seedContactDetails`) liegen **zentral in `src/lib/contactDetailFields.ts`**
+und werden von **Hunter UND Farmer** importiert — nie pro Panel dupliziert. Bearbeiten schreibt über
+`updateContact`/`updateCompany`/`contact_phones`-Mutationen (reload-persistent). Was Hunter im Details-Tab kann
+(anzeigen UND bearbeiten), kann Farmer — fehlende Queries werden systemweit in **beiden** Panels verdrahtet.
+**Edit-Konsistenz (verbindlich):** Jede Edit-Funktion (Text/Select/Telefon inkl. Typ-Dropdown) muss in **Sidepanel
+UND Vollansicht** und in **Hunter UND Farmer** identisch funktionieren — keine Stelle, wo Sidepanel mehr kann als
+Vollansicht oder Hunter mehr als Farmer. **z-index:** Dropdowns/Selects (`ui/dropdown-menu` z-[160]) müssen ÜBER der
+Vollansicht (`createPortal`, z-[120]) liegen — sonst öffnen sie unsichtbar dahinter. **Fehler-Feedback:** ungültige
+Eingaben zeigen einen erklärenden Hinweistext (`DetailField errorText` / KontaktZeile-Inline), nicht nur einen roten Rand.
+**KontaktZeile = inline für ALLE 4 Felder (verbindlich):** E-Mail/Telefon/LinkedIn/Web werden **inline in der Zeile**
+editiert (Stift → Input am Ort, Enter/Blur speichert) — einheitlich, kein Feld springt mehr per Stift in die Vollansicht.
+Der Weg in die Vollansicht ist der **Header-Vollansicht-Pfeil** (kein zweiter Stift-Deeplink → kein doppelter Button).
+Schreibt `updateContact` (E-Mail/LinkedIn) bzw. `updateCompany` (Web); Telefon über `contact_phones`-Mutationen.
+
 Wie Hunter, explizit als Recommendation Agent.
 
 Aufbau:

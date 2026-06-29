@@ -3,8 +3,10 @@ import { createPortal } from 'react-dom';
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { useCurrentOrg } from '@/hooks/useCurrentOrg';
 import { useAuth } from '@/hooks/useAuth';
-import { getContactDetail, getTasksByContact, getContactCommunications, getActivityByContact, getNotesByContact, getSettings, createTask, updateTask, completeTask, softDeleteTask, createNote, updateNote, softDeleteNote, createCommunication } from '@/lib/db';
+import { getContactDetail, getTasksByContact, getContactCommunications, getActivityByContact, getNotesByContact, getSettings, createTask, updateTask, completeTask, softDeleteTask, createNote, updateNote, softDeleteNote, createCommunication, updateContact, updateCompany, createContactPhone, updateContactPhone, setContactPhonePrimary, deleteContactPhone } from '@/lib/db';
 import { contactToProfile, communicationToView, calculateFarmerPriority, type CommunicationChannel, type CommunicationDirection } from '@/lib/hunterMappers';
+import { isValidEmail, normalizeUrl, isValidUrl } from '@/lib/validation';
+import { ANREDE_OPTS, SENIORITY_OPTS, SPRACHE_OPTS, LAND_OPTS, BRANCHE_OPTS, GROESSE_OPTS, PHONE_TYPES, DETAIL_MAP, seedContactDetails, type ContactDetailsState } from '@/lib/contactDetailFields';
 import KommunikationLogModal from '../hunter/KommunikationLogModal';
 import {
   X, Check, ArrowUpRight, ArrowLeft, Tag, User, Building2,
@@ -40,13 +42,15 @@ import type { Lead, Customer } from '@/types';
  * SLICE 8c: AktiveSignale echt — Flags aus customer-Scores/-Status, Schwellen aus settings.thresholds;
  *   Positiv-Zustand statt Fake-Karten.
  * SLICE 8d: Subscription-Tab echt — Plan/Status/MRR/ARR/Aktiv-seit aus companies-Embed (Single Source);
- *   NRR/Nächste-Zahlung/Kündigungsfrist = „Folgt" (kein DB-Feld). Noch „Folgt": Usage (8d/[D49]),
- *   Details-Tab (8e), KI [D5].
+ *   NRR/Nächste-Zahlung/Kündigungsfrist = „Folgt" (kein DB-Feld).
+ * SLICE 8e: Details-Tab echt + editierbar — Person/Firma aus getContactDetail, Schreiben via updateContact/
+ *   updateCompany (saveDetail/saveContactField), Telefon via DetailPhoneList (contact_phones). KontaktZeile-
+ *   Stift = Deep-Link in Details-Tab (onEditField + autoEdit). Owner/Tags/Usage „Folgt"; KI [D5].
  */
 
 export type FarmerTab = 'details' | 'overview' | 'activity' | 'communication' | 'tasks' | 'subscription' | 'usage' | 'notes';
 
-export default function FarmerSidepanel({ person: personProp, onClose, onExit, variant = 'panel', initialTab = null, initialTaskId = null, initialHighlightSection = null }: { person: Lead | Customer | null; onClose: () => void; onExit?: () => void; variant?: 'panel' | 'full'; initialTab?: FarmerTab | null; initialTaskId?: string | null; initialHighlightSection?: string | null }) {
+export default function FarmerSidepanel({ person: personProp, onClose, onExit, variant = 'panel', initialTab = null, initialTaskId = null, initialHighlightSection = null, initialFocusField = null }: { person: Lead | Customer | null; onClose: () => void; onExit?: () => void; variant?: 'panel' | 'full'; initialTab?: FarmerTab | null; initialTaskId?: string | null; initialHighlightSection?: string | null; initialFocusField?: string | null }) {
   const [activeTab, setActiveTab] = useState<FarmerTab>(variant === 'full' ? 'details' : (initialTab ?? 'overview'));
   // Sektions-Deeplink: ein Tab-Block (KI-Kurzakte/Subscription/Kommunikation) leuchtet kurz auf
   // (gleiches Muster wie TasksListe-Row, zentral via useDeeplinkHighlight + .deeplink-flash).
@@ -184,6 +188,79 @@ export default function FarmerSidepanel({ person: personProp, onClose, onExit, v
     onError: (e) => showToast(`Protokollieren fehlgeschlagen: ${(e as Error).message}`),
   });
 
+  // 8e: Details-Tab editierbar — Person/Firma/Telefon echt + schreibend (1:1 Hunter, Single Source).
+  const companyId = (contactRow as { company_id?: string } | null)?.company_id ?? null;
+  const [focusField, setFocusField] = useState<string | null>(initialFocusField); // Deep-Link Panel-Stift → Vollansicht (autoEdit)
+  const [details, setDetails] = useState<ContactDetailsState>(() => seedContactDetails(null));
+  const [editContact, setEditContact] = useState({ email: '', linkedin: '', web: '' });
+  useEffect(() => {
+    if (!contactRow) return;
+    setDetails(seedContactDetails(contactRow as Record<string, any>));
+    setEditContact({ email: profile.email ?? '', linkedin: profile.linkedinUrl ?? '', web: profile.website ?? '' });
+  }, [contactRow]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const invalidateContact = () => queryClient.invalidateQueries({ queryKey: ['contactDetail', organizationId, contactId] });
+  const updateContactMutation = useMutation({
+    mutationFn: (fields: Record<string, unknown>) => updateContact(contactId as string, organizationId, fields),
+    onSuccess: () => { invalidateContact(); showToast('Gespeichert ✓'); },
+    onError: (e) => showToast(`Fehler beim Speichern: ${(e as Error).message}`),
+  });
+  const updateCompanyMutation = useMutation({
+    mutationFn: (fields: Record<string, unknown>) => updateCompany(companyId as string, organizationId, fields),
+    onSuccess: () => { invalidateContact(); showToast('Gespeichert ✓'); },
+    onError: (e) => showToast(`Fehler beim Speichern: ${(e as Error).message}`),
+  });
+  // Details-Feld speichern: optimistisch + Persist auf die gemappte Spalte (NULL bei leer). 1:1 Hunter.
+  const saveDetail = (key: string, value: string) => {
+    setDetails((d) => ({ ...d, [key]: value }));
+    const target = DETAIL_MAP[key];
+    if (!target) return;
+    const v = value.trim();
+    const payload = { [target.col]: v === '' ? null : v };
+    if (target.table === 'contact') updateContactMutation.mutate(payload);
+    else if (companyId) updateCompanyMutation.mutate(payload);
+    else showToast('Keine Firma verknüpft');
+  };
+  const saveContactField = (field: 'email' | 'linkedin' | 'web', value: string) => {
+    const v = value.trim();
+    if (field === 'email') {
+      if (v !== '' && !isValidEmail(v)) { showToast('Ungültige E-Mail'); return; }
+      setEditContact((c) => ({ ...c, email: v }));
+      updateContactMutation.mutate({ email: v === '' ? null : v });
+    } else if (field === 'linkedin') {
+      setEditContact((c) => ({ ...c, linkedin: v }));
+      updateContactMutation.mutate({ linkedin_url: v === '' ? null : v });
+    } else { // web → company.website
+      const url = v === '' ? '' : normalizeUrl(v);
+      if (url !== '' && !isValidUrl(url)) { showToast('Ungültige URL'); return; }
+      setEditContact((c) => ({ ...c, web: url }));
+      if (companyId) updateCompanyMutation.mutate({ website: url === '' ? null : url });
+      else showToast('Keine Firma verknüpft');
+    }
+  };
+  // Telefon (contact_phones) — schreibend, invalidiert den contactDetail-Query (profile.phones).
+  const invalidatePhones = () => queryClient.invalidateQueries({ queryKey: ['contactDetail', organizationId, contactId] });
+  const setPhonePrimaryMutation = useMutation({
+    mutationFn: (phoneId: string) => setContactPhonePrimary(organizationId, contactId as string, phoneId),
+    onSuccess: () => { invalidatePhones(); showToast('Favorit-Nummer gesetzt ✓'); },
+    onError: () => showToast('Favorit konnte nicht gesetzt werden'),
+  });
+  const updatePhoneMutation = useMutation({
+    mutationFn: (p: { phoneId: string; number?: string; label?: string }) => updateContactPhone(organizationId, p.phoneId, { number: p.number, label: p.label }),
+    onSuccess: () => { invalidatePhones(); showToast('Nummer gespeichert ✓'); },
+    onError: () => showToast('Nummer konnte nicht gespeichert werden'),
+  });
+  const createPhoneMutation = useMutation({
+    mutationFn: (p: { number: string; label?: string; isPrimary?: boolean }) => createContactPhone(organizationId, contactId as string, p),
+    onSuccess: () => { invalidatePhones(); showToast('Nummer hinzugefügt ✓'); },
+    onError: () => showToast('Nummer konnte nicht hinzugefügt werden'),
+  });
+  const deletePhoneMutation = useMutation({
+    mutationFn: (phoneId: string) => deleteContactPhone(organizationId, phoneId),
+    onSuccess: () => { invalidatePhones(); showToast('Nummer entfernt'); },
+    onError: () => showToast('Nummer konnte nicht entfernt werden'),
+  });
+
   // Header-Quellen aus dem Mock-Kontakt (Slice 1). Farmer = Kunde → Subscription-Status statt Stage.
   const customer = person as Customer | null;
   const subscriptionStatus = customer?.sherloqStatus ?? null;
@@ -283,8 +360,6 @@ export default function FarmerSidepanel({ person: personProp, onClose, onExit, v
     </>
   );
 
-  // Mock-Telefon NUR noch für den Details-Tab (8e). KontaktZeile nutzt echte profile.phones (8a).
-  const mockPhones = [{ id: 'fp-1', type: 'Geschäftlich', number: '+49 89 1234 5678', favorite: true }];
   // 8a: KontaktZeile echt — Email/LinkedIn/Web + Telefon aus contactToProfile (getContactDetail).
   // Honesty: fehlende Werte → KontaktZeile (readonly) blendet das Element aus. Laden → PanelSkeleton.
   const contactPill = person && (
@@ -297,6 +372,20 @@ export default function FarmerSidepanel({ person: personProp, onClose, onExit, v
         contact={{ email: profile.email ?? '', linkedin: profile.linkedinUrl ?? '', web: profile.website ?? '' }}
         phones={profile.phones}
         onCopyField={() => showToast('Kopiert ✓')}
+        // FIX C: KontaktZeile editierbar 1:1 wie Hunter — Telefon inline (Phone-Mutationen), Text (Email/
+        // LinkedIn/Web) über den Stift → Vollansicht/Details-Tab (Deep-Link bleibt zusätzlich bestehen).
+        onSaveField={(f, v) => saveContactField(f as 'email' | 'linkedin' | 'web', v)}
+        onEditField={(f) => {
+          const target = f === 'web' ? 'website' : f;
+          if (variant === 'full') { setFocusField(target); setActiveTab('details'); }
+          else { setFocusField(target); setShowVollansicht(true); }
+        }}
+        onSetFavorite={(id) => setPhonePrimaryMutation.mutate(id)}
+        onUpdateNumber={(id, number) => updatePhoneMutation.mutate({ phoneId: id, number })}
+        onUpdateLabel={(id, label) => updatePhoneMutation.mutate({ phoneId: id, label })}
+        onAddPhone={() => createPhoneMutation.mutate({ number: '', label: 'Weitere', isPrimary: profile.phones.length === 0 })}
+        onRemovePhone={(id) => deletePhoneMutation.mutate(id)}
+        phoneTypes={PHONE_TYPES}
       />
     )
   );
@@ -460,65 +549,69 @@ export default function FarmerSidepanel({ person: personProp, onClose, onExit, v
       );
     });
 
-  // Details-Tab (nur Vollansicht) — ausschließlich Library-Komponenten (DetailSection · DetailField ·
-  // DetailPhoneList · NotizenListe), kein eigenes Feld-Markup. 1:1 wie Hunter, Mock readonly.
-  const dn = person ? person.person.name.split(' ') : [];
-  const detailFirst = dn[0] ?? '';
-  const detailLast = dn.slice(1).join(' ');
-  const detailEmail = person?.contactEmail || `${detailFirst.toLowerCase()}@${(person?.person.company ?? 'firma').toLowerCase().replace(/[^a-z]+/g, '')}.com`;
-  const detailLinkedin = person ? `in/${person.person.name.toLowerCase().replace(/[^a-z]+/g, '-')}` : '';
-  const detailWeb = `${(person?.person.company ?? 'example').toLowerCase().replace(/[^a-z]+/g, '')}.com`;
+  // Details-Tab (nur Vollansicht) — 1:1 Hunter, aber editierbar + echt: Person/Firma aus getContactDetail,
+  // Schreiben via updateContact/updateCompany (saveDetail/saveContactField), Telefon via DetailPhoneList.
+  // Farmer-Spezifikum: Klassifizierung zeigt SUBSCRIPTION statt Lead Status (Invariante). Honesty: leere
+  // DB-Werte → leer/ausgeblendet; Owner/Tags (kein DB-Feld) → „Folgt".
   const subLabel = subscriptionStatus === 'ACTIVE' ? 'Aktiv' : subscriptionStatus === 'CANCELLED' ? 'Gekündigt' : subscriptionStatus === 'TRIAL' ? 'Trial' : subscriptionStatus === 'TRIAL_EXPIRED' ? 'Trial abgelaufen' : '—';
   const detailsContent = person && (
     <div className="space-y-5 animate-fade-in">
       <DetailSection title="Person" icon={User} variant="page">
-        <DetailField label="Anrede" value="Herr" readonly />
-        <DetailField label="Sprache" value="Deutsch" readonly />
-        <DetailField label="Vorname" value={detailFirst} readonly />
-        <DetailField label="Nachname" value={detailLast} readonly />
-        <DetailField label="Jobtitel" value={person.person.jobTitle} readonly />
-        <DetailField label="Seniority" value="Director" readonly />
-        <DetailField label="Abteilung" value="Customer Success" readonly />
-        <DetailField label="Standort / Stadt" value="München" readonly />
-        <DetailField label="Land" value="Deutschland" readonly />
-        <DetailField label="Twitter / X" value={`@${detailFirst.toLowerCase()}`} readonly />
+        <DetailField label="Anrede" value={details.anrede} options={ANREDE_OPTS} onSelect={(v) => saveDetail('anrede', v)} />
+        <DetailField label="Sprache" value={details.sprache} options={SPRACHE_OPTS} onSelect={(v) => saveDetail('sprache', v)} />
+        <DetailField label="Vorname" value={details.vorname} onSave={(v) => saveDetail('vorname', v)} />
+        <DetailField label="Nachname" value={details.nachname} onSave={(v) => saveDetail('nachname', v)} />
+        <DetailField label="Jobtitel" value={details.jobtitel} onSave={(v) => saveDetail('jobtitel', v)} />
+        <DetailField label="Seniority" value={details.seniority} options={SENIORITY_OPTS} onSelect={(v) => saveDetail('seniority', v)} />
+        <DetailField label="Abteilung" value={details.abteilung} onSave={(v) => saveDetail('abteilung', v)} />
+        <DetailField label="Standort / Stadt" value={details.stadt} onSave={(v) => saveDetail('stadt', v)} />
+        <DetailField label="Land" value={details.land} options={LAND_OPTS} onSelect={(v) => saveDetail('land', v)} />
+        <DetailField label="Twitter / X" value={details.twitter} onSave={(v) => saveDetail('twitter', v)} />
 
-        {/* Kontaktdaten — in dezenter grauer Sub-Kachel (1:1 Hunter-Muster) */}
+        {/* Kontaktdaten — in dezenter grauer Sub-Kachel (1:1 Hunter-Muster), editierbar + echt */}
         <div className="sm:col-span-2 bg-app-bg rounded-[10px] p-5">
           <div className="grid sm:grid-cols-2 gap-x-8 gap-y-5">
-            <DetailField label="E-Mail" type="email" copyable value={detailEmail} onCopy={() => showToast('Kopiert ✓')} readonly />
-            <DetailField label="LinkedIn" copyable value={detailLinkedin} href={`https://www.linkedin.com/${detailLinkedin}`} onCopy={() => showToast('Kopiert ✓')} readonly />
-            <DetailField label="Webadresse" copyable value={detailWeb} href={`https://${detailWeb}`} onCopy={() => showToast('Kopiert ✓')} readonly />
+            <DetailField label="E-Mail" type="email" copyable value={editContact.email} validate={isValidEmail} autoEdit={focusField === 'email'} onCopy={() => showToast('Kopiert ✓')} onSave={(v) => saveContactField('email', v)} />
+            <DetailField label="LinkedIn" copyable value={editContact.linkedin} autoEdit={focusField === 'linkedin'} href={`https://www.linkedin.com/${editContact.linkedin.replace(/^\/+/, '')}`} onCopy={() => showToast('Kopiert ✓')} onSave={(v) => saveContactField('linkedin', v)} />
+            <DetailField label="Webadresse" copyable value={editContact.web} validate={(v) => isValidUrl(normalizeUrl(v))} errorText="Bitte eine gültige Adresse eingeben (mit https://)." autoEdit={focusField === 'website'} href={`https://${editContact.web.replace(/^https?:\/\//, '')}`} onCopy={() => showToast('Kopiert ✓')} onSave={(v) => saveContactField('web', v)} />
           </div>
           <div className="mt-5">
-            <DetailPhoneList phones={mockPhones} types={['Mobil', 'Geschäftlich', 'Privat', 'Weitere']} readonly onCopy={() => showToast('Kopiert ✓')} />
+            <DetailPhoneList
+              phones={profile.phones}
+              types={PHONE_TYPES}
+              onSetFavorite={(id) => setPhonePrimaryMutation.mutate(id)}
+              onUpdate={(id, patch) => updatePhoneMutation.mutate({ phoneId: id, number: patch.number, label: patch.type })}
+              onAdd={() => createPhoneMutation.mutate({ number: '', label: 'Weitere', isPrimary: profile.phones.length === 0 })}
+              onRemove={(id) => deletePhoneMutation.mutate(id)}
+              onCopy={() => showToast('Kopiert ✓')}
+            />
           </div>
         </div>
       </DetailSection>
 
       <DetailSection title="Firma" icon={Building2} variant="page">
-        <DetailField label="Firma" value={person.person.company} readonly />
-        <DetailField label="Branche" value="SaaS" readonly />
-        <DetailField label="Unternehmensgröße" value="51–200" readonly />
-        <DetailField label="Domain" copyable value={detailWeb} href={`https://${detailWeb}`} onCopy={() => showToast('Kopiert ✓')} readonly />
-        <DetailField label="Stadt / HQ" value="München" readonly />
-        <DetailField label="Land" value="Deutschland" readonly />
+        <DetailField label="Firma" value={details.firma} onSave={(v) => saveDetail('firma', v)} />
+        <DetailField label="Branche" value={details.branche} options={BRANCHE_OPTS} onSelect={(v) => saveDetail('branche', v)} />
+        <DetailField label="Unternehmensgröße" value={details.groesse} options={GROESSE_OPTS} onSelect={(v) => saveDetail('groesse', v)} />
+        <DetailField label="Domain" copyable value={details.domain} href={`https://${details.domain.replace(/^https?:\/\//, '')}`} onCopy={() => showToast('Kopiert ✓')} onSave={(v) => saveDetail('domain', v)} />
+        <DetailField label="Stadt / HQ" value={details.firmaStadt} onSave={(v) => saveDetail('firmaStadt', v)} />
+        <DetailField label="Land" value={details.firmaLand} options={LAND_OPTS} onSelect={(v) => saveDetail('firmaLand', v)} />
       </DetailSection>
 
-      {/* Farmer-spezifisch: Subscription-Status statt Lead Status */}
+      {/* Farmer-Invariante: Subscription-Status statt Lead Status. Owner/Tags = kein DB-Feld → „Folgt" (Honesty). */}
       <DetailSection title="Klassifizierung" icon={Tag} variant="page">
         <DetailField label="Subscription-Status" value={subLabel} readonly />
         <DetailField label="ICP Score" value={person.icpScore != null ? String(person.icpScore) : ''} readonly />
-        <DetailField label="Owner" value="Oliver Prossi" readonly />
-        <DetailField label="Tags" value="Bestandskunde · Growth" readonly />
+        <DetailField label="Owner" value="Folgt" readonly />
+        <DetailField label="Tags" value="Folgt" readonly />
       </DetailSection>
 
       <NotizenListe
         onToast={showToast}
-        noteRows={[]}
-        onCreate={() => showToast('Notiz gespeichert ✓')}
-        onUpdate={() => showToast('Notiz gespeichert ✓')}
-        onDelete={() => showToast('Notiz gelöscht')}
+        noteRows={notesQuery.data ?? []}
+        onCreate={(body) => createNoteMutation.mutate(body)}
+        onUpdate={(id, body) => updateNoteMutation.mutate({ id, body })}
+        onDelete={(id) => deleteNoteMutation.mutate(id)}
       />
     </div>
   );
@@ -629,7 +722,7 @@ export default function FarmerSidepanel({ person: personProp, onClose, onExit, v
 
       {/* [D47] Vollansicht — eigene FarmerSidepanel-Instanz als Vollseiten-Overlay (analog Hunter). */}
       {variant !== 'full' && showVollansicht && (
-        <FarmerSidepanel person={display} onClose={() => setShowVollansicht(false)} onExit={onClose} variant="full" />
+        <FarmerSidepanel person={display} onClose={() => setShowVollansicht(false)} onExit={onClose} variant="full" initialFocusField={focusField} />
       )}
 
       {/* [D34] Farmer Action Panel — Churn Risk / Kunde wird kalt. Renderer = ChatActionPanel (unverändert).

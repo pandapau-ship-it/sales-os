@@ -737,14 +737,62 @@ kam es, wie groß ist es** — und einen **klaren nächsten Schritt** anstoßen 
     Begründung: Geld-Logik-Priorisierung (Gekündigt > Churn > Kalt > Upsell) + moderne CS-Praxis (Gainsight/Catalyst/
     Vitally). Scoring (`signals`/`score`/Top-5) bleibt unberührt — nur die **Anzeige** filtert. Churn/Upsell nie
     gleichzeitig als Handlungsempfehlung.
-  - **(c) KontaktZeile-Editierbarkeit (8e):** Die Sidepanel-KontaktZeile ist **read-only** (nur Copy) —
-    **Bearbeiten erfolgt in der Vollansicht/Details-Tab** (Stift verlinkt dorthin, DB-Write dort). **Telefon
-    (`contact_phones`) wird via `DetailPhoneList` in der Vollansicht editiert, NICHT inline im Sidepanel.**
-    (Slice 8a: KontaktZeile-Anzeige bereits echt via `contactToProfile`; Edit-Pfad = 8e.)
-    **8b-write:** Der KontaktZeile-**Stift** ist im Farmer aktuell **ausgeblendet** (kein toter Button —
-    `KontaktZeile` rendert ihn nur noch, wenn `onEditField` gesetzt ist; Hunter reicht ihn, Farmer nicht).
-    **8e bringt ihn als Deep-Link zurück:** Farmer reicht dann `onEditField` → Stift öffnet die
-    Vollansicht/Details-Tab mit Feldfokus (1:1 Hunter `setFocusField`+`setShowVollansicht`).
+  - **(c) KontaktZeile-Editierbarkeit ✅ erledigt (8e):** Sidepanel-KontaktZeile bleibt **read-only** (Copy);
+    **Bearbeiten in der Vollansicht/Details-Tab**. Der **Stift** ist wieder da als **Deep-Link**: Farmer reicht
+    `onEditField` → öffnet Vollansicht + Details-Tab mit Feldfokus (`focusField`/`autoEdit`, 1:1 Hunter). Telefon
+    (`contact_phones`) wird via `DetailPhoneList` in der Vollansicht editiert (Favorit/Nummer/Label/Add/Remove),
+    nicht inline im Sidepanel.
+
+### [8e] Details-Tab Vollansicht komplett echt + editierbar (29.06.2026) ✅ — letzter Farmer-Panel-Slice
+- **Person + Firma echt** aus `getContactDetail` (Single Source, bestehender contactQuery — kein neuer Fetch),
+  **editierbar + DB-schreibend**: `saveDetail` → `updateContact`/`updateCompany` über das geteilte `DETAIL_MAP`;
+  E-Mail/LinkedIn/Web → `saveContactField` (mit Validierung). **Telefon** via `DetailPhoneList` →
+  `setContactPhonePrimary`/`updateContactPhone`/`createContactPhone`/`deleteContactPhone`. Alles reload-persistent.
+- **Einheitsgebot:** Optionslisten + `DETAIL_MAP` + Seed-Mapping nach **`src/lib/contactDetailFields.ts`**
+  ausgelagert (Single Source) — Hunter **und** Farmer importieren sie; Hunter-Verhalten unverändert (gleiche Werte,
+  keine Regression). Keine Dublette.
+- **Honesty:** leere DB-Werte → leer/ausgeblendet; **Owner/Tags** (kein DB-Feld) → „Folgt"; Usage [[D49]] „Folgt";
+  KI-Kurzakte [[D5]]. **Farmer-Invariante:** Klassifizierung zeigt **Subscription-Status**, nie Lead Status.
+- **Damit ist das Farmer-Panel vollständig echt** (Header/KontaktZeile 8a · Tabs+Writes 8b · Signale 8c ·
+  Subscription 8d · Details 8e). Kein synthetisiertes/hardcodiertes Profil- oder Firmenfeld mehr im Farmer-Panel.
+
+### [FIX] Details-/KontaktZeile-Edit systemweit (29.06.2026) ✅ — 5 Lücken, geteilte Komponenten
+QA fand 5 Edit-Lücken (teils auch Hunter), alle in **geteilten** Komponenten → systemweite Fixes, keine Insel:
+- **(A) Dropdown-Schichtung (löst #2 Telefon-Typ, #3 Branche/Größe, #4 Sidepanel≠Vollansicht):** `DropdownMenuContent`/
+  `SubContent` lagen auf **z-50** und damit **hinter** der Vollansicht (`createPortal`, z-[120]) → Selects/Typ-Dropdown
+  öffneten unsichtbar. **Fix:** Dropdown → **z-[160]** (über Vollansicht 120, unter Toast 200). Wirkt für ALLE Selects
+  (Anrede/Sprache/Seniorität/Land/Branche/Größe) + Telefon-Typ, Hunter+Farmer, Sidepanel+Vollansicht. Verdrahtung von
+  Branche/Größe war nie kaputt — nur verdeckt.
+- **(B) Fehlermeldung (#5):** `DetailField` zeigte bei `validate`-Fehler nur roten Rand, keinen Text. **Fix:** optionaler
+  `errorText`-Prop + freundlicher Hinweis unter dem Input (E-Mail-Default „…mit @", URL → „…mit https://"). Geteilt.
+- **(C) Farmer-KontaktZeile editierbar (#1) — REVISION der 8a-„read-only"-Entscheidung:** Die KontaktZeile war seit 8a
+  bewusst read-only (Edit nur via Stift→Vollansicht). **Neue Entscheidung (29.06.2026):** Farmer-KontaktZeile wird
+  editierbar **1:1 wie Hunter** — Telefon inline (Phone-Mutationen), Text (Email/LinkedIn/Web) weiterhin über den
+  **Stift-Deep-Link** in die Vollansicht (beide Wege bestehen). **Begründung:** Einheitsgebot + Nutzwert wiegen schwerer
+  als die ursprüngliche read-only-Linie. Reload-persistent.
+- **(D) Sichtbarer Telefon-Stift:** `DetailPhoneList` bekam einen expliziten Bearbeiten-Stift pro Nummer (statt nur
+  unsichtbarem Klick-auf-die-Nummer) → klare Affordance, Hunter+Farmer (geteilt).
+- **Einheitsgebot erfüllt:** Jede Edit-Funktion (Text/Select/Telefon inkl. Typ) funktioniert jetzt **identisch** in
+  Hunter+Farmer und Sidepanel+Vollansicht. Touch: `ui/dropdown-menu.tsx`, `DetailField.tsx`, `DetailPhoneList.tsx`,
+  `FarmerSidepanel.tsx`, `HunterSidepanel.tsx`.
+
+### [FIX] KontaktZeile vollständig inline-editierbar + 2 Telefon-Bugs (30.06.2026) ✅
+- **(1) ENTSCHEIDUNG — KontaktZeile alle 4 Felder inline:** E-Mail/LinkedIn/Web werden jetzt **inline in der Zeile**
+  editiert (Stift → Input direkt im Feld, Enter/Blur speichert, Escape bricht ab) — **exakt wie Telefon** schon.
+  Vorher inkonsistent (Telefon inline, die drei sprangen per Stift in die Vollansicht; rein historisch, weil Telefon
+  eine eigene Edit-Komponente hatte). **Begründung:** Konsistenz + moderne-CRM-Standard (Edit am Ort). E-Mail/LinkedIn
+  → `updateContact`, Web → `updateCompany`; Validierung + Fehlertext direkt in der KontaktZeile; reload-persistent.
+  **Geteilte Komponente** → Hunter **und** Farmer, Sidepanel **und** Vollansicht. **Stift vs. Vollansicht sauber
+  getrennt:** der Stift öffnet inline; der Weg in die Vollansicht bleibt über den **Vollansicht-Pfeil im Header**
+  (kein doppelter/toter Button).
+- **(2) BUG Telefon-Typ schloss neue Nummer:** Beim Anlegen einer neuen Nummer schloss/verwarf das Wählen des Typs
+  das Feld (Dropdown-Klick blurte den Input → „leer = verwerfen"). **Fix:** `onMouseDown preventDefault` am Typ-Trigger
+  → Typ-Wahl stiehlt dem Input nicht den Fokus, Edit bleibt offen bis aktiv gespeichert/abgebrochen.
+- **(3) BUG „Nur Ziffern und +" bei reinen Ziffern:** „9384" wurde abgelehnt — Ursache war die **Mindestlänge 5**
+  (nicht das „+", das war nie Pflicht). **Fix:** `isValidPhone` = erlaubte Zeichen + **mind. 3 Ziffern**, „+" optional,
+  Format-zeichen toleriert. Meldung freundlich/korrekt („Bitte eine gültige Telefonnummer eingeben (mind. 3 Ziffern).").
+  Gültig jetzt z.B. „9384", „+49 221 123 456", „(0221) 12-34"; ungültig: leer/Buchstaben/<3 Ziffern.
+- Touch: `validation.ts`, `DetailPhoneList.tsx`, `KontaktZeile.tsx`. Geteilt → systemweit, keine Insel.
 
 - **💰 MRR/ARR Übergangslösung (ENTSCHEIDUNG 29.06.2026)** — Teil des Farmer-DB-Wirings (Owner-/Auth-Bezug [[D21]]):
   - **Slice 1** legt `mrr_monthly` + `arr_yearly` als Felder auf **`companies`** an (nullable). *(Korrigiert die
@@ -833,6 +881,19 @@ QA der Farmer-Scores ergab zwei systematische Verzerrungen — behoben (Score-Eb
   und sind echt verdrahtet (Slice 4a/4c). Churn/Upsell-Gewichte liegen in `settings`
   (`churn_weights`/`upsell_weights`) → per Einstellung änderbar, kein Code-Eingriff. Usage = Verfeinerung.
 - Verwandt: [[D43]] Historisierung (Usage-Snapshots) · `score_churn_risk`/`score_upsell` (additive Felder).
+
+### [D50] Farmer Deals-Tab + Deal-Anlegen (deferred)
+- **Status:** deferred, eigenes Vorhaben **nach** Farmer-Panel-Abschluss.
+- **Bedarf:** Ein Bestandskunde (Farmer) kann mehrere Deals haben (Upsell/Erweiterung/Verlängerung). Farmer braucht daher:
+  - **(a)** einen **Deals-Tab** im Panel (+ ggf. Vollansicht), der die Deals des Kontakts zeigt — `getDealsByContact`
+    existiert bereits.
+  - **(b)** einen Action-Button **„Deal anlegen"** (`createDeal`) — analog zu Task/Notiz-Anlegen (8b-write).
+- **Einheitsgebot:** prüfen wie **Hunter** Deals handhabt (Hunter hat bereits einen Deals-Tab); Deals-Tab/Deal-Anlegen
+  wenn möglich als **geteilte Komponente** (Hunter + Farmer), keine Farmer-Insel.
+- **Architektur-Bezug:** hängt mit [[D38]] (Won-Deal → Kunde-Lifecycle) und der MRR-Logik zusammen (MRR aus Won-Deal
+  abgeleitet, `mrr_source`). **Ein neuer gewonnener Deal bei einem Bestandskunden soll MRR/Subscription beeinflussen**
+  — beim Bau mitdenken.
+- **Standard-Anforderungen** (wie alle Edit-Slices): reload-persistent, echter DB-Write, kein toter Button/Attrappe.
 
 ### [CLEANUP] `score_drivers` → `churn_drivers` umbenennen (Symmetrie mit `upsell_drivers`)
 - Heute: `contacts.score_drivers` (+ `data_sources`) = **Churn**-Treiber (048/score-churn-risk) ·
