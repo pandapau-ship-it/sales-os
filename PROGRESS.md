@@ -882,6 +882,21 @@ QA der Farmer-Scores ergab zwei systematische Verzerrungen — behoben (Score-Eb
   (`churn_weights`/`upsell_weights`) → per Einstellung änderbar, kein Code-Eingriff. Usage = Verfeinerung.
 - Verwandt: [[D43]] Historisierung (Usage-Snapshots) · `score_churn_risk`/`score_upsell` (additive Felder).
 
+### [FARMER-EXPANDED] Aufgeklappter Kachelbereich echt (30.06.2026) ✅
+`FarmerExpandedCardContent` war komplett Mock (kein Query) — jetzt Lazy-Query-getrieben, 1:1 wie Hunters `ExpandedCardContent`:
+- **Kommunikationskette echt:** `getContactCommunications(org, customer.id)` → `communicationToView` → `CommunicationChain
+  items=…` (Lazy `useQuery` IN der Komponente, nicht im `.map` → audit-safe; `placeholderData`). Vorher: **erfundener
+  `personId`-Mock-Strang** — entfernt. Leer → „Noch keine Kommunikation protokolliert." Query-Key `contactCommunications`
+  = **derselbe Cache wie der Sidepanel-Kommunikation-Tab** (Konsistenz, kein Doppel-Fetch).
+- **Subscription (compact) echt:** aus `customer` (`mrrMonthly`→€, `plan` [ehrlich nach Wurzelfix], `sherloqStatus`) —
+  **Single Source mit Panel-8d, kein neuer Fetch**. `nextPayment`/`NRR` = „Folgt" (kein DB-Feld). Vorher hardcodiert
+  „2.000 €"/„01.07.2026" — raus. **Subscription nie Stage** (über `sherloqStatus`).
+- **Usage (compact):** „Folgt" [[D49]] — leeres Objekt → `UsageBox` rendert null (Fake 8500/10000 + „Onboarding
+  abgeschlossen" raus).
+- **KI-Kurzakte:** `KiKurzaktePlaceholder` [[D5]]. **Deals:** weiterhin [[D50]].
+- **Konsistenz bestätigt:** aufgeklappter Bereich zeigt für denselben Kunden dieselben Subscription-/Kommunikations-Daten
+  wie das Sidepanel (gleiche Quellen: `customer`/`companies` bzw. `getContactCommunications`). Kein erfundener Wert mehr.
+
 ### [HONESTY-WURZELFIX] „Growth"-Default in customerRowToView entfernt (30.06.2026) ✅
 - **Problem:** `customerRowToView` defaultete `subscriptionPlan` auf **„Growth"**, wenn `companies.subscription_plan`
   NULL ist (`… ?? "Growth"`) → bei Demo-Daten (alle NULL) zeigte **jeder** Kunde fälschlich „Growth". Inkonsistent
