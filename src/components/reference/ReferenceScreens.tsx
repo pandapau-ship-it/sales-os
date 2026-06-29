@@ -293,7 +293,9 @@ export function FarmerReference() {
     queryFn: () => getSettings(organizationId),
     staleTime: 5 * 60_000,
   });
-  const churnThreshold = ((settingsQuery.data?.thresholds as Record<string, unknown> | undefined)?.churn_risk_threshold as number | undefined) ?? 61;
+  const farmerThresholds = settingsQuery.data?.thresholds as Record<string, unknown> | undefined;
+  const churnThreshold = (farmerThresholds?.churn_risk_threshold as number | undefined) ?? 61;
+  const upsellThreshold = (farmerThresholds?.upsell_threshold as number | undefined) ?? 70;
   // Slice 4: ScreenFarming öffnet eigene Panels (FarmerSidepanel/FarmerActionDrawer) intern —
   // kein CustomerDrawer mehr im Farmer. (CustomerDrawer bleibt für MeinTag/Hunter, bis migriert.)
   return (
@@ -301,6 +303,7 @@ export function FarmerReference() {
       <ScreenFarming
         customers={customersData}
         churnThreshold={churnThreshold}
+        upsellThreshold={upsellThreshold}
         onUpgradeSubscription={s.upgradeSubscription}
         onSelectCommunication={s.selectCommunication}
       />

@@ -36,22 +36,19 @@ function retentionText(type: 'churn_risk' | 'cancelled', drivers?: { signal: str
     : 'Churn-Score über Schwelle — Check-in empfohlen.'; // Honesty-Fallback (keine Treiber)
 }
 
-/**
- * Upsell-Tab Mock-Kacheln — 1 Typ (Upsell Potential, grüne Zap-Badge). Bis Score-/Signal-
- * Anbindung. HEAT über kanonischen Enum→HeatBadge: Warm→WARM, Engaged→HOT.
- */
-const UPSELL_ITEMS: UpsellItem[] = [
-  {
-    id: 'ups-1', name: 'Sarah Jenkins', jobTitle: 'Head of Growth', company: 'CloudSphere',
-    icpScore: 84, heatStatus: 'WARM', sherloqStatus: 'active', timeLabel: 'vor 3 Tagen',
-    text: 'Nutzung des Features stark gestiegen. AI empfiehlt Upsell-Option.',
-  },
-  {
-    id: 'ups-2', name: 'Thomas Müller', jobTitle: 'BDR Enablement Specialist', company: 'HiringMate Ltd',
-    icpScore: 49, heatStatus: 'HOT', sherloqStatus: 'active', timeLabel: 'vor 1 Tag',
-    text: 'Enrichment-Limit zu 85% ausgeschöpft. AI empfiehlt Plan-Upgrade.',
-  },
-];
+// Upsell-Treiber (upsell_drivers.signal) → lesbares Label. Banner aus ECHTEN Treibern (Honesty).
+const UPSELL_DRIVER_LABEL: Record<string, string> = {
+  reply_rate: 'hohe Antwortrate',
+  recent_contact: 'kürzlich kontaktiert',
+  heat_hot: 'Kontakt warm/heiß',
+  active_deal: 'aktiver Deal',
+};
+function upsellText(drivers?: { signal: string }[]): string {
+  const names = (drivers ?? []).map((d) => UPSELL_DRIVER_LABEL[d.signal] ?? d.signal);
+  return names.length
+    ? `Upsell-Chance: ${names.join(' · ')}.`
+    : 'Upsell-Score über Schwelle — Wachstumschance.'; // Honesty-Fallback (keine Treiber)
+}
 
 /**
  * Mock-Signale je Kunde (Company-gematcht) — NUR echte Aktivitäts-/LinkedIn-Signale (wie Hunter).
@@ -71,12 +68,15 @@ interface ScreenFarmingProps {
   onSelectCommunication?: (personId: string, tpId: string) => void;
   /** Churn-Schwelle aus settings.thresholds.churn_risk_threshold (Fallback 61). */
   churnThreshold?: number;
+  /** Upsell-Schwelle aus settings.thresholds.upsell_threshold (Fallback 70). */
+  upsellThreshold?: number;
 }
 
 export default function ScreenFarming({
   customers,
   onUpgradeSubscription: _onUpgradeSubscription,
   churnThreshold = 61,
+  upsellThreshold = 70,
 }: ScreenFarmingProps) {
   const [subTab, setSubTab] = useState<'overview' | 'kunden' | 'churn' | 'upsell' | 'signals' | 'follow_ups'>('overview');
   const { toast } = useToast();
@@ -95,18 +95,6 @@ export default function ScreenFarming({
   // Deeplink aus der aufgeklappten Kachel: FarmerSidepanel direkt auf dem passenden Tab öffnen,
   // optional mit Sektions-ID → der Ziel-Block dort leuchtet kurz auf (Deeplink-Highlight).
   const openOnTab = (p: Customer | Lead, tab: FarmerTab, section?: string) => { setInfoTaskId(null); setInfoTab(tab); setInfoHighlightSection(section ?? null); setInfoPerson(p); };
-  // Retention-/Upsell-Item (kein Customer-Objekt) → minimaler Customer fürs FarmerSidepanel (Mock-Shaping).
-  const itemToPerson = (it: RetentionItem | UpsellItem): Customer => ({
-    id: it.id,
-    person: {
-      id: it.id, name: it.name, jobTitle: it.jobTitle, company: it.company,
-      initials: it.name.split(' ').filter(Boolean).map((w) => w[0]).slice(0, 2).join('').toUpperCase(),
-    },
-    icpScore: it.icpScore,
-    heatStatus: it.heatStatus,
-    sherloqStatus: (it.sherloqStatus ?? '').toUpperCase(),
-    contactEmail: '',
-  } as Customer);
 
   // MOCK fällige Tasks (Honesty: realistische Werte, kein Fake-KI) — echte Werte mit Farmer-DB-Wiring.
   const nowMs = Date.now();
@@ -165,13 +153,18 @@ export default function ScreenFarming({
       return (b.c.churnScore ?? 0) - (a.c.churnScore ?? 0);
     });
 
-  // Badge-Counts: Kunden + Retention echt; Upsell (€) + Signals Mock bis zur Score-/Signal-Anbindung.
+  // Upsell-Liste — echte Kunden mit upsellScore ≥ Schwelle (settings), nach Score absteigend.
+  const upsellRows = customers
+    .filter((c) => typeof c.upsellScore === 'number' && c.upsellScore >= upsellThreshold)
+    .sort((a, b) => (b.upsellScore ?? 0) - (a.upsellScore ?? 0));
+
+  // Badge-Counts: Kunden + Retention + Upsell echt; Signals Mock bis zur Signal-Anbindung.
   const churnCount = retentionRows.length;
   const menuItems: { id: string; label: string; icon?: React.ReactNode; count?: string | number }[] = [
     { id: 'overview', label: 'Übersicht' },
     { id: 'kunden', label: 'Kunden', count: customers.length },
     { id: 'churn', label: 'Retention', icon: <AlertTriangle className="w-3.5 h-3.5" />, count: churnCount },
-    { id: 'upsell', label: 'Upsell', icon: <TrendingUp className="w-3.5 h-3.5" />, count: '4.2k€' },
+    { id: 'upsell', label: 'Upsell', icon: <TrendingUp className="w-3.5 h-3.5" />, count: upsellRows.length },
     { id: 'signals', label: 'Signals', icon: <Sparkles className="w-3.5 h-3.5" />, count: signalRows.length },
     { id: 'follow_ups', label: 'Follow-ups', icon: <CheckSquare className="w-3.5 h-3.5" />, count: dueTaskCards.length + 1 },
   ];
@@ -351,18 +344,34 @@ export default function ScreenFarming({
         </div>
       )}
 
-      {/* 4. VIEW UPSELL — Upsell Potential (FarmerUpsellKachel = HunterCard-Wrapper, Mock) */}
+      {/* 4. VIEW UPSELL — echte Kunden: upsellScore ≥ Schwelle (settings). Leer → EmptyState. */}
       {subTab === 'upsell' && (
         <div className="flex flex-col gap-3">
-          {UPSELL_ITEMS.map((item) => (
-            <FarmerUpsellKachel
-              key={item.id}
-              item={item}
-              onOpenPanel={() => openInfo(itemToPerson(item))}
-              onAction={() => setActionSignal({ kind: 'upsell_potential', name: item.name, company: item.company, icpScore: item.icpScore })}
-              expandedSlot={<FarmerExpandedCardContent customer={itemToPerson(item)} onOpenPanel={(tab, section) => openOnTab(itemToPerson(item), tab as FarmerTab, section)} />}
+          {upsellRows.length === 0 ? (
+            <EmptyState
+              icon={<TrendingUp className="w-6 h-6" />}
+              title="Kein Upsell-Potenzial"
+              description="Kein Kunde über der Upsell-Schwelle — erscheint automatisch, sobald die Scores steigen."
             />
-          ))}
+          ) : (
+            upsellRows.map((c) => {
+              const item: UpsellItem = {
+                id: c.id, name: c.person.name, jobTitle: c.person.jobTitle, company: c.person.company,
+                avatarUrl: c.person.avatarUrl, icpScore: c.icpScore, heatStatus: c.heatStatus,
+                sherloqStatus: c.sherloqStatus, timeLabel: c.lastLogin,
+                text: upsellText(c.upsellDrivers),
+              };
+              return (
+                <FarmerUpsellKachel
+                  key={c.id}
+                  item={item}
+                  onOpenPanel={() => openInfo(c)}
+                  onAction={() => setActionSignal({ kind: 'upsell_potential', name: c.person.name, company: c.person.company, icpScore: c.icpScore })}
+                  expandedSlot={<FarmerExpandedCardContent customer={c} onOpenPanel={(tab, section) => openOnTab(c, tab as FarmerTab, section)} />}
+                />
+              );
+            })
+          )}
         </div>
       )}
 
