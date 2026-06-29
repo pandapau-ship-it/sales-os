@@ -52,6 +52,12 @@ export interface Customer extends Lead {
     description: string;
     value: string;
   };
+  // Echte Farmer-Scores (Migration 048; berechnet von den Score-Edge-Functions in Slice 2).
+  // Optional + nullable: solange die Funktionen nicht laufen → undefined (Honesty: nicht anzeigen).
+  churnScore?: number;    // 0-100 (contacts.churn_score)
+  upsellScore?: number;   // 0-100 (contacts.upsell_score)
+  healthScore?: number;   // 0-100 (contacts.health_score)
+  healthStatus?: string;  // gesund | aufmerksamkeit | kritisch (contacts.health_status)
 }
 
 export interface TaskItemType {
