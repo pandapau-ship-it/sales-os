@@ -1,5 +1,9 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
+import { useCurrentOrg } from '@/hooks/useCurrentOrg';
+import { getContactDetail } from '@/lib/db';
+import { contactToProfile } from '@/lib/hunterMappers';
 import {
   X, Check, ArrowUpRight, ArrowLeft, Tag, User, Building2,
   LayoutDashboard, Activity, MessageSquare, CheckSquare, CreditCard, BarChart3, FileText,
@@ -12,7 +16,7 @@ import { useDeeplinkHighlight } from '@/hooks/useDeeplinkHighlight';
 import {
   AktiveSignale, AktivitaetsVerlauf, DetailField, DetailPhoneList, DetailSection, FarmerActionDrawer,
   HeatBadge, KiKurzaktePlaceholder, KommunikationKompakt, KommunikationVerlauf, KontaktZeile, NotizenListe, OffeneTasks,
-  PanelTabs, SubscriptionBadge, SubscriptionBox, TasksListe, UsageBox,
+  PanelSkeleton, PanelTabs, SubscriptionBadge, SubscriptionBox, TasksListe, UsageBox,
 } from '@/components';
 import type { SubscriptionData, UsageData, FarmerActionData } from '@/components';
 import type { Lead, Customer } from '@/types';
@@ -65,6 +69,20 @@ export default function FarmerSidepanel({ person: personProp, onClose, onExit, v
   }, [personProp, initialTab, variant]);
   const isOpen = personProp !== null;
   const person = display;
+
+  // 8a: KontaktZeile/Header aus dem ECHTEN Kontakt — contactId = person.id (1:1 Hunter-Muster).
+  // Single Source: contactToProfile(getContactDetail). placeholderData → weicher Übergang.
+  const { organizationId } = useCurrentOrg();
+  const contactId: string | null = person?.id ?? null;
+  const contactQuery = useQuery({
+    queryKey: ['contactDetail', organizationId, contactId],
+    queryFn: () => getContactDetail(organizationId, contactId as string),
+    enabled: !!contactId && isOpen,
+    placeholderData: keepPreviousData,
+  });
+  const contactRow = contactQuery.data ?? null;
+  const profile = contactToProfile(contactRow);
+  const contactLoading = !!contactId && contactQuery.isLoading && !contactRow;
 
   // Header-Quellen aus dem Mock-Kontakt (Slice 1). Farmer = Kunde → Subscription-Status statt Stage.
   const customer = person as Customer | null;
@@ -130,24 +148,22 @@ export default function FarmerSidepanel({ person: personProp, onClose, onExit, v
     </>
   );
 
-  // Slice-1-Mock: alle vier Kontaktwege (E-Mail · Telefon · LinkedIn · Website), damit die
-  // KontaktZeile wie bei Hunter vollständig rendert. Echte Werte kommen mit dem Farmer-DB-Wiring.
+  // Mock-Telefon NUR noch für den Details-Tab (8e). KontaktZeile nutzt echte profile.phones (8a).
   const mockPhones = [{ id: 'fp-1', type: 'Geschäftlich', number: '+49 89 1234 5678', favorite: true }];
+  // 8a: KontaktZeile echt — Email/LinkedIn/Web + Telefon aus contactToProfile (getContactDetail).
+  // Honesty: fehlende Werte → KontaktZeile (readonly) blendet das Element aus. Laden → PanelSkeleton.
   const contactPill = person && (
-    <KontaktZeile
-      readonly
-      onCopied={() => showToast('Kopiert ✓')}
-      contact={{
-        // Mock: alle vier Kontaktwege synthetisieren (wie LinkedIn/Web), damit die Mail wie bei
-        // Hunter erscheint. Echte E-Mail kommt mit dem Farmer-DB-Wiring (person.contactEmail).
-        email: person.contactEmail
-          || `${person.person.name.toLowerCase().replace(/[^a-z]+/g, '.').replace(/^\.|\.$/g, '')}@${(customer?.person.company ?? 'example').toLowerCase().replace(/[^a-z]+/g, '')}.com`,
-        linkedin: `in/${person.person.name.toLowerCase().replace(/[^a-z]+/g, '-')}`,
-        web: `${(customer?.person.company ?? 'example').toLowerCase().replace(/[^a-z]+/g, '')}.com`,
-      }}
-      phones={mockPhones}
-      onCopyField={() => showToast('Kopiert ✓')}
-    />
+    contactLoading ? (
+      <PanelSkeleton rows={1} height={52} />
+    ) : (
+      <KontaktZeile
+        readonly
+        onCopied={() => showToast('Kopiert ✓')}
+        contact={{ email: profile.email ?? '', linkedin: profile.linkedinUrl ?? '', web: profile.website ?? '' }}
+        phones={profile.phones}
+        onCopyField={() => showToast('Kopiert ✓')}
+      />
+    )
   );
 
   const tabNav = (
