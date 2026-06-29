@@ -174,7 +174,7 @@ export default function ScreenFarming({
       {/* 1. VIEW OVERVIEW — KPIs + Customer Health Overview (ausgelagert nach farming/) */}
       {subTab === 'overview' && (
         <div className="flex flex-col gap-6">
-          <FarmerKpiCards />
+          <FarmerKpiCards customers={customers} />
           {/* Echte Kunden; health_score noch NULL (Slice 2 Score-Funktionen) → Honesty: Balken/Score ausgeblendet. */}
           <FarmerHealthOverview
             rows={customers.map((c) => ({ id: c.id, initials: c.person.initials, name: c.person.company || c.person.name, score: c.healthScore }))}
