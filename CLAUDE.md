@@ -720,7 +720,7 @@ Alle prop-driven, Tokens-only, Dark-Mode automatisch; Kacheln sind **dünne Hunt
 Farmer-Signal-Kacheln nutzen den bestehenden `LinkedinSignalCard` (panel-blocks) mit `statusBadge`-Passthrough.
 Config: `customerStatusConfig.ts` (Status→Style, Flexibilitäts-Prinzip, nie hardcodiert).
 
-**Helfer:** `lib/confetti.ts` (`triggerConfetti()` — Won-Feedback) · `lib/validation.ts` (`isValidPhone` verdrahtet; `isValidEmail`/`normalizeUrl`/`isValidUrl` für P8 vorbereitet) · `lib/signalActions.tsx` (`signalActionConfig` — Signal→ChatActionConfig-Resolver, [D35] Phase 0) · `lib/farmerActions.tsx` (`farmerActionConfig` + `FARMER_ACTION_CATALOG` — Farmer-Signal→ChatActionConfig-Resolver, [D34], Spiegel von signalActions) · `lib/prefetch.ts` (`prefetchContactPanel` — Panel-Daten on hover/intent vorladen; zentral in `HunterCard`, 120 ms Hover-Delay).
+**Helfer:** `lib/confetti.ts` (`triggerConfetti()` — Won-Feedback) · `lib/validation.ts` (`isValidPhone` verdrahtet; `isValidEmail`/`normalizeUrl`/`isValidUrl` für P8 vorbereitet) · `lib/signalActions.tsx` (`signalActionConfig` — Signal→ChatActionConfig-Resolver, [D35] Phase 0) · `lib/farmerActions.tsx` (`farmerActionConfig` + `FARMER_ACTION_CATALOG` — Farmer-Signal→ChatActionConfig-Resolver, [D34], Spiegel von signalActions) · `lib/prefetch.ts` (`prefetchContactPanel` — Panel-Daten on hover/intent vorladen; zentral in `HunterCard`, 120 ms Hover-Delay) · `lib/contactDetailFields.ts` (`ANREDE_OPTS`/`SENIORITY_OPTS`/… + `DETAIL_MAP` Feld→DB-Spalte + `PHONE_TYPES` + `seedContactDetails` — Single Source des Details-Tabs, geteilt von Hunter+Farmer; Edit schreibt `updateContact`/`updateCompany`, 2026-06-30).
 
 ### Import-Regel — immer über `@/components` (nie tiefer als nötig)
 
