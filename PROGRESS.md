@@ -734,6 +734,10 @@ kam es, wie groß ist es** — und einen **klaren nächsten Schritt** anstoßen 
     **Bearbeiten erfolgt in der Vollansicht/Details-Tab** (Stift verlinkt dorthin, DB-Write dort). **Telefon
     (`contact_phones`) wird via `DetailPhoneList` in der Vollansicht editiert, NICHT inline im Sidepanel.**
     (Slice 8a: KontaktZeile-Anzeige bereits echt via `contactToProfile`; Edit-Pfad = 8e.)
+    **8b-write:** Der KontaktZeile-**Stift** ist im Farmer aktuell **ausgeblendet** (kein toter Button —
+    `KontaktZeile` rendert ihn nur noch, wenn `onEditField` gesetzt ist; Hunter reicht ihn, Farmer nicht).
+    **8e bringt ihn als Deep-Link zurück:** Farmer reicht dann `onEditField` → Stift öffnet die
+    Vollansicht/Details-Tab mit Feldfokus (1:1 Hunter `setFocusField`+`setShowVollansicht`).
 
 - **💰 MRR/ARR Übergangslösung (ENTSCHEIDUNG 29.06.2026)** — Teil des Farmer-DB-Wirings (Owner-/Auth-Bezug [[D21]]):
   - **Slice 1** legt `mrr_monthly` + `arr_yearly` als Felder auf **`companies`** an (nullable). *(Korrigiert die

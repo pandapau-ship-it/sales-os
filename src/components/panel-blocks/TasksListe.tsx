@@ -115,7 +115,7 @@ function DetailRow({ label, value }: { label: string; value: string }) {
 
 export default function TasksListe({
   onToast, autoEditId = null, onAutoEditConsumed, highlightId = null,
-  taskRows, contactName = "", dealOptions, initialDealId = null, onCreate, onComplete, onDelete,
+  taskRows, contactName = "", dealOptions, initialDealId = null, onCreate, onUpdate, onComplete, onDelete,
 }: {
   onToast?: (msg: string) => void;
   autoEditId?: string | null;
@@ -129,6 +129,8 @@ export default function TasksListe({
   /** Vorausgefüllter Deal (z.B. aus Keine-Task-Kachel) — nur beim Neu-Anlegen, dann readonly. */
   initialDealId?: string | null;
   onCreate?: (values: TaskFormValues) => void;
+  /** Bestehende Task speichern (P8): persistiert via updateTask im Aufrufer. */
+  onUpdate?: (taskId: string, values: TaskFormValues) => void;
   onComplete?: (taskId: string) => void;
   onDelete?: (taskId: string) => void;
 }) {
@@ -166,7 +168,7 @@ export default function TasksListe({
           onClose={() => setEditing(null)}
           onSave={(values) => {
             if (editing === "new") onCreate?.(values);
-            else onToast?.(`${t("hunter.drawers.noTask.toastSaved")} ✓`); // Edit-Persistenz folgt (P8)
+            else onUpdate?.(editing, values); // P8: persistiert echt via updateTask (Aufrufer)
             setEditing(null);
           }}
           onToast={onToast}

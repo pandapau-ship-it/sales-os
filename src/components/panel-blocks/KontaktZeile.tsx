@@ -102,14 +102,18 @@ function KontaktZeileReadonly({ contact, phones, onCopied, onEditField, onSetFav
               >
                 {copied === it.key ? <Check className="w-3 h-3 text-[var(--sherloq-primary)]" /> : <Copy className="w-3 h-3" />}
               </button>
-              {/* Bearbeiten — öffnet die Vollansicht mit Fokus auf dieses Feld (Deep-Link), statt Inline-Edit. */}
-              <button
-                onClick={() => onEditField?.(it.key as ContactField)}
-                aria-label={t("hunter.common.edit")} data-tip={t("hunter.common.edit")}
-                className={`${HOVER_BTN} text-text-muted hover:text-[var(--sherloq-primary)] cursor-pointer`}
-              >
-                <Pencil className="w-3 h-3" />
-              </button>
+              {/* Bearbeiten — öffnet die Vollansicht mit Fokus auf dieses Feld (Deep-Link), statt Inline-Edit.
+                  Nur rendern, wenn ein Deep-Link-Handler vorhanden ist — sonst wäre es ein toter Button
+                  (Hover-Versprechen ohne Funktion, CLAUDE.md). Farmer reicht (noch) keinen → kein Stift. */}
+              {onEditField && (
+                <button
+                  onClick={() => onEditField(it.key as ContactField)}
+                  aria-label={t("hunter.common.edit")} data-tip={t("hunter.common.edit")}
+                  className={`${HOVER_BTN} text-text-muted hover:text-[var(--sherloq-primary)] cursor-pointer`}
+                >
+                  <Pencil className="w-3 h-3" />
+                </button>
+              )}
             </span>
           </Fragment>
         );
