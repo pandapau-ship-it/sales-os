@@ -46,7 +46,7 @@ export interface Customer extends Lead {
   sherloqStatus: SherloqStatus;
   lastLogin: string;
   profilesAdded: number;
-  subscriptionPlan: 'Growth' | 'Enterprise' | 'Starter';
+  subscriptionPlan?: 'Growth' | 'Enterprise' | 'Starter'; // undefined wenn companies.subscription_plan NULL (Honesty, kein Default)
   upsellOpportunity?: {
     potential: string;
     description: string;
