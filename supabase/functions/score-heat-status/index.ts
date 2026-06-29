@@ -62,12 +62,12 @@ Deno.serve(async (req) => {
     if (sErr) throw sErr;
     const t: HeatThresholds = { ...DEFAULT_THRESHOLDS, ...(settings?.thresholds?.heat_status ?? {}) };
 
-    // 3. Kontakte laden (nicht soft-gelöscht).
+    // 3. Kontakte laden. contacts hat KEIN Soft-Delete (deleted_at) — Inaktive laufen über
+    //    contact_status='archiviert'. Heat gilt für ALLE Kontakte → kein Status-Filter.
     let q = supabase
       .from("contacts")
       .select("id, heat_status, last_contacted_at")
-      .eq("organization_id", organizationId)
-      .is("deleted_at", null);
+      .eq("organization_id", organizationId);
     if (contactId) q = q.eq("id", contactId);
     const { data: contacts, error: cErr } = await q;
     if (cErr) throw cErr;
@@ -97,6 +97,9 @@ Deno.serve(async (req) => {
 
     return json({ updated, skipped, org_id: organizationId });
   } catch (e) {
-    return json({ error: String(e instanceof Error ? e.message : e) }, 500);
+    // Supabase-Fehler sind oft Plain-Objects (PostgrestError) → nicht Error-Instanz. Voll serialisieren.
+    const msg = e instanceof Error ? e.message
+      : (e && typeof e === "object" ? JSON.stringify(e) : String(e));
+    return json({ error: msg }, 500);
   }
 });
