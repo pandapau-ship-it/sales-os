@@ -882,6 +882,21 @@ QA der Farmer-Scores ergab zwei systematische Verzerrungen — behoben (Score-Eb
   (`churn_weights`/`upsell_weights`) → per Einstellung änderbar, kein Code-Eingriff. Usage = Verfeinerung.
 - Verwandt: [[D43]] Historisierung (Usage-Snapshots) · `score_churn_risk`/`score_upsell` (additive Felder).
 
+### [HONESTY-WURZELFIX] „Growth"-Default in customerRowToView entfernt (30.06.2026) ✅
+- **Problem:** `customerRowToView` defaultete `subscriptionPlan` auf **„Growth"**, wenn `companies.subscription_plan`
+  NULL ist (`… ?? "Growth"`) → bei Demo-Daten (alle NULL) zeigte **jeder** Kunde fälschlich „Growth". Inkonsistent
+  mit Panel-8d (liest `companies.subscription_plan` direkt → NULL ⇒ ausgeblendet).
+- **Fix:** Default entfernt — NULL/unbekannt → **undefined** (Honesty); `Customer.subscriptionPlan` jetzt **optional**.
+- **Anzeige-Stellen geprüft (alle ehrlich):**
+  - `FarmerExpandedCardContent` → `SubscriptionBox` blendet Plan bei undefined aus. ✅
+  - `CustomerDrawer` (legacy) → Fallback **„—"** statt leer/undefined. ✅
+  - Farmer-Kacheln (`FarmerKundenKachel`/`Retention`/`Upsell`) zeigen **`sherloqStatus`-Badge, nicht den Plan** → kein Leak. ✅
+  - Panel-8d liest `companies.subscription_plan` direkt → war schon ehrlich. ✅
+  - `data.ts` (Mock-Seed) + Plan-Wechsel-Handler (`ReferenceScreens`/`db.changePlan`) setzen echte Werte → unberührt.
+- **Konsistenz:** Nirgends mehr erfundenes „Growth"; NULL-Plan überall ausgeblendet/„—", identisch zum Panel.
+- **Voraussetzung für** den ehrlichen aufgeklappten Bereich (nächster Slice): Subscription kann nun direkt aus
+  `customer` gebaut werden, ohne Fake-Plan.
+
 ### [D50] Farmer Deals-Tab + Deal-Anlegen (deferred)
 - **Status:** deferred, eigenes Vorhaben **nach** Farmer-Panel-Abschluss.
 - **Bedarf:** Ein Bestandskunde (Farmer) kann mehrere Deals haben (Upsell/Erweiterung/Verlängerung). Farmer braucht daher:

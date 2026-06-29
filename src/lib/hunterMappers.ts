@@ -157,8 +157,10 @@ export function customerRowToView(
   const p = contactToProfile(row);
   const sub = row.company ?? {};
   const planRaw = (sub.subscription_plan ?? "") as string;
+  // Honesty: KEIN Default mehr — NULL/unbekannt → undefined (Anzeige blendet aus / zeigt „—"),
+  // nie erfundenes „Growth". Single Source = companies.subscription_plan (identisch zu Panel-8d).
   const plan = (["Growth", "Enterprise", "Starter"] as const)
-    .find((x) => x.toLowerCase() === planRaw.toLowerCase()) ?? "Growth";
+    .find((x) => x.toLowerCase() === planRaw.toLowerCase());
   return {
     id: row.id,
     person: { id: row.id, name: p.name, jobTitle: p.jobTitle, company: p.company, initials: p.initials, avatarUrl: p.avatarUrl },
