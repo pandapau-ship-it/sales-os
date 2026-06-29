@@ -59,6 +59,7 @@ export interface Customer extends Lead {
   healthScore?: number;   // 0-100 (contacts.health_score)
   healthStatus?: string;  // gesund | aufmerksamkeit | kritisch (contacts.health_status)
   mrrMonthly?: number;    // companies.mrr_monthly (Cent); NULL → undefined (Honesty)
+  scoreDrivers?: { signal: string; points: number; source: string }[]; // contacts.score_drivers (Treiber des Scores)
 }
 
 export interface TaskItemType {

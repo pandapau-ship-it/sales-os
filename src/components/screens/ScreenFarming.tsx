@@ -19,20 +19,22 @@ import { NAV } from '@/lib/navBehavior';
  * „Kunde wird kalt" (going_cold) gehört bewusst NICHT hierher, sondern in den Follow-ups-Tab
  * (= Aktion, nicht Risiko) — siehe [D46] / CLAUDE.md „Farmer Follow-ups".
  */
-const RETENTION_ITEMS: RetentionItem[] = [
-  {
-    id: 'ret-1', name: 'Marc Levigne', jobTitle: 'VP Sales', company: 'DataPulse Corp',
-    icpScore: 78, heatStatus: 'LUKEWARM', sherloqStatus: 'active', timeLabel: 'vor 7 Tagen',
-    type: 'churn_risk',
-    text: 'Nutzung der Plattform ist in den letzten 7 Tagen um 80% gefallen. AI empfiehlt sofortigen Check-in.',
-  },
-  {
-    id: 'ret-3', name: 'Jonas Weber', jobTitle: 'CEO', company: 'Scalify GmbH',
-    icpScore: 65, heatStatus: 'WARM', sherloqStatus: 'cancelled', timeLabel: 'vor 2 Tagen',
-    type: 'cancelled',
-    text: 'Kündigung eingegangen. Sofortiger persönlicher Anruf empfohlen.',
-  },
-];
+// Churn-Treiber (score_drivers.signal) → lesbares Label. Banner-Text wird aus den ECHTEN Treibern
+// gebaut (Honesty: keine erfundenen Zahlen). Unbekanntes Signal → roher Key (kein Fake).
+const DRIVER_LABEL: Record<string, string> = {
+  last_contact: 'lange kein Kontakt',
+  no_reply: 'keine Antwort auf letzte Mail',
+  overdue_tasks: 'überfällige Tasks',
+  inactive_days: 'längere Inaktivität',
+  heat_cold: 'Kontakt kalt',
+};
+function retentionText(type: 'churn_risk' | 'cancelled', drivers?: { signal: string }[]): string {
+  if (type === 'cancelled') return 'Kündigung aktiv — persönlicher Anruf empfohlen.';
+  const names = (drivers ?? []).map((d) => DRIVER_LABEL[d.signal] ?? d.signal);
+  return names.length
+    ? `Churn-Risiko: ${names.join(' · ')}.`
+    : 'Churn-Score über Schwelle — Check-in empfohlen.'; // Honesty-Fallback (keine Treiber)
+}
 
 /**
  * Upsell-Tab Mock-Kacheln — 1 Typ (Upsell Potential, grüne Zap-Badge). Bis Score-/Signal-
@@ -67,11 +69,14 @@ interface ScreenFarmingProps {
   customers: Customer[];
   onUpgradeSubscription: (id: string, newPlan: 'Growth' | 'Enterprise') => void;
   onSelectCommunication?: (personId: string, tpId: string) => void;
+  /** Churn-Schwelle aus settings.thresholds.churn_risk_threshold (Fallback 61). */
+  churnThreshold?: number;
 }
 
 export default function ScreenFarming({
   customers,
   onUpgradeSubscription: _onUpgradeSubscription,
+  churnThreshold = 61,
 }: ScreenFarmingProps) {
   const [subTab, setSubTab] = useState<'overview' | 'kunden' | 'churn' | 'upsell' | 'signals' | 'follow_ups'>('overview');
   const { toast } = useToast();
@@ -149,9 +154,19 @@ export default function ScreenFarming({
   const selectAllSignals = () => setSelectedSignalIds(signalIds);
   const deselectAllSignals = () => setSelectedSignalIds([]);
 
-  // Demo-Badges: Kunden = echte Mock-Länge; Churn = abgeleitet (heatScore <= 2);
-  // Upsell (€-Summe) + Signals sind Mock bis zur Score-/Signal-Anbindung.
-  const churnCount = customers.filter((c) => c.heatScore <= 2).length;
+  // Retention-Liste — echte Kunden mit Churn-Risk (churnScore ≥ Schwelle aus settings) ODER gekündigt.
+  // „Kunde wird kalt" (going_cold) gehört NICHT hierher → Follow-ups-Tab ([D46]). Sortierung:
+  // cancelled zuerst, dann churn_risk nach Score absteigend.
+  const retentionRows = customers
+    .filter((c) => c.sherloqStatus === 'CANCELLED' || (typeof c.churnScore === 'number' && c.churnScore >= churnThreshold))
+    .map((c) => ({ c, type: (c.sherloqStatus === 'CANCELLED' ? 'cancelled' : 'churn_risk') as 'cancelled' | 'churn_risk' }))
+    .sort((a, b) => {
+      if (a.type !== b.type) return a.type === 'cancelled' ? -1 : 1;
+      return (b.c.churnScore ?? 0) - (a.c.churnScore ?? 0);
+    });
+
+  // Badge-Counts: Kunden + Retention echt; Upsell (€) + Signals Mock bis zur Score-/Signal-Anbindung.
+  const churnCount = retentionRows.length;
   const menuItems: { id: string; label: string; icon?: React.ReactNode; count?: string | number }[] = [
     { id: 'overview', label: 'Übersicht' },
     { id: 'kunden', label: 'Kunden', count: customers.length },
@@ -304,19 +319,35 @@ export default function ScreenFarming({
         </div>
       )}
 
-      {/* 3. VIEW RETENTION — Churn Risk · Wird kalt · Gekündigt (FarmerRetentionKachel = HunterCard-Wrapper, Mock) */}
+      {/* 3. VIEW RETENTION — echte Kunden: Churn Risk (churnScore ≥ Schwelle) + Gekündigt.
+          „Kunde wird kalt" (going_cold) liegt im Follow-ups-Tab ([D46]), NICHT hier. Leer → EmptyState. */}
       {subTab === 'churn' && (
         <div className="flex flex-col gap-3">
-          {/* Risiko-Übersicht: Churn Risk · Gekündigt. „Kunde wird kalt" liegt im Follow-ups-Tab ([D46]). */}
-          {RETENTION_ITEMS.map((item) => (
-            <FarmerRetentionKachel
-              key={item.id}
-              item={item}
-              onOpenPanel={() => openInfo(itemToPerson(item))}
-              onAction={() => setActionSignal({ kind: item.type, name: item.name, company: item.company, icpScore: item.icpScore })}
-              expandedSlot={<FarmerExpandedCardContent customer={itemToPerson(item)} onOpenPanel={(tab, section) => openOnTab(itemToPerson(item), tab as FarmerTab, section)} />}
+          {retentionRows.length === 0 ? (
+            <EmptyState
+              icon={<AlertTriangle className="w-6 h-6" />}
+              title="Keine Retention-Fälle"
+              description="Kein Kunde über der Churn-Schwelle, keine Kündigung — gut so."
             />
-          ))}
+          ) : (
+            retentionRows.map(({ c, type }) => {
+              const item: RetentionItem = {
+                id: c.id, name: c.person.name, jobTitle: c.person.jobTitle, company: c.person.company,
+                avatarUrl: c.person.avatarUrl, icpScore: c.icpScore, heatStatus: c.heatStatus,
+                sherloqStatus: c.sherloqStatus, timeLabel: c.lastLogin, type,
+                text: retentionText(type, c.scoreDrivers),
+              };
+              return (
+                <FarmerRetentionKachel
+                  key={c.id}
+                  item={item}
+                  onOpenPanel={() => openInfo(c)}
+                  onAction={() => setActionSignal({ kind: type, name: c.person.name, company: c.person.company, icpScore: c.icpScore })}
+                  expandedSlot={<FarmerExpandedCardContent customer={c} onOpenPanel={(tab, section) => openOnTab(c, tab as FarmerTab, section)} />}
+                />
+              );
+            })
+          )}
         </div>
       )}
 
