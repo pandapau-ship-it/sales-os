@@ -252,6 +252,7 @@ export default function ScreenFarming({
                           timeAgoLabel={c.lastLogin}
                           onSelectLead={() => openInfo(c)}
                           onOutreachClick={() => setActionSignal({ kind: 'going_cold', name: c.person.name, company: c.person.company })}
+                          statusBadge={{ label: 'SUBSCRIPTION', node: <SubscriptionBadge status={c.sherloqStatus} /> }}
                           expandedSlot={expanded}
                         />
                       );
@@ -282,6 +283,8 @@ export default function ScreenFarming({
                         onView={(_lead, taskId) => { setInfoTab('tasks'); setInfoTaskId(taskId); setInfoPerson(c); }}
                         onComplete={() => toast('Task erledigt ✓', 'success')}
                         renderExpanded={() => expanded}
+                        // Farmer-Invariante: SUBSCRIPTION statt Pipeline-Stage. c ist hier direkt verfügbar → kein Lookup.
+                        renderStatusBadge={() => ({ label: 'SUBSCRIPTION', node: <SubscriptionBadge status={c.sherloqStatus} /> })}
                       />
                     );
                   })}
