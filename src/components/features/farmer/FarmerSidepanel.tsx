@@ -38,7 +38,10 @@ import type { Lead, Customer } from '@/types';
  * SLICE 8b: Tabs Tasks/Kommunikation/Aktivität/Notizen echt via *ByContact-Queries; Übersicht-
  *   Kompakt (OffeneTasks/KommunikationKompakt) teilt sich die Query mit dem jeweiligen Tab.
  * SLICE 8c: AktiveSignale echt — Flags aus customer-Scores/-Status, Schwellen aus settings.thresholds;
- *   Positiv-Zustand statt Fake-Karten. Noch Mock: Subscription/Usage (8d), Details-Tab (8e), KI [D5].
+ *   Positiv-Zustand statt Fake-Karten.
+ * SLICE 8d: Subscription-Tab echt — Plan/Status/MRR/ARR/Aktiv-seit aus companies-Embed (Single Source);
+ *   NRR/Nächste-Zahlung/Kündigungsfrist = „Folgt" (kein DB-Feld). Noch „Folgt": Usage (8d/[D49]),
+ *   Details-Tab (8e), KI [D5].
  */
 
 export type FarmerTab = 'details' | 'overview' | 'activity' | 'communication' | 'tasks' | 'subscription' | 'usage' | 'notes';
@@ -209,13 +212,24 @@ export default function FarmerSidepanel({ person: personProp, onClose, onExit, v
   const cancelledActive = displaySignals.includes('cancelled');
   const anyFarmerSignal = churnRiskActive || upsellActive || goingColdActive || cancelledActive;
 
-  // MOCK (Slice 2) — echte Werte kommen mit dem Farmer-DB-Wiring. HONESTY: nur befüllte Felder rendern.
-  const mockSubscription: SubscriptionData = {
-    plan: customer?.subscriptionPlan,
-    status: subscriptionStatus ?? undefined,
-    mrr: '2.000 €', arr: '24.000 €',
-    activeSince: '01.03.2026', nextPayment: '01.07.2026',
-    cancellationPeriod: '3 Monate zum Laufzeitende', nrr: '112 %',
+  // 8d: Subscription-Tab echt — Plan/Status/MRR/ARR/Aktiv-seit aus dem Firmen-Embed des contactQuery
+  // (getContactDetail → company, Single Source; kein Doppel-Fetch). HONESTY: fehlende Werte → Feld
+  // ausgeblendet, nie Mock. NRR/Nächste Zahlung/Kündigungsfrist haben KEIN DB-Feld → „Folgt" (Billing/
+  // Stripe folgt). Usage-Tab bleibt komplett „Folgt" [D49] — hier NICHT angefasst.
+  const companyRow = (contactRow?.company ?? null) as Record<string, any> | null;
+  const fmtEuroCents = (cents: unknown) =>
+    typeof cents === 'number' ? (cents / 100).toLocaleString('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }) : undefined;
+  const fmtDate = (iso: unknown) =>
+    typeof iso === 'string' && iso ? new Date(iso).toLocaleDateString('de-DE') : undefined;
+  const subscriptionData: SubscriptionData = {
+    plan: (companyRow?.subscription_plan as string | null) ?? undefined,
+    status: subscriptionStatus ?? undefined,        // = Header-Badge (Single Source customer.sherloqStatus)
+    mrr: fmtEuroCents(companyRow?.mrr_monthly),      // companies.mrr_monthly (Cent) → €
+    arr: fmtEuroCents(companyRow?.arr_yearly),       // companies.arr_yearly (Cent) → €
+    activeSince: fmtDate(companyRow?.subscription_since),
+    nextPayment: 'Folgt',                            // kein DB-Feld → Honesty
+    cancellationPeriod: 'Folgt',                     // kein DB-Feld → Honesty
+    nrr: 'Folgt',                                    // kein DB-Feld → [D49]/Billing
   };
   const mockUsage: UsageData = {
     lastLogin: customer?.lastLogin, lastUsage: customer?.lastLogin,
@@ -360,7 +374,7 @@ export default function FarmerSidepanel({ person: personProp, onClose, onExit, v
             ? <PanelSkeleton rows={2} height={56} />
             : <KommunikationKompakt items={commsView} onShowAll={() => setActiveTab('communication')} />}
           {/* Kompakte Schnellhinweise: erst Subscription (Plan·Status·MRR), dann Usage. */}
-          <SubscriptionBox variant="compact" data={mockSubscription} onShowAll={() => setActiveTab('subscription')} />
+          <SubscriptionBox variant="compact" data={subscriptionData} onShowAll={() => setActiveTab('subscription')} />
           <UsageBox variant="compact" data={mockUsage} onShowAll={() => setActiveTab('usage')} />
         </div>
       )}
@@ -399,7 +413,7 @@ export default function FarmerSidepanel({ person: personProp, onClose, onExit, v
 
       {activeTab === 'subscription' && (
         <div className="space-y-7 animate-fade-in">
-          <SubscriptionBox data={mockSubscription} flashId="subscription" flash={flashSection === 'subscription'} />
+          <SubscriptionBox data={subscriptionData} flashId="subscription" flash={flashSection === 'subscription'} />
           {/* Vollansicht hat keinen eigenen Usage-Tab → Usage hier im Subscription-Tab mit anzeigen. */}
           {variant === 'full' && <UsageBox variant="full" data={mockUsage} />}
         </div>
