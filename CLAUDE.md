@@ -268,8 +268,10 @@ laufzeit-gelesen, pro Org, chat-änderbar (**Ziel**). „Sieht aus wie C, ist fa
 
 **Konfigurierbare Keys in `settings.thresholds` (Stand 30.06.2026, alle C):** `churn_risk_threshold` (61) · `upsell_threshold` (70) ·
 `churn_weights` / `upsell_weights` (Score-Gewichte) · `heat_status` (Heat-Tagesgrenzen) · `hunter_priority_weights` ·
-`timing_windows` (`last_contact_days`/`inactive_days`/`recent_contact_days`, Seed 054) · `churn_suppresses_upsell` (Churn-Vorrang-Schalter,
-Seed 054, Default true — die Regel-Logik bleibt in `applyFarmerDisplayPrecedence`, nur der Schalter ist konfigurierbar).
+`timing_windows` (`last_contact_days`/`inactive_days`/`recent_contact_days` Seed 054; `new_pipeline_short_days`/`new_pipeline_long_days`
+Seed 055 — Hunter „Neu in Pipeline"-Fenster) · `churn_suppresses_upsell` (Churn-Vorrang-Schalter, Seed 054, Default true — die Regel-Logik
+bleibt in `applyFarmerDisplayPrecedence`, nur der Schalter ist konfigurierbar). **Lesepfad konsistent (Farmer+Hunter):** ReferenceScreens
+nutzt EINE `settingsQuery` mit Drei-Zustands-Gate (Laden/Fehler-sichtbar/Erfolg) — kein stummer Default-Degrade bei `getSettings()===null`.
 
 **Admin-Schicht (künftig, NICHT jetzt bauen):** WER welche Werte/Regeln ändern darf, wird später über das Rollen-/Rechte-System
 geregelt. Voraussetzung dafür ist genau dieses Prinzip („in DB + laufzeit-lesbar"); die Admin-/Berechtigungs-Regeln kommen obendrauf.

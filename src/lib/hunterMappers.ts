@@ -526,10 +526,12 @@ export function taskToDueCard(
 /** Zeitfenster des Neu-in-Pipeline-Tabs (client-seitiger Filter über deal.created_at). */
 export type NewPipelinePeriod = "today" | "7d" | "30d";
 
-/** True, wenn `createdAt` im gewählten Fenster liegt. Kein Datum → false (nie „neu" ohne Beleg). */
+/** True, wenn `createdAt` im gewählten Fenster liegt. Kein Datum → false (nie „neu" ohne Beleg).
+ * [D51]: die Tage-Fenster hinter „7d"/„30d" kommen aus settings (`windows`); Literale 7/30 nur Per-Key-Fallback. */
 export function newPipelineInPeriod(
   createdAt: string | null | undefined,
   period: NewPipelinePeriod,
+  windows?: { shortDays?: number; longDays?: number },
 ): boolean {
   if (!createdAt) return false;
   const at = new Date(createdAt).getTime();
@@ -539,7 +541,7 @@ export function newPipelineInPeriod(
     start.setHours(0, 0, 0, 0);
     return at >= start.getTime();
   }
-  const days = period === "7d" ? 7 : 30;
+  const days = period === "7d" ? (windows?.shortDays ?? 7) : (windows?.longDays ?? 30);
   return at >= Date.now() - days * 86_400_000;
 }
 

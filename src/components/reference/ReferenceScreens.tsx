@@ -21,12 +21,10 @@ import {
   getAlerts,
   getContacts,
   getDeals,
-  getPipelineSettings,
   getSignals,
   getDueTasks,
   completeTask,
   getNewInPipeline,
-  getHunterPriorityWeights,
   getSettings,
   updateLeadStage as dbUpdateLeadStage,
   setTaskCompleted as dbSetTaskCompleted,
@@ -44,6 +42,7 @@ import type {
   AppointmentItemType,
   AlertBannerType,
 } from "@/types";
+import type { PipelineStage } from "@/types/hunter";
 import ScreenMyDay from "@/components/screens/ScreenMyDay";
 import ScreenHunting from "@/components/screens/ScreenHunting";
 import ScreenFarming from "@/components/screens/ScreenFarming";
@@ -198,14 +197,14 @@ export function HunterReference() {
     queryKey: ["deals", organizationId],
     queryFn: () => getDeals(organizationId),
   });
-  const stagesQuery = useQuery({
-    queryKey: ["pipelineStages", organizationId],
-    queryFn: () => getPipelineSettings(organizationId),
+  // [D51] settings = Single Source (eine Zeile/Org, gleicher Cache-Key wie FarmerReference). Pipeline-Stages
+  // + hunter_priority_weights + timing_windows werden DARAUS abgeleitet (nach dem Lade-Guard unten) — kein
+  // separater getSettings-Sub-Read, kein stiller Default.
+  const settingsQuery = useQuery({
+    queryKey: ["settings", organizationId],
+    queryFn: () => getSettings(organizationId),
+    staleTime: 5 * 60_000,
   });
-  const stageNameBySlug = Object.fromEntries(
-    (stagesQuery.data ?? []).map((stage) => [stage.slug, stage.name]),
-  );
-  const dealsData = dealsQuery.data?.map((deal) => dealToPipelineRow(deal, stageNameBySlug));
   // S-2: hunter-geroutete, unverarbeitete Signals (Mapping zu Card-Props im Screen, braucht t).
   const signalsQuery = useQuery({
     queryKey: ["signals", organizationId],
@@ -220,12 +219,6 @@ export function HunterReference() {
   const newInPipelineQuery = useQuery({
     queryKey: ["newInPipeline", organizationId],
     queryFn: () => getNewInPipeline(organizationId),
-  });
-  // Dringlichkeits-Score-Gewichte (Übersicht-Tab) aus settings.thresholds — org-tunebar.
-  const priorityWeightsQuery = useQuery({
-    queryKey: ["hunterPriorityWeights", organizationId],
-    queryFn: () => getHunterPriorityWeights(organizationId),
-    staleTime: 5 * 60_000,
   });
   // Cold/Inaktiv: Kontakte mit heat_status 'kalt' bzw. 'tot' (Reaktivierungs-Opener).
   const coldQuery = useQuery({
@@ -246,6 +239,24 @@ export function HunterReference() {
     mutationFn: (taskId: string) => completeTask(taskId, organizationId),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["dueTasks", organizationId] }),
   });
+
+  // [D51] Drei-Zustands-Handling der settings (Org-Werte gewinnen IMMER; Default nie heimlich) —
+  // EXAKT wie FarmerReference: Laden → Lade-UI · data===null → SICHTBARER Fehler · Erfolg → Org-Konfig.
+  if (settingsQuery.isLoading) {
+    return <div className="p-10 text-center text-[13px] text-text-muted">Einstellungen werden geladen …</div>;
+  }
+  if (settingsQuery.data == null) {
+    return <div className="p-10 text-center text-[13px] font-semibold text-[var(--signal-urgent-text)]">Einstellungen konnten nicht geladen werden — Hunter-Konfiguration nicht verfügbar. Bitte Seite neu laden.</div>;
+  }
+  const pipelineStages = (settingsQuery.data.pipeline_stages as PipelineStage[] | undefined) ?? [];
+  const stageNameBySlug = Object.fromEntries(pipelineStages.map((stage) => [stage.slug, stage.name]));
+  const dealsData = dealsQuery.data?.map((deal) => dealToPipelineRow(deal, stageNameBySlug));
+  const settingsThresholds = settingsQuery.data.thresholds as Record<string, unknown> | undefined;
+  // Hunter-Priority-Gewichte (045) — Org-Werte; Code-Default (PRIORITY_WEIGHTS_DEFAULT) nur als Per-Key-Fallback im Mapper.
+  const priorityWeights = (settingsThresholds?.hunter_priority_weights as Record<string, number> | undefined) ?? undefined;
+  // [D51] „Neu in Pipeline"-Fenster aus settings.thresholds.timing_windows (Single Source mit Farmer/054/055).
+  const timingWindows = (settingsThresholds?.timing_windows as Record<string, number> | undefined) ?? undefined;
+
   return (
     <>
       <ScreenHunting
@@ -255,14 +266,15 @@ export function HunterReference() {
         leadsError={leadsQuery.isError}
         dealsData={dealsData}
         rawDealsData={dealsQuery.data as unknown as Record<string, unknown>[] | undefined}
-        dealsLoading={dealsQuery.isLoading || stagesQuery.isLoading}
-        dealsError={dealsQuery.isError || stagesQuery.isError}
-        pipelineStages={stagesQuery.data ?? []}
+        dealsLoading={dealsQuery.isLoading}
+        dealsError={dealsQuery.isError}
+        pipelineStages={pipelineStages}
         signalsData={signalsQuery.data as unknown as Record<string, unknown>[] | undefined}
         signalsLoading={signalsQuery.isLoading}
         signalsError={signalsQuery.isError}
         dueTasksData={dueTasksQuery.data}
-        priorityWeights={priorityWeightsQuery.data ?? undefined}
+        priorityWeights={priorityWeights}
+        newPipelineWindows={timingWindows}
         newInPipelineData={newInPipelineQuery.data}
         coldContactsData={coldQuery.data as unknown as Record<string, unknown>[] | undefined}
         onCompleteTask={(taskId) => completeTaskMutation.mutate(taskId)}
