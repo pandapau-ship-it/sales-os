@@ -17,8 +17,9 @@
 //
 // deploy: supabase functions deploy score-deal-health
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+// Won/Lost-System-Anker: eine geteilte Quelle (spiegelt Frontend hunterMappers), kein dupliziertes Literal.
+import { TERMINAL_STAGE_SLUGS, isTerminalStageSlug } from "../_shared/terminalStages.ts";
 
-const TERMINAL_STAGES = new Set(["gewonnen", "verloren"]);
 const DAY_MS = 86_400_000;
 
 const json = (body: unknown, status = 200) =>
@@ -40,7 +41,7 @@ Deno.serve(async (req) => {
       .select("id, stage, stage_updated_at, stagnation_days")
       .eq("organization_id", organizationId)
       .is("deleted_at", null)
-      .not("stage", "in", "(gewonnen,verloren)");
+      .not("stage", "in", `(${TERMINAL_STAGE_SLUGS.join(",")})`);
     if (dealId) q = q.eq("id", dealId);
     const { data: deals, error: dErr } = await q;
     if (dErr) throw dErr;
@@ -49,7 +50,7 @@ Deno.serve(async (req) => {
     let updated = 0;
 
     for (const d of (deals ?? []) as Array<{ id: string; stage: string; stage_updated_at: string | null; stagnation_days: number | null }>) {
-      if (TERMINAL_STAGES.has(d.stage)) continue; // Sicherheitsnetz zusätzlich zum SQL-Filter
+      if (isTerminalStageSlug(d.stage)) continue; // Sicherheitsnetz zusätzlich zum SQL-Filter
       const base = d.stage_updated_at ? new Date(d.stage_updated_at).getTime() : now;
       const days = Math.max(0, Math.floor((now - base) / DAY_MS));
 

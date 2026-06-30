@@ -16,9 +16,10 @@
 //
 // deploy: supabase functions deploy score-upsell
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+// Won/Lost-System-Anker: eine geteilte Quelle (spiegelt Frontend hunterMappers), kein dupliziertes Literal.
+import { isTerminalStageSlug } from "../_shared/terminalStages.ts";
 
 const DAY_MS = 86_400_000;
-const TERMINAL_STAGES = ["gewonnen", "verloren"]; // nicht-terminal = aktiver Deal
 // Zeitfenster (Tage) — [D51] Konfig-Prinzip: aus settings.thresholds.timing_windows (pro Org, laufzeit),
 // Literal nur als Fallback einzelner jsonb-Keys. Spiegel Seed 054.
 const DEFAULT_TIMING = {
@@ -87,7 +88,7 @@ Deno.serve(async (req) => {
       for (const d of (deals ?? []) as Array<{ contact_id: string | null; stage: string | null }>) {
         if (!d.contact_id) continue;
         hasAnyDeal.add(d.contact_id);
-        if (!TERMINAL_STAGES.includes(d.stage ?? "")) hasActiveDeal.add(d.contact_id);
+        if (!isTerminalStageSlug(d.stage)) hasActiveDeal.add(d.contact_id);
       }
     }
 
