@@ -71,6 +71,8 @@ interface ScreenHuntingProps {
   dueTasksData?: Record<string, unknown>[];
   // Dringlichkeits-Score-Gewichte (Übersicht-Tab) aus settings.thresholds; undefined → Default-Gewichte.
   priorityWeights?: Record<string, number>;
+  // [D51] „Neu in Pipeline"-Fenster aus settings.thresholds.timing_windows (new_pipeline_short_days/_long_days).
+  newPipelineWindows?: Record<string, number>;
   // Neu-in-Pipeline: frisch angelegte Deals (inkl. contact + company + deals-Embed).
   newInPipelineData?: Record<string, unknown>[];
   // Cold/Inaktiv: Kontakte mit heat_status 'kalt'/'tot' (für den Reaktivierungs-Opener).
@@ -99,6 +101,7 @@ export default function ScreenHunting({
   signalsError,
   dueTasksData,
   priorityWeights,
+  newPipelineWindows,
   newInPipelineData,
   coldContactsData,
   onCompleteTask,
@@ -231,7 +234,7 @@ export default function ScreenHunting({
     })
     .filter((it) => it.score > 0)
     .sort((a, b) => b.score - a.score || b.arr - a.arr || (b.icpScore ?? 0) - (a.icpScore ?? 0) || a.oldest - b.oldest);
-  const newPipelineFiltered = newPipelineItems.filter((it) => newPipelineInPeriod(it.createdAt, newPipelinePeriod));
+  const newPipelineFiltered = newPipelineItems.filter((it) => newPipelineInPeriod(it.createdAt, newPipelinePeriod, { shortDays: newPipelineWindows?.new_pipeline_short_days, longDays: newPipelineWindows?.new_pipeline_long_days }));
 
   // Übersicht „Wichtigste Aufgaben" — Top 5 aus mehreren Quellen, in Reihenfolge bis 5 erreicht
   // (dedupe per contactId, Signal-getrieben → weniger als 5 wenn nicht genug, nie leere Slots):
