@@ -960,6 +960,23 @@ Der Abschluss-Audit (Screen + Panel + Vollansicht) fand 3 Lücken — alle gefix
   — beim Bau mitdenken.
 - **Standard-Anforderungen** (wie alle Edit-Slices): reload-persistent, echter DB-Write, kein toter Button/Attrappe.
 
+### [D51] Konfigurierbarkeit-als-Architektur — „Logik-als-Daten"-Gebot (Prinzip festgeschrieben 30.06.2026)
+- **Hartes Architektur-Prinzip, gleichrangig zur Honesty-Regel** (Volltext in CLAUDE.md, eigener `##`-Abschnitt):
+  Jeder verhaltenssteuernde Wert **und jede Regel** (Schwellen/Gewichte/Zeitfenster/Cutoffs/Prioritäten/Vorrang-Regeln/
+  Mail-/AI-Vorlagen/Prompts/Gating) liegt in der DB (`settings`/Pro-Entität-Tabelle), pro Org, laufzeit-gelesen,
+  damit über AI-Chat [[D5]] änderbar. Begriff weit gefasst: auch „interne" Rechenparameter (Tages-Cutoffs) + feste
+  `if`-Regeln (Vorrang-Logik). Code-Literal für Verhalten = Architektur-Verstoß. Code-Defaults nur als Fallback,
+  müssen DB-Seed spiegeln **und** bei Lese-Fehler LAUT scheitern (nie stummer Default-Degrade).
+- **Kategorien:** A (Code-Literal, Verstoß) · B (constants.ts, build-time, Verstoß sobald verhaltenssteuernd) ·
+  C (DB, laufzeit, pro Org, chat-änderbar = Ziel).
+- **Admin-Schicht (deferred, NICHT jetzt):** WER ändern darf → später über Rollen-/Rechte-System; dieses Prinzip ist die Voraussetzung.
+
+### [KONFIG-AUDIT] Konfigurierbarkeits-Audit als wiederkehrendes Modul-Abschluss-Gate (deferred)
+- **Status:** wiederkehrendes Gate — am **Ende jedes Moduls** durchführen (analog zum Farmer-Abschluss-Audit), bevor das Modul „fertig" ist.
+- **Inhalt:** Tabelle pro Modul — *Regel | Speicherort | A/B/C | laufzeit-gelesen?* — jeder verhaltenssteuernde Wert/jede Regel muss **C** sein; **kein A**, **kein stummer B-Degrade** ([[D51]]).
+- **Ist-Stand Farmer (Diagnose 30.06.2026):** C ✅ = churn/upsell-Schwellen (61/70), Score-Gewichte, Heat-Grenzen (Edge-Fns brechen bei Read-Fehler ab statt zu defaulten). **Offene A-Verstöße:** churn/upsell Tages-Cutoffs (`LAST_CONTACT_DAYS=30`/`INACTIVE_DAYS=14`/`RECENT_CONTACT_DAYS=7`), Churn-Vorrang-Regel (`applyFarmerDisplayPrecedence`). **B-Degrade-Risiko:** Frontend-Threshold 61/70 fällt bei `getSettings()===null` **stumm** auf Code-Default. **AI-SDR-Gating:** existiert noch nicht (keine Kategorie).
+- **Später:** Tooling/Audit-Wächter (`scripts/audit.ts`) + Pre-Push-Kopplung, sobald das Muster pro Modul steht.
+
 ### [CLEANUP] `score_drivers` → `churn_drivers` umbenennen (Symmetrie mit `upsell_drivers`)
 - Heute: `contacts.score_drivers` (+ `data_sources`) = **Churn**-Treiber (048/score-churn-risk) ·
   `contacts.upsell_drivers` = **Upsell**-Treiber (050/score-upsell). Namen asymmetrisch.

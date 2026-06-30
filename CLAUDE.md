@@ -241,6 +241,39 @@ CLAUDE.md und `/docs` werden **im selben Commit** aktualisiert.
 
 ---
 
+## [D51] Konfigurierbarkeit-als-Architektur — „Logik-als-Daten"-Gebot (Pflicht, gleichrangig zur Honesty-Regel)
+
+**Jeder verhaltenssteuernde Wert UND jede verhaltenssteuernde Regel liegt in der DB, pro Org (und wo sinnvoll
+pro Flow/Kampagne/Entität), wird zur LAUFZEIT gelesen und ist dadurch über den AI-Chat ([[D5]]) änderbar.**
+Das umfasst — bewusst weit gefasst:
+- **Schwellen** (z.B. churn 61 / upsell 70), **Gewichte** (Score-Gewichte), **Zeitfenster/Cutoffs** (z.B. „letzter
+  Kontakt > 30T", Heat-Tagesgrenzen), **Prioritäten/Reihenfolgen**, **Vorrang-Regeln** (z.B. Churn unterdrückt Upsell),
+  **Gating-Bedingungen** (z.B. AI-SDR-Outreach ab Score X), **Mail-/AI-Vorlagen, Prompts, Sequenz-Schritte**.
+- **Auch scheinbar „interne" Rechenparameter** (Tages-Cutoffs in Score-Funktionen) und **feste `if`-Regeln**
+  (Vorrang-Logik) zählen dazu. Faustregel: **Wenn ein Wert/eine Regel beeinflusst, WAS dem Nutzer empfohlen oder
+  WIE etwas bewertet/versendet wird, gehört er in die DB — nicht in den Code.**
+
+**Ein hartes Code-Literal für VERHALTEN ist ein Architektur-Verstoß — so wie ein erfundener Wert ein Honesty-Verstoß ist.**
+Code-Defaults sind NUR als Fallback erlaubt, und dann müssen sie:
+- **(a)** denselben Wert spiegeln wie der DB-Seed, und
+- **(b)** bei Lese-Fehler **LAUT scheitern oder sichtbar warnen** — **NIE stumm** den Default nehmen, der echte
+  Org-Werte überschreibt (Anti-Muster: `getSettings()===null → ?? 61` ohne Warnung; gut: Edge-Fn `if (sErr) throw`).
+
+**Kategorien (für Audits):** **A** = Code-Literal im Logik-Code (Verstoß) · **B** = zentral in `constants.ts` o.ä.,
+aber build-time/nicht pro Org (Verstoß, sobald verhaltenssteuernd) · **C** = DB (`settings`/Pro-Entität-Tabelle),
+laufzeit-gelesen, pro Org, chat-änderbar (**Ziel**). „Sieht aus wie C, ist faktisch B" = stummer Default-Degrade → gilt als Verstoß.
+
+**Gilt für ALLES** — Farmer, Hunter, AI-SDR, Mein Tag, Settings, künftige Module. Keine Insel. Speicherort = `settings.thresholds.*`
+(pro Org, Migration 006) bzw. eine eigene Pro-Entität-Tabelle; Lesepfad = `getSettings`/Edge-Fn `select thresholds` frisch je Lauf.
+
+**Admin-Schicht (künftig, NICHT jetzt bauen):** WER welche Werte/Regeln ändern darf, wird später über das Rollen-/Rechte-System
+geregelt. Voraussetzung dafür ist genau dieses Prinzip („in DB + laufzeit-lesbar"); die Admin-/Berechtigungs-Regeln kommen obendrauf.
+
+**Prüfung:** Am Modul-Ende läuft der **[KONFIG-AUDIT]** (siehe PROGRESS.md / CHECKLIST.md) — jeder verhaltenssteuernde
+Wert/jede Regel muss Kategorie C sein.
+
+---
+
 ## Design System Regeln (Non-Negotiable)
 
 **Einzige Quelle aller visuellen Werte: `src/index.css` `:root` Block**
