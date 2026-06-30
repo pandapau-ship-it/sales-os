@@ -266,6 +266,11 @@ laufzeit-gelesen, pro Org, chat-änderbar (**Ziel**). „Sieht aus wie C, ist fa
 **Gilt für ALLES** — Farmer, Hunter, AI-SDR, Mein Tag, Settings, künftige Module. Keine Insel. Speicherort = `settings.thresholds.*`
 (pro Org, Migration 006) bzw. eine eigene Pro-Entität-Tabelle; Lesepfad = `getSettings`/Edge-Fn `select thresholds` frisch je Lauf.
 
+**Konfigurierbare Keys in `settings.thresholds` (Stand 30.06.2026, alle C):** `churn_risk_threshold` (61) · `upsell_threshold` (70) ·
+`churn_weights` / `upsell_weights` (Score-Gewichte) · `heat_status` (Heat-Tagesgrenzen) · `hunter_priority_weights` ·
+`timing_windows` (`last_contact_days`/`inactive_days`/`recent_contact_days`, Seed 054) · `churn_suppresses_upsell` (Churn-Vorrang-Schalter,
+Seed 054, Default true — die Regel-Logik bleibt in `applyFarmerDisplayPrecedence`, nur der Schalter ist konfigurierbar).
+
 **Admin-Schicht (künftig, NICHT jetzt bauen):** WER welche Werte/Regeln ändern darf, wird später über das Rollen-/Rechte-System
 geregelt. Voraussetzung dafür ist genau dieses Prinzip („in DB + laufzeit-lesbar"); die Admin-/Berechtigungs-Regeln kommen obendrauf.
 

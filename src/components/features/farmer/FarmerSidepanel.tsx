@@ -273,14 +273,19 @@ export default function FarmerSidepanel({ person: personProp, onClose, onExit, v
     enabled: !!organizationId && isOpen,
     placeholderData: keepPreviousData,
   });
+  // [D51] settings = Single Source (gleicher Query-Key wie ReferenceScreens → geteilter Cache). getSettings
+  // schluckt Fehler zu null → NICHT mit stillen Code-Defaults rechnen: Signale nur ableiten, wenn die Org-
+  // settings wirklich geladen sind (settingsLoaded). Per-Key-Fallback (?? 61/70) gilt nur für einzelne
+  // fehlende jsonb-Keys einer vorhandenen Zeile (wie bei den Edge-Fns).
+  const settingsLoaded = settingsQuery.data != null;
   const farmerThresholds = settingsQuery.data?.thresholds as Record<string, unknown> | undefined;
   const churnThreshold = (farmerThresholds?.churn_risk_threshold as number | undefined) ?? 61;
   const upsellThreshold = (farmerThresholds?.upsell_threshold as number | undefined) ?? 70;
+  const churnSuppressesUpsell = (farmerThresholds?.churn_suppresses_upsell as boolean | undefined) ?? true; // [D51] Schalter
   // Signal-Resolver = Single Source (calculateFarmerPriority, hunterMappers) — identisch zur Kachel-Ebene.
-  // Schwellen aus settings durchgereicht. NULL-Score → inaktiv. displaySignals = nach Churn-Vorrang
-  // gefiltert (Retention vor Expansion: Upsell unterdrückt bei aktivem Churn/Gekündigt).
-  const farmerPriority = customer
-    ? calculateFarmerPriority(customer, { churn_threshold: churnThreshold, upsell_threshold: upsellThreshold })
+  // displaySignals = nach Churn-Vorrang gefiltert (Schalter aus settings). NULL-Score → inaktiv.
+  const farmerPriority = (customer && settingsLoaded)
+    ? calculateFarmerPriority(customer, { churn_threshold: churnThreshold, upsell_threshold: upsellThreshold }, { churnSuppressesUpsell })
     : null;
   const displaySignals = farmerPriority?.displaySignals ?? [];
   const churnRiskActive = displaySignals.includes('churn_risk');

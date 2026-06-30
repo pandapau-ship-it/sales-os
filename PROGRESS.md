@@ -974,8 +974,17 @@ Der Abschluss-Audit (Screen + Panel + Vollansicht) fand 3 Lücken — alle gefix
 ### [KONFIG-AUDIT] Konfigurierbarkeits-Audit als wiederkehrendes Modul-Abschluss-Gate (deferred)
 - **Status:** wiederkehrendes Gate — am **Ende jedes Moduls** durchführen (analog zum Farmer-Abschluss-Audit), bevor das Modul „fertig" ist.
 - **Inhalt:** Tabelle pro Modul — *Regel | Speicherort | A/B/C | laufzeit-gelesen?* — jeder verhaltenssteuernde Wert/jede Regel muss **C** sein; **kein A**, **kein stummer B-Degrade** ([[D51]]).
-- **Ist-Stand Farmer (Diagnose 30.06.2026):** C ✅ = churn/upsell-Schwellen (61/70), Score-Gewichte, Heat-Grenzen (Edge-Fns brechen bei Read-Fehler ab statt zu defaulten). **Offene A-Verstöße:** churn/upsell Tages-Cutoffs (`LAST_CONTACT_DAYS=30`/`INACTIVE_DAYS=14`/`RECENT_CONTACT_DAYS=7`), Churn-Vorrang-Regel (`applyFarmerDisplayPrecedence`). **B-Degrade-Risiko:** Frontend-Threshold 61/70 fällt bei `getSettings()===null` **stumm** auf Code-Default. **AI-SDR-Gating:** existiert noch nicht (keine Kategorie).
+- **Ist-Stand Farmer (Diagnose 30.06.2026 → Konfig-Fix 30.06.2026):** C ✅ = churn/upsell-Schwellen (61/70), Score-Gewichte, Heat-Grenzen.
+  **A-Verstöße geschlossen:** Tages-Cutoffs → `settings.thresholds.timing_windows` (Migr. 054, Edge-Fns lesen frisch, `if sErr throw`);
+  Churn-Vorrang → Schalter `settings.thresholds.churn_suppresses_upsell` (Default true; **Regel-Logik bleibt im Code**, nur der Schalter aus settings).
+  **B-Degrade geschlossen:** Frontend rechnet nicht mehr stumm mit 61/70 — `ReferenceScreens` Drei-Zustands-Gate (Laden / Fehler-sichtbar / Erfolg), `FarmerSidepanel` rechnet Signale nur bei geladenen settings (`settingsLoaded`). **AI-SDR-Gating:** existiert noch nicht (keine Kategorie). → **Farmer jetzt vollständig Kategorie C** (außer noch-nicht-gebaute Features).
 - **Später:** Tooling/Audit-Wächter (`scripts/audit.ts`) + Pre-Push-Kopplung, sobald das Muster pro Modul steht.
+
+### [KONFIG-FIX] Farmer A/B-Lücken → C geschlossen (30.06.2026) ✅
+- **(1) Tages-Cutoffs A→C:** `LAST_CONTACT_DAYS=30`/`INACTIVE_DAYS=14` (score-churn-risk) + `RECENT_CONTACT_DAYS=7` (score-upsell) → `settings.thresholds.timing_windows`, frisch gelesen (`if sErr throw`), Literal nur als Per-Key-Fallback. **Migration 054** (idempotent `||`-Merge) — *noch nicht gepusht*.
+- **(2) Stummer Frontend-Fallback B→C:** `getSettings()` schluckt Fehler zu null → `ReferenceScreens` jetzt Drei-Zustands-Gate (Laden/Fehler sichtbar/Erfolg); `FarmerSidepanel` berechnet `farmerPriority` nur bei `settingsLoaded`. Org-Werte gewinnen immer; Default nie heimlich.
+- **(3) Churn-Vorrang A→C:** `applyFarmerDisplayPrecedence(active, churnSuppressesUpsell=true)` — ein Schalter aus `settings.thresholds.churn_suppresses_upsell`, über `calculateFarmerPriority` (Single Source) an Panel/Top-5/Upsell-Tab durchgereicht. Regel-Logik unverändert im Code.
+- **Neue settings.thresholds-Keys (Seed 054):** `timing_windows` (last_contact_days/inactive_days/recent_contact_days) · `churn_suppresses_upsell`.
 
 ### [CLEANUP] `score_drivers` → `churn_drivers` umbenennen (Symmetrie mit `upsell_drivers`)
 - Heute: `contacts.score_drivers` (+ `data_sources`) = **Churn**-Treiber (048/score-churn-risk) ·

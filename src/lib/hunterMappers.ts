@@ -874,8 +874,12 @@ export type FarmerPriorityResult = {
  * Handlungsempfehlung unterdrückt (Retention vor Expansion — man verkauft keinem Kunden
  * mehr, der gerade abwandert). Single Source für Panel UND Kachel-Ebene. Scoring (`signals`/
  * `score`/`dominantSignal`) bleibt unberührt; nur die ANZEIGE filtert.
+ * [D51] Konfig-Prinzip: die Regel-LOGIK bleibt hier (Single Source), nur der SCHALTER
+ * `churnSuppressesUpsell` kommt aus settings (`thresholds.churn_suppresses_upsell`, Default true,
+ * laufzeit-gelesen) — so kann der Chat sie pro Org abschalten, ohne Code. Default true = aktueller Stand.
  */
-export function applyFarmerDisplayPrecedence(active: FarmerPrioritySignal[]): FarmerPrioritySignal[] {
+export function applyFarmerDisplayPrecedence(active: FarmerPrioritySignal[], churnSuppressesUpsell = true): FarmerPrioritySignal[] {
+  if (!churnSuppressesUpsell) return active; // Org hat den Vorrang abgeschaltet → nichts filtern
   const retentionActive = active.includes("cancelled") || active.includes("churn_risk");
   return active.filter((s) => !(s === "upsell" && retentionActive));
 }
@@ -889,7 +893,7 @@ export function applyFarmerDisplayPrecedence(active: FarmerPrioritySignal[]): Fa
 export function calculateFarmerPriority(
   customer: Customer,
   weights?: Partial<FarmerPriorityWeights> | null,
-  opts?: { hasOverdueTask?: boolean },
+  opts?: { hasOverdueTask?: boolean; churnSuppressesUpsell?: boolean },
 ): FarmerPriorityResult {
   const w = { ...FARMER_PRIORITY_WEIGHTS_DEFAULT, ...(weights ?? {}) };
   const active: FarmerPrioritySignal[] = [];
@@ -907,5 +911,5 @@ export function calculateFarmerPriority(
   if (opts?.hasOverdueTask) { active.push("overdue_task"); score += w.overdue_task; }
 
   const dominantSignal = FARMER_SIGNAL_ORDER.find((s) => active.includes(s)) ?? null;
-  return { score, signals: active, displaySignals: applyFarmerDisplayPrecedence(active), dominantSignal, mrr: customer.mrrMonthly ?? 0, churnScore: customer.churnScore, upsellScore: customer.upsellScore };
+  return { score, signals: active, displaySignals: applyFarmerDisplayPrecedence(active, opts?.churnSuppressesUpsell ?? true), dominantSignal, mrr: customer.mrrMonthly ?? 0, churnScore: customer.churnScore, upsellScore: customer.upsellScore };
 }

@@ -59,6 +59,8 @@ interface ScreenFarmingProps {
   churnThreshold?: number;
   /** Upsell-Schwelle aus settings.thresholds.upsell_threshold (Fallback 70). */
   upsellThreshold?: number;
+  /** [D51] Churn-Vorrang-Schalter aus settings.thresholds.churn_suppresses_upsell (Default true). */
+  churnSuppressesUpsell?: boolean;
   /** Fällige Tasks bei Bestandskunden (getDueTasks contactStatus='kunde' → taskToDueCard). */
   dueTasks?: DueTaskCardItem[];
   /** Farmer-geroutete Signale (getSignals routedTo='farmer' → signalToCardProps). */
@@ -70,6 +72,7 @@ export default function ScreenFarming({
   onUpgradeSubscription: _onUpgradeSubscription,
   churnThreshold = 61,
   upsellThreshold = 70,
+  churnSuppressesUpsell = true,
   dueTasks = [],
   signalCards = [],
 }: ScreenFarmingProps) {
@@ -117,7 +120,7 @@ export default function ScreenFarming({
       .filter((id): id is string => !!id),
   );
   const farmerTop5 = customers
-    .map((c) => ({ customer: c, prio: calculateFarmerPriority(c, { churn_threshold: churnThreshold, upsell_threshold: upsellThreshold }, { hasOverdueTask: overdueContactIds.has(c.id) }) }))
+    .map((c) => ({ customer: c, prio: calculateFarmerPriority(c, { churn_threshold: churnThreshold, upsell_threshold: upsellThreshold }, { hasOverdueTask: overdueContactIds.has(c.id), churnSuppressesUpsell }) }))
     .filter((x) => x.prio.dominantSignal !== null)
     .sort((a, b) => {
       const ra = FARMER_SIGNAL_ORDER.indexOf(a.prio.dominantSignal!);
@@ -152,7 +155,7 @@ export default function ScreenFarming({
   // wie Panel/Top-5 (`calculateFarmerPriority.displaySignals` → `applyFarmerDisplayPrecedence`), keine
   // duplizierte Vorrang-Logik. So erscheint ein churn-aktiver Kunde NICHT zusätzlich im Upsell-Tab.
   const upsellRows = customers
-    .filter((c) => calculateFarmerPriority(c, { churn_threshold: churnThreshold, upsell_threshold: upsellThreshold }).displaySignals.includes('upsell'))
+    .filter((c) => calculateFarmerPriority(c, { churn_threshold: churnThreshold, upsell_threshold: upsellThreshold }, { churnSuppressesUpsell }).displaySignals.includes('upsell'))
     .sort((a, b) => (b.upsellScore ?? 0) - (a.upsellScore ?? 0));
 
   // Badge-Counts: Kunden + Retention + Upsell echt; Signals Mock bis zur Signal-Anbindung.

@@ -19,8 +19,13 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const DAY_MS = 86_400_000;
-const LAST_CONTACT_DAYS = 30; // „Letzter Kontakt > 30T"
-const INACTIVE_DAYS = 14;     // „Tage ohne Aktivität > 14T"
+// Zeitfenster (Tage) — [D51] Konfig-Prinzip: NICHT hardcodiert, aus settings.thresholds.timing_windows
+// gelesen (pro Org, laufzeit). Literale nur als Fallback EINZELNER jsonb-Keys (wie weights). Spiegel Seed 054.
+const DEFAULT_TIMING = {
+  last_contact_days: 30, // „Letzter Kontakt > X Tage"
+  inactive_days: 14,     // „Tage ohne Aktivität > X"
+};
+type TimingWindows = typeof DEFAULT_TIMING;
 
 // Default-Gewichte (nur Fallback, falls settings.thresholds.churn_weights fehlt) — Spiegel Seed 048 + Fix 052.
 const DEFAULT_CHURN_WEIGHTS = {
@@ -55,6 +60,7 @@ Deno.serve(async (req) => {
       .single();
     if (sErr) throw sErr;
     const w: ChurnWeights = { ...DEFAULT_CHURN_WEIGHTS, ...(settings?.thresholds?.churn_weights ?? {}) };
+    const tw: TimingWindows = { ...DEFAULT_TIMING, ...(settings?.thresholds?.timing_windows ?? {}) };
 
     // 3. Bestandskunden laden (contact_status='kunde'). contacts hat KEIN Soft-Delete (deleted_at) —
     //    Inaktive laufen über contact_status='archiviert', also reicht der kunde-Filter.
@@ -109,10 +115,10 @@ Deno.serve(async (req) => {
         const days = Math.max(0, Math.floor((now - new Date(c.last_contacted_at).getTime()) / DAY_MS));
 
         available += w.last_contact;
-        if (days > LAST_CONTACT_DAYS) { earned += w.last_contact; if (w.last_contact > 0) drivers.push({ signal: "last_contact", points: w.last_contact, source: "messages" }); }
+        if (days > tw.last_contact_days) { earned += w.last_contact; if (w.last_contact > 0) drivers.push({ signal: "last_contact", points: w.last_contact, source: "messages" }); }
 
         available += w.inactive_days;
-        if (days > INACTIVE_DAYS) { earned += w.inactive_days; if (w.inactive_days > 0) drivers.push({ signal: "inactive_days", points: w.inactive_days, source: "activity" }); }
+        if (days > tw.inactive_days) { earned += w.inactive_days; if (w.inactive_days > 0) drivers.push({ signal: "inactive_days", points: w.inactive_days, source: "activity" }); }
 
         available += w.no_reply;
         const noReply = !c.last_reply_at || new Date(c.last_reply_at).getTime() < new Date(c.last_contacted_at).getTime();
