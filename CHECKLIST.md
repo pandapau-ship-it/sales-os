@@ -8,6 +8,34 @@
 
 ---
 
+## 🚦 Modul-Abschluss-Gate (PFLICHT — bei JEDEM abgeschlossenen Modul durchgehen)
+
+> Wiederkehrendes Gate, analog zum Code-Review. **Bevor ein Modul als „fertig" gilt**, die vier Prinzipien
+> als Tabelle pro Modul prüfen (bestanden / offen als Deferred) und das Ergebnis **im Übergabe-Protokoll
+> vermerken**. Verankert in CLAUDE.md ([D51] · Honesty · Single Source · Design-Invarianten).
+
+- [ ] **(1) SINGLE SOURCE OF TRUTH** — keine duplizierte Logik/Konstante/Komponente; geteilte Resolver/
+  Query-Keys/Komponenten konsistent genutzt (EIN Mapper/Resolver, EIN Query-Key-Cache, EINE Konstanten-Quelle;
+  Frontend↔Edge spiegeln denselben Enum statt Doppel-Literal).
+- [ ] **(2) PERFORMANCE (Weltklasse-Standard)** — keine N+1-Queries (kein `useQuery` in `.map`), geteilte
+  Caches (gleiche Query-Keys), Skeletons/Prefetch/`placeholderData` wo sinnvoll, kein `SELECT *` ohne Grund,
+  keine unnötigen Re-Reads/Doppel-Fetches.
+- [ ] **(3) KONFIGURIERBARKEIT [[D51]]** — jeder verhaltenssteuernde Wert UND jede Regel (Schwellen/Gewichte/
+  Zeitfenster/Vorrang-Regeln/Mail-/AI-Vorlagen/Prompts/Workflow-Konfig) liegt in der DB, pro Org, laufzeit-
+  gelesen, AI-Chat-änderbar [[D5]]. **KEIN** verhaltenssteuerndes Code-Literal (A), **kein** stummer Fallback-
+  Degrade (Fallback laut scheitern/warnen). *Maßstab: ein User muss später per Chat sagen können „die Mails in
+  diesem Workflow sind schlecht, ändere sie so-und-so" → greift genau für diesen Flow.* Pro Modul Tabelle:
+  Regel \| Speicherort \| A/B/C \| laufzeit-gelesen? (System-Enums wie Won/Lost-Slugs sind bewusst KEIN
+  Config — dokumentieren statt konfigurierbar machen.)
+- [ ] **(4) HONESTY** — kein erfundener Wert; fehlend → „Folgt"/ausgeblendet; leer = ehrlicher Positivzustand
+  (echte EmptyStates, keine Fake-Zeilen/-Zahlen).
+
+> **Gate-Läufe (je Modul, Ergebnis):**
+> - **Farmer (30.06.2026): BESTANDEN** ✅ (1)+(2)+(3)+(4) — Details + Deferred siehe `docs/session_uebergabe_2026-06-30.md`.
+> - **Hunter (Konfig-Scope, 30.06.2026): BESTANDEN** ✅ (1)+(2)+(3 für auditierte Werte)+(4) — Deferred (ICP-Berechnung/-Bänder, Signal-Routing-Regel/Resolver-Konfig, Deal-Health-Kompositum, AI-SDR-Gating) siehe Übergabe.
+
+---
+
 ## 🛠️ Selbst-Wartung (Tooling)
 - [x] CHECKLIST.md als Single Source of Truth — *Umsetzungsstand zentral*
 - [x] `scripts/audit.ts` + `npm run audit` — *prüft die 5 Pflicht-Prüffragen automatisch*

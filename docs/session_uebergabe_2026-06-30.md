@@ -110,3 +110,62 @@ Die DB-Features (048–052 + Edge Functions) wurden **während** der Session ges
 - n/a api_usage (keine AI-Calls in dieser Session).
 
 **Gates am Sessionende:** build ✅ · audit 20 PASS / 0 FAIL ✅ · structure-check PASS ✅
+
+---
+
+## NACHTRAG Teil 2 (30.06.2026) — [D51] Konfigurierbarkeit-als-Architektur
+
+Nach dem Farmer-DB-Wiring-Abschluss (oben) folgte in derselben Session der Konfigurierbarkeits-Strang.
+
+### Was fertig wurde
+- **[D51] Prinzip „Konfigurierbarkeit-als-Architektur / Logik-als-Daten" verankert** (CLAUDE.md, eigener `##`-Abschnitt, gleichrangig zur Honesty-Regel): jeder verhaltenssteuernde **Wert UND jede Regel** liegt in der DB (`settings`), pro Org, laufzeit-gelesen, AI-Chat-änderbar [[D5]]; Code-Literal für Verhalten = Architektur-Verstoß; Defaults nur als Fallback, der den Seed spiegelt + bei Lese-Fehler LAUT scheitert (kein stummer Degrade). Kategorien A/B/C. Admin-Schicht (wer darf ändern) = deferred (Rollen-System).
+- **Modul-Abschluss-Gate** (4 Prinzipien) in CHECKLIST.md als wiederkehrendes Pflicht-Gate angelegt (Single Source · Performance · Konfigurierbarkeit · Honesty).
+- **Farmer-Konfig-Fix:** Tages-Cutoffs (30/14/7) → `settings.thresholds.timing_windows` (Migr. **054**); Churn-Vorrang → Schalter `churn_suppresses_upsell` (Regel-Logik bleibt im Code); stummer Frontend-Fallback → ReferenceScreens **Drei-Zustands-Gate** (eine `settingsQuery`) + Panel rechnet nur bei geladenen settings.
+- **Hunter-Konfig-Audit + Slice 1:** HunterReference auf **eine `settingsQuery` + Drei-Zustands-Gate** (stummer Fallback #1 Stagnation / #4 Priority-Gewichte → echtes C); „Neu-in-Pipeline"-Fenster → `timing_windows.new_pipeline_short_days/_long_days` (Migr. **055**). FarmerReference war bereits gleichwertig (kein Angleich nötig).
+- **Hunter-Slice 2 (Terminal-Stages):** Variante 1 (DRY) — geteiltes `supabase/functions/_shared/terminalStages.ts` statt duplizierter Edge-Literale; Won/Lost = **System-Enum** (bewusst KEIN Config, als Invariante in CLAUDE.md dokumentiert; kein Migration/`type`-Flag/Write-Eingriff).
+- **Migrationen 053 (KB Scoring) + 054 + 055 alle applied**; Edge Fns `score-churn-risk`/`score-upsell`/`score-deal-health` re-deployt; Demo re-gescored → Scores unverändert (erwartet, gleiche Werte/Slugs).
+- **Pipeline-Konfigurierbarkeit-Diagnose** durchgeführt → Befunde im `[DEFERRED] Pipeline-Stage-Management-UI` festgehalten.
+
+### Wichtige Entscheidungen (Teil 2)
+- **Konfig-Prinzip [D51]** gilt **ab sofort als aktive Invariante** (nur Admin-Schicht + KONFIG-AUDIT-Tooling sind deferred).
+- **Won/Lost-Slugs = System-Enum**, nicht pro Org konfigurierbar (struktureller Bezeichner, DealStage-Typ + Write-Pfad). Org-Anpassung = nur die **aktiven** Stufen (Name/Reihenfolge/Anzahl).
+- **`icp_score_threshold:65` BEHALTEN** — Vorab-Einstellung für die kommende, selbst gebaute ICP-Berechnung (kein Zombie).
+
+### Neue settings.thresholds-Keys (alle C)
+`timing_windows` (`last_contact_days`/`inactive_days`/`recent_contact_days` Seed 054 · `new_pipeline_short_days`/`new_pipeline_long_days` Seed 055) · `churn_suppresses_upsell` (Seed 054).
+
+### Neue Library / Utils (Teil 2)
+- `supabase/functions/_shared/terminalStages.ts` (Edge-Util, geteilte Won/Lost-System-Anker; spiegelt hunterMappers). Keine neue React-Komponente → nicht in `components/index.ts`. structure-check grün.
+
+### knowledge_base
+Kein neuer KB-Eintrag für Teil 2 — Konfigurierbarkeit ist interne Architektur (settings-Keys/Refactors), kein User-Feature; 053 (Scoring) deckt das relevante Feature bereits ab.
+
+### Offene Deferred (Teil 2, vollständig)
+[D51]-Admin-Schicht (Rollen/Rechte) · [KONFIG-AUDIT]-Tooling (`scripts/audit.ts` + Pre-Push) · [DEFERRED] Pipeline-Stage-Management-UI (mit Befunden: DealStage-Typ lockern, Pflichtfelder stagnation_days/probability, Won/Lost schützen, `dealStageColors` aufräumen, Kanban-Board noch Mock) · Hunter-ICP-Berechnung + ICP-Bänder vereinheitlichen (Donut 75/50 vs priority 80/60) · Signal-Routing-Regel (`routed_to`) + Signal→Aktion-Resolver-Konfig · Deal-Health-Kompositum · AI-SDR-Gating · dynamische Zeitfenster-Labels (kosmetisch).
+
+---
+
+## Modul-Abschluss-Gate (PFLICHT — Lauf 30.06.2026)
+
+Vier Prinzipien (CHECKLIST.md „🚦 Modul-Abschluss-Gate") für die in dieser Session abgeschlossenen Module.
+
+### Farmer — **BESTANDEN** ✅
+| Prinzip | Status | Beleg |
+|---|---|---|
+| (1) Single Source | ✅ | `contactToProfile`/`getContactDetail`/`companies`/`contactDetailFields`/`calculateFarmerPriority` (ein Resolver) · geteilte Query-Keys (`contactCommunications` Panel↔Expanded) · KontaktZeile/DetailField geteilt |
+| (2) Performance | ✅ | N+1-Audit PASS (kein `useQuery` in `.map`) · geteilte Caches · PanelSkeleton + `placeholderData` + Prefetch-on-hover · `getContactDetail` mit gezieltem Embed |
+| (3) Konfigurierbarkeit [D51] | ✅ | Schwellen/Gewichte/Heat/`timing_windows`/`churn_suppresses_upsell` alle C; Drei-Zustands-Gate (kein stummer Degrade); Edge-Fns `if sErr throw` |
+| (4) Honesty | ✅ | `mockUsage` entfernt → „Folgt"; kein Fake; EmptyStates; „Folgt" für KI/Usage/NRR/Owner/Tags |
+- **Deferred (kein Verstoß, noch nicht gebaut):** [D5] KI-Kurzakte/Action-Drafts (beim Bau MUSS der Mail-/Prompt-Content C sein — Chat-änderbar pro Flow) · [D49] Usage-Telemetrie · [D50] Deals-Tab · [D29] Mail · [D48] Snooze-Persistenz.
+
+### Hunter (Konfig-Scope) — **BESTANDEN** ✅
+| Prinzip | Status | Beleg |
+|---|---|---|
+| (1) Single Source | ✅ | `hunterMappers` (ein Resolver) · EINE `settingsQuery` (Key `['settings',org]`, geteilt mit Farmer) · `_shared/terminalStages.ts` (DRY statt Doppel-Literal) |
+| (2) Performance | ✅ | 2 redundante getSettings-Sub-Queries entfernt → eine settingsQuery · geteilter Cache · N+1-Audit PASS |
+| (3) Konfigurierbarkeit [D51] | ✅ (für auditierte Werte) | Heat/Stagnation/Priority-Gewichte/Neu-in-Pipeline-Fenster = C; stummer Degrade geschlossen (Gate); Won/Lost = System-Enum (dokumentiert, bewusst kein Config) |
+| (4) Honesty | ✅ | Hunter ohne Fake-Werte; „Folgt"-Platzhalter; keine Regression diese Session |
+- **Deferred / noch nicht gebaut (kein Verstoß):** ICP-Berechnung (Spalte nie befüllt; `icp_score_threshold:65` wartet als Vorab-Einstellung) · ICP-Bänder vereinheitlichen (Donut 75/50 + priority 80/60 → ein Satz) · Signal-Routing-Regel (`routed_to`) + Signal→Aktion-Resolver-Konfig · Deal-Health-Kompositum-Score · AI-SDR-Gating.
+- **Kosmetisch deferred (kein Verhaltens-Verstoß):** dynamische Zeitfenster-Labels „7d"/„30d" · ICP-Donut-Farben · Top-N=5 Display-Cap.
+
+**Fazit:** Beide Module bestehen das Gate; alle offenen Punkte sind bewusst Deferred (noch-nicht-gebaute Features), keine versteckten Verstöße. Das Gate ist ab sofort fester Bestandteil jedes Modul-Abschlusses (CHECKLIST.md).
