@@ -18,8 +18,13 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const DAY_MS = 86_400_000;
-const RECENT_CONTACT_DAYS = 7; // „letzter Kontakt < 7T"
 const TERMINAL_STAGES = ["gewonnen", "verloren"]; // nicht-terminal = aktiver Deal
+// Zeitfenster (Tage) — [D51] Konfig-Prinzip: aus settings.thresholds.timing_windows (pro Org, laufzeit),
+// Literal nur als Fallback einzelner jsonb-Keys. Spiegel Seed 054.
+const DEFAULT_TIMING = {
+  recent_contact_days: 7, // „letzter Kontakt < X Tage"
+};
+type TimingWindows = typeof DEFAULT_TIMING;
 
 // Default-Gewichte (Fallback, falls settings.thresholds.upsell_weights fehlt) — Spiegel Seed 048.
 const DEFAULT_UPSELL_WEIGHTS = {
@@ -54,6 +59,7 @@ Deno.serve(async (req) => {
       .single();
     if (sErr) throw sErr;
     const w: UpsellWeights = { ...DEFAULT_UPSELL_WEIGHTS, ...(settings?.thresholds?.upsell_weights ?? {}) };
+    const tw: TimingWindows = { ...DEFAULT_TIMING, ...(settings?.thresholds?.timing_windows ?? {}) };
 
     // 3. Bestandskunden (contact_status='kunde'; contacts hat kein Soft-Delete).
     let cq = supabase
@@ -106,7 +112,7 @@ Deno.serve(async (req) => {
         if (replied) { earned += w.reply_rate; if (w.reply_rate > 0) drivers.push({ signal: "reply_rate", points: w.reply_rate, source: "messages" }); }
 
         available += w.recent_contact;
-        if (days < RECENT_CONTACT_DAYS) { earned += w.recent_contact; if (w.recent_contact > 0) drivers.push({ signal: "recent_contact", points: w.recent_contact, source: "messages" }); }
+        if (days < tw.recent_contact_days) { earned += w.recent_contact; if (w.recent_contact > 0) drivers.push({ signal: "recent_contact", points: w.recent_contact, source: "messages" }); }
       }
 
       // ── Heat-Signal (verfügbar wenn heat_status gesetzt) ──

@@ -293,9 +293,9 @@ export function FarmerReference() {
     queryFn: () => getSettings(organizationId),
     staleTime: 5 * 60_000,
   });
-  const farmerThresholds = settingsQuery.data?.thresholds as Record<string, unknown> | undefined;
-  const churnThreshold = (farmerThresholds?.churn_risk_threshold as number | undefined) ?? 61;
-  const upsellThreshold = (farmerThresholds?.upsell_threshold as number | undefined) ?? 70;
+  // [D51] Konfig-Prinzip: Schwellen kommen aus settings (Org), NIE stumm aus Code-Default. getSettings()
+  // schluckt Query-Fehler zu null → react-query meldet „success" mit data=null. Drei Zustände unten sauber
+  // getrennt (Laden / Fehler-sichtbar / Erfolg) — siehe vor dem return. Hier nur die Tasks-/Signal-Queries.
   // Fällige Tasks NUR bei Bestandskunden (contactStatus='kunde') → Follow-ups-Tab. taskToDueCard nutzt
   // contactToProfile (gleiche ICP-Quelle wie customerRowToView → konsistenter Ring).
   const dueTasksQuery = useQuery({
@@ -310,6 +310,21 @@ export function FarmerReference() {
     queryFn: () => getSignals(organizationId, { routedTo: "farmer", processed: false }),
   });
   const signalCardsData = signalsQuery.data?.map((row) => signalToCardProps(row as unknown as Record<string, unknown>, t)) ?? [];
+  // [D51] Drei-Zustands-Handling der settings (Org-Werte gewinnen IMMER; Default nie heimlich):
+  //  - Laden → Screen wartet (kein Rechnen mit Defaults).
+  //  - data===null nach Load (Fehler/kein Client/kein settings-Row) → SICHTBARER Hinweis statt stillem 61/70.
+  //  - Erfolg → Org-Schwellen; Code-Default nur als Fallback EINZELNER fehlender jsonb-Keys.
+  if (settingsQuery.isLoading) {
+    return <div className="p-10 text-center text-[13px] text-text-muted">Einstellungen werden geladen …</div>;
+  }
+  if (settingsQuery.data == null) {
+    return <div className="p-10 text-center text-[13px] font-semibold text-[var(--signal-urgent-text)]">Einstellungen konnten nicht geladen werden — Farmer-Schwellen nicht verfügbar. Bitte Seite neu laden.</div>;
+  }
+  const farmerThresholds = settingsQuery.data.thresholds as Record<string, unknown> | undefined;
+  const churnThreshold = (farmerThresholds?.churn_risk_threshold as number | undefined) ?? 61;
+  const upsellThreshold = (farmerThresholds?.upsell_threshold as number | undefined) ?? 70;
+  const churnSuppressesUpsell = (farmerThresholds?.churn_suppresses_upsell as boolean | undefined) ?? true; // [D51] Schalter
+
   // Slice 4: ScreenFarming öffnet eigene Panels (FarmerSidepanel/FarmerActionDrawer) intern —
   // kein CustomerDrawer mehr im Farmer. (CustomerDrawer bleibt für MeinTag/Hunter, bis migriert.)
   return (
@@ -318,6 +333,7 @@ export function FarmerReference() {
         customers={customersData}
         churnThreshold={churnThreshold}
         upsellThreshold={upsellThreshold}
+        churnSuppressesUpsell={churnSuppressesUpsell}
         dueTasks={dueTasksData}
         signalCards={signalCardsData}
         onUpgradeSubscription={s.upgradeSubscription}
