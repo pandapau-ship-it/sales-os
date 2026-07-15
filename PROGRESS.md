@@ -102,6 +102,20 @@
 
 ---
 
+## 🧩 Slice-Checklisten-Template (PFLICHT — jede neue Slice-Checkliste endet mit diesen drei Punkten)
+
+> Verankert in CLAUDE.md → **Agent-Gates**. Die drei Punkte stehen am **Ende jeder** Slice-Checkliste,
+> **vor** dem STOP, und dürfen nie entfernt werden. Die Agents laufen **genau einmal pro Slice am Ende**
+> — nicht nach einzelnen Zwischenschritten.
+
+```
+- [ ] test-runner Subagent ausführen → muss "ALLE GATES GRÜN" melden
+- [ ] auditor Subagent ausführen (nur Slice-Diff) → muss "AUDIT: PASS" melden
+- [ ] Bei FAIL: fixen, beide Agents erneut laufen lassen — erst dann STOP + Prossi um Screenshot-QA bitten
+```
+
+---
+
 ## Offen — Nächste Session (Phase 3 DB-Wiring, Reihenfolge)
 
 > **Stand 2026-06-21:** Das Panel-Thema (B) ist verdrahtet, **P7 Kommunikation** + **Stagnation/Heat Edge Functions** sind gebaut & deployed, **Pipeline Task-Liste** ist echt. Reihenfolge ab jetzt:

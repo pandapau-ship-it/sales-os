@@ -185,6 +185,31 @@ Alle Werte (Größen, Farben, Badge-Größe, Action-Row) kommen aus `src/lib/com
 ist NUR die Action-Row (als Slot). Werte ändern → `componentBehavior.ts` ändern, nie pro Karte.
 Eine neue, hand-gebaute Kachel mit eigener Top-Row/Inline-Styles ist ein **Regelverstoß**.
 
+### Autonomes Arbeiten — Frage-Regel
+
+Claude Code arbeitet Slices autonom durch, ohne Zwischenfragen zu
+technischen Details und ohne Permission-Nachfragen für Standard-Werkzeuge.
+Fragen an den User sind NUR erlaubt bei:
+1. Produkt-/Architekturentscheidungen mit mehreren sinnvollen Optionen
+   (Optionen kurz nennen + klare Empfehlung aussprechen)
+2. Externen Diensten/Drittanbietern (Accounts, API-Keys, Zahlungen, OAuth)
+3. Destruktiven oder irreversiblen Aktionen (inkl. git push / db push — Gates)
+
+Alle rein technischen Entscheidungen trifft Claude Code selbst gemäß
+CLAUDE.md und den Referenz-Dokumenten. Die Agent-Gates (test-runner, auditor)
+und Green Gates laufen pro Slice; der STOP mit Screenshot-QA für den User
+erfolgt auf Screen-/Feature-Ebene.
+
+### Agent-Gates
+
+**AGENT-GATES (permanent, Teil jeder Slice-Checkliste):** Vor jedem STOP+QA laufen automatisch
+1. test-runner, 2. auditor (nur auf den Slice-Diff). Prossi wird erst um QA gebeten, wenn beide
+PASS melden. Die Agents laufen genau einmal pro Slice am Ende — NICHT nach einzelnen
+Zwischenschritten. Diese Punkte stehen als Pflicht-Items in jeder Slice-Checkliste in PROGRESS.md
+und dürfen nie entfernt werden. „Green Gates" bezeichnet dabei: build + lint + typecheck + Tests
+grün vor jedem Commit. „AUTO-Tests" werden mit den 13 Planungsdokumenten (docs/) vollständig
+definiert, sofern sie zum Zeitpunkt dieses Auftrags noch nicht existieren.
+
 **At the end of every session** → siehe **Selbst-Wartung** (oben, höchste Priorität).
 Kurzfassung: PROGRESS.md + CHECKLIST.md aktualisieren, neue Komponenten in
 `componentRegistry.ts`, fünf Prüffragen durchgehen, dann commit + push.
