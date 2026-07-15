@@ -4,6 +4,112 @@
 
 ---
 
+## ▶ NÄCHSTER SCHRITT
+
+> **▶ markiert den nächsten offenen Punkt.** Die Typen **[BAU]** / **[OLIVER]** /
+> **[BAU+DESIGN]** steuern die **Dauerregel „weiter"** in CLAUDE.md (Session Protocol).
+> Auf „weiter" → diesen Block öffnen, ▶-Schritt nehmen, nach Typ handeln.
+> **Reihenfolge-Flexibilität:** Wartet ein [OLIVER]-/DESIGN-Schritt, darf der nächste
+> [BAU]-Schritt ohne diese Abhängigkeit vorgezogen werden — **Vorziehen hier vermerken,
+> nie stillschweigend**.
+
+▶ **1.** [ ] **[BAU+DESIGN] Kontakte & Companies — Slices K-1 bis K-6**
+  (`docs/kontakte_companies_bauplan_v1.md`; Designs ScreenKontakte/ScreenCompanies
+  vorhanden — Abgleich nach Dauerregel 4c)
+  - [ ] **K-1a Test-Fundament ZUERST** — vitest (o. glw.) einrichten: Config,
+        **ein** Smoke-Test, npm-Script `"test"` in package.json. **Voraussetzung für
+        [AUTO]-Tests in ALLEN Folge-Slices** und für den `test-runner`-Agent (der liest
+        das `test`-Script aus package.json). ⚠ Steht in **keinem** der 13 Dokumente —
+        die Testpläne setzen ein Framework voraus, das es im Repo noch nicht gibt.
+        Danach zählt „Tests grün" erst wirklich in den Green Gates.
+  - [ ] K-1b Diagnose & Daten-Fundament (Validierung K1 + find_duplicates K2 + [AUTO]-Tests)
+  - [ ] K-2 Filter-Sprache (Weiche 1, erstmalig — Fundament für Listen/Lifecycle/Analyse)
+  - [ ] K-3 Kontakte-Screen (4c: Design-Abgleich ScreenKontakte zuerst)
+  - [ ] K-4 Companies-Screen + Detail (4c: ScreenCompanies)
+  - [ ] K-5 Smart-Import (4 Schichten, `import_mapping_v1`-Prompt nach C27)
+  - [ ] K-6 Duplikate verwalten + Merge (merge_contacts/merge_companies + [AUTO]-Tests)
+
+**2.** [ ] **[BAU] Vorab-Migration Entitlement & Credits**
+  (`docs/for_ai_sdr_vorab_entitlement_credits.md` — PFLICHT vor AI-SDR-Slice-5)
+
+**3.** [ ] **[OLIVER] Integrations-Session 0**
+  (`docs/integrations_masterplan.md` Abschnitt 2 — Nango · Google-Testing-App ·
+  Microsoft-App · Langfuse · Gemini-Key · System-Mail-Kanal.
+  Auf „weiter" lieferst du die **Klick-Anleitung** und verdrahtest danach die Keys.)
+
+**4.** [ ] **[BAU] Mitteilungs-Fundament N-S1 + N-S2-Minimal** (`docs/mitteilungssystem_bauplan_v1.md`)
+
+**5.** [ ] **[BAU] Betrieb Slice B-1 MINIMAL** (`docs/betrieb_ueberwachung_bauplan_v1.md`)
+
+**6.** [ ] **[BAU+DESIGN] Settings SET-1 bis SET-4** (`docs/settings_bauplan_v1.md`;
+  **SET-2 wartet auf Olivers vorhandenes Design** — Abgleich nach dessen Abschnitt 6)
+
+**7.** [ ] **[BAU+DESIGN] AI SDR Slices 0–14** (`docs/ai_sdr_bauplan_v1.md` +
+  `docs/for_ai_sdr_testplan_kritische_pfade.md`; UI-Slices über Dauerregel 4c)
+  - [ ] 0 Doku-Angleichung · [ ] 1 Migration A · [ ] 2 Migration B · [ ] 3 Sending-Layer
+  - [ ] 4 Mailbox-Management · [ ] 5 Sequenz-Engine · [ ] 6 Lead-Intake · [ ] 7 Inbound & Intent
+  - [ ] 8 Campaigns-UI · [ ] 9 Operatives UI · [ ] 10 Termine · [ ] 11 Lifecycle
+  - [ ] 12 Performance & Digest · [ ] 13 Learning · [ ] 14 Mein-Tag-Integration & Abschluss
+
+**8.** [ ] **[BAU+DESIGN] Mein Tag Slices 0–4** (`docs/mein_tag_bauplan_v1.md`)
+  - [ ] 0 Doku-Angleichung · [ ] 1 Migration & Settings · [ ] 2 Ranking-Engine + morning_briefing
+  - [ ] 3 UI-Verkabelung Kernzonen · [ ] 4 Lagebild, Realtime, Abschluss
+
+**9.** [ ] **[BAU+DESIGN] AI Chat Slices 0, 1, 2, 2R, 3–13** (`docs/ai_chat_bauplan_v1.md` +
+  `docs/for_ai_chat_testplan_kritische_pfade.md`)
+  - [ ] 0 Doku-Angleichung · [ ] 1 Migration Chat-Kern · [ ] 2 Tool-Layer · [ ] 2R RAG-Pipeline
+  - [ ] 3 Orchestrator · [ ] 4 UI-Grundgerüst · [ ] 5 Block-Katalog · [ ] 6 Schreib-Aktionen/Papierkorb
+  - [ ] 7 Approval-Flow · [ ] 8 Credits & Kauf · [ ] 9 Ketten & Jobs · [ ] 10 Externe Recherche
+  - [ ] 12 Kontext & „Warum?" · [ ] 13 Abschluss-QA *(Slice 11 entfällt — RAG ist 2R)*
+  - Mitteilungs-Slices: **N-S3 ab AI-SDR-9** · **N-S4 mit Chat-7**
+
+**10.** [ ] **[BAU+OLIVER] Endphase: Integrationen I-B1 ff. + Betrieb B-2/B-3**
+  (inkl. **Security-Abschluss-Check**, `betrieb_ueberwachung_bauplan` B-3)
+
+**11.** [ ] **[OLIVER+BAU] Launch: Onboarding + Abo-Verwaltung — NUR nach Re-Challenge**
+  (beide Drafts, deren Abschnitte **7** bzw. **6**)
+
+---
+
+## OFFEN (Oliver)
+
+- [ ] **Settings-Design nachreichen** — *blockiert SET-2* (`settings_bauplan` Abschnitt 6)
+- [ ] **ICP-Scoring-Spezifikation** — *blockiert ICP-Filter ab AI-SDR-Slice-6*
+      (Onboarding-Draft O10: bewusster Platzhalter, lebt außerhalb jenes Plans)
+- [ ] **Sherloq-Webhook-Payload + On-Demand-Profilabruf-Endpoint** mit dem Sherloq-Team
+      abstimmen — *vor AI-SDR-Slice-6*
+- [ ] **Bestehendes Ranking-System liefern** — ersetzt die Startgewichte in
+      `settings.my_day.ranking` (reine Datenlieferung, kein Code — `mein_tag_bauplan` M2)
+- [ ] **ENTSCHEIDUNG AUSSTEHEND:** `ScreenMarketing.tsx` (eigenes Modul mit Planungs-Session
+      ODER Sherloq-seitig parken?) · `ScreenSherloqSystem.tsx` (v1-Screen oder reicht die
+      Integrations-Kachel?) — **beide Designs liegen lassen, nichts bauen**
+
+---
+
+## UI-DESIGN-INVENTAR (fehlende Designs)
+
+> Oliver designt jeweils **KURZ VOR** dem zugehörigen UI-Slice in AI Studio.
+> Claude Code liefert nach **Dauerregel 4c**: Gap-Liste + vollständigen Design-Prompt.
+
+- [ ] **Campaign Builder** (7 Tabs) — *AI SDR Slice 8*
+- [ ] **AI-SDR-Panel-Varianten** inkl. **Manual-Email (E25)** + **Meeting-Nachbereitungs-Panel** — *Slice 9/10*
+- [ ] **Templates- & Mailbox-Settings-Seiten** — *AI SDR Slice 8 / Settings SET-5*
+- [ ] **Performance-Tab** — *AI SDR Slice 12*
+- [ ] **Chat-Block-Komponenten + Session-Sidebar** — *Chat Slice 4/5*
+- [ ] **Lagebild-Zeile** (Mein Tag) — *Mein Tag Slice 4*
+- [ ] **Papierkorb** — *Chat Slice 6 / Settings SET-6*
+- [ ] **Mitteilungs-Center + Aktivitätsfenster + Aktions-Popup** — *N-S2/N-S3/N-S4*
+- [ ] **System-Status-Seite** — *Betrieb B-2*
+- [ ] **Import-Flow** (Mapping-Vorschau + Validierungs-Preview + Report) — *K-5*
+- [ ] **Settings-Abgleich** (Design vorhanden) — gegen die **5 Patterns** aus
+      `settings_bauplan` Abschnitt 6 prüfen — *SET-2*
+
+**VERMERK:** Bestehende Designs (ScreenAiSdr, ScreenKontakte, ScreenCompanies, ScreenMyDay etc.)
+sind **Ausgangspunkt, aber ggf. unvollständig** gegenüber den Bauplänen — **Dauerregel 4c gilt
+für JEDEN UI-Slice**, auch wenn ein Design existiert.
+
+---
+
 ## Current Status: **[D51] Konfigurierbarkeit-als-Architektur verankert + Farmer/Hunter konfig-konform (30.06.2026, Teil 2)** — neues hartes Prinzip „Logik-als-Daten" (gleichrangig Honesty); **Modul-Abschluss-Gate** (4 Prinzipien: Single Source · Performance · Konfigurierbarkeit · Honesty) in CHECKLIST.md verankert. Farmer- & Hunter-Konfig-Lücken geschlossen (Tages-Cutoffs/Churn-Vorrang-Schalter/„Neu-in-Pipeline"-Fenster → `settings.thresholds`; stummer Fallback → Drei-Zustands-Gate; Edge-Terminal-Literale → `_shared/terminalStages.ts`; Won/Lost = dokumentierte System-Invariante). Migr. 053 (KB) + 054/055 (settings) **applied**. Beide Module bestehen das Gate (offene Punkte = bewusst Deferred). · **Farmer-Modul DB-Wiring KOMPLETT abgeschlossen (30.06.2026)** — Screen (6 Tabs + aufgeklappter Bereich) · Panel 8a–8e (Header/KontaktZeile/Tabs/Writes/Signale/Subscription/Details — alles echt + editierbar) · Vollansicht · echtes Churn-/Upsell-Scoring (Edge Functions `score-churn-risk`/`score-upsell` + tägliche Crons, Migr. 048–053). Farmer-Invarianten erzwungen: **Subscription-nie-Stage · Churn-Vorrang vor Upsell (auch dedizierte Tabs) · Single Source (`contactToProfile`/`getContactDetail`/`companies`/`contactDetailFields`) · Honesty (kein Fake, „Folgt" sauber)**. **NÄCHSTES MODUL: Companies** (Empfehlung: erst Diagnose-/Bestandsaufnahme-Slice analog Farmer-Audit). · Phase 3 (DB-Wiring Hunter) abgeschlossen · **[D27] Tech-Schuld erledigt** · **Auth/Org [D21] Scheiben 1–8** (inkl. MfaBanner 2FA-Empfehlung) · **Hunter-Übersicht Dringlichkeits-Score** (Migr. 045, settings-basiert) + Profilzeilen-Konsistenz erzwungen · **Farmer-Screen UI komplett (alle 6 Tabs: Übersicht · Kunden · Retention · Upsell · Signals · Follow-ups — Mock, kein DB-Wiring)** · **Farmer Info-Panel [D33] + Action-Panel [D34] + Follow-ups [D46] + Vollansicht [D47] gebaut** (eigene `FarmerSidepanel`/`FarmerActionDrawer`, Mock) · **ScreenFarming verdrahtet** (Panels + Action-CTAs + #7 LinkedIn-Signal-Antwort) · **Snooze/Ignorieren bei Signalen** (Hunter+Farmer, Single Source `constants.ts`) · **Panel-Performance** (Skeletons + Prefetch-on-hover + placeholderData) · **[D35] Signal-Action-Resolver Phase 0** · **Elevation- & Radius-System app-weit** · **Drawer-Panels Full-Bleed** (zentral in `sheet.tsx`). Next (Reihenfolge entschieden 29.06.2026 — siehe [D43]): **1. Farmer DB-Wiring komplett** (echte Scores/Signale/Subscription/KI-Kurzakte + AktiveSignale-Flags an echte Felder — siehe [D47]-Nachzieh-Liste) · **2. Score-Funktionen aktivieren** (score_churn_risk/score_upsell/calculate_health_score → täglich echte Zahlen) · **3. [D43] Historisierung systemweit** (Hunter+Farmer zusammen, **hartes Gate: live vor erstem echten Kunden / Phase 4** — NICHT als Farmer-Insel/Erstschritt) · dann **Hunter Trial-Kacheln [D36]/[D37]** · **Lifecycle-Trigger [D38]** · **[D29] Einladungs-Mail Edge Function** · AI-Pipeline (löst „Folgt"-Platzhalter [D5])
 
 > **Session 2026-06-29/30 (Farmer DB-Wiring komplett — von Mock zu echt) — auf `main`:**
@@ -102,12 +208,36 @@
 
 ---
 
-## 🧩 Slice-Checklisten-Template (PFLICHT — jede neue Slice-Checkliste endet mit diesen drei Punkten)
+## 🧩 Slice-Checklisten-Template (PFLICHT — jede Slice-Checkliste endet damit)
 
-> Verankert in CLAUDE.md → **Agent-Gates**. Die drei Punkte stehen am **Ende jeder** Slice-Checkliste,
-> **vor** dem STOP, und dürfen nie entfernt werden. Die Agents laufen **genau einmal pro Slice am Ende**
-> — nicht nach einzelnen Zwischenschritten.
+> Verankert in CLAUDE.md → **Agent-Gates** + **Kurzregeln**. Die Punkte stehen am **Ende jeder**
+> Slice-Checkliste, **vor** dem STOP, und dürfen nie entfernt werden. Die Agents laufen
+> **genau einmal pro Slice am Ende** — nicht nach einzelnen Zwischenschritten.
+> Nicht zutreffende Prüfpunkte werden mit „n/a" abgehakt, **nie gelöscht**.
 
+**A — Inhaltliche Prüfpunkte (vor den Gates durchgehen):**
+```
+- [ ] [AUTO]-Tests dieses Slices implementiert UND grün? (Testpläne / Kurzregel 5f)
+- [ ] Neue AI-Funktion → Prompt-File in /prompts + Inventar-Eintrag? (C27)
+- [ ] Neuer Cron → Cron-Wrapper + Erwartungs-Katalog-Eintrag? (Betrieb B2)
+- [ ] Neuer kritischer Pfad (Senden/Buchen/Zahlen/Löschen/Merge) → Alarm-Fall definiert? (Betrieb B3)
+- [ ] Mitteilung/Feed-Eintrag NUR über notify()/logActivity() + gegen Anti-Doppel-Liste geprüft? (N1/N9/N10)
+- [ ] Neuer AI-Wert im UI → WhyPopover-Affordance dran? (C21)
+- [ ] Schwelle/Gewicht/Zeitfenster/Modellname → Settings-Wert, nirgends hardcodiert? ([D51] + Kurzregel 5e)
+- [ ] Bedingung/Filter → über die EINE gemeinsame Filter-Sprache (K-2)? (Weiche 1)
+- [ ] Kachel/Panel strikt aus panel-blocks komponiert? (Weiche 2)
+- [ ] Aktion an Enforcement-Punkt → ruft check_entitlement/check_credit_balance? (Abo A1/A4)
+- [ ] Query auf Kontakte/Companies/Deals → respektiert deleted_at + Opt-out? (C5)
+- [ ] Validierung/Duplikat/Merge → NUR über die zentralen Functions? (K1/K2/K5)
+- [ ] Kein Token-Wert im UI sichtbar — nur Credits? (Entitlement-Doku Abschnitt 3)
+- [ ] Schreibaktion → audit_log-Eintrag vorhanden?
+- [ ] Design-Übernahme: AI-Studio-Markup in BESTEHENDE Library-Komponenten übersetzt
+      (nie 1:1 kopiert)? Neue wiederverwendbare Teile als Komponente angelegt?
+      Keine Inline-Duplikate? (Single Source of Truth)
+- [ ] Ab Chat-Slice-3: Injection-Testfall dieses Slices gelaufen? (Chat-Testplan Regel 2)
+```
+
+**B — Gates (immer zuletzt, in dieser Reihenfolge):**
 ```
 - [ ] test-runner Subagent ausführen → muss "ALLE GATES GRÜN" melden
 - [ ] auditor Subagent ausführen (nur Slice-Diff) → muss "AUDIT: PASS" melden
