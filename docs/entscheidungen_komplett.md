@@ -345,10 +345,18 @@ Frei konfigurierbar pro Campaign (Settings → Campaign → Messaging Brief → 
 
 ## BLOCK F — PROVIDER & INTEGRATIONEN
 
-### #17 Sending Provider 🔴 BLOCKIERT BUILD
-- LinkedIn: Wahrscheinlich Unipile — noch nicht final
-- Email: Gmail + Outlook via Nango (OAuth)
-- Abstraktion: lib/sending.ts — Provider austauschbar ohne Code-Änderung
+### #17 Sending Provider ✅ ENTSCHIEDEN (Juli 2026 — durch die neuen Baupläne)
+**Nicht mehr BLOCKIERT.** Maßgeblich: `docs/ai_sdr_bauplan_v1.md` (E1) +
+`docs/integrations_masterplan.md` (Abschnitt 3).
+- **Email v1:** Gmail + Outlook via **Nango** (OAuth, Test-Modus aus Session 0) — läuft.
+- **LinkedIn v1: manueller Step** — kein automatischer Versand. LinkedIn-Steps erzeugen
+  eine fällige Aufgabe mit AI-Text zum Kopieren (E1/E16). **Unipile = v2**, die
+  Abstraktion `lib/sending.ts` bleibt dafür vorbereitet.
+- **Launch-Sicherheitsnetz:** SMTP/IMAP-Universal-Fallback (I-B7), Managed Mailboxes
+  optional v2 (I-B8) — beide Masterplan Abschnitt 3/4.
+- Abstraktion: lib/sending.ts — Provider austauschbar ohne Code-Änderung (unverändert gültig).
+- ⚠ **VERWORFEN:** getrennte Mailbox-Kontingente new_outreach/followup (E2 — EIN Limit,
+  Follow-ups zuerst).
 
 ---
 
@@ -457,8 +465,23 @@ Hunter-Prompts + Farmer-Prompts: **noch nicht definiert**
 
 ---
 
-### #39 Billing & Pläne 🔴
-Welche Pläne, Limits pro Plan, Stripe-Integration — **komplett offen**
+### #39 Billing & Pläne ✅ RICHTUNG ENTSCHIEDEN (Juli 2026 — durch die neuen Baupläne)
+**Nicht mehr BLOCKIERT.** Maßgeblich: `docs/abo_verwaltung_draft_v0_9.md` (A1–A8) +
+`docs/for_ai_sdr_vorab_entitlement_credits.md` (baureif).
+- **Billing-Richtung entschieden: Zwei-Schichten-Architektur.** Schicht 1
+  **Entitlement-Layer** (früh, läuft immer): `check_entitlement` / `check_credit_balance`
+  aus plans/plan_limits/credit_balance — **jeder** Code-Pfad fragt nur diese Functions,
+  nie Stripe, nie Plan-Namen, nie hardcodierte Limits. Schicht 2 **Billing-Layer**
+  (Stripe) wird **spät nachgerüstet**, dockt nur an Schicht 1 an — **null Umbau**.
+- **Schalter:** `system_config.billing_enabled = false` (Start) — intern blockiert
+  NIEMALS etwas; Verbrauch wird trotzdem ab Tag 1 gezählt (Preis-Kalibrierung).
+- **Interner Plan** `internal` mit limit_value = -1 für alle Features (A2).
+- **Token→Credit:** User sehen **nie Token, nur Credits** (feste Umrechnung über
+  `tokens_per_credit`, system_config).
+- ⚠ **Sequenz:** Entitlement-Migration läuft **VOR AI-SDR-Slice-5** (Credit-Metering).
+- **Weiterhin offen (Launch-Re-Challenge, Abo-Draft Abschnitt 4/6):** finale Preise/Pakete
+  (brauchen echte Verbrauchsdaten), Kreditkarte-bei-Trial, Credit-Rollover, Jahres-/Monats-Mix,
+  Seat-Nachkauf-UX, Dunning.
 
 ---
 
@@ -488,9 +511,13 @@ ICP Score · Intent-Schwellenwert · Automation Default · Risk-Level · Reaktiv
 ### ⚠ Offen (kein Build-Blocker)
 Heat-Status Schwellenwerte (#1) · Upsell-Trigger Schwellenwerte (#5) · CRM Sync (#19) · Sherloq Bidirektional (#34) · Video-Provider Default (#36b) · Hunter/Farmer Prompts (#35)
 
-### 🔴 Kritisch — blockiert Build/Live (2 Punkte)
-- **Sending Provider** — Unipile final bestätigen
-- **Billing & Pläne** — Stripe, Pläne, Limits
+### 🔴 Kritisch — blockiert Build/Live (0 Punkte) ✅ BEIDE AUFGELÖST (Juli 2026)
+- ~~**Sending Provider**~~ → **#17 entschieden**: Email via Nango (Gmail/Outlook),
+  LinkedIn v1 manuell, Unipile = v2. Quelle: `ai_sdr_bauplan_v1` E1 + `integrations_masterplan`.
+- ~~**Billing & Pläne**~~ → **#39 Richtung entschieden**: Entitlement-Layer früh,
+  Billing-Layer spät nachgerüstet, `billing_enabled=false` intern. Quelle:
+  `abo_verwaltung_draft_v0_9` + `for_ai_sdr_vorab_entitlement_credits`.
+  (Finale Preise/Pakete bleiben bewusst offen — Launch-Re-Challenge.)
 
 ---
 

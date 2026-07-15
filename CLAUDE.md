@@ -207,8 +207,66 @@ erfolgt auf Screen-/Feature-Ebene.
 PASS melden. Die Agents laufen genau einmal pro Slice am Ende — NICHT nach einzelnen
 Zwischenschritten. Diese Punkte stehen als Pflicht-Items in jeder Slice-Checkliste in PROGRESS.md
 und dürfen nie entfernt werden. „Green Gates" bezeichnet dabei: build + lint + typecheck + Tests
-grün vor jedem Commit. „AUTO-Tests" werden mit den 13 Planungsdokumenten (docs/) vollständig
-definiert, sofern sie zum Zeitpunkt dieses Auftrags noch nicht existieren.
+grün vor jedem Commit. „AUTO-Tests" sind in den Testplänen des BAUPHASEN-WEGWEISERS
+definiert (`for_ai_sdr_testplan_*`, `for_ai_chat_testplan_*`) — rot = kein Merge.
+
+### DAUERREGEL „weiter"
+
+Schreibt Oliver **„weiter"** oder **„nächster Schritt"**: PROGRESS.md öffnen, den
+**▶-Schritt** identifizieren, dann **nach Schritt-TYP** handeln:
+
+**a) [BAU]** → zugehöriges Bauplan-Kapitel lesen (+ Testplan, falls vorhanden) →
+Diagnose-First → eigener Branch → bauen inkl. **[AUTO]-Tests** → **Agent-Gates**
+(1. test-runner, 2. auditor) → **Green Gates** → **STOP** mit QA-Nachweisen →
+nach Olivers Freigabe ▶ weiterrücken.
+
+**b) [OLIVER]** (Design fällig · Integrations-Session · Entscheidung · Sherloq-Abstimmung)
+→ **NICHT coden.** Vollständige Schritt-für-Schritt-Anleitung bzw. das benötigte Material
+liefern, dann **STOP**.
+
+**c) UI-SLICE** → **IMMER ZUERST Design-Abgleich**, nie sofort bauen:
+1. Vorhandene Designs gegen den Bauplan-Slice prüfen.
+2. Oliver eine **ehrliche GAP-LISTE** geben („abgedeckt: … / fehlt: …").
+3. Für **alle Lücken** einen vollständigen **AI-Studio-Design-Prompt** schreiben:
+   Slice-Anforderungen + Designrichtlinien/Tokens aus `docs/design-system.md` und
+   `docs/ui_interaktionen_v14_komplett.md` + **alle Zustände** (inkl. leer / Fehler / read-only).
+4. **STOP**, bis Olivers Design vorliegt. Erst dann bauen.
+**Design-Übernahme heißt IMMER:** Mocks raus, echt verdrahten, in **bestehende
+Library-Komponenten** übersetzen — **nie 1:1-Copy** des AI-Studio-Markups.
+
+**Reihenfolge-Flexibilität:** Wartet ein [OLIVER]-/DESIGN-Schritt auf Oliver, darf der
+nächste [BAU]-Schritt **ohne diese Abhängigkeit** vorgezogen werden. Vorziehen wird in
+PROGRESS.md **vermerkt — nie stillschweigend**.
+
+### KURZREGELN (permanent, mit Quelle)
+
+- **a) „Warum?"-Feature = systemweiter UI-Standard.** Jeder AI-erzeugte Wert (Churn, Upsell,
+  Heat, ICP, Priorisierung, Empfehlung) bekommt die WhyPopover-Affordance: echte Treiber
+  aus vorhandenen Daten (0 Token), Stufe 2 „Im Chat vertiefen →". Fehlen Treiber-Daten →
+  **kein Popover, kein erfundener Grund** (Honesty). Jeder neue Screen baut es von Anfang
+  an ein. *(ai_chat_bauplan C21)*
+- **b) Prompts-as-Code.** Neue AI-Funktion = **Prompt-File in `/prompts`** (Frontmatter:
+  id, version, purpose, verwendende Function) **+ Inventar-Eintrag** in `/prompts/README.md`
+  — **beides im selben PR, sonst kein Merge**. *(ai_chat_bauplan C27 / 5c)*
+- **c) Neuer Cron = Cron-Wrapper + Erwartungs-Katalog-Eintrag** (`cron_runs`, system_config)
+  im selben PR. Jeder **kritische Pfad** (Senden · Buchen · Zahlen · Löschen · Merge)
+  definiert seinen **Alarm-Fall**. *(betrieb_ueberwachung B2 / B3)*
+- **d) Drei Architektur-Weichen — ab sofort verbindlich.** (1) **EINE** Bedingungs-/Filter-Sprache
+  als gemeinsame Lib — erstmals gebaut in `kontakte_companies_bauplan` **Slice K-2**; dynamische
+  Listen, Lifecycle-Trigger und Analyse-Katalog nutzen dieselbe, **nie eine zweite**, **nie
+  freies SQL**. (2) **Strikte panel-blocks-Komposition** — keine typ-spezifische Sonderverdrahtung.
+  (3) **Layout-Reserve „Eigene Actions"** im Settings-Regeln-Bereich (erscheint erst mit der
+  v2-Registry). *(integrations_masterplan Abschnitt 5)*
+- **e) Modellnamen/Provider sind IMMER Settings-Werte** (`settings.ai_models`, pro Aufgabe),
+  **nie hardcodiert** — Multi-LLM ist Architektur, nicht Option. *(settings_bauplan S1/SET-5, [D51])*
+- **f) AKZEPTANZKRITERIEN = TESTS.** Die Akzeptanzkriterien **jedes** Bauplan-Slices werden als
+  **automatische Tests** implementiert, wo technisch machbar — insbesondere **Rechte-/API-
+  Umgehungstests** (SET-3), **Idempotenz/Race** (N-S1/N-S4), **Entitlement-Serie**,
+  **Duplikat-/Merge-Kaskaden** (K-1/K-6), **Ranking-Nachvollziehbarkeit**. Sie laufen als Teil
+  der **Green Gates**. Nur echte **Sichtprüfungen** bleiben manuell (Screenshot-QA an Oliver,
+  Screen-/Feature-Ebene). *(beide Testpläne)*
+- **g) Modellwahl (Opus/Fable) trifft AUSSCHLIESSLICH Oliver** — **nie** als Pflicht oder
+  Empfehlung in Abläufe, Regeln oder Checklisten einbauen.
 
 **At the end of every session** → siehe **Selbst-Wartung** (oben, höchste Priorität).
 Kurzfassung: PROGRESS.md + CHECKLIST.md aktualisieren, neue Komponenten in
@@ -244,6 +302,45 @@ CLAUDE.md und `/docs` werden **im selben Commit** aktualisiert.
   Übergabe an Claude Code erfolgt screen-/themenspezifisch aus der jeweiligen Referenz.
 - Beim Bauen eines Screens/einer Tabelle: zuerst die passende Referenz lesen, dann CLAUDE.md-Regeln anwenden.
 - Aktualisierung einer Referenz = neue Version hier ablegen, alte nach `/docs/archiv`, diese Tabelle pflegen.
+
+---
+
+## BAUPHASEN-WEGWEISER
+
+Die folgenden **13 Planungsdokumente** in `/docs` sind die kanonischen Build-Dokumente für
+alle noch offenen Module. Sie stehen **gleichrangig neben** den Referenz-Dateien oben:
+Referenzen = fachliche Spezifikation (WAS gilt) · Baupläne = Bau-Anleitung (WIE und in
+welcher Reihenfolge gebaut wird).
+
+| Datei | Zweck | Status |
+|---|---|---|
+| `docs/kontakte_companies_bauplan_v1.md` | Kontakte & Companies, Smart-Import-Engine, Duplikate/Merge, Filter-Sprache (K-2) | **final** (v1) |
+| `docs/for_ai_sdr_vorab_entitlement_credits.md` | Entitlement- & Credit-Layer + Token→Credit-Umrechnung (vor AI-SDR-Slice-5) | **baureif** |
+| `docs/integrations_masterplan.md` | ALLE externen Anbindungen: Klasse A (Session 0) vs. Klasse B (Endphase) | **final** (v1.2) |
+| `docs/mitteilungssystem_bauplan_v1.md` | Glocke · Popup · Aktivitätsfenster, `notify()`/`logActivity()`, Anti-Doppel-Liste | **final** (v1.1) |
+| `docs/betrieb_ueberwachung_bauplan_v1.md` | Cron-Wächter, Alarme, System-Status, AI-Provider-Überwachung (B9) | **final** (v1.1) |
+| `docs/settings_bauplan_v1.md` | Settings-Shell, Rechte-Modell, Regeln-Bereich, 5 Seiten-Patterns | **final** (v1.2) |
+| `docs/ai_sdr_bauplan_v1.md` | AI SDR komplett (E1–E25, 15 Slices) | **final** (v1.4) |
+| `docs/for_ai_sdr_testplan_kritische_pfade.md` | Test-Cases Send-Gates, Doppel-Send, Intake, Inbound | **final** |
+| `docs/mein_tag_bauplan_v1.md` | Mein Tag (M1–M13, Ranking-Engine, Lagebild) | **final** (v1.2) |
+| `docs/ai_chat_bauplan_v1.md` | AI Chat komplett (C1–C27, 13 Slices, RAG in Slice 2R) | **final** (v1.4) |
+| `docs/for_ai_chat_testplan_kritische_pfade.md` | Test-Cases Rechte, Injection, Zahlen, Löschen, Geld | **final** |
+| `docs/onboarding_signup_draft_v0_9.md` | Onboarding & Signup (O1–O13) | **DRAFT — Re-Challenge vor Bau PFLICHT** (Abschnitt 7) |
+| `docs/abo_verwaltung_draft_v0_9.md` | Abo/Billing (A1–A8) | **DRAFT** — Phase JETZT baureif · Phase LAUNCH: Re-Challenge (Abschnitt 6) |
+
+**Konflikt-Regel (verbindlich):** Diese Dokumente **ersetzen ältere Spezifikationen** in
+allen Widerspruchspunkten. Bei Widerspruch gilt **das neueste Dokument** — nicht der
+Dateityp, nicht die Referenztabelle. Danach werden ALLE betroffenen Dateien angeglichen,
+bis kein Widerspruch übrig ist (Slice-0-Doku-Angleichung je Bauplan). Bekannte Ersetzungen:
+`ai_chat_bauplan` > `sales_os_ai_chat_spezifikation` · `mein_tag_bauplan` >
+`ui_interaktionen` Abschnitt 8 · `ai_sdr_bauplan` > `ai_sdr_*`-Altdateien +
+`ui_interaktionen` Abschnitte 10/11.
+
+**Testpläne gehören untrennbar zu ihren Bauplänen.** `for_ai_sdr_testplan_*` gehört zu
+`ai_sdr_bauplan_v1`, `for_ai_chat_testplan_*` zu `ai_chat_bauplan_v1`. Die dort mit
+**[AUTO]** markierten Tests sind **Merge-Pflicht**: sie entstehen IM jeweiligen Slice
+(nicht nachträglich), laufen in den Green Gates, und **rot = kein Merge** — gleichrangig
+mit `npm run build`, `npm run audit` und den Agent-Gates. Keine Ausnahme.
 
 ---
 
@@ -1559,7 +1656,13 @@ Placeholder-Dateien enthalten immer:
 
 ---
 
-## Build Order (from Briefing Section 22)
+## Build Order (from Briefing Section 22) — ⚠ HISTORISCH — ersetzt durch den Bauphasen-Wegweiser
+
+> **Diese Liste ist NICHT mehr die Bau-Reihenfolge.** Maßgeblich sind der
+> **BAUPHASEN-WEGWEISER** (oben) und der **▶ NÄCHSTER SCHRITT**-Block in PROGRESS.md.
+> Die Liste bleibt als historischer Kontext stehen (Schritte 1–4 sind erledigt).
+> Der **Modul-Abhängigkeits-Baum** (Abschnitt „Modul-Abhängigkeiten (Reihenfolge)")
+> bleibt unverändert **gültig** — er beschreibt technische Abhängigkeiten, keine Reihenfolge.
 
 1. **Design First** — clickable prototype with dummy data, all screens, all states
 2. **Finalize Schema** — based on what the design actually needs
@@ -1569,6 +1672,14 @@ Placeholder-Dateien enthalten immer:
 6. **MCP Endpoints** — dashboard becomes its own API for Claude
 7. **AI Chat + Function Calling** — after the base is stable
 8. **Iterate** — add features, refine UI
+
+**Begriffs-Brücke (alte Begriffe → heutige Realität):**
+
+| Alter Begriff | Heute realisiert als |
+|---|---|
+| **„MCP Endpoints"** (Schritt 6) | Die **Tool-Registry** des AI Chat (`ai_chat_bauplan` Abschnitt 6c + Slice 2). Sie IST inhaltlich bereits ein MCP-Server (benannte Tools + Permission-Guard). Eine echte MCP-Protokoll-Hülle ist ausdrücklich **v2** (`integrations_masterplan` Abschnitt 5, inkl. Scope-/Rechte-Modell). |
+| **„Claude Routine" / „daily sync"** (Schritt 5) | Die **Crons** (Supabase, z.B. `sequence_runner`, Score-Läufe, `morning_briefing` 07:00). Überwacht nach `betrieb_ueberwachung_bauplan` (Cron-Wrapper + `cron_runs` + Watchdog B2). Kein Anthropic-Cloud-Dienst. |
+| **Altes RAG-Dokument** (falls noch vorhanden) + dessen Build-Order | **Vollständig ersetzt** durch `ai_chat_bauplan` Abschnitt **5b** (RAG-Spezifikation) und **Slice 2R**. Die Build-Order des Altdokuments gilt **NICHT**. |
 
 ---
 

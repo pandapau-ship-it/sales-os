@@ -1,0 +1,33 @@
+{
+  "permissions": {
+    "defaultMode": "acceptEdits",
+    "allow": [
+      "Bash",
+      "Bash(*)",
+      "Edit",
+      "Write",
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch",
+      "Task"
+    ],
+    "ask": [
+      "Bash(git push*)",
+      "Bash(git push *)",
+      "Bash(supabase db push*)",
+      "Bash(supabase db push *)"
+    ],
+    "deny": [
+      "Bash(supabase db reset*)",
+      "Bash(supabase db reset *)",
+      "Bash(rm -rf*)",
+      "Bash(rm -rf *)",
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(**/.env)",
+      "Read(**/.env.*)"
+    ]
+  }
+}
