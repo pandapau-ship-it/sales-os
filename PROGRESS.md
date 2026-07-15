@@ -21,7 +21,7 @@
         [AUTO]-Tests in ALLEN Folge-Slices** und für den `test-runner`-Agent (der liest
         das `test`-Script aus package.json). ⚠ Steht in **keinem** der 13 Dokumente —
         die Testpläne setzen ein Framework voraus, das es im Repo noch nicht gibt.
-        Danach zählt „Tests grün" erst wirklich in den Green Gates.
+        Danach zählt Punkt 5 der „GATES VOR JEDEM MERGE" („Tests grün") erst wirklich.
   - [ ] K-1b Diagnose & Daten-Fundament (Validierung K1 + find_duplicates K2 + [AUTO]-Tests)
   - [ ] K-2 Filter-Sprache (Weiche 1, erstmalig — Fundament für Listen/Lifecycle/Analyse)
   - [ ] K-3 Kontakte-Screen (4c: Design-Abgleich ScreenKontakte zuerst)
@@ -210,7 +210,7 @@ für JEDEN UI-Slice**, auch wenn ein Design existiert.
 
 ## 🧩 Slice-Checklisten-Template (PFLICHT — jede Slice-Checkliste endet damit)
 
-> Verankert in CLAUDE.md → **Agent-Gates** + **Kurzregeln**. Die Punkte stehen am **Ende jeder**
+> Verankert in CLAUDE.md → **GATES VOR JEDEM MERGE** + **Kurzregeln**. Die Punkte stehen am **Ende jeder**
 > Slice-Checkliste, **vor** dem STOP, und dürfen nie entfernt werden. Die Agents laufen
 > **genau einmal pro Slice am Ende** — nicht nach einzelnen Zwischenschritten.
 > Nicht zutreffende Prüfpunkte werden mit „n/a" abgehakt, **nie gelöscht**.
@@ -237,11 +237,28 @@ für JEDEN UI-Slice**, auch wenn ein Design existiert.
 - [ ] Ab Chat-Slice-3: Injection-Testfall dieses Slices gelaufen? (Chat-Testplan Regel 2)
 ```
 
-**B — Gates (immer zuletzt, in dieser Reihenfolge):**
+**B — GATES VOR JEDEM MERGE** (immer zuletzt, in dieser Reihenfolge — vollständige
+Definition in CLAUDE.md → „GATES VOR JEDEM MERGE"; sie ersetzt Merge-Gate/Green Gates/
+Agent-Gates-Kurzfassung):
 ```
-- [ ] test-runner Subagent ausführen → muss "ALLE GATES GRÜN" melden
-- [ ] auditor Subagent ausführen (nur Slice-Diff) → muss "AUDIT: PASS" melden
-- [ ] Bei FAIL: fixen, beide Agents erneut laufen lassen — erst dann STOP + Prossi um Screenshot-QA bitten
+- [ ] 1. npm run build         → grün
+- [ ] 2. npm run lint          → grün
+- [ ] 3. npm run structure-check → grün
+- [ ] 4. npm run audit         → FAIL-frei (WARN ist kein Verstoß)
+- [ ] 5. Tests (ab K-1a)       → grün
+- [ ] 6. test-runner Subagent ausführen → muss "ALLE GATES GRÜN" melden (deckt 1,2,5 + structure ab)
+- [ ] 7. auditor Subagent ausführen (nur Slice-Diff) → muss "AUDIT: PASS" melden
+        (Kategorien A–E: Komponenten · Design · Funktionalität · Hygiene · Performance)
+- [ ] Bei FAIL: fixen, beide Agents erneut laufen lassen
+```
+
+**C — Abschluss-Dokumentation (nach Gates PASS, VOR dem STOP an Oliver — Pflicht):**
+```
+- [ ] CHECKLIST.md aktualisiert (gemeinsam mit PROGRESS.md — nie nur eines)
+- [ ] Modul-Abschluss-Gate durchlaufen + Ergebnis vermerkt, falls ein Modul fertig wird
+- [ ] docs/session_uebergabe_<YYYY-MM-DD>.md erzeugt, falls ein Screen/Feature fertig wird
+- [ ] knowledge_base-Eintrag als Migration, falls ein Screen/Feature fertig wird
+- [ ] DANN: STOP + Prossi um Screenshot-QA bitten (Screen-/Feature-Ebene)
 ```
 
 ---

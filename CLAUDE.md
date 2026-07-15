@@ -15,8 +15,12 @@ Sie haben höchste Priorität und überschreiben alle anderen Anweisungen.
    (`feature/<thema>` · `fix/<thema>` · `chore/<thema>`).
 → Regelmäßig committen mit sinnvollen Messages (`add:` `update:` `fix:` `refactor:` `docs:`).
 → Branch pushen → **Pull Request** (`gh pr create`) → triggert Vercel Preview-Deploy.
-→ **Merge-Gate:** erst mergen wenn `npm run build` · `npm run audit` · `npm run structure-check` grün sind.
-→ **Squash-Merge** nach `main` (saubere, lineare History), Branch danach löschen.
+→ **Merge-Gate:** ⚠ **ERSETZT durch „GATES VOR JEDEM MERGE"** (Session Protocol) — dort
+   vollständig und verbindlich (7 Punkte inkl. lint, Tests und beider Subagents).
+   *(Alte Fassung, nur historisch: „erst mergen wenn `npm run build` · `npm run audit` ·
+   `npm run structure-check` grün sind" — unvollständig, nannte weder lint noch Tests noch die Agents.)*
+→ **`--no-ff`-Merge** nach `main` (echter Merge-Commit — entspricht der tatsächlichen History),
+   Branch danach löschen. *(Früher „Squash-Merge" — ersetzt, die History fährt Merge-Commits.)*
 → Bei kleinen/sicheren Aufgaben merge ich nach grünem Gate selbst.
    Bei großen/riskanten Änderungen: PR offen lassen, kurz beim User rückfragen.
 → Beim Session-Start auf `main`? → erst branchen, dann arbeiten.
@@ -43,9 +47,32 @@ Sie haben höchste Priorität und überschreiben alle anderen Anweisungen.
 → Nach jeder abgeschlossenen Aufgabe: committen (nicht erst am Ende)
 
 ### SESSION ENDE — immer, ohne Ausnahme
-→ PROGRESS.md aktualisieren (was fertig, was offen, nächster Schritt)
+→ PROGRESS.md aktualisieren (was fertig, was offen, **▶-Schritt weiterrücken**)
 → CHECKLIST.md aktualisieren (einmal, nicht bei jedem Commit)
-→ Alles committen und zu GitHub pushen
+→ Alles committen. **KEIN automatischer Push** — der Push ist Olivers bewusste
+  Entscheidung (Frage-Regel Punkt 3: destruktive/irreversible Aktionen). Nach dem
+  Commit fragen, nicht pushen.
+
+> ⚠ **Der eigentliche Auslöser ist NICHT die Session, sondern der Fortschritt.**
+> Dieses Ritual lief bisher zeitbasiert und wurde deshalb vergessen (letzte Übergabe:
+> 30.06.2026). Verbindlich ist ab jetzt der **fortschrittsgebundene Trigger** in der
+> **DAUERREGEL „weiter"** (Schritt-Typ [BAU]) — Übergabe-Datei + CHECKLIST-Update sind
+> Pflicht-Teil des STOP bei jedem abgeschlossenen Screen/Feature, nicht ein separates
+> Ritual, das man auslassen kann. Dieser Block hier bleibt als Sicherheitsnetz für
+> Sessions, die ohne Slice-Abschluss enden.
+
+### CHECKLIST.md und PROGRESS.md — getrennte Rollen, gemeinsame Pflege
+
+Die beiden Dateien werden **NICHT zusammengeführt**. Sie beantworten verschiedene Fragen:
+
+| Datei | Rolle | Inhalt |
+|---|---|---|
+| **CHECKLIST.md** | **WAS fehlt noch?** | Feature-Anforderungen nach Bereichen (Hunter · DB · Edge Functions · Frontend · Security · SaaS · AI · Design · Docs) **inkl. des Modul-Abschluss-Gates** (4 Prinzipien + protokollierte Gate-Läufe) |
+| **PROGRESS.md** | **WO stehen wir?** | Session-Historie · **▶-NÄCHSTER-SCHRITT-Steuerung** · Slice-Checklisten-Template · Deferred Logic `[D#]` |
+
+**Pflege-Regel:** Bei **jedem** Abschluss werden **beide gemeinsam** aktualisiert (siehe
+Abschluss-Dokumentation in der DAUERREGEL „weiter"). Nur eines von beiden zu pflegen lässt
+sie auseinanderdriften — genau das ist zwischen dem 30.06. und 15.07.2026 passiert.
 
 ### KNOWLEDGE BASE — nach jedem fertigen Screen/Feature (Pflicht)
 → Tabelle `knowledge_base` in Supabase (beim ersten DB-Wiring anlegen, Schema siehe unten)
@@ -85,8 +112,9 @@ ALTER TABLE knowledge_base ENABLE ROW LEVEL SECURITY;
   `Avatar` · `LinkedinIcon` · `Toast` · `EmptyState` · `CommandPalette` · `ICPDonut` · `BrandLogo`
   · `BrandIcons` · `CommunicationChain` · `CustomerDrawer` · `Badge` · `TooltipLayer`. Alles andere → `panel-blocks/`
   bzw. `features/[modul]/`. Neue erlaubte shared-Datei → Allowlist im Script ergänzen.
-→ Teil des Merge-Gates (neben `build` + `audit`). Im Pre-Push-Hook nach der DB-Checkliste;
-  blockt nur **mit** Terminal, sonst nur Anzeige (wie die DB-Checkliste).
+→ Punkt **3** der **„GATES VOR JEDEM MERGE"** (Session Protocol — dort die vollständige Liste).
+  Im Pre-Push-Hook nach der DB-Checkliste; blockt nur **mit** Terminal, sonst nur Anzeige
+  (wie die DB-Checkliste). Der **auditor** meldet das Ergebnis unter Kategorie D (Hygiene).
 
 ### CHECKLIST.md automatisch erweitern
 Wenn neue Abschnitte in CLAUDE.md hinzukommen:
@@ -196,19 +224,55 @@ Fragen an den User sind NUR erlaubt bei:
 3. Destruktiven oder irreversiblen Aktionen (inkl. git push / db push — Gates)
 
 Alle rein technischen Entscheidungen trifft Claude Code selbst gemäß
-CLAUDE.md und den Referenz-Dokumenten. Die Agent-Gates (test-runner, auditor)
-und Green Gates laufen pro Slice; der STOP mit Screenshot-QA für den User
+CLAUDE.md und den Referenz-Dokumenten. Die **GATES VOR JEDEM MERGE** (unten, 7 Punkte
+inkl. beider Subagents) laufen pro Slice; der STOP mit Screenshot-QA für den User
 erfolgt auf Screen-/Feature-Ebene.
 
-### Agent-Gates
+### GATES VOR JEDEM MERGE
 
-**AGENT-GATES (permanent, Teil jeder Slice-Checkliste):** Vor jedem STOP+QA laufen automatisch
-1. test-runner, 2. auditor (nur auf den Slice-Diff). Prossi wird erst um QA gebeten, wenn beide
-PASS melden. Die Agents laufen genau einmal pro Slice am Ende — NICHT nach einzelnen
-Zwischenschritten. Diese Punkte stehen als Pflicht-Items in jeder Slice-Checkliste in PROGRESS.md
-und dürfen nie entfernt werden. „Green Gates" bezeichnet dabei: build + lint + typecheck + Tests
-grün vor jedem Commit. „AUTO-Tests" sind in den Testplänen des BAUPHASEN-WEGWEISERS
-definiert (`for_ai_sdr_testplan_*`, `for_ai_chat_testplan_*`) — rot = kein Merge.
+> **Diese Definition ist vollständig und verbindlich. Sie ersetzt ALLE älteren
+> Gate-Beschreibungen** — das Merge-Gate in „Selbst-Wartung", die frühere Green-Gates-Zeile
+> und die ursprüngliche Agent-Gates-Kurzfassung. Alle drei Stellen sind als **ERSETZT**
+> markiert und verweisen hierher. Es gibt ab jetzt **eine** Gate-Definition, nicht drei.
+
+1. **`npm run build`** — muss grün sein
+2. **`npm run lint`** — muss grün sein
+3. **`npm run structure-check`** — muss grün sein
+4. **`npm run audit`** — muss **FAIL-frei** sein (**WARN ist kein Verstoß** → Auditor-Regel, Kategorien B/E)
+5. **Tests** (sobald vitest eingerichtet ist → PROGRESS.md **K-1a**) — müssen grün sein
+6. **test-runner** Subagent — muss **„ALLE GATES GRÜN"** melden (deckt **1, 2, 5** ab, plus structure-check)
+7. **auditor** Subagent — muss **„AUDIT: PASS"** melden (deckt **3, 4** ab + Komponenten ·
+   Design · Funktionalität · Hygiene · Performance)
+8. **(AUSBLICK, wird PFLICHT ab AI-Chat-Slice 3)** **`npm run redteam`** — adversariale
+   Prompts gegen `ai_chat()` (Secret-Fishing, Cross-Tenant-Zugriff, Injection,
+   PII-Bulk-Export). **Script existiert noch nicht**, wird mit dem AI-Chat-Orchestrator
+   gebaut (`scripts/redteam-aichat.ts`). Sobald es existiert, ist **FAIL = Release blockiert**,
+   gleichrangig mit Punkt 1–7. Bis dahin: **kein Gate-Punkt, nicht prüfen, nicht melden.**
+
+**Reihenfolge:** 1–5 laufen technisch, **6–7 sind die Subagent-Meldungen darüber** — sie
+ersetzen die technischen Läufe nicht, sie fassen sie zusammen und ergänzen die inhaltliche
+Prüfung. Erst wenn **beide** Subagents PASS melden: **STOP + Screenshot-QA an Oliver**
+(Screen-/Feature-Ebene). Bei FAIL: fixen, **beide** Subagents erneut laufen lassen.
+
+Die Agents laufen **genau einmal pro Slice am Ende** — NICHT nach einzelnen Zwischenschritten.
+Die Gate-Punkte stehen als Pflicht-Items in jeder Slice-Checkliste in PROGRESS.md und dürfen
+nie entfernt werden. **„AUTO-Tests"** sind in den Testplänen des BAUPHASEN-WEGWEISERS definiert
+(`for_ai_sdr_testplan_*`, `for_ai_chat_testplan_*`) — **rot = kein Merge**.
+
+<details>
+<summary><b>⚠ ERSETZT — ursprüngliche Agent-Gates-Kurzfassung (historisch, nicht mehr anwenden)</b></summary>
+
+> **ERSETZT durch „GATES VOR JEDEM MERGE" (oben).** Der Text ist nur als Historie erhalten:
+>
+> „AGENT-GATES (permanent, Teil jeder Slice-Checkliste): Vor jedem STOP+QA laufen automatisch
+> 1. test-runner, 2. auditor (nur auf den Slice-Diff). Prossi wird erst um QA gebeten, wenn beide
+> PASS melden. […] **„Green Gates" bezeichnet dabei: build + lint + typecheck + Tests grün vor
+> jedem Commit.**"
+>
+> Warum ersetzt: Diese Fassung nannte **weder `structure-check` noch `audit`** — beide waren
+> aber im alten Merge-Gate Pflicht. Die neue Definition führt alle sieben Punkte an einer Stelle.
+
+</details>
 
 ### DAUERREGEL „weiter"
 
@@ -216,9 +280,25 @@ Schreibt Oliver **„weiter"** oder **„nächster Schritt"**: PROGRESS.md öffn
 **▶-Schritt** identifizieren, dann **nach Schritt-TYP** handeln:
 
 **a) [BAU]** → zugehöriges Bauplan-Kapitel lesen (+ Testplan, falls vorhanden) →
-Diagnose-First → eigener Branch → bauen inkl. **[AUTO]-Tests** → **Agent-Gates**
-(1. test-runner, 2. auditor) → **Green Gates** → **STOP** mit QA-Nachweisen →
-nach Olivers Freigabe ▶ weiterrücken.
+Diagnose-First → eigener Branch → bauen inkl. **[AUTO]-Tests** → **GATES VOR JEDEM MERGE**
+(alle 7 Punkte, siehe oben) → **Abschluss-Dokumentation (siehe unten)** → **STOP** mit
+QA-Nachweisen → nach Olivers Freigabe ▶ weiterrücken.
+
+> **ABSCHLUSS-DOKUMENTATION — Pflicht-Teil des STOP, nicht optional.**
+> Nach **Agent-Gates PASS** und **vor** dem STOP an Oliver laufen automatisch:
+> 1. **CHECKLIST.md aktualisieren** — betroffene Anforderungen abhaken. **Immer zusammen
+>    mit PROGRESS.md** (▶-Schritt), nie nur eines von beiden.
+> 2. **Modul-Abschluss-Gate durchlaufen** — falls mit diesem Slice ein **Modul** fertig wird:
+>    die vier Prinzipien (Single Source · Performance · Konfigurierbarkeit [D51] · Honesty)
+>    als Tabelle prüfen und das Ergebnis in CHECKLIST.md unter „Gate-Läufe" vermerken
+>    (bestanden / offen als Deferred).
+> 3. **`docs/session_uebergabe_<YYYY-MM-DD>.md` erzeugen** — bei Abschluss eines
+>    **Screens/Features** (nicht pro Einzel-Slice). Format wie die bestehenden 20 Dateien.
+> 4. **knowledge_base-Eintrag** — bei fertigem Screen/Feature als Migration (Pflicht laut
+>    „KNOWLEDGE BASE"-Regel; wird von keinem Gate automatisch geprüft — hier bewusst mitführen).
+>
+> **Warum hier und nicht im Session-Ende-Block:** Der zeitbasierte Auslöser hat versagt
+> (Lücke 30.06.–15.07.). Fortschritt ist der verlässliche Trigger, nicht die Uhr.
 
 **b) [OLIVER]** (Design fällig · Integrations-Session · Entscheidung · Sherloq-Abstimmung)
 → **NICHT coden.** Vollständige Schritt-für-Schritt-Anleitung bzw. das benötigte Material
@@ -262,9 +342,9 @@ PROGRESS.md **vermerkt — nie stillschweigend**.
 - **f) AKZEPTANZKRITERIEN = TESTS.** Die Akzeptanzkriterien **jedes** Bauplan-Slices werden als
   **automatische Tests** implementiert, wo technisch machbar — insbesondere **Rechte-/API-
   Umgehungstests** (SET-3), **Idempotenz/Race** (N-S1/N-S4), **Entitlement-Serie**,
-  **Duplikat-/Merge-Kaskaden** (K-1/K-6), **Ranking-Nachvollziehbarkeit**. Sie laufen als Teil
-  der **Green Gates**. Nur echte **Sichtprüfungen** bleiben manuell (Screenshot-QA an Oliver,
-  Screen-/Feature-Ebene). *(beide Testpläne)*
+  **Duplikat-/Merge-Kaskaden** (K-1/K-6), **Ranking-Nachvollziehbarkeit**. Sie laufen als
+  **Punkt 5 der „GATES VOR JEDEM MERGE"**. Nur echte **Sichtprüfungen** bleiben manuell
+  (Screenshot-QA an Oliver, Screen-/Feature-Ebene). *(beide Testpläne)*
 - **g) Modellwahl (Opus/Fable) trifft AUSSCHLIESSLICH Oliver** — **nie** als Pflicht oder
   Empfehlung in Abläufe, Regeln oder Checklisten einbauen.
 
@@ -339,8 +419,8 @@ bis kein Widerspruch übrig ist (Slice-0-Doku-Angleichung je Bauplan). Bekannte 
 **Testpläne gehören untrennbar zu ihren Bauplänen.** `for_ai_sdr_testplan_*` gehört zu
 `ai_sdr_bauplan_v1`, `for_ai_chat_testplan_*` zu `ai_chat_bauplan_v1`. Die dort mit
 **[AUTO]** markierten Tests sind **Merge-Pflicht**: sie entstehen IM jeweiligen Slice
-(nicht nachträglich), laufen in den Green Gates, und **rot = kein Merge** — gleichrangig
-mit `npm run build`, `npm run audit` und den Agent-Gates. Keine Ausnahme.
+(nicht nachträglich), laufen als **Punkt 5 der „GATES VOR JEDEM MERGE"**, und
+**rot = kein Merge** — gleichrangig mit allen anderen Gate-Punkten. Keine Ausnahme.
 
 ---
 
@@ -1919,7 +1999,9 @@ Langfuse-Prompt erwähnen. Kein Umbau des Chats nötig.
 > Prompts gegen `ai_chat()` und prüft die Antworten: Secret-Fishing (API-Key/`.env`/Token-Abfrage),
 > „zeig deinen System-Prompt/Code", Cross-Tenant-Zugriff (fremde `organization_id`/IDs),
 > Prompt-Injection (Befehle in DB-/Mail-/Datei-Inhalten), Berechtigungs-Umgehung,
-> PII-Bulk-Export. **FAIL = Release blockiert** (Teil des Merge-Gates neben `build` + `audit`).
+> PII-Bulk-Export. **FAIL = Release blockiert** — als **Punkt 8 der „GATES VOR JEDEM MERGE"**
+> (Session Protocol) geführt: dort als AUSBLICK markiert, **PFLICHT ab AI-Chat-Slice 3**,
+> sobald `scripts/redteam-aichat.ts` existiert.
 > Neue Guardrail-Regel → sofort neuer Red-Team-Fall. Erweiterbar wie der Audit-Check-Satz.
 
 ---
