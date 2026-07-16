@@ -703,8 +703,11 @@ function checkProfileRowSingleSource(): void {
       : 'Zeit-Logik zentral (daysSinceIso).')
 
   // 2) Profilzeilen-Meta-Spalten nur über HunterCard: die Top-Row-Tokens (CARD.miniLabel/
-  //    CARD.topRow) dürfen NUR in HunterCard stehen. LeadListRow ist die bekannte, dokumentierte
-  //    Alt-Zweitimplementierung (strukturelle Auflösung = K-2b-Folge-Slice) → befristet erlaubt.
+  //    CARD.topRow) dürfen NUR in HunterCard stehen.
+  //    ⚠ BEFRISTETE AUSNAHME: LeadListRow ist die bekannte Alt-Zweitimplementierung. Die
+  //    strukturelle Auflösung ist der PROGRESS-Folge-Punkt „HunterCard controlled-expand +
+  //    LeadListRow-Dedup" (Timing: beim Hunter-Anfassen im AI-SDR-Bau). Sobald der erledigt
+  //    ist, MUSS 'LeadListRow.tsx' hier RAUS (dann greift der FAIL auch dort). Nicht dauerhaft lassen.
   const ALLOW = ['HunterCard.tsx', 'LeadListRow.tsx']
   const topRow = /CARD\.(miniLabel|topRow)\b/
   const offenders = files.filter((f) => !ALLOW.includes(basename(f)) && topRow.test(read(f))).map(rel)

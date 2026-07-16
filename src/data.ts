@@ -196,7 +196,7 @@ export const INITIAL_CUSTOMERS: Customer[] = [
     contactEmail: 'max.krause@payguard.io',
     dealValue: 50000,
     sherloqStatus: 'ACTIVE',
-    lastLogin: 'vor 2 Stunden',
+    lastContactedAt: 'vor 2 Stunden',
     profilesAdded: 142,
     subscriptionPlan: 'Growth',
     upsellOpportunity: {
@@ -236,7 +236,7 @@ export const INITIAL_CUSTOMERS: Customer[] = [
     contactEmail: 'laura.becker@logistify.de',
     dealValue: 32000,
     sherloqStatus: 'CANCELLED',
-    lastLogin: 'vor 14 Tagen',
+    lastContactedAt: 'vor 14 Tagen',
     profilesAdded: 12,
     subscriptionPlan: 'Enterprise',
     upsellOpportunity: {
@@ -274,7 +274,7 @@ export const INITIAL_CUSTOMERS: Customer[] = [
     contactEmail: 't.mueller@hiringmate.com',
     dealValue: 6000,
     sherloqStatus: 'ACTIVE', // Trial-Status kommt später mit Billing (D-Backlog) — Mock = aktiver Kunde
-    lastLogin: 'vor 1 Tag',
+    lastContactedAt: 'vor 1 Tag',
     profilesAdded: 44,
     subscriptionPlan: 'Starter',
     upsellOpportunity: {

@@ -44,7 +44,7 @@ export interface Lead {
 
 export interface Customer extends Lead {
   sherloqStatus: SherloqStatus;
-  lastLogin: string;
+  lastContactedAt: string; // Anzeige-Label „vor X Tagen" aus contacts.last_contacted_at (kein ISO-Ts). Früher irreführend „lastLogin".
   profilesAdded: number;
   subscriptionPlan?: 'Growth' | 'Enterprise' | 'Starter'; // undefined wenn companies.subscription_plan NULL (Honesty, kein Default)
   upsellOpportunity?: {

@@ -3,7 +3,7 @@
  * HunterCard (CLAUDE-PFLICHT: Profilkarten IMMER HunterCard, nie von Hand bauen) → Profilzeile,
  * Progressive Disclosure (ExpandedCardContent) und „grüner Pfeil → Panel" sind 1:1 wie Hunter.
  * Einziger Unterschied: statt STAGE der SUBSCRIPTION-Badge (aus customerStatusConfig, flexibel).
- * Heat-Badge identisch zu Hunter. Zeit = lastLogin (Honesty-Mock bis DB-Wiring).
+ * Heat-Badge identisch zu Hunter. Zeit = lastContactedAt (echtes last_contacted_at im DB-Pfad).
  */
 import type { ReactNode } from "react";
 import type { Customer } from "@/types";
@@ -31,7 +31,7 @@ export default function FarmerKundenKachel({ contact, onOpenPanel, expandedSlot 
     icpScore: contact.icpScore,
     stageLabel: "", // Kunde hat keine Pipeline-Stage → SUBSCRIPTION-Slot wird genutzt
     heatStatus: contact.heatStatus,
-    timeLabel: contact.lastLogin ?? "", // Honesty-Mock; echte last_contacted_at folgt mit DB-Wiring
+    timeLabel: contact.lastContactedAt ?? "", // echtes last_contacted_at (customerRowToView.lastContactedLabel), Anzeige-Label
   };
 
   const statusBadge = {
