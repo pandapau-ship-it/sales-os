@@ -85,6 +85,27 @@ Filter über die K-2-Sprache · Bulk-Auswahl (zu Liste hinzufügen; Campaign-Opt
 markierter Anschlusspunkt für AI-SDR-Slice-6, bis dahin ausgeblendet) ·
 deleted_at-Respekt überall.
 
+**TABELLEN-FUNKTIONALITÄT (fertige Bibliothek nutzen, nichts selbst bauen):**
+**TanStack Table** als Basis mit: Sortierung pro Spalte · Spalten ein-/ausblenden ·
+Spalten per Drag verschieben (Reihenfolge) · Spaltenbreite anpassen · Filter über die
+**K-2-Filter-Sprache** · Virtualisierung für große Listen (`@tanstack/react-virtual`,
+Pflicht > 50 Zeilen).
+
+**PERSISTENZ:** Die Tabellen-Ansicht (sichtbare Spalten, Reihenfolge, Breiten, Sortierung)
+wird **PRO USER** gespeichert (settings-Key, z.B. `settings.table_views.contacts`) und beim
+Öffnen wiederhergestellt — **nicht** bei jedem Reload zurückgesetzt. Die Default-Ansicht ist
+ein System-Default; **„Auf Standard zurücksetzen" muss möglich sein.**
+
+**WIEDERVERWENDUNG (Single Source):** Dieselbe Tabellen-Komponente wird auch für **Companies
+(K-4)** und spätere Listen genutzt — **EINE konfigurierbare Komponente, keine Kopien.**
+
+> **OFFENE ARCHITEKTUR-FRAGE (Entscheidung in K-3 treffen):** Persönliche Einstellungen
+> (`table_views`, später auch Ansicht/Navigation aus `settings_bauplan` „Persönlich → Ansicht"
+> und Chat-Präferenzen C24) brauchen einen **user-scoped Ort** — die bestehende `settings`-Zeile
+> ist pro **Org**, nicht pro User. In K-3 EINMAL entscheiden (user-scoped JSONB in `settings` vs.
+> eigene `user_table_views`/`user_preferences`-Tabelle), **dann gilt die Entscheidung für alle
+> drei Fälle einheitlich (Single Source)** — nicht pro Feature neu erfinden.
+
 ### SLICE K-4 — Companies-Screen + Detail (4c: ScreenCompanies)
 Listenansicht §14 (Logo-Fallback, Badges, Zähler = echte Counts) · Company-Detail
 §15 (volle Seite: Kontakte, Deals, Historie — nur echte Daten, leere Sektionen
