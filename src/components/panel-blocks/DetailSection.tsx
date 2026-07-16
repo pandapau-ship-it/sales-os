@@ -3,13 +3,13 @@
  * Akzent-Border links. Optional einklappbar (System-Felder zu, by default).
  * Prop-driven · nur index.css-Tokens.
  */
-import { useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { useState, type ReactNode } from "react";
+import { ChevronDown, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface DetailSectionProps {
   title: string;
-  icon?: any;
+  icon?: LucideIcon;
   collapsible?: boolean;
   defaultCollapsed?: boolean;
   cols?: 1 | 2;
@@ -20,7 +20,7 @@ export interface DetailSectionProps {
   className?: string;
   /** Deeplink-Highlight-Scroll-Anker auf der `<section>`. */
   flashId?: string;
-  children: any;
+  children: ReactNode;
 }
 
 export default function DetailSection({
