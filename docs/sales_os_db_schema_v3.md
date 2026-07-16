@@ -61,6 +61,8 @@ phone               text
 job_title           text
 seniority           text                          -- C-Level | VP | Director | Manager | IC
 company_id          uuid FK → companies
+assigned_to         uuid FK → users               -- Owner (K9 Lead-Assignment, Migration 056)
+created_by          uuid FK → users               -- wer angelegt hat (Migration 056)
 contact_status      text DEFAULT 'ohne_campaign'
                     -- ohne_campaign | in_campaign | pipeline | kunde | archiviert | opt_out
 lead_source         text
@@ -354,9 +356,54 @@ organization_id     uuid FK
 name                text NOT NULL
 type                text DEFAULT 'static'         -- static | dynamic
 filter_config       jsonb                         -- bei dynamic: Filterregeln
-contact_ids         uuid[]                        -- bei static: manuell gepflegte Liste
 is_team_list        boolean DEFAULT false
 created_by          uuid FK → users
+created_at          timestamptz
+updated_at          timestamptz
+```
+> **Mitgliedschaft (static) via Join-Tabelle `list_members`** — NICHT mehr die alte
+> Array-Spalte `lists.contact_ids` (Migration 005). Abgelöst in Migration **056** (K-1b):
+> FK + CASCADE, RLS pro Zeile, Merge (K-6) zieht Mitgliedschaften automatisch mit.
+
+### list_members
+```
+id                  uuid PK
+list_id             uuid FK → lists    (ON DELETE CASCADE)
+contact_id          uuid FK → contacts (ON DELETE CASCADE)
+organization_id     uuid FK → organizations
+added_at            timestamptz
+UNIQUE (list_id, contact_id)
+```
+
+---
+
+### import_templates   (Migration 056 — K5 Vorlagen-Wiedererkennung)
+```
+id                  uuid PK
+organization_id     uuid FK
+created_by          uuid FK → users
+name                text NOT NULL
+source_signature    text                          -- normalisierte Header-Signatur zum Wiedererkennen
+mapping             jsonb NOT NULL DEFAULT '{}'    -- {sourceHeader: targetField}
+created_at          timestamptz
+updated_at          timestamptz
+```
+
+### import_batches   (Migration 056 — K4 rückholbarer Import)
+```
+id                  uuid PK
+organization_id     uuid FK
+created_by          uuid FK → users
+source              text                          -- csv_upload | excel | crm_sync | api
+filename            text
+template_id         uuid FK → import_templates
+status              text DEFAULT 'completed'       -- completed | undone
+rows_created        int DEFAULT 0
+rows_updated        int DEFAULT 0                  -- aktualisiert/zusammengeführt
+rows_skipped        int DEFAULT 0                  -- Duplikat übersprungen
+rows_failed         int DEFAULT 0
+undo_until          timestamptz                   -- created_at + 7 Tage (K4)
+undone_at           timestamptz
 created_at          timestamptz
 updated_at          timestamptz
 ```
@@ -413,6 +460,9 @@ signal_windows      jsonb DEFAULT '[]'
                     --   (org-tunebar). Migration 018. Reader: db.getSignalWindows().
 sending_defaults    jsonb DEFAULT '{}'
                     -- {daily_email_limit, daily_linkedin_limit, sending_window}
+lead_assignment_strategy text DEFAULT 'round_robin'
+                    -- K9 (Migration 056): round_robin | by_region | by_source | manual_only
+                    --   org-konfigurierbar, laufzeit-gelesen (D51). round_robin = Basislogik K-1b.
 created_at          timestamptz
 updated_at          timestamptz
 ```

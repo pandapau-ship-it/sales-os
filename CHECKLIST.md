@@ -142,7 +142,8 @@
 - [x] **Merge `feature/phase-2-hunter` → `main`** (`--no-ff`, `22c3cad`), Gates grün — *2026-06-20*
 - [ ] **Erinnerung/Reminder** — Feld (`reminder_at`) + Auslöse-System (notifications/Cron/Versand) fehlen komplett ([D19])
 - [ ] **Erinnerung/Reminder** — Feld (`reminder_at`) + Auslöse-System (notifications/Cron/Versand) fehlen komplett ([D19])
-- [ ] knowledge_base-Eintrag je weiterem fertigem Feature
+- [x] **K-1b Daten-Fundament (Migration 056, db push offen)** — `contacts.assigned_to`+`created_by`; **`list_members` Join-Tabelle löst `lists.contact_ids`-Array (005) ab** (FK+CASCADE+RLS+Audit, verlustfreier Backfill nur auf existierende Kontakte); `import_batches`+`import_templates` (K4/K5); `settings.lead_assignment_strategy` (K9, D51). Zentrale **pure** Functions + **[AUTO]-Tests** (41/41): K1 Pflichtfeld-Validierung (`contactValidation.ts`), K2 `find_duplicates`/Normalisierung (`dedup.ts`), K9 round_robin (`leadAssignment.ts`); dünne DB-Schicht `findDuplicates`/`assignLeadOwner` (`db.ts`). `sales_os_db_schema_v3.md` angeglichen. Beide Gate-Agents PASS. — *2026-07-16*
+- [ ] knowledge_base-Eintrag je weiterem fertigem Feature (K-1b = Infra/intern, KB folgt mit K-3/K-4 Screens)
 
 > Die folgenden Listen sind die vollständige Soll-Spezifikation (großteils Felder/Feature-Wiring, das schrittweise folgt).
 

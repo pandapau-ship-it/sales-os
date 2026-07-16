@@ -15,7 +15,7 @@
 
 ▶ **1.** [ ] **[BAU+DESIGN] Kontakte & Companies — Slices K-1 bis K-6**
   (`docs/kontakte_companies_bauplan_v1.md`; Designs ScreenKontakte/ScreenCompanies
-  vorhanden — Abgleich nach Dauerregel 4c)
+  vorhanden — Abgleich nach Dauerregel 4c) · **erledigt: K-1a · K-1a2 · K-1b · ▶ K-2**
   - [x] **K-1a Test-Fundament ZUERST** — vitest eingerichtet (Config in `vite.config.ts`,
         Smoke-Test `src/lib/heatUtils.test.ts` 3/3 grün, npm-Scripts `test`/`test:watch`).
         Commit `3e6ad8b`, gemerged `81d0d33`. **Voraussetzung für [AUTO]-Tests in ALLEN
@@ -45,10 +45,25 @@
         zur DB-Typisierung „bekannt, kein Blocker", aber **kein Commit darf die 60 überschreiten**
         (Zählung vorher/nachher). Nach der DB-Typisierung gilt Gate 2 wieder hart bei 0.
         *(Spiegel in CLAUDE.md „GATES VOR JEDEM MERGE" Punkt 2 angeglichen.)*
-  - [ ] K-1b Diagnose & Daten-Fundament (Validierung K1 + find_duplicates K2 + [AUTO]-Tests)
-        — **▶ nächster offener Unterpunkt.** Beim DB-Wiring hier: `supabase gen types
-        typescript` laufen lassen und die 60 DB-Rohzeilen-`any` (K-1a2) mit-typisieren.
+  - [x] **K-1b Diagnose & Daten-Fundament** — Branch `feat/k1b-daten-fundament`, beide
+        Gate-Agents PASS (test-runner ALLE GRÜN, auditor AUDIT: PASS A–E). Migration **056**:
+        `contacts.assigned_to` + `created_by` (K9/SaaS-Ownership) · **`list_members` Join-Tabelle
+        LÖST das Array `lists.contact_ids` ab** (Migration 005; kanonisches Schema, FK+CASCADE,
+        Backfill nur auf existierende Kontakte, drop column) · `import_batches` + `import_templates`
+        (K4/K5) · `settings.lead_assignment_strategy` (K9, D51-konfigurierbar). Zentrale **pure**
+        Functions mit **[AUTO]-Tests** (38 neu, gesamt 41/41): K1 `validateContactRequired`/
+        `validateCompanyRequired` (`contactValidation.ts`) · K2 `classifyDuplicate`/`classifyCompanyDuplicate`
+        + Normalisierung (`dedup.ts`, Match-Kaskade E-Mail/LinkedIn exakt → sicher, Name+Company
+        unscharf → möglich) · K9 `pickRoundRobin`/`resolveOwner` (`leadAssignment.ts`). Dünne DB-Schicht
+        `findDuplicates`/`assignLeadOwner` in `db.ts` (delegiert an die puren Libs, keine Zweitlogik).
+        Referenz-Doku `sales_os_db_schema_v3.md` angeglichen (Konflikt-Regel).
+        **Diagnose-Befunde:** keine bestehende Dedup-/Sherloq-Intake-Logik (sauberer Neubau,
+        Bauplan-Annahme „Sherloq-Intake existiert" traf NICHT zu); `createContact` fehlt noch in
+        `db.ts` (voller Anlege-Pfad mit Validierung+Dedup+Assign = **K-3**). **Migrationen NICHT
+        gepusht** (Olivers Gate); `supabase gen types` + Typisierung der 60 `any` folgt beim Push.
   - [ ] K-2 Filter-Sprache (Weiche 1, erstmalig — Fundament für Listen/Lifecycle/Analyse)
+        — **▶ nächster offener Schritt.** Beim ersten DB-Push (024–056): danach `supabase gen
+        types typescript` + die 60 DB-Rohzeilen-`any` (K-1a2) mit-typisieren.
   - [ ] K-3 Kontakte-Screen (4c: Design-Abgleich ScreenKontakte zuerst)
   - [ ] K-4 Companies-Screen + Detail (4c: ScreenCompanies)
   - [ ] K-5 Smart-Import (4 Schichten, `import_mapping_v1`-Prompt nach C27)
