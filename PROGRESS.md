@@ -22,6 +22,24 @@
         das `test`-Script aus package.json). ⚠ Steht in **keinem** der 13 Dokumente —
         die Testpläne setzen ein Framework voraus, das es im Repo noch nicht gibt.
         Danach zählt Punkt 5 der „GATES VOR JEDEM MERGE" („Tests grün") erst wirklich.
+  - [ ] **K-1a2 Lint-Schuld beheben** — **Gate 2 (`npm run lint`) ist rot: 109 Fehler.**
+        Vorbestehend, **nicht** von K-1a verursacht — gegengeprüft am 15.07.2026 durch
+        `git stash` der K-1a-Änderungen: reines `main` liefert **exakt dieselben
+        111 Probleme (109 Fehler, 2 Warnungen)**; aus `heatUtils.test.ts` und
+        `vite.config.ts` stammt kein einziger. Grund für den späten Fund: Das alte
+        Merge-Gate nannte lint gar nicht (nur build + audit + structure-check), und der
+        Pre-Push-Hook prüft es ebenfalls nicht — erst die Gate-Konsolidierung (`93706d7`)
+        hat lint zum Pflicht-Punkt gemacht.
+        **Verteilung:** 62× `@typescript-eslint/no-explicit-any` · 20× `no-unused-vars` ·
+        19× `react-hooks/set-state-in-effect` · 6× `react-hooks/exhaustive-deps` ·
+        4× `react-refresh/only-export-components` · 3× `react-hooks/purity`.
+        ⚠ **Keine reine Kosmetik:** `set-state-in-effect` und `purity` zeigen auf echte
+        React-19-Korrektheitsprobleme — vor den Kontakte/Companies-Migrationen beheben,
+        nicht danach.
+        **Bis dieser Slice erledigt ist gilt:** Gate 2 = **„bekannt rot, vorbestehend,
+        kein Blocker"** — es blockiert weder den K-1a-Commit noch Slices, die die Zahl
+        nicht erhöhen. **Regel bis dahin: kein Commit darf die 109 überschreiten**
+        (Zählung vorher/nachher vergleichen). Ab K-1a2-Abschluss gilt Gate 2 wieder hart.
   - [ ] K-1b Diagnose & Daten-Fundament (Validierung K1 + find_duplicates K2 + [AUTO]-Tests)
   - [ ] K-2 Filter-Sprache (Weiche 1, erstmalig — Fundament für Listen/Lifecycle/Analyse)
   - [ ] K-3 Kontakte-Screen (4c: Design-Abgleich ScreenKontakte zuerst)
