@@ -15,7 +15,7 @@
 
 ▶ **1.** [ ] **[BAU+DESIGN] Kontakte & Companies — Slices K-1 bis K-6**
   (`docs/kontakte_companies_bauplan_v1.md`; Designs ScreenKontakte/ScreenCompanies
-  vorhanden — Abgleich nach Dauerregel 4c) · **erledigt: K-1a · K-1a2 · K-1b · ▶ K-2**
+  vorhanden — Abgleich nach Dauerregel 4c) · **erledigt: K-1a · K-1a2 · K-1b · K-2 · ▶ K-3**
   - [x] **K-1a Test-Fundament ZUERST** — vitest eingerichtet (Config in `vite.config.ts`,
         Smoke-Test `src/lib/heatUtils.test.ts` 3/3 grün, npm-Scripts `test`/`test:watch`).
         Commit `3e6ad8b`, gemerged `81d0d33`. **Voraussetzung für [AUTO]-Tests in ALLEN
@@ -61,10 +61,24 @@
         Bauplan-Annahme „Sherloq-Intake existiert" traf NICHT zu); `createContact` fehlt noch in
         `db.ts` (voller Anlege-Pfad mit Validierung+Dedup+Assign = **K-3**). **Migrationen NICHT
         gepusht** (Olivers Gate); `supabase gen types` + Typisierung der 60 `any` folgt beim Push.
-  - [ ] K-2 Filter-Sprache (Weiche 1, erstmalig — Fundament für Listen/Lifecycle/Analyse)
-        — **▶ nächster offener Schritt.** Beim ersten DB-Push (024–056): danach `supabase gen
-        types typescript` + die 60 DB-Rohzeilen-`any` (K-1a2) mit-typisieren.
+  - [x] **K-2 Filter-Sprache (Weiche 1, erstmalig)** — Branch `feat/k2-filter-sprache`, beide
+        Gate-Agents PASS (auditor A–E, Kategorie-C-Konsistenz gefixt). Eigenständige Lib
+        `src/lib/filter/` als **EINE** Sprache für Listen (DB) · Lifecycle-Trigger (in-memory) ·
+        Analyse: `types.ts` (AST Feld·Operator·Wert + UND/ODER-Gruppen) · `schema.ts`
+        (**Whitelist = Sicherheitsgrenze**: filterbare Felder je Entität + typ-erlaubte Operatoren,
+        strukturell/code-definiert wie terminalStages, **kein** D51-Wert) · `validate.ts`
+        (einziger Gatekeeper — unbekanntes Feld/Operator/Werttyp/enum → wirft; DoS-Tiefenlimit) ·
+        `evaluate.ts` (in-memory Prädikat) · `compile.ts` (→ PostgREST, **nie freies SQL**,
+        Werte double-quoted → Injection-sicher) · `index.ts` Barrel. **[AUTO]-Tests: 39 neu
+        (gesamt 80/80)** inkl. **Injection-Nachweis** (böswillige Werte brechen nicht aus) +
+        **evaluate↔compile-Paritätstests** (case-sensitiv, NULL matcht nie außer is_empty).
+        **DB-Anwendung** (`query.or(compiled)` an getContacts) + `%`/`_`-Wildcard-Verifikation =
+        **K-3** (Live-DB). **Migration 056 gepusht** + `database.types.ts` im Repo → die 60
+        DB-Rohzeilen-`any` werden mit **K-3** (echte Listen-/Kontakt-Verdrahtung) ersetzt.
   - [ ] K-3 Kontakte-Screen (4c: Design-Abgleich ScreenKontakte zuerst)
+        — **▶ nächster offener Schritt.** Enthält: Filter-Lib DB-seitig an `getContacts` hängen +
+        `%`/`_`-ilike-Verifikation · TanStack Table (siehe K-3-Doku-Nachtrag) · user-scoped
+        Settings-Entscheidung · **60 DB-Rohzeilen-`any` mit `database.types.ts` ersetzen** (K-1a2).
   - [ ] K-4 Companies-Screen + Detail (4c: ScreenCompanies)
   - [ ] K-5 Smart-Import (4 Schichten, `import_mapping_v1`-Prompt nach C27)
   - [ ] K-6 Duplikate verwalten + Merge (merge_contacts/merge_companies + [AUTO]-Tests)
