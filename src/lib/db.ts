@@ -1268,3 +1268,52 @@ export async function setUserPreference(
     .upsert({ user_id: userId, organization_id: organizationId, key, value }, { onConflict: "user_id,key" });
   if (error) throw error;
 }
+
+// ── K-3 CP4: Kontakt anlegen (voller Pfad — Validierung/Dedup passieren im UI) ────
+/** Firma per Name finden (case-insensitiv) oder anlegen → company_id. Leer → null. */
+export async function findOrCreateCompany(organizationId: string, name: string): Promise<string | null> {
+  const client = getSupabaseClient();
+  const n = name.trim();
+  if (!client || !n) return null;
+  const { data: existing } = await client
+    .from("companies").select("id").eq("organization_id", organizationId).ilike("name", n).limit(1).maybeSingle();
+  if (existing) return (existing as { id: string }).id;
+  const { data, error } = await client
+    .from("companies").insert({ organization_id: organizationId, name: n }).select("id").single();
+  if (error) throw error;
+  return (data as { id: string }).id;
+}
+
+export interface NewContactInput {
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  linkedin_url?: string;
+  job_title?: string;
+  seniority?: string;
+  company_id?: string | null;
+  notes?: string;
+}
+
+/**
+ * Kontakt anlegen. lead_source='manual', contact_status='ohne_campaign', Owner via
+ * assign_lead_owner (K9), created_by = eingeloggter User. Audit via DB-Trigger.
+ * Validierung (K1) + Duplikat-Check (K2) macht der Aufrufer VORHER (Anlege-Panel).
+ */
+export async function createContact(
+  organizationId: string,
+  input: NewContactInput,
+  createdBy: string | null,
+): Promise<{ id: string } | null> {
+  const client = getSupabaseClient();
+  if (!client) return null;
+  const assigned_to = await assignLeadOwner(organizationId);
+  const clean = Object.fromEntries(Object.entries(input).filter(([, v]) => v != null && v !== ""));
+  const { data, error } = await client
+    .from("contacts")
+    .insert({ organization_id: organizationId, ...clean, lead_source: "manual", contact_status: "ohne_campaign", assigned_to, created_by: createdBy })
+    .select("id")
+    .single();
+  if (error) throw error;
+  return data as { id: string };
+}

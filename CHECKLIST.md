@@ -281,8 +281,8 @@
 - [ ] **Hunter Screen** umbauen → Recommendation Feed (keine Sequenzen)
 - [x] **Farmer Screen** → Recommendation Feed (Bestandskunden) — **DB-Wiring KOMPLETT (30.06.2026):** Screen (6 Tabs + aufgeklappter Bereich), Panel 8a–8e (Header/KontaktZeile/Tabs/Writes/Signale/Subscription/Details — alles echt + editierbar), Vollansicht. Echtes Churn-/Upsell-Scoring (Edge Functions `score-churn-risk`/`score-upsell` + Crons, Migr. 048–053). Invarianten: Subscription-nie-Stage · Churn-Vorrang vor Upsell (auch dedizierte Tabs) · Single Source (`contactToProfile`/`getContactDetail`/`companies`/`contactDetailFields`) · Honesty. Verbleibend nur bewusst deferred: KI-Kurzakte/Action-Draft [D5] · Usage-Telemetrie [D49] · Deals-Tab [D50] · Mail [D29] · Snooze-Persistenz [D48] · Won→Kunde-Lifecycle [D38].
 - [ ] **Mein Tag** → aggregierter Feed (keine eigene Datenquelle)
-- [ ] **Kontakte Screen** (NEU) — *zentrales Datenobjekt, eigener Sidebar-Icon*
-- [ ] Kontakte-Listenansicht — Spalten: Checkbox · Avatar+Name+Jobtitel+Company · Lead-Source-Badge · Status-Badge · Letzter Kontakt · ICP-Ring · Routing-Hinweis (Lucide, kein Emoji)
+- [x] **Kontakte Screen (K-3)** — *zentrales Datenobjekt, `ScreenKontakte` an `getContacts`, Route live.* — *2026-07-17*
+- [x] Kontakte-Listenansicht — TanStack Table + Virtualisierung: Checkbox (Gmail-Bulk „alle im Filter") · Name+Jobtitel+Company · `LeadSourceBadge` · Status-Badge · ZULETZT · ICP-Ring · `RoutingChip` (Lucide, kein Emoji); Filter-Pills (K-2 `evaluateFilter`) · Spalten-Konfig + Persistenz (`user_preferences`) · Anlegen-Panel (K1-Pflicht + K2-Duplikat hard/soft). — *2026-07-17*
 - [ ] UI-Verhalten leere/System-Felder: "—" grau + Hover-Edit · Pflicht=amber Unterstreichung · System=grau readonly · inline-Edit, onBlur-Save, rotes Inline-Fehler-Feedback (Hex → index.css-Tokens mappen)
 - [ ] Analytics kontextuell eingebettet — kein eigener Nav-Screen (AI SDR/Hunter/Farmer/Companies/Mein Tag inline · Settings→Reporting später)
 - [ ] **Inbox** Screen + Sidebar-Icon (Tools-Bereich) + Badge
@@ -330,7 +330,7 @@
 - [ ] Restliche Mock-Listen (Pipeline/Signals/Info-Panel) durch echte Queries ersetzen
 - [ ] Glocke: echter Badge-Count aus `notifications` (read=false), live via Realtime
 - [x] **K-2 Filter-Sprache (Weiche 1)** — `src/lib/filter/` EINE Sprache für Listen+Lifecycle+Analyse: AST (`types`) · Whitelist-Schema (Sicherheitsgrenze, kein D51) · `validate` (Gatekeeper) · `evaluate` (in-memory) · `compile` (→ PostgREST, nie freies SQL, Werte double-quoted). **[AUTO]-Tests 80/80** inkl. Injection-Nachweis + evaluate↔compile-Parität (case-sensitiv, NULL matcht nie). DB-Anwendung an `getContacts` + `%`/`_`-ilike = K-3. Beide Gate-Agents PASS. — *2026-07-16*
-- [ ] **DB-Rohzeilen-`any` (60, K-1a2) mit `database.types.ts` ersetzen** — in K-3 (echte Listen-/Kontakt-Verdrahtung); schließt Lint-Baseline auf 0
+- [x] **DB-Rohzeilen-`any` (60, K-1a2) mit `database.types.ts` ersetzen** — K-3 CP1: Row-Composites `src/types/rows.ts`, db.ts-Feeder + mappers typisiert → **Lint-Baseline 0, Gate 2 HART**. — *2026-07-17*
 - [~] **K-5 Smart-Import Engine-Kern (dep-frei, vorgezogen)** — `src/lib/import/`: `detect` (Encoding-BOM + Trennzeichen), `mapping` (Synonym-Wörterbuch de/en + Vorlagen-Signatur), `validate` (Pflichtfeld K1 + Format + Duplikat K2 + Intra-Datei, Report K8). **[AUTO]-Tests 28 neu (108 gesamt)**. Offen: echtes Parsen (papaparse + **xlsx >50 kb → Dep-Freigabe Oliver**), AI-Mapping (C27), UI (mit K-3/K-4), Ausführung (Edge + import_batch_id). — *2026-07-16*
 
 ### Realtime

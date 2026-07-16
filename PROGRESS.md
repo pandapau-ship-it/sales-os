@@ -15,7 +15,7 @@
 
 ▶ **1.** [ ] **[BAU+DESIGN] Kontakte & Companies — Slices K-1 bis K-6**
   (`docs/kontakte_companies_bauplan_v1.md`; Designs ScreenKontakte/ScreenCompanies
-  vorhanden — Abgleich nach Dauerregel 4c) · **erledigt: K-1a · K-1a2 · K-1b · K-2 · K-2b · ▶ K-3**
+  vorhanden — Abgleich nach Dauerregel 4c) · **erledigt: K-1a · K-1a2 · K-1b · K-2 · K-2b · K-3 · ▶ K-4**
   - [x] **K-1a Test-Fundament ZUERST** — vitest eingerichtet (Config in `vite.config.ts`,
         Smoke-Test `src/lib/heatUtils.test.ts` 3/3 grün, npm-Scripts `test`/`test:watch`).
         Commit `3e6ad8b`, gemerged `81d0d33`. **Voraussetzung für [AUTO]-Tests in ALLEN
@@ -97,23 +97,30 @@
         **Bis dahin:** die Audit-Allowlist-Ausnahme für `LeadListRow.tsx` (Check „Profilzeile: nur über
         HunterCard") bleibt bestehen und ist in `scripts/audit.ts` **ausdrücklich als BEFRISTET** markiert
         (Verweis auf diesen Punkt) → nach K-FS1 muss `LeadListRow.tsx` aus der Allowlist RAUS (FAIL greift dann dort).
-  - [~] **K-3 Kontakte-Screen — CP1 fertig** (Design vorliegt, Abgleich erfolgt). **CP1: `user_preferences`
-        (Migr. 057, gepusht) + `database.types.ts` regeneriert + 60 DB-Rohzeilen-`any` typisiert → Gate 2
-        HART bei 0.** Row-Composite-Typen in `src/types/rows.ts` (ContactRow/DealRow/SignalRow/… inkl.
-        Embeds), db.ts-Feeder-Rückgaben typisiert, hunterMappers/ScreenHunting/Sidepanels durchgezogen.
-        **3 latente Bugs aufgedeckt (durch die Typisierung):** (1) `signals` hat **kein `occurred_at`**
-        (toter Fallback entfernt); (2) **ScreenMyDay** `c.sherloqStatus === 'CHURN_RISK'` — `'CHURN_RISK'`
-        ist KEIN `SherloqStatus`-Wert → Churn-Count im Briefing **immer 0** (Cast erhält Verhalten, echter
-        Fix = Mein-Tag-Bau); (3) **`contacts` hat keine `city`/`country`-Spalte** trotz CRM-Doku → Details-Tab
-        Stadt/Land persistiert nie (in `rows.ts` optional markiert, **Migration nachzuziehen [D-city]**).
-        **CP2–CP4 offen:** Screen (TanStack Table + Virtualisierung) an `getContacts`, Route statt ComingSoon,
-        Filter (K-2) + Bulk (Gmail-Muster) + Spalten-Konfig + Persistenz (`user_preferences`) + Seitengröße,
-        Anlegen-Panel + Duplikat-Banner, alle Zustände. xlsx lazy-`import()` im Import-UI.
-  - [ ] ~~K-3 Kontakte-Screen~~ (siehe CP1-Eintrag oben)
-        — Enthält: Filter-Lib DB-seitig an `getContacts` hängen +
-        `%`/`_`-ilike-Verifikation · TanStack Table (siehe K-3-Doku-Nachtrag) · user-scoped
-        Settings-Entscheidung · **60 DB-Rohzeilen-`any` mit `database.types.ts` ersetzen** (K-1a2).
-  - [ ] K-4 Companies-Screen + Detail (4c: ScreenCompanies)
+  - [x] **K-3 Kontakte-Screen — FERTIG (CP1–CP4).** Branch `feat/k3-kontakte`.
+        **CP1** (`9bb2ac4`): `user_preferences` (Migr. 057, gepusht) + `database.types.ts` regeneriert +
+        60 DB-Rohzeilen-`any` typisiert → **Gate 2 HART bei 0**. Row-Composite-Typen in `src/types/rows.ts`
+        (ContactRow/DealRow/SignalRow/… inkl. Embeds), db.ts-Feeder-Rückgaben typisiert,
+        hunterMappers/ScreenHunting/Sidepanels durchgezogen. **3 latente Bugs aufgedeckt:** (1) `signals`
+        hat **kein `occurred_at`** (toter Fallback entfernt); (2) **ScreenMyDay** `c.sherloqStatus ===
+        'CHURN_RISK'` — kein `SherloqStatus`-Wert → Churn-Count im Briefing **immer 0** (Cast erhält
+        Verhalten, echter Fix = Mein-Tag-Bau); (3) **`contacts` hat keine `city`/`country`-Spalte** → Details-Tab
+        Stadt/Land persistiert nie (`rows.ts` optional, **[D-city]** deferred bis K-4).
+        **CP2** (`40d3212`): `ScreenKontakte` als **TanStack Table** (nicht Karten) an `getContacts`,
+        Route statt ComingSoon, `kontakteMappers` (contactToKontakteRow via contactToProfile + routingFor),
+        `LeadSourceBadge` + `RoutingChip` panel-blocks, Spalten (Name/Source/Status/ZULETZT/ICP/Routing),
+        Sortierung, `useVirtualizer` innerhalb Seite, Pagination (25/50/100, Default 50), Lade-/Fehler-/Leer-Zustände.
+        **CP3** (`e2777d8`): Filter-Pills (STATUS/SOURCE/ICP) → `buildFilterDef` → `evaluateFilter` (K-2, client-seitig
+        auf rohen ContactRow[]) · Gmail-Bulk (`selectAllFiltered` + „Alle N im aktuellen Filter") · Spalten-Konfig-Popover
+        + „Auf Standard" · Persistenz via `user_preferences` (Laden on-mount, Speichern debounced columnVisibility/sorting/pageSize).
+        **CP4**: `KontaktAnlegenPanel` (rechtes Sheet 560px) — K1-Pflicht (`validateContactRequired`, amber) + Live-Duplikat
+        (K2 `findDuplicates` onBlur: HARD sicher → rot + Speichern gesperrt, SOFT möglich → gelber Banner) → `findOrCreateCompany`
+        + `createContact` (lead_source=manual, Owner via K9). Detail-Panel-Öffnen via `HunterSidepanel`. **Export/Aktionen-Button
+        bewusst weggelassen** — serverseitiges „alle im Filter" nicht sauber in K-3 (kommt mit echter DB-Filterung; Entscheidung
+        gemeldet). xlsx-lazy-`import()` bleibt Sache des Import-UI (K-5/K-6), hier kein Export-Pfad.
+        Gates: build ✓ · lint 0 · tsc 0 · 120 Tests ✓ · structure PASS · audit 0 FAIL.
+  - [ ] **▶ K-4 Companies-Screen + Detail** (4c: ScreenCompanies) — hier auch **[D-city]**
+        (`contacts.city`/`country`-Migration) aufgreifen, da beim Company-/Adress-Wiring fällig.
   - [~] **K-5 Smart-Import — Engine-Kern (dep-frei) VORGEZOGEN** (Reihenfolge-Flexibilität
         Dauerregel 4, während K-3-Design bei Oliver läuft — **hier vermerkt, nicht stillschweigend**).
         Branch `feat/k5-import-engine`. Gebaut (rein + [AUTO]-Tests, 28 neu / 108 gesamt):

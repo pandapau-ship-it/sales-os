@@ -13,7 +13,7 @@
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   useReactTable,
   getCoreRowModel,
@@ -43,6 +43,9 @@ import LeadSourceBadge from "@/components/panel-blocks/LeadSourceBadge";
 import RoutingChip from "@/components/panel-blocks/RoutingChip";
 import EmptyState from "@/components/shared/EmptyState";
 import { useToast } from "@/components/shared/toastContext";
+import KontaktAnlegenPanel from "@/components/features/kontakte/KontaktAnlegenPanel";
+import { HunterSidepanel } from "@/components";
+import type { Person } from "@/types";
 
 const STATUS_CFG: Record<string, { label: string; tone: "success" | "warn" | "urgent" | "info" | "teal" | "muted" }> = {
   in_campaign: { label: "In Campaign", tone: "teal" },
@@ -109,6 +112,9 @@ export default function ScreenKontakte() {
   const [sourceFilter, setSourceFilter] = useState<string | null>(null);
   const [icpFilter, setIcpFilter] = useState<string | null>(null);
   const [configOpen, setConfigOpen] = useState(false);
+  const [anlegenOpen, setAnlegenOpen] = useState(false);
+  const [detailPerson, setDetailPerson] = useState<Person | null>(null);
+  const queryClient = useQueryClient();
 
   // ── Persistenz (pro User) — laden beim Mount, speichern bei Änderung ──────────
   const prefsLoaded = useRef(false);
@@ -267,7 +273,7 @@ export default function ScreenKontakte() {
               ))}
             </div>
           )}
-          <button type="button" className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--sherloq-primary)] text-on-accent text-[13px] font-bold hover:opacity-90 transition-opacity cursor-pointer">
+          <button type="button" onClick={() => setAnlegenOpen(true)} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--sherloq-primary)] text-on-accent text-[13px] font-bold hover:opacity-90 transition-opacity cursor-pointer">
             <Plus className="w-4 h-4" /> Kontakt
           </button>
         </div>
@@ -351,6 +357,7 @@ export default function ScreenKontakte() {
                     </label>
                     {row.getVisibleCells().map((cell) => <div key={cell.id} className="min-w-0">{flexRender(cell.column.columnDef.cell, cell.getContext())}</div>)}
                     <button type="button" aria-label="Kontakt öffnen" data-tip="Kontakt öffnen"
+                      onClick={() => { const r = row.original; setDetailPerson({ id: r.id, name: r.name, jobTitle: r.jobTitle, company: r.company, initials: r.initials, avatarUrl: r.avatarUrl }); }}
                       className="w-8 h-8 rounded-full bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)] hover:scale-105 transition-transform flex items-center justify-center cursor-pointer justify-self-end">
                       <ArrowRight className="w-4 h-4" />
                     </button>
@@ -380,6 +387,16 @@ export default function ScreenKontakte() {
           </div>
         )}
       </div>
+
+      {/* CP4: Anlegen + Detail-Panel */}
+      <KontaktAnlegenPanel
+        open={anlegenOpen}
+        organizationId={organizationId}
+        createdBy={userId}
+        onClose={() => setAnlegenOpen(false)}
+        onCreated={() => { setAnlegenOpen(false); void queryClient.invalidateQueries({ queryKey: ["kontakte", organizationId] }); }}
+      />
+      {detailPerson && <HunterSidepanel person={detailPerson} onClose={() => setDetailPerson(null)} />}
     </div>
   );
 }

@@ -421,3 +421,11 @@
 - **value:** Risiko- und Wachstumskunden werden automatisch erkannt und priorisiert — keine manuellen Listen, Retention schlägt Expansion bei gefährdeten Kunden.
 - **module:** farmer
 - *(Migration 053, 2026-06-30)*
+
+### Kontakte-Screen (zentrale Personen-Datenbank)
+- **feature:** Kontakte-Screen
+- **what:** Eine durchsuchbare, sortier- und filterbare Tabelle aller Personen im System — unabhängig vom Status. Schnellfilter nach Status/Quelle/ICP, Mehrfachauswahl über alle Treffer im aktuellen Filter (nicht nur die sichtbare Seite), frei ein-/ausblendbare Spalten mit gemerkter Ansicht pro Nutzer. Neue Kontakte legt man direkt an — Pflichtprüfung (Name oder LinkedIn) und Live-Duplikatswarnung inklusive. Jede Zeile zeigt, wo der Kontakt gerade bearbeitet wird (AI SDR / Hunter / Farmer) und springt per Klick dorthin.
+- **how:** Sidebar → Kontakte; oben filtern, Spalten über das Zahnrad anpassen, „+ Kontakt" zum Anlegen, Pfeil öffnet die Detailansicht.
+- **value:** Eine einzige verlässliche Personenliste statt verstreuter Listen — schneller finden, sauber anlegen ohne Doubletten, und mit einem Klick genau dort weiterarbeiten, wo der Kontakt hingehört.
+- **module:** core_crm
+- *(K-3, 2026-07-17)*
