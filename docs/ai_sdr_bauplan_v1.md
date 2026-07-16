@@ -368,6 +368,30 @@ Realtime-Channel `org:{organization_id}`, AI nur via aiCall() + Langfuse-Prompt-
    Opt-out gemacht haben. Der Gate am Send ist die letzte Verteidigungslinie.
 
 **`process_lead` / `generate_message`:**
+
+> **PFLICHT-KONTEXT vor jeder Generierung (an erster Stelle, vor der `generation_mode`-Logik):**
+>
+> 1. **ORG-PROFIL & PERSONA-MATCHING:** Vor jeder Generierung lädt `generate_message` das
+>    `org_profile` (Firma, Angebot, Problemlösung, ICP-Definition, `personas[]` mit Pain
+>    Points + Original-Wording — entsteht in Onboarding **O3** / Settings „Unternehmensprofil").
+>    Matching-Schritt `match_persona(contact)`: Rolle/`job_title` des Empfängers wird gegen
+>    `org_profile.personas[].role_pattern` abgeglichen (Synonyme normalisieren: „Head of
+>    Sales"/„VP Sales"/„Sales Director" → dieselbe Persona).
+>    - **TREFFER** → Pain Points + Original-Wording dieser Persona prominent in den Prompt
+>      („Sprich die Pain Points dieser Persona in ihrer eigenen Sprache an").
+>    - **KEIN TREFFER** → generischer ICP-Block aus `org_profile`, KEINE erfundene
+>      Persona-Zuordnung (Honesty).
+>    - **FALLBACK** `org_profile` leer/fehlt → Block komplett weglassen, Generierung läuft
+>      trotzdem normal (nur ohne diesen Kontext). Niemals Platzhalter-Fakes.
+>    - **Single Source:** derselbe `org_profile`-Datensatz wird auch vom AI Chat und
+>      ICP-Scoring genutzt — keine Kopien in Campaigns.
+>
+> 2. **PERSONAL VOICE:** `voice_profiles` des **sendenden** Users (Onboarding **O5** /
+>    Settings „Mein Profil") als Stil-Anweisung in den Prompt („Schreibe im Stil dieses
+>    Users: Tonalität, Formalität, Satzlänge, typische Gruß-/Schlussmuster").
+>    - **FALLBACK** `voice_profile` leer/fehlt → neutraler Standard-Ton, Generierung läuft
+>      trotzdem normal. Kein Fake-Stil.
+
 - `generation_mode` des Steps respektieren:
   - `template` → Template laden, `resolve_placeholders()`, KEIN AI-Rewrite des Textes
     (User hat bewusst fixen Text gewählt). AI-Kurzaufruf NUR wenn Platzhalter-Entfernung
@@ -488,7 +512,7 @@ durch uns** — v1 direkt in Supabase, Admin-UI später (E11).
 |---|---|
 | extract_features_v1 | compute_message_features |
 | distill_template_v1 | suggest_community_template_candidates |
-| generate_message_v2 | generate_message (erweitert: Modi, Kohorte, Insights, Persönlichkeit) |
+| generate_message_v2 | generate_message (erweitert: Modi, Kohorte, Insights, Persönlichkeit, Org-Profil/Persona-Matching, Personal Voice) |
 
 ---
 

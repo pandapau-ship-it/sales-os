@@ -8,7 +8,7 @@
 
 ---
 
-## 1. ENTSCHEIDUNGEN (K1–K8)
+## 1. ENTSCHEIDUNGEN (K1–K9)
 
 | # | Entscheidung |
 |---|---|
@@ -20,6 +20,7 @@
 | K6 | **Listen:** statisch (manuelle Mitglieder) + dynamisch (Filter-Definition, live ausgewertet). Dynamische Listen nutzen die EINE gemeinsame Bedingungs-/Filter-Sprache (Masterplan Weiche 1 — hier wird sie ERSTMALS gebaut, als eigenständige Lib, die später Lifecycle-Trigger und Analyse-Katalog wiederverwenden). Kein Listen-Hardlimit (S6), Team-Listen alle außer Viewer (S6). |
 | K7 | **Lead-Source-Pflicht:** Jeder Kontakt trägt lead_source (sherloq/csv/crm/manual/webhook — Systemfeld, CRM-Felder-Doku). Import setzt csv + import_batch_id. |
 | K8 | **Ehrlichkeit im Import:** Keine Zeile wird still verworfen. Fehler-Zeilen mit Grund gelistet + als CSV herunterladbar. Import-Report am Ende: X erstellt · Y aktualisiert/zusammengeführt · Z übersprungen (Duplikat) · W fehlerhaft. Echte Zahlen, keine Rundungen. |
+| K9 | **Lead-Assignment:** Jeder Kontakt trägt `assigned_to` (owner). Bei Team-Orgs mit mehreren Sales-Usern greift eine konfigurierbare Regel (`settings.lead_assignment_strategy`: `round_robin` \| `by_region` \| `by_source` \| `manual_only`, Default `round_robin` unter aktiven Sales-Rollen). Function `assign_lead_owner(contact_id)` wird in **K-1b** mit `round_robin`-Basislogik implementiert; erweiterte Strategien = spätere Settings-Erweiterung, kein Architekturumbau. |
 
 ---
 
@@ -121,5 +122,5 @@ audit_log vollständig.
 7. i18n; Designs (ScreenKontakte/ScreenCompanies) via 4c abgleichen — Mocks raus.
 
 ---
-*Sales OS · Kontakte & Companies Bau- und Import-Plan v1 · Juli 2026 · K1–K8 final · Dokument 13*
+*Sales OS · Kontakte & Companies Bau- und Import-Plan v1 · Juli 2026 · K1–K9 final · Dokument 13*
 *Baustelle Nr. 1 der Bau-Reihenfolge — Voraussetzung für AI SDR (Adressbuch, Import, Listen)*
