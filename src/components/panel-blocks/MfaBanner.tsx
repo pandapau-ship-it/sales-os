@@ -13,7 +13,7 @@ import { useTranslation } from "react-i18next";
 import { ShieldAlert } from "lucide-react";
 import { useMfaStatus } from "@/hooks/useMfaStatus";
 import { enrollMfaTotp, verifyMfaTotp } from "@/lib/auth";
-import { useToast } from "@/components/shared/Toast";
+import { useToast } from "@/components/shared/toastContext";
 import { Input } from "@/components/ui/input";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,

@@ -10,7 +10,7 @@ import { useState } from "react";
 import { CheckCircle2 } from "lucide-react";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { useToast } from "@/components/shared/Toast";
+import { useToast } from "@/components/shared/toastContext";
 
 // Optionen = „Zählt als Kontakt"-Kanäle (setzen später last_contacted_at → Heat/Kurzakte).
 const OPTIONS = [

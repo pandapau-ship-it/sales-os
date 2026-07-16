@@ -12,7 +12,8 @@ import PanelField from './PanelField';
 export interface DealDraft { name: string; product: string; value: string; owner: string; arr: string; mrr: string; close: string; }
 
 /** Standard-Produktkatalog (bis system_config). Eigenes Produkt → „Eigenes Produkt…". */
-export const DEAL_PRODUCTS = ["Starter", "Growth", "Scale", "Enterprise", "Enrichment Add-on", "Signals Add-on"];
+// Nur der Default für `products` unten — kein Importeur außerhalb dieser Datei.
+const DEAL_PRODUCTS = ["Starter", "Growth", "Scale", "Enterprise", "Enrichment Add-on", "Signals Add-on"];
 const CUSTOM = "__custom__";
 
 const FIELD_SURFACE =

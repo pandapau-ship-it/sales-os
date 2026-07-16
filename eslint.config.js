@@ -30,4 +30,13 @@ export default defineConfig([
       }],
     },
   },
+  {
+    // shadcn-Primitive sind Fremdcode und laut CLAUDE.md nicht editierbar. Ihr Stil
+    // (button.tsx exportiert Button + buttonVariants) ist vom Generator vorgegeben und
+    // würde bei jedem `npx shadcn add` zurückkommen — hier gilt die Regel daher nicht.
+    files: ['src/components/ui/**/*.{ts,tsx}'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
+    },
+  },
 ])

@@ -9,7 +9,7 @@ import type { Customer, Lead } from '@/types';
 import { FarmerKpiCards, FarmerHealthOverview, FarmerKundenKachel, FarmerRetentionKachel, FarmerUpsellKachel, FarmerExpandedCardContent, SubscriptionBadge, LinkedinSignalCard, EmptyState, SequenceLeadCards, FollowUpKaltCard, FarmerSidepanel, FarmerActionDrawer, SignalActionDrawer, type RetentionItem, type UpsellItem, type FarmerActionData, type FarmerTab } from '@/components';
 import type { DueTaskCardItem, SignalActionData, SignalCardProps } from '@/lib/hunterMappers';
 import { AI_PENDING_LABEL, calculateFarmerPriority, FARMER_SIGNAL_ORDER } from '@/lib/hunterMappers';
-import { useToast } from '@/components/shared/Toast';
+import { useToast } from '@/components/shared/toastContext';
 import { useNowMs } from '@/hooks/useNowMs';
 import { NAV } from '@/lib/navBehavior';
 

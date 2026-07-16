@@ -41,7 +41,7 @@ import { signalToCardProps, signalToActionData, contactToColdPerson, contactToPr
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { updateDealStage, updateDealWon, updateDealLost } from '@/lib/db';
 import { useCurrentOrg } from '@/hooks/useCurrentOrg';
-import { useToast } from '@/components/shared/Toast';
+import { useToast } from '@/components/shared/toastContext';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { DealLostModal, DealCloseModal, DealWonModal } from '@/components';
 import { triggerConfetti } from '@/lib/confetti';

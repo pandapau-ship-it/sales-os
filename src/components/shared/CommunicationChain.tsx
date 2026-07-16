@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Phone } from 'lucide-react';
-import BrandLogo, { brandForChannel } from '@/components/shared/BrandLogo';
+import BrandLogo from '@/components/shared/BrandLogo';
+import { brandForChannel } from '@/lib/brand';
 import { useNowMs } from '@/hooks/useNowMs';
-import type { BrandName } from '@/components/shared/BrandLogo';
+import type { BrandName } from '@/lib/brand';
 import type { CommunicationView, CommunicationChannel } from '@/lib/hunterMappers';
 
 /**
