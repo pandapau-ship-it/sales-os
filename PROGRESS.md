@@ -102,7 +102,20 @@
         `%`/`_`-ilike-Verifikation · TanStack Table (siehe K-3-Doku-Nachtrag) · user-scoped
         Settings-Entscheidung · **60 DB-Rohzeilen-`any` mit `database.types.ts` ersetzen** (K-1a2).
   - [ ] K-4 Companies-Screen + Detail (4c: ScreenCompanies)
-  - [ ] K-5 Smart-Import (4 Schichten, `import_mapping_v1`-Prompt nach C27)
+  - [~] **K-5 Smart-Import — Engine-Kern (dep-frei) VORGEZOGEN** (Reihenfolge-Flexibilität
+        Dauerregel 4, während K-3-Design bei Oliver läuft — **hier vermerkt, nicht stillschweigend**).
+        Branch `feat/k5-import-engine`. Gebaut (rein + [AUTO]-Tests, 28 neu / 108 gesamt):
+        `src/lib/import/` — **Schicht 1 dep-frei** (`detect.ts`: Encoding-BOM + Trennzeichen-Erkennung,
+        „deutsches Excel = Semikolon", quote-bewusst) · **Schicht 2** (`mapping.ts`: Synonym-Wörterbuch
+        de/en → CRM-Feld, Kollisions-Regel, `headerSignature` für `import_templates`-Vorlagen-Erkennung,
+        `applyMapping`) · **Schicht 3** (`validate.ts`: Pro-Zeile Pflichtfeld K1 + Format + Duplikat K2
+        `classifyDuplicate` inkl. **Intra-Datei-Duplikate**, `summarize`=Report K8). Nutzt K-1b
+        (`validateContactRequired`/`classifyDuplicate`) + `import_batches`/`import_templates` (live).
+        **NOCH OFFEN (nicht in diesem Vorzieh-Schritt):** (a) **Schicht 1 echtes Parsen** — `papaparse`
+        (~45 kb) + **`xlsx`/SheetJS (>50 kb → CLAUDE-Absprache, wartet auf Olivers Dep-Freigabe)**;
+        (b) **AI-Mapping** `import_mapping_v1` (C27/AI-Chat); (c) **UI** (Upload/Mapping-Vorschau/Review —
+        design-abhängig, mit K-3/K-4); (d) **Schicht 4 Ausführung** (Edge Function, resumierbare Batches,
+        `contacts/companies.import_batch_id`-Spalte für Undo, Company-Domain-Match, Report/Undo).
   - [ ] K-6 Duplikate verwalten + Merge (merge_contacts/merge_companies + [AUTO]-Tests)
 
 **2.** [ ] **[BAU] Vorab-Migration Entitlement & Credits**
