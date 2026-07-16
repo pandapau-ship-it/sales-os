@@ -40,6 +40,14 @@ gebündelten Phase verkabelt werden — jede als Mini-Slice mit STOP + QA.
 Regel: Externe Booking-Links (HubSpot Meetings, Google Terminplan, Outlook Bookings)
 sind KEINE Integration — nur eine URL im User-Profil (AI SDR E3), null Setup.
 
+> **Nutzungserweiterung System-Mail-Kanal (Doku-Nachtrag):** Derselbe Kanal versendet künftig
+> auch **kunden-gerichtete Transaktions-Mails ohne persönlichen Absender** — z.B. die
+> automatische Willkommens-Mail nach Registrierung mit Terminbuchungs-Link (als
+> **Lifecycle-Campaign E6**, Trigger `user_registered`, neutraler Absender statt
+> Personal-Mailbox). **Keine neue Infrastruktur** — nur eine Konfigurationsfrage: welche Mails
+> über den System-Kanal vs. über die persönliche Mailbox laufen. Die Regel lebt im jeweiligen
+> **Campaign-Typ** (nicht als globaler Schalter).
+
 ---
 
 ## 2. INTEGRATIONS-SESSION 0 (einmalig, VOR AI SDR Slice 3)
