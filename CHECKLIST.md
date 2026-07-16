@@ -105,7 +105,8 @@
 
 ## 🗄️ Datenbank (Phase 3 DB-Wiring — Migrationen live)
 
-### Stand (Phase 1 + Phase 3) — Migrationen 001–016 remote applied ✅
+### Stand (Phase 1 + Phase 3) — Migrationen 001–056 remote applied ✅ (verifiziert 2026-07-16 via `supabase migration list`)
+> Ältere „db push offen"-Notizen unten waren veraltet — der gesamte Backlog (031, 032, 040, 042, 043, 044 …) ist faktisch angewendet; Stand jetzt durchgängig 001–056 remote.
 - [x] `organizations` + Multi-Tenant-Basis, alle 33 Tabellen aus 001–012 remote live (Projekt `qhcmruprfjunalgrhgcp`) — *2026-06-16*
 - [x] `organization_id NOT NULL` + RLS (`auth_org_id()`) + `ON DELETE CASCADE` + org-Index durchgängig (011) — *2026-06-16*
 - [x] `update_updated_at()` + `audit_write()`-Trigger auf Kern-Entitäten (010) — *2026-06-16*
@@ -133,16 +134,16 @@
 - [x] **Stagnations-Warnung am Deal** — `StagnationHint` + `stagnationFlag` (Schwelle aus settings) in DealsListe (compact/detail) + Pipeline-Liste — *2026-06-22*
 - [x] **Icon-Konsistenz (Tab-Icons = Single Source)** — Tab-Icons Panel+Vollansicht; Notizen→FileText, Tasks→CheckSquare überall (kein Plus/StickyNote/ListChecks-Drift) — *2026-06-22*
 - [x] **[D27] Tech-Schuld** — `ExpandedCardContent` extrahiert (HunterCard+LeadListRow-Expand-Dedup, ~47 Z. je Karte) · `window.confirm` → shadcn `AlertDialog` (neues `ui/alert-dialog.tsx` + Dep `@radix-ui/react-alert-dialog`; letzte-Telefonnummer-Löschen) · Typo-Kanon Welle 1+2 (14 Formulare/Panels/Karten/Felder auf `typo-*`, Audit walkt `panel-blocks/`+`features/`, alle in `IN_SCOPE`) · CLAUDE-PFLICHT „neue Komponente sofort in IN_SCOPE" + Pre-Push-Checkbox — *2026-06-22*
-- [ ] **KB Migration 040** (Signal-Opener · Kalt-Reaktivierung · Stagnations-Warnung + Update Kontakt-Details) — geschrieben, **db push offen** — *2026-06-22*
+- [x] **KB Migration 040** (Signal-Opener · Kalt-Reaktivierung · Stagnations-Warnung + Update Kontakt-Details) — db push erfolgt (Stand 001–056 applied) — *2026-06-22*
 - [x] **820px Info-Panel READ+WRITE (P1–P5c)** — Kopf/Kontaktzeile/Tasks/Notizen/Deals echt; `dealToView`-Resolver; Übersicht (KPIs+Funnel) + Aktivität (audit_log) + Pipeline-Liste echt; Migr. **028** (products) **029** (Vertragsfelder) **030** (Deal soft-delete) — *2026-06-18/19*
 - [x] **P8 Stage-Write + Won/Lost** — Terminal-Slugs Single-Source (`WON_/LOST_STAGE_SLUG`/`isTerminalStage`); Stage-Wechsel Kanban(←/→)+Stage-Badge-Dropdown (Liste/Deals/Übersicht) → `updateDealStage`; **Won** (`updateDealWon`+`closed_at`+Konfetti) / **Lost** (`DealLostModal`→`updateDealLost`+`lost_reason`); `closed_at`/`lost_reason` aus Migr. 004 (keine neue Spalte) — *2026-06-19*
 - [x] **P8-4 Cache-Konsistenz** — alle Deal-Writes invalidieren `dealsByContact`/`deals`/`newInPipeline` **+ `dueTasks`/`signals`** (aktive-Deal-Stage) — *2026-06-20*
-- [x] **Telefon PH1–PH4** — `contact_phones` (Migr. **026**) read (`contactToProfile.phones` + Embed) + write (create/update/setPrimary/delete, Favorit Constraint-sicher) + Validierung (`lib/validation.ts`); Legacy `contacts.phone` entfernt (Migr. **031**, db push offen) — *2026-06-20*
-- [x] **knowledge_base Migration 032** — `Deal-Stufe ändern` · `Deal abschließen (Gewonnen/Verloren)` · `Telefonnummern am Kontakt` (module='hunter', idempotent); db push offen — *2026-06-20*
+- [x] **Telefon PH1–PH4** — `contact_phones` (Migr. **026**) read (`contactToProfile.phones` + Embed) + write (create/update/setPrimary/delete, Favorit Constraint-sicher) + Validierung (`lib/validation.ts`); Legacy `contacts.phone` entfernt (Migr. **031**, db push erfolgt) — *2026-06-20*
+- [x] **knowledge_base Migration 032** — `Deal-Stufe ändern` · `Deal abschließen (Gewonnen/Verloren)` · `Telefonnummern am Kontakt` (module='hunter', idempotent); db push erfolgt — *2026-06-20*
 - [x] **Merge `feature/phase-2-hunter` → `main`** (`--no-ff`, `22c3cad`), Gates grün — *2026-06-20*
 - [ ] **Erinnerung/Reminder** — Feld (`reminder_at`) + Auslöse-System (notifications/Cron/Versand) fehlen komplett ([D19])
 - [ ] **Erinnerung/Reminder** — Feld (`reminder_at`) + Auslöse-System (notifications/Cron/Versand) fehlen komplett ([D19])
-- [x] **K-1b Daten-Fundament (Migration 056, db push offen)** — `contacts.assigned_to`+`created_by`; **`list_members` Join-Tabelle löst `lists.contact_ids`-Array (005) ab** (FK+CASCADE+RLS+Audit, verlustfreier Backfill nur auf existierende Kontakte); `import_batches`+`import_templates` (K4/K5); `settings.lead_assignment_strategy` (K9, D51). Zentrale **pure** Functions + **[AUTO]-Tests** (41/41): K1 Pflichtfeld-Validierung (`contactValidation.ts`), K2 `find_duplicates`/Normalisierung (`dedup.ts`), K9 round_robin (`leadAssignment.ts`); dünne DB-Schicht `findDuplicates`/`assignLeadOwner` (`db.ts`). `sales_os_db_schema_v3.md` angeglichen. Beide Gate-Agents PASS. — *2026-07-16*
+- [x] **K-1b Daten-Fundament (Migration 056, db push erfolgt + `gen types` gezogen)** — `contacts.assigned_to`+`created_by`; **`list_members` Join-Tabelle löst `lists.contact_ids`-Array (005) ab** (FK+CASCADE+RLS+Audit, verlustfreier Backfill nur auf existierende Kontakte); `import_batches`+`import_templates` (K4/K5); `settings.lead_assignment_strategy` (K9, D51). Zentrale **pure** Functions + **[AUTO]-Tests** (41/41): K1 Pflichtfeld-Validierung (`contactValidation.ts`), K2 `find_duplicates`/Normalisierung (`dedup.ts`), K9 round_robin (`leadAssignment.ts`); dünne DB-Schicht `findDuplicates`/`assignLeadOwner` (`db.ts`). `sales_os_db_schema_v3.md` angeglichen. Beide Gate-Agents PASS. — *2026-07-16*
 - [ ] knowledge_base-Eintrag je weiterem fertigem Feature (K-1b = Infra/intern, KB folgt mit K-3/K-4 Screens)
 
 > Die folgenden Listen sind die vollständige Soll-Spezifikation (großteils Felder/Feature-Wiring, das schrittweise folgt).
@@ -212,8 +213,8 @@
 - [x] **`useCurrentOrg()`-Hook** — Session→`organization_id`+`role` (via `getUserOrgRole`), Fallback `DEMO_ORGANIZATION_ID` — *2026-06-22*
 - [x] **`DEMO_ORGANIZATION_ID` → `useCurrentOrg()`** in 5 Consumern (ReferenceScreens/HunterSidepanel/ScreenHunting/ExpandedCardContent/useModules); `lib/org.ts` bleibt Fallback — *2026-06-22*
 - [x] **`created_by`/`assigned_to`/`owner_id` aus `auth.uid()`** — createNote/createTask/createCommunication/createDeal optional, Fallback NULL — *2026-06-22*
-- [x] **Invitations + Teams** (Migr. **042** Tabellen+RLS+Audit, **043** Trigger-Einladungs-Pfad) — `TeamSettings`-UI unter `/app/settings`; db.ts `getTeamMembers`/`getInvitations`/`createInvitation`/`deleteInvitation`/`updateUserRole`; **db push offen** — *2026-06-22*
-- [x] **KB Migration 044** (Team & Einladungen, module=core) — geschrieben, **db push offen** — *2026-06-22*
+- [x] **Invitations + Teams** (Migr. **042** Tabellen+RLS+Audit, **043** Trigger-Einladungs-Pfad) — `TeamSettings`-UI unter `/app/settings`; db.ts `getTeamMembers`/`getInvitations`/`createInvitation`/`deleteInvitation`/`updateUserRole`; **db push erfolgt** — *2026-06-22*
+- [x] **KB Migration 044** (Team & Einladungen, module=core) — db push erfolgt — *2026-06-22*
 - [x] **Auth/2FA-Entscheidungen** in CLAUDE.md ([D21]-Block): Email+Passwort+SSO · TOTP-2FA (Owner Pflicht) · Teams · Onboarding · Session-Länge — *2026-06-22*
 - [ ] **[D29] Einladungs-Mail** via Edge Function (`auth.admin.inviteUserByEmail`) — service_role, deferred
 - [ ] **2FA (TOTP)** UI + Enforcement (Owner Pflicht) — deferred
@@ -327,6 +328,8 @@
 - [~] TanStack Query als Server-State — *Leads-Tab + Module umgestellt; restliche Screens folgen*
 - [ ] Restliche Mock-Listen (Pipeline/Signals/Info-Panel) durch echte Queries ersetzen
 - [ ] Glocke: echter Badge-Count aus `notifications` (read=false), live via Realtime
+- [x] **K-2 Filter-Sprache (Weiche 1)** — `src/lib/filter/` EINE Sprache für Listen+Lifecycle+Analyse: AST (`types`) · Whitelist-Schema (Sicherheitsgrenze, kein D51) · `validate` (Gatekeeper) · `evaluate` (in-memory) · `compile` (→ PostgREST, nie freies SQL, Werte double-quoted). **[AUTO]-Tests 80/80** inkl. Injection-Nachweis + evaluate↔compile-Parität (case-sensitiv, NULL matcht nie). DB-Anwendung an `getContacts` + `%`/`_`-ilike = K-3. Beide Gate-Agents PASS. — *2026-07-16*
+- [ ] **DB-Rohzeilen-`any` (60, K-1a2) mit `database.types.ts` ersetzen** — in K-3 (echte Listen-/Kontakt-Verdrahtung); schließt Lint-Baseline auf 0
 
 ### Realtime
 - [ ] Supabase Realtime für 7 Tabellen aktivieren
