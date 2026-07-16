@@ -2391,6 +2391,45 @@ export type Database = {
           },
         ]
       }
+      user_preferences: {
+        Row: {
+          key: string
+          organization_id: string
+          updated_at: string | null
+          user_id: string
+          value: Json
+        }
+        Insert: {
+          key: string
+          organization_id: string
+          updated_at?: string | null
+          user_id: string
+          value?: Json
+        }
+        Update: {
+          key?: string
+          organization_id?: string
+          updated_at?: string | null
+          user_id?: string
+          value?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_preferences_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
           avatar_url: string | null
