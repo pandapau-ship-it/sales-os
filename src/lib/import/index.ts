@@ -12,4 +12,5 @@ export {
   applyMapping,
 } from "./mapping";
 export { detectEncoding, stripBom, detectDelimiter } from "./detect";
+export { parseImportFile, ImportParseError, type ParseLimits } from "./parse";
 export { validateRow, validateImport, summarize } from "./validate";
