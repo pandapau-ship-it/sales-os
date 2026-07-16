@@ -237,9 +237,14 @@ erfolgt auf Screen-/Feature-Ebene.
 
 1. **`npm run build`** — muss grün sein
 2. **`npm run lint`** — muss grün sein.
-   ⚠ **Stand 15.07.2026: bekannt rot (109 Fehler), vorbestehend — vorübergehend KEIN Blocker.**
-   Ursache und Auflösung: PROGRESS.md → **K-1a2 „Lint-Schuld beheben"**. Bis dahin gilt:
-   **kein Commit darf die 109 überschreiten** (vorher/nachher zählen). Danach wieder hart.
+   ⚠ **Stand 16.07.2026: bekannt rot (60 Fehler), Zwischen-Baseline — vorübergehend KEIN Blocker.**
+   K-1a2 hat **alle Korrektheits-/Hygiene-Regeln behoben** (109 → 60: purity, set-state-in-effect,
+   exhaustive-deps, no-unused-vars, react-refresh). Die verbleibenden **60 sind ausschließlich
+   `no-explicit-any` auf DB-Rohzeilen** in den Mappern — sie werden in **einem Zug mit
+   `supabase gen types typescript`** typisiert, sobald **K-1b/K-2** die DB-Schicht bauen und eine
+   Live-DB-Verbindung existiert (kanonischer Fix laut TypeScript-Regel; Hand-Typen bewusst verworfen).
+   Ursache und Auflösung vollständig: PROGRESS.md → **K-1a2**. Bis zur DB-Typisierung gilt:
+   **kein Commit darf die 60 überschreiten** (vorher/nachher zählen). Danach wieder hart bei 0.
 3. **`npm run structure-check`** — muss grün sein
 4. **`npm run audit`** — muss **FAIL-frei** sein (**WARN ist kein Verstoß** → Auditor-Regel, Kategorien B/E)
 5. **Tests** (sobald vitest eingerichtet ist → PROGRESS.md **K-1a**) — müssen grün sein

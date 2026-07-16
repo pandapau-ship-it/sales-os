@@ -16,31 +16,38 @@
 ▶ **1.** [ ] **[BAU+DESIGN] Kontakte & Companies — Slices K-1 bis K-6**
   (`docs/kontakte_companies_bauplan_v1.md`; Designs ScreenKontakte/ScreenCompanies
   vorhanden — Abgleich nach Dauerregel 4c)
-  - [ ] **K-1a Test-Fundament ZUERST** — vitest (o. glw.) einrichten: Config,
-        **ein** Smoke-Test, npm-Script `"test"` in package.json. **Voraussetzung für
-        [AUTO]-Tests in ALLEN Folge-Slices** und für den `test-runner`-Agent (der liest
-        das `test`-Script aus package.json). ⚠ Steht in **keinem** der 13 Dokumente —
-        die Testpläne setzen ein Framework voraus, das es im Repo noch nicht gibt.
-        Danach zählt Punkt 5 der „GATES VOR JEDEM MERGE" („Tests grün") erst wirklich.
-  - [ ] **K-1a2 Lint-Schuld beheben** — **Gate 2 (`npm run lint`) ist rot: 109 Fehler.**
-        Vorbestehend, **nicht** von K-1a verursacht — gegengeprüft am 15.07.2026 durch
-        `git stash` der K-1a-Änderungen: reines `main` liefert **exakt dieselben
-        111 Probleme (109 Fehler, 2 Warnungen)**; aus `heatUtils.test.ts` und
-        `vite.config.ts` stammt kein einziger. Grund für den späten Fund: Das alte
-        Merge-Gate nannte lint gar nicht (nur build + audit + structure-check), und der
-        Pre-Push-Hook prüft es ebenfalls nicht — erst die Gate-Konsolidierung (`93706d7`)
-        hat lint zum Pflicht-Punkt gemacht.
-        **Verteilung:** 62× `@typescript-eslint/no-explicit-any` · 20× `no-unused-vars` ·
-        19× `react-hooks/set-state-in-effect` · 6× `react-hooks/exhaustive-deps` ·
-        4× `react-refresh/only-export-components` · 3× `react-hooks/purity`.
-        ⚠ **Keine reine Kosmetik:** `set-state-in-effect` und `purity` zeigen auf echte
-        React-19-Korrektheitsprobleme — vor den Kontakte/Companies-Migrationen beheben,
-        nicht danach.
-        **Bis dieser Slice erledigt ist gilt:** Gate 2 = **„bekannt rot, vorbestehend,
-        kein Blocker"** — es blockiert weder den K-1a-Commit noch Slices, die die Zahl
-        nicht erhöhen. **Regel bis dahin: kein Commit darf die 109 überschreiten**
-        (Zählung vorher/nachher vergleichen). Ab K-1a2-Abschluss gilt Gate 2 wieder hart.
+  - [x] **K-1a Test-Fundament ZUERST** — vitest eingerichtet (Config in `vite.config.ts`,
+        Smoke-Test `src/lib/heatUtils.test.ts` 3/3 grün, npm-Scripts `test`/`test:watch`).
+        Commit `3e6ad8b`, gemerged `81d0d33`. **Voraussetzung für [AUTO]-Tests in ALLEN
+        Folge-Slices** und für den `test-runner`-Agent (liest das `test`-Script). Damit
+        zählt Punkt 5 der „GATES VOR JEDEM MERGE" („Tests grün") ab jetzt wirklich.
+  - [x] **K-1a2 Lint-Schuld — Korrektheit vollständig behoben (109 → 60).** Branch
+        `chore/k1a2-lint-schuld`. Ausgangslage 109 Fehler, vorbestehend (am 15.07.2026 per
+        `git stash` gegen reines `main` verifiziert). **ALLE Korrektheits-/Hygiene-Regeln
+        behoben:** `react-hooks/purity` (3) · `set-state-in-effect` (19) · `exhaustive-deps`
+        (6, mitentfallen) · `no-unused-vars` (20) · `react-refresh/only-export-components` (4).
+        Vorgehen: `useNowMs()` (useSyncExternalStore) als reine Zeit-Quelle · State-Anpassung
+        im Render statt Reset-Effect · ScreenMyDay `useEffect+fetch` → TanStack Query ·
+        Toast-Context/`lib/brand.ts` in eigene Dateien getrennt · `_`-Konvention in
+        `eslint.config.js` deklariert. Nebenbefund behoben: ScreenMyDay gab bei Fehlschlag
+        ein **erfundenes** AI-Briefing mit echt klingenden Namen aus (Honesty-Verstoß).
+        **VERBLEIBEND: 60 × `@typescript-eslint/no-explicit-any` — bekannt, KEIN Blocker.**
+        Alle 60 sind `Record<string, any>` für **DB-Rohzeilen** in den zentralen Mappern
+        (`hunterMappers`, `HunterSidepanel`/`FarmerSidepanel`, `ScreenHunting`,
+        `contactDetailFields`, `OffeneTasks`/`TasksListe`/`AktivitaetsVerlauf` u.a.). Ihr
+        **kanonischer Fix sind generierte Supabase-Typen** (CLAUDE.md → TypeScript:
+        `supabase gen types typescript`), die im Repo noch fehlen und eine Live-DB-Verbindung
+        brauchen. Hand-geschriebene Row-Interfaces wurden bewusst **verworfen** — sie würden
+        das Schema an zweiter Stelle duplizieren (genau das, was generierte Typen vermeiden).
+        **→ Diese 60 werden in EINEM Zug mit `supabase gen types typescript` typisiert,
+        sobald K-1b/K-2 die DB-Schicht bauen und eine Live-Verbindung existiert.**
+        **Gate-2-Regel ab jetzt:** neue **Zwischen-Baseline 60** statt 109 — Gate 2 bleibt bis
+        zur DB-Typisierung „bekannt, kein Blocker", aber **kein Commit darf die 60 überschreiten**
+        (Zählung vorher/nachher). Nach der DB-Typisierung gilt Gate 2 wieder hart bei 0.
+        *(Spiegel in CLAUDE.md „GATES VOR JEDEM MERGE" Punkt 2 angeglichen.)*
   - [ ] K-1b Diagnose & Daten-Fundament (Validierung K1 + find_duplicates K2 + [AUTO]-Tests)
+        — **▶ nächster offener Unterpunkt.** Beim DB-Wiring hier: `supabase gen types
+        typescript` laufen lassen und die 60 DB-Rohzeilen-`any` (K-1a2) mit-typisieren.
   - [ ] K-2 Filter-Sprache (Weiche 1, erstmalig — Fundament für Listen/Lifecycle/Analyse)
   - [ ] K-3 Kontakte-Screen (4c: Design-Abgleich ScreenKontakte zuerst)
   - [ ] K-4 Companies-Screen + Detail (4c: ScreenCompanies)
