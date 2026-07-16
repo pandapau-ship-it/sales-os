@@ -177,7 +177,7 @@ export function customerRowToView(
     contactEmail: p.email ?? "",
     // Farmer-spezifisch (echt):
     sherloqStatus: subStatusToSherloq(sub.subscription_status),
-    lastLogin: lastContactedLabel(row, t), // echte „vor X Tagen" aus last_contacted_at; null → '' (Honesty)
+    lastContactedAt: lastContactedLabel(row, t), // echte „vor X Tagen" aus last_contacted_at; null → '' (Honesty)
     profilesAdded: 0,                       // Sherloq-Usage noch nicht in der DB (modul-gated, folgt)
     subscriptionPlan: plan,
     // Echte Scores (048; aktuell NULL bis die Score-Funktionen laufen → undefined). Honesty: nicht anzeigen.

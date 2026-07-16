@@ -85,10 +85,18 @@
         (STATUS/HEAT/ZEIT alle `CARD.miniLabel`). Verwaister i18n-Key `lastContactSub` entfernt.
         **Maschinell erzwungen:** `audit.ts` Checks „keine daysSince-Kopie" (FAIL) + „nur über
         HunterCard" (FAIL, Allowlist HunterCard+LeadListRow). Kanon in CLAUDE.md + design-system.md.
-        **OFFEN (Folge-Slice):** LeadListRow **strukturell** in HunterCard auflösen — HunterCard braucht
-        dafür einen **kontrollierten Expand-Modus** (`isExpanded`/`onToggleExpand`, betrifft alle
-        Consumer); bewusst nicht erzwungen (Escape-Hatch). Farmer-Datenquellen-Diagnose → **[D21-Farmer]**.
+        **OFFEN → eigener Folge-Punkt „K-FS1" unten.** Farmer-Datenquellen-Diagnose → **[D21-Farmer]**.
+        Naming-Schuld erledigt: `Customer.lastLogin` → `lastContactedAt` (Name log nicht mehr).
         ⚠ **Screenshot-QA blockiert** (App hinter Login, keine Credentials) — visuelle Sicht durch Oliver.
+  - [ ] **K-FS1 — HunterCard controlled-expand + LeadListRow-Dedup (Folge-Slice, NICHT isoliert)**
+        Warum: `LeadListRow` ist eine Zweitimplementierung der Profilzeilen-Top-Row (CLAUDE.md Z.588-590
+        verlangt „ausschließlich HunterCard"). Auflösung erfordert, `HunterCard` um einen **kontrollierten
+        Expand-Modus** (`isExpanded`/`onToggleExpand` + Ganzzeilen-Klick) zu erweitern — das betrifft **alle**
+        HunterCard-Consumer, daher in K-2b bewusst deferred (Escape-Hatch). **Timing:** spätestens wenn der
+        **Hunter beim AI-SDR-Bau (Punkt 7) ohnehin angefasst** wird — **nicht** als isolierte Extra-Runde.
+        **Bis dahin:** die Audit-Allowlist-Ausnahme für `LeadListRow.tsx` (Check „Profilzeile: nur über
+        HunterCard") bleibt bestehen und ist in `scripts/audit.ts` **ausdrücklich als BEFRISTET** markiert
+        (Verweis auf diesen Punkt) → nach K-FS1 muss `LeadListRow.tsx` aus der Allowlist RAUS (FAIL greift dann dort).
   - [ ] K-3 Kontakte-Screen (4c: Design-Abgleich ScreenKontakte zuerst)
         — **▶ nächster offener Schritt.** Enthält: Filter-Lib DB-seitig an `getContacts` hängen +
         `%`/`_`-ilike-Verifikation · TanStack Table (siehe K-3-Doku-Nachtrag) · user-scoped

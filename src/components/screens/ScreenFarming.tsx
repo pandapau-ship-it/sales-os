@@ -231,7 +231,7 @@ export default function ScreenFarming({
                       const item: RetentionItem = {
                         id: c.id, name: c.person.name, jobTitle: c.person.jobTitle, company: c.person.company,
                         avatarUrl: c.person.avatarUrl, icpScore: c.icpScore, heatStatus: c.heatStatus,
-                        sherloqStatus: c.sherloqStatus, timeLabel: c.lastLogin, type: sig,
+                        sherloqStatus: c.sherloqStatus, timeLabel: c.lastContactedAt, type: sig,
                         text: retentionText(sig, c.scoreDrivers), // Single Source (identisch zum Retention-Tab)
                       };
                       return (
@@ -254,7 +254,7 @@ export default function ScreenFarming({
                           companyName={c.person.company}
                           icpScore={c.icpScore}
                           heatStatus={c.heatStatus}
-                          timeAgoLabel={c.lastLogin}
+                          timeAgoLabel={c.lastContactedAt}
                           onSelectLead={() => openInfo(c)}
                           onOutreachClick={() => setActionSignal({ kind: 'going_cold', name: c.person.name, company: c.person.company })}
                           statusBadge={{ label: 'SUBSCRIPTION', node: <SubscriptionBadge status={c.sherloqStatus} /> }}
@@ -266,7 +266,7 @@ export default function ScreenFarming({
                       const item: UpsellItem = {
                         id: c.id, name: c.person.name, jobTitle: c.person.jobTitle, company: c.person.company,
                         avatarUrl: c.person.avatarUrl, icpScore: c.icpScore, heatStatus: c.heatStatus,
-                        sherloqStatus: c.sherloqStatus, timeLabel: c.lastLogin,
+                        sherloqStatus: c.sherloqStatus, timeLabel: c.lastContactedAt,
                         text: 'Upsell-Score über Schwelle — Wachstumschance.',
                       };
                       return (
@@ -329,7 +329,7 @@ export default function ScreenFarming({
               const item: RetentionItem = {
                 id: c.id, name: c.person.name, jobTitle: c.person.jobTitle, company: c.person.company,
                 avatarUrl: c.person.avatarUrl, icpScore: c.icpScore, heatStatus: c.heatStatus,
-                sherloqStatus: c.sherloqStatus, timeLabel: c.lastLogin, type,
+                sherloqStatus: c.sherloqStatus, timeLabel: c.lastContactedAt, type,
                 text: retentionText(type, c.scoreDrivers),
               };
               return (
@@ -360,7 +360,7 @@ export default function ScreenFarming({
               const item: UpsellItem = {
                 id: c.id, name: c.person.name, jobTitle: c.person.jobTitle, company: c.person.company,
                 avatarUrl: c.person.avatarUrl, icpScore: c.icpScore, heatStatus: c.heatStatus,
-                sherloqStatus: c.sherloqStatus, timeLabel: c.lastLogin,
+                sherloqStatus: c.sherloqStatus, timeLabel: c.lastContactedAt,
                 text: upsellText(c.upsellDrivers),
               };
               return (
@@ -497,7 +497,7 @@ export default function ScreenFarming({
                   companyName={c.person.company}
                   icpScore={c.icpScore}
                   heatStatus={c.heatStatus}
-                  timeAgoLabel={c.lastLogin}
+                  timeAgoLabel={c.lastContactedAt}
                   onSelectLead={() => openInfo(c)}
                   onOutreachClick={() => setActionSignal({ kind: 'going_cold', name: c.person.name, company: c.person.company })}
                   statusBadge={{ label: 'SUBSCRIPTION', node: <SubscriptionBadge status={c.sherloqStatus} /> }}

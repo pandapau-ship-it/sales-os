@@ -361,7 +361,7 @@ export default function CustomerDrawer({
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-y-6 gap-x-4">
                       <div className="flex flex-col gap-1.5">
                         <span className="text-[10px] uppercase font-bold text-icon-muted font-mono tracking-wider">Last Login</span>
-                        <span className="text-[13px] font-bold text-text-primary">{castedCustomer.lastLogin || 'vor 2 Tagen'}</span>
+                        <span className="text-[13px] font-bold text-text-primary">{castedCustomer.lastContactedAt || 'vor 2 Tagen'}</span>
                       </div>
                       <div className="flex flex-col gap-1.5">
                         <span className="text-[10px] uppercase font-bold text-icon-muted font-mono tracking-wider">Last Usage</span>
