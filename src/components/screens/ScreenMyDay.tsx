@@ -101,7 +101,7 @@ export default function ScreenMyDay({
       });
       const data = await response.json();
       setAiDraftMessage(data.message || 'Entwurf fehlgeschlagen.');
-    } catch (e) {
+    } catch {
       setAiDraftMessage(`Hallo ${task.person.name},\nich habe Ihren Fall im System bezüglich "${task.title}" analysiert. Sollen wir morgen kurz telefonieren?\n\nBeste Grüße,\nAlexander`);
     } finally {
       setIsGeneratingDraft(false);

@@ -39,7 +39,7 @@ export default function ScreenMarketing({
       });
       const data = await response.json();
       setAiDraftOutput(data.post || 'Konnte keinen Entwurf erstellen.');
-    } catch (e) {
+    } catch {
       setAiDraftOutput(`LinkedIn Post Entwurf:\n\nInteressantes Thema: ${customTopic}!\n\nIn der heutigen weichen SaaS-Landschaft ist besonders ${customKeywords} entscheidend. Was denken eure AMs?\n\n#B2BSales #CustomerSuccess`);
     } finally {
       setIsGenerating(false);
