@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Phone } from 'lucide-react';
 import BrandLogo, { brandForChannel } from '@/components/shared/BrandLogo';
+import { useNowMs } from '@/hooks/useNowMs';
 import type { BrandName } from '@/components/shared/BrandLogo';
 import type { CommunicationView, CommunicationChannel } from '@/lib/hunterMappers';
 
@@ -87,12 +88,13 @@ function relLong(iso: string): string {
 export default function CommunicationChain({ items, personId, onSelectCommunication }: CommunicationChainProps) {
   const { t } = useTranslation();
   const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const nowMs = useNowMs();
 
   // Echte Daten bevorzugt; ohne items → Legacy-Mock (nur falls personId, sonst nichts).
   const chain: ChainNode[] = items
     ? [...items].reverse().map((it) => {
         const meta = CHANNEL_META[it.channel];
-        const isPast = new Date(it.occurredAt).getTime() <= Date.now();
+        const isPast = new Date(it.occurredAt).getTime() <= nowMs;
         return {
           id: it.id,
           label: meta.label,

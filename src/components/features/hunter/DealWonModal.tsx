@@ -6,7 +6,7 @@
  * Gegenstück zum blockierenden DealLostModal; Auswahl hier optional (Won ist nicht blockierend).
  * Lucide-Icon statt Emoji (Projekt-Regel „keine Emoji in UI").
  */
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { PartyPopper } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -25,13 +25,34 @@ export default function DealWonModal({
   onSkip: () => void;
   pending?: boolean;
 }) {
-  const [reason, setReason] = useState("");
-  const [note, setNote] = useState("");
-  useEffect(() => { if (open) { setReason(""); setNote(""); } }, [open]); // frisch je Deal
-
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) onSkip(); }}>
       <DialogContent className="max-w-md">
+        <DealWonForm onSave={onSave} onSkip={onSkip} pending={pending} />
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/**
+ * Eingabe-State lebt bewusst hier statt im Modal: Radix unmountet DialogContent beim
+ * Schließen, also startet jedes Öffnen von selbst mit leeren Feldern — ein Reset-Effect
+ * wäre nur eine zweite, fehleranfällige Quelle für dieselbe Garantie.
+ */
+function DealWonForm({
+  onSave,
+  onSkip,
+  pending,
+}: {
+  onSave: (wonReason: string, wonNote: string) => void;
+  onSkip: () => void;
+  pending: boolean;
+}) {
+  const [reason, setReason] = useState("");
+  const [note, setNote] = useState("");
+
+  return (
+    <>
         <DialogHeader>
           <DialogTitle className="typo-card-title text-text-primary flex items-center gap-2">
             <PartyPopper className="w-4 h-4 text-[var(--signal-success-text)]" /> Deal gewonnen
@@ -86,7 +107,6 @@ export default function DealWonModal({
             Speichern →
           </button>
         </div>
-      </DialogContent>
-    </Dialog>
+    </>
   );
 }

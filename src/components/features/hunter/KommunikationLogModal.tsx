@@ -6,7 +6,7 @@
  * onCancel. Schreibt nichts selbst — der Aufrufer triggert createCommunication.
  * Tokens-only (LinkedIn-Blau etc. als --channel-*). Kein Emoji (Projekt-Regel) → Lucide-Icons.
  */
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Mail, Phone, Calendar, ArrowUpRight, ArrowDownLeft, type LucideIcon } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import LinkedinIcon from "@/components/shared/LinkedinIcon";
@@ -45,22 +45,42 @@ export default function KommunikationLogModal({
   onCancel: () => void;
   pending?: boolean;
 }) {
+  return (
+    <Dialog open={open} onOpenChange={(o) => { if (!o) onCancel(); }}>
+      <DialogContent className="max-w-md">
+        <LogForm onSave={onSave} onCancel={onCancel} pending={pending} />
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/**
+ * Eingabe-State lebt bewusst hier statt im Modal: Radix unmountet DialogContent beim
+ * Schließen, also startet jedes Öffnen von selbst frisch — inklusive Default „jetzt",
+ * das sonst per Reset-Effect nachgezogen werden müsste.
+ */
+function LogForm({
+  onSave,
+  onCancel,
+  pending,
+}: {
+  onSave: (v: { channel: CommunicationChannel; direction: CommunicationDirection; occurredAt: string; note: string }) => void;
+  onCancel: () => void;
+  pending: boolean;
+}) {
   const [channel, setChannel] = useState<CommunicationChannel>("email");
   const [direction, setDirection] = useState<CommunicationDirection>("outbound");
-  const [date, setDate] = useState("");
-  const [time, setTime] = useState("");
-  const [note, setNote] = useState("");
-
-  // Bei jedem Öffnen frisch + Default „jetzt".
-  useEffect(() => {
-    if (!open) return;
+  // Default „jetzt" einmal beim Mount — der Nutzer editiert danach frei weiter, ein
+  // mitlaufender Uhr-Wert würde ihm die Eingabe unter den Fingern ändern.
+  const [date, setDate] = useState(() => {
     const now = new Date();
-    setChannel("email");
-    setDirection("outbound");
-    setDate(`${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`);
-    setTime(`${pad(now.getHours())}:${pad(now.getMinutes())}`);
-    setNote("");
-  }, [open]);
+    return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+  });
+  const [time, setTime] = useState(() => {
+    const now = new Date();
+    return `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  });
+  const [note, setNote] = useState("");
 
   const submit = () => {
     if (!date || !time) return;
@@ -69,8 +89,7 @@ export default function KommunikationLogModal({
   };
 
   return (
-    <Dialog open={open} onOpenChange={(o) => { if (!o) onCancel(); }}>
-      <DialogContent className="max-w-md">
+    <>
         <DialogHeader>
           <DialogTitle className="typo-card-title text-text-primary">Kontakt protokollieren</DialogTitle>
           <DialogDescription className="text-[12px] text-text-muted">
@@ -183,7 +202,6 @@ export default function KommunikationLogModal({
             Protokollieren →
           </button>
         </div>
-      </DialogContent>
-    </Dialog>
+    </>
   );
 }

@@ -40,13 +40,30 @@ export default function DetailField({
 }: DetailFieldProps) {
   const [editing, setEditing] = useState(!!autoEdit);
   const editRef = useRef<HTMLInputElement>(null);
-  // Deep-Link: beim Mount in den Edit-Modus + ins Blickfeld scrollen.
-  useEffect(() => {
-    if (autoEdit) { setEditing(true); editRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }); }
-  }, [autoEdit]);
   const [draft, setDraft] = useState(value);
   const [invalid, setInvalid] = useState(false);
-  useEffect(() => { setDraft(value); }, [value]);
+
+  // Anpassen während des Renders statt per Effect (React: „Adjusting state when a prop
+  // changes") — der Effect-Weg zeigt für einen Frame den alten Wert an.
+  const [prevValue, setPrevValue] = useState(value);
+  if (prevValue !== value) {
+    setPrevValue(value);
+    setDraft(value);
+  }
+
+  // useState(!!autoEdit) deckt den Mount ab; das hier fängt nur den späteren
+  // false → true-Wechsel (Deep-Link auf ein bereits gemountetes Feld).
+  const [prevAutoEdit, setPrevAutoEdit] = useState(autoEdit);
+  if (prevAutoEdit !== autoEdit) {
+    setPrevAutoEdit(autoEdit);
+    if (autoEdit) setEditing(true);
+  }
+
+  // Deep-Link: ins Blickfeld scrollen (reiner DOM-Effekt, kein State).
+  useEffect(() => {
+    if (autoEdit) editRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [autoEdit]);
+
   const filled = value.trim().length > 0;
 
   const Label = <div className="typo-field-label text-text-muted mb-1">{label}</div>;
