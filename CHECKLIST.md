@@ -331,6 +331,7 @@
 - [ ] Glocke: echter Badge-Count aus `notifications` (read=false), live via Realtime
 - [x] **K-2 Filter-Sprache (Weiche 1)** — `src/lib/filter/` EINE Sprache für Listen+Lifecycle+Analyse: AST (`types`) · Whitelist-Schema (Sicherheitsgrenze, kein D51) · `validate` (Gatekeeper) · `evaluate` (in-memory) · `compile` (→ PostgREST, nie freies SQL, Werte double-quoted). **[AUTO]-Tests 80/80** inkl. Injection-Nachweis + evaluate↔compile-Parität (case-sensitiv, NULL matcht nie). DB-Anwendung an `getContacts` + `%`/`_`-ilike = K-3. Beide Gate-Agents PASS. — *2026-07-16*
 - [ ] **DB-Rohzeilen-`any` (60, K-1a2) mit `database.types.ts` ersetzen** — in K-3 (echte Listen-/Kontakt-Verdrahtung); schließt Lint-Baseline auf 0
+- [~] **K-5 Smart-Import Engine-Kern (dep-frei, vorgezogen)** — `src/lib/import/`: `detect` (Encoding-BOM + Trennzeichen), `mapping` (Synonym-Wörterbuch de/en + Vorlagen-Signatur), `validate` (Pflichtfeld K1 + Format + Duplikat K2 + Intra-Datei, Report K8). **[AUTO]-Tests 28 neu (108 gesamt)**. Offen: echtes Parsen (papaparse + **xlsx >50 kb → Dep-Freigabe Oliver**), AI-Mapping (C27), UI (mit K-3/K-4), Ausführung (Edge + import_batch_id). — *2026-07-16*
 
 ### Realtime
 - [ ] Supabase Realtime für 7 Tabellen aktivieren
