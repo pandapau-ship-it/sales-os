@@ -236,7 +236,10 @@ erfolgt auf Screen-/Feature-Ebene.
 > markiert und verweisen hierher. Es gibt ab jetzt **eine** Gate-Definition, nicht drei.
 
 1. **`npm run build`** — muss grün sein
-2. **`npm run lint`** — muss grün sein
+2. **`npm run lint`** — muss grün sein.
+   ⚠ **Stand 15.07.2026: bekannt rot (109 Fehler), vorbestehend — vorübergehend KEIN Blocker.**
+   Ursache und Auflösung: PROGRESS.md → **K-1a2 „Lint-Schuld beheben"**. Bis dahin gilt:
+   **kein Commit darf die 109 überschreiten** (vorher/nachher zählen). Danach wieder hart.
 3. **`npm run structure-check`** — muss grün sein
 4. **`npm run audit`** — muss **FAIL-frei** sein (**WARN ist kein Verstoß** → Auditor-Regel, Kategorien B/E)
 5. **Tests** (sobald vitest eingerichtet ist → PROGRESS.md **K-1a**) — müssen grün sein
