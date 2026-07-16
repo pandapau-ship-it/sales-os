@@ -111,11 +111,14 @@
         `applyMapping`) · **Schicht 3** (`validate.ts`: Pro-Zeile Pflichtfeld K1 + Format + Duplikat K2
         `classifyDuplicate` inkl. **Intra-Datei-Duplikate**, `summarize`=Report K8). Nutzt K-1b
         (`validateContactRequired`/`classifyDuplicate`) + `import_batches`/`import_templates` (live).
-        **NOCH OFFEN (nicht in diesem Vorzieh-Schritt):** (a) **Schicht 1 echtes Parsen** — `papaparse`
-        (~45 kb) + **`xlsx`/SheetJS (>50 kb → CLAUDE-Absprache, wartet auf Olivers Dep-Freigabe)**;
-        (b) **AI-Mapping** `import_mapping_v1` (C27/AI-Chat); (c) **UI** (Upload/Mapping-Vorschau/Review —
-        design-abhängig, mit K-3/K-4); (d) **Schicht 4 Ausführung** (Edge Function, resumierbare Batches,
-        `contacts/companies.import_batch_id`-Spalte für Undo, Company-Domain-Match, Report/Undo).
+        **Schicht 1 echtes Parsen FERTIG** (`parse.ts`, Deps `papaparse`+`xlsx` freigegeben +
+        als CLAUDE-Ausnahme dokumentiert): CSV (Encoding UTF-8→Windows-1252-Fallback, Trennzeichen,
+        Quotes/Zeilenumbrüche) + Excel (xlsx, erstes Sheet), Größen-/Zeilen-Limits. **[AUTO]-Akzeptanz
+        grün:** deutsches Semikolon+ISO-CSV, echtes .xlsx (12 Tests, gesamt 120). ⚠ **Build-Note:**
+        `parse.ts` muss im Import-UI **dynamisch** (`import()`) geladen werden → xlsx nicht im Haupt-Bundle.
+        **NOCH OFFEN:** (a) **AI-Mapping** `import_mapping_v1` (C27/AI-Chat); (b) **UI**
+        (Upload/Mapping-Vorschau/Review — mit K-3/K-4-Design); (c) **Schicht 4 Ausführung** (Edge Function,
+        resumierbare Batches, `contacts/companies.import_batch_id`-Spalte für Undo, Company-Domain-Match, Report/Undo).
   - [ ] K-6 Duplikate verwalten + Merge (merge_contacts/merge_companies + [AUTO]-Tests)
 
 **2.** [ ] **[BAU] Vorab-Migration Entitlement & Credits**

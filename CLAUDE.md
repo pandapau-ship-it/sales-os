@@ -2042,6 +2042,14 @@ Langfuse-Prompt erwähnen. Kein Umbau des Chats nötig.
 - **Keine N+1 Queries** — ein Query pro Liste, nie ein Query pro Zeile/Karte (`useQuery` in `.map()` = **FAIL**).
 - **Lazy Loading** für alle Drawer/Panels — nicht alles beim ersten Render laden.
 - **Bundle-Size**: keine Library > 50kb ohne Absprache.
+  - **Dokumentierte Ausnahmen (mit Absprache freigegeben, 16.07.2026):** `papaparse` (~45 kb, CSV)
+    und **`xlsx`/SheetJS (>50 kb, Excel)** für die Smart-Import-Engine (K-5, `src/lib/import/parse.ts`).
+    Begründung: CSV/Excel-Parsing selbst korrekt zu bauen ist ein Sonderfall-Sumpf (Encodings,
+    Quotes, Zeilenumbrüche in Zellen, Datumsformate); beide Libs sind Standard, im Bauplan
+    (`kontakte_companies_bauplan_v1` Abschnitt 2) namentlich vorgesehen, und **Excel ist der Normalfall
+    bei B2B-Kunden** (K-5-Akzeptanz verlangt `.xlsx`). **Pflicht:** `parse.ts` (das xlsx zieht) wird im
+    Import-UI **dynamisch geladen** (`import()`), damit xlsx NICHT im Haupt-Bundle landet. Die 50-kb-Regel
+    gilt für alles Weitere unverändert.
 
 ### Datenbank
 - Jede neue Tabelle **MUSS** Indizes haben auf: `organization_id` + `created_at` + alle **FK-Felder**.
