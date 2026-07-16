@@ -1,12 +1,13 @@
+import type { Person } from '@/types';
 import { TaskEntwurfForm } from '@/components';
 
 interface TaskDrawerProps {
-  person: any;
+  person: { person: Person; icpScore?: number } & Record<string, unknown>;
   recommendedChannel?: string;
   recommendedTitle?: string;
   recommendedNote?: string;
   onClose: () => void;
-  onSave: (taskData: any) => void;
+  onSave: (taskData: Record<string, unknown>) => void;
 }
 
 /**

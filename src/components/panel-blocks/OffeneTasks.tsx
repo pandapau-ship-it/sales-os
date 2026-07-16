@@ -5,6 +5,7 @@
  * getriebene Leere). Klick auf eine Kachel → Tasks-Tab (`onOpenTasks`). Hover: Bearbeiten/
  * Löschen/Erledigt (echte Mutationen über den Parent).
  */
+import type { TaskRow } from '@/types/rows';
 import { AlertTriangle, Mail, Phone, Pencil, Trash2, Check } from "lucide-react";
 import { HOVER_ACTIONS } from "@/lib/componentBehavior";
 
@@ -14,7 +15,7 @@ const CHANNEL: Record<string, { Icon: typeof Mail; label: string }> = {
 };
 
 // Fälligkeits-Label + „fällig"-Flag (overdue oder heute) aus due_at — keine Fake-Werte.
-function meta(row: Record<string, any>) {
+function meta(row: TaskRow) {
   const due = row.due_at ? new Date(row.due_at).getTime() : null;
   const now = Date.now();
   const days = due != null ? Math.round((due - now) / 86_400_000) : null;
@@ -31,7 +32,7 @@ function meta(row: Record<string, any>) {
 export default function OffeneTasks({
   taskRows, onAdd, onOpenTasks, onEditTask, onComplete, onDelete,
 }: {
-  taskRows?: Record<string, any>[];
+  taskRows?: TaskRow[];
   onAdd?: () => void;
   onOpenTasks?: () => void;
   onEditTask?: (id: string) => void;

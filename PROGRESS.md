@@ -97,8 +97,20 @@
         **Bis dahin:** die Audit-Allowlist-Ausnahme für `LeadListRow.tsx` (Check „Profilzeile: nur über
         HunterCard") bleibt bestehen und ist in `scripts/audit.ts` **ausdrücklich als BEFRISTET** markiert
         (Verweis auf diesen Punkt) → nach K-FS1 muss `LeadListRow.tsx` aus der Allowlist RAUS (FAIL greift dann dort).
-  - [ ] K-3 Kontakte-Screen (4c: Design-Abgleich ScreenKontakte zuerst)
-        — **▶ nächster offener Schritt.** Enthält: Filter-Lib DB-seitig an `getContacts` hängen +
+  - [~] **K-3 Kontakte-Screen — CP1 fertig** (Design vorliegt, Abgleich erfolgt). **CP1: `user_preferences`
+        (Migr. 057, gepusht) + `database.types.ts` regeneriert + 60 DB-Rohzeilen-`any` typisiert → Gate 2
+        HART bei 0.** Row-Composite-Typen in `src/types/rows.ts` (ContactRow/DealRow/SignalRow/… inkl.
+        Embeds), db.ts-Feeder-Rückgaben typisiert, hunterMappers/ScreenHunting/Sidepanels durchgezogen.
+        **3 latente Bugs aufgedeckt (durch die Typisierung):** (1) `signals` hat **kein `occurred_at`**
+        (toter Fallback entfernt); (2) **ScreenMyDay** `c.sherloqStatus === 'CHURN_RISK'` — `'CHURN_RISK'`
+        ist KEIN `SherloqStatus`-Wert → Churn-Count im Briefing **immer 0** (Cast erhält Verhalten, echter
+        Fix = Mein-Tag-Bau); (3) **`contacts` hat keine `city`/`country`-Spalte** trotz CRM-Doku → Details-Tab
+        Stadt/Land persistiert nie (in `rows.ts` optional markiert, **Migration nachzuziehen [D-city]**).
+        **CP2–CP4 offen:** Screen (TanStack Table + Virtualisierung) an `getContacts`, Route statt ComingSoon,
+        Filter (K-2) + Bulk (Gmail-Muster) + Spalten-Konfig + Persistenz (`user_preferences`) + Seitengröße,
+        Anlegen-Panel + Duplikat-Banner, alle Zustände. xlsx lazy-`import()` im Import-UI.
+  - [ ] ~~K-3 Kontakte-Screen~~ (siehe CP1-Eintrag oben)
+        — Enthält: Filter-Lib DB-seitig an `getContacts` hängen +
         `%`/`_`-ilike-Verifikation · TanStack Table (siehe K-3-Doku-Nachtrag) · user-scoped
         Settings-Entscheidung · **60 DB-Rohzeilen-`any` mit `database.types.ts` ersetzen** (K-1a2).
   - [ ] K-4 Companies-Screen + Detail (4c: ScreenCompanies)

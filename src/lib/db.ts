@@ -51,6 +51,7 @@ import type {
 import { createClient } from "@supabase/supabase-js";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Deal, Signal, PipelineStage, SignalWindow } from "@/types/hunter";
+import type { ContactRow, DealRow, CommunicationRow, TaskRow, DueTaskRow, NoteRow } from "@/types/rows";
 
 // ── Supabase Client — EINZIGER Init-Punkt im gesamten Projekt ────────────────
 // createClient() läuft AUSSCHLIESSLICH hier (audit-erzwungen). auth/storage/
@@ -195,7 +196,7 @@ export interface ContactFilters {
 export async function getContacts(
   organizationId: string,
   filters: ContactFilters = {},
-): Promise<Record<string, unknown>[]> {
+): Promise<ContactRow[]> {
   const client = getSupabaseClient();
   if (!client) return [];
   // Company-Name über den einheitlichen Embed (RLS greift auf companies mit).
@@ -210,7 +211,7 @@ export async function getContacts(
     .order("created_at", { ascending: false })
     .limit(filters.limit ?? 50);
   if (error) throw error;
-  return data ?? [];
+  return (data ?? []) as unknown as ContactRow[];
 }
 
 export interface DealFilters {
@@ -273,7 +274,7 @@ export async function getDealWithDetails(
  */
 export async function getNewInPipeline(
   organizationId: string,
-): Promise<Record<string, unknown>[]> {
+): Promise<DealRow[]> {
   const client = getSupabaseClient();
   if (!client) return [];
   const { data, error } = await client
@@ -286,7 +287,7 @@ export async function getNewInPipeline(
     .order("created_at", { ascending: false })
     .limit(50);
   if (error) throw error;
-  return data ?? [];
+  return (data ?? []) as unknown as DealRow[];
 }
 
 /**
@@ -297,7 +298,7 @@ export async function getNewInPipeline(
 export async function getContactDetail(
   organizationId: string,
   contactId: string,
-): Promise<Record<string, unknown> | null> {
+): Promise<ContactRow | null> {
   const client = getSupabaseClient();
   if (!client) return null;
   const { data, error } = await client
@@ -312,7 +313,7 @@ export async function getContactDetail(
     .eq("id", contactId)
     .single();
   if (error) return null;
-  return data ?? null;
+  return (data as unknown as ContactRow) ?? null;
 }
 
 /**
@@ -450,7 +451,7 @@ export async function deleteContactPhone(
 export async function getDueTasks(
   organizationId: string,
   opts: { contactStatus?: string } = {},
-): Promise<Record<string, unknown>[]> {
+): Promise<DueTaskRow[]> {
   const client = getSupabaseClient();
   if (!client) return [];
   const nowIso = new Date().toISOString();
@@ -469,7 +470,7 @@ export async function getDueTasks(
   if (opts.contactStatus) q = q.eq("contact.contact_status", opts.contactStatus);
   const { data, error } = await q.order("due_at", { ascending: true }).limit(50);
   if (error) throw error;
-  return data ?? [];
+  return (data ?? []) as unknown as DueTaskRow[];
 }
 
 export interface SignalFilters {
@@ -597,7 +598,7 @@ export async function completeTask(
 export async function getTasksByContact(
   organizationId: string,
   contactId: string,
-): Promise<Record<string, unknown>[]> {
+): Promise<TaskRow[]> {
   const client = getSupabaseClient();
   if (!client) return [];
   const { data, error } = await client
@@ -609,7 +610,7 @@ export async function getTasksByContact(
     .order("completed_at", { ascending: true, nullsFirst: true }) // offene (NULL) zuerst
     .order("due_at", { ascending: true });
   if (error) throw error;
-  return data ?? [];
+  return (data ?? []) as unknown as TaskRow[];
 }
 
 /**
@@ -703,7 +704,7 @@ export async function updateTask(
 export async function getNotesByContact(
   organizationId: string,
   contactId: string,
-): Promise<Record<string, unknown>[]> {
+): Promise<NoteRow[]> {
   const client = getSupabaseClient();
   if (!client) return [];
   const { data, error } = await client
@@ -714,7 +715,7 @@ export async function getNotesByContact(
     .is("deleted_at", null) // soft-gelöschte ausblenden
     .order("created_at", { ascending: false });
   if (error) throw error;
-  return data ?? [];
+  return (data ?? []) as unknown as NoteRow[];
 }
 
 /** updateNote — Notiztext bearbeiten (P4b): setzt `content` + `updated_at = now()`, org-gescoped. */
@@ -778,7 +779,7 @@ export async function createNote(
 export async function getContactCommunications(
   organizationId: string,
   contactId: string,
-): Promise<Record<string, unknown>[]> {
+): Promise<CommunicationRow[]> {
   const client = getSupabaseClient();
   if (!client) return [];
   const { data, error } = await client
@@ -789,7 +790,7 @@ export async function getContactCommunications(
     .order("occurred_at", { ascending: false })
     .limit(50);
   if (error) throw error;
-  return data ?? [];
+  return (data ?? []) as unknown as CommunicationRow[];
 }
 
 /**
@@ -829,7 +830,7 @@ export async function createCommunication(
 export async function getDealsByContact(
   organizationId: string,
   contactId: string,
-): Promise<Record<string, unknown>[]> {
+): Promise<DealRow[]> {
   const client = getSupabaseClient();
   if (!client) return [];
   const { data, error } = await client
@@ -840,7 +841,7 @@ export async function getDealsByContact(
     .is("deleted_at", null) // soft-gelöschte ausblenden
     .order("created_at", { ascending: false });
   if (error) throw error;
-  return data ?? [];
+  return (data ?? []) as unknown as DealRow[];
 }
 
 /**

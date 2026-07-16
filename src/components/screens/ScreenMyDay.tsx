@@ -23,7 +23,7 @@ import {
   X,
   MessageSquare
 } from 'lucide-react';
-import type { PriorityItemType, AppointmentItemType, TaskItemType, AlertBannerType, Lead } from '@/types';
+import type { PriorityItemType, AppointmentItemType, TaskItemType, AlertBannerType, Lead, Customer } from '@/types';
 
 interface ScreenMyDayProps {
   priorities: PriorityItemType[];
@@ -34,7 +34,7 @@ interface ScreenMyDayProps {
   onToggleTask: (taskId: string) => void;
   onResolveAlert: (alertId: string) => void;
   leads: Lead[];
-  customers: any[];
+  customers: Customer[];
 }
 
 export default function ScreenMyDay({
@@ -50,7 +50,7 @@ export default function ScreenMyDay({
 }: ScreenMyDayProps) {
   const briefingCounts = {
     leadsCount: leads.length,
-    churnCount: customers.filter((c) => c.sherloqStatus === 'CHURN_RISK').length,
+    churnCount: customers.filter((c) => (c.sherloqStatus as string) === 'CHURN_RISK').length,
     openTasks: tasks.filter((t) => !t.completed).length,
   };
 

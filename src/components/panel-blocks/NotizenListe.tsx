@@ -5,6 +5,7 @@
  * Panel-Modus (`noteRows`): read/create/update/soft-delete echt (onCreate/onUpdate/onDelete);
  * ohne `noteRows`: Mock (Standalone).
  */
+import type { NoteRow } from '@/types/rows';
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Plus, Pencil, Trash2, Check, X } from "lucide-react";
@@ -25,7 +26,7 @@ const DEFAULT_NOTES: NotizItem[] = [
 ];
 
 /** DB-Notiz-Zeile → NotizItem. Autor aus created_by→users.full_name (fehlt → leer = unsichtbar). */
-function rowToNotiz(row: Record<string, any>): NotizItem {
+function rowToNotiz(row: NoteRow): NotizItem {
   const d = row.created_at ? new Date(row.created_at) : null;
   return {
     id: row.id,
@@ -49,7 +50,7 @@ export default function NotizenListe({
   autoCompose?: boolean;
   onAutoComposeConsumed?: () => void;
   /** Echte DB-Notiz-Zeilen (P4). undefined → Mock (Standalone). */
-  noteRows?: Record<string, any>[];
+  noteRows?: NoteRow[];
   onCreate?: (body: string) => void;
   onUpdate?: (noteId: string, body: string) => void;
   onDelete?: (noteId: string) => void;

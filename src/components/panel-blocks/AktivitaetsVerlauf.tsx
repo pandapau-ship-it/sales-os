@@ -34,11 +34,11 @@ function relTime(iso?: string): string {
   return d === 1 ? "gestern" : `vor ${d} Tagen`;
 }
 
-type Row = Record<string, any>;
+type Row = Record<string, unknown>;
 
 function describe(row: Row): { label: string; icon: LucideIcon; fg: string; bg: string } {
   const entity = String(row.entity_type ?? "");
-  const op = String(row.metadata?.op ?? String(row.action ?? "").split("_")[0] ?? "").toUpperCase();
+  const op = String((row.metadata as { op?: string } | null)?.op ?? String(row.action ?? "").split("_")[0] ?? "").toUpperCase();
   const noun = NOUN[entity] ?? entity ?? "Eintrag";
   const v = VERB[op];
   return {

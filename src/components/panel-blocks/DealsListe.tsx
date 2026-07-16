@@ -13,6 +13,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { HOVER_ACTIONS } from "@/lib/componentBehavior";
 import { dealToView, stagnationFlag, WON_STAGE_SLUG, LOST_STAGE_SLUG, type DealView } from "@/lib/hunterMappers";
+import type { DealRow } from '@/types/rows';
 import StagnationHint from "./StagnationHint";
 import StageBadge from "./StageBadge";
 import DealSetup from "./DealSetup";
@@ -457,7 +458,7 @@ export default function DealsListe({
   autoNew?: boolean;
   onAutoEditConsumed?: () => void;
   /** Echte DB-Deal-Zeilen (Panel). undefined → Mock (Standalone). */
-  dealRows?: Record<string, any>[];
+  dealRows?: DealRow[];
   stageNameBySlug?: Record<string, string>;
   /** Stage→Probability (settings.pipeline_stages) — Probability wird daraus abgeleitet (P5c-2b). */
   stageProbBySlug?: Record<string, number>;

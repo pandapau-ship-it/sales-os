@@ -185,7 +185,7 @@ export default function ScreenFarming({
           return (
             <button
               key={item.id}
-              onClick={() => setSubTab(item.id as any)}
+              onClick={() => setSubTab(item.id as Parameters<typeof setSubTab>[0])}
               style={isActive ? { background: NAV.activeBg } : undefined}
               className={`${NAV.subTab} ${NAV.subTabRadius} ${isActive ? NAV.active : NAV.inactive}`}
             >

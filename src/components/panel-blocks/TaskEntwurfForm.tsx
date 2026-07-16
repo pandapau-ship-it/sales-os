@@ -3,6 +3,7 @@
  * Priorität + Speichern). Kanonischer Stand aus features/hunter/TaskDrawer.tsx — Overlay +
  * 850px-Panel-Hülle leben weiter im Drawer; hier nur der Inhalt (inkl. Schließen-Button + Footer).
  */
+import type { Person } from '@/types';
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Calendar, X, Mail, Link2, Phone, Video, MessageCircle, AlertTriangle } from "lucide-react";
@@ -16,12 +17,12 @@ export default function TaskEntwurfForm({
   onClose,
   onSave,
 }: {
-  person: any;
+  person: { person: Person; icpScore?: number } & Record<string, unknown>;
   recommendedChannel?: string;
   recommendedTitle?: string;
   recommendedNote?: string;
   onClose: () => void;
-  onSave: (taskData: any) => void;
+  onSave: (taskData: Record<string, unknown>) => void;
 }) {
   const { t } = useTranslation();
   const [channel, setChannel] = useState(recommendedChannel);

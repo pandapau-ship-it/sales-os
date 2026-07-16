@@ -1,3 +1,4 @@
+import type { ContactRow, DealRow, CompanyRow } from '@/types/rows';
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
@@ -132,7 +133,7 @@ export default function FarmerSidepanel({ person: personProp, onClose, onExit, v
   const [notesAutoCompose, setNotesAutoCompose] = useState(false);             // Footer „Notiz" → Composer auf
 
   // Echte Deals des Kontakts als Auswahl im „Neue Task"-Formular (Deal optional) — 1:1 Hunter.
-  const dealOptions = ((contactRow?.deals as Record<string, any>[] | undefined) ?? [])
+  const dealOptions = ((contactRow?.deals as DealRow[] | undefined) ?? [])
     .filter((d) => d?.id && d?.name)
     .map((d) => ({ value: d.id as string, label: d.name as string }));
   const CH_TO_DB: Record<string, string> = { mail: 'email', linkedin: 'linkedin', phone: 'phone', calendar: 'calendar', other: 'other' };
@@ -211,7 +212,7 @@ export default function FarmerSidepanel({ person: personProp, onClose, onExit, v
   if (prevContactRow !== contactRow) {
     setPrevContactRow(contactRow);
     if (contactRow) {
-      setDetails(seedContactDetails(contactRow as Record<string, any>));
+      setDetails(seedContactDetails(contactRow as ContactRow));
       setEditContact({ email: profile.email ?? '', linkedin: profile.linkedinUrl ?? '', web: profile.website ?? '' });
     }
   }
@@ -315,7 +316,7 @@ export default function FarmerSidepanel({ person: personProp, onClose, onExit, v
   // (getContactDetail → company, Single Source; kein Doppel-Fetch). HONESTY: fehlende Werte → Feld
   // ausgeblendet, nie Mock. NRR/Nächste Zahlung/Kündigungsfrist haben KEIN DB-Feld → „Folgt" (Billing/
   // Stripe folgt). Usage-Tab bleibt komplett „Folgt" [D49] — hier NICHT angefasst.
-  const companyRow = (contactRow?.company ?? null) as Record<string, any> | null;
+  const companyRow = (contactRow?.company ?? null) as Partial<CompanyRow> | null;
   const fmtEuroCents = (cents: unknown) =>
     typeof cents === 'number' ? (cents / 100).toLocaleString('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }) : undefined;
   const fmtDate = (iso: unknown) =>

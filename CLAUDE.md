@@ -236,15 +236,13 @@ erfolgt auf Screen-/Feature-Ebene.
 > markiert und verweisen hierher. Es gibt ab jetzt **eine** Gate-Definition, nicht drei.
 
 1. **`npm run build`** — muss grün sein
-2. **`npm run lint`** — muss grün sein.
-   ⚠ **Stand 16.07.2026: bekannt rot (60 Fehler), Zwischen-Baseline — vorübergehend KEIN Blocker.**
-   K-1a2 hat **alle Korrektheits-/Hygiene-Regeln behoben** (109 → 60: purity, set-state-in-effect,
-   exhaustive-deps, no-unused-vars, react-refresh). Die verbleibenden **60 sind ausschließlich
-   `no-explicit-any` auf DB-Rohzeilen** in den Mappern — sie werden in **einem Zug mit
-   `supabase gen types typescript`** typisiert, sobald **K-1b/K-2** die DB-Schicht bauen und eine
-   Live-DB-Verbindung existiert (kanonischer Fix laut TypeScript-Regel; Hand-Typen bewusst verworfen).
-   Ursache und Auflösung vollständig: PROGRESS.md → **K-1a2**. Bis zur DB-Typisierung gilt:
-   **kein Commit darf die 60 überschreiten** (vorher/nachher zählen). Danach wieder hart bei 0.
+2. **`npm run lint`** — muss grün sein. ✅ **Wieder HART bei 0 (Stand 16.07.2026, K-3 CP1).**
+   Die Lint-Schuld ist vollständig getilgt: K-1a2 behob die Korrektheits-/Hygiene-Regeln (109 → 60),
+   K-3 CP1 typisierte die verbleibenden **60 `no-explicit-any` auf DB-Rohzeilen** über die generierten
+   `database.types.ts` (Row-Composite-Typen in `src/types/rows.ts` → hunterMappers, db.ts-Feeder-Rückgaben,
+   ScreenHunting, Sidepanels). **Jeder neue `any` = Verstoß.** (Nebenbei aufgedeckt: 3 latente Bugs —
+   `signals` ohne `occurred_at`, ScreenMyDay `CHURN_RISK`-Vergleich läuft ins Leere, `contacts` ohne
+   `city`/`country`-Spalte trotz CRM-Doku — siehe PROGRESS.md.)
 3. **`npm run structure-check`** — muss grün sein
 4. **`npm run audit`** — muss **FAIL-frei** sein (**WARN ist kein Verstoß** → Auditor-Regel, Kategorien B/E)
 5. **Tests** (sobald vitest eingerichtet ist → PROGRESS.md **K-1a**) — müssen grün sein
