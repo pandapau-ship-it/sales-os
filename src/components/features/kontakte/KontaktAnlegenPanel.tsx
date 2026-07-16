@@ -10,6 +10,7 @@
 import { useState } from "react";
 import { AlertTriangle, X } from "lucide-react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { validateContactRequired } from "@/lib/contactValidation";
 import { findDuplicates, createContact, findOrCreateCompany } from "@/lib/db";
 import { SENIORITY_OPTS } from "@/lib/contactDetailFields";
@@ -127,9 +128,9 @@ function AnlegenForm({
 
         <div>
           <label className={label}>E-Mail</label>
-          <input value={email} onChange={(e) => { setEmail(e.target.value); }} onBlur={checkDup} placeholder="name@company.com" className={`${input} ${hardDup ? "border-[var(--signal-urgent)]" : "border-border"}`} />
+          <input value={email} onChange={(e) => { setEmail(e.target.value); }} onBlur={checkDup} placeholder="name@company.com" className={`${input} ${hardDup ? "border-[var(--signal-urgent-text)]" : "border-border"}`} />
           {hardDup && (
-            <p className="mt-1.5 text-[12px] text-[var(--signal-urgent)] flex items-center gap-1.5">
+            <p className="mt-1.5 text-[12px] text-signal-urgent flex items-center gap-1.5">
               <AlertTriangle className="w-3.5 h-3.5" /> Kontakt existiert bereits ({dup?.matchType === "email" ? "gleiche E-Mail" : "gleiche LinkedIn-URL"}).
             </p>
           )}
@@ -142,10 +143,12 @@ function AnlegenForm({
           </div>
           <div>
             <label className={label}>Seniority</label>
-            <select value={seniority} onChange={(e) => setSeniority(e.target.value)} className={`${input} border-border cursor-pointer`}>
-              <option value="">Auswählen…</option>
-              {SENIORITY_OPTS.map((s) => <option key={s} value={s}>{s}</option>)}
-            </select>
+            <Select value={seniority || undefined} onValueChange={setSeniority}>
+              <SelectTrigger className="w-full rounded-[8px] border-border bg-app-surface text-[13px] text-text-body"><SelectValue placeholder="Auswählen…" /></SelectTrigger>
+              <SelectContent>
+                {SENIORITY_OPTS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 

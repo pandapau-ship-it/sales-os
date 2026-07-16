@@ -36,12 +36,8 @@ import { contactToKontakteRow, type KontakteRow } from "@/lib/kontakteMappers";
 import { daysSinceIso } from "@/lib/hunterMappers";
 import { evaluateFilter, type FilterDefinition, type FilterNode } from "@/lib/filter";
 import { cn } from "@/lib/utils";
-import Avatar from "@/components/shared/Avatar";
-import { ICPDonut } from "@/components/shared/ICPDonut";
-import StatusBadge from "@/components/panel-blocks/StatusBadge";
-import LeadSourceBadge from "@/components/panel-blocks/LeadSourceBadge";
-import RoutingChip from "@/components/panel-blocks/RoutingChip";
-import EmptyState from "@/components/shared/EmptyState";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { Avatar, ICPDonut, StatusBadge, LeadSourceBadge, RoutingChip, EmptyState } from "@/components";
 import { useToast } from "@/components/shared/toastContext";
 import KontaktAnlegenPanel from "@/components/features/kontakte/KontaktAnlegenPanel";
 import { HunterSidepanel } from "@/components";
@@ -373,12 +369,14 @@ export default function ScreenKontakte() {
             <div className="flex items-center gap-3 text-[13px] text-text-muted">
               <span>Zeige {from.toLocaleString("de-DE")}–{to.toLocaleString("de-DE")} von {total.toLocaleString("de-DE")}</span>
               <span className="text-border-strong">·</span>
-              <label className="flex items-center gap-1.5">Pro Seite
-                <select value={pageSize} onChange={(e) => setPagination((p) => ({ ...p, pageIndex: 0, pageSize: Number(e.target.value) }))}
-                  className="rounded-[8px] border border-border bg-app-surface px-2 py-1 text-text-body cursor-pointer">
-                  {PAGE_SIZES.map((s) => <option key={s} value={s}>{s}</option>)}
-                </select>
-              </label>
+              <span className="flex items-center gap-1.5">Pro Seite
+                <Select value={String(pageSize)} onValueChange={(v) => setPagination((p) => ({ ...p, pageIndex: 0, pageSize: Number(v) }))}>
+                  <SelectTrigger className="h-auto rounded-[8px] border-border bg-app-surface px-2 py-1 text-[13px] text-text-body w-[68px]"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {PAGE_SIZES.map((s) => <SelectItem key={s} value={String(s)}>{s}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </span>
             </div>
             <div className="flex items-center gap-2">
               <button onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()} className="sherloq-btn-secondary disabled:opacity-40 disabled:cursor-default">Zurück</button>
