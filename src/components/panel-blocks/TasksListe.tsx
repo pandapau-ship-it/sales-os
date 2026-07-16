@@ -144,17 +144,27 @@ export default function TasksListe({
 
   // Deeplink-Highlight: Ziel-Task aufklappen (Liste steuert Expand selbst) + Flash/Scroll via Hook.
   const flashId = useDeeplinkHighlight(highlightId);
-  useEffect(() => {
-    if (highlightId) setExpanded((p) => ({ ...p, [highlightId]: true }));
-  }, [highlightId]);
 
-  // autoEditId (Footer „+ Task" / Übersicht) öffnet die Maske — auch wenn der Tab schon offen
-  // ist (reagiert auf Prop-Änderung, nicht nur auf Mount). Danach im Parent zurücksetzen.
+  // highlightId/autoEditId sind Ein-Schuss-Trigger. Eigener State wird während des Renders
+  // angepasst (React: „Adjusting state when a prop changes"), damit Ziel-Task und Maske im
+  // selben Frame stehen; nur die Rückmeldung an den Parent bleibt im Effect — ein
+  // Parent-State-Update während unseres Renders ist nicht erlaubt.
+  const [prevHighlightId, setPrevHighlightId] = useState(highlightId);
+  if (prevHighlightId !== highlightId) {
+    setPrevHighlightId(highlightId);
+    if (highlightId) setExpanded((p) => ({ ...p, [highlightId]: true }));
+  }
+
+  const [prevAutoEditId, setPrevAutoEditId] = useState(autoEditId);
+  if (prevAutoEditId !== autoEditId) {
+    setPrevAutoEditId(autoEditId);
+    // autoEditId (Footer „+ Task" / Übersicht) öffnet die Maske — auch bei schon offenem Tab.
+    if (autoEditId === "new" || (autoEditId && tasks.some((x) => x.id === autoEditId))) setEditing(autoEditId);
+  }
+
   useEffect(() => {
-    if (!autoEditId) return;
-    if (autoEditId === "new" || tasks.some((x) => x.id === autoEditId)) setEditing(autoEditId);
-    onAutoEditConsumed?.();
-  }, [autoEditId]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (autoEditId) onAutoEditConsumed?.();
+  }, [autoEditId, onAutoEditConsumed]);
 
   if (editing !== null) {
     const task = editing === "new" ? undefined : tasks.find((x) => x.id === editing);

@@ -108,17 +108,28 @@ function DealsListeReadonly({
     reset();
   };
 
-  // Footer „Deal" → Create-Formular öffnen (auch bei schon offenem Tab; Prop-Änderung, nicht nur Mount).
-  useEffect(() => {
-    if (autoNew) { setEditingId(null); setComposerOpen(true); onAutoConsumed?.(); }
-  }, [autoNew]); // eslint-disable-line react-hooks/exhaustive-deps
-  // Übersicht „Bearbeiten" → diesen Deal aufklappen + bearbeiten.
-  useEffect(() => {
-    if (!autoEditId) return;
-    const d = items.find((x) => x.id === autoEditId);
+  // autoNew/autoEditId sind Ein-Schuss-Trigger des Panels. Eigener State wird während des
+  // Renders angepasst (React: „Adjusting state when a prop changes"), damit das Formular
+  // im selben Frame offen ist; nur die Rückmeldung an den Parent bleibt im Effect — ein
+  // Parent-State-Update während unseres Renders ist nicht erlaubt.
+  const [prevAutoNew, setPrevAutoNew] = useState(autoNew);
+  if (prevAutoNew !== autoNew) {
+    setPrevAutoNew(autoNew);
+    // Footer „Deal" → Create-Formular öffnen (auch bei schon offenem Tab).
+    if (autoNew) { setEditingId(null); setComposerOpen(true); }
+  }
+
+  const [prevAutoEditId, setPrevAutoEditId] = useState(autoEditId);
+  if (prevAutoEditId !== autoEditId) {
+    setPrevAutoEditId(autoEditId);
+    // Übersicht „Bearbeiten" → diesen Deal aufklappen + bearbeiten.
+    const d = autoEditId ? items.find((x) => x.id === autoEditId) : undefined;
     if (d) openEdit(d);
-    onAutoConsumed?.();
-  }, [autoEditId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }
+
+  useEffect(() => {
+    if (autoNew || autoEditId) onAutoConsumed?.();
+  }, [autoNew, autoEditId, onAutoConsumed]);
 
   // Subzeile (Wert · Owner · Abschluss) + Chips (Produkt/MRR/ARR, nur echte Werte — Honesty).
   // Chips (Produkt · MRR · ARR) für die kompakten Übersicht-Karten — nur echte Werte (Honesty).

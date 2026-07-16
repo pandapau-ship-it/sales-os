@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { useCurrentOrg } from '@/hooks/useCurrentOrg';
@@ -77,8 +77,16 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
   const setDetail = (k: keyof typeof DEFAULT_DETAILS, v: string) => { setDetails((d) => ({ ...d, [k]: v })); showToast('Gespeichert'); };
 
   // Open-State von der Prop; Inhalt aus gehaltener Kopie (wie CustomerDrawer).
+  // Angepasst während des Renders (React: „Adjusting state when a prop changes") — per
+  // Effect käme die Kopie einen Frame zu spät und das Panel flackerte beim Öffnen.
   const [display, setDisplay] = useState<any>(personProp);
-  useEffect(() => {
+  const [prevOpenKey, setPrevOpenKey] = useState({ personProp, initialAction, initialTab });
+  if (
+    prevOpenKey.personProp !== personProp ||
+    prevOpenKey.initialAction !== initialAction ||
+    prevOpenKey.initialTab !== initialTab
+  ) {
+    setPrevOpenKey({ personProp, initialAction, initialTab });
     if (personProp) {
       setDisplay(personProp);
       // Editierbare Felder beim Öffnen zurücksetzen (Kontaktzeile wird unten aus dem Fetch geseedet).
@@ -90,7 +98,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
       else if (initialTab) { setActiveTab(initialTab); } // Deeplink z.B. Kanban-Karten-Klick → Deals-Tab
       else setActiveTab(variant === 'full' ? 'details' : 'overview');
     }
-  }, [personProp, initialAction, initialTab]); // eslint-disable-line react-hooks/exhaustive-deps
+  }
   const isOpen = personProp !== null;
   const person = display;
 
@@ -121,8 +129,11 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
   // P2 — Kontaktzeile aus dem echten Kontakt seeden (email/linkedin_url + Firmen-Website).
   // Werte zentral über contactToProfile; fehlend → leer → Read-Zeile blendet das Element aus.
   // PH2: Telefonnummern kommen read-only direkt aus profile.phones (contact_phones) — kein lokaler State.
-  useEffect(() => {
-    if (!contactRow) return;
+  // Während des Renders (React: „Adjusting state when a prop changes") — per Effect zeigte
+  // die Kontaktzeile für einen Frame noch die Werte des vorigen Kontakts.
+  const [prevContactRow, setPrevContactRow] = useState(contactRow);
+  if (prevContactRow !== contactRow && contactRow) {
+    setPrevContactRow(contactRow);
     setContact({ email: profile.email ?? '', linkedin: profile.linkedinUrl ?? '', web: profile.website ?? '' });
     // Details-Tab aus echten DB-Werten seeden (NULL → leer, kein Fake-Default). Klassifizierung
     // (Lead Status/ICP/Owner/Tags) bleibt vorerst lokal (außerhalb dieses Slices).
@@ -139,7 +150,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
       domain: co.domain ?? '', firmaStadt: co.city ?? '', firmaLand: co.country ?? '',
       leadStatus: contactStatusLabel(c.contact_status), // echtes contacts.contact_status → Label
     }));
-  }, [contactRow]); // eslint-disable-line react-hooks/exhaustive-deps
+  }
 
   // P3 — Tasks-Tab: echte Tasks des Kontakts + Anlegen/Abhaken (erster Panel-Write).
   const queryClient = useQueryClient();

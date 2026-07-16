@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { useCurrentOrg } from '@/hooks/useCurrentOrg';
@@ -62,10 +62,21 @@ export default function FarmerSidepanel({ person: personProp, onClose, onExit, v
 
   // Open-State von der Prop; Inhalt aus gehaltener Kopie, damit das Panel während der
   // Ausfahr-Animation (person→null) nicht leer wird (gleiches Muster wie HunterSidepanel/CustomerDrawer).
+  // Angepasst während des Renders (React: „Adjusting state when a prop changes") — per
+  // Effect käme die Kopie einen Frame zu spät und das Panel flackerte beim Öffnen.
   const [display, setDisplay] = useState<Lead | Customer | null>(personProp);
-  useEffect(() => {
-    if (personProp) { setDisplay(personProp); setActiveTab(variant === 'full' ? 'details' : (initialTab ?? 'overview')); }
-  }, [personProp, initialTab, variant]);
+  const [prevOpenKey, setPrevOpenKey] = useState({ personProp, initialTab, variant });
+  if (
+    prevOpenKey.personProp !== personProp ||
+    prevOpenKey.initialTab !== initialTab ||
+    prevOpenKey.variant !== variant
+  ) {
+    setPrevOpenKey({ personProp, initialTab, variant });
+    if (personProp) {
+      setDisplay(personProp);
+      setActiveTab(variant === 'full' ? 'details' : (initialTab ?? 'overview'));
+    }
+  }
   const isOpen = personProp !== null;
   const person = display;
 
@@ -193,11 +204,17 @@ export default function FarmerSidepanel({ person: personProp, onClose, onExit, v
   const [focusField, setFocusField] = useState<string | null>(initialFocusField); // Deep-Link Panel-Stift → Vollansicht (autoEdit)
   const [details, setDetails] = useState<ContactDetailsState>(() => seedContactDetails(null));
   const [editContact, setEditContact] = useState({ email: '', linkedin: '', web: '' });
-  useEffect(() => {
-    if (!contactRow) return;
-    setDetails(seedContactDetails(contactRow as Record<string, any>));
-    setEditContact({ email: profile.email ?? '', linkedin: profile.linkedinUrl ?? '', web: profile.website ?? '' });
-  }, [contactRow]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Seed aus der Query: sobald eine neue contactRow eintrifft, die Formular-Puffer neu
+  // befüllen. Während des Renders (React: „Adjusting state when a prop changes") — per
+  // Effect zeigte der Details-Tab für einen Frame noch die Werte des vorigen Kontakts.
+  const [prevContactRow, setPrevContactRow] = useState(contactRow);
+  if (prevContactRow !== contactRow) {
+    setPrevContactRow(contactRow);
+    if (contactRow) {
+      setDetails(seedContactDetails(contactRow as Record<string, any>));
+      setEditContact({ email: profile.email ?? '', linkedin: profile.linkedinUrl ?? '', web: profile.website ?? '' });
+    }
+  }
 
   const invalidateContact = () => queryClient.invalidateQueries({ queryKey: ['contactDetail', organizationId, contactId] });
   const updateContactMutation = useMutation({
