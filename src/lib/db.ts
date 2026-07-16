@@ -26,6 +26,18 @@ import {
   INITIAL_KPIS,
 } from "@/data";
 import { WON_STAGE_SLUG, LOST_STAGE_SLUG } from "@/lib/hunterMappers";
+import {
+  classifyDuplicate,
+  type ContactCandidate,
+  type ExistingContact,
+  type DuplicateHit,
+  type ContactMatchType,
+} from "@/lib/dedup";
+import {
+  resolveOwner,
+  DEFAULT_LEAD_ASSIGNMENT_STRATEGY,
+  type LeadAssignmentStrategy,
+} from "@/lib/leadAssignment";
 import type {
   Lead,
   Customer,
@@ -1135,4 +1147,85 @@ export async function getModules(
 ): Promise<Record<string, boolean>> {
   const settings = await getSettings(organizationId);
   return (settings?.modules as Record<string, boolean>) ?? {};
+}
+
+// ── K-1b: zentrale Daten-Functions (dünne DB-Schicht über den puren Libs) ─────
+// find_duplicates (K2) und assign_lead_owner (K9) delegieren die eigentliche Logik an
+// die getesteten puren Libs (dedup.ts / leadAssignment.ts). Hier NUR org-gescopter
+// Datenzugriff — Single Source, callbar von Anlegen/Import/Webhook/Chat.
+
+/**
+ * find_duplicates (K2) — stärksten Duplikat-Treffer für einen Kontakt-Kandidaten finden.
+ * Lädt eine bewusst breit gefasste, org-gescopte Kandidatenmenge (exakte E-Mail/LinkedIn +
+ * Nachname-Vorfilter) und überlässt die Entscheidung dem puren `classifyDuplicate`.
+ */
+export async function findDuplicates(
+  candidate: ContactCandidate,
+  organizationId: string,
+): Promise<DuplicateHit<ContactMatchType> | null> {
+  const client = getSupabaseClient();
+  if (!client) return null;
+
+  const rows = new Map<string, ExistingContact>();
+  const add = (list: unknown[] | null) => {
+    for (const r of (list ?? []) as Record<string, unknown>[]) {
+      const company = r.company as { name?: string } | null;
+      rows.set(r.id as string, {
+        id: r.id as string,
+        email: (r.email as string) ?? null,
+        linkedin_url: (r.linkedin_url as string) ?? null,
+        first_name: (r.first_name as string) ?? null,
+        last_name: (r.last_name as string) ?? null,
+        company_name: company?.name ?? null,
+      });
+    }
+  };
+  const sel = "id, email, linkedin_url, first_name, last_name, company:companies(name)";
+  const base = () => client.from("contacts").select(sel).eq("organization_id", organizationId).limit(50);
+
+  // Getrennte, parametrisierte Abfragen (kein .or()-String mit User-Werten → keine
+  // PostgREST-Filter-Injection). Vereinigung → puren Klassifizierer entscheiden lassen.
+  if (candidate.email?.trim()) add((await base().ilike("email", candidate.email.trim())).data);
+  if (candidate.linkedin_url?.trim()) add((await base().ilike("linkedin_url", `%${candidate.linkedin_url.trim().replace(/^https?:\/\/(www\.)?/, "")}%`)).data);
+  if (candidate.last_name?.trim()) add((await base().ilike("last_name", candidate.last_name.trim())).data);
+
+  return classifyDuplicate(candidate, [...rows.values()]);
+}
+
+/**
+ * assign_lead_owner (K9) — Owner nach der Org-Strategie (settings.lead_assignment_strategy)
+ * bestimmen. round_robin-Basislogik via `resolveOwner`; keine Sales-User → null (unassigned).
+ * Schreibt NICHT selbst — der Aufrufer (createContact, K-3) setzt assigned_to.
+ */
+export async function assignLeadOwner(organizationId: string): Promise<string | null> {
+  const client = getSupabaseClient();
+  if (!client) return null;
+
+  const settings = await getSettings(organizationId);
+  const strategy = ((settings?.lead_assignment_strategy as LeadAssignmentStrategy) ??
+    DEFAULT_LEAD_ASSIGNMENT_STRATEGY);
+
+  // Aktive Sales-User = owner/admin/member (Viewer kann keine Leads besitzen — Rechte-Matrix).
+  // Stabile Reihenfolge für deterministisches Round-Robin.
+  const { data: users } = await client
+    .from("users")
+    .select("id")
+    .eq("organization_id", organizationId)
+    .in("role", ["owner", "admin", "member"])
+    .order("created_at", { ascending: true })
+    .order("id", { ascending: true });
+  const ids = (users ?? []).map((u) => (u as { id: string }).id);
+
+  // Zuletzt zugewiesener Owner = jüngster Kontakt mit assigned_to (Round-Robin-Fortsetzung).
+  const { data: last } = await client
+    .from("contacts")
+    .select("assigned_to")
+    .eq("organization_id", organizationId)
+    .not("assigned_to", "is", null)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const lastAssigned = (last as { assigned_to?: string } | null)?.assigned_to ?? null;
+
+  return resolveOwner(strategy, ids, lastAssigned);
 }
