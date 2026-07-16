@@ -1229,3 +1229,41 @@ export async function assignLeadOwner(organizationId: string): Promise<string | 
 
   return resolveOwner(strategy, ids, lastAssigned);
 }
+
+// ── K-3: user_preferences (USER-scoped Einstellungen, Migration 057) ──────────
+// Persönlicher UI-State pro (User, Key) — z.B. 'table_views.contacts'. Getrennt von der
+// Org-settings-Tabelle. RLS erzwingt eigene Zeilen; hier nur der org-/user-gescopte Zugriff.
+
+/** Wert einer persönlichen Einstellung lesen (oder null). */
+export async function getUserPreference<T = unknown>(
+  userId: string,
+  organizationId: string,
+  key: string,
+): Promise<T | null> {
+  const client = getSupabaseClient();
+  if (!client) return null;
+  const { data, error } = await client
+    .from("user_preferences")
+    .select("value")
+    .eq("user_id", userId)
+    .eq("organization_id", organizationId)
+    .eq("key", key)
+    .maybeSingle();
+  if (error) return null;
+  return (data?.value as T) ?? null;
+}
+
+/** Persönliche Einstellung setzen (upsert auf (user_id, key)). */
+export async function setUserPreference(
+  userId: string,
+  organizationId: string,
+  key: string,
+  value: unknown,
+): Promise<void> {
+  const client = getSupabaseClient();
+  if (!client) return;
+  const { error } = await client
+    .from("user_preferences")
+    .upsert({ user_id: userId, organization_id: organizationId, key, value }, { onConflict: "user_id,key" });
+  if (error) throw error;
+}
