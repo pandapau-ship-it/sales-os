@@ -75,3 +75,5 @@ export type { HunterCardData } from './HunterCard';
 export type { SubscriptionData } from './SubscriptionBox';
 export type { UsageData } from './UsageBox';
 export type { SignalRowData } from './SignalRow';
+export { default as LeadSourceBadge } from './LeadSourceBadge';
+export { default as RoutingChip } from './RoutingChip';
