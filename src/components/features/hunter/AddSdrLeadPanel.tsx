@@ -12,7 +12,7 @@ import { Target, X, Search, Mail, Info, Check, ChevronDown, Plus } from "lucide-
 import ActionPanel from "@/components/panels/ActionPanel";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import LinkedinIcon from "@/components/shared/LinkedinIcon";
-import { useToast } from "@/components/shared/Toast";
+import { useToast } from "@/components/shared/toastContext";
 import { NewDealCard, PanelField, PhoneNumbersField } from '@/components';
 import type { DealDraft, PhoneRow } from '@/components';
 import type { Lead } from "@/types";

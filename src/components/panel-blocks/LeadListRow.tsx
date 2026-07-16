@@ -11,6 +11,8 @@ import {
 } from "lucide-react";
 import Avatar from "@/components/shared/Avatar";
 import { ICPDonut } from "@/components/shared/ICPDonut";
+import { useNowMs } from "@/hooks/useNowMs";
+import { daysSinceIso } from "@/lib/hunterMappers";
 import HeatBadge from './HeatBadge';
 import StageBadge from './StageBadge';
 import { type DealCardAction } from './DealKurzinfo';
@@ -32,10 +34,9 @@ export default function LeadListRow({
 }) {
   const act = (a: DealCardAction, dealId?: string) => (onAction ? onAction(a, dealId) : onOpenInfo());
   const { t } = useTranslation();
+  const nowMs = useNowMs();
   // „vor X Tagen" aus contacts.last_contacted_at (reine Anzeige). null → „—".
-  const lastContactedDays = lead.lastContactedAt
-    ? Math.max(0, Math.floor((Date.now() - new Date(lead.lastContactedAt).getTime()) / 86400000))
-    : null;
+  const lastContactedDays = daysSinceIso(lead.lastContactedAt, nowMs);
 
   // lead.id = contact_id → für den geteilten, lazy ladenden Expand-Inhalt.
   const contactId: string | undefined = lead.id;

@@ -81,7 +81,6 @@ function checkDatabase(): void {
   const missingOrg: string[] = []
   for (const t of tables) {
     if (t === 'organizations') continue // die Basis selbst
-    const block = sql.slice(sql.indexOf(`table ${t}`) === -1 ? 0 : 0)
     if (!new RegExp(`${t}[\\s\\S]{0,2000}organization_id`).test(sql)) missingOrg.push(t)
   }
   const hasRls = /enable\s+row\s+level\s+security/.test(sql)

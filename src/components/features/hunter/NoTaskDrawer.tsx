@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { CheckCircle2 } from "lucide-react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { TaskAnlegenForm } from '@/components';
@@ -20,8 +20,10 @@ export interface NoTaskDrawerProps {
  */
 export default function NoTaskDrawer({ person, onClose }: NoTaskDrawerProps) {
   // Inhalt aus gehaltener Kopie, damit das Panel während der Ausfahr-Animation gefüllt bleibt.
+  // Angepasst während des Renders (React: „Adjusting state when a prop changes") — per
+  // Effect käme die Kopie einen Frame zu spät und das Panel flackerte beim Öffnen.
   const [display, setDisplay] = useState<NoTaskPerson | null>(person);
-  useEffect(() => { if (person) setDisplay(person); }, [person]);
+  if (person && person !== display) setDisplay(person);
 
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");

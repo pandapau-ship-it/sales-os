@@ -351,10 +351,17 @@ function relTimeShort(iso: string | null | undefined): string {
   return h < 24 ? `${h}h` : `${Math.floor(h / 24)}d`;
 }
 
-/** Ganze Tage seit `iso` (>= 0); kein/ungültiges Datum → null. */
-export function daysSinceIso(iso: string | null | undefined): number | null {
+/**
+ * Ganze Tage seit `iso` (>= 0); kein/ungültiges Datum → null.
+ * Aus dem Render heraus `nowMs` aus `useNowMs()` übergeben — der Default liest die
+ * Uhr und wäre dort unrein (react-hooks/purity).
+ */
+export function daysSinceIso(
+  iso: string | null | undefined,
+  nowMs: number = Date.now(),
+): number | null {
   if (!iso) return null;
-  const ms = Date.now() - new Date(iso).getTime();
+  const ms = nowMs - new Date(iso).getTime();
   if (Number.isNaN(ms)) return null;
   return Math.max(0, Math.floor(ms / 86_400_000));
 }

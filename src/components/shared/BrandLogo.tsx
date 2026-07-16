@@ -8,31 +8,7 @@
 import { useState } from "react";
 import LinkedinIcon from "@/components/shared/LinkedinIcon";
 import { GmailIcon, OutlookIcon, TeamsIcon, GoogleMeetIcon } from "@/components/shared/BrandIcons";
-
-export type BrandName = "gmail" | "outlook" | "teams" | "google-meet" | "linkedin";
-
-/**
- * Mappt einen Kanal-/Touchpoint-Typ auf das passende Marken-Logo — oder `null`,
- * wenn es keinen Marken-Anbieter gibt (Telefon, Slack, WhatsApp, Dokument …).
- * Mail → Outlook · Meeting/Video → Teams · LinkedIn → LinkedIn. Für Varianz
- * (Outlook/Gmail bzw. Teams/Google Meet) kann der Aufrufer `variant` setzen.
- */
-export function brandForChannel(type: string, variant = false): BrandName | null {
-  switch (type.toUpperCase()) {
-    case "EMAIL":
-    case "MAIL":
-      return variant ? "gmail" : "outlook";
-    case "MEETING":
-    case "VIDEO":
-    case "CALL_VIDEO":
-    case "TEAMS":
-      return variant ? "google-meet" : "teams";
-    case "LINKEDIN":
-      return "linkedin";
-    default:
-      return null;
-  }
-}
+import type { BrandName } from "@/lib/brand";
 
 /** Eingebauter Fallback-Glyph je Kanal (gerundete Marken-Kachel). */
 function FallbackGlyph({ name, className }: { name: BrandName; className?: string }) {

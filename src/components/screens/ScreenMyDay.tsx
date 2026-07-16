@@ -3,7 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import {
   Sparkles,
   Flame,
@@ -47,8 +48,28 @@ export default function ScreenMyDay({
   leads,
   customers
 }: ScreenMyDayProps) {
-  const [aiBriefing, setAiBriefing] = useState<string>('SDR-Briefing wird geladen...');
-  const [isBriefingLoading, setIsBriefingLoading] = useState(false);
+  const briefingCounts = {
+    leadsCount: leads.length,
+    churnCount: customers.filter((c) => c.sherloqStatus === 'CHURN_RISK').length,
+    openTasks: tasks.filter((t) => !t.completed).length,
+  };
+
+  // Server-State läuft über TanStack Query (CLAUDE.md → Performance & Data Loading);
+  // der frühere useEffect+fetch hielt Ladezustand und Ergebnis von Hand nach.
+  const briefingQuery = useQuery({
+    queryKey: ['aiBriefing', briefingCounts.leadsCount, briefingCounts.churnCount, briefingCounts.openTasks],
+    queryFn: async ({ signal }) => {
+      const response = await fetch('/api/gemini/briefing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(briefingCounts),
+        signal,
+      });
+      const data = await response.json();
+      return data.briefing as string;
+    },
+    staleTime: 120_000, // Briefing ist eine Tages-Zusammenfassung, kein Live-Wert.
+  });
   const [expandMeetings, setExpandMeetings] = useState(true);
   const [expandTasks, setExpandTasks] = useState(true);
   const [activeTaskAiDraft, setActiveTaskAiDraft] = useState<string | null>(null);
@@ -56,31 +77,12 @@ export default function ScreenMyDay({
   const [draftCustomizer, setDraftCustomizer] = useState<string>('');
   const [isGeneratingDraft, setIsGeneratingDraft] = useState(false);
 
-  // Load dynamic AI briefing from the express server using the actual data state count
-  const fetchAiBriefing = async () => {
-    setIsBriefingLoading(true);
-    try {
-      const response = await fetch('/api/gemini/briefing', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          leadsCount: leads.length,
-          churnCount: customers.filter(c => c.sherloqStatus === 'CHURN_RISK').length,
-          openTasks: tasks.filter(t => !t.completed).length
-        })
-      });
-      const data = await response.json();
-      setAiBriefing(data.briefing);
-    } catch (e) {
-      setAiBriefing("SDR-Tagesbericht: Heißer Tag voraus! Christian Brand hat das SLA geöffnet. Vorsicht bei Laura Becker (Logistify) - starker Usage-Einbruch droht.");
-    } finally {
-      setIsBriefingLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchAiBriefing();
-  }, [leads.length, customers.length, tasks.length]);
+  // Honesty (CLAUDE.md): scheitert der Call, sagen wir das — der frühere catch-Zweig hat
+  // ein erfundenes Briefing mit echt klingenden Namen als AI-Ausgabe ausgegeben.
+  const aiBriefing = briefingQuery.isError
+    ? 'Briefing konnte gerade nicht geladen werden.'
+    : briefingQuery.data ?? 'SDR-Briefing wird geladen...';
+  const isBriefingLoading = briefingQuery.isFetching;
 
   // Generate customized message via server-side Gemini
   const handleGenerateCustomDraft = async (task: TaskItemType) => {
@@ -99,7 +101,7 @@ export default function ScreenMyDay({
       });
       const data = await response.json();
       setAiDraftMessage(data.message || 'Entwurf fehlgeschlagen.');
-    } catch (e) {
+    } catch {
       setAiDraftMessage(`Hallo ${task.person.name},\nich habe Ihren Fall im System bezüglich "${task.title}" analysiert. Sollen wir morgen kurz telefonieren?\n\nBeste Grüße,\nAlexander`);
     } finally {
       setIsGeneratingDraft(false);
@@ -197,7 +199,7 @@ export default function ScreenMyDay({
           </div>
         </div>
         <button
-          onClick={fetchAiBriefing}
+          onClick={() => briefingQuery.refetch()}
           disabled={isBriefingLoading}
           className="w-10 h-10 rounded-pill hover:bg-app-bg flex items-center justify-center text-text-muted hover:text-sherloq-primary border border-transparent hover:border-border transition-all cursor-pointer disabled:opacity-50"
           title="AI-Briefing neu generieren"

@@ -64,11 +64,19 @@ export default function NotizenListe({
   const [editDraft, setEditDraft] = useState("");
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
-  // autoCompose (Footer „Notiz") öffnet den Composer — auch wenn der Tab schon offen ist
-  // (reagiert auf Prop-Änderung, nicht nur auf Mount). Danach im Parent zurücksetzen.
+  // autoCompose (Footer „Notiz") ist ein Ein-Schuss-Trigger und öffnet den Composer — auch
+  // wenn der Tab schon offen ist. Eigener State wird während des Renders angepasst (React:
+  // „Adjusting state when a prop changes"); nur die Rückmeldung an den Parent bleibt im
+  // Effect — ein Parent-State-Update während unseres Renders ist nicht erlaubt.
+  const [prevAutoCompose, setPrevAutoCompose] = useState(autoCompose);
+  if (prevAutoCompose !== autoCompose) {
+    setPrevAutoCompose(autoCompose);
+    if (autoCompose) setComposerOpen(true);
+  }
+
   useEffect(() => {
-    if (autoCompose) { setComposerOpen(true); onAutoComposeConsumed?.(); }
-  }, [autoCompose]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (autoCompose) onAutoComposeConsumed?.();
+  }, [autoCompose, onAutoComposeConsumed]);
 
   const stamp = () => {
     const now = new Date();

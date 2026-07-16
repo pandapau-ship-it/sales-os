@@ -9,7 +9,8 @@ import type { Customer, Lead } from '@/types';
 import { FarmerKpiCards, FarmerHealthOverview, FarmerKundenKachel, FarmerRetentionKachel, FarmerUpsellKachel, FarmerExpandedCardContent, SubscriptionBadge, LinkedinSignalCard, EmptyState, SequenceLeadCards, FollowUpKaltCard, FarmerSidepanel, FarmerActionDrawer, SignalActionDrawer, type RetentionItem, type UpsellItem, type FarmerActionData, type FarmerTab } from '@/components';
 import type { DueTaskCardItem, SignalActionData, SignalCardProps } from '@/lib/hunterMappers';
 import { AI_PENDING_LABEL, calculateFarmerPriority, FARMER_SIGNAL_ORDER } from '@/lib/hunterMappers';
-import { useToast } from '@/components/shared/Toast';
+import { useToast } from '@/components/shared/toastContext';
+import { useNowMs } from '@/hooks/useNowMs';
 import { NAV } from '@/lib/navBehavior';
 
 /**
@@ -94,7 +95,7 @@ export default function ScreenFarming({
   // optional mit Sektions-ID → der Ziel-Block dort leuchtet kurz auf (Deeplink-Highlight).
   const openOnTab = (p: Customer | Lead, tab: FarmerTab, section?: string) => { setInfoTaskId(null); setInfoTab(tab); setInfoHighlightSection(section ?? null); setInfoPerson(p); };
 
-  const nowMs = Date.now();
+  const nowMs = useNowMs();
   // Echte Quelle: fällige Tasks (dueTasks-Prop) + kalte Kunden (heat COLD) — letzte Mock-Insel entfernt.
   // ICP/Name/Firma überall aus contactToProfile (taskToDueCard bzw. customerRowToView) → Ring konsistent.
   const coldCustomers = customers.filter((c) => c.heatStatus === 'COLD');

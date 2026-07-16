@@ -35,6 +35,18 @@ interface CustomerDrawerProps {
   onClose: () => void;
 }
 
+/**
+ * Die CommunicationChain hängt ihren Item-Index hinten an die ID; die Demo-Daten zählen
+ * genau andersherum (niedrigster Index = ältester Touchpoint = Eintrag 3). Fällt mit dem
+ * Farmer-DB-Wiring weg, sobald die Kette echte Touchpoint-IDs durchreicht.
+ */
+function commTargetId(commId: string): number {
+  const indexNum = parseInt(commId.split('-').at(-1) ?? '', 10);
+  if (indexNum === 0 || indexNum === 1) return 3;
+  if (indexNum === 2 || indexNum === 3) return 2;
+  return 1;
+}
+
 export default function CustomerDrawer({
   person: personProp,
   initialExpandedCommId,
@@ -45,32 +57,26 @@ export default function CustomerDrawer({
 
   // Open-State kommt von der Prop; Inhalt rendert aus einer gehaltenen Kopie,
   // damit das Panel während der Ausfahr-Animation (person→null) nicht leer wird.
+  // Angepasst während des Renders (React: „Adjusting state when a prop changes") —
+  // per Effect käme die Kopie einen Frame zu spät und das Panel flackerte beim Öffnen.
   const [displayPerson, setDisplayPerson] = useState<Lead | Customer | null>(personProp);
-  useEffect(() => {
-    if (personProp) setDisplayPerson(personProp);
-  }, [personProp]);
+  if (personProp && personProp !== displayPerson) setDisplayPerson(personProp);
+
+  // Deeplink auf einen Touchpoint: Ziel-Eintrag aufklappen (State → Render) und danach
+  // hinscrollen (DOM-Effekt → Effect).
+  const [prevCommId, setPrevCommId] = useState(initialExpandedCommId);
+  if (prevCommId !== initialExpandedCommId) {
+    setPrevCommId(initialExpandedCommId);
+    if (initialExpandedCommId) setExpandedComm({ [commTargetId(initialExpandedCommId)]: true });
+  }
 
   useEffect(() => {
-    if (initialExpandedCommId) {
-      // Extract the last part of the ID after the last hyphen (which is the index from CommunicationChain)
-      const parts = initialExpandedCommId.split('-');
-      const indexStr = parts[parts.length - 1];
-      const indexNum = parseInt(indexStr, 10);
-
-      let targetId = 1;
-      // Reverse map the index roughly to 1, 2, 3 for the demo data
-      // e.g. lowest index = oldest = item 3
-      if (indexNum === 0 || indexNum === 1) targetId = 3;
-      else if (indexNum === 2 || indexNum === 3) targetId = 2;
-      else targetId = 1;
-
-      setExpandedComm({ [targetId]: true });
-      
-      // small delay to allow render before scrolling
-      setTimeout(() => {
-        commSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 100);
-    }
+    if (!initialExpandedCommId) return;
+    // Kurz warten, damit die eben aufgeklappte Sektion schon gerendert ist.
+    const timer = setTimeout(() => {
+      commSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+    return () => clearTimeout(timer);
   }, [initialExpandedCommId]);
 
   // Sheet is always mounted; open state from the live prop, content from the held copy

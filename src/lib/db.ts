@@ -64,7 +64,6 @@ export function getSupabaseClient(): SupabaseClient | null {
   _initialized = true;
   if (!isSupabaseConfigured()) {
     if (import.meta.env.DEV) {
-      // eslint-disable-next-line no-console
       console.warn("[db] Supabase-Env nicht gesetzt — Auth/DB inaktiv (Phase 0).");
     }
     return null;

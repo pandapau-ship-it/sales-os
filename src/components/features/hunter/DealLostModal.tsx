@@ -5,7 +5,7 @@
  * Close-X ausgeblendet ([&>button]:hidden) — schließen nur über „Abbrechen"/„Als verloren markieren".
  * Präsentational + prop-driven → wird in ScreenHunting UND HunterSidepanel geteilt (eine Quelle).
  */
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
@@ -23,14 +23,34 @@ export default function DealLostModal({
   onConfirm: (lostReason: string, note: string) => void;
   pending?: boolean;
 }) {
-  const [reason, setReason] = useState("");
-  const [note, setNote] = useState("");
-  // Beim Öffnen Felder leeren → frischer Dialog je Deal.
-  useEffect(() => { if (open) { setReason(""); setNote(""); } }, [open]);
-
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) onCancel(); }}>
       <DialogContent className="max-w-md">{/* X/Escape/Außenklick = Abbrechen (kein Write); Grund bleibt Pflicht zum Bestätigen */}
+        <DealLostForm onCancel={onCancel} onConfirm={onConfirm} pending={pending} />
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/**
+ * Eingabe-State lebt bewusst hier statt im Modal: Radix unmountet DialogContent beim
+ * Schließen, also startet jedes Öffnen von selbst mit leeren Feldern — ein Reset-Effect
+ * wäre nur eine zweite, fehleranfällige Quelle für dieselbe Garantie.
+ */
+function DealLostForm({
+  onCancel,
+  onConfirm,
+  pending,
+}: {
+  onCancel: () => void;
+  onConfirm: (lostReason: string, note: string) => void;
+  pending: boolean;
+}) {
+  const [reason, setReason] = useState("");
+  const [note, setNote] = useState("");
+
+  return (
+    <>
         <DialogHeader>
           <DialogTitle className="typo-card-title text-text-primary">Deal als verloren markieren</DialogTitle>
           <DialogDescription className="text-[12px] text-text-muted">
@@ -85,7 +105,6 @@ export default function DealLostModal({
             Als verloren markieren →
           </button>
         </div>
-      </DialogContent>
-    </Dialog>
+    </>
   );
 }
