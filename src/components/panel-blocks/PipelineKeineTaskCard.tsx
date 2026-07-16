@@ -2,13 +2,7 @@ import { AlertTriangle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import HunterCard, { type HunterCardData } from './HunterCard';
 import { ACTION_ROW } from '@/lib/componentBehavior';
-import type { NoTaskCardItem } from '@/lib/hunterMappers';
-
-/** Ganze Tage seit `iso` (>= 0). Kein Datum → null. */
-function daysSince(iso: string | null): number | null {
-  if (!iso) return null;
-  return Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000));
-}
+import { daysSinceIso, type NoTaskCardItem } from '@/lib/hunterMappers';
 
 /**
  * PipelineKeineTaskCard — Pipeline-Task-Liste „Kontakte ohne offene Task". KONTAKT-zentriert
@@ -28,7 +22,7 @@ export const PipelineKeineTaskCard = ({ items, onTaskAnlegen, onSelectLead }: {
   return (
     <>
       {items.map((it) => {
-        const days = daysSince(it.lastContactedAt);
+        const days = daysSinceIso(it.lastContactedAt);
         const hasLastContact = days != null && days >= 1; // „vor 0 Tagen" unterdrücken
         const data: HunterCardData = {
           id: it.contactId,
@@ -39,7 +33,7 @@ export const PipelineKeineTaskCard = ({ items, onTaskAnlegen, onSelectLead }: {
           stageLabel: '', // Kontakt-Karte zeigt keine einzelne Stage (Deals stehen in der Action-Row)
           heatStatus: it.heatStatus,
           timeLabel: hasLastContact ? t('hunter.common.ago', { label: t('hunter.common.daysAgo', { count: days }) }) : '',
-          timeSubLabel: hasLastContact ? <span className="text-text-muted font-semibold">{t('hunter.common.lastContactSub')}</span> : undefined,
+          // „Letzter Kontakt"-Label ist jetzt der miniLabel „ZULETZT" in HunterCard (K-2b) — kein Zweit-Label mehr.
         };
 
         // Kompakte Deals-Zeile: „PayGuard (Demo) · LogixFlow (Backlog)".

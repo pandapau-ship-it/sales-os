@@ -37,7 +37,7 @@ import type { StagnatedPerson } from '@/components';
 import type { SignalActionData } from '@/components';
 
 import Avatar from '@/components/shared/Avatar';
-import { signalToCardProps, signalToActionData, contactToColdPerson, contactToProfile, taskToDueCard, dealToNewPipelineRow, dealToStagnatedCard, contactToNoTaskCard, calculatePriorityScore, newPipelineInPeriod, isTerminalStage, stagnationFlag, WON_STAGE_SLUG, LOST_STAGE_SLUG, type PipelineRow, type NewPipelinePeriod, type StagnatedCardItem, type NoTaskCardItem } from '@/lib/hunterMappers';
+import { signalToCardProps, signalToActionData, contactToColdPerson, contactToProfile, taskToDueCard, dealToNewPipelineRow, dealToStagnatedCard, contactToNoTaskCard, calculatePriorityScore, newPipelineInPeriod, isTerminalStage, stagnationFlag, daysSinceIso, WON_STAGE_SLUG, LOST_STAGE_SLUG, type PipelineRow, type NewPipelinePeriod, type StagnatedCardItem, type NoTaskCardItem } from '@/lib/hunterMappers';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { updateDealStage, updateDealWon, updateDealLost } from '@/lib/db';
 import { useCurrentOrg } from '@/hooks/useCurrentOrg';
@@ -348,7 +348,7 @@ export default function ScreenHunting({
   const openStagnated = (x: StagnatedCardItem) => setSelectedStagnated({
     name: x.name, company: x.companyName, icpScore: x.icpScore,
     daysStagnated: x.stagnationDays, stageName: x.stageLabel ?? '',
-    lastContactDays: x.lastContactedAt ? Math.max(0, Math.floor((Date.now() - new Date(x.lastContactedAt).getTime()) / 86_400_000)) : undefined,
+    lastContactDays: daysSinceIso(x.lastContactedAt) ?? undefined,
   });
   // Info-Panel (§22.1, 820px) — vorerst NUR im Leads-Tab inline rechts neben der Liste.
   const [infoPanelLead, setInfoPanelLead] = useState<Lead | null>(null);

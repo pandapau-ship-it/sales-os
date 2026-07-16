@@ -31,7 +31,10 @@ export interface HunterCardData {
   heatStatus?: HeatStatusKey | HeatStatus;
   /** Legacy-/Sonder-Badge (z.B. Warnung „Stagniert") wenn kein echter Heat-Status. */
   heat?: { bgClass: string; textClass: string; label: string };
+  /** „ZULETZT"-Wert (z.B. „vor 3 Tagen", optional mit Kanal-Suffix „· Email"). Leer → Spalte unsichtbar. */
   timeLabel: string;
+  /** Optionaler ECHTER Kontext unter dem Wert (Signal-Urgency „Xh left", Stagnation „XT in Stage").
+   *  NICHT für das „Letzter Kontakt"-Label nutzen — das ist der miniLabel „ZULETZT". */
   timeSubLabel?: ReactNode;
 }
 
@@ -182,8 +185,17 @@ export default function HunterCard({
 
           {/* Zeit + Aktionen (Chevron + grüner Pfeil) */}
           <div className={`flex items-center gap-4 pl-4 ${CARD.divider} shrink-0 justify-between md:justify-end`}>
-            <div className="flex flex-col items-end hidden sm:flex w-[130px]">
-              <span className={CARD.timeMain}>{data.timeLabel}</span>
+            {/* ZEIT-Spalte — identisch zu STATUS/HEAT: miniLabel „ZULETZT" OBEN, Wert darunter.
+                NULL/leer → Spalte unsichtbar (Honesty). timeSubLabel = optionaler ECHTER Kontext
+                (Signal-Urgency „Xh left", Stagnation „XT in Stage") — NICHT das redundante
+                „Letzter Kontakt"-Label (das ist jetzt der miniLabel). */}
+            <div className="flex flex-col items-end justify-center hidden sm:flex w-[130px] relative h-full">
+              {data.timeLabel && (
+                <>
+                  <span className={`${CARD.miniLabel} right-0`}>{t("hunter.common.lastContact")}</span>
+                  <span className={CARD.timeMain}>{data.timeLabel}</span>
+                </>
+              )}
               {data.timeSubLabel && <div className={CARD.timeSub}>{data.timeSubLabel}</div>}
             </div>
             <div className="flex items-center gap-2 relative justify-end">

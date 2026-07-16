@@ -157,7 +157,6 @@
       "stage": "STAGE",
       "heat": "HEAT",
       "lastContact": "LAST",
-      "lastContactSub": "Last contact",
       "status": "Status",
       "confidence": "Confidence {{n}}%",
       "regenerate": "Neu generieren",

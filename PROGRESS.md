@@ -15,7 +15,7 @@
 
 ▶ **1.** [ ] **[BAU+DESIGN] Kontakte & Companies — Slices K-1 bis K-6**
   (`docs/kontakte_companies_bauplan_v1.md`; Designs ScreenKontakte/ScreenCompanies
-  vorhanden — Abgleich nach Dauerregel 4c) · **erledigt: K-1a · K-1a2 · K-1b · K-2 · ▶ K-3**
+  vorhanden — Abgleich nach Dauerregel 4c) · **erledigt: K-1a · K-1a2 · K-1b · K-2 · K-2b · ▶ K-3**
   - [x] **K-1a Test-Fundament ZUERST** — vitest eingerichtet (Config in `vite.config.ts`,
         Smoke-Test `src/lib/heatUtils.test.ts` 3/3 grün, npm-Scripts `test`/`test:watch`).
         Commit `3e6ad8b`, gemerged `81d0d33`. **Voraussetzung für [AUTO]-Tests in ALLEN
@@ -75,6 +75,20 @@
         **DB-Anwendung** (`query.or(compiled)` an getContacts) + `%`/`_`-Wildcard-Verifikation =
         **K-3** (Live-DB). **Migration 056 gepusht** + `database.types.ts` im Repo → die 60
         DB-Rohzeilen-`any` werden mit **K-3** (echte Listen-/Kontakt-Verdrahtung) ersetzt.
+  - [x] **K-2b Profilzeile vereinheitlichen (Retrofit, vor K-3)** — Branch `feat/k2b-profilzeile`,
+        beide Gate-Agents PASS. Alle Meta-Spalten (STATUS·HEAT·SUBSCRIPTION·**ZEIT**) identisch
+        Label-über-Wert (`CARD.miniLabel` oben, Wert darunter; Zeit-Label **„ZULETZT"**; NULL→ausblenden).
+        HunterCard-Zeit-Spalte auf den geteilten Slot umgestellt (`timeMain`/`timeSub`-Eigenbau aufgelöst;
+        `timeSubLabel` bleibt nur ECHTER Kontext Urgency/Stagnation, nicht Zweit-Label). **3 lokale
+        `daysSince`-Kopien** (NewInPipeline/Stagniert/KeineTask) + Inline-Berechnung (ScreenHunting,
+        `contactToColdPerson`) → zentrales **`daysSinceIso`**. LeadListRow-Labels visuell angeglichen
+        (STATUS/HEAT/ZEIT alle `CARD.miniLabel`). Verwaister i18n-Key `lastContactSub` entfernt.
+        **Maschinell erzwungen:** `audit.ts` Checks „keine daysSince-Kopie" (FAIL) + „nur über
+        HunterCard" (FAIL, Allowlist HunterCard+LeadListRow). Kanon in CLAUDE.md + design-system.md.
+        **OFFEN (Folge-Slice):** LeadListRow **strukturell** in HunterCard auflösen — HunterCard braucht
+        dafür einen **kontrollierten Expand-Modus** (`isExpanded`/`onToggleExpand`, betrifft alle
+        Consumer); bewusst nicht erzwungen (Escape-Hatch). Farmer-Datenquellen-Diagnose → **[D21-Farmer]**.
+        ⚠ **Screenshot-QA blockiert** (App hinter Login, keine Credentials) — visuelle Sicht durch Oliver.
   - [ ] K-3 Kontakte-Screen (4c: Design-Abgleich ScreenKontakte zuerst)
         — **▶ nächster offener Schritt.** Enthält: Filter-Lib DB-seitig an `getContacts` hängen +
         `%`/`_`-ilike-Verifikation · TanStack Table (siehe K-3-Doku-Nachtrag) · user-scoped
@@ -498,6 +512,25 @@ Agent-Gates-Kurzfassung):
   ein **Mapping / `profiles`-Tabelle / FK** (ist `users.id` == `auth.uid()` oder ein separates Feld)?
 - **Warum „bald":** Je weiter wir bauen, desto mehr Stellen sammeln **NULL-Autoren** an, die später nachgezogen
   werden müssten — und das **Aktivitäts-Log** ist ohne diese Verknüpfung gar nicht baubar.
+
+#### [D21-Farmer] Farmer-Datenquellen-Diagnose (Stand 2026-07-16, aus K-2b) — Feld für Feld
+> Live-Pfad: `FarmerReference` → `getContacts(status='kunde')` → **`customerRowToView`**. Ergebnis:
+> **kein Mock-Leak** — jedes angezeigte Feld ist entweder ECHT (DB) oder ehrlich leer/„Folgt". Zu tun:
+> - **ECHT (DB, verdrahtet):** Identität (`contactToProfile`) · ICP (`icp_score`) · Heat (`heat_status`,
+>   Fallback DEAD) · E-Mail · **Zeit „ZULETZT" = `last_contacted_at`** (via `lastContactedLabel`) ·
+>   Subscription Status/Plan (`companies.subscription_status`/`subscription_plan`) · MRR (`companies.mrr_monthly`) ·
+>   Churn/Upsell/Health-Score + Driver (`contacts.*`, **NULL bis Score-Funktionen laufen** → „—"/ausgeblendet).
+> - **⚠ NAMING-SCHULD:** `Customer.lastLogin` heißt irreführend „lastLogin", enthält aber **`last_contacted_at`**
+>   (nicht Produkt-Login). Umbenennen (`lastContactedLabel`/`lastContactedAt`) — reine Klarheit, kein Verhalten.
+>   FarmerSidepanel hat das bereits erkannt (Usage-Box entfernt „lastLogin", Z.335).
+> - **EHRLICH LEER / „Folgt" (kein Fake, korrekt):** Kurzakte `""` (**[D5]** AI) · Timelines/EngagementChain/
+>   Touchpoints `[]` · **Sherloq-Usage** (profilesAdded/enrichments/messages/posts) → `UsageBox` leer **[D49]**
+>   (keine DB-Quelle) · **NRR**-KPI → „Folgt" (**[D43]** Historisierung) · signalsCount `0`, pipelineStage
+>   `"pipeline"` (Konstante, im Farmer ungenutzt).
+> - **Score-Compute offen:** `churn_score`/`upsell_score`/`health_score` sind DB-Spalten (Migr. 048), aber die
+>   **Edge-Funktionen laufen noch nicht produktiv je Org** → aktuell NULL. Aktivierung = eigener Schritt (Next-Liste).
+> **Fazit:** nichts sofort zu fixen (alles honest); offene Anschlüsse sind die bereits vergebenen Marker
+> [D5]/[D43]/[D48]/[D49] + die `lastLogin`-Umbenennung. K-2b hat die Zeit-Spalte selbst vereinheitlicht.
 
 ### [D1] Lifecycle-Status — Automatik · Zielphase: Automation / Edge Functions
 - **Status heute:** Reine **Anzeige**. `LeadListRow` mappt `contacts.contact_status`
