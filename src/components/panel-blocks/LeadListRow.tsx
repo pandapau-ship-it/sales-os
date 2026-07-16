@@ -13,6 +13,7 @@ import Avatar from "@/components/shared/Avatar";
 import { ICPDonut } from "@/components/shared/ICPDonut";
 import { useNowMs } from "@/hooks/useNowMs";
 import { daysSinceIso } from "@/lib/hunterMappers";
+import { CARD } from "@/lib/componentBehavior";
 import HeatBadge from './HeatBadge';
 import StageBadge from './StageBadge';
 import { type DealCardAction } from './DealKurzinfo';
@@ -98,11 +99,11 @@ export default function LeadListRow({
         {/* Middle Stats (Simplified) */}
         <div className="hidden lg:flex items-center gap-4 px-4 border-l border-[var(--border-subtle)] shrink-0">
           <div className="flex flex-col items-center justify-center w-[80px] relative h-full">
-            <span className="absolute -top-[14px] typo-field-label text-[var(--icon-muted)]">{t('hunter.leadCard.statusLabel')}</span>
+            <span className={CARD.miniLabel}>{t('hunter.leadCard.statusLabel')}</span>
             {lead.contactStatusLabel && <StageBadge stage={lead.contactStatusLabel} />}
           </div>
           <div className="flex flex-col items-center justify-center w-[120px] relative h-full">
-            <span className="absolute -top-[14px] typo-field-label text-[var(--icon-muted)]">{t('hunter.common.heat')}</span>
+            <span className={CARD.miniLabel}>{t('hunter.common.heat')}</span>
             <HeatBadge status={lead.heatStatus} />
           </div>
         </div>
@@ -112,11 +113,12 @@ export default function LeadListRow({
           {/* Zeit-Spalte: Wrapper bleibt als unsichtbarer Platzhalter (kein Layout-Sprung);
               bei last_contacted_at=NULL wird nichts gerendert (kein „—"). */}
           <div className="flex flex-col items-end justify-center hidden sm:flex w-[130px] relative h-full">
-            {/* „vor 0 Tagen" wird unterdrückt — erst ab 1 Tag. Überschrift wie STATUS/HEAT. */}
+            {/* „vor 0 Tagen" wird unterdrückt — erst ab 1 Tag. Label-über-Wert IDENTISCH zu
+                STATUS/HEAT (CARD.miniLabel, K-2b). Strukturelle Auflösung in HunterCard = Folge-Slice. */}
             {lastContactedDays !== null && lastContactedDays >= 1 && (
               <>
-                <span className="absolute -top-[14px] right-0 typo-field-label text-[var(--icon-muted)]">{t('hunter.common.lastContact')}</span>
-                <span className="typo-field-value text-[var(--text-primary)] whitespace-nowrap">
+                <span className={`${CARD.miniLabel} right-0`}>{t('hunter.common.lastContact')}</span>
+                <span className={CARD.timeMain}>
                   {t('hunter.common.ago', { label: t('hunter.common.daysAgo', { count: lastContactedDays }) })}
                 </span>
               </>

@@ -4,16 +4,8 @@ import HunterCard, { type HunterCardData } from './HunterCard';
 import EmptyState from '@/components/shared/EmptyState';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { ACTION_ROW } from '@/lib/componentBehavior';
-import type { NewPipelineCardItem, NewPipelinePeriod } from '@/lib/hunterMappers';
+import { daysSinceIso, type NewPipelineCardItem, type NewPipelinePeriod } from '@/lib/hunterMappers';
 import type { Lead } from '@/types';
-
-/** Ganze Tage seit `iso` (>= 0). Kein Datum → null → „vor X Tagen" bleibt unsichtbar. */
-function daysSince(iso: string | null): number | null {
-  if (!iso) return null;
-  const ms = Date.now() - new Date(iso).getTime();
-  if (Number.isNaN(ms)) return null;
-  return Math.max(0, Math.floor(ms / 86_400_000));
-}
 
 /**
  * NewInPipelineCards — Hunter → „Neu in Pipeline". Datengetrieben: frisch angelegte
@@ -91,7 +83,7 @@ export default function NewInPipelineCards({
         ) : list.map((it) => {
           // „vor X Tagen" = echter letzter Kontakt (contacts.last_contacted_at), NICHT deal.created_at.
           // NULL oder 0 Tage → kein Zeit-Block (Honesty: kein Fake, kein „vor 0 Tagen").
-          const days = daysSince(it.lastContactedAt);
+          const days = daysSinceIso(it.lastContactedAt);
           const hasLastContact = days != null && days >= 1;
           const data: HunterCardData = {
             id: it.id,
@@ -102,7 +94,7 @@ export default function NewInPipelineCards({
             stageLabel: it.stage ?? '', // kein aktiver Deal → keine Stage
             heatStatus: it.heatStatus, // echtes Heat; undefined → kein Badge
             timeLabel: hasLastContact ? t('hunter.common.ago', { label: t('hunter.common.daysAgo', { count: days }) }) : '',
-            timeSubLabel: hasLastContact ? <span className="text-text-muted font-semibold">{t('hunter.common.lastContactSub')}</span> : undefined,
+            // „Letzter Kontakt"-Label ist jetzt der miniLabel „ZULETZT" in HunterCard (K-2b) — kein Zweit-Label mehr.
           };
 
           // Echte Deal-Infos für die Mitte — nur vorhandene Teile (Honesty: kein „—", keine 0).

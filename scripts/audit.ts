@@ -687,6 +687,34 @@ function checkEdgeFnTimeout(): void {
 }
 checkEdgeFnTimeout()
 
+// ── Profilzeile: Single Source (K-2b) ──────────────────────────────────────
+// CLAUDE.md Z.588-590: die Profilzeile (Avatar·Name·ICP·Company·Stage·Heat·ZULETZT) wird
+// AUSSCHLIESSLICH über HunterCard gerendert; die Zeit-Logik läuft zentral über daysSinceIso.
+// Der auditor prüft nur Slice-Diffs — diese Regel greift projektweit, damit die 2026-07-16
+// diagnostizierte Divergenz (3 Zeit-Varianten + 3 daysSince-Kopien) nicht zurückkehrt.
+function checkProfileRowSingleSource(): void {
+  const files = walk(join(SRC, 'components'), ['.tsx'])
+
+  // 1) Keine lokale daysSince-Kopie — Zeit-Tage kommen aus hunterMappers.daysSinceIso.
+  const daysDup = files.filter((f) => /(?:function|const)\s+daysSince\b/.test(read(f))).map(rel)
+  add('Profilzeile: keine daysSince-Kopie', daysDup.length ? 'FAIL' : 'PASS',
+    daysDup.length
+      ? `Lokale daysSince-Definition — daysSinceIso aus @/lib/hunterMappers nutzen: ${daysDup.join(', ')}`
+      : 'Zeit-Logik zentral (daysSinceIso).')
+
+  // 2) Profilzeilen-Meta-Spalten nur über HunterCard: die Top-Row-Tokens (CARD.miniLabel/
+  //    CARD.topRow) dürfen NUR in HunterCard stehen. LeadListRow ist die bekannte, dokumentierte
+  //    Alt-Zweitimplementierung (strukturelle Auflösung = K-2b-Folge-Slice) → befristet erlaubt.
+  const ALLOW = ['HunterCard.tsx', 'LeadListRow.tsx']
+  const topRow = /CARD\.(miniLabel|topRow)\b/
+  const offenders = files.filter((f) => !ALLOW.includes(basename(f)) && topRow.test(read(f))).map(rel)
+  add('Profilzeile: nur über HunterCard', offenders.length ? 'FAIL' : 'PASS',
+    offenders.length
+      ? `Eigene Profilzeilen-Spalten (CARD.miniLabel/topRow) statt HunterCard: ${offenders.join(', ')}`
+      : 'Profilzeile ausschließlich über HunterCard (LeadListRow-Auflösung offen, K-2b-Folge).')
+}
+checkProfileRowSingleSource()
+
 // ── Report ───────────────────────────────────────────────────────────────────
 
 const icon: Record<Status, string> = { PASS: '✓', WARN: '!', FAIL: '✗', SKIP: '·' }

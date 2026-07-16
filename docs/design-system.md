@@ -382,6 +382,29 @@ function AccentCard({ type = 'ai', label, value }) {
 
 ---
 
+## Profilzeile — Meta-Spalten (Kachel-Top-Row, kanonisch K-2b)
+
+Die Profilzeile jeder Kachel (Avatar · Name · Jobtitel · ICP · Company · **STATUS · HEAT ·
+SUBSCRIPTION · ZEIT** · Pfeil) wird **ausschließlich über `HunterCard`** gerendert (CLAUDE.md
+„Visuelle Konsistenz"). Alle Meta-Spalten sind **identisch aufgebaut**:
+
+- **`CARD.miniLabel` klein OBEN, Wert darunter** — gilt gleichermaßen für STATUS, HEAT,
+  SUBSCRIPTION **und ZEIT**. Kein Wert-oben/Label-unten, kein fehlendes Label.
+- **Zeit-Spalte:** Label **„ZULETZT"** (`hunter.common.lastContact`), Wert = `daysSinceIso(last_contacted_at)`
+  → „vor X Tagen" (zentrale Quelle `lib/hunterMappers`, keine lokalen `daysSince`-Kopien).
+- **Optionaler Kontext** (Signal-Urgency „Xh left", Stagnation „XT in Stage") = Sekundärzeile
+  (`timeSubLabel`) UNTER dem Wert. Kein zweites „Letzter Kontakt"-Label; ein Kanal-Suffix
+  („· Email") gehört an den **Wert**.
+- **Leerer Zustand:** fehlt der Wert (NULL `last_contacted_at`, kein Status/Heat) → **Spalte
+  unsichtbar** (Honesty), nie „—"/0/Fake.
+
+**Maschinell erzwungen** (`npm run audit`): „Profilzeile: keine daysSince-Kopie" (FAIL) und
+„Profilzeile: nur über HunterCard" (FAIL bei `CARD.miniLabel`/`CARD.topRow` außerhalb HunterCard).
+`LeadListRow` ist die bekannte Alt-Zweitimplementierung (befristet erlaubt; strukturelle Auflösung
+in HunterCard = K-2b-Folge-Slice).
+
+---
+
 ## Known Limitations
 
 - Dark mode colors (shade 7) are set but dark mode has not been fully QA'd. Test all semantic tokens in dark mode before shipping.

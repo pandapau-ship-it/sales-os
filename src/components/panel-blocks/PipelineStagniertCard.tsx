@@ -2,13 +2,7 @@ import { AlertTriangle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import HunterCard, { type HunterCardData } from './HunterCard';
 import { ACTION_ROW } from '@/lib/componentBehavior';
-import type { StagnatedCardItem } from '@/lib/hunterMappers';
-
-/** Ganze Tage seit `iso` (>= 0). Kein Datum → null. */
-function daysSince(iso: string | null): number | null {
-  if (!iso) return null;
-  return Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000));
-}
+import { daysSinceIso, type StagnatedCardItem } from '@/lib/hunterMappers';
 
 /**
  * PipelineStagniertCard — Pipeline-Task-Liste „stagnierende Deals". Prop-getrieben (echte
@@ -30,7 +24,7 @@ export const PipelineStagniertCard = ({ items, onNextStep, onSelectLead }: {
       {items.map((it) => {
         // Profilzeile-Zeit IMMER aus contacts.last_contacted_at („vor X Tagen"), NICHT stagnationDays.
         // Die Stagnations-Tage stehen im Action-Streifen (stagnatedSince). „vor 0 Tagen"/NULL → unsichtbar.
-        const days = daysSince(it.lastContactedAt);
+        const days = daysSinceIso(it.lastContactedAt);
         const hasLastContact = days != null && days >= 1;
         const data: HunterCardData = {
           id: it.dealId,

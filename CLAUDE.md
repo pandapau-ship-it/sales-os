@@ -587,14 +587,24 @@ Wird dieselbe Komponente an mehreren Stellen verwendet, muss sie **überall iden
 
 - **Profilzeile (Zeile 1) — gilt für ALLE Kacheln** (Avatar · Name · Jobtitel · ICP-Ring · Company ·
   Stage wenn vorhanden · Heat · „vor X Tagen" · Pfeil), gerendert ausschließlich über `HunterCard`:
-  - **Zeitformat:** immer `daysSince(last_contacted_at)` → **„vor X Tagen"**. **Nie** „Xd", **nie** „Xh".
+  - **Zeitformat:** immer `daysSinceIso(last_contacted_at)` (`lib/hunterMappers`, EINZIGE Quelle —
+    **keine lokalen `daysSince`-Kopien**) → **„vor X Tagen"**. **Nie** „Xd", **nie** „Xh".
   - **Quelle:** immer `contacts.last_contacted_at` — nie `deal.created_at`, nie `signal.created_at`.
   - **Hardcodierte Labels** (wie „Zeitkritisch") sind **verboten** — interne Scores/Bewertungen nie anzeigen.
   - **NULL `last_contacted_at`** (oder „vor 0 Tagen") → Zeit **ausblenden** (Honesty).
+  - **META-SPALTEN EINHEITLICH (K-2b, kanonisch):** STATUS · HEAT · SUBSCRIPTION · **ZEIT** werden
+    ALLE identisch dargestellt: **`CARD.miniLabel` klein OBEN, Wert darunter** (kein Wert-oben/Label-unten,
+    kein fehlendes Label). Label der Zeit-Spalte: **„ZULETZT"** (`hunter.common.lastContact`). Ein
+    optionaler ECHTER Kontext (Signal-Urgency „Xh left", Stagnation „XT in Stage") darf als
+    Sekundärzeile (`timeSubLabel`) unter dem Wert stehen — **nicht** als zweites „Letzter Kontakt"-Label,
+    und ein Kanal-Suffix („· Email") gehört an den **Wert**, nicht als Label. NULL → Spalte unsichtbar.
 - **Action-Streifen (Zeile 2)** — der **einzige** Ort für kachel-spezifische Unterschiede
   (z. B. „PIPELINE STAGNIERT · seit Xt", „KEINE TASK · …", „LINKEDIN SIGNAL · …").
 - **Erzwungen** (`npm run audit`): „Profilzeile: kein Kurz-Zeitformat" (WARN bei „Xd"/„Xh" in
-  panel-blocks) · „Design: keine internen Bewertungs-Labels" (**FAIL** bei „Zeitkritisch" o. ä. im Code).
+  panel-blocks) · „Design: keine internen Bewertungs-Labels" (**FAIL** bei „Zeitkritisch" o. ä. im Code) ·
+  **„Profilzeile: keine daysSince-Kopie" (FAIL)** · **„Profilzeile: nur über HunterCard" (FAIL** bei
+  eigenen Top-Row-Tokens `CARD.miniLabel`/`CARD.topRow` außerhalb `HunterCard`; `LeadListRow` ist die
+  bekannte, befristet erlaubte Alt-Zweitimplementierung — strukturelle Auflösung = K-2b-Folge-Slice).
 
 **Border-Hierarchie — was einen Rand bekommt, was nicht:**
 | Element | Border | Warum |

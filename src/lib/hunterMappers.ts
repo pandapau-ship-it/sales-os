@@ -739,9 +739,7 @@ export interface ColdPersonData {
 /** Kalter Kontakt → ColdPersonData. AI-Felder = ehrliche Platzhalter ([D5]). */
 export function contactToColdPerson(contact: Record<string, any>): ColdPersonData {
   const p = contactToProfile(contact);
-  const lc = contact?.last_contacted_at
-    ? Math.max(0, Math.floor((Date.now() - new Date(contact.last_contacted_at).getTime()) / 86_400_000))
-    : null;
+  const lc = daysSinceIso(contact?.last_contacted_at); // zentrale Zeit-Logik (kein Inline-Date.now)
   return {
     name: p.name,
     company: p.company,
