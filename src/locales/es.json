@@ -791,7 +791,7 @@
     },
     "kpi": {
       "arr": "ARR",
-      "contacts": "Kontrollierte Kontakte",
+      "contacts": "Zugeordnete Kontakte",
       "lastContact": "Letzter Kontakt",
       "openDeals": "Offene Deals"
     },

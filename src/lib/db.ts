@@ -235,7 +235,9 @@ export async function getCompanies(
   if (!client) return [];
   let q = client
     .from("companies")
-    .select(`*, contacts(id, contact_status, last_contacted_at), deals(id, stage, closed_at, deleted_at)`)
+    // contacts hat ZWEI FKs auf companies (company_id + primary_company_id) → Embed MUSS
+    // den FK explizit hinten (`!company_id`), sonst PostgREST-Fehler „more than one relationship".
+    .select(`*, contacts!company_id(id, contact_status, last_contacted_at), deals(id, stage, closed_at, deleted_at)`)
     .eq("organization_id", organizationId);
   if (filters.cursor) q = q.lt("created_at", filters.cursor);
   const { data, error } = await q
@@ -254,7 +256,9 @@ export async function getCompanyDetail(
   if (!client) return null;
   const { data, error } = await client
     .from("companies")
-    .select(`*, contacts(id, contact_status, last_contacted_at), deals(id, stage, closed_at, deleted_at)`)
+    // contacts hat ZWEI FKs auf companies (company_id + primary_company_id) → Embed MUSS
+    // den FK explizit hinten (`!company_id`), sonst PostgREST-Fehler „more than one relationship".
+    .select(`*, contacts!company_id(id, contact_status, last_contacted_at), deals(id, stage, closed_at, deleted_at)`)
     .eq("organization_id", organizationId)
     .eq("id", companyId)
     .maybeSingle();
