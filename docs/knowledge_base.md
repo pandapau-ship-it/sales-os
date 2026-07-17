@@ -437,3 +437,11 @@
 - **value:** Wiederkehrende Kontaktgruppen einmal definieren und immer griffbereit haben — feste Kuratierung per Hand oder selbstpflegende Segmente per Filter, ohne manuelle Nachpflege. Grundlage für spätere gezielte Kampagnen.
 - **module:** core_crm
 - *(K-3b, 2026-07-17)*
+
+### Companies-Screen (Firmen-Datenbank, K-4a)
+- **feature:** Companies-Screen
+- **what:** Eine durchsuchbare, sortier- und filterbare Tabelle aller Firmen — auf demselben Tabellen-Standard wie die Kontakte (Spalten frei ein-/ausblenden, per Drag umsortieren, Breite ziehen, pro Nutzer gemerkt). Jede Zeile zeigt einen automatisch abgeleiteten Firmen-Status (Kunde · Gekündigt · Trial · Pipeline · In Campaign · Ohne Kontakt · Neu) samt Kontaktanzahl, letztem Kontakt und ARR — und springt per Klick genau in den Bereich, wo die Firma gerade bearbeitet wird (Hunter/Farmer), aber nur zu Bereichen, die es schon gibt. Filtern nach Branche, Größe und Land; eine Lagebild-Zahl „ohne zugeordneten Kontakt" erscheint nur, wenn es solche Firmen wirklich gibt. Klick auf eine Firma öffnet die volle Detailseite (Kopf + Kennzahlen; die Tabs Kontakte/Deals/Aktivität/Notizen folgen im nächsten Schritt).
+- **how:** Sidebar → Companies; oben nach Branche/Größe/Land filtern oder suchen, Spalten über das Zahnrad anpassen, Pfeil öffnet die Firmen-Detailseite.
+- **value:** Alle Firmen an einem Ort mit sofort erkennbarem Status und Umsatz — auf einen Blick sehen, welche Kunden, welche in der Pipeline und welche ohne Ansprechpartner sind, gezielt filtern und mit einem Klick genau dort weiterarbeiten, wo die Firma hingehört.
+- **module:** core_crm
+- *(K-4a, 2026-07-17)*

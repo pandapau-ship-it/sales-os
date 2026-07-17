@@ -440,6 +440,8 @@ function checkTypographyTokens(): void {
     'FarmerActionDrawer', 'farmerActions',
     // Aufgeklappte Kachel — geteilter Platzhalter + Farmer-Expand
     'KiKurzaktePlaceholder', 'FarmerExpandedCardContent',
+    // K-4a Companies-Anlege-Panel
+    'CompanyAnlegenPanel',
   ])
   // panel-blocks/ + features/ + farming/ (Farmer-Hilfskomponenten).
   const files = [

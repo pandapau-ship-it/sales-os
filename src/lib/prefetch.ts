@@ -15,6 +15,7 @@ import {
   getDealsByContact,
   getNotesByContact,
   getContactCommunications,
+  getCompanyDetail,
 } from "@/lib/db";
 
 /**
@@ -59,5 +60,23 @@ export function prefetchContactPanel(
     queryKey: ['communications', organizationId, contactId],
     queryFn: () => getContactCommunications(organizationId, contactId),
     staleTime,
+  });
+}
+
+/**
+ * Lädt den Kern einer Company-Detailseite vor (Kopf + KPIs). Nutzt denselben queryKey
+ * wie ScreenCompanyDetail (K-4b) → kein Doppel-Fetch. Verdrahtet in ScreenCompanies über
+ * `useHoverPrefetch` (Regel C), damit die Detailseite beim Klick oft schon Daten hat.
+ */
+export function prefetchCompanyPanel(
+  queryClient: QueryClient,
+  organizationId: string,
+  companyId: string,
+): void {
+  if (!organizationId || !companyId) return;
+  queryClient.prefetchQuery({
+    queryKey: ['companyDetail', organizationId, companyId],
+    queryFn: () => getCompanyDetail(organizationId, companyId),
+    staleTime: 30_000,
   });
 }

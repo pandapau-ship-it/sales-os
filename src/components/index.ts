@@ -40,6 +40,9 @@ export type { FarmerTab } from './features/farmer/FarmerSidepanel';
 export { default as FarmerActionDrawer } from './features/farmer/FarmerActionDrawer';
 export type { FarmerActionData, FarmerSignalKind, FarmerActionType } from './features/farmer/FarmerActionDrawer';
 
+// ── features/companies/ ─────────────────────────────────────────────────────
+export { default as CompanyAnlegenPanel } from './features/companies/CompanyAnlegenPanel';
+
 // ── features/kontakte/ ──────────────────────────────────────────────────────
 export { default as KontaktAnlegenPanel } from './features/kontakte/KontaktAnlegenPanel';
 export { default as ZuListeDialog } from './features/kontakte/ZuListeDialog';

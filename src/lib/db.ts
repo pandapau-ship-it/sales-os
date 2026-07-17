@@ -52,6 +52,7 @@ import { createClient } from "@supabase/supabase-js";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Deal, Signal, PipelineStage, SignalWindow } from "@/types/hunter";
 import type { ContactRow, DealRow, CommunicationRow, TaskRow, DueTaskRow, NoteRow } from "@/types/rows";
+import type { CompanyListRaw } from "@/lib/companiesMappers";
 import { compileToPostgrest, type FilterDefinition } from "@/lib/filter";
 
 // ── Supabase Client — EINZIGER Init-Punkt im gesamten Projekt ────────────────
@@ -214,6 +215,79 @@ export async function getContacts(
     .limit(filters.limit ?? 50);
   if (error) throw error;
   return (data ?? []) as unknown as ContactRow[];
+}
+
+export interface CompanyFilters {
+  limit?: number;
+  cursor?: string; // created_at des letzten Eintrags (Keyset)
+}
+
+/**
+ * getCompanies — Companies-Liste (K-4a). Embed: contacts (Aggregat für Anzahl/letzter Kontakt/
+ * In-Campaign-Erkennung) + deals (offene-Deals-Aggregat + Pipeline-Erkennung). RLS greift auf
+ * die eingebetteten Tabellen mit. Ohne konfigurierte Supabase-Env → leeres Ergebnis.
+ */
+export async function getCompanies(
+  organizationId: string,
+  filters: CompanyFilters = {},
+): Promise<CompanyListRaw[]> {
+  const client = getSupabaseClient();
+  if (!client) return [];
+  let q = client
+    .from("companies")
+    // contacts hat ZWEI FKs auf companies (company_id + primary_company_id) → Embed MUSS
+    // den FK explizit hinten (`!company_id`), sonst PostgREST-Fehler „more than one relationship".
+    .select(`*, contacts!company_id(id, contact_status, last_contacted_at), deals(id, stage, closed_at, deleted_at)`)
+    .eq("organization_id", organizationId);
+  if (filters.cursor) q = q.lt("created_at", filters.cursor);
+  const { data, error } = await q
+    .order("created_at", { ascending: false })
+    .limit(filters.limit ?? 50);
+  if (error) throw error;
+  return (data ?? []) as unknown as CompanyListRaw[];
+}
+
+/** getCompanyDetail — eine Company inkl. Aggregat-Embeds (Kopf/KPIs der Detailseite + Prefetch, K-4b). */
+export async function getCompanyDetail(
+  organizationId: string,
+  companyId: string,
+): Promise<CompanyListRaw | null> {
+  const client = getSupabaseClient();
+  if (!client) return null;
+  const { data, error } = await client
+    .from("companies")
+    // contacts hat ZWEI FKs auf companies (company_id + primary_company_id) → Embed MUSS
+    // den FK explizit hinten (`!company_id`), sonst PostgREST-Fehler „more than one relationship".
+    .select(`*, contacts!company_id(id, contact_status, last_contacted_at), deals(id, stage, closed_at, deleted_at)`)
+    .eq("organization_id", organizationId)
+    .eq("id", companyId)
+    .maybeSingle();
+  if (error) throw error;
+  return (data as unknown as CompanyListRaw) ?? null;
+}
+
+export interface NewCompanyInput {
+  name: string;
+  domain?: string;
+  industry?: string;
+  size_range?: string;
+}
+
+/** createCompany — neue Firma anlegen (K-4a Basis-Felder). Leere Felder werden weggelassen. */
+export async function createCompany(
+  organizationId: string,
+  input: NewCompanyInput,
+): Promise<{ id: string } | null> {
+  const client = getSupabaseClient();
+  if (!client) return null;
+  const clean = Object.fromEntries(Object.entries(input).filter(([, v]) => v != null && v !== ""));
+  const { data, error } = await client
+    .from("companies")
+    .insert({ organization_id: organizationId, ...clean })
+    .select("id")
+    .single();
+  if (error) throw error;
+  return { id: (data as { id: string }).id };
 }
 
 export interface DealFilters {

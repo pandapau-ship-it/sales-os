@@ -719,5 +719,103 @@
     "loadError": "Konnte gerade nicht geladen werden",
     "loadErrorDesc": "Bitte erneut versuchen.",
     "reload": "Nochmal laden"
+  },
+  "companies": {
+    "title": "Companies",
+    "entity": "Company",
+    "filter": "Filter",
+    "filterIndustry": "Branche",
+    "filterSize": "Größe",
+    "filterCountry": "Land",
+    "resetFilters": "Filter zurücksetzen",
+    "noHits": "Keine Treffer",
+    "noHitsDesc": "Keine Companies passen zu diesem Filter.",
+    "emptyTitle": "Noch keine Companies",
+    "emptyDesc": "Sobald Companies angelegt oder importiert werden, erscheinen sie hier.",
+    "contactsCount_one": "{{count}} Kontakt",
+    "contactsCount_other": "{{count}} Kontakte",
+    "dealsCount_one": "{{count}} offener Deal",
+    "dealsCount_other": "{{count}} offene Deals",
+    "daysAgo_one": "vor {{count}} Tag",
+    "daysAgo_other": "vor {{count}} Tagen",
+    "lagebild": {
+      "noContact": "ohne zugeordneten Kontakt"
+    },
+    "status": {
+      "kunde": "Kunde",
+      "churned": "Gekündigt",
+      "trial": "Trial",
+      "pipeline": "Pipeline",
+      "in_campaign": "In Campaign",
+      "ohne_kontakt": "Ohne Kontakt",
+      "neu": "Neu"
+    },
+    "subscription": {
+      "active": "Aktiv",
+      "churned": "Gekündigt",
+      "trial": "Trial"
+    },
+    "col": {
+      "name": "Company",
+      "status": "Status",
+      "contactCount": "Kontakte",
+      "lastContactAt": "Zuletzt",
+      "arr": "ARR",
+      "routing": "Bearbeitung",
+      "industry": "Branche",
+      "sizeRange": "Größe",
+      "location": "Ort",
+      "domain": "Domain",
+      "website": "Website",
+      "linkedinUrl": "LinkedIn",
+      "subscriptionPlan": "Plan",
+      "subscriptionStatus": "Subscription",
+      "mrr": "MRR",
+      "annualRevenue": "Jahresumsatz",
+      "openDealsCount": "Offene Deals",
+      "techStack": "Tech Stack",
+      "tags": "Tags",
+      "crmId": "CRM ID",
+      "createdAt": "Erstellt am"
+    },
+    "bulk": {
+      "selected_one": "{{count}} ausgewählt",
+      "selected_other": "{{count}} ausgewählt",
+      "selectAll": "Alle {{count}} auswählen",
+      "clear": "Auswahl aufheben",
+      "tag": "Tag",
+      "tagFull": "Tag setzen",
+      "export": "Export",
+      "exportFull": "Exportieren",
+      "actionToast": "{{label}} · {{count}} Companies"
+    },
+    "kpi": {
+      "arr": "ARR",
+      "contacts": "Zugeordnete Kontakte",
+      "lastContact": "Letzter Kontakt",
+      "openDeals": "Offene Deals"
+    },
+    "detail": {
+      "back": "Zurück zu Companies",
+      "notFound": "Company nicht gefunden",
+      "notFoundDesc": "Diese Company existiert nicht oder wurde entfernt.",
+      "tabsSoonTitle": "Detailansicht folgt",
+      "tabsSoonDesc": "Kontakte, Deals, Aktivität und Notizen dieser Company werden im nächsten Schritt (K-4b) verdrahtet."
+    },
+    "addCompany": "+ Company hinzufügen",
+    "create": {
+      "title": "Neue Company anlegen",
+      "name": "Name",
+      "namePh": "z. B. Acme Corp",
+      "domain": "Domain",
+      "domainPh": "z. B. acme.com",
+      "industry": "Branche",
+      "industryPh": "Branche wählen",
+      "size": "Größe",
+      "sizePh": "Größe wählen",
+      "submit": "Company anlegen",
+      "savedToast": "„{{name}}\" angelegt",
+      "errorToast": "Konnte gerade nicht angelegt werden"
+    }
   }
 }
