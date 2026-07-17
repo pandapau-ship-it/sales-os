@@ -88,15 +88,22 @@
         **OFFEN → eigener Folge-Punkt „K-FS1" unten.** Farmer-Datenquellen-Diagnose → **[D21-Farmer]**.
         Naming-Schuld erledigt: `Customer.lastLogin` → `lastContactedAt` (Name log nicht mehr).
         ⚠ **Screenshot-QA blockiert** (App hinter Login, keine Credentials) — visuelle Sicht durch Oliver.
-  - [ ] **K-FS1 — HunterCard controlled-expand + LeadListRow-Dedup (Folge-Slice, NICHT isoliert)**
-        Warum: `LeadListRow` ist eine Zweitimplementierung der Profilzeilen-Top-Row (CLAUDE.md Z.588-590
+  - [ ] **K-FS1 — Hunter-Umbau-Folge-Slice (gebündelt, NICHT isoliert): (a) HunterCard controlled-expand +
+        LeadListRow-Dedup · (b) Pipeline-Listenansicht auf K-3-Tabellen-Kanon**
+        **(a)** `LeadListRow` ist eine Zweitimplementierung der Profilzeilen-Top-Row (CLAUDE.md Z.588-590
         verlangt „ausschließlich HunterCard"). Auflösung erfordert, `HunterCard` um einen **kontrollierten
-        Expand-Modus** (`isExpanded`/`onToggleExpand` + Ganzzeilen-Klick) zu erweitern — das betrifft **alle**
-        HunterCard-Consumer, daher in K-2b bewusst deferred (Escape-Hatch). **Timing:** spätestens wenn der
-        **Hunter beim AI-SDR-Bau (Punkt 7) ohnehin angefasst** wird — **nicht** als isolierte Extra-Runde.
-        **Bis dahin:** die Audit-Allowlist-Ausnahme für `LeadListRow.tsx` (Check „Profilzeile: nur über
-        HunterCard") bleibt bestehen und ist in `scripts/audit.ts` **ausdrücklich als BEFRISTET** markiert
-        (Verweis auf diesen Punkt) → nach K-FS1 muss `LeadListRow.tsx` aus der Allowlist RAUS (FAIL greift dann dort).
+        Expand-Modus** (`isExpanded`/`onToggleExpand` + Ganzzeilen-Klick) zu erweitern — betrifft **alle**
+        HunterCard-Consumer, daher in K-2b bewusst deferred (Escape-Hatch). Audit-Allowlist-Ausnahme für
+        `LeadListRow.tsx` (Check „Profilzeile: nur über HunterCard") ist in `scripts/audit.ts` **BEFRISTET**
+        markiert → nach K-FS1 muss `LeadListRow.tsx` RAUS (FAIL greift dann dort).
+        **(b) NEU vermerkt (2026-07-17, Olivers Nachtrag):** Die **Hunter-Pipeline-Listenansicht** (Deal-Tabelle
+        Kontakt/Firma/Stage/Owner/Wert/Heat, `ScreenHunting`) ist weiterhin eine **eigene, ältere
+        Tabellen-Implementierung OHNE die K-3-Fähigkeiten** (Spalten verschieben/ein-ausblenden/Breite/
+        Persistenz via `user_preferences`, Lesbarkeits-/Panel-Kanon). Beim Hunter-Umbau auf denselben
+        Tabellen-Baustein wie `ScreenKontakte` heben (idealerweise eine geteilte Tabellen-Komponente).
+        **Warum zusammen:** (a) und (b) betreffen **denselben Bereich (Hunter-Listen/Karten)** — eine
+        gemeinsame Diagnose spart Doppelarbeit. **Timing:** spätestens wenn der **Hunter beim AI-SDR-Bau
+        (Punkt 7) ohnehin angefasst** wird — **nicht** als isolierte Extra-Runde. Kein Bau jetzt.
   - [x] **K-3 Kontakte-Screen — FERTIG (CP1–CP4).** Branch `feat/k3-kontakte`.
         **CP1** (`9bb2ac4`): `user_preferences` (Migr. 057, gepusht) + `database.types.ts` regeneriert +
         60 DB-Rohzeilen-`any` typisiert → **Gate 2 HART bei 0**. Row-Composite-Typen in `src/types/rows.ts`
