@@ -420,13 +420,16 @@ export default function ScreenKontakte() {
           <h1 className="text-[24px] font-extrabold text-text-primary">{t("kontakte.title")}</h1>
           {total > 0 && <span className="px-2 py-0.5 rounded-[7px] bg-app-bg text-text-muted text-[13px] font-semibold tabular-nums">{total.toLocaleString("de-DE")}</span>}
         </div>
-        <div className="flex items-center gap-2 relative">
-          <button type="button" aria-label={t("kontakte.columnsAdjust")} data-tip={t("kontakte.columnsAdjust")} onClick={() => setConfigOpen((o) => !o)}
-            className="w-9 h-9 rounded-[10px] border border-border flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-app-bg transition-colors cursor-pointer">
-            <SlidersHorizontal className="w-4 h-4" />
-          </button>
-          {configOpen && (
-            <div className="absolute right-0 top-11 z-20 w-64 bg-app-surface rounded-[12px] border border-[var(--border-card)] shadow-[var(--shadow-dropdown)] p-3">
+        <div className="flex items-center gap-2">
+          {/* Spalten-Konfig — Popover (Projekt-Muster wie das Listen-Dropdown): click-outside + Escape. */}
+          <Popover open={configOpen} onOpenChange={setConfigOpen}>
+            <PopoverTrigger asChild>
+              <button type="button" aria-label={t("kontakte.columnsAdjust")} data-tip={t("kontakte.columnsAdjust")}
+                className="w-9 h-9 rounded-[10px] border border-border flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-app-bg transition-colors cursor-pointer">
+                <SlidersHorizontal className="w-4 h-4" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent align="end" portal={false} className="w-64 p-3">
               <div className="flex items-center justify-between mb-2">
                 <span className="typo-section-label text-text-muted">{t("kontakte.columns")}</span>
                 <button onClick={resetColumns} data-tip={t("kontakte.resetDefaultTip")} className="text-text-muted hover:text-text-primary flex items-center gap-1 text-[11px] cursor-pointer"><RotateCcw className="w-3 h-3" /> {t("kontakte.resetDefault")}</button>
@@ -438,8 +441,8 @@ export default function ScreenKontakte() {
                 </label>
               ))}
               <p className="mt-2 pt-2 border-t border-[var(--border-card)] text-[11px] text-text-muted leading-snug">{t("kontakte.columnsHint")}</p>
-            </div>
-          )}
+            </PopoverContent>
+          </Popover>
           <button type="button" onClick={() => setAnlegenOpen(true)} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--sherloq-primary)] text-on-accent text-[13px] font-bold hover:opacity-90 transition-opacity cursor-pointer">
             <Plus className="w-4 h-4" /> {t("kontakte.addContact")}
           </button>
