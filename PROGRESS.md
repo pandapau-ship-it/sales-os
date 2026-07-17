@@ -370,6 +370,17 @@ für JEDEN UI-Slice**, auch wenn ein Design existiert.
 > Produktentscheidung, **vor** dem Bau der Automatisierung nachzuholen. **Nicht Teil von K-3.**
 > Voll dokumentiert als `#40` in `docs/entscheidungen_komplett.md`.
 
+> **Session 2026-07-17 (Tabellen-Suche — Branch `feat/table-search`, STOP für QA):**
+> Einfache, schnelle Substring-Live-Suche (kein AI — semantische Suche bleibt bewusst dem AI-Chat/RAG)
+> **zentral in der geteilten DataTable**: `useDataTable` bekommt `searchAccessor` + globalFilter +
+> `getFilteredRowModel` (Filter-Fn = `tableSearch.matchesQuery`, reiner Helfer + 5 Tests); geteiltes
+> `shared/TableSearch`-Feld (oben rechts neben den Filtern). **Kontakte:** Name/E-Mail/Firma ·
+> **Companies:** Name/Domain. Suche UND Filter kombiniert (Suche wirkt auf die bereits gefilterten
+> Daten). Leer-Zustand bei aktiver Suche → „keine Treffer". Bulk „alle auswählen" nutzt das
+> such-gefilterte Row-Model (nie unsichtbare Zeilen). Single Source → neue DataTable-Screens erben
+> die Suche durch `searchAccessor` + `<TableSearch>`. Gates + beide Agents. **Vor K-4b bewusst
+> nachgezogen**, solange die geteilte Tabelle frisch ist.
+>
 > **Session 2026-07-17 (K-4a Companies-Listenansicht) — Branch `feat/companies-list-k4a`, STOP für QA:**
 > Companies-Screen auf dem geteilten Tabellen-Standard aus K-3 Phase C (`useDataTable`/`DataTableCard`/
 > `ColumnConfigPopover`, eigener `persistKey="table_views.companies"`). **Neu:** `companiesMappers.ts`

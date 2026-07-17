@@ -724,7 +724,9 @@
     "next": "Weiter",
     "loadError": "Konnte gerade nicht geladen werden",
     "loadErrorDesc": "Bitte erneut versuchen.",
-    "reload": "Nochmal laden"
+    "reload": "Nochmal laden",
+    "search": "Suchen…",
+    "clearSearch": "Suche löschen"
   },
   "companies": {
     "title": "Companies",

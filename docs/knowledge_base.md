@@ -445,3 +445,11 @@
 - **value:** Alle Firmen an einem Ort mit sofort erkennbarem Status und Umsatz — auf einen Blick sehen, welche Kunden, welche in der Pipeline und welche ohne Ansprechpartner sind, gezielt filtern und mit einem Klick genau dort weiterarbeiten, wo die Firma hingehört.
 - **module:** core_crm
 - *(K-4a, 2026-07-17)*
+
+### Tabellen-Suche (Kontakte + Companies)
+- **feature:** Tabellen-Suche
+- **what:** Ein Suchfeld oben rechts neben den Filtern findet Einträge sofort während des Tippens — bei Kontakten über Name, E-Mail und Firma, bei Companies über Name und Domain. Schnelle Teilstring-Suche ohne KI. Suche und aktive Filter wirken zusammen (UND): erst filtern, dann in den Treffern suchen. Keine Treffer → klare „keine Treffer"-Meldung.
+- **how:** Kontakte/Companies → Suchfeld oben rechts, Suchbegriff tippen; x löscht die Suche. Mit den Filter-Dropdowns kombinierbar.
+- **value:** Den gesuchten Kontakt oder die Firma in Sekunden finden, ohne durch lange Listen zu scrollen — direkt und vorhersehbar. (Die inhaltliche/„smarte" Suche über Notizen und Verläufe übernimmt später der AI-Chat.)
+- **module:** core_crm
+- *(geteilte DataTable, 2026-07-17)*
