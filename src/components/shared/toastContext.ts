@@ -9,8 +9,14 @@ import { createContext, useContext } from "react";
 
 export type ToastVariant = "success" | "info" | "warn" | "error";
 
+/** Optionale Aktion im Toast (z.B. „Liste ansehen") — kein automatischer Sprung, User entscheidet. */
+export interface ToastAction {
+  label: string;
+  onClick: () => void;
+}
+
 export interface ToastApi {
-  toast: (message: string, variant?: ToastVariant) => void;
+  toast: (message: string, variant?: ToastVariant, action?: ToastAction) => void;
 }
 
 export const ToastContext = createContext<ToastApi | null>(null);

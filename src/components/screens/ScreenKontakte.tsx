@@ -420,13 +420,16 @@ export default function ScreenKontakte() {
           <h1 className="text-[24px] font-extrabold text-text-primary">{t("kontakte.title")}</h1>
           {total > 0 && <span className="px-2 py-0.5 rounded-[7px] bg-app-bg text-text-muted text-[13px] font-semibold tabular-nums">{total.toLocaleString("de-DE")}</span>}
         </div>
-        <div className="flex items-center gap-2 relative">
-          <button type="button" aria-label={t("kontakte.columnsAdjust")} data-tip={t("kontakte.columnsAdjust")} onClick={() => setConfigOpen((o) => !o)}
-            className="w-9 h-9 rounded-[10px] border border-border flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-app-bg transition-colors cursor-pointer">
-            <SlidersHorizontal className="w-4 h-4" />
-          </button>
-          {configOpen && (
-            <div className="absolute right-0 top-11 z-20 w-64 bg-app-surface rounded-[12px] border border-[var(--border-card)] shadow-[var(--shadow-dropdown)] p-3">
+        <div className="flex items-center gap-2">
+          {/* Spalten-Konfig — Popover (Projekt-Muster wie das Listen-Dropdown): click-outside + Escape. */}
+          <Popover open={configOpen} onOpenChange={setConfigOpen}>
+            <PopoverTrigger asChild>
+              <button type="button" aria-label={t("kontakte.columnsAdjust")} data-tip={t("kontakte.columnsAdjust")}
+                className="w-9 h-9 rounded-[10px] border border-border flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-app-bg transition-colors cursor-pointer">
+                <SlidersHorizontal className="w-4 h-4" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent align="end" portal={false} className="w-64 p-3">
               <div className="flex items-center justify-between mb-2">
                 <span className="typo-section-label text-text-muted">{t("kontakte.columns")}</span>
                 <button onClick={resetColumns} data-tip={t("kontakte.resetDefaultTip")} className="text-text-muted hover:text-text-primary flex items-center gap-1 text-[11px] cursor-pointer"><RotateCcw className="w-3 h-3" /> {t("kontakte.resetDefault")}</button>
@@ -438,8 +441,8 @@ export default function ScreenKontakte() {
                 </label>
               ))}
               <p className="mt-2 pt-2 border-t border-[var(--border-card)] text-[11px] text-text-muted leading-snug">{t("kontakte.columnsHint")}</p>
-            </div>
-          )}
+            </PopoverContent>
+          </Popover>
           <button type="button" onClick={() => setAnlegenOpen(true)} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--sherloq-primary)] text-on-accent text-[13px] font-bold hover:opacity-90 transition-opacity cursor-pointer">
             <Plus className="w-4 h-4" /> {t("kontakte.addContact")}
           </button>
@@ -468,47 +471,48 @@ export default function ScreenKontakte() {
 
       {/* Listen-Dropdown + (aktive Liste ODER Status-Pills/Filter) */}
       <div className="flex items-center gap-2 flex-wrap mb-4">
-        <div className="relative">
-          <button type="button" onClick={() => setListMenuOpen((o) => !o)}
-            className={cn("inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12px] font-semibold border transition-colors cursor-pointer",
-              listActive ? "border-[var(--sherloq-primary)] text-[var(--sherloq-primary)] bg-[var(--signal-teal-bg)]" : "border-border text-text-body bg-app-surface hover:bg-app-bg")}>
-            <List className="w-3.5 h-3.5" /> {t("kontakte.lists.menuTitle")} <ChevronDown className="w-3.5 h-3.5 opacity-70" />
-          </button>
-          {listMenuOpen && (
-            <div className="absolute left-0 top-10 z-20 w-64 bg-app-surface rounded-[12px] border border-[var(--border-card)] shadow-[var(--shadow-dropdown)] p-2">
-              {lists.length === 0 ? (
-                <p className="px-2 py-3 text-center text-[12px] text-text-muted">{t("kontakte.lists.none")}</p>
-              ) : lists.map((l) => (
-                <div key={l.id} className="group/li flex items-center gap-1 px-2 py-1.5 rounded-[8px] hover:bg-app-bg">
-                  {renamingListId === l.id ? (
-                    <input autoFocus value={renameValue} onChange={(e) => setRenameValue(e.target.value)}
-                      onKeyDown={(e) => { if (e.key === "Enter") void saveRename(l); if (e.key === "Escape") setRenamingListId(null); }}
-                      onBlur={() => void saveRename(l)}
-                      className="flex-1 min-w-0 text-[13px] px-2 py-1 bg-app-surface border border-[var(--sherloq-primary)] rounded-[6px] outline-none" />
-                  ) : (
-                    <>
-                      <button type="button" onClick={() => openList(l)} className="flex-1 flex items-center gap-2 min-w-0 text-left cursor-pointer">
-                        {l.type === "dynamic" ? <Filter className="w-3.5 h-3.5 text-[var(--sherloq-primary)] shrink-0" /> : <List className="w-3.5 h-3.5 text-text-muted shrink-0" />}
-                        <span className="flex-1 min-w-0 truncate text-[13px] text-text-body">{l.name}</span>
-                        <span className="text-[11px] text-text-muted tabular-nums">{l.memberCount.toLocaleString("de-DE")}</span>
-                      </button>
-                      <div className="flex items-center gap-0.5 opacity-0 group-hover/li:opacity-100 focus-within:opacity-100 transition-opacity shrink-0">
-                        <button type="button" onClick={() => startRename(l)} aria-label={t("kontakte.lists.rename")} data-tip={t("kontakte.lists.rename")} className="w-6 h-6 rounded-[6px] flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-app-surface cursor-pointer"><Pencil className="w-3 h-3" /></button>
-                        <button type="button" onClick={() => setDeleteTarget(l)} aria-label={t("kontakte.lists.delete")} data-tip={t("kontakte.lists.delete")} className="w-6 h-6 rounded-[6px] flex items-center justify-center text-text-muted hover:text-[var(--signal-urgent-text)] hover:bg-app-surface cursor-pointer"><Trash2 className="w-3 h-3" /></button>
-                      </div>
-                    </>
-                  )}
-                </div>
-              ))}
-              <div className="mt-1 pt-1 border-t border-[var(--border-card)]">
-                <button type="button" onClick={() => { setListMenuOpen(false); setNeueListeOpen(true); }}
-                  className="w-full flex items-center gap-2 px-2 py-2 rounded-[8px] text-[13px] font-semibold text-[var(--sherloq-primary)] hover:bg-app-bg cursor-pointer">
-                  <Plus className="w-4 h-4" /> {t("kontakte.lists.newList")}
-                </button>
+        {/* Popover = Projekt-Muster (wie CombinedFilter): click-outside + Escape schließen automatisch. */}
+        <Popover open={listMenuOpen} onOpenChange={setListMenuOpen}>
+          <PopoverTrigger asChild>
+            <button type="button"
+              className={cn("inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12px] font-semibold border transition-colors cursor-pointer",
+                listActive ? "border-[var(--sherloq-primary)] text-[var(--sherloq-primary)] bg-[var(--signal-teal-bg)]" : "border-border text-text-body bg-app-surface hover:bg-app-bg")}>
+              <List className="w-3.5 h-3.5" /> {t("kontakte.lists.menuTitle")} <ChevronDown className="w-3.5 h-3.5 opacity-70" />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent align="start" portal={false} className="w-64 p-2">
+            {lists.length === 0 ? (
+              <p className="px-2 py-3 text-center text-[12px] text-text-muted">{t("kontakte.lists.none")}</p>
+            ) : lists.map((l) => (
+              <div key={l.id} className="group/li flex items-center gap-1 px-2 py-1.5 rounded-[8px] hover:bg-app-bg">
+                {renamingListId === l.id ? (
+                  <input autoFocus value={renameValue} onChange={(e) => setRenameValue(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") void saveRename(l); if (e.key === "Escape") setRenamingListId(null); }}
+                    onBlur={() => void saveRename(l)}
+                    className="flex-1 min-w-0 text-[13px] px-2 py-1 bg-app-surface border border-[var(--sherloq-primary)] rounded-[6px] outline-none" />
+                ) : (
+                  <>
+                    <button type="button" onClick={() => openList(l)} className="flex-1 flex items-center gap-2 min-w-0 text-left cursor-pointer">
+                      {l.type === "dynamic" ? <Filter className="w-3.5 h-3.5 text-[var(--sherloq-primary)] shrink-0" /> : <List className="w-3.5 h-3.5 text-text-muted shrink-0" />}
+                      <span className="flex-1 min-w-0 truncate text-[13px] text-text-body">{l.name}</span>
+                      <span className="text-[11px] text-text-muted tabular-nums">{l.memberCount.toLocaleString("de-DE")}</span>
+                    </button>
+                    <div className="flex items-center gap-0.5 opacity-0 group-hover/li:opacity-100 focus-within:opacity-100 transition-opacity shrink-0">
+                      <button type="button" onClick={() => startRename(l)} aria-label={t("kontakte.lists.rename")} data-tip={t("kontakte.lists.rename")} className="w-6 h-6 rounded-[6px] flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-app-surface cursor-pointer"><Pencil className="w-3 h-3" /></button>
+                      <button type="button" onClick={() => { setDeleteTarget(l); setListMenuOpen(false); }} aria-label={t("kontakte.lists.delete")} data-tip={t("kontakte.lists.delete")} className="w-6 h-6 rounded-[6px] flex items-center justify-center text-text-muted hover:text-[var(--signal-urgent-text)] hover:bg-app-surface cursor-pointer"><Trash2 className="w-3 h-3" /></button>
+                    </div>
+                  </>
+                )}
               </div>
+            ))}
+            <div className="mt-1 pt-1 border-t border-[var(--border-card)]">
+              <button type="button" onClick={() => { setListMenuOpen(false); setNeueListeOpen(true); }}
+                className="w-full flex items-center gap-2 px-2 py-2 rounded-[8px] text-[13px] font-semibold text-[var(--sherloq-primary)] hover:bg-app-bg cursor-pointer">
+                <Plus className="w-4 h-4" /> {t("kontakte.lists.newList")}
+              </button>
             </div>
-          )}
-        </div>
+          </PopoverContent>
+        </Popover>
 
         <span className="w-px h-5 bg-border mx-1" />
 
@@ -694,7 +698,13 @@ export default function ScreenKontakte() {
         contactIds={selectedIds}
         createdBy={userId}
         onClose={() => setZuListeOpen(false)}
-        onDone={() => { clearSelection(); void queryClient.invalidateQueries({ queryKey: ["lists", organizationId] }); }}
+        onDone={({ list, count }) => {
+          // „Liste ansehen" — KEIN Auto-Sprung; der User entscheidet, ob er den Kontext wechselt.
+          toast(t("kontakte.lists.addedToast", { count, name: list.name }), "success", { label: t("kontakte.lists.viewList"), onClick: () => openList(list) });
+          clearSelection();
+          void queryClient.invalidateQueries({ queryKey: ["lists", organizationId] });
+          void queryClient.invalidateQueries({ queryKey: ["listMembers", organizationId] });
+        }}
       />
 
       {/* Liste löschen — Bestätigung (irreversibel) */}

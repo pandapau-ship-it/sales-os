@@ -838,10 +838,17 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
         {renderActions(panelBtn)}
       </footer>
 
-      {/* K-3b: Einzel-Zuordnung „Zu Liste" (statische Listen; dynamische ausgegraut im Dialog). */}
+      {/* K-3b: Einzel-Zuordnung „Zu Liste" (statische Listen; dynamische ausgegraut im Dialog).
+          Erfolgs-Toast + Invalidierung hier (Eltern), damit die Listenansicht/Counts sofort aktuell sind. */}
       {contactId && (
         <ZuListeDialog open={zuListeOpen} organizationId={organizationId} contactIds={[contactId]}
-          createdBy={user?.id ?? null} onClose={() => setZuListeOpen(false)} />
+          createdBy={user?.id ?? null} onClose={() => setZuListeOpen(false)}
+          onDone={({ list, count }) => {
+            // Panel-lokaler Toast (nur Meldung; „Liste ansehen" wäre hier ein Screen-Wechsel → bewusst weggelassen).
+            showToast(t('kontakte.lists.addedToast', { count, name: list.name }));
+            queryClient.invalidateQueries({ queryKey: ['lists', organizationId] });
+            queryClient.invalidateQueries({ queryKey: ['listMembers', organizationId] });
+          }} />
       )}
     </>
   );

@@ -13,12 +13,13 @@ import {
   type ReactNode,
 } from "react";
 import { CheckCircle2, Info, AlertTriangle, XCircle } from "lucide-react";
-import { ToastContext, type ToastVariant } from "./toastContext";
+import { ToastContext, type ToastVariant, type ToastAction } from "./toastContext";
 
 interface ToastItem {
   id: number;
   message: string;
   variant: ToastVariant;
+  action?: ToastAction;
 }
 
 const ICONS: Record<ToastVariant, typeof CheckCircle2> = {
@@ -39,12 +40,13 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<ToastItem[]>([]);
   const counter = useRef(0);
 
-  const toast = useCallback((message: string, variant: ToastVariant = "success") => {
+  const dismiss = useCallback((id: number) => setItems((prev) => prev.filter((t) => t.id !== id)), []);
+
+  const toast = useCallback((message: string, variant: ToastVariant = "success", action?: ToastAction) => {
     const id = ++counter.current;
-    setItems((prev) => [...prev, { id, message, variant }]);
-    window.setTimeout(() => {
-      setItems((prev) => prev.filter((t) => t.id !== id));
-    }, 3000);
+    setItems((prev) => [...prev, { id, message, variant, action }]);
+    // Mit Aktion länger stehen lassen (User muss klicken können), sonst 3s.
+    window.setTimeout(() => setItems((prev) => prev.filter((t) => t.id !== id)), action ? 6000 : 3000);
   }, []);
 
   return (
@@ -57,10 +59,19 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             <div
               key={t.id}
               role="status"
-              className="sherloq-card px-4 py-3 flex items-center gap-2.5 text-[13px] min-w-[240px] animate-fade-in pointer-events-auto"
+              className="sherloq-card px-4 py-3 flex items-center gap-2.5 text-[13px] min-w-[240px] max-w-[380px] toast-enter pointer-events-auto"
             >
               <Icon className={`w-4 h-4 shrink-0 ${ICON_COLOR[t.variant]}`} />
-              <span className="text-text-body">{t.message}</span>
+              <span className="text-text-body flex-1">{t.message}</span>
+              {t.action && (
+                <button
+                  type="button"
+                  onClick={() => { t.action!.onClick(); dismiss(t.id); }}
+                  className="shrink-0 text-[12px] font-bold text-[var(--sherloq-primary)] hover:underline cursor-pointer"
+                >
+                  {t.action.label}
+                </button>
+              )}
             </div>
           );
         })}

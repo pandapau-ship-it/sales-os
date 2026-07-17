@@ -203,6 +203,23 @@
         vorhanden; Verkabelung verifiziert: ToastProvider gemountet, Toast `z-[60]` über Dialogen `z-50`).
         db.ts neu: `renameList` + `removeFromList`. i18n `kontakte.lists.*` ergänzt. Teil der A→B→C→D-Reihe
         (A Listen · B Avatar · C geteilte Tabelle+Spalten+Suche · D K-4 Companies).
+  - [x] **Listen-Bugfix (2026-07-17, Branch `fix/listen-invalidierung`, Prossi live gefunden).** „Add zu Liste"
+        zeigte keinen Toast + aktive Listenansicht aktualisierte erst nach hartem Reload. Ursache: Erfolgsfall
+        toastete im Dialog + invalidierte nur `["lists"]`, **nicht** `["listMembers"]`; der Einzel-Add-Pfad
+        (HunterSidepanel) hatte **gar kein `onDone`**. Fix: `ZuListeDialog.onDone({count,listName})` → **Eltern**
+        toasten (garantiert gemountet) + invalidieren `["lists"]` **und** `["listMembers", org]` in **beiden**
+        Add-Pfaden. Umbenennen/Löschen/Entfernen waren bereits korrekt (mitgeprüft). **Lehre für Phase C:**
+        dieser Invalidierungs-Fehler darf beim Tabellen-Extrakt NICHT mitwandern.
+        **Runde 2 (Toast weiterhin unsichtbar — aktiv im Browser reproduziert):** Root-Cause = der Toast
+        hing zu 100% an der `fadeIn`-Animation (`from{opacity:0}`); wird die Animation nicht advanced
+        (eingefroren/Tab-Throttling), bleibt der Toast bei **`opacity:0`** → unsichtbar. Fix: neuer
+        `@keyframes toastIn` (nur Transform, **kein** Opacity-Keyframe) + `.toast-enter` → Toast ist IMMER
+        `opacity:1`, Animation kann ihn nie unsichtbar lassen (im laufenden Browser verifiziert: opacity 0→1).
+        **UX (Punkt 3):** Toast-Baustein um optionale **Aktion** erweitert (`ToastAction`); die „Add"-Bestätigung
+        trägt **„Liste ansehen"** → setzt den Listen-Filter (`openList`), **kein Auto-Sprung** (Kontext bleibt).
+        Einzel-Add (Panel-lokaler Toast) bewusst ohne Aktion (wäre Screen-Wechsel). **Punkt 4:** Listen-Dropdown
+        von custom `{open&&<div>}` auf **shadcn `Popover`** (Projekt-Muster wie `CombinedFilter`) → **click-outside
+        + Escape** schließen automatisch; `portal={false}` wegen Inline-Rename-Input.
   - [ ] **Campaign-Zuweisung — Anschlusspunkt (AI-SDR-Slice 6)** — Bulk-Aktion **+ Zeilen-Aktion**
         „Zu Campaign hinzufügen" wird in AI-SDR-Slice 6 nur **aktiviert**, nicht neu gebaut. Struktur
         vorbereitet (Bulk-Bar-Muster + `selectAllFiltered`-Auswahl über den ganzen Filter). **Beim
