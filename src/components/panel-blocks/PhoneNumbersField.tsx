@@ -44,7 +44,7 @@ export default function PhoneNumbersField({
             <input type="tel" placeholder="+49 170 ..." value={ph.number} onChange={(e) => patch(ph.id, "number", e.target.value)} className={`${FIELD} pl-9`} />
           </div>
           {value.length > 1 && (
-            <button type="button" onClick={() => remove(ph.id)} aria-label="Nummer entfernen" data-tip="Nummer entfernen" className={`w-9 h-9 shrink-0 rounded-[10px] text-text-muted hover:text-[var(--signal-danger-text)] hover:bg-app-bg flex items-center justify-center cursor-pointer ${HOVER_ACTIONS}`}>
+            <button type="button" onClick={() => remove(ph.id)} aria-label="Nummer entfernen" data-tip="Nummer entfernen" className={`w-9 h-9 shrink-0 rounded-[10px] text-text-muted hover:text-[var(--signal-urgent-text)] hover:bg-app-bg flex items-center justify-center cursor-pointer ${HOVER_ACTIONS}`}>
               <Trash2 className="w-3.5 h-3.5" />
             </button>
           )}

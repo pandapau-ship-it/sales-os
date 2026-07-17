@@ -11,7 +11,7 @@ export default function PanelField({
     <div>
       <label className="text-[11px] text-text-muted font-semibold block mb-1">
         {label}
-        {required && <span className="text-[var(--signal-danger-text)]"> *</span>}
+        {required && <span className="text-[var(--signal-urgent-text)]"> *</span>}
         {hint && <span className="font-normal text-text-muted"> {hint}</span>}
       </label>
       {children}

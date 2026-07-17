@@ -15,7 +15,7 @@
 
 ▶ **1.** [ ] **[BAU+DESIGN] Kontakte & Companies — Slices K-1 bis K-6**
   (`docs/kontakte_companies_bauplan_v1.md`; Designs ScreenKontakte/ScreenCompanies
-  vorhanden — Abgleich nach Dauerregel 4c) · **erledigt: K-1a · K-1a2 · K-1b · K-2 · K-2b · K-3 · ▶ K-4**
+  vorhanden — Abgleich nach Dauerregel 4c) · **erledigt: K-1a · K-1a2 · K-1b · K-2 · K-2b · K-3 · ▶ K-3b (vor K-4)**
   - [x] **K-1a Test-Fundament ZUERST** — vitest eingerichtet (Config in `vite.config.ts`,
         Smoke-Test `src/lib/heatUtils.test.ts` 3/3 grün, npm-Scripts `test`/`test:watch`).
         Commit `3e6ad8b`, gemerged `81d0d33`. **Voraussetzung für [AUTO]-Tests in ALLEN
@@ -141,7 +141,13 @@
         den **Gesamtbestand** („Wie steht mein Bestand?"). Zwei verschiedene Fragen, keine Doppelung. Jede
         Zahl ist ein Filter (kein Dashboard).
         (10) **Kein „Zuletzt synchronisiert"-Indikator** — kein Sync vorhanden (Honesty).
-        Gates: build ✓ · lint 0 · tsc 0 · 120 Tests ✓ · structure PASS · audit 0 FAIL (23 PASS).
+        **Nebenbefund behoben (2026-07-17):** der Token `--signal-danger-text` existierte NIE (still
+        gebrochener Pflicht-Stern in `PanelField`/`AddSdrLeadPanel`/`NewDealCard`/`PhoneNumbersField`) →
+        auf `--signal-urgent-text` korrigiert; `ScreenPlaceholder` (3 tote `--sherloq-text*`-Tokens) auf
+        `--text-primary`/`--text-muted`/`--signal-teal-bg`. Neuer **Audit-Check `checkTokenExistence`
+        („Design: Token existiert" = FAIL)** meldet ab jetzt jede `var(--x)`-Referenz auf ein nicht in CSS
+        definiertes Token (Framework `--tw-*`/`--radix-*` ausgenommen) — diese Blindstelle kehrt nicht wieder.
+        Gates: build ✓ · lint 0 · tsc 0 · 120 Tests ✓ · structure PASS · audit 0 FAIL (24 PASS).
   - [ ] **„+ Kontakt"-Dropdown (Anlege-Wege)** — sobald weitere Wege existieren wird der Direkt-Button
         zum Dropdown: **Manuell** (jetzt) · **CSV importieren** (mit K-5-UI) · **CRM synchronisieren**
         (mit crm_sync-Integration) · **Via Sherloq** (mit Sherloq-Integration). Honesty: nur zeigen was
@@ -149,23 +155,30 @@
         Import wandert hierher. **K-5-UI = nächster sinnvoller Slice nach K-4** (Engine-Kern liegt bereits,
         `src/lib/import/`). Export „alle im aktuellen Filter" braucht serverseitige Filterung (DB-seitiger
         K-2-Anschluss).
-  - [ ] **K-3b Listen-Zugang (Folge-Slice, empfohlen)** — `lists` (005) + `list_members` (056) existieren
-        als Tabellen, aber **null db-Funktionen** und **keine Listen-Daten** → Read-only wäre immer leer,
-        daher NICHT in K-3. Umfang K-3b: `getLists`/`getListMembers`/`createList`/`addToList` (db.ts) +
-        **„Listen"-Dropdown** neben den Filtern (Meine Listen: Name+Anzahl · „Neue Liste erstellen") +
-        Membership-Filter + **Verdrahtung der Bulk-Aktion „Zu Liste hinzufügen"** (aktuell Toast-Platzhalter).
+  - [ ] **▶ K-3b Listen-Zugang — NÄCHSTER Slice, VOR K-4** (Oliver 2026-07-17: direkt nach K-3, sonst
+        hängt der Bulk-Anschlusspunkt „Zu Liste hinzufügen" ins Leere). `lists` (005) + `list_members` (056)
+        existieren als Tabellen, aber **null db-Funktionen** und **keine Listen-Daten** → Read-only wäre
+        immer leer, daher NICHT in K-3. Umfang K-3b: `getLists`/`getListMembers`/`createList`/`addToList`
+        (db.ts) + **„Listen"-Dropdown** neben den Filtern (Meine Listen: Name+Anzahl · „Neue Liste erstellen")
+        + Membership-Filter + **Verdrahtung der Bulk-Aktion „Zu Liste hinzufügen"** (aktuell Toast-Platzhalter).
         Dynamische Listen nutzen die K-2-Filter-UI. **Anschlusspunkt schon da:** Bulk-Bar „Zu Liste".
   - [ ] **Campaign-Zuweisung — Anschlusspunkt (AI-SDR-Slice 6)** — Bulk-Aktion **+ Zeilen-Aktion**
         „Zu Campaign hinzufügen" wird in AI-SDR-Slice 6 nur **aktiviert**, nicht neu gebaut. Struktur
         vorbereitet (Bulk-Bar-Muster + `selectAllFiltered`-Auswahl über den ganzen Filter). **Beim
         AI-SDR-Bau nicht übersehen.** (Kein Campaign-Button in K-3 — bewusst, kein AI SDR vorhanden.)
-  - [ ] **Farbige Avatare — projektweiter Slice (nach K-3), Palette wartet auf Freigabe** — `shared/Avatar.tsx`
-        ist die **einzige** Avatar-Komponente (~16 Aufrufstellen, keine Kopien) → Umstellung = eine Datei,
-        propagiert überall. Umsetzung: deterministische Farbe aus dem Namen (gleicher Name = gleiche Farbe),
-        **benannte Tokens in `index.css`** (nie Hex im Code), Kontrast für weiße Initialen geprüft, Dark Mode
-        mitgedacht; Status-Punkt unten rechts **nur wenn echte Daten** (sonst weg). **Palette-Vorschlag Oliver
-        vorgelegt (Screenshot-Ableitung) — erst nach Freigabe festschreiben.**
-  - [ ] **▶ K-4 Companies-Screen + Detail** (4c: ScreenCompanies) — hier auch **[D-city]**
+  - [ ] **Farbige Avatare — Slice NACH K-3-Merge + K-3b (Palette FREIGEGEBEN 2026-07-17)** — `shared/Avatar.tsx`
+        ist die **einzige** Avatar-Komponente (~16 Aufrufstellen, keine Kopien) → Umstellung = eine Datei
+        (Tokens + `Avatar.tsx`), propagiert überall. Deterministische Farbe aus dem Namen (Hash → Token,
+        gleicher Name = gleiche Farbe), **benannte Tokens in `index.css`** (nie Hex im Code), Kontrast weiße
+        Initialen (große Schrift ≥ 3:1) geprüft, Dark Mode via eine Nuance hellere `[data-theme="dark"]`-Varianten.
+        **Status-Punkt WEGLASSEN**, bis ein Feld ihn wirklich speist (Oliver-Entscheidung).
+        **Finale Palette (8 Tokens):** `--avatar-emerald #059669` · `--avatar-cyan #0891B2` · `--avatar-blue #2563EB`
+        · `--avatar-indigo #4F46E5` · `--avatar-violet #7C3AED` · `--avatar-magenta #DB2777` · `--avatar-amber #B45309`
+        · `--avatar-red #DC2626`. **Änderung ggü. Vorschlag:** `--avatar-teal #0D9488` **raus** (zu nah am
+        Marken-Teal/Gradient `#175253` → ein Avatar dürfte nie wie ein aktiver Zustand wirken) → ersetzt durch
+        **`--avatar-cyan #0891B2`**: klar kühler/blauer und deutlich heller als das dunkle, entsättigte Marken-Teal,
+        füllt den Kühl-Slot ohne Verwechslung; von `--avatar-blue` (Royalblau) durch den Grün-Blau- Stich getrennt.
+  - [ ] **K-4 Companies-Screen + Detail** (4c: ScreenCompanies) — **nach K-3b.** Hier auch **[D-city]**
         (`contacts.city`/`country`-Migration) aufgreifen, da beim Company-/Adress-Wiring fällig.
   - [~] **K-5 Smart-Import — Engine-Kern (dep-frei) VORGEZOGEN** (Reihenfolge-Flexibilität
         Dauerregel 4, während K-3-Design bei Oliver läuft — **hier vermerkt, nicht stillschweigend**).
