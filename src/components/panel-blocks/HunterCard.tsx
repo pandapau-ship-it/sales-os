@@ -1,7 +1,8 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import type { MouseEvent, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { useQueryClient } from "@tanstack/react-query";
+import { useHoverPrefetch } from "@/hooks/useHoverPrefetch";
 import {
   Check, ChevronDown, ChevronUp, ArrowRight, CheckSquare, FileText, Mail,
 } from "lucide-react";
@@ -88,29 +89,14 @@ export default function HunterCard({
   // Task/Notiz: echte Aktion wenn der Aufrufer onAction liefert, sonst Panel öffnen (onOpenInfo).
   const act = (a: DealCardAction) => (onAction ? onAction(a) : onOpenInfo?.());
 
-  // Prefetch-on-Intent: beim Drüberfahren die Panel-/Expand-Daten des Kontakts vorladen,
-  // damit sie beim Öffnen oft schon im Cache sind (gefühlt instant). Nur mit echter contactId.
-  // 120 ms Hover-Verzögerung (deutlich < Slide-in ~340 ms) → kein Prefetch-Sturm beim
-  // schnellen Drüberwischen, nur bei bewusstem Verweilen.
-  const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const startPrefetch = contactId
-    ? () => {
-        if (hoverTimer.current) return;
-        hoverTimer.current = setTimeout(() => {
-          prefetchContactPanel(queryClient, organizationId, contactId);
-          hoverTimer.current = null;
-        }, 120);
-      }
-    : undefined;
-  const cancelPrefetch = () => {
-    if (hoverTimer.current) { clearTimeout(hoverTimer.current); hoverTimer.current = null; }
-  };
+  // Prefetch-on-Intent: beim Drüberfahren die Panel-/Expand-Daten des Kontakts vorladen (gefühlt
+  // instant beim Öffnen). Zentrales Muster: useHoverPrefetch (WANN) + prefetchContactPanel (WAS).
+  const prefetch = useHoverPrefetch();
 
   return (
     <div
       className={`${CARD.shell} ${selected ? "bg-[var(--signal-teal-bg)]" : "bg-app-surface"}`}
-      onMouseEnter={startPrefetch}
-      onMouseLeave={contactId ? cancelPrefetch : undefined}
+      {...prefetch(contactId ? () => prefetchContactPanel(queryClient, organizationId, contactId) : undefined)}
     >
       <div className={CARD.body}>
         {/* TOP ROW */}

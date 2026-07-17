@@ -340,6 +340,18 @@ Library-Komponenten** übersetzen — **nie 1:1-Copy** des AI-Studio-Markups.
 > zweimal als Eigenbau geschrieben, statt `ActionPanel`/`AddSdrLeadPanel` wiederzuverwenden —
 > siehe auch Audit-Check „Panel: Shell statt Eigenbau".)
 
+> **REGEL C — Hover-Intent-Prefetch bei JEDER „Klick öffnet Panel/Detailseite"-Affordance (Pflicht).**
+> Öffnet eine Karte/Zeile/ein Pfeil ein Info-/Detail-Panel oder eine Detailseite, deren Daten per
+> Query geladen werden, MUSS die Affordance **Hover-Intent-Prefetch** nutzen: den zentralen Hook
+> **`useHoverPrefetch()`** (`src/hooks/`, das „WANN": 120 ms Hover-Delay + Cancel, ein Timer je Instanz)
+> zusammen mit der passenden **`prefetch*`-Funktion** (`src/lib/prefetch.ts` — das „WAS", z.B.
+> `prefetchContactPanel`; für neue Entitäten eine analoge `prefetchXPanel` ergänzen). Anwendung:
+> `const p = useHoverPrefetch(); <div {...p(() => prefetchContactPanel(qc, org, id))}>`. **Nie** die
+> Timer-/Delay-Logik pro Komponente neu bauen (früher inline in `HunterCard` — jetzt zentral).
+> **Neue solche Stelle ohne Prefetch = Verstoß** (spürbare Ladezeit beim Öffnen). Prefetch nutzt
+> dieselben queryKeys wie das Panel → kein Doppel-Fetch, `staleTime` respektiert. (Hintergrund:
+> Kontakte-/Leads-Listen öffneten das Sidepanel ohne Prefetch → merklich verzögert.)
+
 **Reihenfolge-Flexibilität:** Wartet ein [OLIVER]-/DESIGN-Schritt auf Oliver, darf der
 nächste [BAU]-Schritt **ohne diese Abhängigkeit** vorgezogen werden. Vorziehen wird in
 PROGRESS.md **vermerkt — nie stillschweigend**.

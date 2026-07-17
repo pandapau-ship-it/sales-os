@@ -7,12 +7,16 @@
 import type { LeadRow } from '@/lib/hunterMappers';
 import type { MouseEvent } from "react";
 import { useTranslation } from "react-i18next";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   Check, ChevronUp, ChevronDown, ArrowRight, CheckSquare, FileText, Mail,
 } from "lucide-react";
 import Avatar from "@/components/shared/Avatar";
 import { ICPDonut } from "@/components/shared/ICPDonut";
 import { useNowMs } from "@/hooks/useNowMs";
+import { useHoverPrefetch } from "@/hooks/useHoverPrefetch";
+import { useCurrentOrg } from "@/hooks/useCurrentOrg";
+import { prefetchContactPanel } from "@/lib/prefetch";
 import { daysSinceIso } from "@/lib/hunterMappers";
 import { CARD } from "@/lib/componentBehavior";
 import HeatBadge from './HeatBadge';
@@ -42,9 +46,14 @@ export default function LeadListRow({
 
   // lead.id = contact_id → für den geteilten, lazy ladenden Expand-Inhalt.
   const contactId: string | undefined = lead.id;
+  // Hover-Intent-Prefetch (Projekt-Standard) → Panel-Daten vorladen, instant beim Öffnen.
+  const queryClient = useQueryClient();
+  const { organizationId } = useCurrentOrg();
+  const prefetch = useHoverPrefetch();
 
   return (
     <div
+      {...prefetch(contactId ? () => prefetchContactPanel(queryClient, organizationId, contactId) : undefined)}
       className={`group rounded-[12px] p-4 flex flex-col gap-4 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-hover)] hover:-translate-y-0.5 transition-all duration-300 cursor-pointer border border-[var(--border-card)] relative ${
         selected ? 'bg-[var(--signal-teal-bg)]' : 'bg-app-surface'
       }`}
