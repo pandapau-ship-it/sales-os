@@ -4,12 +4,14 @@
  * null-Routing → nichts (Honesty). Lucide-Icons, Tokens-only.
  */
 import { Bot, Target, Sprout, ArrowRight, type LucideIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import type { ContactRouting } from "@/lib/kontakteMappers";
 
-const CFG: Record<ContactRouting, { label: string; icon: LucideIcon; path: string }> = {
-  ai_sdr: { label: "In AI SDR", icon: Bot, path: "/app/ai-sdr" },
-  hunter: { label: "In Hunter", icon: Target, path: "/app/hunter" },
-  farmer: { label: "In Farmer", icon: Sprout, path: "/app/farmer" },
+// Label aus i18n (kontakte.routing.*) — Icon/Pfad hier, Text nie hartkodiert.
+const CFG: Record<ContactRouting, { icon: LucideIcon; path: string }> = {
+  ai_sdr: { icon: Bot, path: "/app/ai-sdr" },
+  hunter: { icon: Target, path: "/app/hunter" },
+  farmer: { icon: Sprout, path: "/app/farmer" },
 };
 
 /**
@@ -27,6 +29,7 @@ export default function RoutingChip({
   routing: ContactRouting | null;
   onNavigate?: (path: string) => void;
 }) {
+  const { t } = useTranslation();
   if (!routing || !BUILT_ROUTINGS.has(routing)) return null;
   const cfg = CFG[routing];
   const Icon = cfg.icon;
@@ -37,7 +40,7 @@ export default function RoutingChip({
       className="group/route inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[7px] text-[11px] font-semibold text-text-body border border-border hover:border-[var(--sherloq-primary)] hover:text-[var(--sherloq-primary)] transition-colors w-fit cursor-pointer"
     >
       <Icon className="w-3 h-3" />
-      {cfg.label}
+      {t(`kontakte.routing.${routing}`)}
       <ArrowRight className="w-3 h-3 opacity-60 group-hover/route:translate-x-0.5 transition-transform" />
     </button>
   );

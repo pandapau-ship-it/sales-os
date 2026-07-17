@@ -141,6 +141,13 @@
         den **Gesamtbestand** („Wie steht mein Bestand?"). Zwei verschiedene Fragen, keine Doppelung. Jede
         Zahl ist ein Filter (kein Dashboard).
         (10) **Kein „Zuletzt synchronisiert"-Indikator** — kein Sync vorhanden (Honesty).
+        **QA-Runde 3 (2026-07-17):** (3) **i18n nachgezogen** — Konvention (useTranslation + `t()` +
+        de/en/es.json) war aktiv, meine neuen Komponenten aber hardcodiert Deutsch (dem hardcodierten
+        Referenz-Panel folgend). Neuer `kontakte.*`-Namespace (36 Keys × 3, EN/ES = DE-Kopie) +
+        `ScreenKontakte`/`LeadSourceBadge`/`RoutingChip`/`CombinedFilter` auf `t()` verdrahtet.
+        **`KontaktAnlegenPanel` bewusst NICHT jetzt** (wird in Punkt 1 = „Weitere Details"-Ausbau ohnehin
+        umgebaut → i18n dort in einem Zug, `create.*`-Keys liegen schon bereit). (4) `knowledge_base`-Eintrag
+        Kontakte um Lagebild/Filter/Spalten-Umbau/Routing-Honesty ergänzt.
         **Nebenbefund behoben (2026-07-17):** der Token `--signal-danger-text` existierte NIE (still
         gebrochener Pflicht-Stern in `PanelField`/`AddSdrLeadPanel`/`NewDealCard`/`PhoneNumbersField`) →
         auf `--signal-urgent-text` korrigiert; `ScreenPlaceholder` (3 tote `--sherloq-text*`-Tokens) auf

@@ -4,21 +4,24 @@
  * Unbekannte/leere Quelle → null (Honesty, keine Badge).
  */
 import { Download, Sparkles, RefreshCw, PenLine, Webhook, type LucideIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
-type SourceCfg = { label: string; icon: LucideIcon; tone: string };
+type SourceCfg = { icon: LucideIcon; tone: string };
 
 // tone = CSS-Token-Farbe (text + border via /15 + bg /8). Quelle: contacts.lead_source.
+// Label kommt aus i18n (kontakte.leadSource.*) — nie hartkodiert.
 const SOURCE: Record<string, SourceCfg> = {
-  sherloq: { label: "Sherloq AI", icon: Sparkles, tone: "var(--sherloq-primary)" },
-  csv_upload: { label: "Import (CSV)", icon: Download, tone: "var(--color-info)" },
-  crm_sync: { label: "CRM-Sync", icon: RefreshCw, tone: "var(--color-info)" },
-  manual: { label: "Manuell", icon: PenLine, tone: "var(--text-muted)" },
-  webhook_api: { label: "Webhook", icon: Webhook, tone: "var(--text-muted)" },
+  sherloq: { icon: Sparkles, tone: "var(--sherloq-primary)" },
+  csv_upload: { icon: Download, tone: "var(--color-info)" },
+  crm_sync: { icon: RefreshCw, tone: "var(--color-info)" },
+  manual: { icon: PenLine, tone: "var(--text-muted)" },
+  webhook_api: { icon: Webhook, tone: "var(--text-muted)" },
 };
 
 export default function LeadSourceBadge({ source }: { source?: string | null }) {
+  const { t } = useTranslation();
   const cfg = source ? SOURCE[source] : undefined;
-  if (!cfg) return null;
+  if (!cfg || !source) return null;
   const Icon = cfg.icon;
   return (
     <span
@@ -26,7 +29,7 @@ export default function LeadSourceBadge({ source }: { source?: string | null }) 
       style={{ color: cfg.tone, borderColor: `color-mix(in srgb, ${cfg.tone} 15%, transparent)`, background: `color-mix(in srgb, ${cfg.tone} 8%, transparent)` }}
     >
       <Icon className="w-3 h-3" />
-      {cfg.label}
+      {t(`kontakte.leadSource.${source}`)}
     </span>
   );
 }

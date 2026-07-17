@@ -16,6 +16,7 @@
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   useReactTable,
@@ -51,32 +52,15 @@ import KontaktAnlegenPanel from "@/components/features/kontakte/KontaktAnlegenPa
 import { HunterSidepanel } from "@/components";
 import type { Person } from "@/types";
 
-const STATUS_CFG: Record<string, { label: string; tone: "success" | "warn" | "urgent" | "info" | "teal" | "muted" }> = {
-  in_campaign: { label: "In Campaign", tone: "teal" },
-  pipeline: { label: "Pipeline", tone: "info" },
-  kunde: { label: "Kunde", tone: "success" },
-  archiviert: { label: "Archiviert", tone: "muted" },
-  ohne_campaign: { label: "Neu", tone: "muted" },
-  opt_out: { label: "Opt-out", tone: "urgent" },
+// Labels durchgängig aus i18n (kontakte.*) — hier nur Tone/Ids, kein sichtbarer Text.
+const STATUS_TONE: Record<string, "success" | "warn" | "urgent" | "info" | "teal" | "muted"> = {
+  in_campaign: "teal", pipeline: "info", kunde: "success", archiviert: "muted", ohne_campaign: "muted", opt_out: "urgent",
 };
 // Reihenfolge der Status-Pills (nur mit Count > 0 sichtbar).
 const STATUS_ORDER = ["ohne_campaign", "in_campaign", "pipeline", "kunde", "archiviert", "opt_out"];
-const SOURCE_OPTS = [
-  { id: "sherloq", label: "Sherloq" },
-  { id: "csv_upload", label: "CSV" },
-  { id: "crm_sync", label: "CRM" },
-  { id: "manual", label: "Manuell" },
-];
-const ICP_OPTS = [
-  { id: "high", label: "ICP > 75" },
-  { id: "mid", label: "ICP 50–74" },
-  { id: "low", label: "ICP < 50" },
-];
+const SOURCE_IDS = ["sherloq", "csv_upload", "crm_sync", "manual"];
+const ICP_IDS = ["high", "mid", "low"];
 const PAGE_SIZES = [25, 50, 100];
-const COLUMN_LABELS: Record<string, string> = {
-  name: "Kontakt", leadSource: "Quelle", contactStatus: "Status",
-  lastContactedAt: "Zuletzt", icpScore: "ICP Score", routing: "Routing",
-};
 const PREF_KEY = "table_views.contacts";
 
 type SavedView = {
@@ -114,6 +98,7 @@ function buildFilterDef(status: string | null, source: string[], icp: string[], 
 function CombinedFilter({
   source, onSource, icp, onIcp,
 }: { source: string[]; onSource: (v: string[]) => void; icp: string[]; onIcp: (v: string[]) => void }) {
+  const { t } = useTranslation();
   const count = source.length + icp.length;
   const toggle = (arr: string[], set: (v: string[]) => void, id: string) =>
     set(arr.includes(id) ? arr.filter((x) => x !== id) : [...arr, id]);
@@ -131,23 +116,24 @@ function CombinedFilter({
             "inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12px] font-semibold border transition-colors cursor-pointer",
             count > 0 ? "border-[var(--sherloq-primary)] text-[var(--sherloq-primary)] bg-[var(--signal-teal-bg)]" : "border-border text-text-body bg-app-surface hover:bg-app-bg",
           )}>
-          <Filter className="w-3.5 h-3.5" /> Filter
+          <Filter className="w-3.5 h-3.5" /> {t("kontakte.filter")}
           {count > 0 && <span className="min-w-[18px] h-[18px] px-1 rounded-[6px] bg-[var(--sherloq-primary)] text-on-accent text-[10px] font-bold flex items-center justify-center tabular-nums">{count}</span>}
           <ChevronDown className="w-3.5 h-3.5 opacity-70" />
         </button>
       </PopoverTrigger>
       <PopoverContent align="start" portal={false} className="w-56 p-1.5">
-        <div className="typo-section-label text-text-muted px-2 pt-1 pb-1">Quelle</div>
-        {SOURCE_OPTS.map((o) => <Row key={o.id} checked={source.includes(o.id)} label={o.label} onToggle={() => toggle(source, onSource, o.id)} />)}
+        <div className="typo-section-label text-text-muted px-2 pt-1 pb-1">{t("kontakte.filterSource")}</div>
+        {SOURCE_IDS.map((id) => <Row key={id} checked={source.includes(id)} label={t(`kontakte.source.${id}`)} onToggle={() => toggle(source, onSource, id)} />)}
         <div className="my-1 border-t border-[var(--border-card)]" />
-        <div className="typo-section-label text-text-muted px-2 pt-1 pb-1">ICP</div>
-        {ICP_OPTS.map((o) => <Row key={o.id} checked={icp.includes(o.id)} label={o.label} onToggle={() => toggle(icp, onIcp, o.id)} />)}
+        <div className="typo-section-label text-text-muted px-2 pt-1 pb-1">{t("kontakte.filterIcp")}</div>
+        {ICP_IDS.map((id) => <Row key={id} checked={icp.includes(id)} label={t(`kontakte.icpBand.${id}`)} onToggle={() => toggle(icp, onIcp, id)} />)}
       </PopoverContent>
     </Popover>
   );
 }
 
 export default function ScreenKontakte() {
+  const { t } = useTranslation();
   const { organizationId } = useCurrentOrg();
   const { user } = useAuth();
   const userId = user?.id ?? null;
@@ -235,7 +221,7 @@ export default function ScreenKontakte() {
   const columns = useMemo(
     () => [
       col.accessor("name", {
-        header: "Kontakt", size: 300, minSize: 200,
+        header: "name", size: 300, minSize: 200,
         cell: (c) => {
           const r = c.row.original;
           return (
@@ -249,26 +235,26 @@ export default function ScreenKontakte() {
           );
         },
       }),
-      col.accessor("leadSource", { header: "Quelle", size: 140, minSize: 100, enableSorting: false, cell: (c) => <LeadSourceBadge source={c.getValue()} /> }),
+      col.accessor("leadSource", { header: "leadSource", size: 140, minSize: 100, enableSorting: false, cell: (c) => <LeadSourceBadge source={c.getValue()} /> }),
       col.accessor("contactStatus", {
-        header: "Status", size: 140, minSize: 100,
+        header: "contactStatus", size: 140, minSize: 100,
         cell: (c) => {
-          const cfg = c.getValue() ? STATUS_CFG[c.getValue() as string] : undefined;
-          return cfg ? <StatusBadge label={cfg.label} tone={cfg.tone} /> : null;
+          const v = c.getValue() as string | undefined;
+          return v && STATUS_TONE[v] ? <StatusBadge label={t(`kontakte.status.${v}`)} tone={STATUS_TONE[v]} /> : null;
         },
       }),
       col.accessor("lastContactedAt", {
-        header: "Zuletzt", size: 130, minSize: 100,
+        header: "lastContactedAt", size: 130, minSize: 100,
         cell: (c) => {
           const d = daysSinceIso(c.getValue(), nowMs);
           if (d == null || d < 1) return null;
-          return <span className="typo-field-value text-text-primary">vor {d} {d === 1 ? "Tag" : "Tagen"}</span>;
+          return <span className="typo-field-value text-text-primary">{t("kontakte.daysAgo", { count: d })}</span>;
         },
       }),
-      col.accessor("icpScore", { header: "ICP Score", size: 120, minSize: 90, cell: (c) => (c.getValue() != null ? <ICPDonut score={c.getValue() as number} /> : null) }),
-      col.accessor("routing", { header: "Routing", size: 150, minSize: 110, enableSorting: false, cell: (c) => <RoutingChip routing={c.getValue()} onNavigate={(p) => navigate(p)} /> }),
+      col.accessor("icpScore", { header: "icpScore", size: 120, minSize: 90, cell: (c) => (c.getValue() != null ? <ICPDonut score={c.getValue() as number} /> : null) }),
+      col.accessor("routing", { header: "routing", size: 150, minSize: 110, enableSorting: false, cell: (c) => <RoutingChip routing={c.getValue()} onNavigate={(p) => navigate(p)} /> }),
     ],
-    [col, nowMs, navigate],
+    [col, nowMs, navigate, t],
   );
 
   // eslint-disable-next-line react-hooks/incompatible-library
@@ -309,16 +295,16 @@ export default function ScreenKontakte() {
 
   // Lagebild-Kategorien (nur KONTAKT-bezogen + in dieser Tabelle filterbar). 0 → weg.
   const lagebild = [
-    { key: "no_way", label: "Ohne Kontaktweg", count: counts.noWay, icon: MailX, active: noContactWay,
+    { key: "no_way", label: t("kontakte.lagebild.noContactWay"), count: counts.noWay, icon: MailX, active: noContactWay,
       apply: () => { setStatusFilter(null); setSourceFilter([]); setIcpFilter([]); setNoContactWay((v) => !v); } },
-    { key: "opt_out", label: "Opt-outs", count: counts.optOut, icon: Ban, active: statusFilter === "opt_out",
+    { key: "opt_out", label: t("kontakte.lagebild.optOuts"), count: counts.optOut, icon: Ban, active: statusFilter === "opt_out",
       apply: () => { setNoContactWay(false); setSourceFilter([]); setIcpFilter([]); setStatusFilter(statusFilter === "opt_out" ? null : "opt_out"); } },
   ].filter((c) => c.count > 0);
 
   const resetColumns = () => { setColumnVisibility({}); setColumnOrder([]); setColumnSizing({}); };
   const clearFilters = () => { setStatusFilter(null); setSourceFilter([]); setIcpFilter([]); setNoContactWay(false); };
   const clearSelection = () => { setRowSelection({}); setSelectAllFiltered(false); };
-  const bulkAction = (label: string) => { toast(`${label}: ${selectedCount} Kontakte (folgt) ✓`, "info"); clearSelection(); };
+  const bulkAction = (label: string) => { toast(t("kontakte.bulk.actionToast", { label, count: selectedCount }), "info"); clearSelection(); };
 
   // Status-Pill wählen (single) — hebt „Ohne Kontaktweg" auf.
   const pickStatus = (id: string | null) => { setNoContactWay(false); setStatusFilter(id); };
@@ -354,31 +340,31 @@ export default function ScreenKontakte() {
       {/* Kopf */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-baseline gap-3">
-          <h1 className="text-[24px] font-extrabold text-text-primary">Kontakte</h1>
+          <h1 className="text-[24px] font-extrabold text-text-primary">{t("kontakte.title")}</h1>
           {total > 0 && <span className="px-2 py-0.5 rounded-[7px] bg-app-bg text-text-muted text-[13px] font-semibold tabular-nums">{total.toLocaleString("de-DE")}</span>}
         </div>
         <div className="flex items-center gap-2 relative">
-          <button type="button" aria-label="Spalten anpassen" data-tip="Spalten anpassen" onClick={() => setConfigOpen((o) => !o)}
+          <button type="button" aria-label={t("kontakte.columnsAdjust")} data-tip={t("kontakte.columnsAdjust")} onClick={() => setConfigOpen((o) => !o)}
             className="w-9 h-9 rounded-[10px] border border-border flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-app-bg transition-colors cursor-pointer">
             <SlidersHorizontal className="w-4 h-4" />
           </button>
           {configOpen && (
             <div className="absolute right-0 top-11 z-20 w-64 bg-app-surface rounded-[12px] border border-[var(--border-card)] shadow-[var(--shadow-dropdown)] p-3">
               <div className="flex items-center justify-between mb-2">
-                <span className="typo-section-label text-text-muted">Spalten</span>
-                <button onClick={resetColumns} data-tip="Sichtbarkeit, Reihenfolge und Breite zurücksetzen" className="text-text-muted hover:text-text-primary flex items-center gap-1 text-[11px] cursor-pointer"><RotateCcw className="w-3 h-3" /> Standard</button>
+                <span className="typo-section-label text-text-muted">{t("kontakte.columns")}</span>
+                <button onClick={resetColumns} data-tip={t("kontakte.resetDefaultTip")} className="text-text-muted hover:text-text-primary flex items-center gap-1 text-[11px] cursor-pointer"><RotateCcw className="w-3 h-3" /> {t("kontakte.resetDefault")}</button>
               </div>
               {table.getAllLeafColumns().map((c) => (
                 <label key={c.id} className="flex items-center gap-2 py-1.5 text-[13px] text-text-body cursor-pointer">
                   <input type="checkbox" checked={c.getIsVisible()} onChange={c.getToggleVisibilityHandler()} disabled={c.id === "name"} className="accent-[var(--sherloq-primary)]" />
-                  {COLUMN_LABELS[c.id] ?? c.id}
+                  {t(`kontakte.col.${c.id}`)}
                 </label>
               ))}
-              <p className="mt-2 pt-2 border-t border-[var(--border-card)] text-[11px] text-text-muted leading-snug">Spalten per Drag am Titel verschieben · Kante ziehen ändert die Breite.</p>
+              <p className="mt-2 pt-2 border-t border-[var(--border-card)] text-[11px] text-text-muted leading-snug">{t("kontakte.columnsHint")}</p>
             </div>
           )}
           <button type="button" onClick={() => setAnlegenOpen(true)} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--sherloq-primary)] text-on-accent text-[13px] font-bold hover:opacity-90 transition-opacity cursor-pointer">
-            <Plus className="w-4 h-4" /> Kontakt
+            <Plus className="w-4 h-4" /> {t("kontakte.addContact")}
           </button>
         </div>
       </div>
@@ -405,14 +391,14 @@ export default function ScreenKontakte() {
 
       {/* Filter — Status-Pills mit echten Counts + kombiniertes „Filter"-Dropdown (Quelle/ICP) */}
       <div className="flex items-center gap-2 flex-wrap mb-4">
-        <StatusPill id={null} label="Alle" count={counts.total} />
+        <StatusPill id={null} label={t("kontakte.status.all")} count={counts.total} />
         {STATUS_ORDER.filter((s) => (counts.byStatus[s] ?? 0) > 0).map((s) => (
-          <StatusPill key={s} id={s} label={STATUS_CFG[s]?.label ?? s} count={counts.byStatus[s]} />
+          <StatusPill key={s} id={s} label={t(`kontakte.status.${s}`)} count={counts.byStatus[s]} />
         ))}
         <span className="w-px h-5 bg-border mx-1" />
         <CombinedFilter source={sourceFilter} onSource={setSourceFilter} icp={icpFilter} onIcp={setIcpFilter} />
         {hasFilter && (
-          <button type="button" onClick={clearFilters} className="text-[12px] font-semibold text-text-muted hover:text-text-primary transition-colors cursor-pointer px-2">Alle zurücksetzen</button>
+          <button type="button" onClick={clearFilters} className="text-[12px] font-semibold text-text-muted hover:text-text-primary transition-colors cursor-pointer px-2">{t("kontakte.resetFilters")}</button>
         )}
       </div>
 
@@ -420,19 +406,19 @@ export default function ScreenKontakte() {
       {selectedCount > 0 && (
         <div className="flex items-center justify-between px-4 py-2.5 mb-3 rounded-[10px] bg-[var(--signal-teal-bg)] border border-[var(--sherloq-primary)]/20">
           <div className="flex items-center gap-3 text-[13px] text-text-body">
-            <span className="font-bold">{selectedCount.toLocaleString("de-DE")} ausgewählt</span>
+            <span className="font-bold">{t("kontakte.bulk.selected", { count: selectedCount })}</span>
             {pageAllSelected && !selectAllFiltered && total > pageRows.length && (
               <button onClick={() => setSelectAllFiltered(true)} className="text-[var(--sherloq-primary)] font-semibold hover:underline cursor-pointer">
-                Alle {total.toLocaleString("de-DE")} {hasFilter ? "im aktuellen Filter" : "Kontakte"} auswählen
+                {hasFilter ? t("kontakte.bulk.selectAllFilter", { count: total }) : t("kontakte.bulk.selectAllAll", { count: total })}
               </button>
             )}
-            {selectAllFiltered && <button onClick={clearSelection} className="text-[var(--sherloq-primary)] font-semibold hover:underline cursor-pointer">Auswahl aufheben</button>}
+            {selectAllFiltered && <button onClick={clearSelection} className="text-[var(--sherloq-primary)] font-semibold hover:underline cursor-pointer">{t("kontakte.bulk.clear")}</button>}
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={() => bulkAction("Zu Liste hinzufügen")} className="sherloq-btn-secondary">Zu Liste</button>
-            <button onClick={() => bulkAction("Tag setzen")} className="sherloq-btn-secondary">Tag</button>
-            <button onClick={() => bulkAction("Archivieren")} className="sherloq-btn-secondary">Archivieren</button>
-            <button onClick={clearSelection} aria-label="Auswahl schließen" data-tip="Auswahl aufheben" className="w-8 h-8 rounded-full hover:bg-app-surface flex items-center justify-center text-text-muted cursor-pointer"><X className="w-4 h-4" /></button>
+            <button onClick={() => bulkAction(t("kontakte.bulk.toListFull"))} className="sherloq-btn-secondary">{t("kontakte.bulk.toList")}</button>
+            <button onClick={() => bulkAction(t("kontakte.bulk.tagFull"))} className="sherloq-btn-secondary">{t("kontakte.bulk.tag")}</button>
+            <button onClick={() => bulkAction(t("kontakte.bulk.archiveFull"))} className="sherloq-btn-secondary">{t("kontakte.bulk.archive")}</button>
+            <button onClick={clearSelection} aria-label={t("kontakte.bulk.clear")} data-tip={t("kontakte.bulk.clear")} className="w-8 h-8 rounded-full hover:bg-app-surface flex items-center justify-center text-text-muted cursor-pointer"><X className="w-4 h-4" /></button>
           </div>
         </div>
       )}
@@ -443,13 +429,13 @@ export default function ScreenKontakte() {
           <div className="flex-1 p-5 space-y-3">{Array.from({ length: 8 }).map((_, i) => <div key={i} className="h-11 rounded-[8px] bg-app-bg animate-pulse" />)}</div>
         ) : contactsQuery.isError ? (
           <div className="flex-1 flex items-center justify-center">
-            <EmptyState icon={<Users className="w-6 h-6" />} title="Konnte gerade nicht geladen werden" description="Bitte erneut versuchen." action={{ label: "Nochmal laden", onClick: () => contactsQuery.refetch() }} />
+            <EmptyState icon={<Users className="w-6 h-6" />} title={t("kontakte.loadError")} description={t("kontakte.loadErrorDesc")} action={{ label: t("kontakte.reload"), onClick: () => contactsQuery.refetch() }} />
           </div>
         ) : total === 0 ? (
           <div className="flex-1 flex items-center justify-center">
             <EmptyState icon={<Users className="w-6 h-6" />}
-              title={hasFilter ? "Keine Treffer" : "Noch keine Kontakte"}
-              description={hasFilter ? "Kein Kontakt passt zu diesem Filter." : "Lege deinen ersten Kontakt an oder importiere eine Liste."} />
+              title={hasFilter ? t("kontakte.noHits") : t("kontakte.emptyTitle")}
+              description={hasFilter ? t("kontakte.noHitsDesc") : t("kontakte.emptyDesc")} />
           </div>
         ) : (
           <div ref={scrollRef} className="flex-1 min-h-0 overflow-auto">
@@ -457,7 +443,7 @@ export default function ScreenKontakte() {
               {/* Header — sticky, horizontal mit den Zeilen synchron */}
               <div className="sticky top-0 z-10 flex items-center gap-4 px-5 py-3 border-b border-[var(--border-card)] bg-app-bg">
                 <label className="flex items-center cursor-pointer shrink-0 w-9">
-                  <input type="checkbox" aria-label="Alle auf dieser Seite auswählen" checked={pageAllSelected}
+                  <input type="checkbox" aria-label={t("kontakte.selectPageAll")} checked={pageAllSelected}
                     onChange={(e) => { const on = e.target.checked; setSelectAllFiltered(false); setRowSelection(on ? Object.fromEntries(pageRows.map((r) => [r.id, true])) : {}); }}
                     className="accent-[var(--sherloq-primary)]" />
                 </label>
@@ -471,7 +457,7 @@ export default function ScreenKontakte() {
                     <button type="button" disabled={!h.column.getCanSort()} onClick={h.column.getToggleSortingHandler()}
                       className={cn("typo-field-label text-text-body flex items-center gap-1 text-left max-w-full cursor-grab active:cursor-grabbing", h.column.getCanSort() && "hover:text-text-primary")}>
                       <GripVertical className="w-3 h-3 text-text-muted opacity-0 group-hover/col:opacity-100 transition-opacity shrink-0" />
-                      <span className="truncate">{flexRender(h.column.columnDef.header, h.getContext())}</span>
+                      <span className="truncate">{t(`kontakte.col.${h.column.id}`)}</span>
                       {h.column.getCanSort() && ({ asc: <ArrowUp className="w-3 h-3 shrink-0" />, desc: <ArrowDown className="w-3 h-3 shrink-0" /> }[h.column.getIsSorted() as string] ?? <ChevronsUpDown className="w-3 h-3 opacity-40 shrink-0" />)}
                     </button>
                     {/* Resize-Handle an der rechten Kante */}
@@ -492,7 +478,7 @@ export default function ScreenKontakte() {
                       className={cn("flex items-center gap-4 px-5 border-b border-[var(--border-card)] hover:bg-app-bg/60 transition-colors absolute top-0 left-0 w-full", selected && "bg-[var(--signal-teal-bg)]")}
                       style={{ height: vi.size, transform: `translateY(${vi.start}px)` }}>
                       <label className="flex items-center cursor-pointer shrink-0 w-9">
-                        <input type="checkbox" aria-label="Kontakt auswählen" checked={selected}
+                        <input type="checkbox" aria-label={t("kontakte.selectRow")} checked={selected}
                           onChange={() => { setSelectAllFiltered(false); row.toggleSelected(); }} className="accent-[var(--sherloq-primary)]" />
                       </label>
                       {row.getVisibleCells().map((cell) => (
@@ -500,7 +486,7 @@ export default function ScreenKontakte() {
                           {flexRender(cell.column.columnDef.cell, cell.getContext())}
                         </div>
                       ))}
-                      <button type="button" aria-label="Kontakt öffnen" data-tip="Kontakt öffnen"
+                      <button type="button" aria-label={t("kontakte.openContact")} data-tip={t("kontakte.openContact")}
                         onClick={() => { const r = row.original; setDetailPerson({ id: r.id, name: r.name, jobTitle: r.jobTitle, company: r.company, initials: r.initials, avatarUrl: r.avatarUrl }); }}
                         className="w-8 h-8 shrink-0 rounded-full bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)] hover:scale-105 transition-transform flex items-center justify-center cursor-pointer">
                         <ArrowRight className="w-4 h-4" />
@@ -516,9 +502,9 @@ export default function ScreenKontakte() {
         {total > 0 && (
           <div className="flex items-center justify-between px-5 py-3 border-t border-[var(--border-card)] shrink-0">
             <div className="flex items-center gap-3 text-[13px] text-text-body">
-              <span>Zeige {from.toLocaleString("de-DE")}–{to.toLocaleString("de-DE")} von {total.toLocaleString("de-DE")}</span>
+              <span>{t("kontakte.pageInfo", { from: from.toLocaleString("de-DE"), to: to.toLocaleString("de-DE"), total: total.toLocaleString("de-DE") })}</span>
               <span className="text-border-strong">·</span>
-              <span className="flex items-center gap-1.5">Pro Seite
+              <span className="flex items-center gap-1.5">{t("kontakte.perPage")}
                 <Select value={String(pageSize)} onValueChange={(v) => setPagination((p) => ({ ...p, pageIndex: 0, pageSize: Number(v) }))}>
                   <SelectTrigger className="h-auto rounded-[8px] border-border bg-app-surface px-2 py-1 text-[13px] text-text-body w-[68px]"><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -530,11 +516,11 @@ export default function ScreenKontakte() {
             <div className="flex items-center gap-2">
               <button onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}
                 className="inline-flex items-center gap-1 px-3 py-1.5 rounded-[10px] border border-border text-[12px] font-semibold text-text-body hover:bg-app-bg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent">
-                <ChevronLeft className="w-4 h-4" /> Zurück
+                <ChevronLeft className="w-4 h-4" /> {t("kontakte.prev")}
               </button>
               <button onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}
                 className="inline-flex items-center gap-1 px-3 py-1.5 rounded-[10px] border border-border text-[12px] font-semibold text-text-body hover:bg-app-bg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent">
-                Weiter <ChevronRight className="w-4 h-4" />
+                {t("kontakte.next")} <ChevronRight className="w-4 h-4" />
               </button>
             </div>
           </div>

@@ -517,5 +517,116 @@
       "showLessDeals": "Weniger anzeigen",
       "noDeals": "Noch keine Deals"
     }
+  },
+  "kontakte": {
+    "title": "Kontakte",
+    "addContact": "Kontakt",
+    "columnsAdjust": "Spalten anpassen",
+    "columns": "Spalten",
+    "resetDefault": "Standard",
+    "resetDefaultTip": "Sichtbarkeit, Reihenfolge und Breite zurücksetzen",
+    "columnsHint": "Spalten per Drag am Titel verschieben · Kante ziehen ändert die Breite.",
+    "col": {
+      "name": "Kontakt",
+      "leadSource": "Quelle",
+      "contactStatus": "Status",
+      "lastContactedAt": "Zuletzt",
+      "icpScore": "ICP Score",
+      "routing": "Routing"
+    },
+    "status": {
+      "all": "Alle",
+      "in_campaign": "In Campaign",
+      "pipeline": "Pipeline",
+      "kunde": "Kunde",
+      "archiviert": "Archiviert",
+      "ohne_campaign": "Neu",
+      "opt_out": "Opt-out"
+    },
+    "source": {
+      "sherloq": "Sherloq",
+      "csv_upload": "CSV",
+      "crm_sync": "CRM",
+      "manual": "Manuell"
+    },
+    "icpBand": {
+      "high": "ICP > 75",
+      "mid": "ICP 50–74",
+      "low": "ICP < 50"
+    },
+    "filter": "Filter",
+    "filterSource": "Quelle",
+    "filterIcp": "ICP",
+    "resetFilters": "Alle zurücksetzen",
+    "lagebild": {
+      "noContactWay": "Ohne Kontaktweg",
+      "optOuts": "Opt-outs"
+    },
+    "bulk": {
+      "selected": "{{count}} ausgewählt",
+      "selectAllFilter": "Alle {{count}} im aktuellen Filter auswählen",
+      "selectAllAll": "Alle {{count}} Kontakte auswählen",
+      "clear": "Auswahl aufheben",
+      "toList": "Zu Liste",
+      "tag": "Tag",
+      "archive": "Archivieren",
+      "toListFull": "Zu Liste hinzufügen",
+      "tagFull": "Tag setzen",
+      "archiveFull": "Archivieren",
+      "actionToast": "{{label}}: {{count}} Kontakte (folgt) ✓"
+    },
+    "selectPageAll": "Alle auf dieser Seite auswählen",
+    "selectRow": "Kontakt auswählen",
+    "openContact": "Kontakt öffnen",
+    "loadError": "Konnte gerade nicht geladen werden",
+    "loadErrorDesc": "Bitte erneut versuchen.",
+    "reload": "Nochmal laden",
+    "noHits": "Keine Treffer",
+    "noHitsDesc": "Kein Kontakt passt zu diesem Filter.",
+    "emptyTitle": "Noch keine Kontakte",
+    "emptyDesc": "Lege deinen ersten Kontakt an oder importiere eine Liste.",
+    "pageInfo": "Zeige {{from}}–{{to}} von {{total}}",
+    "perPage": "Pro Seite",
+    "next": "Weiter",
+    "prev": "Zurück",
+    "routing": {
+      "ai_sdr": "In AI SDR",
+      "hunter": "In Hunter",
+      "farmer": "In Farmer"
+    },
+    "leadSource": {
+      "sherloq": "Sherloq AI",
+      "csv_upload": "Import (CSV)",
+      "crm_sync": "CRM-Sync",
+      "manual": "Manuell",
+      "webhook_api": "Webhook"
+    },
+    "create": {
+      "title": "Neuen Kontakt anlegen",
+      "firstName": "Vorname",
+      "lastName": "Nachname",
+      "firstNamePh": "Jane",
+      "lastNamePh": "Doe",
+      "emailOrLinkedin": "E-Mail oder LinkedIn",
+      "emailOrLinkedinHint": " — Name oder LinkedIn genügt",
+      "emailPh": "name@company.com",
+      "linkedinPh": "linkedin.com/in/…",
+      "company": "Firma",
+      "companyPh": "Firma suchen oder neu eingeben…",
+      "jobTitle": "Jobtitel",
+      "jobTitlePh": "z.B. CEO",
+      "seniority": "Seniority",
+      "seniorityPh": "Auswählen…",
+      "notes": "Notizen",
+      "notesPh": "Kontext, nächste Schritte, Hinweise…",
+      "submit": "Kontakt anlegen",
+      "softDup": "Mögliches Duplikat (gleicher Name + Firma). Du kannst trotzdem anlegen.",
+      "hardDupEmail": "Kontakt existiert bereits (gleiche E-Mail).",
+      "hardDupLinkedin": "Kontakt existiert bereits (gleiche LinkedIn-URL).",
+      "createdToast": "Kontakt angelegt ✓",
+      "createErrorToast": "Konnte gerade nicht anlegen — nochmal versuchen"
+    },
+    "daysAgo_one": "vor {{count}} Tag",
+    "daysAgo_other": "vor {{count}} Tagen"
   }
 }
