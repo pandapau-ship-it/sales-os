@@ -4885,6 +4885,15 @@ Zwei klar getrennte Panel-Typen (verbindlich für Hunter, Farmer und alle Screen
 - **Nach Aktion:** Toast unten rechts + Badge in Kachel aktualisiert sich + Realtime-Update ohne Reload
 - **Kein Tab-System** — einspaltiger Fokus auf eine Aktion
 
+**Panel-Komposition = Pflicht (erzwungen, `npm run audit` → „Panel: Shell statt Eigenbau" = FAIL):**
+Jedes neue rechte Panel **komponiert `panels/ActionPanel` (720px) bzw. `panels/InfoPanel` (820px)** —
+niemals ein hand-gebautes `<Sheet>/<SheetContent>` (falsche Breite/Rundung/Feld-Optik). Die Shell
+besitzt Breite + Rundung + Header/Footer-Gerüst; die Feld-Optik ist der **`FIELD`-Kanon aus
+`AddSdrLeadPanel`** (graue Füllung `bg-app-bg`, 10px Radius) — nicht weiße Inputs. Ein rohes
+`<SheetContent>` ist zwar gültige shadcn-Nutzung, aber die **Kompositions-Regel** steht über der
+Primitiv-Regel. Direkt-Nutzer von `ui/sheet` sind auf die kanonischen Shells/Panels allowlisted
+(`scripts/audit.ts` → `checkPanelShellComposition`); alles Neue außerhalb → FAIL.
+
 **7 Action-Panel-Varianten:** Signals · Stagniert · Churn Risk · Upsell · Trial läuft aus · Kalt · Keine Task
 
 ---

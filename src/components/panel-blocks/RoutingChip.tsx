@@ -12,6 +12,14 @@ const CFG: Record<ContactRouting, { label: string; icon: LucideIcon; path: strin
   farmer: { label: "In Farmer", icon: Sprout, path: "/app/farmer" },
 };
 
+/**
+ * Honesty: Der Chip ist eine Spiegelung von contact_status. Er erscheint nur, wenn das
+ * Ziel-Modul auch WIRKLICH gebaut ist — sonst führt „In X →" ins Leere. AI SDR ist aktuell
+ * ComingSoon (App.tsx), daher hier NICHT gelistet. Sobald der AI-SDR-Screen existiert:
+ * "ai_sdr" ergänzen — kein weiterer Umbau nötig.
+ */
+const BUILT_ROUTINGS: ReadonlySet<ContactRouting> = new Set(["hunter", "farmer"]);
+
 export default function RoutingChip({
   routing,
   onNavigate,
@@ -19,7 +27,7 @@ export default function RoutingChip({
   routing: ContactRouting | null;
   onNavigate?: (path: string) => void;
 }) {
-  if (!routing) return null;
+  if (!routing || !BUILT_ROUTINGS.has(routing)) return null;
   const cfg = CFG[routing];
   const Icon = cfg.icon;
   return (

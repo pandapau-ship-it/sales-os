@@ -1,20 +1,30 @@
 /**
- * KontaktAnlegenPanel — „Neuen Kontakt anlegen" (K-3 CP4). Rechtes Sheet.
+ * KontaktAnlegenPanel — „Neuen Kontakt anlegen" (K-3). Nutzt das BESTEHENDE Action-Panel-Muster
+ * 1:1 wie `AddSdrLeadPanel` (Hunter → „SDR Lead hinzufügen"): `panels/ActionPanel` (720px Sheet
+ * „drawer"), Header h-[70px]/typo-card-title, `PanelField`-Wrapper, graue Feld-Füllung (`bg-app-bg`,
+ * `FIELD`), Gradient-Submit im Footer. KEIN Eigenbau — Single Source der Panel-/Feld-Optik.
  *
- * Pflicht (K1, validateContactRequired): (Vorname+Nachname) ODER LinkedIn-URL — amber-Hinweis.
+ * Pflicht (K1, validateContactRequired): (Vorname+Nachname) ODER LinkedIn-URL.
  * Live-Duplikat (K2, findDuplicates, onBlur E-Mail/LinkedIn/Name+Company):
  *  - HARD (sicher, E-Mail/LinkedIn exakt) → rote Inline-Meldung + Speichern deaktiviert.
  *  - SOFT (möglich, Name+Company) → gelber Banner, Speichern bleibt aktiv.
  * Anlegen: findOrCreateCompany + createContact (lead_source=manual, Owner via K9). Alles echt.
  */
 import { useState } from "react";
-import { AlertTriangle, X } from "lucide-react";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { UserPlus, X, Mail, Search, Check, AlertTriangle } from "lucide-react";
+import ActionPanel from "@/components/panels/ActionPanel";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import LinkedinIcon from "@/components/shared/LinkedinIcon";
+import { PanelField } from "@/components";
 import { validateContactRequired } from "@/lib/contactValidation";
 import { findDuplicates, createContact, findOrCreateCompany } from "@/lib/db";
 import { SENIORITY_OPTS } from "@/lib/contactDetailFields";
 import { useToast } from "@/components/shared/toastContext";
+
+// Feld-Optik = Kanon aus AddSdrLeadPanel: graue Füllung (bg-app-bg), 10px Radius.
+const FIELD =
+  "w-full text-[13px] font-sans px-3.5 py-2.5 bg-app-bg border border-border focus:border-[var(--sherloq-primary)] rounded-[10px] focus:outline-none transition-colors placeholder-[var(--text-muted)]";
+const TRIGGER = "w-full rounded-[10px] border-border bg-app-bg text-[13px] font-semibold text-text-primary";
 
 type DupState = { level: "sicher" | "moeglich"; matchType: string } | null;
 
@@ -32,11 +42,9 @@ export default function KontaktAnlegenPanel({
   onCreated: () => void;
 }) {
   return (
-    <Sheet open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
-      <SheetContent side="right" style={{ width: 560, maxWidth: "95vw" }} className="p-0 gap-0 flex flex-col h-full">
-        {open && <AnlegenForm organizationId={organizationId} createdBy={createdBy} onClose={onClose} onCreated={onCreated} />}
-      </SheetContent>
-    </Sheet>
+    <ActionPanel open={open} onClose={onClose}>
+      {open && <AnlegenForm organizationId={organizationId} createdBy={createdBy} onClose={onClose} onCreated={onCreated} />}
+    </ActionPanel>
   );
 }
 
@@ -70,7 +78,8 @@ function AnlegenForm({
     setDup(hit ? { level: hit.level, matchType: hit.matchType } : null);
   };
 
-  const save = async () => {
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setTouched(true);
     if (!req.ok || hardDup) return;
     setSaving(true);
@@ -89,84 +98,103 @@ function AnlegenForm({
     }
   };
 
-  const label = "typo-field-label text-text-muted mb-1 block";
-  const input = "w-full px-3.5 py-2.5 rounded-[8px] border bg-app-surface outline-none focus:border-[var(--sherloq-primary)] transition-colors text-[13px] text-text-body";
-
   return (
     <>
-      <div className="flex items-center justify-between px-6 py-5 border-b border-[var(--border-card)] shrink-0">
-        <h2 className="text-[18px] font-extrabold text-text-primary">Neuen Kontakt anlegen</h2>
-        <button onClick={onClose} aria-label="Schließen" data-tip="Schließen" className="w-8 h-8 rounded-full hover:bg-app-bg flex items-center justify-center text-text-muted cursor-pointer"><X className="w-4 h-4" /></button>
-      </div>
-
-      {/* Soft-Match-Banner (möglich, Name+Company) */}
-      {dup?.level === "moeglich" && (
-        <div className="mx-6 mt-4 px-3.5 py-2.5 rounded-[10px] bg-[var(--signal-warn-bg)] border border-[var(--color-warning-soft)]/25 flex items-start gap-2 text-[12px] text-text-body">
-          <AlertTriangle className="w-4 h-4 text-[var(--color-warning)] shrink-0 mt-0.5" />
-          <span>Mögliches Duplikat (gleicher Name + Firma). Du kannst trotzdem anlegen.</span>
+      {/* HEADER — identisch zu AddSdrLeadPanel */}
+      <header className="h-[70px] px-6 border-b border-border flex items-center justify-between shrink-0 bg-app-surface z-30">
+        <div className="flex items-center gap-2">
+          <UserPlus className="w-5 h-5 text-[var(--sherloq-primary)]" />
+          <h3 className="typo-card-title text-text-primary">Neuen Kontakt anlegen</h3>
         </div>
-      )}
+        <button type="button" onClick={onClose} aria-label="Schließen" data-tip="Schließen" className="w-8 h-8 rounded-full bg-app-bg flex items-center justify-center text-text-muted hover:text-text-primary transition-colors cursor-pointer">
+          <X className="w-4 h-4" />
+        </button>
+      </header>
 
-      <div className="flex-1 min-h-0 overflow-y-auto px-6 py-5 space-y-5">
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className={label}>Vorname{invalidReq && <span className="text-[var(--color-warning)]"> *</span>}</label>
-            <input value={firstName} onChange={(e) => setFirstName(e.target.value)} onBlur={checkDup} placeholder="z.B. Jane" className={`${input} ${invalidReq ? "border-[var(--color-warning-soft)]" : "border-border"}`} />
-          </div>
-          <div>
-            <label className={label}>Nachname{invalidReq && <span className="text-[var(--color-warning)]"> *</span>}</label>
-            <input value={lastName} onChange={(e) => setLastName(e.target.value)} onBlur={checkDup} placeholder="z.B. Doe" className={`${input} ${invalidReq ? "border-[var(--color-warning-soft)]" : "border-border"}`} />
-          </div>
-        </div>
+      <form onSubmit={submit} className="flex-1 flex flex-col min-h-0">
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-6 flex flex-col gap-6">
 
-        <div className="flex items-center gap-2 text-[11px] font-bold text-text-muted uppercase tracking-widest"><span className="flex-1 h-px bg-border" />oder<span className="flex-1 h-px bg-border" /></div>
-
-        <div>
-          <label className={label}>LinkedIn-URL{invalidReq && <span className="text-[var(--color-warning)]"> *</span>}</label>
-          <input value={linkedin} onChange={(e) => setLinkedin(e.target.value)} onBlur={checkDup} placeholder="https://linkedin.com/in/…" className={`${input} ${invalidReq ? "border-[var(--color-warning-soft)]" : "border-border"}`} />
-        </div>
-
-        <div>
-          <label className={label}>E-Mail</label>
-          <input value={email} onChange={(e) => { setEmail(e.target.value); }} onBlur={checkDup} placeholder="name@company.com" className={`${input} ${hardDup ? "border-[var(--signal-urgent-text)]" : "border-border"}`} />
-          {hardDup && (
-            <p className="mt-1.5 text-[12px] text-signal-urgent flex items-center gap-1.5">
-              <AlertTriangle className="w-3.5 h-3.5" /> Kontakt existiert bereits ({dup?.matchType === "email" ? "gleiche E-Mail" : "gleiche LinkedIn-URL"}).
-            </p>
+          {/* Soft-Match-Banner (möglich, Name+Company) */}
+          {dup?.level === "moeglich" && (
+            <div className="flex items-start gap-2 p-3 rounded-[10px] bg-[var(--signal-warn-bg)] border border-[var(--border-card)]">
+              <AlertTriangle className="w-4 h-4 shrink-0 mt-px text-[var(--signal-warn-text)]" />
+              <p className="text-[11px] font-semibold leading-relaxed text-[var(--signal-warn-text)]">
+                Mögliches Duplikat (gleicher Name + Firma). Du kannst trotzdem anlegen.
+              </p>
+            </div>
           )}
+
+          {/* Pflicht: Name */}
+          <section className="flex flex-col gap-3">
+            <div className="grid grid-cols-2 gap-3">
+              <PanelField label="Vorname" required={invalidReq}>
+                <input type="text" placeholder="Jane" value={firstName} onChange={(e) => setFirstName(e.target.value)} onBlur={checkDup} className={FIELD} />
+              </PanelField>
+              <PanelField label="Nachname" required={invalidReq}>
+                <input type="text" placeholder="Doe" value={lastName} onChange={(e) => setLastName(e.target.value)} onBlur={checkDup} className={FIELD} />
+              </PanelField>
+            </div>
+
+            {/* E-Mail ODER LinkedIn — eines genügt */}
+            <div>
+              <label className="text-[11px] text-text-muted font-semibold block mb-1">
+                E-Mail oder LinkedIn{invalidReq && <span className="text-[var(--signal-urgent-text)]"> *</span>}
+                <span className="font-normal text-text-muted"> — Name oder LinkedIn genügt</span>
+              </label>
+              <div className="flex flex-col gap-2">
+                <div className="relative">
+                  <Mail className="w-3.5 h-3.5 text-text-muted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <input type="email" placeholder="name@company.com" value={email} onChange={(e) => setEmail(e.target.value)} onBlur={checkDup} className={`${FIELD} pl-9 ${hardDup ? "border-[var(--signal-urgent-text)]" : ""}`} />
+                </div>
+                <div className="relative">
+                  <LinkedinIcon className="w-3.5 h-3.5 text-text-muted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <input type="text" placeholder="linkedin.com/in/…" value={linkedin} onChange={(e) => setLinkedin(e.target.value)} onBlur={checkDup} className={`${FIELD} pl-9 ${hardDup ? "border-[var(--signal-urgent-text)]" : ""}`} />
+                </div>
+              </div>
+              {hardDup && (
+                <p className="mt-1.5 text-[12px] text-signal-urgent flex items-center gap-1.5">
+                  <AlertTriangle className="w-3.5 h-3.5" /> Kontakt existiert bereits ({dup?.matchType === "email" ? "gleiche E-Mail" : "gleiche LinkedIn-URL"}).
+                </p>
+              )}
+            </div>
+
+            <PanelField label="Firma">
+              <div className="relative">
+                <Search className="w-3.5 h-3.5 text-text-muted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <input type="text" placeholder="Firma suchen oder neu eingeben…" value={company} onChange={(e) => setCompany(e.target.value)} onBlur={checkDup} className={`${FIELD} pl-9`} />
+              </div>
+            </PanelField>
+
+            <div className="grid grid-cols-2 gap-3">
+              <PanelField label="Jobtitel">
+                <input type="text" placeholder="z.B. CEO" value={jobTitle} onChange={(e) => setJobTitle(e.target.value)} className={FIELD} />
+              </PanelField>
+              <PanelField label="Seniority">
+                <Select value={seniority || undefined} onValueChange={setSeniority}>
+                  <SelectTrigger className={TRIGGER}><SelectValue placeholder="Auswählen…" /></SelectTrigger>
+                  <SelectContent>
+                    {SENIORITY_OPTS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </PanelField>
+            </div>
+
+            <PanelField label="Notizen">
+              <textarea rows={3} placeholder="Kontext, nächste Schritte, Hinweise…" value={notes} onChange={(e) => setNotes(e.target.value)} className="w-full text-[13px] font-sans leading-relaxed p-3 bg-app-bg border border-border focus:border-[var(--sherloq-primary)] rounded-[10px] focus:outline-none resize-none transition-colors placeholder-[var(--text-muted)]" />
+            </PanelField>
+          </section>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className={label}>Jobtitel</label>
-            <input value={jobTitle} onChange={(e) => setJobTitle(e.target.value)} placeholder="z.B. CEO" className={`${input} border-border`} />
-          </div>
-          <div>
-            <label className={label}>Seniority</label>
-            <Select value={seniority || undefined} onValueChange={setSeniority}>
-              <SelectTrigger className="w-full rounded-[8px] border-border bg-app-surface text-[13px] text-text-body"><SelectValue placeholder="Auswählen…" /></SelectTrigger>
-              <SelectContent>
-                {SENIORITY_OPTS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
+        {/* FOOTER — identisch zu AddSdrLeadPanel */}
+        <div className="shrink-0 border-t border-border-subtle p-4 flex items-center justify-end gap-2 bg-app-surface">
+          <button type="button" onClick={onClose} disabled={saving} className="px-4 py-2 rounded-[10px] border border-border text-text-body text-[12px] font-bold hover:bg-app-bg transition-colors cursor-pointer disabled:opacity-50">
+            Abbrechen
+          </button>
+          <button type="submit" disabled={saving || hardDup} className="inline-flex items-center justify-center gap-1.5 px-5 py-2 rounded-[10px] text-on-accent text-[12px] font-bold shadow-sm hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed" style={{ background: "var(--sherloq-gradient)" }}>
+            <Check className="w-3.5 h-3.5" /> Kontakt anlegen
+          </button>
         </div>
-
-        <div>
-          <label className={label}>Company</label>
-          <input value={company} onChange={(e) => setCompany(e.target.value)} onBlur={checkDup} placeholder="Unternehmen suchen oder anlegen" className={`${input} border-border`} />
-        </div>
-
-        <div>
-          <label className={label}>Notizen</label>
-          <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} placeholder="Zusätzliche Infos zum Kontakt…" className={`${input} border-border resize-none`} />
-        </div>
-      </div>
-
-      <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-[var(--border-card)] shrink-0">
-        <button onClick={onClose} disabled={saving} className="sherloq-btn-secondary disabled:opacity-50">Abbrechen</button>
-        <button onClick={save} disabled={saving || hardDup} className="sherloq-btn-primary disabled:opacity-50 disabled:cursor-default">Kontakt anlegen</button>
-      </div>
+      </form>
     </>
   );
 }

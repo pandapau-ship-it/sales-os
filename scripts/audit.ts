@@ -718,6 +718,35 @@ function checkProfileRowSingleSource(): void {
 }
 checkProfileRowSingleSource()
 
+// ── Panel-Komposition: neue Side-Panels MÜSSEN die Shell nutzen ──────────────
+// Hintergrund (QA 2026-07-17): KontaktAnlegenPanel war als hand-gebautes <Sheet>/<SheetContent>
+// gebaut statt über die 720px-ActionPanel-Shell — falsche Breite/Rundung/Feld-Optik. Kein
+// bestehender Check schlug an, weil ein rohes <SheetContent> gültige shadcn-Nutzung IST
+// (erfüllt die „nutze shadcn"-Regel). Das ist dieselbe Klasse Blindstelle wie K-2b (Profilzeile):
+// eine Kompositions-/Single-Source-Regel, die nur in Prosa (CLAUDE.md) lebte. Dieser Check
+// erzwingt sie maschinell: rechte Panels komponieren ActionPanel (720) / InfoPanel (820) —
+// die Shell besitzt Breite + Rundung + Header/Footer-Gerüst; niemand baut sie erneut.
+function checkPanelShellComposition(): void {
+  // Kanonische Direkt-Nutzer von ui/sheet (die Shells selbst + große Bestands-Panels, die die
+  // Shell-Rolle erfüllen). Alles NEUE außerhalb dieser Liste muss ActionPanel/InfoPanel nutzen.
+  const ALLOW = new Set([
+    'ActionPanel.tsx', 'InfoPanel.tsx',         // die Shells
+    'HunterSidepanel.tsx', 'FarmerSidepanel.tsx', 'ChatActionPanel.tsx', // 820/720-Kanon-Panels
+    'NoTaskDrawer.tsx', 'CustomerDrawer.tsx',   // Bestands-Drawer (vor der Shell-Regel)
+  ])
+  const files = walk(join(SRC, 'components', 'features'), ['.tsx'])
+    .concat(walk(join(SRC, 'components', 'screens'), ['.tsx']))
+  const sheetImport = /from\s+['"]@\/components\/ui\/sheet['"]/
+  const offenders = files
+    .filter((f) => !ALLOW.has(basename(f)) && sheetImport.test(read(f)))
+    .map(rel)
+  add('Panel: Shell statt Eigenbau', offenders.length ? 'FAIL' : 'PASS',
+    offenders.length
+      ? `Hand-gebautes Sheet statt ActionPanel/InfoPanel (Breite/Rundung/Feld-Optik weichen ab): ${offenders.join(', ')}`
+      : 'Neue Side-Panels komponieren ActionPanel/InfoPanel.')
+}
+checkPanelShellComposition()
+
 // ── Report ───────────────────────────────────────────────────────────────────
 
 const icon: Record<Status, string> = { PASS: '✓', WARN: '!', FAIL: '✗', SKIP: '·' }

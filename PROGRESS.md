@@ -118,7 +118,22 @@
         + `createContact` (lead_source=manual, Owner via K9). Detail-Panel-Öffnen via `HunterSidepanel`. **Export/Aktionen-Button
         bewusst weggelassen** — serverseitiges „alle im Filter" nicht sauber in K-3 (kommt mit echter DB-Filterung; Entscheidung
         gemeldet). xlsx-lazy-`import()` bleibt Sache des Import-UI (K-5/K-6), hier kein Export-Pfad.
-        Gates: build ✓ · lint 0 · tsc 0 · 120 Tests ✓ · structure PASS · audit 0 FAIL.
+        **QA-Nacharbeit (2026-07-17, Prossis Screenshot-Blick):** (1) `KontaktAnlegenPanel` auf das
+        **bestehende Action-Panel-Muster** umgebaut (`panels/ActionPanel` 720px + `PanelField` + graue
+        `FIELD`-Optik, 1:1 wie `AddSdrLeadPanel`) — vorher Eigenbau-Sheet (Single-Source-Verstoß). Neuer
+        **Audit-Check `checkPanelShellComposition` („Panel: Shell statt Eigenbau" = FAIL)** schließt die
+        Blindstelle maschinell. (2) Tabelle vervollständigt: **Spalten-Drag-Reorder + Breite-Ziehen +
+        Persistenz** (columnOrder/columnSizing in `user_preferences`), „Standard" setzt jetzt Sichtbarkeit
+        **+ Reihenfolge + Breite** zurück. (3) Lesbarkeit: Header `text-text-body`, Pagination-Buttons mit
+        Icons + `disabled:opacity-50`. (4) `RoutingChip` blendet **nicht-gebaute Ziele aus** (AI SDR =
+        ComingSoon) — Honesty; re-aktivieren sobald AI-SDR-Screen existiert. (5) Filterleiste: 11 Pills →
+        **drei Multi-Select-Dropdowns** (Status/Quelle/ICP, `in`-Operator, aktive Zahl im Button) + „Alle
+        zurücksetzen"; **erweiterter Filter-Builder = disabled** (folgt mit K-2-Filter-UI, `data-tip`).
+        Gates: build ✓ · lint 0 · tsc 0 · 120 Tests ✓ · structure PASS · audit 0 FAIL (23 PASS).
+  - [ ] **Aktionen-Button (Import/Export/Duplikate) im Kontakte-Kopf** — erscheint, sobald **K-5-UI**
+        (Smart-Import) **+ K-6** (Duplikat-Verwaltung) gebaut sind. **K-5-UI ist der nächste sinnvolle
+        Slice nach K-4** (Engine-Kern liegt bereits, `src/lib/import/`). Export „alle im aktuellen Filter"
+        braucht serverseitige Filterung (kommt mit dem DB-seitigen K-2-Anschluss).
   - [ ] **▶ K-4 Companies-Screen + Detail** (4c: ScreenCompanies) — hier auch **[D-city]**
         (`contacts.city`/`country`-Migration) aufgreifen, da beim Company-/Adress-Wiring fällig.
   - [~] **K-5 Smart-Import — Engine-Kern (dep-frei) VORGEZOGEN** (Reihenfolge-Flexibilität

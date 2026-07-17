@@ -3,10 +3,11 @@
  * HunterCard-Profil (Spalten selbst gerendert ist hier korrekt).
  *
  * CP2: echte Daten, Sortierung, Virtualisierung, Pagination, Zustände.
- * CP3: Filter über die K-2-Sprache (Pills → FilterDefinition → evaluateFilter, client-seitig auf
- *   dem geladenen Satz), Bulk-Auswahl (Gmail-Muster: Seite vs. ganzer Filter), Spalten-Sichtbarkeit
- *   + „Auf Standard", Persistenz PRO USER (user_preferences → table_views.contacts: Spalten/
- *   Sortierung/Seitengröße). Anlegen/Duplikat/Detail-Panel folgen CP4.
+ * CP3: Filter über die K-2-Sprache (drei Multi-Select-Dropdowns → FilterDefinition → evaluateFilter,
+ *   client-seitig auf dem geladenen Satz), Bulk-Auswahl (Gmail-Muster: Seite vs. ganzer Filter),
+ *   Spalten: ein-/ausblenden + Reihenfolge per Drag + Breite ziehen + „Auf Standard"; Persistenz
+ *   PRO USER (user_preferences → table_views.contacts: Sichtbarkeit/Reihenfolge/Breite/Sortierung/
+ *   Seitengröße). Anlegen (ActionPanel-Muster, K1+K2) + Detail-Panel.
  *
  * Übernahme 4c: Library-Bausteine (StatusBadge/ICPDonut/Avatar/LeadSourceBadge/RoutingChip),
  * Tokens, Meta-Label oben (K-2b). Leere Werte ausblenden (Honesty), nie „—" erfinden.
@@ -23,10 +24,13 @@ import {
   createColumnHelper,
   type SortingState,
   type VisibilityState,
+  type ColumnOrderState,
+  type ColumnSizingState,
 } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import {
-  ArrowRight, ArrowUp, ArrowDown, ChevronsUpDown, Plus, SlidersHorizontal, Users, X, RotateCcw,
+  ArrowRight, ArrowUp, ArrowDown, ChevronsUpDown, ChevronDown, ChevronLeft, ChevronRight,
+  Plus, SlidersHorizontal, Filter, GripVertical, Users, X, RotateCcw,
 } from "lucide-react";
 import { useCurrentOrg } from "@/hooks/useCurrentOrg";
 import { useAuth } from "@/hooks/useAuth";
@@ -37,6 +41,7 @@ import { daysSinceIso } from "@/lib/hunterMappers";
 import { evaluateFilter, type FilterDefinition, type FilterNode } from "@/lib/filter";
 import { cn } from "@/lib/utils";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Avatar, ICPDonut, StatusBadge, LeadSourceBadge, RoutingChip, EmptyState } from "@/components";
 import { useToast } from "@/components/shared/toastContext";
 import KontaktAnlegenPanel from "@/components/features/kontakte/KontaktAnlegenPanel";
@@ -51,23 +56,23 @@ const STATUS_CFG: Record<string, { label: string; tone: "success" | "warn" | "ur
   ohne_campaign: { label: "Neu", tone: "muted" },
   opt_out: { label: "Opt-out", tone: "urgent" },
 };
-const STATUS_PILLS = [
+const STATUS_OPTS = [
   { id: "in_campaign", label: "In Campaign" },
   { id: "pipeline", label: "Pipeline" },
   { id: "kunde", label: "Kunde" },
   { id: "archiviert", label: "Archiviert" },
   { id: "opt_out", label: "Opt-out" },
 ];
-const SOURCE_PILLS = [
+const SOURCE_OPTS = [
   { id: "sherloq", label: "Sherloq" },
   { id: "csv_upload", label: "CSV" },
   { id: "crm_sync", label: "CRM" },
   { id: "manual", label: "Manuell" },
 ];
-const ICP_PILLS = [
-  { id: "high", label: "ICP >75" },
+const ICP_OPTS = [
+  { id: "high", label: "ICP > 75" },
   { id: "mid", label: "ICP 50–74" },
-  { id: "low", label: "ICP <50" },
+  { id: "low", label: "ICP < 50" },
 ];
 const PAGE_SIZES = [25, 50, 100];
 const COLUMN_LABELS: Record<string, string> = {
@@ -76,19 +81,64 @@ const COLUMN_LABELS: Record<string, string> = {
 };
 const PREF_KEY = "table_views.contacts";
 
-/** Filter-Pills → K-2-FilterDefinition (contacts-Felder). Kein Filter → null. */
-function buildFilterDef(status: string | null, source: string | null, icp: string | null): FilterDefinition | null {
+type SavedView = {
+  columnVisibility?: VisibilityState;
+  columnOrder?: ColumnOrderState;
+  columnSizing?: ColumnSizingState;
+  sorting?: SortingState;
+  pageSize?: number;
+};
+
+/** Filter-Auswahl (Multi) → K-2-FilterDefinition (contacts-Felder). Kein Filter → null. */
+function buildFilterDef(status: string[], source: string[], icp: string[]): FilterDefinition | null {
   const rules: FilterNode[] = [];
-  if (status) rules.push({ field: "contact_status", operator: "eq", value: status });
-  if (source) rules.push({ field: "lead_source", operator: "eq", value: source });
-  if (icp === "high") rules.push({ field: "icp_score", operator: "gt", value: 75 });
-  else if (icp === "low") rules.push({ field: "icp_score", operator: "lt", value: 50 });
-  else if (icp === "mid") rules.push({ logic: "AND", rules: [
-    { field: "icp_score", operator: "gte", value: 50 },
-    { field: "icp_score", operator: "lte", value: 74 },
-  ] });
+  if (status.length) rules.push({ field: "contact_status", operator: "in", value: status });
+  if (source.length) rules.push({ field: "lead_source", operator: "in", value: source });
+  if (icp.length) {
+    const bands: FilterNode[] = [];
+    if (icp.includes("high")) bands.push({ field: "icp_score", operator: "gt", value: 75 });
+    if (icp.includes("mid")) bands.push({ logic: "AND", rules: [
+      { field: "icp_score", operator: "gte", value: 50 },
+      { field: "icp_score", operator: "lte", value: 74 },
+    ] });
+    if (icp.includes("low")) bands.push({ field: "icp_score", operator: "lt", value: 50 });
+    rules.push(bands.length === 1 ? bands[0] : { logic: "OR", rules: bands });
+  }
   if (!rules.length) return null;
   return { entity: "contacts", where: rules.length === 1 ? rules[0] : { logic: "AND", rules } };
+}
+
+/** Multi-Select-Filter als Popover (shadcn-Primitiv) — aktive Zahl im Trigger. */
+function FilterDropdown({
+  label, options, selected, onChange,
+}: { label: string; options: { id: string; label: string }[]; selected: string[]; onChange: (v: string[]) => void }) {
+  const active = selected.length > 0;
+  const toggle = (id: string) => onChange(selected.includes(id) ? selected.filter((x) => x !== id) : [...selected, id]);
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className={cn(
+            "inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12px] font-semibold border transition-colors cursor-pointer",
+            active ? "border-[var(--sherloq-primary)] text-[var(--sherloq-primary)] bg-[var(--signal-teal-bg)]" : "border-border text-text-body bg-app-surface hover:bg-app-bg",
+          )}
+        >
+          {label}
+          {active && <span className="min-w-[18px] h-[18px] px-1 rounded-[6px] bg-[var(--sherloq-primary)] text-on-accent text-[10px] font-bold flex items-center justify-center tabular-nums">{selected.length}</span>}
+          <ChevronDown className="w-3.5 h-3.5 opacity-70" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="start" portal={false} className="w-52 p-1.5">
+        {options.map((o) => (
+          <label key={o.id} className="flex items-center gap-2.5 px-2 py-2 rounded-[8px] text-[13px] text-text-body hover:bg-app-bg cursor-pointer">
+            <input type="checkbox" checked={selected.includes(o.id)} onChange={() => toggle(o.id)} className="accent-[var(--sherloq-primary)] w-3.5 h-3.5" />
+            {o.label}
+          </label>
+        ))}
+      </PopoverContent>
+    </Popover>
+  );
 }
 
 export default function ScreenKontakte() {
@@ -102,14 +152,17 @@ export default function ScreenKontakte() {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 50 });
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [columnOrder, setColumnOrder] = useState<ColumnOrderState>([]);
+  const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({});
   const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
   const [selectAllFiltered, setSelectAllFiltered] = useState(false);
-  const [statusFilter, setStatusFilter] = useState<string | null>(null);
-  const [sourceFilter, setSourceFilter] = useState<string | null>(null);
-  const [icpFilter, setIcpFilter] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<string[]>([]);
+  const [sourceFilter, setSourceFilter] = useState<string[]>([]);
+  const [icpFilter, setIcpFilter] = useState<string[]>([]);
   const [configOpen, setConfigOpen] = useState(false);
   const [anlegenOpen, setAnlegenOpen] = useState(false);
   const [detailPerson, setDetailPerson] = useState<Person | null>(null);
+  const [draggedCol, setDraggedCol] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   // ── Persistenz (pro User) — laden beim Mount, speichern bei Änderung ──────────
@@ -117,11 +170,11 @@ export default function ScreenKontakte() {
   useEffect(() => {
     if (!userId) { prefsLoaded.current = true; return; }
     let alive = true;
-    getUserPreference<{ columnVisibility?: VisibilityState; sorting?: SortingState; pageSize?: number }>(
-      userId, organizationId, PREF_KEY,
-    ).then((v) => {
+    getUserPreference<SavedView>(userId, organizationId, PREF_KEY).then((v) => {
       if (!alive || !v) { prefsLoaded.current = true; return; }
       if (v.columnVisibility) setColumnVisibility(v.columnVisibility);
+      if (v.columnOrder) setColumnOrder(v.columnOrder);
+      if (v.columnSizing) setColumnSizing(v.columnSizing);
       if (v.sorting) setSorting(v.sorting);
       if (v.pageSize) setPagination((p) => ({ ...p, pageSize: v.pageSize! }));
       prefsLoaded.current = true;
@@ -133,11 +186,11 @@ export default function ScreenKontakte() {
     if (!userId || !prefsLoaded.current) return;
     const t = setTimeout(() => {
       void setUserPreference(userId, organizationId, PREF_KEY, {
-        columnVisibility, sorting, pageSize: pagination.pageSize,
+        columnVisibility, columnOrder, columnSizing, sorting, pageSize: pagination.pageSize,
       });
     }, 500);
     return () => clearTimeout(t);
-  }, [userId, organizationId, columnVisibility, sorting, pagination.pageSize]);
+  }, [userId, organizationId, columnVisibility, columnOrder, columnSizing, sorting, pagination.pageSize]);
 
   // ── Daten + Filter (K-2) ─────────────────────────────────────────────────────
   const contactsQuery = useQuery({
@@ -160,7 +213,7 @@ export default function ScreenKontakte() {
   const columns = useMemo(
     () => [
       col.accessor("name", {
-        header: "Kontakt",
+        header: "Kontakt", size: 300, minSize: 200,
         cell: (c) => {
           const r = c.row.original;
           return (
@@ -174,24 +227,24 @@ export default function ScreenKontakte() {
           );
         },
       }),
-      col.accessor("leadSource", { header: "Quelle", enableSorting: false, cell: (c) => <LeadSourceBadge source={c.getValue()} /> }),
+      col.accessor("leadSource", { header: "Quelle", size: 140, minSize: 100, enableSorting: false, cell: (c) => <LeadSourceBadge source={c.getValue()} /> }),
       col.accessor("contactStatus", {
-        header: "Status",
+        header: "Status", size: 140, minSize: 100,
         cell: (c) => {
           const cfg = c.getValue() ? STATUS_CFG[c.getValue() as string] : undefined;
           return cfg ? <StatusBadge label={cfg.label} tone={cfg.tone} /> : null;
         },
       }),
       col.accessor("lastContactedAt", {
-        header: "Zuletzt",
+        header: "Zuletzt", size: 130, minSize: 100,
         cell: (c) => {
           const d = daysSinceIso(c.getValue(), nowMs);
           if (d == null || d < 1) return null;
           return <span className="typo-field-value text-text-primary">vor {d} {d === 1 ? "Tag" : "Tagen"}</span>;
         },
       }),
-      col.accessor("icpScore", { header: "ICP Score", cell: (c) => (c.getValue() != null ? <ICPDonut score={c.getValue() as number} /> : null) }),
-      col.accessor("routing", { header: "Routing", enableSorting: false, cell: (c) => <RoutingChip routing={c.getValue()} onNavigate={(p) => navigate(p)} /> }),
+      col.accessor("icpScore", { header: "ICP Score", size: 120, minSize: 90, cell: (c) => (c.getValue() != null ? <ICPDonut score={c.getValue() as number} /> : null) }),
+      col.accessor("routing", { header: "Routing", size: 150, minSize: 110, enableSorting: false, cell: (c) => <RoutingChip routing={c.getValue()} onNavigate={(p) => navigate(p)} /> }),
     ],
     [col, nowMs, navigate],
   );
@@ -200,13 +253,18 @@ export default function ScreenKontakte() {
   const table = useReactTable({
     data: rows,
     columns,
-    state: { sorting, pagination, columnVisibility, rowSelection },
+    state: { sorting, pagination, columnVisibility, columnOrder, columnSizing, rowSelection },
     onSortingChange: setSorting,
     onPaginationChange: setPagination,
     onColumnVisibilityChange: setColumnVisibility,
+    onColumnOrderChange: setColumnOrder,
+    onColumnSizingChange: setColumnSizing,
     onRowSelectionChange: setRowSelection,
     getRowId: (r) => r.id,
     enableRowSelection: true,
+    enableColumnResizing: true,
+    columnResizeMode: "onChange",
+    defaultColumn: { minSize: 80 },
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -215,6 +273,8 @@ export default function ScreenKontakte() {
   const pageRows = table.getRowModel().rows;
   const scrollRef = useRef<HTMLDivElement>(null);
   const rowVirtualizer = useVirtualizer({ count: pageRows.length, getScrollElement: () => scrollRef.current, estimateSize: () => 68, overscan: 8 });
+  const headers = table.getHeaderGroups()[0].headers;
+  const rowWidth = 36 + table.getVisibleLeafColumns().reduce((s, c) => s + c.getSize(), 0) + 44 + 16 * (table.getVisibleLeafColumns().length + 1);
 
   const total = rows.length;
   const pageSize = pagination.pageSize;
@@ -223,24 +283,24 @@ export default function ScreenKontakte() {
   const to = Math.min((pageIndex + 1) * pageSize, total);
   const selectedCount = selectAllFiltered ? total : Object.keys(rowSelection).length;
   const pageAllSelected = pageRows.length > 0 && pageRows.every((r) => rowSelection[r.id]);
-  const hasFilter = !!(statusFilter || sourceFilter || icpFilter);
+  const hasFilter = statusFilter.length > 0 || sourceFilter.length > 0 || icpFilter.length > 0;
 
-  const resetColumns = () => setColumnVisibility({});
+  const resetColumns = () => { setColumnVisibility({}); setColumnOrder([]); setColumnSizing({}); };
+  const clearFilters = () => { setStatusFilter([]); setSourceFilter([]); setIcpFilter([]); };
   const clearSelection = () => { setRowSelection({}); setSelectAllFiltered(false); };
   const bulkAction = (label: string) => { toast(`${label}: ${selectedCount} Kontakte (folgt) ✓`, "info"); clearSelection(); };
 
-  const Pill = ({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) => (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "px-3.5 py-1.5 rounded-full text-[12px] font-medium border transition-colors cursor-pointer",
-        active ? "bg-[var(--sherloq-primary)] text-on-accent border-transparent" : "bg-app-surface text-text-body border-border hover:bg-app-bg",
-      )}
-    >
-      {children}
-    </button>
-  );
+  // Drag-Reorder der Spalten (nur Datenspalten; Checkbox + Öffnen-Pfeil bleiben fix).
+  const onColDrop = (targetId: string) => {
+    if (!draggedCol || draggedCol === targetId) { setDraggedCol(null); return; }
+    const order = (columnOrder.length ? [...columnOrder] : table.getAllLeafColumns().map((c) => c.id));
+    const from2 = order.indexOf(draggedCol);
+    const to2 = order.indexOf(targetId);
+    if (from2 < 0 || to2 < 0) { setDraggedCol(null); return; }
+    order.splice(to2, 0, order.splice(from2, 1)[0]);
+    setColumnOrder(order);
+    setDraggedCol(null);
+  };
 
   return (
     <div className="flex flex-col h-full min-h-0">
@@ -256,10 +316,10 @@ export default function ScreenKontakte() {
             <SlidersHorizontal className="w-4 h-4" />
           </button>
           {configOpen && (
-            <div className="absolute right-0 top-11 z-20 w-56 bg-app-surface rounded-[12px] border border-[var(--border-card)] shadow-[var(--shadow-dropdown)] p-3">
+            <div className="absolute right-0 top-11 z-20 w-64 bg-app-surface rounded-[12px] border border-[var(--border-card)] shadow-[var(--shadow-dropdown)] p-3">
               <div className="flex items-center justify-between mb-2">
                 <span className="typo-section-label text-text-muted">Spalten</span>
-                <button onClick={resetColumns} data-tip="Auf Standard zurücksetzen" className="text-text-muted hover:text-text-primary flex items-center gap-1 text-[11px] cursor-pointer"><RotateCcw className="w-3 h-3" /> Standard</button>
+                <button onClick={resetColumns} data-tip="Sichtbarkeit, Reihenfolge und Breite zurücksetzen" className="text-text-muted hover:text-text-primary flex items-center gap-1 text-[11px] cursor-pointer"><RotateCcw className="w-3 h-3" /> Standard</button>
               </div>
               {table.getAllLeafColumns().map((c) => (
                 <label key={c.id} className="flex items-center gap-2 py-1.5 text-[13px] text-text-body cursor-pointer">
@@ -267,6 +327,7 @@ export default function ScreenKontakte() {
                   {COLUMN_LABELS[c.id] ?? c.id}
                 </label>
               ))}
+              <p className="mt-2 pt-2 border-t border-[var(--border-card)] text-[11px] text-text-muted leading-snug">Spalten per Drag am Titel verschieben · Kante ziehen ändert die Breite.</p>
             </div>
           )}
           <button type="button" onClick={() => setAnlegenOpen(true)} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--sherloq-primary)] text-on-accent text-[13px] font-bold hover:opacity-90 transition-opacity cursor-pointer">
@@ -275,14 +336,19 @@ export default function ScreenKontakte() {
         </div>
       </div>
 
-      {/* Filter-Pills */}
-      <div className="flex items-center gap-2 flex-wrap mb-4">
-        <Pill active={!statusFilter} onClick={() => setStatusFilter(null)}>Alle</Pill>
-        {STATUS_PILLS.map((p) => <Pill key={p.id} active={statusFilter === p.id} onClick={() => setStatusFilter(statusFilter === p.id ? null : p.id)}>{p.label}</Pill>)}
-        <span className="w-px h-5 bg-border mx-1" />
-        {SOURCE_PILLS.map((p) => <Pill key={p.id} active={sourceFilter === p.id} onClick={() => setSourceFilter(sourceFilter === p.id ? null : p.id)}>{p.label}</Pill>)}
-        <span className="w-px h-5 bg-border mx-1" />
-        {ICP_PILLS.map((p) => <Pill key={p.id} active={icpFilter === p.id} onClick={() => setIcpFilter(icpFilter === p.id ? null : p.id)}>{p.label}</Pill>)}
+      {/* Filter — drei Multi-Select-Dropdowns + Reset + (erweiterter Builder folgt) */}
+      <div className="flex items-center gap-2 mb-4">
+        <FilterDropdown label="Status" options={STATUS_OPTS} selected={statusFilter} onChange={setStatusFilter} />
+        <FilterDropdown label="Quelle" options={SOURCE_OPTS} selected={sourceFilter} onChange={setSourceFilter} />
+        <FilterDropdown label="ICP" options={ICP_OPTS} selected={icpFilter} onChange={setIcpFilter} />
+        {hasFilter && (
+          <button type="button" onClick={clearFilters} className="text-[12px] font-semibold text-text-muted hover:text-text-primary transition-colors cursor-pointer px-2">Alle zurücksetzen</button>
+        )}
+        <div className="flex-1" />
+        <button type="button" disabled data-tip="Erweiterter Filter-Builder folgt (K-2 Filter-UI)"
+          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12px] font-semibold border border-border text-text-muted opacity-60 cursor-not-allowed">
+          <Filter className="w-3.5 h-3.5" /> Filter
+        </button>
       </div>
 
       {/* Bulk-Bar (Gmail-Muster) */}
@@ -290,7 +356,6 @@ export default function ScreenKontakte() {
         <div className="flex items-center justify-between px-4 py-2.5 mb-3 rounded-[10px] bg-[var(--signal-teal-bg)] border border-[var(--sherloq-primary)]/20">
           <div className="flex items-center gap-3 text-[13px] text-text-body">
             <span className="font-bold">{selectedCount.toLocaleString("de-DE")} ausgewählt</span>
-            {/* Gmail: Seite vs. ganzer Filter explizit unterscheiden */}
             {pageAllSelected && !selectAllFiltered && total > pageRows.length && (
               <button onClick={() => setSelectAllFiltered(true)} className="text-[var(--sherloq-primary)] font-semibold hover:underline cursor-pointer">
                 Alle {total.toLocaleString("de-DE")} {hasFilter ? "im aktuellen Filter" : "Kontakte"} auswählen
@@ -309,22 +374,6 @@ export default function ScreenKontakte() {
 
       {/* Tabelle */}
       <div className="flex-1 min-h-0 flex flex-col bg-app-surface rounded-[12px] border border-[var(--border-card)] overflow-hidden">
-        <div className="grid grid-cols-[36px_minmax(200px,2fr)_140px_130px_120px_110px_140px_44px] gap-4 px-5 py-3 border-b border-[var(--border-card)] bg-app-bg shrink-0 items-center">
-          <label className="flex items-center cursor-pointer">
-            <input type="checkbox" aria-label="Alle auf dieser Seite auswählen" checked={pageAllSelected}
-              onChange={(e) => { const on = e.target.checked; setSelectAllFiltered(false); setRowSelection(on ? Object.fromEntries(pageRows.map((r) => [r.id, true])) : {}); }}
-              className="accent-[var(--sherloq-primary)]" />
-          </label>
-          {table.getHeaderGroups()[0].headers.map((h) => (
-            <button key={h.id} type="button" disabled={!h.column.getCanSort()} onClick={h.column.getToggleSortingHandler()}
-              className={cn("typo-field-label text-text-muted flex items-center gap-1 text-left", h.column.getCanSort() && "hover:text-text-body cursor-pointer")}>
-              {flexRender(h.column.columnDef.header, h.getContext())}
-              {h.column.getCanSort() && ({ asc: <ArrowUp className="w-3 h-3" />, desc: <ArrowDown className="w-3 h-3" /> }[h.column.getIsSorted() as string] ?? <ChevronsUpDown className="w-3 h-3 opacity-40" />)}
-            </button>
-          ))}
-          <span />
-        </div>
-
         {contactsQuery.isLoading ? (
           <div className="flex-1 p-5 space-y-3">{Array.from({ length: 8 }).map((_, i) => <div key={i} className="h-11 rounded-[8px] bg-app-bg animate-pulse" />)}</div>
         ) : contactsQuery.isError ? (
@@ -338,35 +387,70 @@ export default function ScreenKontakte() {
               description={hasFilter ? "Kein Kontakt passt zu diesem Filter." : "Lege deinen ersten Kontakt an oder importiere eine Liste."} />
           </div>
         ) : (
-          <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto">
-            <div style={{ height: rowVirtualizer.getTotalSize(), position: "relative" }}>
-              {rowVirtualizer.getVirtualItems().map((vi) => {
-                const row = pageRows[vi.index];
-                const selected = selectAllFiltered || !!rowSelection[row.id];
-                return (
-                  <div key={row.id}
-                    className={cn("grid grid-cols-[36px_minmax(200px,2fr)_140px_130px_120px_110px_140px_44px] gap-4 px-5 items-center border-b border-[var(--border-card)] hover:bg-app-bg/60 transition-colors absolute top-0 left-0 w-full", selected && "bg-[var(--signal-teal-bg)]")}
-                    style={{ height: vi.size, transform: `translateY(${vi.start}px)` }}>
-                    <label className="flex items-center cursor-pointer">
-                      <input type="checkbox" aria-label="Kontakt auswählen" checked={selected}
-                        onChange={() => { setSelectAllFiltered(false); row.toggleSelected(); }} className="accent-[var(--sherloq-primary)]" />
-                    </label>
-                    {row.getVisibleCells().map((cell) => <div key={cell.id} className="min-w-0">{flexRender(cell.column.columnDef.cell, cell.getContext())}</div>)}
-                    <button type="button" aria-label="Kontakt öffnen" data-tip="Kontakt öffnen"
-                      onClick={() => { const r = row.original; setDetailPerson({ id: r.id, name: r.name, jobTitle: r.jobTitle, company: r.company, initials: r.initials, avatarUrl: r.avatarUrl }); }}
-                      className="w-8 h-8 rounded-full bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)] hover:scale-105 transition-transform flex items-center justify-center cursor-pointer justify-self-end">
-                      <ArrowRight className="w-4 h-4" />
+          <div ref={scrollRef} className="flex-1 min-h-0 overflow-auto">
+            <div style={{ minWidth: rowWidth }}>
+              {/* Header — sticky, horizontal mit den Zeilen synchron */}
+              <div className="sticky top-0 z-10 flex items-center gap-4 px-5 py-3 border-b border-[var(--border-card)] bg-app-bg">
+                <label className="flex items-center cursor-pointer shrink-0 w-9">
+                  <input type="checkbox" aria-label="Alle auf dieser Seite auswählen" checked={pageAllSelected}
+                    onChange={(e) => { const on = e.target.checked; setSelectAllFiltered(false); setRowSelection(on ? Object.fromEntries(pageRows.map((r) => [r.id, true])) : {}); }}
+                    className="accent-[var(--sherloq-primary)]" />
+                </label>
+                {headers.map((h) => (
+                  <div key={h.id} style={{ width: h.getSize() }}
+                    className="relative shrink-0 group/col"
+                    draggable
+                    onDragStart={() => setDraggedCol(h.column.id)}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={() => onColDrop(h.column.id)}>
+                    <button type="button" disabled={!h.column.getCanSort()} onClick={h.column.getToggleSortingHandler()}
+                      className={cn("typo-field-label text-text-body flex items-center gap-1 text-left max-w-full cursor-grab active:cursor-grabbing", h.column.getCanSort() && "hover:text-text-primary")}>
+                      <GripVertical className="w-3 h-3 text-text-muted opacity-0 group-hover/col:opacity-100 transition-opacity shrink-0" />
+                      <span className="truncate">{flexRender(h.column.columnDef.header, h.getContext())}</span>
+                      {h.column.getCanSort() && ({ asc: <ArrowUp className="w-3 h-3 shrink-0" />, desc: <ArrowDown className="w-3 h-3 shrink-0" /> }[h.column.getIsSorted() as string] ?? <ChevronsUpDown className="w-3 h-3 opacity-40 shrink-0" />)}
                     </button>
+                    {/* Resize-Handle an der rechten Kante */}
+                    <div onMouseDown={h.getResizeHandler()} onTouchStart={h.getResizeHandler()} onClick={(e) => e.stopPropagation()}
+                      className={cn("absolute -right-2 top-1/2 -translate-y-1/2 h-5 w-1 rounded-full cursor-col-resize select-none touch-none", h.column.getIsResizing() ? "bg-[var(--sherloq-primary)]" : "bg-transparent group-hover/col:bg-border-strong")} />
                   </div>
-                );
-              })}
+                ))}
+                <span className="shrink-0 w-8" />
+              </div>
+
+              {/* Zeilen — virtualisiert */}
+              <div style={{ height: rowVirtualizer.getTotalSize(), position: "relative" }}>
+                {rowVirtualizer.getVirtualItems().map((vi) => {
+                  const row = pageRows[vi.index];
+                  const selected = selectAllFiltered || !!rowSelection[row.id];
+                  return (
+                    <div key={row.id}
+                      className={cn("flex items-center gap-4 px-5 border-b border-[var(--border-card)] hover:bg-app-bg/60 transition-colors absolute top-0 left-0 w-full", selected && "bg-[var(--signal-teal-bg)]")}
+                      style={{ height: vi.size, transform: `translateY(${vi.start}px)` }}>
+                      <label className="flex items-center cursor-pointer shrink-0 w-9">
+                        <input type="checkbox" aria-label="Kontakt auswählen" checked={selected}
+                          onChange={() => { setSelectAllFiltered(false); row.toggleSelected(); }} className="accent-[var(--sherloq-primary)]" />
+                      </label>
+                      {row.getVisibleCells().map((cell) => (
+                        <div key={cell.id} style={{ width: cell.column.getSize() }} className="min-w-0 shrink-0">
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </div>
+                      ))}
+                      <button type="button" aria-label="Kontakt öffnen" data-tip="Kontakt öffnen"
+                        onClick={() => { const r = row.original; setDetailPerson({ id: r.id, name: r.name, jobTitle: r.jobTitle, company: r.company, initials: r.initials, avatarUrl: r.avatarUrl }); }}
+                        className="w-8 h-8 shrink-0 rounded-full bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)] hover:scale-105 transition-transform flex items-center justify-center cursor-pointer">
+                        <ArrowRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         )}
 
         {total > 0 && (
           <div className="flex items-center justify-between px-5 py-3 border-t border-[var(--border-card)] shrink-0">
-            <div className="flex items-center gap-3 text-[13px] text-text-muted">
+            <div className="flex items-center gap-3 text-[13px] text-text-body">
               <span>Zeige {from.toLocaleString("de-DE")}–{to.toLocaleString("de-DE")} von {total.toLocaleString("de-DE")}</span>
               <span className="text-border-strong">·</span>
               <span className="flex items-center gap-1.5">Pro Seite
@@ -379,14 +463,20 @@ export default function ScreenKontakte() {
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <button onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()} className="sherloq-btn-secondary disabled:opacity-40 disabled:cursor-default">Zurück</button>
-              <button onClick={() => table.nextPage()} disabled={!table.getCanNextPage()} className="sherloq-btn-secondary disabled:opacity-40 disabled:cursor-default">Weiter</button>
+              <button onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}
+                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-[10px] border border-border text-[12px] font-semibold text-text-body hover:bg-app-bg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent">
+                <ChevronLeft className="w-4 h-4" /> Zurück
+              </button>
+              <button onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}
+                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-[10px] border border-border text-[12px] font-semibold text-text-body hover:bg-app-bg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent">
+                Weiter <ChevronRight className="w-4 h-4" />
+              </button>
             </div>
           </div>
         )}
       </div>
 
-      {/* CP4: Anlegen + Detail-Panel */}
+      {/* Anlegen + Detail-Panel */}
       <KontaktAnlegenPanel
         open={anlegenOpen}
         organizationId={organizationId}
