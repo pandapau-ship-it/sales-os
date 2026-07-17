@@ -802,7 +802,14 @@
       "notFound": "Company nicht gefunden",
       "notFoundDesc": "Diese Company existiert nicht oder wurde entfernt.",
       "tabsSoonTitle": "Detailansicht folgt",
-      "tabsSoonDesc": "Kontakte, Deals, Aktivität und Notizen dieser Company werden im nächsten Schritt (K-4b) verdrahtet."
+      "tabsSoonDesc": "Kontakte, Deals, Aktivität und Notizen dieser Company werden im nächsten Schritt (K-4b) verdrahtet.",
+      "contactsTitle": "{{count}} Kontakte bei dieser Company",
+      "addContact": "+ Kontakt hinzufügen",
+      "noContacts": "Noch keine Kontakte",
+      "noContactsDesc": "Dieser Company sind noch keine Kontakte zugeordnet.",
+      "openContact": "Kontakt öffnen",
+      "savedToast": "Gespeichert",
+      "saveErrorToast": "Konnte gerade nicht gespeichert werden"
     },
     "addCompany": "+ Company hinzufügen",
     "create": {
@@ -818,6 +825,24 @@
       "submit": "Company anlegen",
       "savedToast": "„{{name}}\" angelegt",
       "errorToast": "Konnte gerade nicht angelegt werden"
+    },
+    "tabs": {
+      "overview": "Übersicht",
+      "contacts": "Kontakte",
+      "deals": "Deals",
+      "activity": "Aktivität",
+      "notes": "Notizen"
+    },
+    "details": {
+      "title": "Company Details",
+      "industry": "Branche",
+      "size": "Größe",
+      "city": "Stadt",
+      "country": "Land",
+      "domain": "Domain",
+      "website": "Website",
+      "linkedin": "LinkedIn",
+      "crmId": "CRM ID"
     }
   }
 }

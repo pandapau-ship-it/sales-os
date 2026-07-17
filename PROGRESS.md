@@ -370,6 +370,19 @@ für JEDEN UI-Slice**, auch wenn ein Design existiert.
 > Produktentscheidung, **vor** dem Bau der Automatisierung nachzuholen. **Nicht Teil von K-3.**
 > Voll dokumentiert als `#40` in `docs/entscheidungen_komplett.md`.
 
+> **Session 2026-07-17 (K-4b-1 Companies-Detail: Übersicht + Kontakte — Branch `feat/companies-detail-k4b1`, STOP für QA):**
+> `ScreenCompanyDetail` vom Platzhalter zur echten Detailseite: Kopf + KPIs (aus K-4a) + `PanelTabs`
+> (5 Tabs). **Übersicht** = `DetailSection`/`DetailField`, Company-Details **inline editierbar** →
+> `updateCompany` (Branche/Größe via BRANCHE/GROESSE_OPTS, Stadt, Land via LAND_OPTS, Domain, Website,
+> LinkedIn; CRM-ID readonly) + invalidate. **Kontakte-Tab** = echte Firmen-Kontakte über neuen
+> `getContacts({companyId})`-Filter (lazy: lädt erst bei aktivem Tab; Anzahl kommt aus dem Detail-Embed),
+> Rows mit Avatar/ICP/Status/Zeit + **Hover-Prefetch** (Regel C) → `HunterSidepanel`; „+ Kontakt
+> hinzufügen" öffnet `KontaktAnlegenPanel` mit **vorbelegter Company** (neuer `initialCompany`-Prop).
+> **Honesty:** Sherloq-AI-Zusammenfassung + Live-Signale + „Quelle/Inhaber" + Churn-KPI ausgeblendet
+> (kein Company-Feld/-Modul). Deals/Aktivität/Notizen = ehrlicher „folgt (K-4b-2)"-Platzhalter.
+> Gates + beide Agents. **K-4b-2 offen:** Deals-Tab (`getDealsByCompany`+`DealsListe`) · Aktivität
+> (aggregierter Zeitstrahl, ein Query) · Notizen (`notes.company_id`+`NotizenListe`).
+>
 > **Session 2026-07-17 (Tabellen-Suche — Branch `feat/table-search`, STOP für QA):**
 > Einfache, schnelle Substring-Live-Suche (kein AI — semantische Suche bleibt bewusst dem AI-Chat/RAG)
 > **zentral in der geteilten DataTable**: `useDataTable` bekommt `searchAccessor` + globalFilter +
