@@ -12,26 +12,21 @@ import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, ArrowRight, Globe, Building2, Users, Briefcase, Activity, StickyNote, Info, Plus } from "lucide-react";
+import { ArrowLeft, Globe, Building2, Users, Briefcase, Activity, StickyNote, LayoutDashboard, Plus } from "lucide-react";
 import { useCurrentOrg } from "@/hooks/useCurrentOrg";
 import { useAuth } from "@/hooks/useAuth";
 import { useNowMs } from "@/hooks/useNowMs";
-import { useHoverPrefetch } from "@/hooks/useHoverPrefetch";
 import { getCompanyDetail, getContacts, updateCompany } from "@/lib/db";
 import { prefetchContactPanel } from "@/lib/prefetch";
 import { companyToCompaniesRow, formatEuroCents } from "@/lib/companiesMappers";
 import { contactToKontakteRow } from "@/lib/kontakteMappers";
 import { daysSinceIso } from "@/lib/hunterMappers";
 import { BRANCHE_OPTS, GROESSE_OPTS, LAND_OPTS } from "@/lib/contactDetailFields";
-import { Avatar, StatusBadge, ICPDonut, EmptyState, DetailSection, DetailField, HunterSidepanel, KontaktAnlegenPanel } from "@/components";
+import { Avatar, EmptyState, DetailSection, DetailField, HunterSidepanel, KontaktAnlegenPanel, CompactContactRow } from "@/components";
 import LinkedinIcon from "@/components/shared/LinkedinIcon";
 import { PanelSkeleton, PanelTabs } from "@/components/panel-blocks";
 import { useToast } from "@/components/shared/toastContext";
 import type { Person } from "@/types";
-
-const STATUS_TONE: Record<string, "success" | "warn" | "urgent" | "info" | "teal" | "muted"> = {
-  in_campaign: "teal", pipeline: "info", kunde: "success", archiviert: "muted", ohne_campaign: "muted", opt_out: "urgent",
-};
 
 /** KPI-Kachel (echt) — Modulebene, damit sie nicht im Render entsteht (lint). */
 function Kpi({ label, value }: { label: string; value: string }) {
@@ -52,7 +47,6 @@ export default function ScreenCompanyDetail() {
   const nowMs = useNowMs();
   const { toast } = useToast();
   const qc = useQueryClient();
-  const bind = useHoverPrefetch();
 
   const [tab, setTab] = useState("overview");
   const [detailPerson, setDetailPerson] = useState<Person | null>(null);
@@ -102,7 +96,7 @@ export default function ScreenCompanyDetail() {
   };
 
   const tabs = [
-    { id: "overview", label: t("companies.tabs.overview"), icon: <Info className="w-3.5 h-3.5" /> },
+    { id: "overview", label: t("companies.tabs.overview"), icon: <LayoutDashboard className="w-3.5 h-3.5" /> },
     { id: "contacts", label: `${t("companies.tabs.contacts")} (${r.contactCount})`, icon: <Users className="w-3.5 h-3.5" /> },
     { id: "deals", label: t("companies.tabs.deals"), icon: <Briefcase className="w-3.5 h-3.5" /> },
     { id: "activity", label: t("companies.tabs.activity"), icon: <Activity className="w-3.5 h-3.5" /> },
@@ -179,22 +173,13 @@ export default function ScreenCompanyDetail() {
           ) : (
             <div className="rounded-[12px] border border-[var(--border-card)] bg-app-surface overflow-hidden">
               {contactRows.map((c) => (
-                <div key={c.id} {...bind(() => prefetchContactPanel(qc, organizationId, c.id))}
-                  className="group/row flex items-center gap-3 px-5 py-3 border-b border-[var(--border-card)] last:border-b-0 hover:bg-app-bg/60 transition-colors">
-                  <Avatar name={c.name} src={c.avatarUrl} size={36} />
-                  <div className="flex flex-col min-w-0 flex-1">
-                    <span className="typo-card-title text-text-primary truncate">{c.name}</span>
-                    {c.jobTitle && <span className="typo-subline text-text-muted truncate">{c.jobTitle}</span>}
-                  </div>
-                  {c.icpScore != null && <ICPDonut score={c.icpScore} />}
-                  {(() => { const d = daysSinceIso(c.lastContactedAt, nowMs); return d != null && d >= 1 ? <span className="typo-field-value text-text-body whitespace-nowrap">{t("companies.daysAgo", { count: d })}</span> : null; })()}
-                  {c.contactStatus && STATUS_TONE[c.contactStatus] && <StatusBadge label={t(`kontakte.status.${c.contactStatus}`)} tone={STATUS_TONE[c.contactStatus]} />}
-                  <button type="button" aria-label={t("companies.detail.openContact")} data-tip={t("companies.detail.openContact")}
-                    onClick={() => setDetailPerson({ id: c.id, name: c.name, jobTitle: c.jobTitle, company: c.company, initials: c.initials, avatarUrl: c.avatarUrl })}
-                    className="w-8 h-8 shrink-0 rounded-full bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)] hover:scale-105 transition-transform flex items-center justify-center cursor-pointer">
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                </div>
+                <CompactContactRow key={c.id}
+                  name={c.name} jobTitle={c.jobTitle} company={c.company} avatarUrl={c.avatarUrl}
+                  icpScore={c.icpScore} contactStatus={c.contactStatus} lastContactedAt={c.lastContactedAt} routing={c.routing}
+                  openLabel={t("companies.detail.openContact")}
+                  onOpen={() => setDetailPerson({ id: c.id, name: c.name, jobTitle: c.jobTitle, company: c.company, initials: c.initials, avatarUrl: c.avatarUrl })}
+                  onNavigate={(p) => navigate(p)}
+                  onPrefetch={() => prefetchContactPanel(qc, organizationId, c.id)} />
               ))}
             </div>
           )}

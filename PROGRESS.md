@@ -382,6 +382,11 @@ für JEDEN UI-Slice**, auch wenn ein Design existiert.
 > (kein Company-Feld/-Modul). Deals/Aktivität/Notizen = ehrlicher „folgt (K-4b-2)"-Platzhalter.
 > Gates + beide Agents. **K-4b-2 offen:** Deals-Tab (`getDealsByCompany`+`DealsListe`) · Aktivität
 > (aggregierter Zeitstrahl, ein Query) · Notizen (`notes.company_id`+`NotizenListe`).
+> **QA-Runde 1 (vor Merge):** Übersicht-Tab-Icon auf projektweites `LayoutDashboard` (statt `Info`).
+> **Kontakt-Zeile aus Inline-Eigenbau in echten panel-block `CompactContactRow` herausgelöst** —
+> visuell wie die Kontakte-Tabellenzeile (Avatar·Name/Subzeile·ICP·Zeit·Status·Routing·Pfeil), ohne
+> Tabellen-Gerüst; als **K-FS1-Basis** markiert (der Hunter-Dedup LeadListRow/HunterCard soll DIESE
+> Zeile übernehmen, keine 4. Variante). Kein neuer Inline-Row mehr.
 >
 > **Session 2026-07-17 (Tabellen-Suche — Branch `feat/table-search`, STOP für QA):**
 > Einfache, schnelle Substring-Live-Suche (kein AI — semantische Suche bleibt bewusst dem AI-Chat/RAG)
