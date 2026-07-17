@@ -689,11 +689,11 @@
     "entity": "Kontakt",
     "leadStatusValue": {
       "lead": "Lead",
-      "qualified_lead": "Qualified Lead",
-      "mql": "MQL",
-      "sql": "SQL",
-      "customer": "Customer",
-      "churned": "Churned"
+      "qualified_lead": "Qualifiziert",
+      "mql": "Interessiert",
+      "sql": "Bereit",
+      "customer": "Kunde",
+      "churned": "Verloren"
     },
     "emailVerify": {
       "valid": "Verifiziert",

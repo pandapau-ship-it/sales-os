@@ -509,7 +509,21 @@ ICP Score · Intent-Schwellenwert · Automation Default · Risk-Level · Reaktiv
 **+ neu entschieden 2026-06-11:** Pipeline-Stagnation Stages/Tage (#2) · Follow-up Timer Hunting (#3) · Churn-Gewichtung (#4) · Onboarding-Nudge (#6) · Persönlichkeitstypen (#9) · Cluster-Vererbung (#10) · Listen-Rechte (#23)
 
 ### ⚠ Offen (kein Build-Blocker)
-Heat-Status Schwellenwerte (#1) · Upsell-Trigger Schwellenwerte (#5) · CRM Sync (#19) · Sherloq Bidirektional (#34) · Video-Provider Default (#36b) · Hunter/Farmer Prompts (#35)
+Heat-Status Schwellenwerte (#1) · Upsell-Trigger Schwellenwerte (#5) · CRM Sync (#19) · Sherloq Bidirektional (#34) · Video-Provider Default (#36b) · Hunter/Farmer Prompts (#35) · **lead_status Automatik-Trigger (#40)**
+
+### #40 lead_status — Automatik-Trigger ⚠ OFFEN (16.07.2026)
+**Kontext:** `contacts.lead_status` (freie Textspalte, Default `'lead'`, Wertebereich laut
+Migration 002 + `sales_os_crm_felder.md`: `lead | qualified_lead | mql | sql | customer | churned`)
+ist als **„system-gesteuert, aber auch manuell änderbar"** geplant — die **automatischen
+Trigger-Regeln wurden nie definiert**. Kein Seed setzt je einen anderen Wert als `'lead'`; es
+gibt keine Automatik-Logik (anders als `contact_status`, das bei Booking / Company→Kunde bereits
+automatisch springt).
+**Entscheidung nötig, BEVOR Automatisierung gebaut wird:** Was genau löst
+`Lead → Qualifiziert → Interessiert (MQL) → Bereit (SQL) → Kunde → Verloren` aus? (Signale,
+Schwellen, Vorrang analog `contact_status`-Lifecycle.)
+**Status jetzt (K-3):** Nur **Anzeige** — neutrale deutsche Labels via i18n
+(`kontakte.leadStatusValue.*`), **keine** Automatik. Nicht Teil von K-3. Eigene
+Produktentscheidung nachzuholen.
 
 ### 🔴 Kritisch — blockiert Build/Live (0 Punkte) ✅ BEIDE AUFGELÖST (Juli 2026)
 - ~~**Sending Provider**~~ → **#17 entschieden**: Email via Nango (Gmail/Outlook),
