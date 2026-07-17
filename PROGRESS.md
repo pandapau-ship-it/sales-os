@@ -15,7 +15,7 @@
 
 ▶ **1.** [ ] **[BAU+DESIGN] Kontakte & Companies — Slices K-1 bis K-6**
   (`docs/kontakte_companies_bauplan_v1.md`; Designs ScreenKontakte/ScreenCompanies
-  vorhanden — Abgleich nach Dauerregel 4c) · **erledigt: K-1a · K-1a2 · K-1b · K-2 · K-2b · K-3 · ▶ K-3b (vor K-4)**
+  vorhanden — Abgleich nach Dauerregel 4c) · **erledigt: K-1a · K-1a2 · K-1b · K-2 · K-2b · K-3 · K-3b · ▶ K-4**
   - [x] **K-1a Test-Fundament ZUERST** — vitest eingerichtet (Config in `vite.config.ts`,
         Smoke-Test `src/lib/heatUtils.test.ts` 3/3 grün, npm-Scripts `test`/`test:watch`).
         Commit `3e6ad8b`, gemerged `81d0d33`. **Voraussetzung für [AUTO]-Tests in ALLEN
@@ -179,13 +179,22 @@
         Import wandert hierher. **K-5-UI = nächster sinnvoller Slice nach K-4** (Engine-Kern liegt bereits,
         `src/lib/import/`). Export „alle im aktuellen Filter" braucht serverseitige Filterung (DB-seitiger
         K-2-Anschluss).
-  - [ ] **▶ K-3b Listen-Zugang — NÄCHSTER Slice, VOR K-4** (Oliver 2026-07-17: direkt nach K-3, sonst
-        hängt der Bulk-Anschlusspunkt „Zu Liste hinzufügen" ins Leere). `lists` (005) + `list_members` (056)
-        existieren als Tabellen, aber **null db-Funktionen** und **keine Listen-Daten** → Read-only wäre
-        immer leer, daher NICHT in K-3. Umfang K-3b: `getLists`/`getListMembers`/`createList`/`addToList`
-        (db.ts) + **„Listen"-Dropdown** neben den Filtern (Meine Listen: Name+Anzahl · „Neue Liste erstellen")
-        + Membership-Filter + **Verdrahtung der Bulk-Aktion „Zu Liste hinzufügen"** (aktuell Toast-Platzhalter).
-        Dynamische Listen nutzen die K-2-Filter-UI. **Anschlusspunkt schon da:** Bulk-Bar „Zu Liste".
+  - [x] **K-3b Listen-Zugang — FERTIG (2026-07-17).** Branch `feat/k3b-listen`. **Statisch UND dynamisch,
+        live ausgewertet** (Bauplan K6). Keine Migration nötig (`lists`/`list_members` existieren 005/056).
+        **db.ts:** `getLists` (Counts: statisch aus `list_members` in EINER Query, dynamisch je Liste eine
+        head-Count über `compileToPostgrest`) · `createList` · `addToList` (nur statisch, upsert-dedupe) ·
+        `getListMembers` (statisch Join · dynamisch `compileToPostgrest`-Live-Query) · `deleteList`.
+        **UI (`ScreenKontakte`):** „Listen"-Dropdown (Meine Listen: Name+Anzahl+Typ-Icon · „Neue Liste");
+        Listenauswahl **ersetzt** die Filteransicht (Aktiv-Leiste mit Typ+Count+✕, Lagebild/Pills ausgeblendet).
+        **`NeueListeDialog`:** fragt Statisch|Dynamisch; **dynamisch = aktueller Kontakte-Filter** (`buildFilterDef`
+        → `filter_config`, **dieselbe Filter-Quelle, keine zweite UI**); ohne aktiven Filter ist Dynamisch
+        deaktiviert + Hinweis (Honesty). **`ZuListeDialog`** (geteilt Bulk + Einzel): **nur STATISCHE Listen
+        wählbar; dynamische ausgegraut + Hinweis „Mitglieder automatisch über die Regel"** (Olivers Zusatz) +
+        „Neue statische Liste" inline. Zwei Zuordnungswege: **Bulk** (Tabellen-Auswahl → „Zu Liste") **+ Einzel**
+        (`ListPlus`-Button im `HunterSidepanel`-Header). i18n `kontakte.lists.*` (28 Keys × 3). **Live-Auswertung**
+        (kein Cron/materialisiertes `list_members` für dynamisch) — `filter_config` bleibt Single Source, spätere
+        AI-SDR-Materialisierung (Feed/`sync_list_campaigns`) ohne Umbau. Gates grün, beide Agents.
+        **Deferred (benannt):** voller K-2-Filter-Builder-UI (eigener Slice) · AI-SDR-Feed-Cron.
   - [ ] **Campaign-Zuweisung — Anschlusspunkt (AI-SDR-Slice 6)** — Bulk-Aktion **+ Zeilen-Aktion**
         „Zu Campaign hinzufügen" wird in AI-SDR-Slice 6 nur **aktiviert**, nicht neu gebaut. Struktur
         vorbereitet (Bulk-Bar-Muster + `selectAllFiltered`-Auswahl über den ganzen Filter). **Beim
@@ -202,7 +211,7 @@
         Marken-Teal/Gradient `#175253` → ein Avatar dürfte nie wie ein aktiver Zustand wirken) → ersetzt durch
         **`--avatar-cyan #0891B2`**: klar kühler/blauer und deutlich heller als das dunkle, entsättigte Marken-Teal,
         füllt den Kühl-Slot ohne Verwechslung; von `--avatar-blue` (Royalblau) durch den Grün-Blau- Stich getrennt.
-  - [ ] **K-4 Companies-Screen + Detail** (4c: ScreenCompanies) — **nach K-3b.** Hier auch **[D-city]**
+  - [ ] **▶ K-4 Companies-Screen + Detail** (4c: ScreenCompanies) — Hier auch **[D-city]**
         (`contacts.city`/`country`-Migration) aufgreifen, da beim Company-/Adress-Wiring fällig.
   - [~] **K-5 Smart-Import — Engine-Kern (dep-frei) VORGEZOGEN** (Reihenfolge-Flexibilität
         Dauerregel 4, während K-3-Design bei Oliver läuft — **hier vermerkt, nicht stillschweigend**).

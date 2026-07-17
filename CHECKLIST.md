@@ -283,6 +283,7 @@
 - [ ] **Mein Tag** → aggregierter Feed (keine eigene Datenquelle)
 - [x] **Kontakte Screen (K-3)** — *zentrales Datenobjekt, `ScreenKontakte` an `getContacts`, Route live.* — *2026-07-17*
 - [x] Kontakte-Listenansicht — TanStack Table + Virtualisierung: Checkbox (Gmail-Bulk „alle im Filter") · Name+Jobtitel+Company · `LeadSourceBadge` · Status-Badge · ZULETZT · ICP-Ring · `RoutingChip` (Lucide, kein Emoji); Filter-Pills (K-2 `evaluateFilter`) · Spalten-Konfig + Persistenz (`user_preferences`) · Anlegen-Panel (K1-Pflicht + K2-Duplikat hard/soft). — *2026-07-17*
+- [x] **Listen (K-3b)** — statisch + dynamisch (live über K-2 `compileToPostgrest`); Listen-Dropdown, `NeueListeDialog` (Statisch|Dynamisch, dynamisch = aktueller Filter), `ZuListeDialog` geteilt (nur statisch wählbar, dynamisch ausgegraut), Bulk + Einzel (`HunterSidepanel`). db: `getLists`/`createList`/`addToList`/`getListMembers`/`deleteList`. — *2026-07-17*
 - [ ] UI-Verhalten leere/System-Felder: "—" grau + Hover-Edit · Pflicht=amber Unterstreichung · System=grau readonly · inline-Edit, onBlur-Save, rotes Inline-Fehler-Feedback (Hex → index.css-Tokens mappen)
 - [ ] Analytics kontextuell eingebettet — kein eigener Nav-Screen (AI SDR/Hunter/Farmer/Companies/Mein Tag inline · Settings→Reporting später)
 - [ ] **Inbox** Screen + Sidebar-Icon (Tools-Bereich) + Badge

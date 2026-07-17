@@ -17,9 +17,11 @@ import { triggerConfetti } from '@/lib/confetti';
 import {
   ArrowUpRight, ArrowLeft, X, Clock, Check,
   Briefcase,
-  User, Building2, Tag,
+  User, Building2, Tag, ListPlus,
   LayoutDashboard, Activity, MessageSquare, CheckSquare, FileText
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import ZuListeDialog from '../kontakte/ZuListeDialog';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import Avatar from '@/components/shared/Avatar';
 import { AktiveSignale, AktivitaetsVerlauf, DealsListe, DetailField, DetailPhoneList, DetailSection, HeatBadge, KiKurzaktePlaceholder, KommunikationKompakt, KommunikationVerlauf, KontaktZeile, NotizenListe, OffeneTasks, PanelSkeleton, PanelTabs, TasksListe } from '@/components';
@@ -58,8 +60,10 @@ const DEFAULT_DETAILS = {
 // src/components/panel-blocks/ (siehe Imports). Hier nur noch deren Komposition.
 
 export default function HunterSidepanel({ person: personProp, onClose, onExit, variant = 'panel', initialAction = null, initialTab = null, initialDealId = null, initialDealEditId = null, initialFocusField = null, initialTaskId = null }: { person: Lead | Customer | Person | null; onClose: () => void; onExit?: () => void; variant?: 'panel' | 'full'; initialAction?: 'mail' | 'task' | 'chat' | null; initialTab?: 'overview' | 'deals' | 'tasks' | 'activity' | 'notes' | null; initialDealId?: string | null; initialDealEditId?: string | null; initialFocusField?: string | null; initialTaskId?: string | null }) {
+  const { t } = useTranslation();
   const { organizationId } = useCurrentOrg();
   const { user } = useAuth(); // [D21]: created_by/owner_id der Writes = eingeloggter User (Fallback NULL)
+  const [zuListeOpen, setZuListeOpen] = useState(false); // K-3b: Einzel-Zuordnung „Zu Liste"
   const [activeTab, setActiveTab] = useState(variant === 'full' ? 'details' : 'overview');
   // Aus der Übersicht „Deal/Task bearbeiten" → Ziel-Tab öffnet die Bearbeiten-Kachel direkt.
   const [dealsAutoEditId, setDealsAutoEditId] = useState<string | null>(null); // Übersicht „Bearbeiten" → Deal-id im Deals-Tab
@@ -807,6 +811,11 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
               {statusBadgesInner}
             </div>
             <div className="flex items-center gap-2">
+              {contactId && (
+                <button onClick={() => setZuListeOpen(true)} aria-label={t('kontakte.lists.addToList')} data-tip={t('kontakte.lists.addToList')} className="w-9 h-9 rounded-full bg-app-bg flex items-center justify-center text-text-muted hover:text-[var(--sherloq-primary)] hover:bg-[var(--signal-teal-bg)] transition-colors">
+                  <ListPlus className="w-4 h-4" />
+                </button>
+              )}
               <button onClick={() => setShowVollansicht(true)} className="w-9 h-9 rounded-full bg-app-bg flex items-center justify-center text-text-muted hover:text-[var(--sherloq-primary)] hover:bg-[var(--signal-teal-bg)] transition-colors">
                 <ArrowUpRight className="w-4 h-4" />
               </button>
@@ -828,6 +837,12 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
       <footer className="px-4 py-2.5 bg-app-surface shrink-0 flex items-center justify-between gap-2 relative z-10">
         {renderActions(panelBtn)}
       </footer>
+
+      {/* K-3b: Einzel-Zuordnung „Zu Liste" (statische Listen; dynamische ausgegraut im Dialog). */}
+      {contactId && (
+        <ZuListeDialog open={zuListeOpen} organizationId={organizationId} contactIds={[contactId]}
+          createdBy={user?.id ?? null} onClose={() => setZuListeOpen(false)} />
+      )}
     </>
   );
 

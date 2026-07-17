@@ -52,6 +52,7 @@ import { createClient } from "@supabase/supabase-js";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Deal, Signal, PipelineStage, SignalWindow } from "@/types/hunter";
 import type { ContactRow, DealRow, CommunicationRow, TaskRow, DueTaskRow, NoteRow } from "@/types/rows";
+import { compileToPostgrest, type FilterDefinition } from "@/lib/filter";
 
 // ── Supabase Client — EINZIGER Init-Punkt im gesamten Projekt ────────────────
 // createClient() läuft AUSSCHLIESSLICH hier (audit-erzwungen). auth/storage/
@@ -1327,4 +1328,126 @@ export async function createContact(
     if (p.number.trim()) await createContactPhone(organizationId, id, { number: p.number.trim(), label: p.label, isPrimary: p.isPrimary });
   }
   return { id };
+}
+
+// ── Listen (K-3b) ────────────────────────────────────────────────────────────
+// Statisch = manuelle Mitglieder (list_members). Dynamisch = filter_config (K-2 FilterDefinition),
+// LIVE ausgewertet über compileToPostgrest (kein Cron, kein materialisiertes list_members). Quelle
+// bleibt filter_config → spätere AI-SDR-Materialisierung ohne Umbau (Bauplan K6). Org-gescoped, RLS.
+
+export type ListType = "static" | "dynamic";
+
+export interface ListView {
+  id: string;
+  name: string;
+  type: ListType;
+  filterConfig: FilterDefinition | null;
+  isTeamList: boolean;
+  memberCount: number;
+}
+
+export async function getLists(organizationId: string): Promise<ListView[]> {
+  const client = getSupabaseClient();
+  if (!client) return [];
+  const { data, error } = await client
+    .from("lists")
+    .select("id, name, type, filter_config, is_team_list")
+    .eq("organization_id", organizationId)
+    .order("created_at", { ascending: true });
+  if (error) throw error;
+  const rows = (data ?? []) as Array<{ id: string; name: string; type: string | null; filter_config: unknown; is_team_list: boolean | null }>;
+
+  // Statische Counts: alle list_members der Org EINMAL holen und tallyen (kein N+1).
+  const countByList = new Map<string, number>();
+  const staticIds = rows.filter((r) => (r.type ?? "static") !== "dynamic").map((r) => r.id);
+  if (staticIds.length) {
+    const { data: mem, error: e2 } = await client
+      .from("list_members").select("list_id").eq("organization_id", organizationId).in("list_id", staticIds);
+    if (e2) throw e2;
+    for (const m of (mem ?? []) as Array<{ list_id: string }>) countByList.set(m.list_id, (countByList.get(m.list_id) ?? 0) + 1);
+  }
+
+  // Dynamische Counts: je Liste eine head-Count-Query über den kompilierten Filter (Listen sind wenige).
+  const dynamic = rows.filter((r) => r.type === "dynamic");
+  await Promise.all(dynamic.map(async (r) => {
+    const def = r.filter_config as FilterDefinition | null;
+    if (!def) { countByList.set(r.id, 0); return; }
+    let expr: string;
+    try { expr = compileToPostgrest(def); } catch { countByList.set(r.id, 0); return; }
+    const { count } = await client
+      .from("contacts").select("id", { count: "exact", head: true }).eq("organization_id", organizationId).or(expr);
+    countByList.set(r.id, count ?? 0);
+  }));
+
+  return rows.map((r) => ({
+    id: r.id,
+    name: r.name,
+    type: r.type === "dynamic" ? "dynamic" : "static",
+    filterConfig: (r.filter_config as FilterDefinition | null) ?? null,
+    isTeamList: !!r.is_team_list,
+    memberCount: countByList.get(r.id) ?? 0,
+  }));
+}
+
+export async function createList(
+  organizationId: string,
+  input: { name: string; type: ListType; filterConfig?: FilterDefinition | null; isTeamList?: boolean },
+  createdBy: string | null,
+): Promise<{ id: string } | null> {
+  const client = getSupabaseClient();
+  if (!client) return null;
+  const { data, error } = await client
+    .from("lists")
+    .insert({
+      organization_id: organizationId,
+      name: input.name,
+      type: input.type,
+      filter_config: (input.type === "dynamic" ? input.filterConfig ?? null : null) as never,
+      is_team_list: input.isTeamList ?? false,
+      created_by: createdBy,
+    })
+    .select("id")
+    .single();
+  if (error) throw error;
+  return data as { id: string };
+}
+
+/** Nur für STATISCHE Listen — dynamische verwalten ihre Mitglieder über die Regel. */
+export async function addToList(organizationId: string, listId: string, contactIds: string[]): Promise<void> {
+  const client = getSupabaseClient();
+  if (!client || !contactIds.length) return;
+  const rows = contactIds.map((cid) => ({ organization_id: organizationId, list_id: listId, contact_id: cid }));
+  const { error } = await client.from("list_members").upsert(rows, { onConflict: "list_id,contact_id", ignoreDuplicates: true });
+  if (error) throw error;
+}
+
+export async function deleteList(organizationId: string, listId: string): Promise<void> {
+  const client = getSupabaseClient();
+  if (!client) return;
+  const { error } = await client.from("lists").delete().eq("organization_id", organizationId).eq("id", listId);
+  if (error) throw error;
+}
+
+/** Mitglieder einer Liste als volle ContactRows. Statisch: list_members-Join · dynamisch: Live-Filter. */
+export async function getListMembers(
+  organizationId: string,
+  list: { id: string; type: ListType; filterConfig: FilterDefinition | null },
+): Promise<ContactRow[]> {
+  const client = getSupabaseClient();
+  if (!client) return [];
+  if (list.type === "dynamic") {
+    if (!list.filterConfig) return [];
+    let expr: string;
+    try { expr = compileToPostgrest(list.filterConfig); } catch { return []; }
+    const { data, error } = await client
+      .from("contacts").select(`*, ${CONTACT_COMPANY_EMBED}`).eq("organization_id", organizationId).or(expr).limit(1000);
+    if (error) throw error;
+    return (data ?? []) as unknown as ContactRow[];
+  }
+  const { data, error } = await client
+    .from("list_members")
+    .select(`contact:contacts!contact_id(*, ${CONTACT_COMPANY_EMBED})`)
+    .eq("organization_id", organizationId).eq("list_id", list.id).limit(1000);
+  if (error) throw error;
+  return ((data ?? []) as Array<{ contact: unknown }>).map((r) => r.contact).filter(Boolean) as unknown as ContactRow[];
 }

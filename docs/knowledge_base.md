@@ -429,3 +429,11 @@
 - **value:** Eine einzige verlässliche Personenliste statt verstreuter Listen — auf einen Blick sehen, was ansteht, gezielt filtern, sauber anlegen ohne Doubletten, die Tabelle nach eigenem Arbeitsstil einrichten, und mit einem Klick genau dort weiterarbeiten, wo der Kontakt hingehört.
 - **module:** core_crm
 - *(K-3 inkl. QA-Runden 1–3, 2026-07-17)*
+
+### Kontakt-Listen (statisch + dynamisch)
+- **feature:** Kontakt-Listen
+- **what:** Zwei Arten von Listen auf der Kontakte-Seite. **Statische Listen** befüllt man selbst (Kontakte auswählen und „Zu Liste hinzufügen" — als Massenaktion in der Tabelle oder einzeln im Kontakt-Panel). **Dynamische Listen** speichern stattdessen einen Filter: Man filtert die Kontakte wie gewünscht und speichert das als Liste — ihre Mitglieder aktualisieren sich danach automatisch (rein und raus), sobald sich Kontaktdaten ändern. Bei dynamischen Listen ist „Zu Liste hinzufügen" bewusst nicht möglich (die Regel entscheidet die Mitgliedschaft) und wird klar so gekennzeichnet.
+- **how:** Kontakte → „Listen" öffnen → Liste wählen (Tabelle zeigt die Mitglieder) oder „Neue Liste erstellen" → Statisch oder Dynamisch. Für statische Listen: Kontakte markieren → „Zu Liste" (oder im Kontakt-Panel das Listen-Symbol).
+- **value:** Wiederkehrende Kontaktgruppen einmal definieren und immer griffbereit haben — feste Kuratierung per Hand oder selbstpflegende Segmente per Filter, ohne manuelle Nachpflege. Grundlage für spätere gezielte Kampagnen.
+- **module:** core_crm
+- *(K-3b, 2026-07-17)*
