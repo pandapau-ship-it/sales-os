@@ -342,7 +342,7 @@ export default function ScreenKontakte() {
       if (selectedList?.id === l.id) setSelectedList({ ...selectedList, name });
       invalidateLists();
       toast(t("kontakte.lists.renamedToast", { name }), "success");
-    } catch { toast(t("kontakte.create.createErrorToast"), "error"); }
+    } catch { toast(t("kontakte.lists.actionErrorToast"), "error"); }
   };
 
   // Liste löschen (mit Bestätigung — irreversibel).
@@ -355,7 +355,7 @@ export default function ScreenKontakte() {
       if (selectedList?.id === l.id) closeList();
       invalidateLists();
       toast(t("kontakte.lists.deletedToast", { name: l.name }), "success");
-    } catch { toast(t("kontakte.create.createErrorToast"), "error"); }
+    } catch { toast(t("kontakte.lists.actionErrorToast"), "error"); }
   };
 
   // Kontakt(e) aus der AKTIVEN statischen Liste entfernen (nur Mitgliedschaft, nie den Kontakt).
@@ -367,7 +367,7 @@ export default function ScreenKontakte() {
       invalidateLists();
       clearSelection();
       toast(t("kontakte.lists.removedToast", { count: ids.length, name: selectedList.name }), "success");
-    } catch { toast(t("kontakte.create.createErrorToast"), "error"); }
+    } catch { toast(t("kontakte.lists.actionErrorToast"), "error"); }
   };
 
   // Lagebild-Kategorien (nur KONTAKT-bezogen + in dieser Tabelle filterbar). 0 → weg.
