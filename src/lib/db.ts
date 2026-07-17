@@ -1289,10 +1289,14 @@ export interface NewContactInput {
   last_name?: string;
   email?: string;
   linkedin_url?: string;
+  salutation?: string;
   job_title?: string;
   seniority?: string;
+  department?: string;
   company_id?: string | null;
   notes?: string;
+  /** Telefonnummern (contact_phones) — Zusatzfeld, NICHT Teil der K1-Pflichtlogik. */
+  phones?: Array<{ number: string; label?: string; isPrimary?: boolean }>;
 }
 
 /**
@@ -1308,12 +1312,19 @@ export async function createContact(
   const client = getSupabaseClient();
   if (!client) return null;
   const assigned_to = await assignLeadOwner(organizationId);
-  const clean = Object.fromEntries(Object.entries(input).filter(([, v]) => v != null && v !== ""));
+  // Telefonnummern liegen NICHT auf contacts, sondern in contact_phones → vor dem Insert trennen.
+  const { phones, ...contactFields } = input;
+  const clean = Object.fromEntries(Object.entries(contactFields).filter(([, v]) => v != null && v !== ""));
   const { data, error } = await client
     .from("contacts")
     .insert({ organization_id: organizationId, ...clean, lead_source: "manual", contact_status: "ohne_campaign", assigned_to, created_by: createdBy })
     .select("id")
     .single();
   if (error) throw error;
-  return data as { id: string };
+  const id = (data as { id: string }).id;
+  // Telefonnummern nachziehen (nur echte, nicht-leere Nummern) — Primär-Flag bleibt erhalten.
+  for (const p of phones ?? []) {
+    if (p.number.trim()) await createContactPhone(organizationId, id, { number: p.number.trim(), label: p.label, isPrimary: p.isPrimary });
+  }
+  return { id };
 }

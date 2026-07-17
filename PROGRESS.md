@@ -148,6 +148,16 @@
         **`KontaktAnlegenPanel` bewusst NICHT jetzt** (wird in Punkt 1 = „Weitere Details"-Ausbau ohnehin
         umgebaut → i18n dort in einem Zug, `create.*`-Keys liegen schon bereit). (4) `knowledge_base`-Eintrag
         Kontakte um Lagebild/Filter/Spalten-Umbau/Routing-Honesty ergänzt.
+        **QA-Runde 3b (2026-07-17):** (1) `KontaktAnlegenPanel` um **aufklappbare „Weitere Details"** ergänzt
+        (Muster 1:1 aus `AddSdrLeadPanel`): **Anrede** (salutation) · **Jobtitel** · **Seniority** · **Abteilung**
+        (department) · **Telefonnummern mit Primär-Logik** (`PhoneNumbersField` → `contact_phones`-Insert via
+        `createContactPhone`, in `createContact` verdrahtet) · **Notizen** — alle Felder **persistieren echt**
+        (kein totes Feld). **NICHT übernommen** (fachlich lead-/deal-spezifisch): Pipeline-Stage · „Deal
+        hinzufügen" · Owner (auto via K9) · Quelle (systemseitig „manual"). **K1-Pflichtlogik unverändert**
+        (Vorname+Nachname ODER LinkedIn; Telefon ist Zusatzfeld, kein Ersatz). Panel jetzt voll i18n-isiert.
+        **i18n-Schuld vermerkt (nicht gefixt):** `AddSdrLeadPanel` ist selbst komplett hardcodiert Deutsch —
+        neuer expliziter CHECKLIST-Punkt (i18n → Feature-Panels migrieren); ein künftiger `audit.ts`-Check
+        für hardcodierte JSX-Strings würde ihn automatisch aufdecken.
         **Nebenbefund behoben (2026-07-17):** der Token `--signal-danger-text` existierte NIE (still
         gebrochener Pflicht-Stern in `PanelField`/`AddSdrLeadPanel`/`NewDealCard`/`PhoneNumbersField`) →
         auf `--signal-urgent-text` korrigiert; `ScreenPlaceholder` (3 tote `--sherloq-text*`-Tokens) auf

@@ -618,7 +618,13 @@
       "hardDupEmail": "Kontakt existiert bereits (gleiche E-Mail).",
       "hardDupLinkedin": "Kontakt existiert bereits (gleiche LinkedIn-URL).",
       "createdToast": "Kontakt angelegt ✓",
-      "createErrorToast": "Konnte gerade nicht anlegen — nochmal versuchen"
+      "createErrorToast": "Konnte gerade nicht anlegen — nochmal versuchen",
+      "weitereDetails": "Weitere Details",
+      "anrede": "Anrede",
+      "anredeNone": "—",
+      "department": "Abteilung",
+      "departmentPh": "z.B. Sales",
+      "phones": "Telefonnummern"
     },
     "daysAgo_one": "vor {{count}} Tag",
     "daysAgo_other": "vor {{count}} Tagen"
