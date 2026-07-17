@@ -25,6 +25,8 @@ export type ContactRow = ContactRowBase & {
   city?: string | null;
   country?: string | null;
   contact_phones?: Array<Partial<ContactPhoneRow>> | null;
+  /** Lead-Owner (contacts.assigned_to → users) — Embed für die Kontakte-Listen-Spalte. */
+  owner?: { full_name?: string | null } | null;
   deals?: Array<Partial<DealRowBase>> | null;
 };
 

@@ -110,7 +110,9 @@ ALTER TABLE knowledge_base ENABLE ROW LEVEL SECURITY;
 → `scripts/structure-check.sh` schlägt **FAIL** wenn `.tsx` direkt in `src/components/shared/`
   liegen, die dort nicht hingehören (= keine echten shared-Atome). Erlaubt in `shared/`:
   `Avatar` · `LinkedinIcon` · `Toast` · `EmptyState` · `CommandPalette` · `ICPDonut` · `BrandLogo`
-  · `BrandIcons` · `CommunicationChain` · `CustomerDrawer` · `Badge` · `TooltipLayer`. Alles andere → `panel-blocks/`
+  · `BrandIcons` · `CommunicationChain` · `CustomerDrawer` · `Badge` · `TooltipLayer` · `DataTableCard`
+  · `ColumnConfigPopover` (geteilte Tabellen-Mechanik, K-3 Phase C — von Kontakte + Companies genutzt).
+  Alles andere → `panel-blocks/`
   bzw. `features/[modul]/`. Neue erlaubte shared-Datei → Allowlist im Script ergänzen.
 → Punkt **3** der **„GATES VOR JEDEM MERGE"** (Session Protocol — dort die vollständige Liste).
   Im Pre-Push-Hook nach der DB-Checkliste; blockt nur **mit** Terminal, sonst nur Anzeige

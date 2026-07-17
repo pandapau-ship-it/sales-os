@@ -200,10 +200,11 @@ export async function getContacts(
 ): Promise<ContactRow[]> {
   const client = getSupabaseClient();
   if (!client) return [];
-  // Company-Name über den einheitlichen Embed (RLS greift auf companies mit).
+  // Company-Name über den einheitlichen Embed (RLS greift auf companies mit) + Telefon (primäre Nummer
+  // für die Telefon-Spalte) + Lead-Owner-Name (assigned_to → users) für die erweiterten Kontakte-Spalten.
   let q = client
     .from("contacts")
-    .select(`*, ${CONTACT_COMPANY_EMBED}`)
+    .select(`*, ${CONTACT_COMPANY_EMBED}, contact_phones(id, number, label, is_primary), owner:users!assigned_to(full_name)`)
     .eq("organization_id", organizationId);
   if (filters.status) q = q.eq("contact_status", filters.status);
   if (filters.heatStatus) q = q.eq("heat_status", filters.heatStatus);
