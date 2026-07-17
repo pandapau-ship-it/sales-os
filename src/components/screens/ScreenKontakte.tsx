@@ -240,7 +240,7 @@ export default function ScreenKontakte() {
   const { table, resetColumns, search, setSearch } = useDataTable<KontakteRow>({
     data: rows, columns, getRowId: (r) => r.id, persistKey: PREF_KEY, userId, organizationId,
     rowSelection, onRowSelectionChange: setRowSelection, initialColumnVisibility: SET_B_HIDDEN,
-    searchAccessor: (r) => buildSearchText([r.name, r.email, r.company]),
+    searchAccessor: (r) => buildSearchText([r.name, r.email, r.jobTitle, r.company, r.phoneSearch]),
   });
 
   // ── Derived ────────────────────────────────────────────────────────────────────
