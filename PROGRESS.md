@@ -207,12 +207,13 @@
         „Zu Campaign hinzufügen" wird in AI-SDR-Slice 6 nur **aktiviert**, nicht neu gebaut. Struktur
         vorbereitet (Bulk-Bar-Muster + `selectAllFiltered`-Auswahl über den ganzen Filter). **Beim
         AI-SDR-Bau nicht übersehen.** (Kein Campaign-Button in K-3 — bewusst, kein AI SDR vorhanden.)
-  - [ ] **Farbige Avatare — Slice NACH K-3-Merge + K-3b (Palette FREIGEGEBEN 2026-07-17)** — `shared/Avatar.tsx`
-        ist die **einzige** Avatar-Komponente (~16 Aufrufstellen, keine Kopien) → Umstellung = eine Datei
-        (Tokens + `Avatar.tsx`), propagiert überall. Deterministische Farbe aus dem Namen (Hash → Token,
-        gleicher Name = gleiche Farbe), **benannte Tokens in `index.css`** (nie Hex im Code), Kontrast weiße
-        Initialen (große Schrift ≥ 3:1) geprüft, Dark Mode via eine Nuance hellere `[data-theme="dark"]`-Varianten.
-        **Status-Punkt WEGLASSEN**, bis ein Feld ihn wirklich speist (Oliver-Entscheidung).
+  - [x] **Farbige Avatare — FERTIG (Phase B, 2026-07-17, Branch `feat/avatar-farben`).** `shared/Avatar.tsx`
+        (einzige Avatar-Komponente, ~16 Aufrufstellen) auf **deterministische Farbe aus dem Namen** umgestellt
+        (stabiler Hash → fester `--avatar-*`-Token, gleicher Name = gleiche Farbe), **weiße Initialen**
+        (`text-on-accent`). 8 benannte Tokens in `index.css` (nie Hex im Code). **Bewusst EINE Palette für
+        Light+Dark** (kein `[data-theme]`-Override): gesättigte Mid-Tones poppen auf beidem UND halten weiße
+        Initialen ≥3:1 — eine hellere Dark-Variante würde genau diesen Weiß-Kontrast senken. **Status-Punkt
+        weggelassen** (bis ein echtes Feld ihn speist). Propagiert automatisch auf alle Aufrufstellen.
         **Finale Palette (8 Tokens):** `--avatar-emerald #059669` · `--avatar-cyan #0891B2` · `--avatar-blue #2563EB`
         · `--avatar-indigo #4F46E5` · `--avatar-violet #7C3AED` · `--avatar-magenta #DB2777` · `--avatar-amber #B45309`
         · `--avatar-red #DC2626`. **Änderung ggü. Vorschlag:** `--avatar-teal #0D9488` **raus** (zu nah am

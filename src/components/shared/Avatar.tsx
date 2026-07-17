@@ -1,6 +1,9 @@
 /**
  * Avatar — die EINZIGE Avatar-Primitive der App. Bild (optional) mit automatischem
- * Fallback auf Initialen (helle Teal-Fläche + Teal-Initialen, app-weit einheitlich).
+ * Fallback auf Initialen auf FARBIGER Fläche (weiße Initialen). Die Farbe wird
+ * DETERMINISTISCH aus dem Namen abgeleitet (gleicher Name = immer gleiche Farbe) aus der
+ * `--avatar-*`-Palette (index.css, nie Hex im Code). Kontrast weiße Initialen ≥ 3:1 (große
+ * Schrift), Light + Dark identisch.
  * Nur Parameter unterscheiden die Vorkommen:
  *   - `size`: sm/md/lg (28/36/44) ODER beliebige Pixelzahl (Schrift skaliert mit).
  *   - `radius`: ohne Angabe Kreis (rounded-full); mit Wert = abgerundetes Quadrat (px).
@@ -9,6 +12,18 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+
+// Deterministische Palette-Zuordnung: stabiler Namens-Hash → fester Token.
+const AVATAR_TOKENS = [
+  "--avatar-emerald", "--avatar-cyan", "--avatar-blue", "--avatar-indigo",
+  "--avatar-violet", "--avatar-magenta", "--avatar-amber", "--avatar-red",
+] as const;
+
+function avatarColor(name: string): string {
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
+  return `var(${AVATAR_TOKENS[h % AVATAR_TOKENS.length]})`;
+}
 
 type AvatarSize = "sm" | "md" | "lg";
 
@@ -49,11 +64,13 @@ export default function Avatar({ name, src, size = "md", radius, className }: Av
         height: px,
         borderRadius: radius ?? 9999,
         ...(isNumeric ? { fontSize: Math.round(px * 0.36) } : {}),
+        // Fallback-Fläche: deterministische Avatar-Farbe (nur wenn kein Bild gezeigt wird).
+        ...(showImg ? {} : { background: avatarColor(name) }),
       }}
       className={cn(
         "overflow-hidden shrink-0 flex items-center justify-center select-none",
-        // Fallback (ohne Bild): helle Teal-Fläche + Teal-Initialen — app-weit einheitlich.
-        "bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)] font-semibold",
+        // Weiße Initialen auf farbiger Fläche (dokumentierte Ausnahme: text-on-accent = weiß auf Farbe).
+        "text-on-accent font-semibold",
         fontClass,
         className,
       )}
