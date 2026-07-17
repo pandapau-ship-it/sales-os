@@ -524,6 +524,9 @@ Schwellen, Vorrang analog `contact_status`-Lifecycle.)
 **Status jetzt (K-3):** Nur **Anzeige** — neutrale deutsche Labels via i18n
 (`kontakte.leadStatusValue.*`), **keine** Automatik. Nicht Teil von K-3. Eigene
 Produktentscheidung nachzuholen.
+**Prüf-Anker (hart):** Muss spätestens **VOR AI-SDR-Slice 6 (Lead-Intake/Campaign-Matching)**
+final entschieden sein — dort werden Leads erstmals automatisch bewegt, `lead_status` darf bis
+dahin nicht länger undefiniert sein. **Harter Blocker für AI-SDR-6, nicht optional.**
 
 ### 🔴 Kritisch — blockiert Build/Live (0 Punkte) ✅ BEIDE AUFGELÖST (Juli 2026)
 - ~~**Sending Provider**~~ → **#17 entschieden**: Email via Nango (Gmail/Outlook),
