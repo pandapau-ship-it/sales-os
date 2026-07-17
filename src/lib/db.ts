@@ -191,6 +191,7 @@ export async function publishMarketingPost(
 export interface ContactFilters {
   status?: string;
   heatStatus?: string;
+  companyId?: string; // Kontakte einer bestimmten Firma (Companies-Detail → Kontakte-Tab)
   limit?: number;
   cursor?: string; // created_at des letzten Eintrags (Keyset)
 }
@@ -209,6 +210,7 @@ export async function getContacts(
     .eq("organization_id", organizationId);
   if (filters.status) q = q.eq("contact_status", filters.status);
   if (filters.heatStatus) q = q.eq("heat_status", filters.heatStatus);
+  if (filters.companyId) q = q.eq("company_id", filters.companyId);
   if (filters.cursor) q = q.lt("created_at", filters.cursor);
   const { data, error } = await q
     .order("created_at", { ascending: false })

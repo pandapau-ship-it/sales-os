@@ -442,6 +442,8 @@ function checkTypographyTokens(): void {
     'KiKurzaktePlaceholder', 'FarmerExpandedCardContent',
     // K-4a Companies-Anlege-Panel
     'CompanyAnlegenPanel',
+    // K-4b-1 geteilte kompakte Kontakt-Zeile (K-FS1-Basis)
+    'CompactContactRow',
   ])
   // panel-blocks/ + features/ + farming/ (Farmer-Hilfskomponenten).
   const files = [

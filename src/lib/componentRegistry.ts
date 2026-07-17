@@ -73,7 +73,7 @@ export const COMPONENT_REGISTRY = {
     component: 'ScreenCompanyDetail',
     path: 'components/screens/ScreenCompanyDetail',
     filter: null,
-    description: 'Company-Detailseite (volle Seite): Kopf + KPIs echt, Tabs folgen (K-4b)',
+    description: 'Company-Detailseite (volle Seite): Kopf + KPIs + Tabs; Übersicht (Details inline) + Kontakte echt (K-4b-1), Deals/Aktivität/Notizen folgen (K-4b-2)',
   },
 
   screen_system: {

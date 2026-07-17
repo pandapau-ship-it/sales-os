@@ -42,23 +42,26 @@ export default function KontaktAnlegenPanel({
   createdBy,
   onClose,
   onCreated,
+  initialCompany,
 }: {
   open: boolean;
   organizationId: string;
   createdBy: string | null;
   onClose: () => void;
   onCreated: () => void;
+  /** Firmenname vorbelegen (z.B. aus der Company-Detailseite → Kontakte-Tab). */
+  initialCompany?: string;
 }) {
   return (
     <ActionPanel open={open} onClose={onClose}>
-      {open && <AnlegenForm organizationId={organizationId} createdBy={createdBy} onClose={onClose} onCreated={onCreated} />}
+      {open && <AnlegenForm organizationId={organizationId} createdBy={createdBy} onClose={onClose} onCreated={onCreated} initialCompany={initialCompany} />}
     </ActionPanel>
   );
 }
 
 function AnlegenForm({
-  organizationId, createdBy, onClose, onCreated,
-}: { organizationId: string; createdBy: string | null; onClose: () => void; onCreated: () => void }) {
+  organizationId, createdBy, onClose, onCreated, initialCompany,
+}: { organizationId: string; createdBy: string | null; onClose: () => void; onCreated: () => void; initialCompany?: string }) {
   const { t } = useTranslation();
   const { toast } = useToast();
   // Stufe 1 (Pflicht/Basis)
@@ -66,7 +69,7 @@ function AnlegenForm({
   const [lastName, setLastName] = useState("");
   const [linkedin, setLinkedin] = useState("");
   const [email, setEmail] = useState("");
-  const [company, setCompany] = useState("");
+  const [company, setCompany] = useState(initialCompany ?? "");
   // Stufe 2 (Weitere Details — aufklappbar)
   const [showMore, setShowMore] = useState(false);
   const [salutation, setSalutation] = useState("");

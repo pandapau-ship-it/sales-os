@@ -77,3 +77,5 @@ export type { UsageData } from './UsageBox';
 export type { SignalRowData } from './SignalRow';
 export { default as LeadSourceBadge } from './LeadSourceBadge';
 export { default as RoutingChip } from './RoutingChip';
+export { default as CompactContactRow } from './CompactContactRow';
+export type { CompactContactRowProps } from './CompactContactRow';
