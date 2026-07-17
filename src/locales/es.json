@@ -656,7 +656,17 @@
       "forNContacts_other": "· {{count}} Kontakte",
       "addedToast_one": "{{count}} Kontakt zu „{{name}}“ hinzugefügt",
       "addedToast_other": "{{count}} Kontakte zu „{{name}}“ hinzugefügt",
-      "addToList": "Zu Liste hinzufügen"
+      "addToList": "Zu Liste hinzufügen",
+      "rename": "Umbenennen",
+      "delete": "Löschen",
+      "deleteTitle": "Liste löschen?",
+      "deleteConfirm": "„{{name}}“ wird dauerhaft gelöscht. Die Kontakte selbst bleiben erhalten.",
+      "removeFromList": "Aus Liste entfernen",
+      "renamedToast": "Liste in „{{name}}“ umbenannt",
+      "deletedToast": "Liste „{{name}}“ gelöscht",
+      "removedToast_one": "{{count}} Kontakt aus „{{name}}“ entfernt",
+      "removedToast_other": "{{count}} Kontakte aus „{{name}}“ entfernt",
+      "actionErrorToast": "Aktion hat gerade nicht geklappt — nochmal versuchen"
     }
   }
 }

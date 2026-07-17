@@ -1428,6 +1428,23 @@ export async function deleteList(organizationId: string, listId: string): Promis
   if (error) throw error;
 }
 
+export async function renameList(organizationId: string, listId: string, name: string): Promise<void> {
+  const client = getSupabaseClient();
+  if (!client) return;
+  const { error } = await client.from("lists").update({ name }).eq("organization_id", organizationId).eq("id", listId);
+  if (error) throw error;
+}
+
+/** Mitgliedschaft aufheben (nur STATISCHE Listen) — löscht NUR die list_members-Zeile, nie den Kontakt. */
+export async function removeFromList(organizationId: string, listId: string, contactIds: string[]): Promise<void> {
+  const client = getSupabaseClient();
+  if (!client || !contactIds.length) return;
+  const { error } = await client
+    .from("list_members").delete()
+    .eq("organization_id", organizationId).eq("list_id", listId).in("contact_id", contactIds);
+  if (error) throw error;
+}
+
 /** Mitglieder einer Liste als volle ContactRows. Statisch: list_members-Join · dynamisch: Live-Filter. */
 export async function getListMembers(
   organizationId: string,
