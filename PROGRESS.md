@@ -220,6 +220,14 @@
         Einzel-Add (Panel-lokaler Toast) bewusst ohne Aktion (wäre Screen-Wechsel). **Punkt 4:** Listen-Dropdown
         von custom `{open&&<div>}` auf **shadcn `Popover`** (Projekt-Muster wie `CombinedFilter`) → **click-outside
         + Escape** schließen automatisch; `portal={false}` wegen Inline-Rename-Input.
+  - [x] **Prefetch-Perf-Slice (2026-07-17, Branch `feat/prefetch-hook`, vor Phase C).** Hover-Intent-Prefetch
+        war nur inline in `HunterCard` → Kontakte-Tabelle + `LeadListRow` öffneten das Sidepanel ohne Vorladen
+        (spürbare Ladezeit). Fix: zentraler Hook **`useHoverPrefetch()`** (`src/hooks/`, 120 ms + Cancel, ein
+        Timer je Instanz, Unmount-Cleanup) — das „WANN"; `lib/prefetch.ts` bleibt das „WAS". **Angewandt:**
+        HunterCard (auf Hook umgestellt, DRY), **ScreenKontakte-Zeile**, **LeadListRow**. **CLAUDE.md REGEL C**
+        (analog Regel A): jede „Klick-öffnet-Panel/Seite"-Affordance MUSS den Hook + passende `prefetch*`-Funktion
+        nutzen. **Folge (eigener Slice):** `prefetchFarmerPanel` (Subscription/Usage) beim Farmer-DB-Wiring ·
+        `prefetchCompanyPanel` direkt in Phase D (die geteilte Tabelle bekommt den Hook).
   - [ ] **Campaign-Zuweisung — Anschlusspunkt (AI-SDR-Slice 6)** — Bulk-Aktion **+ Zeilen-Aktion**
         „Zu Campaign hinzufügen" wird in AI-SDR-Slice 6 nur **aktiviert**, nicht neu gebaut. Struktur
         vorbereitet (Bulk-Bar-Muster + `selectAllFiltered`-Auswahl über den ganzen Filter). **Beim

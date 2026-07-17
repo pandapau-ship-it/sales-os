@@ -39,6 +39,8 @@ import {
 import { useCurrentOrg } from "@/hooks/useCurrentOrg";
 import { useAuth } from "@/hooks/useAuth";
 import { useNowMs } from "@/hooks/useNowMs";
+import { useHoverPrefetch } from "@/hooks/useHoverPrefetch";
+import { prefetchContactPanel } from "@/lib/prefetch";
 import { getContacts, getUserPreference, setUserPreference, getLists, getListMembers, renameList, removeFromList, deleteList, type ListView } from "@/lib/db";
 import { contactToKontakteRow, type KontakteRow } from "@/lib/kontakteMappers";
 import { daysSinceIso } from "@/lib/hunterMappers";
@@ -142,6 +144,7 @@ export default function ScreenKontakte() {
   const navigate = useNavigate();
   const nowMs = useNowMs();
   const { toast } = useToast();
+  const prefetch = useHoverPrefetch(); // Hover-Intent: Panel-Daten vorladen → instant beim Öffnen
 
   const [sorting, setSorting] = useState<SortingState>([]);
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 50 });
@@ -614,6 +617,7 @@ export default function ScreenKontakte() {
                   const selected = selectAllFiltered || !!rowSelection[row.id];
                   return (
                     <div key={row.id}
+                      {...prefetch(() => prefetchContactPanel(queryClient, organizationId, row.id))}
                       className={cn("group/row flex items-center gap-4 px-5 border-b border-[var(--border-card)] hover:bg-app-bg/60 transition-colors absolute top-0 left-0 w-full", selected && "bg-[var(--signal-teal-bg)]")}
                       style={{ height: vi.size, transform: `translateY(${vi.start}px)` }}>
                       <label className="flex items-center cursor-pointer shrink-0 w-9">
