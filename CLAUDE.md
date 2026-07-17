@@ -306,6 +306,16 @@ QA-Nachweisen → nach Olivers Freigabe ▶ weiterrücken.
 > **Warum hier und nicht im Session-Ende-Block:** Der zeitbasierte Auslöser hat versagt
 > (Lücke 30.06.–15.07.). Fortschritt ist der verlässliche Trigger, nicht die Uhr.
 
+> **REGEL B — Vollständige Scope-Meldepflicht (ab jetzt, JEDER Slice/Checkpoint).**
+> Jeder im Slice/Checkpoint **zugesagte Punkt, der nicht vollständig umgesetzt** wurde, MUSS im
+> STOP-Bericht unter einer **eigenen Überschrift „Nicht umgesetzt / reduziert"** stehen — **auch
+> wenn die Kürzung aus gutem Grund** passierte (Zeit · Komplexität · bewusste Priorisierung · als
+> Folge-Slice ausgelagert). **Stillschweigendes Weglassen ist ein Regelverstoß.** Steht nichts an,
+> lautet die Überschrift ausdrücklich „Nicht umgesetzt / reduziert: — (nichts)". (Hintergrund:
+> Drag-Reorder/Spaltenbreite wurden in K-3 zugesagt, aber still weggelassen und von Oliver selbst
+> gefunden.) **Der auditor prüft dies mit, wo maschinell möglich** — z.B. Abgleich zugesagter
+> Funktions-/Komponenten-Namen gegen die tatsächlich vorhandenen im Diff.
+
 **b) [OLIVER]** (Design fällig · Integrations-Session · Entscheidung · Sherloq-Abstimmung)
 → **NICHT coden.** Vollständige Schritt-für-Schritt-Anleitung bzw. das benötigte Material
 liefern, dann **STOP**.
@@ -319,6 +329,16 @@ liefern, dann **STOP**.
 4. **STOP**, bis Olivers Design vorliegt. Erst dann bauen.
 **Design-Übernahme heißt IMMER:** Mocks raus, echt verdrahten, in **bestehende
 Library-Komponenten** übersetzen — **nie 1:1-Copy** des AI-Studio-Markups.
+
+> **REGEL A — Komponenten-Wiederverwendung ist Pflicht-Diagnose-Schritt (ab jetzt, JEDER UI-Slice).**
+> Bevor eine neue UI-Struktur geschrieben wird (**Panel · Modal · Dialog · Table · List · Dropdown ·
+> Card** u.ä.), MUSS **explizit** nach strukturell passenden Bestands-Komponenten gesucht werden
+> (`grep`/Glob in `panel-blocks/` · `features/` · `shared/` · `panels/`). Das **Ergebnis gehört
+> EXPLIZIT in den Diagnose-Teil des Slice-Berichts** — einer der beiden Sätze, wörtlich:
+> **„Wiederverwendet: [Name(n)]"** ODER **„Kein Analog gefunden, Neubau — Begründung: […]"**.
+> **Kein stillschweigendes Bauen ohne diesen Satz.** (Hintergrund: das Kontakt-Anlege-Panel wurde
+> zweimal als Eigenbau geschrieben, statt `ActionPanel`/`AddSdrLeadPanel` wiederzuverwenden —
+> siehe auch Audit-Check „Panel: Shell statt Eigenbau".)
 
 **Reihenfolge-Flexibilität:** Wartet ein [OLIVER]-/DESIGN-Schritt auf Oliver, darf der
 nächste [BAU]-Schritt **ohne diese Abhängigkeit** vorgezogen werden. Vorziehen wird in
