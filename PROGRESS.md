@@ -370,6 +370,32 @@ für JEDEN UI-Slice**, auch wenn ein Design existiert.
 > Produktentscheidung, **vor** dem Bau der Automatisierung nachzuholen. **Nicht Teil von K-3.**
 > Voll dokumentiert als `#40` in `docs/entscheidungen_komplett.md`.
 
+> **Session 2026-07-17 (K-4a Companies-Listenansicht) — Branch `feat/companies-list-k4a`, STOP für QA:**
+> Companies-Screen auf dem geteilten Tabellen-Standard aus K-3 Phase C (`useDataTable`/`DataTableCard`/
+> `ColumnConfigPopover`, eigener `persistKey="table_views.companies"`). **Neu:** `companiesMappers.ts`
+> (`CompaniesRow` + `companyStatus`-Resolver = Single Source für Status-Badge UND `RoutingChip`, aus
+> `subscription_status`/offener Deal/`in_campaign`/Kontaktanzahl; `formatEuroCents`), `getCompanies`/
+> `getCompanyDetail` (Embed contacts/deals-Aggregate), `prefetchCompanyPanel` (Regel C). 6 Set-A-Spalten
+> (Company·Status·Kontakte·Zuletzt·ARR·Bearbeitung) + 15 Set-B; 3 Filter-Dropdowns (Branche/Größe/Land);
+> Lagebild „ohne Kontakt" nur bei echtem Aggregat (Honesty); Bulk Tag/Export→Toast. `ScreenCompanyDetail`
+> (volle Seite): Kopf + KPIs **echt**, Tabs als ehrlicher „folgt (K-4b)"-Platzhalter. Routen `companies`
+> + `companies/:id` live (ersetzt ComingSoon), beide in `componentRegistry`. i18n `companies.*` (de/en/es).
+> Gates grün, beide Agents PASS. **Companies = eigenständiger Nav-Screen** (Sidebar-Icon vorhanden).
+>
+> **Selbst ergänzt (nach Kanon, nicht im Mockup):** abgeleiteter `companyStatus` inkl. Routing-Chip
+> (Mockup zeigt reiche Status-Sublabels „Pipeline · Demo Stage" etc. → auf primären Status reduziert,
+> Tabellen-Sauberkeit); Detail-Placeholder-Route mit echtem Kopf+KPIs statt totem Pfeil; KPI-Label
+> „Kontrollierte Kontakte" 1:1 aus dem Mockup übernommen (ggf. Wortwahl beim QA prüfen).
+>
+> **Deferred (benannte Folge-Punkte):** **K-4b** Detail-Tabs (Übersicht/Kontakte/Deals/Aktivität/Notizen)
+> + Bearbeiten + „+ Company hinzufügen"-Anlege-Panel · **[D-companies-grid]** Grid-/Kachel-Ansicht (Toggle
+> aus Mockup, nicht Teil der geteilten Tabelle) · **[D-companies-quickpanel]** Quick-Side-Panel aus der
+> Kontakte-Liste (§15) · **[D-companies-archive]** Bulk „Archivieren" + Verhalten verknüpfter Kontakte/
+> Deals bei Archiv (eigene Entscheidung, kein Soft-Delete in K-4) · **[D-companies-statusfilter]** Status-
+> Filter „Mit Deals"/„Ohne Kontakt" als Pills · Companies-**Listen** (statisch/dynamisch) · Sherloq-Block
+> (AI-Zusammenfassung/Live-Signale, Detail) erst mit Sherloq-Modul. `sortieren`-Dropdown aus Mockup
+> entfällt (Spalten-Header-Sortierung = Tabellen-Standard). Prefetch/Detail-Query-Keys stehen für K-4b bereit.
+
 ## Current Status: **[D51] Konfigurierbarkeit-als-Architektur verankert + Farmer/Hunter konfig-konform (30.06.2026, Teil 2)** — neues hartes Prinzip „Logik-als-Daten" (gleichrangig Honesty); **Modul-Abschluss-Gate** (4 Prinzipien: Single Source · Performance · Konfigurierbarkeit · Honesty) in CHECKLIST.md verankert. Farmer- & Hunter-Konfig-Lücken geschlossen (Tages-Cutoffs/Churn-Vorrang-Schalter/„Neu-in-Pipeline"-Fenster → `settings.thresholds`; stummer Fallback → Drei-Zustands-Gate; Edge-Terminal-Literale → `_shared/terminalStages.ts`; Won/Lost = dokumentierte System-Invariante). Migr. 053 (KB) + 054/055 (settings) **applied**. Beide Module bestehen das Gate (offene Punkte = bewusst Deferred). · **Farmer-Modul DB-Wiring KOMPLETT abgeschlossen (30.06.2026)** — Screen (6 Tabs + aufgeklappter Bereich) · Panel 8a–8e (Header/KontaktZeile/Tabs/Writes/Signale/Subscription/Details — alles echt + editierbar) · Vollansicht · echtes Churn-/Upsell-Scoring (Edge Functions `score-churn-risk`/`score-upsell` + tägliche Crons, Migr. 048–053). Farmer-Invarianten erzwungen: **Subscription-nie-Stage · Churn-Vorrang vor Upsell (auch dedizierte Tabs) · Single Source (`contactToProfile`/`getContactDetail`/`companies`/`contactDetailFields`) · Honesty (kein Fake, „Folgt" sauber)**. **NÄCHSTES MODUL: Companies** (Empfehlung: erst Diagnose-/Bestandsaufnahme-Slice analog Farmer-Audit). · Phase 3 (DB-Wiring Hunter) abgeschlossen · **[D27] Tech-Schuld erledigt** · **Auth/Org [D21] Scheiben 1–8** (inkl. MfaBanner 2FA-Empfehlung) · **Hunter-Übersicht Dringlichkeits-Score** (Migr. 045, settings-basiert) + Profilzeilen-Konsistenz erzwungen · **Farmer-Screen UI komplett (alle 6 Tabs: Übersicht · Kunden · Retention · Upsell · Signals · Follow-ups — Mock, kein DB-Wiring)** · **Farmer Info-Panel [D33] + Action-Panel [D34] + Follow-ups [D46] + Vollansicht [D47] gebaut** (eigene `FarmerSidepanel`/`FarmerActionDrawer`, Mock) · **ScreenFarming verdrahtet** (Panels + Action-CTAs + #7 LinkedIn-Signal-Antwort) · **Snooze/Ignorieren bei Signalen** (Hunter+Farmer, Single Source `constants.ts`) · **Panel-Performance** (Skeletons + Prefetch-on-hover + placeholderData) · **[D35] Signal-Action-Resolver Phase 0** · **Elevation- & Radius-System app-weit** · **Drawer-Panels Full-Bleed** (zentral in `sheet.tsx`). Next (Reihenfolge entschieden 29.06.2026 — siehe [D43]): **1. Farmer DB-Wiring komplett** (echte Scores/Signale/Subscription/KI-Kurzakte + AktiveSignale-Flags an echte Felder — siehe [D47]-Nachzieh-Liste) · **2. Score-Funktionen aktivieren** (score_churn_risk/score_upsell/calculate_health_score → täglich echte Zahlen) · **3. [D43] Historisierung systemweit** (Hunter+Farmer zusammen, **hartes Gate: live vor erstem echten Kunden / Phase 4** — NICHT als Farmer-Insel/Erstschritt) · dann **Hunter Trial-Kacheln [D36]/[D37]** · **Lifecycle-Trigger [D38]** · **[D29] Einladungs-Mail Edge Function** · AI-Pipeline (löst „Folgt"-Platzhalter [D5])
 
 > **Session 2026-06-29/30 (Farmer DB-Wiring komplett — von Mock zu echt) — auf `main`:**

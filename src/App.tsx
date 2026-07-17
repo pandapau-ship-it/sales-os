@@ -28,6 +28,8 @@ import Login from "@/components/auth/Login";
 import AuthCallback from "@/components/auth/AuthCallback";
 import TeamSettings from "@/components/features/settings/TeamSettings";
 import ScreenKontakte from "@/components/screens/ScreenKontakte";
+import ScreenCompanies from "@/components/screens/ScreenCompanies";
+import ScreenCompanyDetail from "@/components/screens/ScreenCompanyDetail";
 import { MfaBanner } from "@/components";
 import { useCurrentOrg } from "@/hooks/useCurrentOrg";
 import CommandPalette from "@/components/shared/CommandPalette";
@@ -114,7 +116,8 @@ export default function App() {
           <Route path="hunter" element={<HunterReference />} />
           <Route path="farmer" element={<FarmerReference />} />
           <Route path="kontakte" element={<ScreenKontakte />} />
-          <Route path="companies" element={<ComingSoon nameKey="nav.companies" />} />
+          <Route path="companies" element={<ScreenCompanies />} />
+          <Route path="companies/:id" element={<ScreenCompanyDetail />} />
           <Route path="settings" element={<TeamSettings />} />
         </Route>
           <Route path="*" element={<Navigate to="/app/meintag" replace />} />

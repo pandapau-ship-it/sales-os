@@ -62,6 +62,20 @@ export const COMPONENT_REGISTRY = {
     description: 'Kontakte: zentrale Personen-Datenbank als sortier-/filterbare Tabelle (K-3)',
   },
 
+  screen_companies: {
+    component: 'ScreenCompanies',
+    path: 'components/screens/ScreenCompanies',
+    filter: null,
+    description: 'Companies: Firmen-Datenbank auf der geteilten Tabelle (K-4a), abgeleiteter Status + Routing',
+  },
+
+  screen_company_detail: {
+    component: 'ScreenCompanyDetail',
+    path: 'components/screens/ScreenCompanyDetail',
+    filter: null,
+    description: 'Company-Detailseite (volle Seite): Kopf + KPIs echt, Tabs folgen (K-4b)',
+  },
+
   screen_system: {
     component: 'ScreenSherloqSystem',
     path: 'components/screens/ScreenSherloqSystem',
