@@ -633,6 +633,36 @@
       "phones": "Telefonnummern"
     },
     "daysAgo_one": "vor {{count}} Tag",
-    "daysAgo_other": "vor {{count}} Tagen"
+    "daysAgo_other": "vor {{count}} Tagen",
+    "lists": {
+      "menuTitle": "Listen",
+      "none": "Noch keine Listen",
+      "newList": "Neue Liste erstellen",
+      "newListTitle": "Neue Liste erstellen",
+      "nameLabel": "Name",
+      "namePlaceholder": "Listenname",
+      "chooseType": "Listentyp",
+      "static": "Statisch",
+      "dynamic": "Dynamisch",
+      "typeStaticDesc": "Mitglieder manuell hinzufügen",
+      "typeDynamicDesc": "Mitglieder automatisch über den aktuellen Filter",
+      "dynamicNeedsFilter": "Aktiviere zuerst einen Filter, um eine dynamische Liste zu speichern",
+      "create": "Erstellen",
+      "createdToast": "Liste „{{name}}“ erstellt",
+      "closeList": "Liste schließen",
+      "emptyTitle": "Liste ist leer",
+      "emptyDesc": "Diese Liste hat noch keine Mitglieder.",
+      "dynamicHint": "Automatisch über die Regel",
+      "dynamicNotSelectable": "Dynamische Liste — Mitglieder laufen automatisch über die Regel",
+      "addToListTitle": "Zu Liste hinzufügen",
+      "newStaticList": "Neue statische Liste",
+      "memberCount_one": "{{count}} Kontakt",
+      "memberCount_other": "{{count}} Kontakte",
+      "forNContacts_one": "· {{count}} Kontakt",
+      "forNContacts_other": "· {{count}} Kontakte",
+      "addedToast_one": "{{count}} Kontakt zu „{{name}}“ hinzugefügt",
+      "addedToast_other": "{{count}} Kontakte zu „{{name}}“ hinzugefügt",
+      "addToList": "Zu Liste hinzufügen"
+    }
   }
 }

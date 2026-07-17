@@ -33,12 +33,12 @@ import {
 import { useVirtualizer } from "@tanstack/react-virtual";
 import {
   ArrowRight, ArrowUp, ArrowDown, ChevronsUpDown, ChevronDown, ChevronLeft, ChevronRight,
-  Plus, SlidersHorizontal, Filter, GripVertical, Users, MailX, Ban, X, RotateCcw,
+  Plus, SlidersHorizontal, Filter, GripVertical, Users, MailX, Ban, X, RotateCcw, List, ListPlus,
 } from "lucide-react";
 import { useCurrentOrg } from "@/hooks/useCurrentOrg";
 import { useAuth } from "@/hooks/useAuth";
 import { useNowMs } from "@/hooks/useNowMs";
-import { getContacts, getUserPreference, setUserPreference } from "@/lib/db";
+import { getContacts, getUserPreference, setUserPreference, getLists, getListMembers, type ListView } from "@/lib/db";
 import { contactToKontakteRow, type KontakteRow } from "@/lib/kontakteMappers";
 import { daysSinceIso } from "@/lib/hunterMappers";
 import { evaluateFilter, type FilterDefinition, type FilterNode } from "@/lib/filter";
@@ -49,7 +49,7 @@ import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover
 import { Avatar, ICPDonut, StatusBadge, LeadSourceBadge, RoutingChip, EmptyState } from "@/components";
 import { useToast } from "@/components/shared/toastContext";
 import KontaktAnlegenPanel from "@/components/features/kontakte/KontaktAnlegenPanel";
-import { HunterSidepanel } from "@/components";
+import { HunterSidepanel, ZuListeDialog, NeueListeDialog } from "@/components";
 import type { Person } from "@/types";
 
 // Labels durchgängig aus i18n (kontakte.*) — hier nur Tone/Ids, kein sichtbarer Text.
@@ -156,6 +156,11 @@ export default function ScreenKontakte() {
   const [anlegenOpen, setAnlegenOpen] = useState(false);
   const [detailPerson, setDetailPerson] = useState<Person | null>(null);
   const [draggedCol, setDraggedCol] = useState<string | null>(null);
+  // Listen (K-3b)
+  const [selectedList, setSelectedList] = useState<ListView | null>(null);
+  const [listMenuOpen, setListMenuOpen] = useState(false);
+  const [neueListeOpen, setNeueListeOpen] = useState(false);
+  const [zuListeOpen, setZuListeOpen] = useState(false);
   const queryClient = useQueryClient();
 
   // ── Persistenz (pro User) — laden beim Mount, speichern bei Änderung ──────────
@@ -192,13 +197,28 @@ export default function ScreenKontakte() {
     staleTime: 30_000,
   });
 
+  // Listen (K-3b): Liste im Dropdown + Mitglieder der aktiven Liste (statisch Join / dynamisch live).
+  const listsQuery = useQuery({
+    queryKey: ["lists", organizationId],
+    queryFn: () => getLists(organizationId),
+    staleTime: 30_000,
+  });
+  const listMembersQuery = useQuery({
+    queryKey: ["listMembers", organizationId, selectedList?.id],
+    queryFn: () => getListMembers(organizationId, selectedList as ListView),
+    enabled: !!selectedList,
+    staleTime: 30_000,
+  });
+
   const raw: ContactRow[] = useMemo(() => contactsQuery.data ?? [], [contactsQuery.data]);
 
   const rows: KontakteRow[] = useMemo(() => {
+    // Aktive Liste ersetzt die Filteransicht (eigener Blick auf die Liste).
+    if (selectedList) return (listMembersQuery.data ?? []).map(contactToKontakteRow);
     const def = buildFilterDef(statusFilter, sourceFilter, icpFilter, noContactWay);
     const filtered = def ? raw.filter((r) => evaluateFilter(def, r as unknown as Record<string, unknown>)) : raw;
     return filtered.map(contactToKontakteRow);
-  }, [raw, statusFilter, sourceFilter, icpFilter, noContactWay]);
+  }, [raw, selectedList, listMembersQuery.data, statusFilter, sourceFilter, icpFilter, noContactWay]);
 
   // Echte Counts aus dem geladenen Satz (≤1000) — nichts erfunden, kein DB-Extra-Call.
   const counts = useMemo(() => {
@@ -292,6 +312,18 @@ export default function ScreenKontakte() {
   const selectedCount = selectAllFiltered ? total : Object.keys(rowSelection).length;
   const pageAllSelected = pageRows.length > 0 && pageRows.every((r) => rowSelection[r.id]);
   const hasFilter = !!statusFilter || sourceFilter.length > 0 || icpFilter.length > 0 || noContactWay;
+  // Für „Neue dynamische Liste": aktueller Filter als K-2-Definition (null → Dynamisch nicht wählbar).
+  const currentFilterDef = buildFilterDef(statusFilter, sourceFilter, icpFilter, noContactWay);
+  // Konkrete IDs der Bulk-Auswahl (selectAllFiltered = alle aktuell sichtbaren Zeilen-IDs).
+  const selectedIds = selectAllFiltered ? rows.map((r) => r.id) : Object.keys(rowSelection).filter((id) => rowSelection[id]);
+  const lists = listsQuery.data ?? [];
+  const listActive = !!selectedList;
+  const openList = (l: ListView) => {
+    setStatusFilter(null); setSourceFilter([]); setIcpFilter([]); setNoContactWay(false);
+    setRowSelection({}); setSelectAllFiltered(false);
+    setSelectedList(l); setListMenuOpen(false);
+  };
+  const closeList = () => setSelectedList(null);
 
   // Lagebild-Kategorien (nur KONTAKT-bezogen + in dieser Tabelle filterbar). 0 → weg.
   const lagebild = [
@@ -369,8 +401,8 @@ export default function ScreenKontakte() {
         </div>
       </div>
 
-      {/* Lagebild — klickbare Bestands-Zahlen (nur echt + hier filterbar). Alle 0 → Zeile weg. */}
-      {lagebild.length > 0 && (
+      {/* Lagebild — nur ohne aktive Liste. Klickbare Bestands-Zahlen (nur echt). Alle 0 → weg. */}
+      {!listActive && lagebild.length > 0 && (
         <div className="flex items-center gap-2 flex-wrap mb-3">
           {lagebild.map((c) => {
             const Icon = c.icon;
@@ -389,16 +421,57 @@ export default function ScreenKontakte() {
         </div>
       )}
 
-      {/* Filter — Status-Pills mit echten Counts + kombiniertes „Filter"-Dropdown (Quelle/ICP) */}
+      {/* Listen-Dropdown + (aktive Liste ODER Status-Pills/Filter) */}
       <div className="flex items-center gap-2 flex-wrap mb-4">
-        <StatusPill id={null} label={t("kontakte.status.all")} count={counts.total} />
-        {STATUS_ORDER.filter((s) => (counts.byStatus[s] ?? 0) > 0).map((s) => (
-          <StatusPill key={s} id={s} label={t(`kontakte.status.${s}`)} count={counts.byStatus[s]} />
-        ))}
+        <div className="relative">
+          <button type="button" onClick={() => setListMenuOpen((o) => !o)}
+            className={cn("inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12px] font-semibold border transition-colors cursor-pointer",
+              listActive ? "border-[var(--sherloq-primary)] text-[var(--sherloq-primary)] bg-[var(--signal-teal-bg)]" : "border-border text-text-body bg-app-surface hover:bg-app-bg")}>
+            <List className="w-3.5 h-3.5" /> {t("kontakte.lists.menuTitle")} <ChevronDown className="w-3.5 h-3.5 opacity-70" />
+          </button>
+          {listMenuOpen && (
+            <div className="absolute left-0 top-10 z-20 w-64 bg-app-surface rounded-[12px] border border-[var(--border-card)] shadow-[var(--shadow-dropdown)] p-2">
+              {lists.length === 0 ? (
+                <p className="px-2 py-3 text-center text-[12px] text-text-muted">{t("kontakte.lists.none")}</p>
+              ) : lists.map((l) => (
+                <button key={l.id} type="button" onClick={() => openList(l)}
+                  className="w-full flex items-center gap-2 px-2 py-2 rounded-[8px] text-left hover:bg-app-bg cursor-pointer">
+                  {l.type === "dynamic" ? <Filter className="w-3.5 h-3.5 text-[var(--sherloq-primary)] shrink-0" /> : <List className="w-3.5 h-3.5 text-text-muted shrink-0" />}
+                  <span className="flex-1 min-w-0 truncate text-[13px] text-text-body">{l.name}</span>
+                  <span className="text-[11px] text-text-muted tabular-nums">{l.memberCount.toLocaleString("de-DE")}</span>
+                </button>
+              ))}
+              <div className="mt-1 pt-1 border-t border-[var(--border-card)]">
+                <button type="button" onClick={() => { setListMenuOpen(false); setNeueListeOpen(true); }}
+                  className="w-full flex items-center gap-2 px-2 py-2 rounded-[8px] text-[13px] font-semibold text-[var(--sherloq-primary)] hover:bg-app-bg cursor-pointer">
+                  <Plus className="w-4 h-4" /> {t("kontakte.lists.newList")}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
         <span className="w-px h-5 bg-border mx-1" />
-        <CombinedFilter source={sourceFilter} onSource={setSourceFilter} icp={icpFilter} onIcp={setIcpFilter} />
-        {hasFilter && (
-          <button type="button" onClick={clearFilters} className="text-[12px] font-semibold text-text-muted hover:text-text-primary transition-colors cursor-pointer px-2">{t("kontakte.resetFilters")}</button>
+
+        {listActive && selectedList ? (
+          <div className="inline-flex items-center gap-2 pl-3 pr-2 py-1.5 rounded-full bg-[var(--signal-teal-bg)] border border-[var(--sherloq-primary)] text-[var(--sherloq-primary)] text-[12px] font-semibold">
+            {selectedList.type === "dynamic" ? <Filter className="w-3.5 h-3.5" /> : <List className="w-3.5 h-3.5" />}
+            <span className="truncate max-w-[220px]">{selectedList.name}</span>
+            <span className="text-[11px] opacity-70">· {t(`kontakte.lists.${selectedList.type}`)} · {rows.length.toLocaleString("de-DE")}</span>
+            <button type="button" onClick={closeList} aria-label={t("kontakte.lists.closeList")} data-tip={t("kontakte.lists.closeList")} className="w-5 h-5 rounded-full hover:bg-app-surface/40 flex items-center justify-center"><X className="w-3.5 h-3.5" /></button>
+          </div>
+        ) : (
+          <>
+            <StatusPill id={null} label={t("kontakte.status.all")} count={counts.total} />
+            {STATUS_ORDER.filter((s) => (counts.byStatus[s] ?? 0) > 0).map((s) => (
+              <StatusPill key={s} id={s} label={t(`kontakte.status.${s}`)} count={counts.byStatus[s]} />
+            ))}
+            <span className="w-px h-5 bg-border mx-1" />
+            <CombinedFilter source={sourceFilter} onSource={setSourceFilter} icp={icpFilter} onIcp={setIcpFilter} />
+            {hasFilter && (
+              <button type="button" onClick={clearFilters} className="text-[12px] font-semibold text-text-muted hover:text-text-primary transition-colors cursor-pointer px-2">{t("kontakte.resetFilters")}</button>
+            )}
+          </>
         )}
       </div>
 
@@ -415,7 +488,7 @@ export default function ScreenKontakte() {
             {selectAllFiltered && <button onClick={clearSelection} className="text-[var(--sherloq-primary)] font-semibold hover:underline cursor-pointer">{t("kontakte.bulk.clear")}</button>}
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={() => bulkAction(t("kontakte.bulk.toListFull"))} className="sherloq-btn-secondary">{t("kontakte.bulk.toList")}</button>
+            <button onClick={() => setZuListeOpen(true)} className="sherloq-btn-secondary inline-flex items-center gap-1.5"><ListPlus className="w-3.5 h-3.5" /> {t("kontakte.bulk.toList")}</button>
             <button onClick={() => bulkAction(t("kontakte.bulk.tagFull"))} className="sherloq-btn-secondary">{t("kontakte.bulk.tag")}</button>
             <button onClick={() => bulkAction(t("kontakte.bulk.archiveFull"))} className="sherloq-btn-secondary">{t("kontakte.bulk.archive")}</button>
             <button onClick={clearSelection} aria-label={t("kontakte.bulk.clear")} data-tip={t("kontakte.bulk.clear")} className="w-8 h-8 rounded-full hover:bg-app-surface flex items-center justify-center text-text-muted cursor-pointer"><X className="w-4 h-4" /></button>
@@ -425,17 +498,17 @@ export default function ScreenKontakte() {
 
       {/* Tabelle */}
       <div className="flex-1 min-h-0 flex flex-col bg-app-surface rounded-[12px] border border-[var(--border-card)] overflow-hidden">
-        {contactsQuery.isLoading ? (
+        {(listActive ? listMembersQuery.isLoading : contactsQuery.isLoading) ? (
           <div className="flex-1 p-5 space-y-3">{Array.from({ length: 8 }).map((_, i) => <div key={i} className="h-11 rounded-[8px] bg-app-bg animate-pulse" />)}</div>
-        ) : contactsQuery.isError ? (
+        ) : (listActive ? listMembersQuery.isError : contactsQuery.isError) ? (
           <div className="flex-1 flex items-center justify-center">
-            <EmptyState icon={<Users className="w-6 h-6" />} title={t("kontakte.loadError")} description={t("kontakte.loadErrorDesc")} action={{ label: t("kontakte.reload"), onClick: () => contactsQuery.refetch() }} />
+            <EmptyState icon={<Users className="w-6 h-6" />} title={t("kontakte.loadError")} description={t("kontakte.loadErrorDesc")} action={{ label: t("kontakte.reload"), onClick: () => (listActive ? listMembersQuery.refetch() : contactsQuery.refetch()) }} />
           </div>
         ) : total === 0 ? (
           <div className="flex-1 flex items-center justify-center">
             <EmptyState icon={<Users className="w-6 h-6" />}
-              title={hasFilter ? t("kontakte.noHits") : t("kontakte.emptyTitle")}
-              description={hasFilter ? t("kontakte.noHitsDesc") : t("kontakte.emptyDesc")} />
+              title={listActive ? t("kontakte.lists.emptyTitle") : hasFilter ? t("kontakte.noHits") : t("kontakte.emptyTitle")}
+              description={listActive ? t("kontakte.lists.emptyDesc") : hasFilter ? t("kontakte.noHitsDesc") : t("kontakte.emptyDesc")} />
           </div>
         ) : (
           <div ref={scrollRef} className="flex-1 min-h-0 overflow-auto">
@@ -536,6 +609,24 @@ export default function ScreenKontakte() {
         onCreated={() => { setAnlegenOpen(false); void queryClient.invalidateQueries({ queryKey: ["kontakte", organizationId] }); }}
       />
       {detailPerson && <HunterSidepanel person={detailPerson} onClose={() => setDetailPerson(null)} />}
+
+      {/* Listen (K-3b): Erstellen + „Zu Liste" (Bulk) */}
+      <NeueListeDialog
+        open={neueListeOpen}
+        organizationId={organizationId}
+        createdBy={userId}
+        currentFilterDef={currentFilterDef}
+        onClose={() => setNeueListeOpen(false)}
+        onCreated={() => { void queryClient.invalidateQueries({ queryKey: ["lists", organizationId] }); }}
+      />
+      <ZuListeDialog
+        open={zuListeOpen}
+        organizationId={organizationId}
+        contactIds={selectedIds}
+        createdBy={userId}
+        onClose={() => setZuListeOpen(false)}
+        onDone={() => { clearSelection(); void queryClient.invalidateQueries({ queryKey: ["lists", organizationId] }); }}
+      />
     </div>
   );
 }
