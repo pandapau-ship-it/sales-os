@@ -63,6 +63,20 @@
   --signal-cold-text:   #0369A1;
   --signal-teal-bg:     #F0FAFA;
   --signal-teal-text:   #155E5C;
+  /* Avatar-Palette (Initialen-Fallback) — deterministisch aus dem Namen (Avatar.tsx).
+     Bewusst EINE Palette für Light + Dark: gesättigte Mid-Tones poppen auf hellem UND
+     dunklem Grund und halten weiße Initialen (große Schrift) ≥ 3:1. Eine hellere Dark-
+     Variante würde genau diesen Weiß-Kontrast senken → deshalb kein [data-theme]-Override.
+     `--avatar-teal` bewusst NICHT enthalten (zu nah am Marken-Teal → dürfte nie wie ein
+     aktiver Zustand wirken) → durch `--avatar-cyan` ersetzt (Oliver-Freigabe 2026-07-17). */
+  --avatar-emerald:  #059669;
+  --avatar-cyan:     #0891B2;
+  --avatar-blue:     #2563EB;
+  --avatar-indigo:   #4F46E5;
+  --avatar-violet:   #7C3AED;
+  --avatar-magenta:  #DB2777;
+  --avatar-amber:    #B45309;
+  --avatar-red:      #DC2626;
   /* Heat-Status Farben — Quelle: HEAT_STATUS in src/lib/constants.ts.
      Rot bleibt ausschließlich für Warnungen (Stagnation, überfällige Tasks). */
   --color-success:      #15803D;
