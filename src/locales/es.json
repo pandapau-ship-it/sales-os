@@ -526,7 +526,24 @@
       "contactStatus": "Status",
       "lastContactedAt": "Zuletzt",
       "icpScore": "ICP Score",
-      "routing": "Routing"
+      "routing": "Routing",
+      "company": "Firma",
+      "email": "E-Mail",
+      "linkedinUrl": "LinkedIn",
+      "salutation": "Anrede",
+      "jobTitle": "Jobtitel",
+      "seniority": "Seniority",
+      "department": "Abteilung",
+      "language": "Sprache",
+      "twitterHandle": "Twitter/X",
+      "leadStatus": "Lead Status",
+      "heatStatus": "Heat",
+      "emailVerifiedStatus": "E-Mail verifiziert",
+      "lastReplyAt": "Letzte Antwort",
+      "tags": "Tags",
+      "ownerName": "Lead-Owner",
+      "phonePrimary": "Telefon",
+      "createdAt": "Erstellt am"
     },
     "status": {
       "all": "Alle",
@@ -668,6 +685,39 @@
       "removedToast_other": "{{count}} Kontakte aus „{{name}}“ entfernt",
       "actionErrorToast": "Aktion hat gerade nicht geklappt — nochmal versuchen",
       "viewList": "Liste ansehen"
+    },
+    "entity": "Kontakt",
+    "leadStatusValue": {
+      "lead": "Lead",
+      "qualified_lead": "Qualified Lead",
+      "mql": "MQL",
+      "sql": "SQL",
+      "customer": "Customer",
+      "churned": "Churned"
+    },
+    "emailVerify": {
+      "valid": "Verifiziert",
+      "invalid": "Ungültig",
+      "catch-all": "Catch-All",
+      "unknown": "Unbekannt",
+      "spamtrap": "Spam-Trap"
     }
+  },
+  "table": {
+    "columnsAdjust": "Spalten anpassen",
+    "columns": "Spalten",
+    "resetDefault": "Standard",
+    "resetDefaultTip": "Sichtbarkeit, Reihenfolge und Breite zurücksetzen",
+    "columnsHint": "Spalten per Drag am Titel verschieben · Kante ziehen ändert die Breite.",
+    "selectPageAll": "Alle auf dieser Seite auswählen",
+    "selectRow": "{{entity}} auswählen",
+    "openEntity": "{{entity}} öffnen",
+    "pageInfo": "Zeige {{from}}–{{to}} von {{total}}",
+    "perPage": "Pro Seite",
+    "prev": "Zurück",
+    "next": "Weiter",
+    "loadError": "Konnte gerade nicht geladen werden",
+    "loadErrorDesc": "Bitte erneut versuchen.",
+    "reload": "Nochmal laden"
   }
 }

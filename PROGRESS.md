@@ -245,6 +245,18 @@
         Marken-Teal/Gradient `#175253` → ein Avatar dürfte nie wie ein aktiver Zustand wirken) → ersetzt durch
         **`--avatar-cyan #0891B2`**: klar kühler/blauer und deutlich heller als das dunkle, entsättigte Marken-Teal,
         füllt den Kühl-Slot ohne Verwechslung; von `--avatar-blue` (Royalblau) durch den Grün-Blau- Stich getrennt.
+  - [x] **K-3 Phase C — Geteilte Tabellen-Komponente (2026-07-17, Branch `feat/shared-datatable`).**
+        Tabellen-Mechanik aus ScreenKontakte extrahiert: **`useDataTable`** (Tabelle + Persistenz
+        `user_preferences`) · **`DataTableCard`** (Header drag/resize/sort · virtualisierter Body ·
+        Pagination · Zustände · **Hover-Prefetch** eingebaut · `rowActions`-Slot) · **`ColumnConfigPopover`**
+        (beliebig große Spaltenliste). ScreenKontakte darauf migriert (Filter/Lagebild/Listen/Panels bleiben).
+        **Erweiterte Spalten:** 6 default + **17 Set-B-Spalten** (default aus, im Popover wählbar) —
+        getContacts um `contact_phones` + `owner:users!assigned_to` erweitert (Telefon + Lead-Owner echt).
+        Chrome-i18n generisch `table.*`; Spalten-Labels `kontakte.col.*`. **1:1-Abgleich** gegen die
+        44-Punkte-Checkliste (`docs/phaseC_kontakte_funktions_schnappschuss.md`) — alle erhalten.
+        **Verhaltensänderung (intern, UX identisch):** Bulk-Auswahl nutzt jetzt TanStack-Bordmittel
+        (`getIsAllPageRowsSelected` / materialisierte „alle im Filter"-Auswahl) statt eigenem
+        `selectAllFiltered`-Flag. Companies (Phase D) baut auf `DataTableCard` + `prefetchCompanyPanel`.
   - [ ] **▶ K-4 Companies-Screen + Detail** (4c: ScreenCompanies) — Hier auch **[D-city]**
         (`contacts.city`/`country`-Migration) aufgreifen, da beim Company-/Adress-Wiring fällig.
   - [~] **K-5 Smart-Import — Engine-Kern (dep-frei) VORGEZOGEN** (Reihenfolge-Flexibilität
