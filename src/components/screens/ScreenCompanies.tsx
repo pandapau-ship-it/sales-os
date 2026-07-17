@@ -24,7 +24,8 @@ import { companyToCompaniesRow, formatEuroCents, type CompaniesRow } from "@/lib
 import { daysSinceIso } from "@/lib/hunterMappers";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
-import { Avatar, StatusBadge, RoutingChip, EmptyState, DataTableCard, ColumnConfigPopover, CompanyAnlegenPanel } from "@/components";
+import { Avatar, StatusBadge, RoutingChip, EmptyState, DataTableCard, ColumnConfigPopover, CompanyAnlegenPanel, TableSearch } from "@/components";
+import { buildSearchText } from "@/lib/tableSearch";
 import LinkedinIcon from "@/components/shared/LinkedinIcon";
 import { useToast } from "@/components/shared/toastContext";
 
@@ -183,12 +184,16 @@ export default function ScreenCompanies() {
     col.accessor("createdAt", { header: t("companies.col.createdAt"), size: 120, minSize: 100, cell: (c) => dateCell(c.getValue()) }),
   ], [col, t, nowMs, navigate]);
 
-  const { table, resetColumns } = useDataTable<CompaniesRow>({
+  const { table, resetColumns, search, setSearch } = useDataTable<CompaniesRow>({
     data: rows, columns, getRowId: (r) => r.id, persistKey: PREF_KEY, userId, organizationId,
     rowSelection, onRowSelectionChange: setRowSelection, initialColumnVisibility: SET_B_HIDDEN,
+    searchAccessor: (r) => buildSearchText([r.name, r.domain]),
   });
 
   const total = rows.length;
+  // Such+Filter-gefilterte Menge (Bulk „alle auswählen" nie über die sichtbaren Zeilen hinaus).
+  const filteredRows = table.getFilteredRowModel().rows;
+  const filteredCount = filteredRows.length;
   const selectedIds = Object.keys(rowSelection).filter((id) => rowSelection[id]);
   const selectedCount = selectedIds.length;
   const pageRowCount = table.getRowModel().rows.length;
@@ -199,10 +204,11 @@ export default function ScreenCompanies() {
   const clearFilters = () => { setSel({ industry: [], size: [], country: [] }); setNoContact(false); };
   const bulkAction = (label: string) => { toast(t("companies.bulk.actionToast", { label, count: selectedCount }), "info"); clearSelection(); };
 
+  const noHits = hasFilter || search.trim().length > 0;
   const emptyState = (
     <EmptyState icon={<Building2 className="w-6 h-6" />}
-      title={hasFilter ? t("companies.noHits") : t("companies.emptyTitle")}
-      description={hasFilter ? t("companies.noHitsDesc") : t("companies.emptyDesc")} />
+      title={noHits ? t("companies.noHits") : t("companies.emptyTitle")}
+      description={noHits ? t("companies.noHitsDesc") : t("companies.emptyDesc")} />
   );
 
   return (
@@ -242,6 +248,7 @@ export default function ScreenCompanies() {
         {hasFilter && (
           <button type="button" onClick={clearFilters} className="text-[12px] font-semibold text-text-muted hover:text-text-primary transition-colors cursor-pointer px-2">{t("companies.resetFilters")}</button>
         )}
+        <div className="ml-auto"><TableSearch value={search} onChange={setSearch} placeholder={t("table.search")} /></div>
       </div>
 
       {/* Bulk-Bar */}
@@ -249,12 +256,12 @@ export default function ScreenCompanies() {
         <div className="flex items-center justify-between px-4 py-2.5 mb-3 rounded-[10px] bg-[var(--signal-teal-bg)] border border-[var(--sherloq-primary)]/20">
           <div className="flex items-center gap-3 text-[13px] text-text-body">
             <span className="font-bold">{t("companies.bulk.selected", { count: selectedCount })}</span>
-            {pageAllSelected && selectedCount < total && (
-              <button onClick={() => setRowSelection(Object.fromEntries(rows.map((r) => [r.id, true])))} className="text-[var(--sherloq-primary)] font-semibold hover:underline cursor-pointer">
-                {t("companies.bulk.selectAll", { count: total })}
+            {pageAllSelected && selectedCount < filteredCount && (
+              <button onClick={() => setRowSelection(Object.fromEntries(filteredRows.map((r) => [r.id, true])))} className="text-[var(--sherloq-primary)] font-semibold hover:underline cursor-pointer">
+                {t("companies.bulk.selectAll", { count: filteredCount })}
               </button>
             )}
-            {selectedCount === total && total > pageRowCount && <button onClick={clearSelection} className="text-[var(--sherloq-primary)] font-semibold hover:underline cursor-pointer">{t("companies.bulk.clear")}</button>}
+            {selectedCount === filteredCount && filteredCount > pageRowCount && <button onClick={clearSelection} className="text-[var(--sherloq-primary)] font-semibold hover:underline cursor-pointer">{t("companies.bulk.clear")}</button>}
           </div>
           <div className="flex items-center gap-2">
             <button onClick={() => bulkAction(t("companies.bulk.tagFull"))} className="sherloq-btn-secondary">{t("companies.bulk.tag")}</button>

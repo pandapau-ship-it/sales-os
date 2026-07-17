@@ -47,6 +47,8 @@ export interface KontakteRow {
   ownerName?: string;
   /** Primäre Telefonnummer (contact_phones, is_primary bevorzugt). */
   phonePrimary?: string;
+  /** ALLE Nummern des Kontakts als ein Text (nur für die Substring-Suche; contact_phones ist schon geladen). */
+  phoneSearch?: string;
   createdAt: string | null;
 }
 
@@ -96,6 +98,7 @@ export function contactToKontakteRow(row: ContactRow): KontakteRow {
     tags: row.tags ?? undefined,
     ownerName: row.owner?.full_name ?? undefined,
     phonePrimary: primaryPhone,
+    phoneSearch: phones.map((ph) => ph?.number).filter(Boolean).join(" ") || undefined,
     createdAt: row.created_at ?? null,
   };
 }

@@ -15,6 +15,7 @@ import {
   getCoreRowModel,
   getSortedRowModel,
   getPaginationRowModel,
+  getFilteredRowModel,
   type ColumnDef,
   type SortingState,
   type VisibilityState,
@@ -24,6 +25,7 @@ import {
   type OnChangeFn,
 } from "@tanstack/react-table";
 import { getUserPreference, setUserPreference } from "@/lib/db";
+import { matchesQuery } from "@/lib/tableSearch";
 
 type SavedView = {
   columnVisibility?: VisibilityState;
@@ -46,17 +48,23 @@ export interface UseDataTableOptions<T> {
   pageSizeDefault?: number;
   /** Standard-Sichtbarkeit (z.B. optionale Set-B-Spalten default `false`). Auch Ziel von „Standard". */
   initialColumnVisibility?: VisibilityState;
+  /**
+   * Durchsuchbarer Text je Zeile (Substring-Suche, kein AI). Der Screen bestimmt die Felder
+   * (Kontakte: Name/E-Mail/Firma · Companies: Name/Domain). Fehlt der Prop → keine Suche.
+   */
+  searchAccessor?: (row: T) => string;
 }
 
 export function useDataTable<T>({
   data, columns, getRowId, persistKey, userId, organizationId,
-  rowSelection, onRowSelectionChange, pageSizeDefault = 50, initialColumnVisibility,
+  rowSelection, onRowSelectionChange, pageSizeDefault = 50, initialColumnVisibility, searchAccessor,
 }: UseDataTableOptions<T>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: pageSizeDefault });
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(initialColumnVisibility ?? {});
   const [columnOrder, setColumnOrder] = useState<ColumnOrderState>([]);
   const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({});
+  const [globalFilter, setGlobalFilter] = useState("");
 
   // ── Persistenz (pro User) — laden beim Mount, speichern debounced ─────────────
   const prefsLoaded = useRef(false);
@@ -89,13 +97,16 @@ export function useDataTable<T>({
   const table = useReactTable({
     data,
     columns,
-    state: { sorting, pagination, columnVisibility, columnOrder, columnSizing, rowSelection },
+    state: { sorting, pagination, columnVisibility, columnOrder, columnSizing, rowSelection, globalFilter },
     onSortingChange: setSorting,
     onPaginationChange: setPagination,
     onColumnVisibilityChange: setColumnVisibility,
     onColumnOrderChange: setColumnOrder,
     onColumnSizingChange: setColumnSizing,
     onRowSelectionChange,
+    onGlobalFilterChange: setGlobalFilter,
+    // Substring-Suche über die vom Screen bestimmten Felder (kein AI). Ohne searchAccessor: alles matcht.
+    globalFilterFn: (row, _columnId, value) => (searchAccessor ? matchesQuery(searchAccessor(row.original), String(value)) : true),
     getRowId,
     enableRowSelection: true,
     enableColumnResizing: true,
@@ -103,11 +114,15 @@ export function useDataTable<T>({
     defaultColumn: { minSize: 80 },
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
   });
 
   /** Setzt Sichtbarkeit (auf den Default) + Reihenfolge + Breite zurück (Konfig-Popover „Standard"). */
   const resetColumns = () => { setColumnVisibility(initialColumnVisibility ?? {}); setColumnOrder([]); setColumnSizing({}); };
 
-  return { table, resetColumns };
+  /** Suche setzen + immer auf Seite 1 zurück (sonst „leere" Folgeseiten bei wenigen Treffern). */
+  const setSearch = (v: string) => { setGlobalFilter(v); setPagination((p) => ({ ...p, pageIndex: 0 })); };
+
+  return { table, resetColumns, search: globalFilter, setSearch };
 }

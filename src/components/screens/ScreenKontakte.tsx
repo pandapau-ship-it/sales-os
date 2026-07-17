@@ -30,7 +30,8 @@ import type { ContactRow } from "@/types/rows";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogFooter, AlertDialogTitle, AlertDialogDescription, AlertDialogAction, AlertDialogCancel } from "@/components/ui/alert-dialog";
-import { Avatar, ICPDonut, StatusBadge, HeatBadge, LeadSourceBadge, RoutingChip, EmptyState, DataTableCard, ColumnConfigPopover } from "@/components";
+import { Avatar, ICPDonut, StatusBadge, HeatBadge, LeadSourceBadge, RoutingChip, EmptyState, DataTableCard, ColumnConfigPopover, TableSearch } from "@/components";
+import { buildSearchText } from "@/lib/tableSearch";
 import LinkedinIcon from "@/components/shared/LinkedinIcon";
 import { useToast } from "@/components/shared/toastContext";
 import KontaktAnlegenPanel from "@/components/features/kontakte/KontaktAnlegenPanel";
@@ -236,13 +237,17 @@ export default function ScreenKontakte() {
     col.accessor("createdAt", { header: t("kontakte.col.createdAt"), size: 120, minSize: 100, cell: (c) => dateCell(c.getValue()) }),
   ], [col, t, nowMs, navigate]);
 
-  const { table, resetColumns } = useDataTable<KontakteRow>({
+  const { table, resetColumns, search, setSearch } = useDataTable<KontakteRow>({
     data: rows, columns, getRowId: (r) => r.id, persistKey: PREF_KEY, userId, organizationId,
     rowSelection, onRowSelectionChange: setRowSelection, initialColumnVisibility: SET_B_HIDDEN,
+    searchAccessor: (r) => buildSearchText([r.name, r.email, r.jobTitle, r.company, r.phoneSearch]),
   });
 
   // ── Derived ────────────────────────────────────────────────────────────────────
   const total = rows.length;
+  // Such+Filter-gefilterte Menge (für Bulk „alle auswählen" — nie unsichtbare Zeilen mitnehmen).
+  const filteredRows = table.getFilteredRowModel().rows;
+  const filteredCount = filteredRows.length;
   const selectedIds = Object.keys(rowSelection).filter((id) => rowSelection[id]);
   const selectedCount = selectedIds.length;
   const pageRowCount = table.getRowModel().rows.length;
@@ -312,10 +317,11 @@ export default function ScreenKontakte() {
     );
   };
 
+  const searchActive = search.trim().length > 0;
   const emptyState = (
     <EmptyState icon={<Users className="w-6 h-6" />}
-      title={listActive ? t("kontakte.lists.emptyTitle") : hasFilter ? t("kontakte.noHits") : t("kontakte.emptyTitle")}
-      description={listActive ? t("kontakte.lists.emptyDesc") : hasFilter ? t("kontakte.noHitsDesc") : t("kontakte.emptyDesc")} />
+      title={searchActive || hasFilter ? t("kontakte.noHits") : listActive ? t("kontakte.lists.emptyTitle") : t("kontakte.emptyTitle")}
+      description={searchActive || hasFilter ? t("kontakte.noHitsDesc") : listActive ? t("kontakte.lists.emptyDesc") : t("kontakte.emptyDesc")} />
   );
 
   return (
@@ -416,6 +422,7 @@ export default function ScreenKontakte() {
             )}
           </>
         )}
+        <div className="ml-auto"><TableSearch value={search} onChange={setSearch} placeholder={t("table.search")} /></div>
       </div>
 
       {/* Bulk-Bar (Gmail-Muster) */}
@@ -423,12 +430,12 @@ export default function ScreenKontakte() {
         <div className="flex items-center justify-between px-4 py-2.5 mb-3 rounded-[10px] bg-[var(--signal-teal-bg)] border border-[var(--sherloq-primary)]/20">
           <div className="flex items-center gap-3 text-[13px] text-text-body">
             <span className="font-bold">{t("kontakte.bulk.selected", { count: selectedCount })}</span>
-            {pageAllSelected && selectedCount < total && (
-              <button onClick={() => setRowSelection(Object.fromEntries(rows.map((r) => [r.id, true])))} className="text-[var(--sherloq-primary)] font-semibold hover:underline cursor-pointer">
-                {hasFilter ? t("kontakte.bulk.selectAllFilter", { count: total }) : t("kontakte.bulk.selectAllAll", { count: total })}
+            {pageAllSelected && selectedCount < filteredCount && (
+              <button onClick={() => setRowSelection(Object.fromEntries(filteredRows.map((r) => [r.id, true])))} className="text-[var(--sherloq-primary)] font-semibold hover:underline cursor-pointer">
+                {hasFilter || searchActive ? t("kontakte.bulk.selectAllFilter", { count: filteredCount }) : t("kontakte.bulk.selectAllAll", { count: filteredCount })}
               </button>
             )}
-            {selectedCount === total && total > pageRowCount && <button onClick={clearSelection} className="text-[var(--sherloq-primary)] font-semibold hover:underline cursor-pointer">{t("kontakte.bulk.clear")}</button>}
+            {selectedCount === filteredCount && filteredCount > pageRowCount && <button onClick={clearSelection} className="text-[var(--sherloq-primary)] font-semibold hover:underline cursor-pointer">{t("kontakte.bulk.clear")}</button>}
           </div>
           <div className="flex items-center gap-2">
             {listActive && selectedList?.type === "static" && (
