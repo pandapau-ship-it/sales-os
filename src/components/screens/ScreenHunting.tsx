@@ -37,7 +37,8 @@ import type { StagnatedPerson } from '@/components';
 import type { SignalActionData } from '@/components';
 
 import Avatar from '@/components/shared/Avatar';
-import { signalToCardProps, signalToActionData, contactToColdPerson, contactToProfile, taskToDueCard, dealToNewPipelineRow, dealToStagnatedCard, contactToNoTaskCard, calculatePriorityScore, newPipelineInPeriod, isTerminalStage, stagnationFlag, daysSinceIso, WON_STAGE_SLUG, LOST_STAGE_SLUG, type PipelineRow, type NewPipelinePeriod, type StagnatedCardItem, type NoTaskCardItem } from '@/lib/hunterMappers';
+import { signalToCardProps, signalToActionData, contactToColdPerson, contactToProfile, taskToDueCard, dealToNewPipelineRow, dealToStagnatedCard, contactToNoTaskCard, calculatePriorityScore, newPipelineInPeriod, isTerminalStage, stagnationFlag, daysSinceIso, WON_STAGE_SLUG, LOST_STAGE_SLUG, type PipelineRow, type NewPipelinePeriod, type StagnatedCardItem, type NoTaskCardItem, type ColdPersonData } from '@/lib/hunterMappers';
+import type { ContactRow, DealRow, SignalRow, DueTaskRow } from '@/types/rows';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { updateDealStage, updateDealWon, updateDealLost } from '@/lib/db';
 import { useCurrentOrg } from '@/hooks/useCurrentOrg';
@@ -57,26 +58,26 @@ interface ScreenHuntingProps {
   dealsData?: PipelineRow[];
   // Roh-Deals (vor dealToPipelineRow) — tragen stagnation_days + tasks(*)-Embed; nötig für
   // die Pipeline-Task-Karten (Stagniert / Keine Task), die diese Felder ableiten.
-  rawDealsData?: Record<string, unknown>[];
+  rawDealsData?: DealRow[];
   dealsLoading?: boolean;
   dealsError?: boolean;
   // Slice B: Pipeline-Stages (settings.pipeline_stages) für die Kanban-Spalten.
   pipelineStages?: PipelineStage[];
   // S-2: echte Signals (org-gescoped, hunter-routed) für den Signals-Tab.
-  signalsData?: Record<string, unknown>[];
+  signalsData?: SignalRow[];
   signalsLoading?: boolean;
   signalsError?: boolean;
   // Follow-ups (T2): fällige Tasks (completed_at IS NULL AND due_at <= now()),
   // inkl. Kontakt-Embed (+ company + deals für contactActiveStage).
-  dueTasksData?: Record<string, unknown>[];
+  dueTasksData?: DueTaskRow[];
   // Dringlichkeits-Score-Gewichte (Übersicht-Tab) aus settings.thresholds; undefined → Default-Gewichte.
   priorityWeights?: Record<string, number>;
   // [D51] „Neu in Pipeline"-Fenster aus settings.thresholds.timing_windows (new_pipeline_short_days/_long_days).
   newPipelineWindows?: Record<string, number>;
   // Neu-in-Pipeline: frisch angelegte Deals (inkl. contact + company + deals-Embed).
-  newInPipelineData?: Record<string, unknown>[];
+  newInPipelineData?: DealRow[];
   // Cold/Inaktiv: Kontakte mit heat_status 'kalt'/'tot' (für den Reaktivierungs-Opener).
-  coldContactsData?: Record<string, unknown>[];
+  coldContactsData?: ContactRow[];
   onSelectLead: (lead: Lead) => void;
   // T4a: Task erledigt markieren (Follow-ups). org-Scoping/Mutation liegt im Container.
   onCompleteTask?: (taskId: string) => void;
@@ -192,20 +193,20 @@ export default function ScreenHunting({
   // Pipeline-Task-Karten aus den ROH-Deals ableiten (stagnation_days + tasks(*) sind nur dort).
   // Schwellenwert je Stage aus settings (pipeline_stages.stagnation_days) — nie hardcodiert; Fallback 7.
   const stagnationBySlug = Object.fromEntries((pipelineStages ?? []).map((s) => [s.slug, s.stagnation_days]));
-  const rawDeals = (rawDealsData ?? []) as Record<string, any>[];
+  const rawDeals = rawDealsData ?? [];
   const stagnatedItems: StagnatedCardItem[] = rawDeals
-    .filter((d) => !isTerminalStage(d.stage))
-    .filter((d) => (d.stagnation_days ?? 0) >= (stagnationBySlug[d.stage] ?? 7))
+    .filter((d) => !isTerminalStage(d.stage ?? ""))
+    .filter((d) => (d.stagnation_days ?? 0) >= (stagnationBySlug[d.stage ?? ""] ?? 7))
     .sort((a, b) => (b.stagnation_days ?? 0) - (a.stagnation_days ?? 0))
     .map((d) => dealToStagnatedCard(d, stageNameBySlug));
   // „Keine Task" KONTAKT-basiert: aktive (nicht-terminale) Deals nach Kontakt gruppieren;
   // ein Kontakt erscheint, wenn KEINER seiner Deals eine offene Task hat (completed_at &
   // deleted_at NULL). Eine Kachel pro Kontakt mit allen seinen Deals. Deals ohne Kontakt → übersprungen.
-  const hasOpenTask = (d: Record<string, any>) =>
-    (((d.tasks as Record<string, any>[]) ?? []).some((tk) => tk.completed_at == null && tk.deleted_at == null));
-  const noTaskByContact = new Map<string, Record<string, any>[]>();
+  const hasOpenTask = (d: DealRow) =>
+    ((d.tasks ?? []).some((tk) => tk.completed_at == null && tk.deleted_at == null));
+  const noTaskByContact = new Map<string, DealRow[]>();
   for (const d of rawDeals) {
-    if (isTerminalStage(d.stage)) continue;
+    if (isTerminalStage(d.stage ?? "")) continue;
     const cid = d.contact?.id as string | undefined;
     if (!cid) continue;
     if (!noTaskByContact.has(cid)) noTaskByContact.set(cid, []);
@@ -213,22 +214,22 @@ export default function ScreenHunting({
   }
   const noTaskItems: NoTaskCardItem[] = [...noTaskByContact.values()]
     .filter((deals) => deals.every((d) => !hasOpenTask(d))) // kein einziger Deal des Kontakts hat eine offene Task
-    .map((deals) => contactToNoTaskCard(deals[0].contact, deals, stageNameBySlug));
+    .map((deals) => contactToNoTaskCard(deals[0].contact as ContactRow, deals, stageNameBySlug));
   // Übersicht — Dringlichkeits-Score: pro Kontakt (mit ≥1 aktivem Deal) aus aktiven Deals +
   // seinen Signalen. Gewichte aus settings (priorityWeights) — Fallback Default im Mapper.
   // Signal-getrieben: Score 0 → nicht anzeigen. Sortierung: Score → ARR → ICP → ältestes Deal-Datum.
-  const signalsByContact = new Map<string, Record<string, any>[]>();
-  for (const s of (signalsData ?? []) as Record<string, any>[]) {
+  const signalsByContact = new Map<string, SignalRow[]>();
+  for (const s of signalsData ?? []) {
     const cid = (s.contact?.id ?? s.contact_id) as string | undefined;
     if (!cid) continue;
     if (!signalsByContact.has(cid)) signalsByContact.set(cid, []);
     signalsByContact.get(cid)!.push(s);
   }
-  const oldestDealMs = (deals: Record<string, any>[]) =>
+  const oldestDealMs = (deals: DealRow[]) =>
     Math.min(...deals.map((d) => new Date(d.created_at ?? 0).getTime() || Infinity));
   const priorityItems = [...noTaskByContact.values()]
     .map((deals) => {
-      const contact = deals[0].contact as Record<string, any>;
+      const contact = deals[0].contact as ContactRow;
       const res = calculatePriorityScore(contact, deals, signalsByContact.get(contact.id) ?? [], priorityWeights, stagnationBySlug);
       return { contact, deals, oldest: oldestDealMs(deals), ...res };
     })
@@ -342,7 +343,7 @@ export default function ScreenHunting({
   const [taskNote] = useState('Hallo Sarah,\n\nich habe gerade gesehen, dass CloudSphere stark skaliert. Da wir viele BDR-Teams im selben Bereich unterstützen, dachte ich, ein kurzer Connect macht Sinn.\n\nViele Grüße');
 
   const [selectedSignal, setSelectedSignal] = useState<SignalActionData | null>(null);
-  const [selectedColdPerson, setSelectedColdPerson] = useState<any | null>(null);
+  const [selectedColdPerson, setSelectedColdPerson] = useState<ColdPersonData | null>(null);
   const [selectedStagnated, setSelectedStagnated] = useState<StagnatedPerson | null>(null);
   // Stagniert-CTA „Next Step" → Action-Panel (KI-Empfehlung „Folgt"), NICHT das Task-Formular.
   const openStagnated = (x: StagnatedCardItem) => setSelectedStagnated({
@@ -442,7 +443,7 @@ export default function ScreenHunting({
           return (
             <button
               key={item.id}
-              onClick={() => setSubTab(item.id as any)}
+              onClick={() => setSubTab(item.id as Parameters<typeof setSubTab>[0])}
               style={isActive ? { background: NAV.activeBg } : undefined}
               className={`${NAV.subTab} ${NAV.subTabRadius} ${isActive ? NAV.active : NAV.inactive}`}
             >
@@ -518,7 +519,7 @@ export default function ScreenHunting({
                   {top5ScoreItems.map((it) => {
                     const cid = it.contact.id as string;
                     if (it.signals.includes('stagnated')) {
-                      const dealRaw = it.deals.find((d) => (d.stagnation_days ?? 0) >= (stagnationBySlug[d.stage] ?? 7)) ?? it.deals[0];
+                      const dealRaw = it.deals.find((d) => (d.stagnation_days ?? 0) >= (stagnationBySlug[d.stage ?? ""] ?? 7)) ?? it.deals[0];
                       return (
                         <PipelineStagniertCard
                           key={`s-${cid}`}
@@ -1171,6 +1172,7 @@ export default function ScreenHunting({
         <TaskDrawer 
           person={{
             person: {
+              id: "",
               name: taskLead.name,
               company: taskLead.company,
               initials: taskLead.initials,

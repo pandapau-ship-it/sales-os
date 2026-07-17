@@ -27,6 +27,7 @@ import TopBar from "@/components/layout/TopBar";
 import Login from "@/components/auth/Login";
 import AuthCallback from "@/components/auth/AuthCallback";
 import TeamSettings from "@/components/features/settings/TeamSettings";
+import ScreenKontakte from "@/components/screens/ScreenKontakte";
 import { MfaBanner } from "@/components";
 import { useCurrentOrg } from "@/hooks/useCurrentOrg";
 import CommandPalette from "@/components/shared/CommandPalette";
@@ -112,7 +113,7 @@ export default function App() {
           <Route path="ai-sdr" element={<ComingSoon nameKey="nav.aisdr" />} />
           <Route path="hunter" element={<HunterReference />} />
           <Route path="farmer" element={<FarmerReference />} />
-          <Route path="kontakte" element={<ComingSoon nameKey="nav.kontakte" />} />
+          <Route path="kontakte" element={<ScreenKontakte />} />
           <Route path="companies" element={<ComingSoon nameKey="nav.companies" />} />
           <Route path="settings" element={<TeamSettings />} />
         </Route>

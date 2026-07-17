@@ -4,6 +4,7 @@
  * (KI-Kurzakte · Deal Details · Aktionen · Communication Chain).
  * Kanonischer Stand aus screens/ScreenHunting.tsx. Prop-driven (State/Handler beim Aufrufer).
  */
+import type { LeadRow } from '@/lib/hunterMappers';
 import type { MouseEvent } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -22,7 +23,7 @@ import ExpandedCardContent from './ExpandedCardContent';
 export default function LeadListRow({
   lead, isExpanded, selected, onToggleExpand, onToggleSelect, onOpenInfo, onAction,
 }: {
-  lead: any;
+  lead: LeadRow;
   isExpanded: boolean;
   selected: boolean;
   onToggleExpand: () => void;

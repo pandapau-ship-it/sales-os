@@ -19,13 +19,13 @@ export function ScreenPlaceholder({ title, description }: ScreenPlaceholderProps
       </div>
 
       <div className="space-y-1">
-        <p className="text-base font-semibold tracking-tight" style={{ color: 'var(--sherloq-text)' }}>{title}</p>
-        <p className="text-sm" style={{ color: 'var(--sherloq-text-muted)' }}>{description}</p>
+        <p className="text-base font-semibold tracking-tight" style={{ color: 'var(--text-primary)' }}>{title}</p>
+        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{description}</p>
       </div>
 
       <span
         className="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium"
-        style={{ backgroundColor: 'var(--sherloq-primary-light)', color: 'var(--sherloq-primary)' }}
+        style={{ backgroundColor: 'var(--signal-teal-bg)', color: 'var(--sherloq-primary)' }}
       >
         Kommt bald
       </span>

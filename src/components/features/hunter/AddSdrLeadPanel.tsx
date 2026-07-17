@@ -136,7 +136,7 @@ export default function AddSdrLeadPanel({ open, onClose, onAdd }: AddSdrLeadPane
             {/* E-Mail ODER LinkedIn — eines genügt */}
             <div>
               <label className="text-[11px] text-text-muted font-semibold block mb-1">
-                E-Mail oder LinkedIn<span className="text-[var(--signal-danger-text)]"> *</span>
+                E-Mail oder LinkedIn<span className="text-[var(--signal-urgent-text)]"> *</span>
                 <span className="font-normal text-text-muted"> — eines genügt</span>
               </label>
               <div className="flex flex-col gap-2">

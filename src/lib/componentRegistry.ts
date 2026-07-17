@@ -55,6 +55,13 @@ export const COMPONENT_REGISTRY = {
     description: 'Marketing: LinkedIn Post-Ideen, Kampagnen, Content-Planung',
   },
 
+  screen_kontakte: {
+    component: 'ScreenKontakte',
+    path: 'components/screens/ScreenKontakte',
+    filter: null,
+    description: 'Kontakte: zentrale Personen-Datenbank als sortier-/filterbare Tabelle (K-3)',
+  },
+
   screen_system: {
     component: 'ScreenSherloqSystem',
     path: 'components/screens/ScreenSherloqSystem',

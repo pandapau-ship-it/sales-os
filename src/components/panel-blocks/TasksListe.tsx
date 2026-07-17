@@ -5,6 +5,7 @@
  * Read-Only-Details; fehlende Felder werden ausgeblendet. „Neue Task" → TaskFormular →
  * `onCreate` (createTask). „Erledigt" → `onComplete` (completeTask). Tokens-only.
  */
+import type { TaskRow } from '@/types/rows';
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -69,7 +70,7 @@ function dayDiff(iso: string): number {
 }
 
 /** DB-Task-Zeile → TaskItem. Gemeinsame Werte (Kontaktname) kommen aus dem Panel-Kontext. */
-function rowToItem(row: Record<string, any>, contactName: string): TaskItem {
+function rowToItem(row: TaskRow & { deal?: { name?: string | null } | null; assignee?: { full_name?: string | null } | null }, contactName: string): TaskItem {
   const dueIso: string | null = row.due_at ?? null;
   const completed = row.completed_at != null;
   let dueLabel = "";
@@ -89,7 +90,7 @@ function rowToItem(row: Record<string, any>, contactName: string): TaskItem {
     dueTime: dueIso ? String(dueIso).slice(11, 16) : "",
     overdue,
     completed,
-    priority: (["low", "medium", "high", "urgent"].includes(row.priority) ? row.priority : "medium") as Priority,
+    priority: (["low", "medium", "high", "urgent"].includes(row.priority ?? "") ? row.priority : "medium") as Priority,
     deal: row.deal?.name ?? "",
     dealValue: row.deal_id ?? "none",
     contact: contactName,
@@ -123,7 +124,7 @@ export default function TasksListe({
   /** Deeplink-Highlight ([D]: „Ansehen"): Task aufklappen + kurz aufleuchten (useDeeplinkHighlight). */
   highlightId?: string | null;
   /** Echte DB-Task-Zeilen (P3). undefined → leer. */
-  taskRows?: Record<string, any>[];
+  taskRows?: TaskRow[];
   contactName?: string;
   dealOptions?: { value: string; label: string }[];
   /** Vorausgefüllter Deal (z.B. aus Keine-Task-Kachel) — nur beim Neu-Anlegen, dann readonly. */

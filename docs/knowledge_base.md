@@ -421,3 +421,11 @@
 - **value:** Risiko- und Wachstumskunden werden automatisch erkannt und priorisiert — keine manuellen Listen, Retention schlägt Expansion bei gefährdeten Kunden.
 - **module:** farmer
 - *(Migration 053, 2026-06-30)*
+
+### Kontakte-Screen (zentrale Personen-Datenbank)
+- **feature:** Kontakte-Screen
+- **what:** Eine durchsuchbare, sortier- und filterbare Tabelle aller Personen im System — unabhängig vom Status. Über der Liste eine Lagebild-Zeile mit den wichtigsten Bestandszahlen (z. B. „Ohne Kontaktweg", „Opt-outs") — jede Zahl ist ein Klick-Filter, und sie erscheint nur, wenn es dazu wirklich etwas gibt. Schnellfilter als Status-Pills mit echten Anzahlen plus ein Filter-Menü für Quelle und ICP; Mehrfachauswahl über alle Treffer im aktuellen Filter (nicht nur die sichtbare Seite). Spalten frei ein-/ausblenden, per Drag umsortieren und in der Breite ziehen — die Ansicht wird pro Nutzer gemerkt. Neue Kontakte legt man in einem seitlichen Panel direkt an — Pflichtprüfung (Name oder LinkedIn) und Live-Duplikatswarnung inklusive. Jede Zeile zeigt, wo der Kontakt gerade bearbeitet wird, und springt per Klick dorthin — aber nur zu Bereichen, die es schon gibt (nichts führt ins Leere).
+- **how:** Sidebar → Kontakte; oben über Lagebild-Zahlen oder Status-Pills filtern, Spalten über das Zahnrad anpassen (verschieben/Breite ziehen), „+ Kontakt" zum Anlegen, Pfeil öffnet die Detailansicht.
+- **value:** Eine einzige verlässliche Personenliste statt verstreuter Listen — auf einen Blick sehen, was ansteht, gezielt filtern, sauber anlegen ohne Doubletten, die Tabelle nach eigenem Arbeitsstil einrichten, und mit einem Klick genau dort weiterarbeiten, wo der Kontakt hingehört.
+- **module:** core_crm
+- *(K-3 inkl. QA-Runden 1–3, 2026-07-17)*

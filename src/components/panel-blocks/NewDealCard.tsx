@@ -37,7 +37,7 @@ export default function NewDealCard({
           <Briefcase className="w-4 h-4 text-[var(--sherloq-primary)]" />
           <span className="text-[12px] font-bold text-text-primary">Neuer Deal</span>
         </div>
-        <button type="button" onClick={onRemove} className="text-[11px] font-semibold text-text-muted hover:text-[var(--signal-danger-text)] transition-colors cursor-pointer">
+        <button type="button" onClick={onRemove} className="text-[11px] font-semibold text-text-muted hover:text-[var(--signal-urgent-text)] transition-colors cursor-pointer">
           entfernen
         </button>
       </div>

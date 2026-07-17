@@ -1,3 +1,5 @@
+import type { ContactRow, DealRow, CompanyRow } from '@/types/rows';
+import type { Lead, Customer, Person } from '@/types';
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
@@ -55,7 +57,7 @@ const DEFAULT_DETAILS = {
 // DetailField · DetailSection · StatusBadge · DetailPhoneList → ausgelagert nach
 // src/components/panel-blocks/ (siehe Imports). Hier nur noch deren Komposition.
 
-export default function HunterSidepanel({ person: personProp, onClose, onExit, variant = 'panel', initialAction = null, initialTab = null, initialDealId = null, initialDealEditId = null, initialFocusField = null, initialTaskId = null }: { person: any; onClose: () => void; onExit?: () => void; variant?: 'panel' | 'full'; initialAction?: 'mail' | 'task' | 'chat' | null; initialTab?: 'overview' | 'deals' | 'tasks' | 'activity' | 'notes' | null; initialDealId?: string | null; initialDealEditId?: string | null; initialFocusField?: string | null; initialTaskId?: string | null }) {
+export default function HunterSidepanel({ person: personProp, onClose, onExit, variant = 'panel', initialAction = null, initialTab = null, initialDealId = null, initialDealEditId = null, initialFocusField = null, initialTaskId = null }: { person: Lead | Customer | Person | null; onClose: () => void; onExit?: () => void; variant?: 'panel' | 'full'; initialAction?: 'mail' | 'task' | 'chat' | null; initialTab?: 'overview' | 'deals' | 'tasks' | 'activity' | 'notes' | null; initialDealId?: string | null; initialDealEditId?: string | null; initialFocusField?: string | null; initialTaskId?: string | null }) {
   const { organizationId } = useCurrentOrg();
   const { user } = useAuth(); // [D21]: created_by/owner_id der Writes = eingeloggter User (Fallback NULL)
   const [activeTab, setActiveTab] = useState(variant === 'full' ? 'details' : 'overview');
@@ -79,7 +81,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
   // Open-State von der Prop; Inhalt aus gehaltener Kopie (wie CustomerDrawer).
   // Angepasst während des Renders (React: „Adjusting state when a prop changes") — per
   // Effect käme die Kopie einen Frame zu spät und das Panel flackerte beim Öffnen.
-  const [display, setDisplay] = useState<any>(personProp);
+  const [display, setDisplay] = useState<Lead | Customer | Person | null>(personProp);
   const [prevOpenKey, setPrevOpenKey] = useState({ personProp, initialAction, initialTab });
   if (
     prevOpenKey.personProp !== personProp ||
@@ -137,8 +139,8 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
     setContact({ email: profile.email ?? '', linkedin: profile.linkedinUrl ?? '', web: profile.website ?? '' });
     // Details-Tab aus echten DB-Werten seeden (NULL → leer, kein Fake-Default). Klassifizierung
     // (Lead Status/ICP/Owner/Tags) bleibt vorerst lokal (außerhalb dieses Slices).
-    const c = contactRow as Record<string, any>;
-    const co = (c.company ?? {}) as Record<string, any>;
+    const c = contactRow as ContactRow;
+    const co = (c.company ?? {}) as Partial<CompanyRow>;
     setDetails((d) => ({
       ...d,
       anrede: c.salutation ?? '', sprache: c.language ?? '',
@@ -148,7 +150,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
       twitter: c.twitter_handle ?? '',
       firma: co.name ?? '', branche: co.industry ?? '', groesse: co.size_range ?? '',
       domain: co.domain ?? '', firmaStadt: co.city ?? '', firmaLand: co.country ?? '',
-      leadStatus: contactStatusLabel(c.contact_status), // echtes contacts.contact_status → Label
+      leadStatus: contactStatusLabel(c.contact_status ?? undefined), // echtes contacts.contact_status → Label
     }));
   }
 
@@ -166,7 +168,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
     queryClient.invalidateQueries({ queryKey: ['deals', organizationId] }); // Pipeline-Task-Karten (Keine-Task/Stagniert) neu ableiten
   };
   // Echte Deals des Kontakts als Auswahl im „Neue Task"-Formular (Deal optional).
-  const dealOptions = ((contactRow?.deals as Record<string, any>[] | undefined) ?? [])
+  const dealOptions = ((contactRow?.deals as DealRow[] | undefined) ?? [])
     .filter((d) => d?.id && d?.name)
     .map((d) => ({ value: d.id as string, label: d.name as string }));
   const CH_TO_DB: Record<string, string> = { mail: 'email', linkedin: 'linkedin', phone: 'phone', calendar: 'calendar', other: 'other' };

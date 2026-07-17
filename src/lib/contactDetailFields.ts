@@ -1,3 +1,4 @@
+import type { ContactRow, CompanyRow } from "@/types/rows";
 /**
  * contactDetailFields — Single Source für den Details-Tab (Person + Firma), geteilt von
  * HunterSidepanel UND FarmerSidepanel (Einheitsgebot — keine Dublette der Optionslisten/Spalten-
@@ -42,9 +43,9 @@ export type ContactDetailsState = {
 /** Seed der editierbaren Person-/Firmen-Stammdaten aus dem echten contactRow (getContactDetail).
  *  NULL → '' (kein Fake-Default). Klassifizierung (Lead Status/Subscription/ICP) wird vom Aufrufer
  *  ergänzt (Hunter = Lead Status, Farmer = Subscription — bewusst getrennt). */
-export function seedContactDetails(contactRow: Record<string, any> | null): ContactDetailsState {
-  const c = (contactRow ?? {}) as Record<string, any>;
-  const co = (c.company ?? {}) as Record<string, any>;
+export function seedContactDetails(contactRow: ContactRow | null): ContactDetailsState {
+  const c = (contactRow ?? {}) as ContactRow;
+  const co = (c.company ?? {}) as Partial<CompanyRow>;
   return {
     anrede: c.salutation ?? '', sprache: c.language ?? '',
     vorname: c.first_name ?? '', nachname: c.last_name ?? '',

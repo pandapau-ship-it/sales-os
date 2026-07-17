@@ -33,6 +33,7 @@ import {
 } from "@/lib/db";
 import { useCurrentOrg } from "@/hooks/useCurrentOrg";
 import { contactRowToLead, customerRowToView, dealToPipelineRow, taskToDueCard, signalToCardProps } from "@/lib/hunterMappers";
+import type { ContactRow, DealRow, SignalRow } from '@/types/rows';
 import { useTranslation } from "react-i18next";
 import type {
   Lead,
@@ -250,7 +251,7 @@ export function HunterReference() {
   }
   const pipelineStages = (settingsQuery.data.pipeline_stages as PipelineStage[] | undefined) ?? [];
   const stageNameBySlug = Object.fromEntries(pipelineStages.map((stage) => [stage.slug, stage.name]));
-  const dealsData = dealsQuery.data?.map((deal) => dealToPipelineRow(deal, stageNameBySlug));
+  const dealsData = dealsQuery.data?.map((deal) => dealToPipelineRow(deal as unknown as DealRow, stageNameBySlug));
   const settingsThresholds = settingsQuery.data.thresholds as Record<string, unknown> | undefined;
   // Hunter-Priority-Gewichte (045) — Org-Werte; Code-Default (PRIORITY_WEIGHTS_DEFAULT) nur als Per-Key-Fallback im Mapper.
   const priorityWeights = (settingsThresholds?.hunter_priority_weights as Record<string, number> | undefined) ?? undefined;
@@ -265,18 +266,18 @@ export function HunterReference() {
         leadsLoading={leadsQuery.isLoading}
         leadsError={leadsQuery.isError}
         dealsData={dealsData}
-        rawDealsData={dealsQuery.data as unknown as Record<string, unknown>[] | undefined}
+        rawDealsData={dealsQuery.data as unknown as DealRow[] | undefined}
         dealsLoading={dealsQuery.isLoading}
         dealsError={dealsQuery.isError}
         pipelineStages={pipelineStages}
-        signalsData={signalsQuery.data as unknown as Record<string, unknown>[] | undefined}
+        signalsData={signalsQuery.data as unknown as SignalRow[] | undefined}
         signalsLoading={signalsQuery.isLoading}
         signalsError={signalsQuery.isError}
         dueTasksData={dueTasksQuery.data}
         priorityWeights={priorityWeights}
         newPipelineWindows={timingWindows}
         newInPipelineData={newInPipelineQuery.data}
-        coldContactsData={coldQuery.data as unknown as Record<string, unknown>[] | undefined}
+        coldContactsData={coldQuery.data as unknown as ContactRow[] | undefined}
         onCompleteTask={(taskId) => completeTaskMutation.mutate(taskId)}
         onSelectLead={s.selectPerson}
         onUpdateLeadStage={s.updateLeadStage}
@@ -321,7 +322,7 @@ export function FarmerReference() {
     queryKey: ["farmerSignals", organizationId],
     queryFn: () => getSignals(organizationId, { routedTo: "farmer", processed: false }),
   });
-  const signalCardsData = signalsQuery.data?.map((row) => signalToCardProps(row as unknown as Record<string, unknown>, t)) ?? [];
+  const signalCardsData = signalsQuery.data?.map((row) => signalToCardProps(row as unknown as SignalRow, t)) ?? [];
   // [D51] Drei-Zustands-Handling der settings (Org-Werte gewinnen IMMER; Default nie heimlich):
   //  - Laden → Screen wartet (kein Rechnen mit Defaults).
   //  - data===null nach Load (Fehler/kein Client/kein settings-Row) → SICHTBARER Hinweis statt stillem 61/70.

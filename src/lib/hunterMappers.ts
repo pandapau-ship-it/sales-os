@@ -9,6 +9,7 @@
 
 import type { Lead, Customer, SherloqStatus, HeatStatus } from "@/types";
 import type { DealStage } from "@/types/hunter";
+import type { ContactRow, DealRow, DealRowBase, SignalRow, DueTaskRow, CommunicationRow, ContactPhoneRow, TaskRow } from "@/types/rows";
 import type { LucideIcon } from "lucide-react";
 import { signalMetaFor } from "@/lib/constants";
 
@@ -65,7 +66,7 @@ export type ContactProfile = {
 
 /* single-source:allow-start — DIE zentrale Resolver-Region: HIER (und nur hier) ist
    der Roh-Zugriff auf gemeinsame Kontaktwerte erlaubt (Single-Source-Audit). */
-export function contactToProfile(c: Record<string, any> | null | undefined): ContactProfile {
+export function contactToProfile(c: ContactRow | null | undefined): ContactProfile {
   const name = c
     ? [c.first_name, c.last_name].filter(Boolean).join(" ") || c.email || "Unbekannt"
     : "Unbekannt";
@@ -78,7 +79,7 @@ export function contactToProfile(c: Record<string, any> | null | undefined): Con
   // Telefonnummern aus contact_phones (is_primary → favorite, label → type). Favorit zuerst.
   // Keine Nummern → leeres Array (Honesty). PH4: Legacy contacts.phone entfernt — einzige Quelle.
   const phonesRaw = Array.isArray(c?.contact_phones) ? c!.contact_phones : [];
-  let phones = phonesRaw.map((p: any) => ({
+  let phones = phonesRaw.map((p: Partial<ContactPhoneRow>) => ({
     id: String(p.id),
     type: p.label || "Weitere",
     number: p.number ?? "",
@@ -106,10 +107,10 @@ export function contactToProfile(c: Record<string, any> | null | undefined): Con
 // Lead + Leads-Zeilen-spezifische Anzeigefelder (LeadListRow liest `lead: any`).
 export type LeadRow = Lead & {
   contactStatusLabel?: string; // contact_status → Lifecycle-Label; undefined → kein Badge
-  lastContactedAt: string | null; // ISO oder null → Zeit-Spalte rendert nichts
+  lastContactedAt?: string | null; // ISO oder null → Zeit-Spalte rendert nichts (optional: Mock-Lead ohne Feld)
 };
 
-export function contactRowToLead(row: Record<string, any>): LeadRow {
+export function contactRowToLead(row: ContactRow): LeadRow {
   const p = contactToProfile(row); // zentrale Auflösung (Identität/Status/Heat/ICP)
 
   return {
@@ -151,7 +152,7 @@ function subStatusToSherloq(s: string | null | undefined): SherloqStatus {
  * Mock-only Felder (kurzakte/timeline/profilesAdded) bleiben leer — im Kunden-Tab nicht angezeigt.
  */
 export function customerRowToView(
-  row: Record<string, any>,
+  row: ContactRow,
   t: (key: string, opts?: Record<string, unknown>) => string,
 ): Customer {
   const p = contactToProfile(row);
@@ -186,8 +187,8 @@ export function customerRowToView(
     healthScore: typeof row.health_score === "number" ? row.health_score : undefined,
     healthStatus: row.health_status ?? undefined,
     mrrMonthly: typeof sub.mrr_monthly === "number" ? sub.mrr_monthly : undefined, // companies.mrr_monthly (Cent); NULL → undefined
-    scoreDrivers: Array.isArray(row.score_drivers) ? row.score_drivers : undefined,   // Churn-Treiber (Banner)
-    upsellDrivers: Array.isArray(row.upsell_drivers) ? row.upsell_drivers : undefined, // Upsell-Treiber (Banner)
+    scoreDrivers: Array.isArray(row.score_drivers) ? (row.score_drivers as { signal: string; points: number; source: string }[]) : undefined,   // Churn-Treiber (Banner)
+    upsellDrivers: Array.isArray(row.upsell_drivers) ? (row.upsell_drivers as { signal: string; points: number; source: string }[]) : undefined, // Upsell-Treiber (Banner)
   };
 }
 
@@ -238,7 +239,7 @@ export function stagnationFlag(
 }
 
 export function dealToView(
-  deal: Record<string, any>,
+  deal: DealRow,
   stageNameBySlug: Record<string, string> = {},
   stageProbBySlug: Record<string, number> = {},
 ): DealView {
@@ -250,7 +251,7 @@ export function dealToView(
   // Probability ABGELEITET aus der Stage (Admin-Setting settings.pipeline_stages), nicht
   // aus deals.probability — analog MRR/ARR (computed, nicht gespeichert). Stage ohne
   // Probability in der Map → undefined (Honesty: Element ausgeblendet).
-  const prob = stageProbBySlug[deal.stage];
+  const prob = stageProbBySlug[deal.stage ?? ""];
   const probability = typeof prob === "number" ? prob : undefined;
   return {
     id: deal.id,
@@ -259,7 +260,7 @@ export function dealToView(
     valueEur,
     currency: deal.currency ?? "EUR",
     stageSlug: deal.stage ?? "",
-    stageLabel: stageNameBySlug[deal.stage] ?? deal.stage ?? "",
+    stageLabel: stageNameBySlug[deal.stage ?? ""] ?? deal.stage ?? "",
     owner: deal.owner?.full_name || undefined,
     ownerId: deal.owner_id ?? undefined,
     probability,
@@ -300,7 +301,7 @@ export type PipelineRow = {
 };
 
 export function dealToPipelineRow(
-  deal: Record<string, any>,
+  deal: DealRow,
   stageNameBySlug: Record<string, string>,
 ): PipelineRow {
   const p = contactToProfile(deal.contact); // zentrale Auflösung (Kontakt-Werte)
@@ -331,11 +332,11 @@ export function dealToPipelineRow(
  * Unbekannter/fehlender Typ → Fallback `custom`. Texte: i18n `hunter.signals.types.*`.
  */
 export function resolveSignalText(
-  signal: { signal_type?: string | null; signal_data?: { detail?: string } | null },
+  signal: { signal_type?: string | null; signal_data?: unknown },
   t: (key: string, opts?: Record<string, unknown>) => string,
 ): string {
   const type = signal.signal_type || "custom";
-  const topic = signal.signal_data?.detail ?? "";
+  const topic = (signal.signal_data as { detail?: string } | null)?.detail ?? "";
   const key = `hunter.signals.types.${type}`;
   const text = t(key, { topic });
   // i18next gibt bei fehlendem Key den Key selbst zurück → auf `custom` zurückfallen.
@@ -371,7 +372,7 @@ export function daysSinceIso(
  * NULL oder „vor 0 Tagen" → '' (Element bleibt unsichtbar, Honesty). Gilt für ALLE Hunter-Kacheln.
  */
 export function lastContactedLabel(
-  contact: Record<string, any> | null | undefined,
+  contact: ContactRow | null | undefined,
   t: (key: string, opts?: Record<string, unknown>) => string,
 ): string {
   const days = daysSinceIso(contact?.last_contacted_at);
@@ -406,7 +407,7 @@ export const TERMINAL_STAGE_SLUGS = [WON_STAGE_SLUG, LOST_STAGE_SLUG] as const s
 /** true, wenn der Slug eine Terminal-Stage (gewonnen/verloren) ist. */
 export const isTerminalStage = (slug: string): boolean =>
   (TERMINAL_STAGE_SLUGS as readonly string[]).includes(slug);
-const ms = (x: any) => new Date(x ?? 0).getTime();
+const ms = (x: string | number | null | undefined) => new Date(x ?? 0).getTime();
 
 /* single-source:allow-start — Stage-Resolver (zentrale Quelle der aktiven-Deal-Stage). */
 /**
@@ -415,11 +416,11 @@ const ms = (x: any) => new Date(x ?? 0).getTime();
  * zählt nie. Recency: updated_at, Tiebreaker stage_updated_at (Demo-Fall, wo updated_at
  * ~uniform), dann created_at. Keine/nur terminale Deals → null.
  */
-export function latestActiveDeal(
-  deals: Record<string, any>[] | null | undefined,
-): Record<string, any> | null {
+export function latestActiveDeal<D extends Partial<DealRowBase>>(
+  deals: D[] | null | undefined,
+): D | null {
   const open = (deals ?? []).filter(
-    (d) => !isTerminalStage(d.stage) && d.closed_at == null && d.deleted_at == null,
+    (d) => !isTerminalStage(d.stage ?? "") && d.closed_at == null && d.deleted_at == null,
   );
   if (!open.length) return null;
   return open
@@ -434,11 +435,11 @@ export function latestActiveDeal(
 
 /** Stage-Label des zuletzt aktiven Deals (aus settings.pipeline_stages). Kein aktiver Deal → undefined. */
 export function contactActiveStage(
-  contact: Record<string, any> | null | undefined,
+  contact: ContactRow | null | undefined,
   stageNameBySlug: Record<string, string>,
 ): string | undefined {
   const d = latestActiveDeal(contact?.deals);
-  return d ? stageNameBySlug[d.stage] ?? d.stage : undefined;
+  return d ? stageNameBySlug[d.stage ?? ""] ?? d.stage : undefined;
 }
 /* single-source:allow-end */
 
@@ -468,7 +469,7 @@ export type NewPipelineCardItem = {
 };
 
 export function dealToNewPipelineRow(
-  deal: Record<string, any>,
+  deal: DealRow,
   stageNameBySlug: Record<string, string> = {},
 ): NewPipelineCardItem {
   const p = contactToProfile(deal.contact); // zentrale Auflösung (Identität/Status/Heat/ICP)
@@ -511,7 +512,7 @@ export type DueTaskCardItem = {
 
 /** Fällige Task (inkl. contact+company+deals-Embed) → Karte. Identität/Heat/ICP zentral, Stage via active deal. */
 export function taskToDueCard(
-  task: Record<string, any>,
+  task: DueTaskRow,
   stageNameBySlug: Record<string, string> = {},
 ): DueTaskCardItem {
   const p = contactToProfile(task.contact); // zentrale Auflösung (Identität/Status/Heat/ICP)
@@ -558,7 +559,7 @@ export function newPipelineInPeriod(
  * Kontakts (kein aktiver Deal → undefined → Karte zeigt keinen Stage-Bereich).
  */
 export function signalToCardProps(
-  signal: Record<string, any>,
+  signal: SignalRow,
   t: (key: string, opts?: Record<string, unknown>) => string,
   stageNameBySlug: Record<string, string> = {},
 ): SignalCardProps {
@@ -599,7 +600,7 @@ export type StagnatedCardItem = {
 };
 
 export function dealToStagnatedCard(
-  deal: Record<string, any>,
+  deal: DealRow,
   stageNameBySlug: Record<string, string> = {},
 ): StagnatedCardItem {
   const p = contactToProfile(deal.contact);
@@ -612,7 +613,7 @@ export function dealToStagnatedCard(
     initials: p.initials,
     icpScore: p.icpScore,
     heatStatus: p.heatStatus,
-    stageLabel: stageNameBySlug[deal.stage] ?? undefined,
+    stageLabel: stageNameBySlug[deal.stage ?? ""] ?? undefined,
     stagnationDays: deal.stagnation_days ?? 0,
     lastContactedAt: deal.contact?.last_contacted_at ?? null,
   };
@@ -635,8 +636,8 @@ export type NoTaskCardItem = {
 };
 
 export function contactToNoTaskCard(
-  contact: Record<string, any>,
-  deals: Record<string, any>[],
+  contact: ContactRow,
+  deals: DealRow[],
   stageNameBySlug: Record<string, string> = {},
 ): NoTaskCardItem {
   const p = contactToProfile(contact);
@@ -651,7 +652,7 @@ export function contactToNoTaskCard(
     lastContactedAt: contact.last_contacted_at ?? null,
     deals: deals.map((d) => ({
       name: d.name,
-      stageLabel: stageNameBySlug[d.stage] ?? undefined,
+      stageLabel: stageNameBySlug[d.stage ?? ""] ?? undefined,
       stagnationDays: d.stagnation_days ?? 0,
     })),
   };
@@ -671,7 +672,7 @@ export interface CommunicationView {
   note?: string;      // fehlt → kein Notiz-Body (kein Fake)
 }
 
-export function communicationToView(row: Record<string, any>): CommunicationView {
+export function communicationToView(row: CommunicationRow): CommunicationView {
   return {
     id: String(row.id),
     channel: row.channel as CommunicationChannel,
@@ -704,7 +705,7 @@ export interface SignalActionData {
 
 /** Echtes Signal → SignalActionData. AI-Felder = ehrliche Platzhalter ([D5]). */
 export function signalToActionData(
-  signal: Record<string, any>,
+  signal: SignalRow,
   t: (key: string, opts?: Record<string, unknown>) => string,
 ): SignalActionData {
   const p = contactToProfile(signal.contact);
@@ -737,7 +738,7 @@ export interface ColdPersonData {
 }
 
 /** Kalter Kontakt → ColdPersonData. AI-Felder = ehrliche Platzhalter ([D5]). */
-export function contactToColdPerson(contact: Record<string, any>): ColdPersonData {
+export function contactToColdPerson(contact: ContactRow): ColdPersonData {
   const p = contactToProfile(contact);
   const lc = daysSinceIso(contact?.last_contacted_at); // zentrale Zeit-Logik (kein Inline-Date.now)
   return {
@@ -787,9 +788,9 @@ const PRIORITY_DAY_MS = 86_400_000;
  * kein Roh-`heat_status`). `now` injizierbar (Tests). Score 0 → Kontakt erscheint nicht.
  */
 export function calculatePriorityScore(
-  contact: Record<string, any>,
-  deals: Record<string, any>[],
-  signals: Record<string, any>[],
+  contact: ContactRow,
+  deals: DealRow[],
+  signals: SignalRow[],
   weights: Partial<PriorityWeights> | null | undefined,
   stagnationBySlug: Record<string, number | null | undefined> = {},
   now: number = Date.now(),
@@ -802,7 +803,7 @@ export function calculatePriorityScore(
 
   // Signal-Alter: frischestes Signal. < 24h → Hot-Punkte; sonst Alters-Malus pro Tag.
   const sigTimes = signals
-    .map((s) => new Date(s.created_at ?? s.occurred_at ?? 0).getTime())
+    .map((s) => new Date(s.created_at ?? 0).getTime())
     .filter((tms) => !Number.isNaN(tms) && tms > 0);
   if (sigTimes.length) {
     const ageH = (now - Math.max(...sigTimes)) / 3_600_000;
@@ -812,19 +813,19 @@ export function calculatePriorityScore(
 
   // Offene Tasks über alle Deals des Kontakts (completed_at & deleted_at NULL).
   const openTasks = deals.flatMap((d) =>
-    ((d.tasks as Record<string, any>[]) ?? []).filter((tk) => tk.completed_at == null && tk.deleted_at == null));
+    ((d.tasks as Array<Partial<TaskRow>>) ?? []).filter((tk) => tk.completed_at == null && tk.deleted_at == null));
   const overdue = openTasks.filter((tk) => tk.due_at && new Date(tk.due_at).getTime() < now);
   if (overdue.length) {
     base += w.overdue_task; active.push("overdue_task");
-    const maxDays = Math.max(...overdue.map((tk) => Math.floor((now - new Date(tk.due_at).getTime()) / PRIORITY_DAY_MS)));
+    const maxDays = Math.max(...overdue.map((tk) => Math.floor((now - new Date(tk.due_at ?? 0).getTime()) / PRIORITY_DAY_MS)));
     if (maxDays > w.overdue_bonus_days) bonus += w.overdue_bonus_points;
   }
 
   // Stagnation: Deal über Stage-Schwelle. Doppelte Schwelle → Extra-Bonus.
-  const stagnated = deals.filter((d) => (d.stagnation_days ?? 0) >= (stagnationBySlug[d.stage] ?? 7));
+  const stagnated = deals.filter((d) => (d.stagnation_days ?? 0) >= (stagnationBySlug[d.stage ?? ""] ?? 7));
   if (stagnated.length) {
     base += w.stagnated; active.push("stagnated");
-    if (stagnated.some((d) => (d.stagnation_days ?? 0) >= 2 * (stagnationBySlug[d.stage] ?? 7))) bonus += w.stagnated_double_bonus;
+    if (stagnated.some((d) => (d.stagnation_days ?? 0) >= 2 * (stagnationBySlug[d.stage ?? ""] ?? 7))) bonus += w.stagnated_double_bonus;
   }
 
   // Wird kalt (Heat COLD/DEAD) — Single Source über contactToProfile.

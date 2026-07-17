@@ -718,6 +718,66 @@ function checkProfileRowSingleSource(): void {
 }
 checkProfileRowSingleSource()
 
+// ── Panel-Komposition: neue Side-Panels MÜSSEN die Shell nutzen ──────────────
+// Hintergrund (QA 2026-07-17): KontaktAnlegenPanel war als hand-gebautes <Sheet>/<SheetContent>
+// gebaut statt über die 720px-ActionPanel-Shell — falsche Breite/Rundung/Feld-Optik. Kein
+// bestehender Check schlug an, weil ein rohes <SheetContent> gültige shadcn-Nutzung IST
+// (erfüllt die „nutze shadcn"-Regel). Das ist dieselbe Klasse Blindstelle wie K-2b (Profilzeile):
+// eine Kompositions-/Single-Source-Regel, die nur in Prosa (CLAUDE.md) lebte. Dieser Check
+// erzwingt sie maschinell: rechte Panels komponieren ActionPanel (720) / InfoPanel (820) —
+// die Shell besitzt Breite + Rundung + Header/Footer-Gerüst; niemand baut sie erneut.
+function checkPanelShellComposition(): void {
+  // Kanonische Direkt-Nutzer von ui/sheet (die Shells selbst + große Bestands-Panels, die die
+  // Shell-Rolle erfüllen). Alles NEUE außerhalb dieser Liste muss ActionPanel/InfoPanel nutzen.
+  const ALLOW = new Set([
+    'ActionPanel.tsx', 'InfoPanel.tsx',         // die Shells
+    'HunterSidepanel.tsx', 'FarmerSidepanel.tsx', 'ChatActionPanel.tsx', // 820/720-Kanon-Panels
+    'NoTaskDrawer.tsx', 'CustomerDrawer.tsx',   // Bestands-Drawer (vor der Shell-Regel)
+  ])
+  const files = walk(join(SRC, 'components', 'features'), ['.tsx'])
+    .concat(walk(join(SRC, 'components', 'screens'), ['.tsx']))
+  const sheetImport = /from\s+['"]@\/components\/ui\/sheet['"]/
+  const offenders = files
+    .filter((f) => !ALLOW.has(basename(f)) && sheetImport.test(read(f)))
+    .map(rel)
+  add('Panel: Shell statt Eigenbau', offenders.length ? 'FAIL' : 'PASS',
+    offenders.length
+      ? `Hand-gebautes Sheet statt ActionPanel/InfoPanel (Breite/Rundung/Feld-Optik weichen ab): ${offenders.join(', ')}`
+      : 'Neue Side-Panels komponieren ActionPanel/InfoPanel.')
+}
+checkPanelShellComposition()
+
+// ── Token-Existenz: kein var(--x) auf ein nicht-definiertes Token ─────────────
+// Hintergrund (QA 2026-07-17): `--signal-danger-text` wurde an 4 Stellen referenziert, existiert
+// aber nie in index.css → der Pflicht-Stern war still ungestylt (kein Rot). Ein solcher Tippfehler
+// rutscht durch ALLE bisherigen Checks (es IST eine Token-Referenz, nur eine tote). Dieser Check
+// sammelt alle in CSS definierten Custom Properties und meldet jede `var(--x)`-Referenz in
+// .tsx/.ts, deren Token nirgends definiert ist. So kann „still gebrochenes Token" nicht wiederkehren.
+function checkTokenExistence(): void {
+  const defined = new Set<string>()
+  for (const f of walk(SRC, ['.css'])) {
+    for (const m of read(f).matchAll(/(--[a-z0-9-]+)\s*:/gi)) defined.add(m[1])
+  }
+  // Framework-Laufzeit-Variablen (Tailwind --tw-*, Radix --radix-*) werden vom Framework gesetzt,
+  // nicht von uns in CSS definiert — dürfen nicht als „tot" gelten.
+  const isFrameworkVar = (t: string) => t.startsWith('--tw-') || t.startsWith('--radix-')
+  const offenders: string[] = []
+  for (const f of walk(join(SRC, 'components'), ['.tsx', '.ts']).concat(walk(join(SRC, 'lib'), ['.tsx', '.ts']))) {
+    const src = read(f)
+    src.split('\n').forEach((line, i) => {
+      for (const m of line.matchAll(/var\(\s*(--[a-z0-9-]+)/gi)) {
+        const tok = m[1]
+        if (!isFrameworkVar(tok) && !defined.has(tok)) offenders.push(`${rel(f)}:${i + 1} → ${tok}`)
+      }
+    })
+  }
+  add('Design: Token existiert', offenders.length ? 'FAIL' : 'PASS',
+    offenders.length
+      ? `var(--x) auf nicht-definiertes Token (still gebrochen — in index.css definieren oder echtes Token nutzen): ${offenders.join(' · ')}`
+      : 'Alle var(--token)-Referenzen sind in CSS definiert.')
+}
+checkTokenExistence()
+
 // ── Report ───────────────────────────────────────────────────────────────────
 
 const icon: Record<Status, string> = { PASS: '✓', WARN: '!', FAIL: '✗', SKIP: '·' }
