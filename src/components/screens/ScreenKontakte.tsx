@@ -215,12 +215,14 @@ export default function ScreenKontakte() {
     col.accessor("department", { header: t("kontakte.col.department"), size: 140, minSize: 100, cell: (c) => textCell(c.getValue()) }),
     col.accessor("language", { header: t("kontakte.col.language"), size: 100, minSize: 80, cell: (c) => textCell(c.getValue()) }),
     col.accessor("twitterHandle", { header: t("kontakte.col.twitterHandle"), size: 130, minSize: 90, cell: (c) => textCell(c.getValue()) }),
-    col.accessor("leadStatus", { header: t("kontakte.col.leadStatus"), size: 140, minSize: 100, cell: (c) => (c.getValue() ? <StatusBadge label={c.getValue() as string} tone="muted" /> : null) }),
+    col.accessor("leadStatus", { header: t("kontakte.col.leadStatus"), size: 140, minSize: 100, cell: (c) => {
+      const v = c.getValue(); return v ? <StatusBadge label={t(`kontakte.leadStatusValue.${v}`, { defaultValue: v })} tone="muted" /> : null;
+    } }),
     col.accessor("heatStatus", { header: t("kontakte.col.heatStatus"), size: 120, minSize: 90, cell: (c) => (c.getValue() ? <HeatBadge status={c.getValue()!} /> : null) }),
     col.accessor("emailVerifiedStatus", { header: t("kontakte.col.emailVerifiedStatus"), size: 140, minSize: 100, cell: (c) => {
       const v = c.getValue(); if (!v) return null;
       const tone = v === "valid" ? "success" : v === "invalid" ? "urgent" : "muted";
-      return <StatusBadge label={v} tone={tone} />;
+      return <StatusBadge label={t(`kontakte.emailVerify.${v}`, { defaultValue: v })} tone={tone} />;
     } }),
     col.accessor("lastReplyAt", { header: t("kontakte.col.lastReplyAt"), size: 120, minSize: 100, cell: (c) => {
       const d = daysSinceIso(c.getValue(), nowMs); return d != null && d >= 1 ? <span className="typo-field-value text-text-body">{t("kontakte.daysAgo", { count: d })}</span> : null;

@@ -686,7 +686,22 @@
       "actionErrorToast": "Aktion hat gerade nicht geklappt — nochmal versuchen",
       "viewList": "Liste ansehen"
     },
-    "entity": "Kontakt"
+    "entity": "Kontakt",
+    "leadStatusValue": {
+      "lead": "Lead",
+      "qualified_lead": "Qualified Lead",
+      "mql": "MQL",
+      "sql": "SQL",
+      "customer": "Customer",
+      "churned": "Churned"
+    },
+    "emailVerify": {
+      "valid": "Verifiziert",
+      "invalid": "Ungültig",
+      "catch-all": "Catch-All",
+      "unknown": "Unbekannt",
+      "spamtrap": "Spam-Trap"
+    }
   },
   "table": {
     "columnsAdjust": "Spalten anpassen",
