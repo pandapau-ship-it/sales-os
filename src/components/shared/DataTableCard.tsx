@@ -146,23 +146,24 @@ export default function DataTableCard<T>({
 
       {total > 0 && (
         <div className="flex items-center justify-between px-5 py-3 border-t border-[var(--border-card)] shrink-0">
-          <div className="flex items-center gap-3 text-[13px] text-text-body">
-            <span>{t("table.pageInfo", { from: from.toLocaleString("de-DE"), to: to.toLocaleString("de-DE"), total: total.toLocaleString("de-DE") })}</span>
+          <div className="flex items-center gap-3 text-[13px] text-text-primary">
+            <span className="font-medium">{t("table.pageInfo", { from: from.toLocaleString("de-DE"), to: to.toLocaleString("de-DE"), total: total.toLocaleString("de-DE") })}</span>
             <span className="text-border-strong">·</span>
-            <span className="flex items-center gap-1.5">{t("table.perPage")}
+            <span className="flex items-center gap-1.5 text-text-body">{t("table.perPage")}
               <Select value={String(pageSize)} onValueChange={(v) => table.setPagination((p) => ({ ...p, pageIndex: 0, pageSize: Number(v) }))}>
-                <SelectTrigger className="h-auto rounded-[8px] border-border bg-app-surface px-2 py-1 text-[13px] text-text-body w-[68px]"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="h-auto rounded-[8px] border-border-strong bg-app-surface px-2 py-1 text-[13px] font-semibold text-text-primary w-[68px]"><SelectValue /></SelectTrigger>
                 <SelectContent>{pageSizes.map((s) => <SelectItem key={s} value={String(s)}>{s}</SelectItem>)}</SelectContent>
               </Select>
             </span>
           </div>
+          {/* Aktiv = dunkler Text + kräftiger Rahmen (gut lesbar); deaktiviert = klar abgesetzt (muted, kein Hover). */}
           <div className="flex items-center gap-2">
             <button onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-[10px] border border-border text-[12px] font-semibold text-text-body hover:bg-app-bg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent">
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-[10px] border border-border-strong text-[12px] font-semibold text-text-primary hover:bg-app-bg hover:border-[var(--sherloq-primary)] transition-colors cursor-pointer disabled:text-text-muted disabled:border-border disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:border-border">
               <ChevronLeft className="w-4 h-4" /> {t("table.prev")}
             </button>
             <button onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-[10px] border border-border text-[12px] font-semibold text-text-body hover:bg-app-bg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent">
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-[10px] border border-border-strong text-[12px] font-semibold text-text-primary hover:bg-app-bg hover:border-[var(--sherloq-primary)] transition-colors cursor-pointer disabled:text-text-muted disabled:border-border disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:border-border">
               {t("table.next")} <ChevronRight className="w-4 h-4" />
             </button>
           </div>

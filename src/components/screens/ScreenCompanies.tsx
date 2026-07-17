@@ -13,7 +13,7 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createColumnHelper, type RowSelectionState } from "@tanstack/react-table";
-import { ChevronDown, Filter, Building2, Users, X, Globe } from "lucide-react";
+import { ChevronDown, Plus, Building2, Users, X, Globe } from "lucide-react";
 import { useCurrentOrg } from "@/hooks/useCurrentOrg";
 import { useAuth } from "@/hooks/useAuth";
 import { useNowMs } from "@/hooks/useNowMs";
@@ -24,7 +24,7 @@ import { companyToCompaniesRow, formatEuroCents, type CompaniesRow } from "@/lib
 import { daysSinceIso } from "@/lib/hunterMappers";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
-import { Avatar, StatusBadge, RoutingChip, EmptyState, DataTableCard, ColumnConfigPopover } from "@/components";
+import { Avatar, StatusBadge, RoutingChip, EmptyState, DataTableCard, ColumnConfigPopover, CompanyAnlegenPanel } from "@/components";
 import LinkedinIcon from "@/components/shared/LinkedinIcon";
 import { useToast } from "@/components/shared/toastContext";
 
@@ -39,48 +39,34 @@ const SET_B_HIDDEN: Record<string, boolean> = {
 const distinct = (vals: (string | undefined)[]): string[] =>
   [...new Set(vals.filter((v): v is string => !!v))].sort((a, b) => a.localeCompare(b, "de"));
 
-/** 3 Multi-Select-Dropdowns (Branche/Größe/Land) — Optionen aus den echten Daten. */
-function CompaniesFilter({
-  industries, sizes, countries, sel, onChange,
-}: {
-  industries: string[]; sizes: string[]; countries: string[];
-  sel: { industry: string[]; size: string[]; country: string[] };
-  onChange: (next: { industry: string[]; size: string[]; country: string[] }) => void;
-}) {
-  const { t } = useTranslation();
-  const count = sel.industry.length + sel.size.length + sel.country.length;
-  const toggle = (key: keyof typeof sel, id: string) => {
-    const arr = sel[key];
-    onChange({ ...sel, [key]: arr.includes(id) ? arr.filter((x) => x !== id) : [...arr, id] });
-  };
-  // Render-Funktion (keine Sub-Komponente im Render → lint-konform).
-  const renderSection = (label: string, opts: string[], field: keyof typeof sel) =>
-    opts.length ? (
-      <div key={field}>
-        <div className="typo-section-label text-text-muted px-2 pt-1 pb-1">{label}</div>
-        {opts.map((id) => (
-          <label key={id} className="flex items-center gap-2.5 px-2 py-2 rounded-[8px] text-[13px] text-text-body hover:bg-app-bg cursor-pointer">
-            <input type="checkbox" checked={sel[field].includes(id)} onChange={() => toggle(field, id)} className="accent-[var(--sherloq-primary)] w-3.5 h-3.5" />
-            {id}
-          </label>
-        ))}
-      </div>
-    ) : null;
+/**
+ * Ein eigenständiges Multi-Select-Filter-Dropdown (Branche · Größe · Land — je EINER Button).
+ * Optionen aus den echten Daten; Filter mit 0 Optionen wird nicht gerendert. Aktive Auswahl →
+ * Button hervorgehoben + Count-Badge. Werte sind Nutzerdaten → NICHT durch t().
+ */
+function FilterDropdown({
+  label, options, selected, onToggle,
+}: { label: string; options: string[]; selected: string[]; onToggle: (id: string) => void }) {
+  if (options.length === 0) return null;
+  const count = selected.length;
   return (
     <Popover>
       <PopoverTrigger asChild>
         <button type="button"
           className={cn("inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12px] font-semibold border transition-colors cursor-pointer",
             count > 0 ? "border-[var(--sherloq-primary)] text-[var(--sherloq-primary)] bg-[var(--signal-teal-bg)]" : "border-border text-text-body bg-app-surface hover:bg-app-bg")}>
-          <Filter className="w-3.5 h-3.5" /> {t("companies.filter")}
+          {label}
           {count > 0 && <span className="min-w-[18px] h-[18px] px-1 rounded-[6px] bg-[var(--sherloq-primary)] text-on-accent text-[10px] font-bold flex items-center justify-center tabular-nums">{count}</span>}
           <ChevronDown className="w-3.5 h-3.5 opacity-70" />
         </button>
       </PopoverTrigger>
-      <PopoverContent align="start" portal={false} className="w-60 p-1.5 max-h-[360px] overflow-y-auto">
-        {renderSection(t("companies.filterIndustry"), industries, "industry")}
-        {renderSection(t("companies.filterSize"), sizes, "size")}
-        {renderSection(t("companies.filterCountry"), countries, "country")}
+      <PopoverContent align="start" portal={false} className="w-56 p-1.5 max-h-[320px] overflow-y-auto">
+        {options.map((id) => (
+          <label key={id} className="flex items-center gap-2.5 px-2 py-2 rounded-[8px] text-[13px] text-text-body hover:bg-app-bg cursor-pointer">
+            <input type="checkbox" checked={selected.includes(id)} onChange={() => onToggle(id)} className="accent-[var(--sherloq-primary)] w-3.5 h-3.5" />
+            {id}
+          </label>
+        ))}
       </PopoverContent>
     </Popover>
   );
@@ -103,6 +89,10 @@ export default function ScreenCompanies() {
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const [sel, setSel] = useState<{ industry: string[]; size: string[]; country: string[] }>({ industry: [], size: [], country: [] });
   const [noContact, setNoContact] = useState(false);
+  const [anlegenOpen, setAnlegenOpen] = useState(false);
+
+  const toggleFilter = (field: keyof typeof sel, id: string) =>
+    setSel((s) => ({ ...s, [field]: s[field].includes(id) ? s[field].filter((x) => x !== id) : [...s[field], id] }));
 
   const companiesQuery = useQuery({
     queryKey: ["companies", organizationId],
@@ -223,7 +213,12 @@ export default function ScreenCompanies() {
           <h1 className="text-[24px] font-extrabold text-text-primary">{t("companies.title")}</h1>
           {total > 0 && <span className="px-2 py-0.5 rounded-[7px] bg-app-bg text-text-muted text-[13px] font-semibold tabular-nums">{total.toLocaleString("de-DE")}</span>}
         </div>
-        <ColumnConfigPopover table={table} columnLabelFor={(id) => t(`companies.col.${id}`)} onReset={resetColumns} pinnedId="name" />
+        <div className="flex items-center gap-2">
+          <ColumnConfigPopover table={table} columnLabelFor={(id) => t(`companies.col.${id}`)} onReset={resetColumns} pinnedId="name" />
+          <button type="button" onClick={() => setAnlegenOpen(true)} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--sherloq-primary)] text-on-accent text-[13px] font-bold hover:opacity-90 transition-opacity cursor-pointer">
+            <Plus className="w-4 h-4" /> {t("companies.addCompany")}
+          </button>
+        </div>
       </div>
 
       {/* Lagebild — nur echte Aggregate (Honesty) */}
@@ -239,9 +234,11 @@ export default function ScreenCompanies() {
         </div>
       )}
 
-      {/* Filter */}
+      {/* Filter — 3 separate Dropdowns (Branche/Größe/Land) */}
       <div className="flex items-center gap-2 flex-wrap mb-4">
-        <CompaniesFilter industries={industries} sizes={sizes} countries={countries} sel={sel} onChange={setSel} />
+        <FilterDropdown label={t("companies.filterIndustry")} options={industries} selected={sel.industry} onToggle={(id) => toggleFilter("industry", id)} />
+        <FilterDropdown label={t("companies.filterSize")} options={sizes} selected={sel.size} onToggle={(id) => toggleFilter("size", id)} />
+        <FilterDropdown label={t("companies.filterCountry")} options={countries} selected={sel.country} onToggle={(id) => toggleFilter("country", id)} />
         {hasFilter && (
           <button type="button" onClick={clearFilters} className="text-[12px] font-semibold text-text-muted hover:text-text-primary transition-colors cursor-pointer px-2">{t("companies.resetFilters")}</button>
         )}
@@ -278,6 +275,11 @@ export default function ScreenCompanies() {
         onRowOpen={(r) => navigate(`/app/companies/${r.id}`)}
         onRowPrefetch={(r) => prefetchCompanyPanel(queryClient, organizationId, r.id)}
       />
+
+      {/* Anlegen */}
+      <CompanyAnlegenPanel open={anlegenOpen} organizationId={organizationId}
+        onClose={() => setAnlegenOpen(false)}
+        onCreated={() => { setAnlegenOpen(false); void queryClient.invalidateQueries({ queryKey: ["companies", organizationId] }); }} />
     </div>
   );
 }

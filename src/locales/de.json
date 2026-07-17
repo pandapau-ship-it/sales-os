@@ -807,6 +807,21 @@
       "notFoundDesc": "Diese Company existiert nicht oder wurde entfernt.",
       "tabsSoonTitle": "Detailansicht folgt",
       "tabsSoonDesc": "Kontakte, Deals, Aktivität und Notizen dieser Company werden im nächsten Schritt (K-4b) verdrahtet."
+    },
+    "addCompany": "+ Company hinzufügen",
+    "create": {
+      "title": "Neue Company anlegen",
+      "name": "Name",
+      "namePh": "z. B. Acme Corp",
+      "domain": "Domain",
+      "domainPh": "z. B. acme.com",
+      "industry": "Branche",
+      "industryPh": "Branche wählen",
+      "size": "Größe",
+      "sizePh": "Größe wählen",
+      "submit": "Company anlegen",
+      "savedToast": "„{{name}}\" angelegt",
+      "errorToast": "Konnte gerade nicht angelegt werden"
     }
   }
 }

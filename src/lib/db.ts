@@ -266,6 +266,30 @@ export async function getCompanyDetail(
   return (data as unknown as CompanyListRaw) ?? null;
 }
 
+export interface NewCompanyInput {
+  name: string;
+  domain?: string;
+  industry?: string;
+  size_range?: string;
+}
+
+/** createCompany — neue Firma anlegen (K-4a Basis-Felder). Leere Felder werden weggelassen. */
+export async function createCompany(
+  organizationId: string,
+  input: NewCompanyInput,
+): Promise<{ id: string } | null> {
+  const client = getSupabaseClient();
+  if (!client) return null;
+  const clean = Object.fromEntries(Object.entries(input).filter(([, v]) => v != null && v !== ""));
+  const { data, error } = await client
+    .from("companies")
+    .insert({ organization_id: organizationId, ...clean })
+    .select("id")
+    .single();
+  if (error) throw error;
+  return { id: (data as { id: string }).id };
+}
+
 export interface DealFilters {
   stage?: string;
   ownerId?: string;
