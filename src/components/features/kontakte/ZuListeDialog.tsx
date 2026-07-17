@@ -22,8 +22,9 @@ export default function ZuListeDialog({
   contactIds: string[];
   createdBy: string | null;
   onClose: () => void;
-  /** Erfolgs-Callback — die ELTERN toasten + invalidieren (garantiert gemountet, co-lokal mit Refresh). */
-  onDone?: (info: { count: number; listName: string }) => void;
+  /** Erfolgs-Callback — die ELTERN toasten + invalidieren (garantiert gemountet, co-lokal mit Refresh).
+   *  `list` = die betroffene Liste (für die optionale „Liste ansehen"-Aktion im Toast). */
+  onDone?: (info: { list: ListView; count: number }) => void;
 }) {
   const { t } = useTranslation();
   const { toast } = useToast();
@@ -44,7 +45,7 @@ export default function ZuListeDialog({
     setBusy(true);
     try {
       await addToList(organizationId, list.id, contactIds);
-      onDone?.({ count: contactIds.length, listName: list.name });
+      onDone?.({ list, count: contactIds.length });
       onClose();
     } catch {
       toast(t("kontakte.lists.actionErrorToast"), "error");
@@ -55,11 +56,14 @@ export default function ZuListeDialog({
     if (!newName.trim() || busy) return;
     setBusy(true);
     try {
-      const res = await createList(organizationId, { name: newName.trim(), type: "static" }, createdBy);
-      if (res) await addToList(organizationId, res.id, contactIds);
       const listName = newName.trim();
+      const res = await createList(organizationId, { name: listName, type: "static" }, createdBy);
+      if (res) await addToList(organizationId, res.id, contactIds);
       setNewName(""); setCreating(false);
-      onDone?.({ count: contactIds.length, listName });
+      if (res) {
+        const list: ListView = { id: res.id, name: listName, type: "static", filterConfig: null, isTeamList: false, memberCount: contactIds.length };
+        onDone?.({ list, count: contactIds.length });
+      }
       onClose();
     } catch {
       toast(t("kontakte.lists.actionErrorToast"), "error");

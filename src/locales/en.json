@@ -666,7 +666,8 @@
       "deletedToast": "Liste „{{name}}“ gelöscht",
       "removedToast_one": "{{count}} Kontakt aus „{{name}}“ entfernt",
       "removedToast_other": "{{count}} Kontakte aus „{{name}}“ entfernt",
-      "actionErrorToast": "Aktion hat gerade nicht geklappt — nochmal versuchen"
+      "actionErrorToast": "Aktion hat gerade nicht geklappt — nochmal versuchen",
+      "viewList": "Liste ansehen"
     }
   }
 }

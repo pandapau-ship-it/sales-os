@@ -843,8 +843,9 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
       {contactId && (
         <ZuListeDialog open={zuListeOpen} organizationId={organizationId} contactIds={[contactId]}
           createdBy={user?.id ?? null} onClose={() => setZuListeOpen(false)}
-          onDone={({ count, listName }) => {
-            showToast(t('kontakte.lists.addedToast', { count, name: listName }));
+          onDone={({ list, count }) => {
+            // Panel-lokaler Toast (nur Meldung; „Liste ansehen" wäre hier ein Screen-Wechsel → bewusst weggelassen).
+            showToast(t('kontakte.lists.addedToast', { count, name: list.name }));
             queryClient.invalidateQueries({ queryKey: ['lists', organizationId] });
             queryClient.invalidateQueries({ queryKey: ['listMembers', organizationId] });
           }} />
