@@ -453,3 +453,11 @@
 - **value:** Den gesuchten Kontakt oder die Firma in Sekunden finden, ohne durch lange Listen zu scrollen — direkt und vorhersehbar. (Die inhaltliche/„smarte" Suche über Notizen und Verläufe übernimmt später der AI-Chat.)
 - **module:** core_crm
 - *(geteilte DataTable, 2026-07-17)*
+
+### Companies-Detailseite (volle Firmenakte)
+- **feature:** Companies-Detailseite
+- **what:** Die vollständige Akte einer Firma als eigene Seite: Kopf (Name, Branche/Größe/Ort, Website/LinkedIn) + Kennzahlen (ARR, zugeordnete Kontakte, letzter Kontakt, offene Deals) und fünf Tabs. **Übersicht** = Firmendetails, direkt im Feld editierbar (Branche, Größe, Stadt, Land, Domain, Website, LinkedIn). **Kontakte** = alle Personen der Firma mit Direktsprung ins Kontaktprofil und „+ Kontakt hinzufügen" (Firma vorbelegt). **Deals** = alle Deals der Firma, anlegen/bearbeiten/löschen inklusive Stage. **Aktivität** = ein gemeinsamer Zeitstrahl aller Touchpoints sämtlicher Firmen-Kontakte (wer, welcher Kanal, wann). **Notizen** = Firmen-Notizen anlegen/bearbeiten/löschen. Zeigt nur echte Werte; Sherloq-Auswertungen erscheinen erst mit aktivem Sherloq-Modul.
+- **how:** Companies → Firma öffnen (Pfeil) → oben zwischen den Tabs wechseln; Felder in „Übersicht" direkt anklicken zum Bearbeiten; in „Deals"/„Notizen" oben rechts anlegen.
+- **value:** Die ganze Firma auf einen Blick — Ansprechpartner, laufende Deals, gesamte Kommunikationshistorie und Notizen an einem Ort, ohne zwischen Screens zu springen. Stammdaten direkt pflegen, neue Kontakte und Deals ohne Umweg anlegen.
+- **module:** core_crm
+- *(K-4b, 2026-07-17)*

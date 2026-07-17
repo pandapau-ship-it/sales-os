@@ -843,6 +843,11 @@
       "website": "Website",
       "linkedin": "LinkedIn",
       "crmId": "CRM ID"
+    },
+    "deals": {
+      "createdToast": "Deal angelegt",
+      "updatedToast": "Deal aktualisiert",
+      "deletedToast": "Deal gelöscht"
     }
   }
 }

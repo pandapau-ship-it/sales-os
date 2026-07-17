@@ -370,6 +370,19 @@ für JEDEN UI-Slice**, auch wenn ein Design existiert.
 > Produktentscheidung, **vor** dem Bau der Automatisierung nachzuholen. **Nicht Teil von K-3.**
 > Voll dokumentiert als `#40` in `docs/entscheidungen_komplett.md`.
 
+> **Session 2026-07-17 (K-4b-2 Companies-Detail: Deals + Aktivität + Notizen — Branch `feat/companies-detail-k4b2`, STOP für QA):**
+> Companies-Detailseite komplett: **Deals-Tab** `getDealsByCompany` + `DealsListe variant=detail` (anlegen/
+> bearbeiten/löschen/Stage echt; `createDeal` um `companyId` erweitert, CHECK `deal_owner_present` erfüllt).
+> **Aktivität-Tab** `getCompanyActivity` — **EIN** Query (communications ⋈ contacts!inner auf `company_id`),
+> aggregierter Touchpoint-Feed ALLER Firmen-Kontakte mit Kontaktname (`companyActivityToView`; `CommunicationView`
+> um `contactName` erweitert, `KommunikationVerlauf` zeigt Namen im aggregierten Feed). **Notizen-Tab**
+> `getNotesByCompany`/`createCompanyNote` + `NotizenListe` (CRUD echt, `notes.company_id`). Alle Tabs lazy
+> (`enabled: tab===…`), Stage-Maps/Produkt-/Owner-Kataloge nur bei Deals-Tab. Gates + beide Agents.
+> **Reduziert (Regel B):** Won/Lost-Modal-Zeremonie (Konfetti + Lost-Reason-Pflicht) bleibt Hunter-spezifisch —
+> Company-Deals-Stage-Wechsel läuft direkt über `updateDealStage`. Aktivität-Tab read-only (Protokollieren
+> passiert pro Kontakt, nicht firmenweit). `KommunikationVerlauf`-Header „Kommunikationsverlauf" (Komponenten-
+> Default) statt Mockup-„Gesamte Aktivitäts-Timeline". **Companies-Modul (K-4) damit funktional komplett.**
+>
 > **Session 2026-07-17 (K-4b-1 Companies-Detail: Übersicht + Kontakte — Branch `feat/companies-detail-k4b1`, STOP für QA):**
 > `ScreenCompanyDetail` vom Platzhalter zur echten Detailseite: Kopf + KPIs (aus K-4a) + `PanelTabs`
 > (5 Tabs). **Übersicht** = `DetailSection`/`DetailField`, Company-Details **inline editierbar** →
