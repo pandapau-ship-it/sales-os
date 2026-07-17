@@ -694,7 +694,12 @@ export default function ScreenKontakte() {
         contactIds={selectedIds}
         createdBy={userId}
         onClose={() => setZuListeOpen(false)}
-        onDone={() => { clearSelection(); void queryClient.invalidateQueries({ queryKey: ["lists", organizationId] }); }}
+        onDone={({ count, listName }) => {
+          toast(t("kontakte.lists.addedToast", { count, name: listName }), "success");
+          clearSelection();
+          void queryClient.invalidateQueries({ queryKey: ["lists", organizationId] });
+          void queryClient.invalidateQueries({ queryKey: ["listMembers", organizationId] });
+        }}
       />
 
       {/* Liste löschen — Bestätigung (irreversibel) */}
