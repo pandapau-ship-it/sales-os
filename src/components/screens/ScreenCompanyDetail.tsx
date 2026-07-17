@@ -175,7 +175,7 @@ export default function ScreenCompanyDetail() {
               {contactRows.map((c) => (
                 <CompactContactRow key={c.id}
                   name={c.name} jobTitle={c.jobTitle} company={c.company} avatarUrl={c.avatarUrl}
-                  icpScore={c.icpScore} contactStatus={c.contactStatus} lastContactedAt={c.lastContactedAt} routing={c.routing}
+                  icpScore={c.icpScore} contactStatus={c.contactStatus} leadSource={c.leadSource} lastContactedAt={c.lastContactedAt} routing={c.routing}
                   openLabel={t("companies.detail.openContact")}
                   onOpen={() => setDetailPerson({ id: c.id, name: c.name, jobTitle: c.jobTitle, company: c.company, initials: c.initials, avatarUrl: c.avatarUrl })}
                   onNavigate={(p) => navigate(p)}
