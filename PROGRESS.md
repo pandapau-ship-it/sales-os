@@ -129,11 +129,42 @@
         ComingSoon) — Honesty; re-aktivieren sobald AI-SDR-Screen existiert. (5) Filterleiste: 11 Pills →
         **drei Multi-Select-Dropdowns** (Status/Quelle/ICP, `in`-Operator, aktive Zahl im Button) + „Alle
         zurücksetzen"; **erweiterter Filter-Builder = disabled** (folgt mit K-2-Filter-UI, `data-tip`).
+        **QA-Runde 2 (2026-07-17):** (5b) Filter überarbeitet — **Status-Pills mit ECHTEN Counts**
+        („Alle N · In Campaign N · Pipeline N · Kunde N", nur Status mit Count>0; Counts aus dem
+        geladenen Satz ≤1000, nichts erfunden) + **Quelle/ICP in EIN „Filter"-Dropdown** zusammengefasst
+        (Leiste läuft nicht über). (9) **Lagebild-Zeile** über der Tabelle: klickbare Bestands-Zahlen,
+        **nur KONTAKT-bezogen + hier filterbar** — in K-3 valide: **„Ohne Kontaktweg"** (email+linkedin
+        `is_empty`) · **„Opt-outs"** (`contact_status=opt_out`). Echte Counts, Kategorie 0 → weg, alle 0 →
+        Zeile weg (Task-getriebene Leere). „Kunden mit Churn Risk" bewusst NICHT (Farmer-Territorium).
+        **Anti-Doppel-Begründung (kein Verstoß gegen Mitteilungssystem-Anti-Doppel):** Mein Tag zeigt eine
+        **priorisierte Auswahl für heute** (Top 5, „Was mache ich jetzt?"); die Kontakt-Lagebildzeile zeigt
+        den **Gesamtbestand** („Wie steht mein Bestand?"). Zwei verschiedene Fragen, keine Doppelung. Jede
+        Zahl ist ein Filter (kein Dashboard).
+        (10) **Kein „Zuletzt synchronisiert"-Indikator** — kein Sync vorhanden (Honesty).
         Gates: build ✓ · lint 0 · tsc 0 · 120 Tests ✓ · structure PASS · audit 0 FAIL (23 PASS).
-  - [ ] **Aktionen-Button (Import/Export/Duplikate) im Kontakte-Kopf** — erscheint, sobald **K-5-UI**
-        (Smart-Import) **+ K-6** (Duplikat-Verwaltung) gebaut sind. **K-5-UI ist der nächste sinnvolle
-        Slice nach K-4** (Engine-Kern liegt bereits, `src/lib/import/`). Export „alle im aktuellen Filter"
-        braucht serverseitige Filterung (kommt mit dem DB-seitigen K-2-Anschluss).
+  - [ ] **„+ Kontakt"-Dropdown (Anlege-Wege)** — sobald weitere Wege existieren wird der Direkt-Button
+        zum Dropdown: **Manuell** (jetzt) · **CSV importieren** (mit K-5-UI) · **CRM synchronisieren**
+        (mit crm_sync-Integration) · **Via Sherloq** (mit Sherloq-Integration). Honesty: nur zeigen was
+        funktioniert — bleibt 1 Eintrag, bleibt Direkt-Button. **Ersetzt den früheren „Aktionen-Button"**;
+        Import wandert hierher. **K-5-UI = nächster sinnvoller Slice nach K-4** (Engine-Kern liegt bereits,
+        `src/lib/import/`). Export „alle im aktuellen Filter" braucht serverseitige Filterung (DB-seitiger
+        K-2-Anschluss).
+  - [ ] **K-3b Listen-Zugang (Folge-Slice, empfohlen)** — `lists` (005) + `list_members` (056) existieren
+        als Tabellen, aber **null db-Funktionen** und **keine Listen-Daten** → Read-only wäre immer leer,
+        daher NICHT in K-3. Umfang K-3b: `getLists`/`getListMembers`/`createList`/`addToList` (db.ts) +
+        **„Listen"-Dropdown** neben den Filtern (Meine Listen: Name+Anzahl · „Neue Liste erstellen") +
+        Membership-Filter + **Verdrahtung der Bulk-Aktion „Zu Liste hinzufügen"** (aktuell Toast-Platzhalter).
+        Dynamische Listen nutzen die K-2-Filter-UI. **Anschlusspunkt schon da:** Bulk-Bar „Zu Liste".
+  - [ ] **Campaign-Zuweisung — Anschlusspunkt (AI-SDR-Slice 6)** — Bulk-Aktion **+ Zeilen-Aktion**
+        „Zu Campaign hinzufügen" wird in AI-SDR-Slice 6 nur **aktiviert**, nicht neu gebaut. Struktur
+        vorbereitet (Bulk-Bar-Muster + `selectAllFiltered`-Auswahl über den ganzen Filter). **Beim
+        AI-SDR-Bau nicht übersehen.** (Kein Campaign-Button in K-3 — bewusst, kein AI SDR vorhanden.)
+  - [ ] **Farbige Avatare — projektweiter Slice (nach K-3), Palette wartet auf Freigabe** — `shared/Avatar.tsx`
+        ist die **einzige** Avatar-Komponente (~16 Aufrufstellen, keine Kopien) → Umstellung = eine Datei,
+        propagiert überall. Umsetzung: deterministische Farbe aus dem Namen (gleicher Name = gleiche Farbe),
+        **benannte Tokens in `index.css`** (nie Hex im Code), Kontrast für weiße Initialen geprüft, Dark Mode
+        mitgedacht; Status-Punkt unten rechts **nur wenn echte Daten** (sonst weg). **Palette-Vorschlag Oliver
+        vorgelegt (Screenshot-Ableitung) — erst nach Freigabe festschreiben.**
   - [ ] **▶ K-4 Companies-Screen + Detail** (4c: ScreenCompanies) — hier auch **[D-city]**
         (`contacts.city`/`country`-Migration) aufgreifen, da beim Company-/Adress-Wiring fällig.
   - [~] **K-5 Smart-Import — Engine-Kern (dep-frei) VORGEZOGEN** (Reihenfolge-Flexibilität

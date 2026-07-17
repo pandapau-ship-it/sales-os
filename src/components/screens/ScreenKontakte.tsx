@@ -3,11 +3,13 @@
  * HunterCard-Profil (Spalten selbst gerendert ist hier korrekt).
  *
  * CP2: echte Daten, Sortierung, Virtualisierung, Pagination, Zustände.
- * CP3: Filter über die K-2-Sprache (drei Multi-Select-Dropdowns → FilterDefinition → evaluateFilter,
- *   client-seitig auf dem geladenen Satz), Bulk-Auswahl (Gmail-Muster: Seite vs. ganzer Filter),
- *   Spalten: ein-/ausblenden + Reihenfolge per Drag + Breite ziehen + „Auf Standard"; Persistenz
- *   PRO USER (user_preferences → table_views.contacts: Sichtbarkeit/Reihenfolge/Breite/Sortierung/
- *   Seitengröße). Anlegen (ActionPanel-Muster, K1+K2) + Detail-Panel.
+ * CP3: Filter über die K-2-Sprache (Status-Pills mit echten Counts + kombiniertes „Filter"-Dropdown
+ *   für Quelle/ICP → FilterDefinition → evaluateFilter, client-seitig auf dem geladenen Satz),
+ *   Bulk-Auswahl (Gmail-Muster), Spalten: ein-/ausblenden + Reihenfolge per Drag + Breite ziehen +
+ *   „Auf Standard"; Persistenz PRO USER (user_preferences → table_views.contacts). Anlegen
+ *   (ActionPanel-Muster, K1+K2) + Detail-Panel.
+ * Lagebild: klickbare Bestands-Zahlen (nur KONTAKT-bezogen + in dieser Tabelle filterbar), echte
+ *   Counts, Kategorie mit 0 verschwindet, alle 0 → Zeile weg (Task-getriebene Leere).
  *
  * Übernahme 4c: Library-Bausteine (StatusBadge/ICPDonut/Avatar/LeadSourceBadge/RoutingChip),
  * Tokens, Meta-Label oben (K-2b). Leere Werte ausblenden (Honesty), nie „—" erfinden.
@@ -30,7 +32,7 @@ import {
 import { useVirtualizer } from "@tanstack/react-virtual";
 import {
   ArrowRight, ArrowUp, ArrowDown, ChevronsUpDown, ChevronDown, ChevronLeft, ChevronRight,
-  Plus, SlidersHorizontal, Filter, GripVertical, Users, X, RotateCcw,
+  Plus, SlidersHorizontal, Filter, GripVertical, Users, MailX, Ban, X, RotateCcw,
 } from "lucide-react";
 import { useCurrentOrg } from "@/hooks/useCurrentOrg";
 import { useAuth } from "@/hooks/useAuth";
@@ -39,6 +41,7 @@ import { getContacts, getUserPreference, setUserPreference } from "@/lib/db";
 import { contactToKontakteRow, type KontakteRow } from "@/lib/kontakteMappers";
 import { daysSinceIso } from "@/lib/hunterMappers";
 import { evaluateFilter, type FilterDefinition, type FilterNode } from "@/lib/filter";
+import type { ContactRow } from "@/types/rows";
 import { cn } from "@/lib/utils";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
@@ -56,13 +59,8 @@ const STATUS_CFG: Record<string, { label: string; tone: "success" | "warn" | "ur
   ohne_campaign: { label: "Neu", tone: "muted" },
   opt_out: { label: "Opt-out", tone: "urgent" },
 };
-const STATUS_OPTS = [
-  { id: "in_campaign", label: "In Campaign" },
-  { id: "pipeline", label: "Pipeline" },
-  { id: "kunde", label: "Kunde" },
-  { id: "archiviert", label: "Archiviert" },
-  { id: "opt_out", label: "Opt-out" },
-];
+// Reihenfolge der Status-Pills (nur mit Count > 0 sichtbar).
+const STATUS_ORDER = ["ohne_campaign", "in_campaign", "pipeline", "kunde", "archiviert", "opt_out"];
 const SOURCE_OPTS = [
   { id: "sherloq", label: "Sherloq" },
   { id: "csv_upload", label: "CSV" },
@@ -89,10 +87,10 @@ type SavedView = {
   pageSize?: number;
 };
 
-/** Filter-Auswahl (Multi) → K-2-FilterDefinition (contacts-Felder). Kein Filter → null. */
-function buildFilterDef(status: string[], source: string[], icp: string[]): FilterDefinition | null {
+/** Filter-Auswahl → K-2-FilterDefinition (contacts-Felder). Kein Filter → null. */
+function buildFilterDef(status: string | null, source: string[], icp: string[], noContactWay: boolean): FilterDefinition | null {
   const rules: FilterNode[] = [];
-  if (status.length) rules.push({ field: "contact_status", operator: "in", value: status });
+  if (status) rules.push({ field: "contact_status", operator: "eq", value: status });
   if (source.length) rules.push({ field: "lead_source", operator: "in", value: source });
   if (icp.length) {
     const bands: FilterNode[] = [];
@@ -104,38 +102,46 @@ function buildFilterDef(status: string[], source: string[], icp: string[]): Filt
     if (icp.includes("low")) bands.push({ field: "icp_score", operator: "lt", value: 50 });
     rules.push(bands.length === 1 ? bands[0] : { logic: "OR", rules: bands });
   }
+  if (noContactWay) rules.push({ logic: "AND", rules: [
+    { field: "email", operator: "is_empty" },
+    { field: "linkedin_url", operator: "is_empty" },
+  ] });
   if (!rules.length) return null;
   return { entity: "contacts", where: rules.length === 1 ? rules[0] : { logic: "AND", rules } };
 }
 
-/** Multi-Select-Filter als Popover (shadcn-Primitiv) — aktive Zahl im Trigger. */
-function FilterDropdown({
-  label, options, selected, onChange,
-}: { label: string; options: { id: string; label: string }[]; selected: string[]; onChange: (v: string[]) => void }) {
-  const active = selected.length > 0;
-  const toggle = (id: string) => onChange(selected.includes(id) ? selected.filter((x) => x !== id) : [...selected, id]);
+/** Kombiniertes „Filter"-Dropdown (Quelle + ICP) — aktive Gesamtzahl im Trigger. */
+function CombinedFilter({
+  source, onSource, icp, onIcp,
+}: { source: string[]; onSource: (v: string[]) => void; icp: string[]; onIcp: (v: string[]) => void }) {
+  const count = source.length + icp.length;
+  const toggle = (arr: string[], set: (v: string[]) => void, id: string) =>
+    set(arr.includes(id) ? arr.filter((x) => x !== id) : [...arr, id]);
+  const Row = ({ checked, label, onToggle }: { checked: boolean; label: string; onToggle: () => void }) => (
+    <label className="flex items-center gap-2.5 px-2 py-2 rounded-[8px] text-[13px] text-text-body hover:bg-app-bg cursor-pointer">
+      <input type="checkbox" checked={checked} onChange={onToggle} className="accent-[var(--sherloq-primary)] w-3.5 h-3.5" />
+      {label}
+    </label>
+  );
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <button
-          type="button"
+        <button type="button"
           className={cn(
             "inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12px] font-semibold border transition-colors cursor-pointer",
-            active ? "border-[var(--sherloq-primary)] text-[var(--sherloq-primary)] bg-[var(--signal-teal-bg)]" : "border-border text-text-body bg-app-surface hover:bg-app-bg",
-          )}
-        >
-          {label}
-          {active && <span className="min-w-[18px] h-[18px] px-1 rounded-[6px] bg-[var(--sherloq-primary)] text-on-accent text-[10px] font-bold flex items-center justify-center tabular-nums">{selected.length}</span>}
+            count > 0 ? "border-[var(--sherloq-primary)] text-[var(--sherloq-primary)] bg-[var(--signal-teal-bg)]" : "border-border text-text-body bg-app-surface hover:bg-app-bg",
+          )}>
+          <Filter className="w-3.5 h-3.5" /> Filter
+          {count > 0 && <span className="min-w-[18px] h-[18px] px-1 rounded-[6px] bg-[var(--sherloq-primary)] text-on-accent text-[10px] font-bold flex items-center justify-center tabular-nums">{count}</span>}
           <ChevronDown className="w-3.5 h-3.5 opacity-70" />
         </button>
       </PopoverTrigger>
-      <PopoverContent align="start" portal={false} className="w-52 p-1.5">
-        {options.map((o) => (
-          <label key={o.id} className="flex items-center gap-2.5 px-2 py-2 rounded-[8px] text-[13px] text-text-body hover:bg-app-bg cursor-pointer">
-            <input type="checkbox" checked={selected.includes(o.id)} onChange={() => toggle(o.id)} className="accent-[var(--sherloq-primary)] w-3.5 h-3.5" />
-            {o.label}
-          </label>
-        ))}
+      <PopoverContent align="start" portal={false} className="w-56 p-1.5">
+        <div className="typo-section-label text-text-muted px-2 pt-1 pb-1">Quelle</div>
+        {SOURCE_OPTS.map((o) => <Row key={o.id} checked={source.includes(o.id)} label={o.label} onToggle={() => toggle(source, onSource, o.id)} />)}
+        <div className="my-1 border-t border-[var(--border-card)]" />
+        <div className="typo-section-label text-text-muted px-2 pt-1 pb-1">ICP</div>
+        {ICP_OPTS.map((o) => <Row key={o.id} checked={icp.includes(o.id)} label={o.label} onToggle={() => toggle(icp, onIcp, o.id)} />)}
       </PopoverContent>
     </Popover>
   );
@@ -156,9 +162,10 @@ export default function ScreenKontakte() {
   const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({});
   const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
   const [selectAllFiltered, setSelectAllFiltered] = useState(false);
-  const [statusFilter, setStatusFilter] = useState<string[]>([]);
+  const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [sourceFilter, setSourceFilter] = useState<string[]>([]);
   const [icpFilter, setIcpFilter] = useState<string[]>([]);
+  const [noContactWay, setNoContactWay] = useState(false);
   const [configOpen, setConfigOpen] = useState(false);
   const [anlegenOpen, setAnlegenOpen] = useState(false);
   const [detailPerson, setDetailPerson] = useState<Person | null>(null);
@@ -199,15 +206,30 @@ export default function ScreenKontakte() {
     staleTime: 30_000,
   });
 
+  const raw: ContactRow[] = useMemo(() => contactsQuery.data ?? [], [contactsQuery.data]);
+
   const rows: KontakteRow[] = useMemo(() => {
-    const def = buildFilterDef(statusFilter, sourceFilter, icpFilter);
-    const raw = contactsQuery.data ?? [];
+    const def = buildFilterDef(statusFilter, sourceFilter, icpFilter, noContactWay);
     const filtered = def ? raw.filter((r) => evaluateFilter(def, r as unknown as Record<string, unknown>)) : raw;
     return filtered.map(contactToKontakteRow);
-  }, [contactsQuery.data, statusFilter, sourceFilter, icpFilter]);
+  }, [raw, statusFilter, sourceFilter, icpFilter, noContactWay]);
+
+  // Echte Counts aus dem geladenen Satz (≤1000) — nichts erfunden, kein DB-Extra-Call.
+  const counts = useMemo(() => {
+    const byStatus: Record<string, number> = {};
+    let noWay = 0;
+    for (const c of raw) {
+      const s = c.contact_status ?? "";
+      if (s) byStatus[s] = (byStatus[s] ?? 0) + 1;
+      const noEmail = !c.email;
+      const noLi = !c.linkedin_url;
+      if (noEmail && noLi) noWay += 1;
+    }
+    return { byStatus, total: raw.length, noWay, optOut: byStatus["opt_out"] ?? 0 };
+  }, [raw]);
 
   // Filter-/Seitenwechsel → Bulk-Auswahl zurücksetzen (nie still über den Filter hinaus wirken).
-  useEffect(() => { setRowSelection({}); setSelectAllFiltered(false); }, [statusFilter, sourceFilter, icpFilter]);
+  useEffect(() => { setRowSelection({}); setSelectAllFiltered(false); }, [statusFilter, sourceFilter, icpFilter, noContactWay]);
 
   const col = createColumnHelper<KontakteRow>();
   const columns = useMemo(
@@ -283,12 +305,23 @@ export default function ScreenKontakte() {
   const to = Math.min((pageIndex + 1) * pageSize, total);
   const selectedCount = selectAllFiltered ? total : Object.keys(rowSelection).length;
   const pageAllSelected = pageRows.length > 0 && pageRows.every((r) => rowSelection[r.id]);
-  const hasFilter = statusFilter.length > 0 || sourceFilter.length > 0 || icpFilter.length > 0;
+  const hasFilter = !!statusFilter || sourceFilter.length > 0 || icpFilter.length > 0 || noContactWay;
+
+  // Lagebild-Kategorien (nur KONTAKT-bezogen + in dieser Tabelle filterbar). 0 → weg.
+  const lagebild = [
+    { key: "no_way", label: "Ohne Kontaktweg", count: counts.noWay, icon: MailX, active: noContactWay,
+      apply: () => { setStatusFilter(null); setSourceFilter([]); setIcpFilter([]); setNoContactWay((v) => !v); } },
+    { key: "opt_out", label: "Opt-outs", count: counts.optOut, icon: Ban, active: statusFilter === "opt_out",
+      apply: () => { setNoContactWay(false); setSourceFilter([]); setIcpFilter([]); setStatusFilter(statusFilter === "opt_out" ? null : "opt_out"); } },
+  ].filter((c) => c.count > 0);
 
   const resetColumns = () => { setColumnVisibility({}); setColumnOrder([]); setColumnSizing({}); };
-  const clearFilters = () => { setStatusFilter([]); setSourceFilter([]); setIcpFilter([]); };
+  const clearFilters = () => { setStatusFilter(null); setSourceFilter([]); setIcpFilter([]); setNoContactWay(false); };
   const clearSelection = () => { setRowSelection({}); setSelectAllFiltered(false); };
   const bulkAction = (label: string) => { toast(`${label}: ${selectedCount} Kontakte (folgt) ✓`, "info"); clearSelection(); };
+
+  // Status-Pill wählen (single) — hebt „Ohne Kontaktweg" auf.
+  const pickStatus = (id: string | null) => { setNoContactWay(false); setStatusFilter(id); };
 
   // Drag-Reorder der Spalten (nur Datenspalten; Checkbox + Öffnen-Pfeil bleiben fix).
   const onColDrop = (targetId: string) => {
@@ -300,6 +333,20 @@ export default function ScreenKontakte() {
     order.splice(to2, 0, order.splice(from2, 1)[0]);
     setColumnOrder(order);
     setDraggedCol(null);
+  };
+
+  const StatusPill = ({ id, label, count }: { id: string | null; label: string; count: number }) => {
+    const active = id === null ? !statusFilter && !noContactWay : statusFilter === id;
+    return (
+      <button type="button" onClick={() => pickStatus(id)}
+        className={cn(
+          "inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12px] font-semibold border transition-colors cursor-pointer",
+          active ? "bg-[var(--sherloq-primary)] text-on-accent border-transparent" : "bg-app-surface text-text-body border-border hover:bg-app-bg",
+        )}>
+        {label}
+        <span className={cn("tabular-nums text-[11px]", active ? "text-on-accent/80" : "text-text-muted")}>{count.toLocaleString("de-DE")}</span>
+      </button>
+    );
   };
 
   return (
@@ -336,19 +383,37 @@ export default function ScreenKontakte() {
         </div>
       </div>
 
-      {/* Filter — drei Multi-Select-Dropdowns + Reset + (erweiterter Builder folgt) */}
-      <div className="flex items-center gap-2 mb-4">
-        <FilterDropdown label="Status" options={STATUS_OPTS} selected={statusFilter} onChange={setStatusFilter} />
-        <FilterDropdown label="Quelle" options={SOURCE_OPTS} selected={sourceFilter} onChange={setSourceFilter} />
-        <FilterDropdown label="ICP" options={ICP_OPTS} selected={icpFilter} onChange={setIcpFilter} />
+      {/* Lagebild — klickbare Bestands-Zahlen (nur echt + hier filterbar). Alle 0 → Zeile weg. */}
+      {lagebild.length > 0 && (
+        <div className="flex items-center gap-2 flex-wrap mb-3">
+          {lagebild.map((c) => {
+            const Icon = c.icon;
+            return (
+              <button key={c.key} type="button" onClick={c.apply}
+                className={cn(
+                  "inline-flex items-center gap-2 pl-2.5 pr-3 py-1.5 rounded-[10px] border text-[12px] transition-colors cursor-pointer",
+                  c.active ? "border-[var(--sherloq-primary)] bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)]" : "border-border bg-app-surface text-text-body hover:bg-app-bg",
+                )}>
+                <Icon className="w-3.5 h-3.5 opacity-80" />
+                <span className="font-bold tabular-nums">{c.count.toLocaleString("de-DE")}</span>
+                <span className="text-text-muted">{c.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Filter — Status-Pills mit echten Counts + kombiniertes „Filter"-Dropdown (Quelle/ICP) */}
+      <div className="flex items-center gap-2 flex-wrap mb-4">
+        <StatusPill id={null} label="Alle" count={counts.total} />
+        {STATUS_ORDER.filter((s) => (counts.byStatus[s] ?? 0) > 0).map((s) => (
+          <StatusPill key={s} id={s} label={STATUS_CFG[s]?.label ?? s} count={counts.byStatus[s]} />
+        ))}
+        <span className="w-px h-5 bg-border mx-1" />
+        <CombinedFilter source={sourceFilter} onSource={setSourceFilter} icp={icpFilter} onIcp={setIcpFilter} />
         {hasFilter && (
           <button type="button" onClick={clearFilters} className="text-[12px] font-semibold text-text-muted hover:text-text-primary transition-colors cursor-pointer px-2">Alle zurücksetzen</button>
         )}
-        <div className="flex-1" />
-        <button type="button" disabled data-tip="Erweiterter Filter-Builder folgt (K-2 Filter-UI)"
-          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12px] font-semibold border border-border text-text-muted opacity-60 cursor-not-allowed">
-          <Filter className="w-3.5 h-3.5" /> Filter
-        </button>
       </div>
 
       {/* Bulk-Bar (Gmail-Muster) */}
