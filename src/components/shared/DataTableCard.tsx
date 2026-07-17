@@ -15,6 +15,7 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { ArrowRight, ArrowUp, ArrowDown, ChevronsUpDown, ChevronLeft, ChevronRight, GripVertical } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
+import { reorderColumns } from "@/lib/columnOrder";
 import { useHoverPrefetch } from "@/hooks/useHoverPrefetch";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import EmptyState from "@/components/shared/EmptyState";
@@ -59,17 +60,20 @@ export default function DataTableCard<T>({
   const from = total === 0 ? 0 : pageIndex * pageSize + 1;
   const to = Math.min((pageIndex + 1) * pageSize, total);
 
-  // Drag-Reorder (nur Datenspalten; Checkbox + Öffnen-Pfeil bleiben fix).
+  // Drag-Reorder (nur Datenspalten; Checkbox + Öffnen-Pfeil bleiben fix). reorderColumns
+  // normalisiert auf den VOLLSTÄNDIGEN aktuellen Spaltensatz → auch nachträglich sichtbar
+  // geschaltete Set-B-Spalten sind verschiebbar, selbst wenn die gespeicherte Order sie nicht kennt.
   const onColDrop = (targetId: string) => {
     const dragged = draggedCol.current;
     draggedCol.current = null;
-    if (!dragged || dragged === targetId) return;
-    const order = table.getState().columnOrder.length ? [...table.getState().columnOrder] : table.getAllLeafColumns().map((c) => c.id);
-    const from2 = order.indexOf(dragged);
-    const to2 = order.indexOf(targetId);
-    if (from2 < 0 || to2 < 0) return;
-    order.splice(to2, 0, order.splice(from2, 1)[0]);
-    table.setColumnOrder(order);
+    if (!dragged) return;
+    const next = reorderColumns(
+      table.getAllLeafColumns().map((c) => c.id),
+      table.getState().columnOrder,
+      dragged,
+      targetId,
+    );
+    if (next) table.setColumnOrder(next);
   };
 
   return (
