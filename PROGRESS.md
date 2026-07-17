@@ -195,6 +195,14 @@
         (kein Cron/materialisiertes `list_members` für dynamisch) — `filter_config` bleibt Single Source, spätere
         AI-SDR-Materialisierung (Feed/`sync_list_campaigns`) ohne Umbau. Gates grün, beide Agents.
         **Deferred (benannt):** voller K-2-Filter-Builder-UI (eigener Slice) · AI-SDR-Feed-Cron.
+  - [x] **K-3b Phase A — Listen-Verwaltung (2026-07-17, Branch `feat/k3b-listen-verwaltung`).** QA-Lücken
+        nachgezogen: **Liste löschen** (`ui/alert-dialog`-Bestätigung, irreversibel) · **umbenennen**
+        (Inline im Listen-Dropdown, Hover-Stift) · **Kontakt aus Liste entfernen** (nur STATISCH, nur
+        Mitgliedschaft — `removeFromList`; Bulk-Button in der Bulk-Bar + Per-Zeile-Hover in der aktiven
+        Listenansicht; **nie** Kontakt gelöscht/archiviert) · **Toasts** für alle Listen-Aktionen (add
+        vorhanden; Verkabelung verifiziert: ToastProvider gemountet, Toast `z-[60]` über Dialogen `z-50`).
+        db.ts neu: `renameList` + `removeFromList`. i18n `kontakte.lists.*` ergänzt. Teil der A→B→C→D-Reihe
+        (A Listen · B Avatar · C geteilte Tabelle+Spalten+Suche · D K-4 Companies).
   - [ ] **Campaign-Zuweisung — Anschlusspunkt (AI-SDR-Slice 6)** — Bulk-Aktion **+ Zeilen-Aktion**
         „Zu Campaign hinzufügen" wird in AI-SDR-Slice 6 nur **aktiviert**, nicht neu gebaut. Struktur
         vorbereitet (Bulk-Bar-Muster + `selectAllFiltered`-Auswahl über den ganzen Filter). **Beim

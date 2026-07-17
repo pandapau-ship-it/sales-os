@@ -34,11 +34,12 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import {
   ArrowRight, ArrowUp, ArrowDown, ChevronsUpDown, ChevronDown, ChevronLeft, ChevronRight,
   Plus, SlidersHorizontal, Filter, GripVertical, Users, MailX, Ban, X, RotateCcw, List, ListPlus,
+  Pencil, Trash2, UserMinus,
 } from "lucide-react";
 import { useCurrentOrg } from "@/hooks/useCurrentOrg";
 import { useAuth } from "@/hooks/useAuth";
 import { useNowMs } from "@/hooks/useNowMs";
-import { getContacts, getUserPreference, setUserPreference, getLists, getListMembers, type ListView } from "@/lib/db";
+import { getContacts, getUserPreference, setUserPreference, getLists, getListMembers, renameList, removeFromList, deleteList, type ListView } from "@/lib/db";
 import { contactToKontakteRow, type KontakteRow } from "@/lib/kontakteMappers";
 import { daysSinceIso } from "@/lib/hunterMappers";
 import { evaluateFilter, type FilterDefinition, type FilterNode } from "@/lib/filter";
@@ -46,6 +47,7 @@ import type { ContactRow } from "@/types/rows";
 import { cn } from "@/lib/utils";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogFooter, AlertDialogTitle, AlertDialogDescription, AlertDialogAction, AlertDialogCancel } from "@/components/ui/alert-dialog";
 import { Avatar, ICPDonut, StatusBadge, LeadSourceBadge, RoutingChip, EmptyState } from "@/components";
 import { useToast } from "@/components/shared/toastContext";
 import KontaktAnlegenPanel from "@/components/features/kontakte/KontaktAnlegenPanel";
@@ -161,6 +163,9 @@ export default function ScreenKontakte() {
   const [listMenuOpen, setListMenuOpen] = useState(false);
   const [neueListeOpen, setNeueListeOpen] = useState(false);
   const [zuListeOpen, setZuListeOpen] = useState(false);
+  const [renamingListId, setRenamingListId] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<ListView | null>(null);
   const queryClient = useQueryClient();
 
   // ── Persistenz (pro User) — laden beim Mount, speichern bei Änderung ──────────
@@ -324,6 +329,46 @@ export default function ScreenKontakte() {
     setSelectedList(l); setListMenuOpen(false);
   };
   const closeList = () => setSelectedList(null);
+  const invalidateLists = () => { void queryClient.invalidateQueries({ queryKey: ["lists", organizationId] }); };
+
+  // Liste umbenennen (Inline im Dropdown).
+  const startRename = (l: ListView) => { setRenamingListId(l.id); setRenameValue(l.name); };
+  const saveRename = async (l: ListView) => {
+    const name = renameValue.trim();
+    setRenamingListId(null);
+    if (!name || name === l.name) return;
+    try {
+      await renameList(organizationId, l.id, name);
+      if (selectedList?.id === l.id) setSelectedList({ ...selectedList, name });
+      invalidateLists();
+      toast(t("kontakte.lists.renamedToast", { name }), "success");
+    } catch { toast(t("kontakte.create.createErrorToast"), "error"); }
+  };
+
+  // Liste löschen (mit Bestätigung — irreversibel).
+  const confirmDelete = async () => {
+    const l = deleteTarget;
+    setDeleteTarget(null);
+    if (!l) return;
+    try {
+      await deleteList(organizationId, l.id);
+      if (selectedList?.id === l.id) closeList();
+      invalidateLists();
+      toast(t("kontakte.lists.deletedToast", { name: l.name }), "success");
+    } catch { toast(t("kontakte.create.createErrorToast"), "error"); }
+  };
+
+  // Kontakt(e) aus der AKTIVEN statischen Liste entfernen (nur Mitgliedschaft, nie den Kontakt).
+  const removeFromCurrentList = async (ids: string[]) => {
+    if (!selectedList || selectedList.type !== "static" || !ids.length) return;
+    try {
+      await removeFromList(organizationId, selectedList.id, ids);
+      void queryClient.invalidateQueries({ queryKey: ["listMembers", organizationId, selectedList.id] });
+      invalidateLists();
+      clearSelection();
+      toast(t("kontakte.lists.removedToast", { count: ids.length, name: selectedList.name }), "success");
+    } catch { toast(t("kontakte.create.createErrorToast"), "error"); }
+  };
 
   // Lagebild-Kategorien (nur KONTAKT-bezogen + in dieser Tabelle filterbar). 0 → weg.
   const lagebild = [
@@ -434,12 +479,26 @@ export default function ScreenKontakte() {
               {lists.length === 0 ? (
                 <p className="px-2 py-3 text-center text-[12px] text-text-muted">{t("kontakte.lists.none")}</p>
               ) : lists.map((l) => (
-                <button key={l.id} type="button" onClick={() => openList(l)}
-                  className="w-full flex items-center gap-2 px-2 py-2 rounded-[8px] text-left hover:bg-app-bg cursor-pointer">
-                  {l.type === "dynamic" ? <Filter className="w-3.5 h-3.5 text-[var(--sherloq-primary)] shrink-0" /> : <List className="w-3.5 h-3.5 text-text-muted shrink-0" />}
-                  <span className="flex-1 min-w-0 truncate text-[13px] text-text-body">{l.name}</span>
-                  <span className="text-[11px] text-text-muted tabular-nums">{l.memberCount.toLocaleString("de-DE")}</span>
-                </button>
+                <div key={l.id} className="group/li flex items-center gap-1 px-2 py-1.5 rounded-[8px] hover:bg-app-bg">
+                  {renamingListId === l.id ? (
+                    <input autoFocus value={renameValue} onChange={(e) => setRenameValue(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === "Enter") void saveRename(l); if (e.key === "Escape") setRenamingListId(null); }}
+                      onBlur={() => void saveRename(l)}
+                      className="flex-1 min-w-0 text-[13px] px-2 py-1 bg-app-surface border border-[var(--sherloq-primary)] rounded-[6px] outline-none" />
+                  ) : (
+                    <>
+                      <button type="button" onClick={() => openList(l)} className="flex-1 flex items-center gap-2 min-w-0 text-left cursor-pointer">
+                        {l.type === "dynamic" ? <Filter className="w-3.5 h-3.5 text-[var(--sherloq-primary)] shrink-0" /> : <List className="w-3.5 h-3.5 text-text-muted shrink-0" />}
+                        <span className="flex-1 min-w-0 truncate text-[13px] text-text-body">{l.name}</span>
+                        <span className="text-[11px] text-text-muted tabular-nums">{l.memberCount.toLocaleString("de-DE")}</span>
+                      </button>
+                      <div className="flex items-center gap-0.5 opacity-0 group-hover/li:opacity-100 focus-within:opacity-100 transition-opacity shrink-0">
+                        <button type="button" onClick={() => startRename(l)} aria-label={t("kontakte.lists.rename")} data-tip={t("kontakte.lists.rename")} className="w-6 h-6 rounded-[6px] flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-app-surface cursor-pointer"><Pencil className="w-3 h-3" /></button>
+                        <button type="button" onClick={() => setDeleteTarget(l)} aria-label={t("kontakte.lists.delete")} data-tip={t("kontakte.lists.delete")} className="w-6 h-6 rounded-[6px] flex items-center justify-center text-text-muted hover:text-[var(--signal-urgent-text)] hover:bg-app-surface cursor-pointer"><Trash2 className="w-3 h-3" /></button>
+                      </div>
+                    </>
+                  )}
+                </div>
               ))}
               <div className="mt-1 pt-1 border-t border-[var(--border-card)]">
                 <button type="button" onClick={() => { setListMenuOpen(false); setNeueListeOpen(true); }}
@@ -488,6 +547,9 @@ export default function ScreenKontakte() {
             {selectAllFiltered && <button onClick={clearSelection} className="text-[var(--sherloq-primary)] font-semibold hover:underline cursor-pointer">{t("kontakte.bulk.clear")}</button>}
           </div>
           <div className="flex items-center gap-2">
+            {listActive && selectedList?.type === "static" && (
+              <button onClick={() => removeFromCurrentList(selectedIds)} className="sherloq-btn-secondary inline-flex items-center gap-1.5 text-[var(--signal-urgent-text)] border-[var(--signal-urgent-text)]/30 hover:bg-[var(--signal-urgent-bg)]"><UserMinus className="w-3.5 h-3.5" /> {t("kontakte.lists.removeFromList")}</button>
+            )}
             <button onClick={() => setZuListeOpen(true)} className="sherloq-btn-secondary inline-flex items-center gap-1.5"><ListPlus className="w-3.5 h-3.5" /> {t("kontakte.bulk.toList")}</button>
             <button onClick={() => bulkAction(t("kontakte.bulk.tagFull"))} className="sherloq-btn-secondary">{t("kontakte.bulk.tag")}</button>
             <button onClick={() => bulkAction(t("kontakte.bulk.archiveFull"))} className="sherloq-btn-secondary">{t("kontakte.bulk.archive")}</button>
@@ -548,7 +610,7 @@ export default function ScreenKontakte() {
                   const selected = selectAllFiltered || !!rowSelection[row.id];
                   return (
                     <div key={row.id}
-                      className={cn("flex items-center gap-4 px-5 border-b border-[var(--border-card)] hover:bg-app-bg/60 transition-colors absolute top-0 left-0 w-full", selected && "bg-[var(--signal-teal-bg)]")}
+                      className={cn("group/row flex items-center gap-4 px-5 border-b border-[var(--border-card)] hover:bg-app-bg/60 transition-colors absolute top-0 left-0 w-full", selected && "bg-[var(--signal-teal-bg)]")}
                       style={{ height: vi.size, transform: `translateY(${vi.start}px)` }}>
                       <label className="flex items-center cursor-pointer shrink-0 w-9">
                         <input type="checkbox" aria-label={t("kontakte.selectRow")} checked={selected}
@@ -559,6 +621,13 @@ export default function ScreenKontakte() {
                           {flexRender(cell.column.columnDef.cell, cell.getContext())}
                         </div>
                       ))}
+                      {listActive && selectedList?.type === "static" && (
+                        <button type="button" aria-label={t("kontakte.lists.removeFromList")} data-tip={t("kontakte.lists.removeFromList")}
+                          onClick={() => removeFromCurrentList([row.id])}
+                          className="w-8 h-8 shrink-0 rounded-full flex items-center justify-center text-text-muted hover:text-[var(--signal-urgent-text)] hover:bg-[var(--signal-urgent-bg)] cursor-pointer opacity-0 group-hover/row:opacity-100 focus-within:opacity-100 transition-opacity">
+                          <UserMinus className="w-4 h-4" />
+                        </button>
+                      )}
                       <button type="button" aria-label={t("kontakte.openContact")} data-tip={t("kontakte.openContact")}
                         onClick={() => { const r = row.original; setDetailPerson({ id: r.id, name: r.name, jobTitle: r.jobTitle, company: r.company, initials: r.initials, avatarUrl: r.avatarUrl }); }}
                         className="w-8 h-8 shrink-0 rounded-full bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)] hover:scale-105 transition-transform flex items-center justify-center cursor-pointer">
@@ -627,6 +696,20 @@ export default function ScreenKontakte() {
         onClose={() => setZuListeOpen(false)}
         onDone={() => { clearSelection(); void queryClient.invalidateQueries({ queryKey: ["lists", organizationId] }); }}
       />
+
+      {/* Liste löschen — Bestätigung (irreversibel) */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(o) => { if (!o) setDeleteTarget(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("kontakte.lists.deleteTitle")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("kontakte.lists.deleteConfirm", { name: deleteTarget?.name ?? "" })}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-[var(--signal-urgent-text)] hover:opacity-90">{t("kontakte.lists.delete")}</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
