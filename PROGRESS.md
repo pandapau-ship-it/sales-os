@@ -165,6 +165,9 @@
         **i18n-Schuld vermerkt (nicht gefixt):** `AddSdrLeadPanel` ist selbst komplett hardcodiert Deutsch —
         neuer expliziter CHECKLIST-Punkt (i18n → Feature-Panels migrieren); ein künftiger `audit.ts`-Check
         für hardcodierte JSX-Strings würde ihn automatisch aufdecken.
+        **+ Nachtrag (K-4b-1-QA, 2026-07-17):** auch `HunterSidepanel` Details-Tab-Labels (`Vorname`/`Nachname`
+        u.a.) sind hardcodiert statt `t()` — im SELBEN i18n-Backlog-Punkt gesammelt (CHECKLIST → Feature-Panels
+        migrieren). Nicht jetzt fixen, künftiger i18n-Aufräum-Slice.
         **Nebenbefund behoben (2026-07-17):** der Token `--signal-danger-text` existierte NIE (still
         gebrochener Pflicht-Stern in `PanelField`/`AddSdrLeadPanel`/`NewDealCard`/`PhoneNumbersField`) →
         auf `--signal-urgent-text` korrigiert; `ScreenPlaceholder` (3 tote `--sherloq-text*`-Tokens) auf

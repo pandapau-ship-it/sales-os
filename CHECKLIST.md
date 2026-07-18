@@ -321,7 +321,7 @@
 - [x] Sprachumschalter in Settings → Allgemein (DE/EN/ES)
 - [x] TopBar Nav-Labels + Settings-Dialog über `t()` migriert
 - [ ] **Alle übrigen Screens migrieren** → ScreenMyDay/Hunting/Farming/Marketing/Jira/Sherloq, CustomerDrawer, CommandPalette, Sidebar — *jeder hardcodierte UI-String → `t()`*
-- [ ] **Feature-Panels migrieren (NEU vermerkt 2026-07-17)** → **`AddSdrLeadPanel`** (Referenz-Panel, komplett hardcodiert Deutsch außerhalb i18n — bei der K-3-QA aufgefallen) + weitere `features/hunter`/`features/farmer`-Panels. *Nicht jetzt fixen, nur festgehalten.* **Erledigt (K-3):** `ScreenKontakte`, `KontaktAnlegenPanel`, `LeadSourceBadge`, `RoutingChip` (Namespace `kontakte.*`).
+- [ ] **Feature-Panels migrieren (NEU vermerkt 2026-07-17)** → **`AddSdrLeadPanel`** (Referenz-Panel, komplett hardcodiert Deutsch außerhalb i18n — bei der K-3-QA aufgefallen) + **`HunterSidepanel` Details-Tab-Labels** (`Vorname`/`Nachname` u.a. hardcodiert statt `t()` — bei der K-4b-1-QA aufgefallen) + weitere `features/hunter`/`features/farmer`-Panels. *Nicht jetzt fixen, nur festgehalten.* **Erledigt (K-3/K-4):** `ScreenKontakte`, `KontaktAnlegenPanel`, `LeadSourceBadge`, `RoutingChip` (`kontakte.*`), `ScreenCompanies`/`ScreenCompanyDetail`/`CompanyAnlegenPanel` (`companies.*`).
 - [ ] EN/ES tatsächlich übersetzen (aktuell DE-Kopie)
 - [ ] `audit.ts` erweitern: hardcodierte UI-Strings im JSX erkennen — *Regel automatisch prüfen* (würde AddSdrLeadPanel u.a. automatisch aufdecken)
 
