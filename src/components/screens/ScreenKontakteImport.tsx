@@ -31,7 +31,7 @@ import { validateImport, summarize } from "@/lib/import/validate";
 import { buildImportPlan, type RowDecision } from "@/lib/import/execute";
 import { detectEncoding, detectDelimiter, stripBom } from "@/lib/import/detect";
 import type { ColumnMapping, ImportField, MappedRecord, ParsedFile, ValidatedRow } from "@/lib/import/types";
-import { KpiCard, StatusBadge, EmptyState } from "@/components";
+import { KpiCard, StatusBadge, EmptyState, Stepper } from "@/components";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 
 const IMPORT_FIELDS: ImportField[] = [
@@ -244,28 +244,9 @@ export default function ScreenKontakteImport() {
         </button>
       </header>
 
-      {/* Stepper */}
+      {/* Stepper (wiederverwendbare Komponente mit Mikro-Animation) */}
       <div className="pt-8 pb-6 shrink-0">
-        <div className="max-w-3xl mx-auto flex items-center justify-between relative px-4">
-          <div className="absolute left-0 top-4 w-full h-0.5 bg-border -z-10" />
-          <div className="absolute left-0 top-4 h-0.5 bg-[var(--sherloq-primary)] -z-10 transition-all duration-500"
-            style={{ width: `${((step - 1) / 3) * 100}%` }} />
-          {STEPS.map((s) => {
-            const active = s.num === step;
-            const done = s.num < step;
-            return (
-              <div key={s.num} className="flex flex-col items-center gap-2 bg-app-bg px-2">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[13px] font-bold border-2 transition-colors ${
-                  active ? "border-[var(--sherloq-primary)] bg-[var(--sherloq-primary)] text-on-accent"
-                    : done ? "border-[var(--sherloq-primary)] bg-[var(--sherloq-primary)] text-on-accent"
-                    : "border-border-strong bg-app-surface text-text-muted"}`}>
-                  {done ? <Check className="w-4 h-4" /> : s.num}
-                </div>
-                <span className={`typo-field-label ${active ? "text-[var(--sherloq-primary)]" : done ? "text-text-body" : "text-text-muted"}`}>{s.label}</span>
-              </div>
-            );
-          })}
-        </div>
+        <Stepper steps={STEPS} current={step} />
       </div>
 
       {/* Inhalt */}
@@ -413,6 +394,15 @@ export default function ScreenKontakteImport() {
   function renderStep3() {
     if (dedupQuery.isLoading) {
       return <div className="max-w-6xl mx-auto flex items-center justify-center py-24 text-text-muted"><Loader2 className="w-6 h-6 animate-spin" /></div>;
+    }
+    // Dedup-Universum konnte nicht geladen werden → ehrliche Meldung + Retry, NIE still 0 anzeigen.
+    if (dedupQuery.isError) {
+      return (
+        <div className="max-w-2xl mx-auto py-16">
+          <EmptyState icon={<AlertTriangle className="w-6 h-6" />} title={t("import.checkFailedTitle")} description={t("import.checkFailedDesc")}
+            action={{ label: t("import.retry"), onClick: () => void dedupQuery.refetch() }} />
+        </div>
+      );
     }
     if (plan.total > 0 && plan.createCount === 0 && report.error + report.duplicate === plan.total) {
       // Ehrlicher „nichts zu importieren"-Zustand (alle Zeilen Duplikat/Fehler).

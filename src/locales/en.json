@@ -9,6 +9,7 @@
     "delete": "Löschen",
     "edit": "Bearbeiten",
     "back": "Zurück",
+    "next": "Weiter",
     "loading": "Lädt …",
     "empty": "—",
     "comingSoon": "wird gebaut"
@@ -788,6 +789,8 @@
     "importCount_other": "{{count}} Kontakte importieren",
     "nothingTitle": "Nichts zu importieren",
     "nothingDesc": "Alle Zeilen sind Duplikate oder fehlerhaft — es bleibt kein neuer Kontakt zum Anlegen.",
+    "checkFailedTitle": "Prüfung nicht möglich",
+    "checkFailedDesc": "Wir konnten die bestehenden Kontakte für den Abgleich gerade nicht laden — bitte erneut versuchen.",
     "importingTitle": "Kontakte werden importiert",
     "importingProgress": "Importiere … {{done}} / {{total}}",
     "importErrorTitle": "Import nicht abgeschlossen",

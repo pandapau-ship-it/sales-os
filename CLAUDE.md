@@ -111,7 +111,8 @@ ALTER TABLE knowledge_base ENABLE ROW LEVEL SECURITY;
   liegen, die dort nicht hingehören (= keine echten shared-Atome). Erlaubt in `shared/`:
   `Avatar` · `LinkedinIcon` · `Toast` · `EmptyState` · `CommandPalette` · `ICPDonut` · `BrandLogo`
   · `BrandIcons` · `CommunicationChain` · `CustomerDrawer` · `Badge` · `TooltipLayer` · `DataTableCard`
-  · `ColumnConfigPopover` (geteilte Tabellen-Mechanik, K-3 Phase C — von Kontakte + Companies genutzt).
+  · `ColumnConfigPopover` (geteilte Tabellen-Mechanik, K-3 Phase C — von Kontakte + Companies genutzt)
+  · `TableSearch` · `Stepper` (geteilter Wizard-Fortschritt mit Mikro-Animation, K-5 — für künftige Wizard-Flows).
   Alles andere → `panel-blocks/`
   bzw. `features/[modul]/`. Neue erlaubte shared-Datei → Allowlist im Script ergänzen.
 → Punkt **3** der **„GATES VOR JEDEM MERGE"** (Session Protocol — dort die vollständige Liste).

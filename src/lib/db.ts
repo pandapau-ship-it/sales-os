@@ -1397,7 +1397,7 @@ export async function findDuplicates(
       });
     }
   };
-  const sel = "id, email, linkedin_url, first_name, last_name, company:companies(name)";
+  const sel = "id, email, linkedin_url, first_name, last_name, company:companies!company_id(name)";
   const base = () => client.from("contacts").select(sel).eq("organization_id", organizationId).is("deleted_at", null).limit(50); // Soft-Delete: gelöschte nie als Duplikat (058)
 
   // Getrennte, parametrisierte Abfragen (kein .or()-String mit User-Werten → keine
@@ -1576,7 +1576,7 @@ export async function loadDedupUniverse(organizationId: string): Promise<Existin
   if (!client) return [];
   const { data, error } = await client
     .from("contacts")
-    .select("id, email, linkedin_url, first_name, last_name, company:companies(name)")
+    .select("id, email, linkedin_url, first_name, last_name, company:companies!company_id(name)")
     .eq("organization_id", organizationId)
     .is("deleted_at", null);
   if (error) throw error;
