@@ -1040,8 +1040,12 @@ import HunterCard from '@/components/panel-blocks/HunterCard';
 - Die **Kontakt-Vollansicht** ist **kein** eigener `ScreenVollansicht` (alter Entwurf verworfen),
   sondern `shared/HunterSidepanel` mit Prop **`variant: 'panel' | 'full'`** — gleicher Body, andere
   Hülle. `variant='full'` = echte Seite (ein Scroll-Container, **native Scrollbar**, sticky Tabs,
-  Hero randlos integriert — **keine** weiße Hero-Kachel). Geöffnet über ↗ im 820px-Info-Panel;
-  ← geht zurück zum Panel (Sheet wird ausgeblendet), ✕ schließt ganz (`onExit`).
+  **Hero in einer weißen Card** `rounded-[12px] border-[var(--border-card)] bg-app-surface px-6 py-5`).
+  **Card-Hero ist der Vollansicht-Standard für ALLE drei Detailseiten** — Kontakt (`HunterSidepanel`),
+  Farmer (`FarmerSidepanel`) und Company (`ScreenCompanyDetail`) sind identisch (entschieden 18.07.2026,
+  Option B — ersetzt die frühere „randlos, keine Hero-Kachel"-Regel; die drei liefen auseinander, jetzt
+  wieder einheitlich). Geöffnet über ↗ im 820px-Info-Panel **oder direkt** (Haupt-Kontakte-Tabelle-Pfeil →
+  `variant='full'`); ← geht zurück zum Panel bzw. — direkt geöffnet — zur Liste, ✕ schließt ganz (`onExit`).
   (Optional später: in eine eigene `features/hunter/`-Komposition herauslösen.)
 - **Details-Tab** (nur Vollansicht) zeigt alle CRM-Felder (→ CRM FELDER) im **Read-Mode**:
   Werte ohne Input-Rahmen, **Inline-Edit direkt im Feld** (kein Bearbeiten-Popup wie im Panel),

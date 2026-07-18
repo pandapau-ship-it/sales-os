@@ -910,16 +910,18 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Hero — randlos direkt in die Seite integriert (keine Kachel) */}
+      {/* Hero — weiße Card (Vollansicht-Standard, konsistent zu Company/Farmer; CLAUDE.md:1043 Option B) */}
       <div className="max-w-[1100px] mx-auto px-5 sm:px-10 pt-3 pb-7">
-        <div className="flex items-start justify-between gap-6 flex-wrap">
-          {identityBlock}
-          <div className="flex items-start gap-7 shrink-0">
-            {statusBadgesInner}
+        <div className="rounded-[12px] border border-[var(--border-card)] bg-app-surface px-6 py-5">
+          <div className="flex items-start justify-between gap-6 flex-wrap">
+            {identityBlock}
+            <div className="flex items-start gap-7 shrink-0">
+              {statusBadgesInner}
+            </div>
           </div>
-        </div>
-        <div className="flex items-center gap-2 flex-wrap mt-7">
-          {renderActions(fullBtn)}
+          <div className="flex items-center gap-2 flex-wrap mt-7">
+            {renderActions(fullBtn)}
+          </div>
         </div>
       </div>
 

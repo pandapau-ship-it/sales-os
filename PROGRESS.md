@@ -385,6 +385,15 @@ für JEDEN UI-Slice**, auch wenn ein Design existiert.
 > AlertDialog (Anzahl bzw. Name genannt) — Kontakt im HunterSidepanel-Details-Tab; Company im Detail-Header;
 > Bulk in beiden Tabellen. audit_log entsteht automatisch über den Trigger.
 >
+> **Nachtrag QA (18.07.2026) — Vollansicht-Konsistenz Kontakt↔Company↔Farmer:** (1) Kontakt-Löschen-
+> Button in die Vollansicht-Steuerzeile oben rechts (wie Company). (2) **Card-Hero wird Vollansicht-Standard
+> für alle drei** (Kontakt/Farmer bekommen die weiße Header-Card wie Company; **CLAUDE.md:1043 von „randlos"
+> auf „Card-Hero" umgestellt**, Option B — die drei liefen auseinander, jetzt einheitlich). (3) **Haupt-
+> Kontakte-Tabelle-Pfeil öffnet direkt die Vollansicht** (`variant='full'`, ← und ✕ → zurück zur Liste),
+> konsistent zu Companies. **Bewusst NUR die Haupt-Kontakte-Tabelle** — Company-Kontakte-Tab (`CompactContactRow`),
+> Hunter, Farmer öffnen weiter das 820px-Schnellpanel (Deeplinks laufen ausschließlich über ScreenHunting/
+> ScreenFarming-Panels, vom Kontakte-Pfeil unberührt).
+>
 > **[D-delete-rights] — bewusst NOCH OHNE (temporäre Lücke, JETZT dokumentiert):**
 > (1) **Keine Rollenprüfung** — jeder eingeloggte User kann löschen. Wird mit **Settings SET-1/SET-3**
 > (Rechte-Fundament) geschlossen. (2) **Kein Papierkorb-UI** — gelöschte Objekte sind unsichtbar, bleiben

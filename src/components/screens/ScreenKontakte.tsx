@@ -485,7 +485,10 @@ export default function ScreenKontakte() {
       <KontaktAnlegenPanel open={anlegenOpen} organizationId={organizationId} createdBy={userId}
         onClose={() => setAnlegenOpen(false)}
         onCreated={() => { setAnlegenOpen(false); void queryClient.invalidateQueries({ queryKey: ["kontakte", organizationId] }); }} />
-      {detailPerson && <HunterSidepanel person={detailPerson} onClose={() => setDetailPerson(null)} />}
+      {/* Haupt-Kontakte-Tabelle: Pfeil öffnet direkt die Vollansicht (konsistent zu Companies).
+          Direkt geöffnet → ← und ✕ führen beide zur Liste zurück (kein Panel-Umweg). Gilt NUR hier;
+          Company-Kontakte-Tab/Hunter/Farmer öffnen weiterhin das Schnellpanel. */}
+      {detailPerson && <HunterSidepanel person={detailPerson} variant="full" onClose={() => setDetailPerson(null)} onExit={() => setDetailPerson(null)} />}
 
       {/* Listen: Erstellen + „Zu Liste" (Bulk) */}
       <NeueListeDialog open={neueListeOpen} organizationId={organizationId} createdBy={userId} currentFilterDef={currentFilterDef}
