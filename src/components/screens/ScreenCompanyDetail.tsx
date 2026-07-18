@@ -1,28 +1,35 @@
 /**
- * ScreenCompanyDetail — Company-Detailseite (volle Seite). K-4b-1: Kopf + KPIs (echt) +
- * Tab-Navigation. Aktiv: Übersicht (Company-Details, inline editierbar via updateCompany) +
- * Kontakte (echte Kontakte der Firma, „+ Kontakt" mit vorbelegter Company). Deals/Aktivität/
- * Notizen folgen in K-4b-2 (ehrlicher „folgt"-Platzhalter, kein Fake).
+ * ScreenCompanyDetail — Company-Detailseite (volle Seite). Kopf + KPIs (echt) + 5 Tabs:
+ * Übersicht (Company-Details inkl. Name inline editierbar via updateCompany) · Kontakte (echte
+ * Firmen-Kontakte, „+ Kontakt" mit vorbelegter Company) · Deals (getDealsByCompany + DealsListe,
+ * CRUD+Stage) · Aktivität (getCompanyActivity = aggregierter Touchpoint-Feed, ein Query) ·
+ * Notizen (getNotesByCompany + NotizenListe, CRUD). Alle Tabs lazy.
  *
  * Honesty: fehlende Werte → nichts; Sherloq-Zusammenfassung/Live-Signale + „Quelle/Inhaber" +
  * Churn-KPI bleiben aus (kein Company-Modul/Feld dafür). Wiederverwendung: DetailSection/
- * DetailField/PanelTabs/Avatar/ICPDonut/StatusBadge/HunterSidepanel/KontaktAnlegenPanel.
+ * DetailField/PanelTabs/CompactContactRow/DealsListe/KommunikationVerlauf/NotizenListe/HunterSidepanel.
  */
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Globe, Building2, Users, Briefcase, Activity, StickyNote, LayoutDashboard, Plus } from "lucide-react";
 import { useCurrentOrg } from "@/hooks/useCurrentOrg";
 import { useAuth } from "@/hooks/useAuth";
 import { useNowMs } from "@/hooks/useNowMs";
-import { getCompanyDetail, getContacts, updateCompany } from "@/lib/db";
+import {
+  getCompanyDetail, getContacts, updateCompany,
+  getPipelineSettings, getProducts, getOrgUsers,
+  getDealsByCompany, createDeal, updateDeal, updateDealStage, softDeleteDeal,
+  getNotesByCompany, createCompanyNote, updateNote, softDeleteNote,
+  getCompanyActivity,
+} from "@/lib/db";
 import { prefetchContactPanel } from "@/lib/prefetch";
 import { companyToCompaniesRow, formatEuroCents } from "@/lib/companiesMappers";
 import { contactToKontakteRow } from "@/lib/kontakteMappers";
-import { daysSinceIso } from "@/lib/hunterMappers";
+import { daysSinceIso, companyActivityToView } from "@/lib/hunterMappers";
 import { BRANCHE_OPTS, GROESSE_OPTS, LAND_OPTS } from "@/lib/contactDetailFields";
-import { Avatar, EmptyState, DetailSection, DetailField, HunterSidepanel, KontaktAnlegenPanel, CompactContactRow } from "@/components";
+import { Avatar, EmptyState, DetailSection, DetailField, HunterSidepanel, KontaktAnlegenPanel, CompactContactRow, DealsListe, KommunikationVerlauf, NotizenListe } from "@/components";
 import LinkedinIcon from "@/components/shared/LinkedinIcon";
 import { PanelSkeleton, PanelTabs } from "@/components/panel-blocks";
 import { useToast } from "@/components/shared/toastContext";
@@ -63,6 +70,81 @@ export default function ScreenCompanyDetail() {
     queryFn: () => getContacts(organizationId, { companyId: id, limit: 500 }),
     enabled: !!id && tab === "contacts", staleTime: 30_000,
   });
+  // Deals-Tab (lazy)
+  const dealsQuery = useQuery({
+    queryKey: ["companyDeals", organizationId, id],
+    queryFn: () => getDealsByCompany(organizationId, id),
+    enabled: !!id && tab === "deals", staleTime: 30_000,
+  });
+  // Notizen-Tab (lazy)
+  const notesQuery = useQuery({
+    queryKey: ["companyNotes", organizationId, id],
+    queryFn: () => getNotesByCompany(organizationId, id),
+    enabled: !!id && tab === "notes", staleTime: 30_000,
+  });
+  // Aktivität-Tab (lazy) — aggregierter Touchpoint-Feed aller Firmen-Kontakte
+  const activityQuery = useQuery({
+    queryKey: ["companyActivity", organizationId, id],
+    queryFn: () => getCompanyActivity(organizationId, id),
+    enabled: !!id && tab === "activity", staleTime: 30_000,
+  });
+  // Referenzdaten für den Deals-Tab (Stage-Maps + Kataloge) — nur wenn Deals-Tab aktiv.
+  const stagesQuery = useQuery({ queryKey: ["pipelineStages", organizationId], queryFn: () => getPipelineSettings(organizationId), enabled: tab === "deals", staleTime: 5 * 60_000 });
+  const productsQuery = useQuery({ queryKey: ["products", organizationId], queryFn: () => getProducts(organizationId), enabled: tab === "deals", staleTime: 5 * 60_000 });
+  const usersQuery = useQuery({ queryKey: ["orgUsers", organizationId], queryFn: () => getOrgUsers(organizationId), enabled: tab === "deals", staleTime: 5 * 60_000 });
+
+  const stages = stagesQuery.data ?? [];
+  const stageMap = Object.fromEntries(stages.map((s) => [s.slug, s.name]));
+  const stageProbMap = Object.fromEntries(stages.map((s) => [s.slug, s.probability]));
+  const stagnationBySlug = Object.fromEntries(stages.map((s) => [s.slug, s.stagnation_days]));
+  const stageOptions = [...stages].sort((a, b) => a.order - b.order).map((s) => ({ slug: s.slug, name: s.name }));
+  const productOptions = (productsQuery.data ?? []).map((p) => (p as { name: string }).name);
+  const ownerOptions = (usersQuery.data ?? []).map((u) => ({ id: (u as { id: string }).id, name: (u as { full_name?: string }).full_name ?? "" })).filter((o) => o.name);
+
+  const invalidateDeals = () => {
+    void qc.invalidateQueries({ queryKey: ["companyDeals", organizationId, id] });
+    void qc.invalidateQueries({ queryKey: ["companyDetail", organizationId, id] }); // Offene-Deals-KPI
+    void qc.invalidateQueries({ queryKey: ["deals", organizationId] });             // Hunter Pipeline/Übersicht
+  };
+  type DealFormValues = { name: string; product: string; value: string; termMonths: string; noticePeriodDays: string; expectedCloseDate: string; ownerId: string; stage: string };
+  const mapDealForm = (v: DealFormValues) => ({
+    name: v.name,
+    product: v.product || undefined,
+    valueEur: v.value && !Number.isNaN(Number(v.value)) ? Number(v.value) : undefined,
+    termMonths: v.termMonths && !Number.isNaN(Number(v.termMonths)) ? Math.trunc(Number(v.termMonths)) : undefined,
+    noticePeriodDays: v.noticePeriodDays && !Number.isNaN(Number(v.noticePeriodDays)) ? Math.trunc(Number(v.noticePeriodDays)) : undefined,
+    expectedCloseDate: v.expectedCloseDate || undefined,
+    ownerId: v.ownerId || undefined,
+  });
+  const createDealMutation = useMutation({
+    mutationFn: (v: DealFormValues) => createDeal(organizationId, { ...mapDealForm(v), stage: v.stage || undefined, companyId: id }),
+    onSuccess: () => { invalidateDeals(); toast(t("companies.deals.createdToast"), "success"); },
+    onError: (e) => toast((e as Error).message, "error"),
+  });
+  const updateDealMutation = useMutation({
+    mutationFn: async (p: { dealId: string; v: DealFormValues }) => {
+      await updateDeal(organizationId, p.dealId, mapDealForm(p.v));
+      const current = (dealsQuery.data ?? []).find((d) => (d as { id: string }).id === p.dealId) as { stage?: string } | undefined;
+      if (p.v.stage && p.v.stage !== current?.stage) await updateDealStage(p.dealId, p.v.stage, organizationId);
+    },
+    onSuccess: () => { invalidateDeals(); toast(t("companies.deals.updatedToast"), "success"); },
+    onError: (e) => toast((e as Error).message, "error"),
+  });
+  const deleteDealMutation = useMutation({
+    mutationFn: (dealId: string) => softDeleteDeal(dealId, organizationId),
+    onSuccess: () => { invalidateDeals(); toast(t("companies.deals.deletedToast"), "success"); },
+    onError: (e) => toast((e as Error).message, "error"),
+  });
+  const changeStageMutation = useMutation({
+    mutationFn: (p: { dealId: string; newSlug: string }) => updateDealStage(p.dealId, p.newSlug, organizationId),
+    onSuccess: () => invalidateDeals(),
+    onError: (e) => toast((e as Error).message, "error"),
+  });
+
+  const invalidateNotes = () => void qc.invalidateQueries({ queryKey: ["companyNotes", organizationId, id] });
+  const createNoteMutation = useMutation({ mutationFn: (body: string) => createCompanyNote(organizationId, id, body, user?.id), onSuccess: invalidateNotes, onError: (e) => toast((e as Error).message, "error") });
+  const updateNoteMutation = useMutation({ mutationFn: (p: { id: string; body: string }) => updateNote(p.id, organizationId, p.body), onSuccess: invalidateNotes, onError: (e) => toast((e as Error).message, "error") });
+  const deleteNoteMutation = useMutation({ mutationFn: (noteId: string) => softDeleteNote(noteId, organizationId), onSuccess: invalidateNotes, onError: (e) => toast((e as Error).message, "error") });
 
   const back = (
     <button type="button" onClick={() => navigate("/app/companies")}
@@ -104,13 +186,6 @@ export default function ScreenCompanyDetail() {
   ];
 
   const contactRows = (contactsQuery.data ?? []).map(contactToKontakteRow);
-
-  const soon = (
-    <div className="rounded-[12px] border border-[var(--border-card)] bg-app-surface px-6 py-8 text-center">
-      <p className="text-[14px] font-semibold text-text-primary">{t("companies.detail.tabsSoonTitle")}</p>
-      <p className="text-[13px] text-text-muted mt-1">{t("companies.detail.tabsSoonDesc")}</p>
-    </div>
-  );
 
   return (
     <div className="flex flex-col h-full min-h-0 overflow-y-auto">
@@ -188,7 +263,39 @@ export default function ScreenCompanyDetail() {
         </div>
       )}
 
-      {(tab === "deals" || tab === "activity" || tab === "notes") && soon}
+      {tab === "deals" && (
+        <DealsListe
+          variant="detail"
+          dealRows={dealsQuery.data ?? []}
+          stageNameBySlug={stageMap}
+          stageProbBySlug={stageProbMap}
+          stagnationBySlug={stagnationBySlug}
+          productOptions={productOptions}
+          ownerOptions={ownerOptions}
+          stageOptions={stageOptions}
+          onCreateDeal={(v) => createDealMutation.mutate(v)}
+          onUpdateDeal={(dealId, v) => updateDealMutation.mutate({ dealId, v })}
+          onDeleteDeal={(dealId) => deleteDealMutation.mutate(dealId)}
+          onChangeStage={(dealId, newSlug) => changeStageMutation.mutate({ dealId, newSlug })}
+          onToast={(m) => toast(m, "success")}
+        />
+      )}
+
+      {tab === "activity" && (
+        activityQuery.isLoading ? <PanelSkeleton rows={3} />
+          : <KommunikationVerlauf items={(activityQuery.data ?? []).map(companyActivityToView)} />
+      )}
+
+      {tab === "notes" && (
+        notesQuery.isLoading ? <PanelSkeleton rows={3} />
+          : <NotizenListe
+              noteRows={notesQuery.data ?? []}
+              onCreate={(body) => createNoteMutation.mutate(body)}
+              onUpdate={(noteId, body) => updateNoteMutation.mutate({ id: noteId, body })}
+              onDelete={(noteId) => deleteNoteMutation.mutate(noteId)}
+              onToast={(m) => toast(m, "success")}
+            />
+      )}
 
       {/* Kontakt-Panel + Anlegen (vorbelegte Company) */}
       {detailPerson && <HunterSidepanel person={detailPerson} onClose={() => setDetailPerson(null)} />}

@@ -113,6 +113,8 @@ export default function KommunikationVerlauf({
                 <div className="flex-1 min-w-0 pb-0.5">
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2 min-w-0">
+                      {/* Kontaktname — nur im aggregierten Company-Feed (mehrere Kontakte). */}
+                      {item.contactName && <span className="text-[12px] font-bold text-text-primary truncate">{item.contactName}</span>}
                       <span
                         className="inline-flex items-center shrink-0 px-1.5 py-0.5 rounded-[6px] text-[9px] font-extrabold uppercase tracking-wide"
                         style={{ color: meta.accent, background: `color-mix(in srgb, ${meta.accent} 12%, transparent)` }}

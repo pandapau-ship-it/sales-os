@@ -844,6 +844,11 @@
       "linkedin": "LinkedIn",
       "crmId": "CRM ID",
       "name": "Name"
+    },
+    "deals": {
+      "createdToast": "Deal angelegt",
+      "updatedToast": "Deal aktualisiert",
+      "deletedToast": "Deal gelöscht"
     }
   }
 }

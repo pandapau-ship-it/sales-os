@@ -53,6 +53,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Deal, Signal, PipelineStage, SignalWindow } from "@/types/hunter";
 import type { ContactRow, DealRow, CommunicationRow, TaskRow, DueTaskRow, NoteRow } from "@/types/rows";
 import type { CompanyListRaw } from "@/lib/companiesMappers";
+import type { CompanyActivityRow } from "@/lib/hunterMappers";
 import { compileToPostgrest, type FilterDefinition } from "@/lib/filter";
 
 // ── Supabase Client — EINZIGER Init-Punkt im gesamten Projekt ────────────────
@@ -266,6 +267,85 @@ export async function getCompanyDetail(
     .maybeSingle();
   if (error) throw error;
   return (data as unknown as CompanyListRaw) ?? null;
+}
+
+// ── Company-Detail K-4b-2: Deals / Notizen / Aktivität ───────────────────────
+
+/** getDealsByCompany — Deals einer Firma (Deals-Tab). Spiegel von getDealsByContact auf company_id. */
+export async function getDealsByCompany(
+  organizationId: string,
+  companyId: string,
+): Promise<DealRow[]> {
+  const client = getSupabaseClient();
+  if (!client) return [];
+  const { data, error } = await client
+    .from("deals")
+    .select(`*, owner:users(full_name)`)
+    .eq("organization_id", organizationId)
+    .eq("company_id", companyId)
+    .is("deleted_at", null)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data ?? []) as unknown as DealRow[];
+}
+
+/** getNotesByCompany — Notizen einer Firma (Notizen-Tab). Spiegel von getNotesByContact auf company_id. */
+export async function getNotesByCompany(
+  organizationId: string,
+  companyId: string,
+): Promise<NoteRow[]> {
+  const client = getSupabaseClient();
+  if (!client) return [];
+  const { data, error } = await client
+    .from("notes")
+    .select(`*, author:users(full_name)`)
+    .eq("organization_id", organizationId)
+    .eq("company_id", companyId)
+    .is("deleted_at", null)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data ?? []) as unknown as NoteRow[];
+}
+
+/** createCompanyNote — Notiz an einer Firma anlegen (Spiegel von createNote auf company_id). */
+export async function createCompanyNote(
+  organizationId: string,
+  companyId: string,
+  body: string,
+  createdBy?: string,
+): Promise<void> {
+  const client = getSupabaseClient();
+  if (!client) return;
+  const { error } = await client.from("notes").insert({
+    organization_id: organizationId,
+    company_id: companyId,
+    content: body,
+    created_by: createdBy ?? null,
+  });
+  if (error) throw error;
+}
+
+/**
+ * getCompanyActivity — aggregierter Touchpoint-Feed ALLER Kontakte einer Firma (Aktivität-Tab).
+ * EIN Query: communications ⋈ contacts (inner) gefiltert auf contacts.company_id. Jeder Eintrag
+ * trägt den Kontaktnamen (für „Thomas Brand · LinkedIn Signal"). Neueste zuerst.
+ */
+export async function getCompanyActivity(
+  organizationId: string,
+  companyId: string,
+  limit = 50,
+): Promise<CompanyActivityRow[]> {
+  const client = getSupabaseClient();
+  if (!client) return [];
+  const { data, error } = await client
+    .from("communications")
+    .select("id, occurred_at, channel, direction, note, contact:contacts!inner(first_name, last_name, company_id)")
+    .eq("organization_id", organizationId)
+    .eq("contacts.company_id", companyId)
+    .order("occurred_at", { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return (data ?? []) as unknown as CompanyActivityRow[];
 }
 
 export interface NewCompanyInput {
@@ -1107,6 +1187,7 @@ export async function createDeal(
   organizationId: string,
   deal: {
     name: string; product?: string; valueEur?: number; contactId?: string;
+    companyId?: string; // K-4b-2: Deal direkt an einer Company (Companies-Detail → Deals-Tab)
     // Optionale Vertrags-/Forecast-Felder (Migration 029). Fehlen sie → null, nie 0.
     termMonths?: number; noticePeriodDays?: number; expectedCloseDate?: string;
     ownerId?: string; // P5c-1: manuell gewählter Owner; leer → null ([D21], kein Auto-Set)
@@ -1118,6 +1199,7 @@ export async function createDeal(
   const { error } = await client.from("deals").insert({
     organization_id: organizationId,
     contact_id: deal.contactId ?? null,
+    company_id: deal.companyId ?? null,
     name: deal.name,
     product: deal.product || null,
     value: deal.valueEur != null ? Math.round(deal.valueEur * 100) : null,

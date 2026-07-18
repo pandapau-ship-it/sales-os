@@ -670,6 +670,8 @@ export interface CommunicationView {
   direction: CommunicationDirection;
   occurredAt: string; // ISO
   note?: string;      // fehlt → kein Notiz-Body (kein Fake)
+  /** Kontaktname — nur bei aggregierten Feeds über mehrere Kontakte (Companies-Aktivität). */
+  contactName?: string;
 }
 
 export function communicationToView(row: CommunicationRow): CommunicationView {
@@ -679,6 +681,28 @@ export function communicationToView(row: CommunicationRow): CommunicationView {
     direction: row.direction as CommunicationDirection,
     occurredAt: String(row.occurred_at),
     note: row.note ?? undefined,
+  };
+}
+
+/** Roh-Zeile aus getCompanyActivity (communications + eingebetteter Kontaktname). */
+export interface CompanyActivityRow {
+  id: string;
+  channel: string | null;
+  direction: string | null;
+  occurred_at: string | null;
+  note: string | null;
+  contact: { first_name: string | null; last_name: string | null } | null;
+}
+
+/** Company-Aktivität: Touchpoint eines Firmen-Kontakts → CommunicationView inkl. Kontaktname. */
+export function companyActivityToView(row: CompanyActivityRow): CommunicationView {
+  return {
+    id: String(row.id),
+    channel: row.channel as CommunicationChannel,
+    direction: row.direction as CommunicationDirection,
+    occurredAt: String(row.occurred_at),
+    note: row.note ?? undefined,
+    contactName: [row.contact?.first_name, row.contact?.last_name].filter(Boolean).join(" ") || undefined, // single-source-ok: aggregierter Feed, Kontaktname nur zur Anzeige (minimaler Embed)
   };
 }
 
