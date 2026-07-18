@@ -117,11 +117,15 @@ export default function DataTableCard<T>({
                 const row = pageRows[vi.index];
                 const selected = row.getIsSelected();
                 return (
+                  // Ganze Zeile öffnet die Detail-/Vollansicht (Standard-Pattern). Interaktive Elemente
+                  // (Checkbox · Zeilen-Aktionen · Links/Chips in Zellen · Öffnen-Pfeil) stoppen die Propagation,
+                  // damit sie NICHT mit-öffnen. Tastatur: der Öffnen-Pfeil bleibt der fokussierbare Opener.
                   <div key={row.id}
                     {...prefetch(onRowPrefetch ? () => onRowPrefetch(row.original) : undefined)}
-                    className={cn("group/row flex items-center gap-4 px-5 border-b border-[var(--border-card)] hover:bg-app-bg/60 transition-colors absolute top-0 left-0 w-full", selected && "bg-[var(--signal-teal-bg)]")}
+                    onClick={() => onRowOpen(row.original)}
+                    className={cn("group/row flex items-center gap-4 px-5 border-b border-[var(--border-card)] hover:bg-app-bg/60 transition-colors absolute top-0 left-0 w-full cursor-pointer", selected && "bg-[var(--signal-teal-bg)]")}
                     style={{ height: vi.size, transform: `translateY(${vi.start}px)` }}>
-                    <label className="flex items-center cursor-pointer shrink-0 w-9">
+                    <label onClick={(e) => e.stopPropagation()} className="flex items-center cursor-pointer shrink-0 w-9">
                       <input type="checkbox" aria-label={t("table.selectRow", { entity: entityLabel })} checked={selected}
                         onChange={row.getToggleSelectedHandler()} className="accent-[var(--sherloq-primary)]" />
                     </label>
@@ -130,9 +134,9 @@ export default function DataTableCard<T>({
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </div>
                     ))}
-                    {rowActions?.(row.original)}
+                    {rowActions && <span onClick={(e) => e.stopPropagation()} className="contents">{rowActions(row.original)}</span>}
                     <button type="button" aria-label={t("table.openEntity", { entity: entityLabel })} data-tip={t("table.openEntity", { entity: entityLabel })}
-                      onClick={() => onRowOpen(row.original)}
+                      onClick={(e) => { e.stopPropagation(); onRowOpen(row.original); }}
                       className="w-8 h-8 shrink-0 rounded-full bg-[var(--signal-teal-bg)] text-[var(--sherloq-primary)] hover:scale-105 transition-transform flex items-center justify-center cursor-pointer">
                       <ArrowRight className="w-4 h-4" />
                     </button>
