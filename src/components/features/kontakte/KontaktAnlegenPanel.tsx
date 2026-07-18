@@ -147,6 +147,12 @@ function AnlegenForm({
 
           {/* STUFE 1 — Basis */}
           <section className="flex flex-col gap-3">
+            {/* Immer sichtbarer K1-Pflichthinweis (Vor-+Nachname ODER LinkedIn) — der User weiß
+                die Regel VOR dem Absenden, nicht erst beim Scheitern. Gleiche Formulierung wie
+                Import-Schritt-1 + AddSdrLeadPanel (Single Rule, projektweit). */}
+            <p className="text-[11px] text-text-muted">
+              <span className="text-[var(--signal-urgent-text)]">*</span> {t("kontakte.create.requiredHint")}
+            </p>
             <div className="grid grid-cols-2 gap-3">
               <PanelField label={t("kontakte.create.firstName")} required={invalidReq}>
                 <input type="text" placeholder={t("kontakte.create.firstNamePh")} value={firstName} onChange={(e) => setFirstName(e.target.value)} onBlur={checkDup} className={FIELD} />

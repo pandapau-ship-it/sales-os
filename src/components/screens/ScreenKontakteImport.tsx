@@ -16,7 +16,7 @@
 import { useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   X, UploadCloud, FileSpreadsheet, AlertCircle, CheckCircle2, ChevronRight,
   ArrowLeft, Check, AlertTriangle, Download, RotateCcw, Loader2, ListChecks, Users,
@@ -30,8 +30,9 @@ import { buildMappingPlan, applyMapping } from "@/lib/import/mapping";
 import { validateImport, summarize } from "@/lib/import/validate";
 import { buildImportPlan, type RowDecision } from "@/lib/import/execute";
 import { detectEncoding, detectDelimiter, stripBom } from "@/lib/import/detect";
+import { importInvalidationKeys } from "@/lib/importCache";
 import type { ColumnMapping, ImportField, MappedRecord, ParsedFile, ValidatedRow } from "@/lib/import/types";
-import { KpiCard, StatusBadge, EmptyState, Stepper } from "@/components";
+import { KpiCard, StatusBadge, EmptyState, Stepper, LinkedinIcon } from "@/components";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 
 const IMPORT_FIELDS: ImportField[] = [
@@ -50,7 +51,16 @@ export default function ScreenKontakteImport() {
   const { organizationId } = useCurrentOrg();
   const { user } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Nach Import/Undo: Kontakte-, Companies- und Dedup-Cache invalidieren, damit die neuen
+  // (bzw. entfernten) Kontakte SOFORT in der Liste stehen — kein Hard-Reload nötig.
+  const invalidateAfterImport = () => {
+    for (const key of importInvalidationKeys(organizationId)) {
+      void queryClient.invalidateQueries({ queryKey: key });
+    }
+  };
 
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [parsed, setParsed] = useState<ParsedFile | null>(null);
@@ -191,6 +201,7 @@ export default function ScreenKontakteImport() {
       const res = await runImport(organizationId, user?.id ?? null, plan, { filename: fileMeta?.name }, (done, total) => setProgress({ done, total }));
       if (!res) { setImportError(true); return; }
       setResult(res);
+      invalidateAfterImport(); // Kontakte/Companies-Cache frisch → sofort in der Liste sichtbar
     } catch {
       setImportError(true);
     } finally {
@@ -203,6 +214,7 @@ export default function ScreenKontakteImport() {
     try {
       await undoImport(result.batchId, user?.id ?? null);
       setUndone(true);
+      invalidateAfterImport(); // rückgängig gemachte Kontakte/Companies aus der Liste entfernen
       toast(t("import.undoDone"), "success");
     } catch {
       toast(t("import.undoFailed"), "error");
@@ -234,7 +246,7 @@ export default function ScreenKontakteImport() {
   ] as const;
 
   return (
-    <div className="min-h-screen bg-app-bg flex flex-col text-text-body">
+    <div className="h-screen bg-app-bg flex flex-col text-text-body">
       {/* Header */}
       <header className="bg-app-surface border-b border-[var(--border-card)] px-6 py-4 flex items-center justify-between shrink-0 sticky top-0 z-10">
         <h1 className="text-[20px] font-extrabold text-text-primary tracking-tight">{t("import.title")}</h1>
@@ -249,8 +261,8 @@ export default function ScreenKontakteImport() {
         <Stepper steps={STEPS} current={step} />
       </div>
 
-      {/* Inhalt */}
-      <main className="flex-1 overflow-y-auto px-6 pb-8">
+      {/* Inhalt — einziger Scrollbereich; Header (sticky) + Footer bleiben fix */}
+      <main className="flex-1 min-h-0 overflow-y-auto px-6 pb-8">
         {step === 1 && renderStep1()}
         {step === 2 && renderStep2()}
         {step === 3 && renderStep3()}
@@ -460,15 +472,29 @@ export default function ScreenKontakteImport() {
                   // Import-Vorschau zeigt die Datei-ROHZEILE (MappedRecord), kein Kontakt-Entity → in
                   // markierte JS-Zeilen ausgelagert, damit kein Roh-Feld im JSX steht (contactToProfile
                   // ist nicht anwendbar, der Kontakt existiert noch nicht).
-                  const first = row.record.first_name ?? "—"; // single-source-ok: Import-Datei-Rohzeile, kein Kontakt-Entity
-                  const last = row.record.last_name ?? "—"; // single-source-ok: Import-Datei-Rohzeile, kein Kontakt-Entity
+                  const first = row.record.first_name ?? ""; // single-source-ok: Import-Datei-Rohzeile, kein Kontakt-Entity
+                  const last = row.record.last_name ?? ""; // single-source-ok: Import-Datei-Rohzeile, kein Kontakt-Entity
                   const company = row.record.company_name ?? "—";
+                  const hasName = Boolean(first || last);
+                  const hasLinkedin = Boolean(row.record.linkedin_url);
                   return (
                   <tr key={row.index} className="border-b border-[var(--border-card)] last:border-0 hover:bg-app-bg/60">
                     <td className="px-4 py-3">{renderStatusBadge(row)}</td>
-                    <td className="px-4 py-3 font-medium text-text-primary">{first}</td>
-                    <td className="px-4 py-3 font-medium text-text-primary">{last}</td>
-                    <td className="px-4 py-3 text-text-muted">{row.record.email ?? <span className="italic text-[var(--signal-urgent-text)]">{t("import.missing")}</span>}</td>
+                    {/* Kein Name, aber LinkedIn → zeigen, WARUM die Zeile trotzdem gültig ist (K1: Name ODER LinkedIn). */}
+                    {hasName ? (
+                      <>
+                        <td className="px-4 py-3 font-medium text-text-primary">{first || "—"}</td>
+                        <td className="px-4 py-3 font-medium text-text-primary">{last || "—"}</td>
+                      </>
+                    ) : (
+                      <td className="px-4 py-3" colSpan={2}>
+                        {hasLinkedin
+                          ? <span className="inline-flex items-center gap-1.5 text-[12px] font-medium" style={{ color: "var(--signal-info-text)" }}><LinkedinIcon className="w-3.5 h-3.5" /> {t("import.linkedinProfile")}</span>
+                          : <span className="text-text-muted">—</span>}
+                      </td>
+                    )}
+                    {/* E-Mail ist nie Pflicht → leere E-Mail neutral „—", niemals Warnfarbe (nur echte Fehler sind rot). */}
+                    <td className="px-4 py-3 text-text-muted">{row.record.email || "—"}</td>
                     <td className="px-4 py-3 text-text-muted">{company}</td>
                     <td className="px-4 py-3">{renderRowAction(row)}</td>
                   </tr>

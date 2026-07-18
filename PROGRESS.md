@@ -16,7 +16,13 @@
 ▶ **1.** [ ] **[BAU+DESIGN] Kontakte & Companies — Slices K-1 bis K-6**
   (`docs/kontakte_companies_bauplan_v1.md`; Designs ScreenKontakte/ScreenCompanies
   vorhanden — Abgleich nach Dauerregel 4c) · **erledigt: K-1a · K-1a2 · K-1b · K-2 · K-2b · K-3 · K-3b · K-4 · K-5 (Engine + Schicht 4 + UI)** · **▶ K-6** (Duplikate verwalten + Merge)
-  · **Folge-Slice offen:** Import-Vorlagen-Erkennung (`import_templates`/`headerSignature`, für K-5 bewusst ausgeblendet)
+  · **Folge-Slices offen (Import):** (1) **Vorlagen-Erkennung** (`import_templates`/`headerSignature`, für K-5 bewusst ausgeblendet)
+  · (2) **[D-company-import] Company-only-Import** — Datei nur mit Firmen (z.B. gekaufte Ziel-Account-Liste): eigener
+  Anlage-Weg mit eigenen Pflichtfeldern (**Name ODER Domain**) + eigener Duplikat-Prüfung (Domain exakt/Name unscharf, K2).
+  · (3) **[D-unified-upload] EIN gemeinsamer Upload-Einstieg** — kein zweiter Button: EINE Upload-Oberfläche für Kontakt-
+  UND Company-Import, **automatische Erkennung an den Spaltenüberschriften** (Personen-Felder → Kontakt-Import, ausschließlich
+  Firmen-Felder → Company-Import), transparente Anzeige in Schritt 2, was erkannt wurde. Zwei Logiken im Hintergrund, ein
+  Bildschirm für den User. *(beide nur dokumentiert, keine Bau-Entscheidung — 18.07.2026)*
   - [x] **K-1a Test-Fundament ZUERST** — vitest eingerichtet (Config in `vite.config.ts`,
         Smoke-Test `src/lib/heatUtils.test.ts` 3/3 grün, npm-Scripts `test`/`test:watch`).
         Commit `3e6ad8b`, gemerged `81d0d33`. **Voraussetzung für [AUTO]-Tests in ALLEN
