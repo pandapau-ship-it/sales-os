@@ -58,7 +58,7 @@ import type {
 import { createClient } from "@supabase/supabase-js";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Deal, Signal, PipelineStage, SignalWindow } from "@/types/hunter";
-import type { ContactRow, DealRow, CommunicationRow, TaskRow, DueTaskRow, NoteRow } from "@/types/rows";
+import type { ContactRow, CompanyRow, DealRow, CommunicationRow, TaskRow, DueTaskRow, NoteRow } from "@/types/rows";
 import type { CompanyListRaw } from "@/lib/companiesMappers";
 import type { CompanyActivityRow } from "@/lib/hunterMappers";
 import { compileToPostgrest, type FilterDefinition } from "@/lib/filter";
@@ -1771,13 +1771,19 @@ export async function getDuplicatePairs(organizationId: string): Promise<Duplica
 }
 
 /** Sichere Company-Duplikat-Paare der Org (Domain exakt). */
-export async function getCompanyDuplicatePairs(organizationId: string): Promise<DuplicatePair[]> {
+export interface CompanyDuplicatePairView { a: CompanyRow; b: CompanyRow; level: DuplicatePair["level"]; matchType: string }
+
+export async function getCompanyDuplicatePairs(organizationId: string): Promise<CompanyDuplicatePairView[]> {
   const client = getSupabaseClient();
   if (!client) return [];
   const { data, error } = await client
-    .from("companies").select("id, name, domain").eq("organization_id", organizationId).is("deleted_at", null);
+    .from("companies").select("*").eq("organization_id", organizationId).is("deleted_at", null);
   if (error) throw error;
-  return findCompanyDuplicatePairs((data ?? []) as { id: string; name?: string | null; domain?: string | null }[]);
+  const rows = (data ?? []) as unknown as CompanyRow[];
+  const byId = new Map(rows.map((r) => [(r as { id: string }).id, r]));
+  return findCompanyDuplicatePairs(rows.map((r) => { const c = r as Record<string, unknown>; return { id: c.id as string, name: (c.name as string) ?? null, domain: (c.domain as string) ?? null }; }))
+    .map((p) => ({ a: byId.get(p.aId)!, b: byId.get(p.bId)!, level: p.level, matchType: p.matchType }))
+    .filter((p) => p.a && p.b);
 }
 
 /**

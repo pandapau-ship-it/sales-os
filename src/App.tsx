@@ -31,6 +31,7 @@ import ScreenKontakte from "@/components/screens/ScreenKontakte";
 import ScreenCompanies from "@/components/screens/ScreenCompanies";
 import ScreenCompanyDetail from "@/components/screens/ScreenCompanyDetail";
 import ScreenKontakteImport from "@/components/screens/ScreenKontakteImport";
+import ScreenDuplicates from "@/components/screens/ScreenDuplicates";
 import { MfaBanner } from "@/components";
 import { useCurrentOrg } from "@/hooks/useCurrentOrg";
 import CommandPalette from "@/components/shared/CommandPalette";
@@ -105,6 +106,8 @@ export default function App() {
         <Route path="/auth/callback" element={<AuthCallback />} />
         {/* Import = fokussierter Vollbild-Wizard OHNE Sidebar → eigene Route außerhalb des AppLayout. */}
         <Route path="/app/kontakte/import" element={<Protected><ScreenKontakteImport /></Protected>} />
+        {/* Duplikate verwalten = fokussierter Vollbild-Screen ohne Sidebar (K-6b). */}
+        <Route path="/app/kontakte/duplicates" element={<Protected><ScreenDuplicates /></Protected>} />
         <Route
           path="/app"
           element={

@@ -13,7 +13,8 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { createColumnHelper, type RowSelectionState } from "@tanstack/react-table";
-import { ChevronDown, Plus, Building2, Users, X, Globe, Trash2 } from "lucide-react";
+import { ChevronDown, Plus, Building2, Users, X, Globe, Trash2, GitMerge } from "lucide-react";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { useCurrentOrg } from "@/hooks/useCurrentOrg";
 import { useAuth } from "@/hooks/useAuth";
 import { useNowMs } from "@/hooks/useNowMs";
@@ -233,6 +234,16 @@ export default function ScreenCompanies() {
         </div>
         <div className="flex items-center gap-2">
           <ColumnConfigPopover table={table} columnLabelFor={(id) => t(`companies.col.${id}`)} onReset={resetColumns} pinnedId="name" />
+          <DropdownMenu>
+            <DropdownMenuTrigger className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-app-surface border border-border-strong text-text-body text-[13px] font-bold hover:bg-app-bg transition-colors cursor-pointer">
+              <GitMerge className="w-4 h-4" /> {t("kontakte.actions")} <ChevronDown className="w-4 h-4" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => navigate("/app/kontakte/duplicates?tab=companies")} className="gap-2 cursor-pointer">
+                <GitMerge className="w-4 h-4" /> {t("kontakte.manageDuplicates")}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <button type="button" onClick={() => setAnlegenOpen(true)} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--sherloq-primary)] text-on-accent text-[13px] font-bold hover:opacity-90 transition-opacity cursor-pointer">
             <Plus className="w-4 h-4" /> {t("companies.addCompany")}
           </button>

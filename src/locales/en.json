@@ -12,7 +12,8 @@
     "next": "Weiter",
     "loading": "Lädt …",
     "empty": "—",
-    "comingSoon": "wird gebaut"
+    "comingSoon": "wird gebaut",
+    "retry": "Try again"
   },
   "nav": {
     "meintag": "Mein Tag",
@@ -716,7 +717,8 @@
       "doneToast_one": "{{count}} Kontakt gelöscht",
       "doneToast_other": "{{count}} Kontakte gelöscht",
       "doneOneToast": "Kontakt gelöscht"
-    }
+    },
+    "manageDuplicates": "Manage duplicates"
   },
   "import": {
     "title": "Kontakte importieren",
@@ -807,6 +809,61 @@
     "undoHint": "Entfernt nur die in diesem Import neu erstellten Kontakte (bis 7 Tage).",
     "undoDone": "Import rückgängig gemacht.",
     "undoFailed": "Rückgängig machen nicht möglich (Frist abgelaufen?)."
+  },
+  "duplicates": {
+    "title": "Duplikate verwalten",
+    "count_one": "{{count}} möglich",
+    "count_other": "{{count}} möglich",
+    "backToList": "Zurück zur Liste",
+    "tab": {
+      "contacts": "Kontakte",
+      "companies": "Companies"
+    },
+    "levelSure": "Sicher",
+    "levelPossible": "Möglich",
+    "reason": {
+      "email": "Gleiche E-Mail",
+      "linkedin": "Gleiches LinkedIn",
+      "domain": "Gleiche Domain",
+      "name": "Ähnlicher Name",
+      "name_company": "Name & Firma ähnlich"
+    },
+    "merge": "Zusammenführen",
+    "notDuplicate": "Kein Duplikat",
+    "moreActions": "Weitere Aktionen",
+    "deleteRecord": "„{{name}}“ löschen",
+    "mergeSubtitle": "Ein Datensatz bleibt, der andere wandert in den Papierkorb.",
+    "clarifyFields": "Abweichende Felder klären",
+    "noDiff": "Beide Datensätze sind in allen Feldern identisch — einfach zusammenführen.",
+    "missing": "— (fehlt)",
+    "honestyNote": "Keine Daten gehen verloren: Alle Deals, Tasks, Notizen, Kommunikation und Listen-Mitgliedschaften beider Datensätze hängen danach am zusammengeführten Datensatz.",
+    "field": {
+      "first_name": "Vorname",
+      "last_name": "Nachname",
+      "email": "E-Mail",
+      "linkedin_url": "LinkedIn",
+      "job_title": "Jobtitel",
+      "seniority": "Seniorität",
+      "department": "Abteilung",
+      "city": "Stadt",
+      "country": "Land",
+      "name": "Name",
+      "domain": "Domain",
+      "website": "Website",
+      "industry": "Branche",
+      "size_range": "Größe"
+    },
+    "mergedToast": "Datensätze zusammengeführt ✓",
+    "deletedToast": "Datensatz gelöscht",
+    "dismissedToast": "Als „Kein Duplikat“ markiert",
+    "confirmMergeTitle": "Zusammenführen bestätigen",
+    "confirmMergeDesc": "„{{winner}}“ bleibt bestehen, „{{loser}}“ wandert in den Papierkorb. Alle Verknüpfungen wandern mit.",
+    "confirmDeleteTitle": "Datensatz löschen?",
+    "confirmDeleteDesc": "„{{name}}“ wird in den Papierkorb verschoben (nicht endgültig gelöscht).",
+    "emptyTitle": "Keine Duplikate gefunden",
+    "emptyDesc": "Deine Datenbank ist sauber. Neue Doppelungen melden wir automatisch.",
+    "errorTitle": "Konnte nicht geladen werden",
+    "errorDesc": "Die Duplikat-Prüfung ist gerade fehlgeschlagen — bitte erneut versuchen."
   },
   "table": {
     "columnsAdjust": "Spalten anpassen",

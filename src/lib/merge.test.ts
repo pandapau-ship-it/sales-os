@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   countFilled, pickPrimaryId, resolveMergeFields, findDuplicatePairs, findCompanyDuplicatePairs,
-  CONTACT_FK_SIMPLE, CONTACT_FK_SPECIAL, COMPANY_FK,
+  diffFields, CONTACT_FK_SIMPLE, CONTACT_FK_SPECIAL, COMPANY_FK,
 } from "./merge";
 import type { ExistingContact } from "./dedup";
 
@@ -41,6 +41,16 @@ describe("resolveMergeFields — Auto-Default + Override", () => {
     const winner = { first_name: "A", last_name: "B" };
     const loser = { first_name: "C", last_name: "D" };
     expect(resolveMergeFields(winner, loser, ["first_name", "last_name"])).toEqual({});
+  });
+});
+
+describe("diffFields — Merge-Dialog Feld-Vergleich", () => {
+  it("trennt abweichende von identischen Feldern (leer/case-insensitiv)", () => {
+    const a = { first_name: "Tom", last_name: "Fischer", email: "t@x.de", phone: "" };
+    const b = { first_name: "Thomas", last_name: "fischer", email: "t@x.de", phone: "" };
+    const { differing, identical } = diffFields(a, b, ["first_name", "last_name", "email", "phone"]);
+    expect(differing).toEqual(["first_name"]); // last_name gleich (case), email gleich, phone beide leer
+    expect(identical).toEqual(["last_name", "email"]); // phone leer → nicht als „identisch" gelistet
   });
 });
 

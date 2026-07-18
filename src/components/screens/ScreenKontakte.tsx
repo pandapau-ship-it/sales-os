@@ -15,7 +15,7 @@ import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { createColumnHelper, type RowSelectionState } from "@tanstack/react-table";
 import {
-  ChevronDown, Plus, Filter, Users, MailX, Ban, X, List, ListPlus, Pencil, Trash2, UserMinus, Upload, UploadCloud,
+  ChevronDown, Plus, Filter, Users, MailX, Ban, X, List, ListPlus, Pencil, Trash2, UserMinus, Upload, UploadCloud, GitMerge,
 } from "lucide-react";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { useCurrentOrg } from "@/hooks/useCurrentOrg";
@@ -354,6 +354,9 @@ export default function ScreenKontakte() {
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => navigate("/app/kontakte/import")} className="gap-2 cursor-pointer">
                 <UploadCloud className="w-4 h-4" /> {t("kontakte.importCsv")}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/app/kontakte/duplicates")} className="gap-2 cursor-pointer">
+                <GitMerge className="w-4 h-4" /> {t("kontakte.manageDuplicates")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

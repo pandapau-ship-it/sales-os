@@ -393,6 +393,22 @@
           Doppel-Vermeidung (sicher überschreibt möglich). 16 Merge-Tests. `getDuplicatePairs` zeigt beide Stufen.
           **Offen (Folge):** merge_candidates-Persistenz („Kein Duplikat") · **K-6b UI** (Duplikate-verwalten-Screen
           + Merge-Dialog — **braucht Olivers Design**, Prompt `docs/design_prompt_k6_duplicates.md`).
+    - [x] **K-6b UI FERTIG (18.07.2026)** — Branch `feat/k6b-duplicates-ui`. AI-Studio-Export als reine Struktur-/
+          Ablauf-Referenz übersetzt (kein 1:1-Copy: Hex→Tokens, Mock→echte Paare, setTimeout→echter Query-Ladezustand,
+          `<style>`-Tag weg, confirmMerge mit alert-dialog **VOR** Ausführung ergänzt). **`ScreenDuplicates.tsx`**
+          (Vollbild-Route `/app/kontakte/duplicates`, ohne Sidebar — wie Import): Tabs Kontakte|Companies (Initial-Tab aus
+          `?tab=`), echte Queries `getDuplicatePairs`/`getCompanyDuplicatePairs` (K-6a, staleTime 30s, enabled pro Tab),
+          Paar-Karten (Avatar + Level-Badge sicher=warn/möglich=muted + Grund), **Merge-Dialog** (shadcn `dialog`,
+          Feld-für-Feld A/B nur für **abweichende** Felder via `diffFields`, Honesty-Hinweis) → **alert-dialog-Bestätigung**
+          → `mergeContacts`/`mergeCompanies`. **3. Aktion** (Regel-B-Ergänzung): „Datensatz löschen" A/B im **⋯-Überlauf-Menü**
+          (`dropdown-menu`) → alert-dialog → `softDeleteContacts`/`softDeleteCompanies` (**nicht** Merge). Leer-/Lade-/Fehler-
+          Zustand (EmptyState/PanelSkeleton). „Kein Duplikat" = lokales Dismiss (merge_candidates-Persistenz weiter Folge).
+          **Einstieg:** „Duplikate verwalten" im Aktionen-Dropdown von ScreenKontakte **und** ScreenCompanies (`?tab=companies`).
+          `db.ts`: `getCompanyDuplicatePairs` liefert jetzt `CompanyDuplicatePairView` (a/b Records). `diffFields` in `merge.ts`
+          (+ Test, 17 Merge-Tests). **Registry** `screen_duplicates`. **i18n** `duplicates.*` (47 Keys) + `common.retry` +
+          `kontakte.manageDuplicates` in **allen drei** Locales. **Render-Test** `ScreenDuplicates.render.test.tsx` (3 Fälle,
+          Live-DOM: echtes Paar/kein Fake · Merge-Dialog A/B + Bestätigung-vor-Ausführung + Override-Wert · Löschen ruft
+          softDelete, nicht Merge). Gates alle grün (build/lint/168 Tests/structure/audit 0 FAIL), test-runner + auditor PASS.
 
 **2.** [ ] **[BAU] Vorab-Migration Entitlement & Credits**
   (`docs/for_ai_sdr_vorab_entitlement_credits.md` — PFLICHT vor AI-SDR-Slice-5)

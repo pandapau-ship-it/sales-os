@@ -78,6 +78,21 @@ export function resolveMergeFields(
   return patch;
 }
 
+/**
+ * Feld-Vergleich zweier Datensätze für den Merge-Dialog (K-6b): welche Felder weichen ab, welche
+ * sind identisch. Vergleich case-insensitiv/getrimmt (leer == leer). Rein + testbar.
+ */
+export function diffFields(a: Rec, b: Rec, fields: readonly string[]): { differing: string[]; identical: string[] } {
+  const norm = (v: unknown) => (v == null ? "" : String(v).trim().toLowerCase());
+  const differing: string[] = [];
+  const identical: string[] = [];
+  for (const f of fields) {
+    if (norm(a[f]) === norm(b[f])) { if (filled(a[f])) identical.push(f); }
+    else differing.push(f);
+  }
+  return { differing, identical };
+}
+
 /** Ein gefundenes Duplikat-Paar für den „Duplikate verwalten"-Screen. */
 export interface DuplicatePair<T extends string = string> {
   aId: string;

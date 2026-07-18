@@ -477,3 +477,12 @@
 - **value:** Eine bestehende Kontaktliste in Minuten sauber im System — ohne manuelles Abtippen, ohne Doppelanlagen und ohne kaputte Umlaute. Man sieht vor dem Import genau, was passiert, und behält die Kontrolle über jeden Zweifelsfall; ein Fehlgriff ist mit einem Klick rückholbar.
 - **module:** core_crm
 - *(K-5-UI, Engine + Schicht 4, 2026-07-18. „Zusammenführen" pro Duplikat und automatische Vorlagen-Erkennung folgen mit K-6 bzw. als Folge-Slice.)*
+
+---
+
+- **feature:** Duplikate verwalten
+- **what:** Ein eigener Bildschirm, der mögliche Doppel-Einträge findet und paarweise gegenüberstellt — getrennt für **Kontakte** und **Companies**. Jedes Paar ist als **sicher** (gleiche E-Mail/LinkedIn bzw. Firmen-Domain) oder **möglich** (gleicher Name + Firma bzw. ähnlicher Firmenname) gekennzeichnet, mit Begründung. Pro Paar drei Wege: **Zusammenführen** (öffnet einen Dialog, der nur die *abweichenden* Felder Seite an Seite zeigt — pro Feld wählt man A oder B, der vollere Datensatz ist vorausgewählt; danach eine ausdrückliche Sicherheitsabfrage), **Kein Duplikat** (Paar ausblenden) oder im ⋯-Menü **einen der beiden Datensätze löschen**. Beim Zusammenführen wandern alle verknüpften Daten (Deals, Aufgaben, Nachrichten, Notizen, Telefonnummern, Listen-Zuordnungen …) verlustfrei auf den behaltenen Datensatz.
+- **how:** Kontakte oder Companies → „Aktionen" → „Duplikate verwalten" → Tab wählen → pro Paar: „Zusammenführen" (Felder klären → bestätigen) oder „Kein Duplikat" oder ⋯ → „[Name] löschen" (bestätigen).
+- **value:** Doppelte Einträge sind der Reputations-Killer im Vertrieb — sie führen zu peinlichem Doppel-Kontakt und falschen Zahlen. Dieser Bildschirm räumt sie in Minuten auf, ohne dass ein einziger Touchpoint, Deal oder eine Aufgabe verloren geht, und bei jedem Zweifelsfall entscheidet der Mensch pro Feld.
+- **module:** core_crm
+- *(K-6b UI, Merge-Backend K-6a, 2026-07-18. „Kein Duplikat" merkt sich der Screen aktuell nur bis zum Neuladen — dauerhafte Merkung folgt als Folge-Slice.)*
