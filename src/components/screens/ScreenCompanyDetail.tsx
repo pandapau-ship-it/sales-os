@@ -1,12 +1,13 @@
 /**
- * ScreenCompanyDetail — Company-Detailseite (volle Seite). K-4b-1: Kopf + KPIs (echt) +
- * Tab-Navigation. Aktiv: Übersicht (Company-Details, inline editierbar via updateCompany) +
- * Kontakte (echte Kontakte der Firma, „+ Kontakt" mit vorbelegter Company). Deals/Aktivität/
- * Notizen folgen in K-4b-2 (ehrlicher „folgt"-Platzhalter, kein Fake).
+ * ScreenCompanyDetail — Company-Detailseite (volle Seite). Kopf + KPIs (echt) + 5 Tabs:
+ * Übersicht (Company-Details inkl. Name inline editierbar via updateCompany) · Kontakte (echte
+ * Firmen-Kontakte, „+ Kontakt" mit vorbelegter Company) · Deals (getDealsByCompany + DealsListe,
+ * CRUD+Stage) · Aktivität (getCompanyActivity = aggregierter Touchpoint-Feed, ein Query) ·
+ * Notizen (getNotesByCompany + NotizenListe, CRUD). Alle Tabs lazy.
  *
  * Honesty: fehlende Werte → nichts; Sherloq-Zusammenfassung/Live-Signale + „Quelle/Inhaber" +
  * Churn-KPI bleiben aus (kein Company-Modul/Feld dafür). Wiederverwendung: DetailSection/
- * DetailField/PanelTabs/Avatar/ICPDonut/StatusBadge/HunterSidepanel/KontaktAnlegenPanel.
+ * DetailField/PanelTabs/CompactContactRow/DealsListe/KommunikationVerlauf/NotizenListe/HunterSidepanel.
  */
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
