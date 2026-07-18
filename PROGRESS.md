@@ -264,9 +264,25 @@
         K-4b-1 Übersicht/Kontakte + K-4b-2 Deals/Aktivität/Notizen, alle gemergt. **[D-city]** mit erledigt
         (`contacts.city`/`country` verdrahtet). **Companies-Modul funktional komplett.**
   - [ ] **▶ K-5-UI Import-Bildschirm** (4c-UI-Slice: Upload → Mapping-Vorschau → Validierungs-Preview → Report).
-        Engine-Kern liegt fertig (`src/lib/import/` detect/mapping/validate/parse, [AUTO]-Tests grün) — es fehlt
-        die **UI** + **Schicht 4 Ausführung** (Edge Function, resumierbare Batches, `import_batch_id`-Undo).
-        **Design fehlt** (UI-Design-Inventar) → Dauerregel 4c: Diagnose + Gap-Liste + AI-Studio-Prompt zuerst.
+        Engine-Kern + **Schicht 4 Ausführung fertig** — es fehlt **nur noch die UI**.
+        **Design fehlt** (UI-Design-Inventar) → Dauerregel 4c: Diagnose + Gap-Liste + AI-Studio-Prompt geliefert
+        (`docs/design_prompt_k5_import.md`) → **wartet auf Olivers Design** (Stop-Grund b).
+    - [x] **Schicht 4 Ausführung (design-unabhängig VORGEZOGEN, 18.07.2026)** — Branch
+          `feat/k5-import-execution` (fertig-gegated, **Migration 059 NICHT gepusht** — db-push = Gate;
+          Branch bewusst NICHT nach main bis zum Push). Beide Agents PASS. `lib/import/execute.ts` (rein +
+          8 [AUTO]-Tests, gesamt 140): `buildImportPlan` (valid→anlegen, Duplikat/Fehler→skip, Fehler-Override
+          ignoriert = K8-Honesty; **Merge pro Zeile = K-6, bewusst nicht hier**) + `extractEmailDomain`
+          (Company-Domain-Match). `db.ts`: `loadDedupUniverse` (Dedup-Universum in EINER Query = kein N+1) ·
+          `resolveCompanyForImport` (Domain- dann Name-Match, neu mit `import_batch_id`; Domain nicht auf Insert
+          wegen Unique-Constraint) · `runImport` (ruft die **zentrale `createContact`** mit `{leadSource:'csv',
+          importBatchId}` — keine Insert-Kopie K1/K7; echte Zähler K8; kaputte Zeile stoppt nicht) · `undoImport`
+          (soft-delete NUR im Batch neu erstellte contacts+companies, 7-Tage-Frist K4, audit via 058-Trigger).
+          `createContact` um `{leadSource, importBatchId}` erweitert (Single Source); `NewContactInput` +
+          city/country/tags. **Migration 059**: `import_batch_id` (nullable, FK on delete set null, partieller
+          Index) auf contacts+companies. **Robustheit:** `createContact` sendet `import_batch_id` NUR beim Import
+          → manueller Anlege-Pfad bleibt unabhängig von 059 (Spalte remote noch nicht da). xlsx bleibt aus dem
+          Haupt-Bundle (db.ts importiert `extractEmailDomain` direkt aus `execute.ts`, nicht via Barrel).
+          **OFFEN bei Rückkehr:** `supabase db push` (059) → dann Branch mergen; danach fehlt nur die Import-UI.
   - [~] **K-5 Smart-Import — Engine-Kern (dep-frei) VORGEZOGEN** (Reihenfolge-Flexibilität
         Dauerregel 4, während K-3-Design bei Oliver läuft — **hier vermerkt, nicht stillschweigend**).
         Branch `feat/k5-import-engine`. Gebaut (rein + [AUTO]-Tests, 28 neu / 108 gesamt):
