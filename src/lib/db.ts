@@ -38,6 +38,9 @@ import {
   DEFAULT_LEAD_ASSIGNMENT_STRATEGY,
   type LeadAssignmentStrategy,
 } from "@/lib/leadAssignment";
+// Direkt aus execute.ts (nicht via Barrel) — der Barrel re-exportiert parse.ts, das xlsx zieht;
+// so bleibt xlsx aus dem db.ts-/Haupt-Bundle (Import-UI lädt parse.ts dynamisch, K-5 Build-Note).
+import { extractEmailDomain, type ImportPlan } from "@/lib/import/execute";
 import type {
   Lead,
   Customer,
@@ -1507,20 +1510,32 @@ export interface NewContactInput {
   seniority?: string;
   department?: string;
   company_id?: string | null;
+  city?: string;
+  country?: string;
+  tags?: string[];
   notes?: string;
   /** Telefonnummern (contact_phones) — Zusatzfeld, NICHT Teil der K1-Pflichtlogik. */
   phones?: Array<{ number: string; label?: string; isPrimary?: boolean }>;
 }
 
+/** Herkunfts-Optionen: manuelles Anlegen (Default) vs. Import (lead_source='csv' + Batch-ID). */
+export interface CreateContactOpts {
+  leadSource?: string;
+  importBatchId?: string | null;
+}
+
 /**
- * Kontakt anlegen. lead_source='manual', contact_status='ohne_campaign', Owner via
- * assign_lead_owner (K9), created_by = eingeloggter User. Audit via DB-Trigger.
- * Validierung (K1) + Duplikat-Check (K2) macht der Aufrufer VORHER (Anlege-Panel).
+ * Kontakt anlegen — EINE zentrale Anlege-Function (K1/K7, keine Kopien). Default:
+ * lead_source='manual', contact_status='ohne_campaign', Owner via assign_lead_owner (K9),
+ * created_by = eingeloggter User. Audit via DB-Trigger. Validierung (K1) + Duplikat-Check (K2)
+ * macht der Aufrufer VORHER (Anlege-Panel bzw. Import-Schicht 3). Der Import ruft dieselbe
+ * Function mit `{ leadSource:'csv', importBatchId }` — kein zweiter Insert-Pfad.
  */
 export async function createContact(
   organizationId: string,
   input: NewContactInput,
   createdBy: string | null,
+  opts?: CreateContactOpts,
 ): Promise<{ id: string } | null> {
   const client = getSupabaseClient();
   if (!client) return null;
@@ -1530,7 +1545,7 @@ export async function createContact(
   const clean = Object.fromEntries(Object.entries(contactFields).filter(([, v]) => v != null && v !== ""));
   const { data, error } = await client
     .from("contacts")
-    .insert({ organization_id: organizationId, ...clean, lead_source: "manual", contact_status: "ohne_campaign", assigned_to, created_by: createdBy })
+    .insert({ organization_id: organizationId, ...clean, lead_source: opts?.leadSource ?? "manual", contact_status: "ohne_campaign", assigned_to, created_by: createdBy, import_batch_id: opts?.importBatchId ?? null })
     .select("id")
     .single();
   if (error) throw error;
@@ -1540,6 +1555,174 @@ export async function createContact(
     if (p.number.trim()) await createContactPhone(organizationId, id, { number: p.number.trim(), label: p.label, isPrimary: p.isPrimary });
   }
   return { id };
+}
+
+// ── Import-Ausführung (K-5 Schicht 4) ─────────────────────────────────────────
+// Übersetzt einen puren Schreib-Plan (lib/import/execute.buildImportPlan) in echte DB-Writes:
+// Batch-Kopf → Kontakte anlegen (dieselbe createContact-Function, lead_source='csv' + Batch-ID)
+// → Company-Domain-Match → echte Zähler (K8). Undo soft-löscht nur die im Batch NEU erstellten
+// Zeilen (K4). Duplikat-Check (K2) + Validierung (K1) laufen VORHER in Schicht 3 (validate.ts).
+
+/**
+ * Vergleichs-Universum für den Duplikat-Check einer ganzen Datei (Schicht 3, K2) in EINER
+ * Query laden — nicht pro Zeile (kein N+1). Org-gescopt, gelöschte ausgeschlossen (058).
+ */
+export async function loadDedupUniverse(organizationId: string): Promise<ExistingContact[]> {
+  const client = getSupabaseClient();
+  if (!client) return [];
+  const { data, error } = await client
+    .from("contacts")
+    .select("id, email, linkedin_url, first_name, last_name, company:companies(name)")
+    .eq("organization_id", organizationId)
+    .is("deleted_at", null);
+  if (error) throw error;
+  return ((data ?? []) as Record<string, unknown>[]).map((r) => {
+    const company = r.company as { name?: string } | null;
+    return {
+      id: r.id as string,
+      email: (r.email as string) ?? null,
+      linkedin_url: (r.linkedin_url as string) ?? null,
+      first_name: (r.first_name as string) ?? null,
+      last_name: (r.last_name as string) ?? null,
+      company_name: company?.name ?? null,
+    };
+  });
+}
+
+/**
+ * Company für eine Import-Zeile auflösen (Bauplan Schicht 4): (1) Domain-Match aus der E-Mail →
+ * bestehende Company verknüpfen · (2) sonst Name-Match · (3) sonst neu anlegen (NUR wenn ein
+ * Firmenname in der Datei steht) — die neue Company trägt die Batch-ID (Undo). Kein Name +
+ * kein Domain-Treffer → kein Company-Bezug (null).
+ */
+async function resolveCompanyForImport(
+  organizationId: string,
+  name: string | undefined,
+  email: string | undefined,
+  importBatchId: string,
+): Promise<string | null> {
+  const client = getSupabaseClient();
+  if (!client) return null;
+  const n = (name ?? "").trim();
+  const domain = extractEmailDomain(email);
+  // 1) Domain-Match — bestehende Company über die E-Mail-Domain (nur Companies mit gepflegter Domain).
+  if (domain) {
+    const { data } = await client
+      .from("companies").select("id").eq("organization_id", organizationId).is("deleted_at", null)
+      .ilike("domain", domain).limit(1).maybeSingle();
+    if (data) return (data as { id: string }).id;
+  }
+  if (!n) return null;
+  // 2) Name-Match — bestehende Company über den Namen.
+  const { data: byName } = await client
+    .from("companies").select("id").eq("organization_id", organizationId).is("deleted_at", null)
+    .ilike("name", n).limit(1).maybeSingle();
+  if (byName) return (byName as { id: string }).id;
+  // 3) Neu anlegen (Name aus der Datei) — Batch-ID für Undo; Domain bewusst NICHT gesetzt
+  //    (companies.domain hat eine Unique-Constraint → kein Import-Crash durch Kollision).
+  const { data: created, error } = await client
+    .from("companies").insert({ organization_id: organizationId, name: n, import_batch_id: importBatchId })
+    .select("id").single();
+  if (error) throw error;
+  return (created as { id: string }).id;
+}
+
+/** Ergebnis eines Import-Laufs (echte Zahlen, K8). */
+export interface ImportExecutionResult {
+  batchId: string;
+  created: number;
+  /** Duplikate + Fehler + bewusst abgewählte Zeilen (alles, was nicht angelegt wurde). */
+  skipped: number;
+  /** Insert-Fehler ZUR LAUFZEIT (kaputte Einzelzeile stoppt den Import nicht). */
+  failed: number;
+}
+
+/**
+ * Import ausführen (Schicht 4). Legt einen `import_batches`-Kopf an (undo_until = +7 Tage, K4),
+ * schreibt jede Plan-Zeile über die zentrale `createContact`-Function (lead_source='csv',
+ * import_batch_id) inkl. Company-Domain-Match, und trägt die echten Zähler nach. Der Aufrufer
+ * (Import-UI/Edge) reicht den Plan aus `buildImportPlan` + den validierten Zeilen herein.
+ */
+export async function runImport(
+  organizationId: string,
+  createdBy: string | null,
+  plan: ImportPlan,
+  meta: { filename?: string } = {},
+): Promise<ImportExecutionResult | null> {
+  const client = getSupabaseClient();
+  if (!client) return null;
+
+  const undoUntil = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+  const { data: batch, error: batchErr } = await client
+    .from("import_batches")
+    .insert({ organization_id: organizationId, created_by: createdBy, source: "csv_upload", filename: meta.filename ?? null, status: "completed", undo_until: undoUntil })
+    .select("id").single();
+  if (batchErr) throw batchErr;
+  const batchId = (batch as { id: string }).id;
+
+  let created = 0;
+  let failed = 0;
+  for (const record of plan.toCreate) {
+    try {
+      const company_id = await resolveCompanyForImport(organizationId, record.company_name, record.email, batchId);
+      const input: NewContactInput = {
+        first_name: record.first_name,
+        last_name: record.last_name,
+        email: record.email,
+        linkedin_url: record.linkedin_url,
+        job_title: record.job_title,
+        seniority: record.seniority,
+        city: record.city,
+        country: record.country,
+        notes: record.notes,
+        company_id,
+        tags: record.tags ? record.tags.split(",").map((s) => s.trim()).filter(Boolean) : undefined,
+        phones: record.phone ? [{ number: record.phone, isPrimary: true }] : undefined,
+      };
+      const res = await createContact(organizationId, input, createdBy, { leadSource: "csv", importBatchId: batchId });
+      if (res) created++;
+      else failed++;
+    } catch {
+      failed++; // K8: kaputte Zeile ehrlich zählen, Import läuft weiter
+    }
+  }
+
+  const skipped = plan.total - plan.createCount; // Duplikate + Fehler + abgewählte
+  await client.from("import_batches")
+    .update({ rows_created: created, rows_skipped: skipped, rows_failed: failed, updated_at: new Date().toISOString() })
+    .eq("id", batchId);
+
+  return { batchId, created, skipped, failed };
+}
+
+/**
+ * Import rückgängig (K4, bis 7 Tage). Soft-löscht NUR die in diesem Batch neu erstellten
+ * Kontakte + Companies (verknüpfte/aktualisierte bleiben — Merge ist nicht trennbar). Außerhalb
+ * der Undo-Frist: wirft; bereits rückgängig: no-op. audit_log entsteht über den 058-Trigger.
+ */
+export async function undoImport(
+  batchId: string,
+  undoneBy: string | null,
+): Promise<{ removedContacts: number } | null> {
+  const client = getSupabaseClient();
+  if (!client) return null;
+  const { data: batch } = await client
+    .from("import_batches").select("id, status, undo_until").eq("id", batchId).maybeSingle();
+  if (!batch) return null;
+  const b = batch as { status: string | null; undo_until: string | null };
+  if (b.status === "undone") return { removedContacts: 0 };
+  if (b.undo_until && new Date(b.undo_until).getTime() < Date.now()) throw new Error("undo_window_expired");
+
+  const nowIso = new Date().toISOString();
+  const { data: removed } = await client
+    .from("contacts").update({ deleted_at: nowIso, deleted_by: undoneBy })
+    .eq("import_batch_id", batchId).is("deleted_at", null).select("id");
+  await client
+    .from("companies").update({ deleted_at: nowIso, deleted_by: undoneBy })
+    .eq("import_batch_id", batchId).is("deleted_at", null);
+  await client
+    .from("import_batches").update({ status: "undone", undone_at: nowIso, updated_at: nowIso }).eq("id", batchId);
+  return { removedContacts: ((removed ?? []) as unknown[]).length };
 }
 
 // ── Listen (K-3b) ────────────────────────────────────────────────────────────
