@@ -13,7 +13,8 @@ import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Globe, Building2, Users, Briefcase, Activity, StickyNote, LayoutDashboard, Plus } from "lucide-react";
+import { ArrowLeft, Globe, Building2, Users, Briefcase, Activity, StickyNote, LayoutDashboard, Plus, Trash2 } from "lucide-react";
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogFooter, AlertDialogTitle, AlertDialogDescription, AlertDialogAction, AlertDialogCancel } from "@/components/ui/alert-dialog";
 import { useCurrentOrg } from "@/hooks/useCurrentOrg";
 import { useAuth } from "@/hooks/useAuth";
 import { useNowMs } from "@/hooks/useNowMs";
@@ -22,7 +23,7 @@ import {
   getPipelineSettings, getProducts, getOrgUsers,
   getDealsByCompany, createDeal, updateDeal, updateDealStage, softDeleteDeal,
   getNotesByCompany, createCompanyNote, updateNote, softDeleteNote,
-  getCompanyActivity,
+  getCompanyActivity, softDeleteCompanies,
 } from "@/lib/db";
 import { prefetchContactPanel } from "@/lib/prefetch";
 import { companyToCompaniesRow, formatEuroCents } from "@/lib/companiesMappers";
@@ -58,6 +59,7 @@ export default function ScreenCompanyDetail() {
   const [tab, setTab] = useState("overview");
   const [detailPerson, setDetailPerson] = useState<Person | null>(null);
   const [addContactOpen, setAddContactOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   const detailQuery = useQuery({
     queryKey: ["companyDetail", organizationId, id],
@@ -146,6 +148,18 @@ export default function ScreenCompanyDetail() {
   const updateNoteMutation = useMutation({ mutationFn: (p: { id: string; body: string }) => updateNote(p.id, organizationId, p.body), onSuccess: invalidateNotes, onError: (e) => toast((e as Error).message, "error") });
   const deleteNoteMutation = useMutation({ mutationFn: (noteId: string) => softDeleteNote(noteId, organizationId), onSuccess: invalidateNotes, onError: (e) => toast((e as Error).message, "error") });
 
+  // Company soft-löschen (Punkt 5: Kontakte bleiben, verlieren nur company_id). Danach zurück zur Liste.
+  const deleteCompanyMutation = useMutation({
+    mutationFn: () => softDeleteCompanies(organizationId, [id], user?.id ?? null),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["companies", organizationId] });
+      void qc.invalidateQueries({ queryKey: ["kontakte", organizationId] });
+      toast(t("companies.delete.doneOneToast"), "success");
+      navigate("/app/companies");
+    },
+    onError: (e) => toast((e as Error).message, "error"),
+  });
+
   const back = (
     <button type="button" onClick={() => navigate("/app/companies")}
       className="inline-flex items-center gap-2 text-[13px] font-semibold text-text-muted hover:text-text-primary transition-colors cursor-pointer mb-4">
@@ -195,7 +209,7 @@ export default function ScreenCompanyDetail() {
       <div className="rounded-[12px] border border-[var(--border-card)] bg-app-surface px-6 py-5 mb-4">
         <div className="flex items-start gap-4">
           <Avatar name={r.name} size={56} />
-          <div className="flex flex-col min-w-0 gap-1">
+          <div className="flex flex-col min-w-0 gap-1 flex-1">
             <h1 className="text-[22px] font-extrabold text-text-primary truncate">{r.name}</h1>
             {[r.industry, r.sizeRange, r.location].filter(Boolean).length > 0 && (
               <span className="typo-subline text-text-muted">{[r.industry, r.sizeRange, r.location].filter(Boolean).join(" · ")}</span>
@@ -205,8 +219,26 @@ export default function ScreenCompanyDetail() {
               {r.linkedinUrl && <a href={r.linkedinUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-[13px] text-text-body hover:text-[var(--sherloq-primary)]"><LinkedinIcon className="w-3.5 h-3.5" /> LinkedIn</a>}
             </div>
           </div>
+          <button type="button" onClick={() => setDeleteOpen(true)}
+            className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] border border-[var(--signal-urgent-text)]/30 text-[12px] font-semibold text-[var(--signal-urgent-text)] hover:bg-[var(--signal-urgent-bg)] transition-colors cursor-pointer">
+            <Trash2 className="w-3.5 h-3.5" /> {t("companies.delete.button")}
+          </button>
         </div>
       </div>
+
+      {/* Company löschen — roter Bestätigungs-Dialog (Punkt 5: Kontakte bleiben) */}
+      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("companies.delete.title")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("companies.delete.confirmOne", { name: r.name })}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={() => { deleteCompanyMutation.mutate(); setDeleteOpen(false); }} className="bg-[var(--signal-urgent-text)] hover:opacity-90">{t("companies.delete.button")}</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* KPIs (echt, Honesty: fehlende weglassen) */}
       <div className="flex items-stretch gap-4 flex-wrap mb-4">

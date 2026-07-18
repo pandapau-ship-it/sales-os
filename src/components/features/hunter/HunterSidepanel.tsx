@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { useCurrentOrg } from '@/hooks/useCurrentOrg';
 import { useAuth } from '@/hooks/useAuth';
-import { getContactDetail, getPipelineSettings, getTasksByContact, createTask, updateTask, completeTask, softDeleteTask, getNotesByContact, createNote, updateNote, softDeleteNote, getDealsByContact, getActivityByContact, getContactCommunications, createCommunication, updateContact, updateCompany, getProducts, getOrgUsers, createDeal, updateDeal, updateDealStage, updateDealWon, updateDealLost, softDeleteDeal, createContactPhone, updateContactPhone, setContactPhonePrimary, deleteContactPhone } from '@/lib/db';
+import { getContactDetail, getPipelineSettings, getTasksByContact, createTask, updateTask, completeTask, softDeleteTask, getNotesByContact, createNote, updateNote, softDeleteNote, getDealsByContact, getActivityByContact, getContactCommunications, createCommunication, updateContact, updateCompany, getProducts, getOrgUsers, createDeal, updateDeal, updateDealStage, updateDealWon, updateDealLost, softDeleteDeal, softDeleteContacts, createContactPhone, updateContactPhone, setContactPhonePrimary, deleteContactPhone } from '@/lib/db';
 import { contactToProfile, latestActiveDeal, dealToView, communicationToView, CONTACT_STATUS_LABEL, CONTACT_STATUS_SELECTABLE, WON_STAGE_SLUG, LOST_STAGE_SLUG, type CommunicationChannel, type CommunicationDirection } from '@/lib/hunterMappers';
 import { isValidEmail, normalizeUrl, isValidUrl } from '@/lib/validation';
 import { ANREDE_OPTS, SENIORITY_OPTS, SPRACHE_OPTS, LAND_OPTS, BRANCHE_OPTS, GROESSE_OPTS, PHONE_TYPES, DETAIL_MAP } from '@/lib/contactDetailFields';
@@ -18,7 +18,7 @@ import {
   ArrowUpRight, ArrowLeft, X, Clock, Check,
   Briefcase,
   User, Building2, Tag, ListPlus,
-  LayoutDashboard, Activity, MessageSquare, CheckSquare, FileText
+  LayoutDashboard, Activity, MessageSquare, CheckSquare, FileText, Trash2
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import ZuListeDialog from '../kontakte/ZuListeDialog';
@@ -76,6 +76,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [logOpen, setLogOpen] = useState(false); // Kommunikation-protokollieren-Modal
   const [confirmPhoneDeleteId, setConfirmPhoneDeleteId] = useState<string | null>(null); // letzte Nummer löschen → AlertDialog
+  const [confirmContactDelete, setConfirmContactDelete] = useState(false); // Kontakt löschen → AlertDialog
 
   // Vom User editierbare Felder (kein System-Wert) — lokaler Mock-State.
   const [contact, setContact] = useState({ email: '', linkedin: '', web: '' });
@@ -238,6 +239,18 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
   const deleteNoteMutation = useMutation({
     mutationFn: (noteId: string) => softDeleteNote(noteId, organizationId),
     onSuccess: () => { invalidateNotes(); showToast('Notiz gelöscht ✓'); },
+    onError: (e) => showToast(`Löschen fehlgeschlagen: ${(e as Error).message}`),
+  });
+  // Kontakt soft-löschen — danach Panel schließen + alle Kontakt-Listen invalidieren.
+  const deleteContactMutation = useMutation({
+    mutationFn: () => softDeleteContacts(organizationId, [contactId as string], user?.id ?? null),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['kontakte', organizationId] });
+      queryClient.invalidateQueries({ queryKey: ['companyContacts', organizationId] });
+      queryClient.invalidateQueries({ queryKey: ['listMembers', organizationId] });
+      showToast(t('kontakte.delete.doneOneToast'));
+      onClose();
+    },
     onError: (e) => showToast(`Löschen fehlgeschlagen: ${(e as Error).message}`),
   });
 
@@ -788,6 +801,27 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
         <DetailField label="Enrichment-Quelle" value="Surfe" readonly />
         <DetailField label="CRM ID" value="HS-48213" readonly />
       </DetailSection>
+
+      {/* Danger-Zone: Kontakt löschen (Soft-Delete). Roter Kontext, Bestätigung Pflicht. */}
+      <div className="flex justify-end pt-1">
+        <button type="button" onClick={() => setConfirmContactDelete(true)} disabled={!contactId}
+          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-[10px] border border-[var(--signal-urgent-text)]/30 text-[12px] font-bold text-[var(--signal-urgent-text)] hover:bg-[var(--signal-urgent-bg)] transition-colors cursor-pointer disabled:opacity-50">
+          <Trash2 className="w-3.5 h-3.5" /> {t('kontakte.delete.button')}
+        </button>
+      </div>
+
+      <AlertDialog open={confirmContactDelete} onOpenChange={setConfirmContactDelete}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('kontakte.delete.title')}</AlertDialogTitle>
+            <AlertDialogDescription>{t('kontakte.delete.confirmOne', { name: profile.name })}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={() => { deleteContactMutation.mutate(); setConfirmContactDelete(false); }} className="bg-[var(--signal-urgent-text)] hover:opacity-90">{t('kontakte.delete.button')}</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 

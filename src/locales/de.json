@@ -590,7 +590,8 @@
       "toListFull": "Zu Liste hinzufügen",
       "tagFull": "Tag setzen",
       "archiveFull": "Archivieren",
-      "actionToast": "{{label}}: {{count}} Kontakte (folgt) ✓"
+      "actionToast": "{{label}}: {{count}} Kontakte (folgt) ✓",
+      "delete": "Löschen"
     },
     "selectPageAll": "Alle auf dieser Seite auswählen",
     "selectRow": "Kontakt auswählen",
@@ -707,6 +708,16 @@
       "catch-all": "Catch-All",
       "unknown": "Unbekannt",
       "spamtrap": "Spam-Trap"
+    },
+    "delete": {
+      "button": "Löschen",
+      "title": "Wirklich löschen?",
+      "confirm_one": "{{count}} Kontakt wird gelöscht — das kann nicht rückgängig gemacht werden.",
+      "confirm_other": "{{count}} Kontakte werden gelöscht — das kann nicht rückgängig gemacht werden.",
+      "confirmOne": "„{{name}}\" wird gelöscht — das kann nicht rückgängig gemacht werden.",
+      "doneToast_one": "{{count}} Kontakt gelöscht",
+      "doneToast_other": "{{count}} Kontakte gelöscht",
+      "doneOneToast": "Kontakt gelöscht"
     }
   },
   "table": {
@@ -795,7 +806,8 @@
       "tagFull": "Tag setzen",
       "export": "Export",
       "exportFull": "Exportieren",
-      "actionToast": "{{label}} · {{count}} Companies"
+      "actionToast": "{{label}} · {{count}} Companies",
+      "delete": "Löschen"
     },
     "kpi": {
       "arr": "ARR",
@@ -855,6 +867,16 @@
       "createdToast": "Deal angelegt",
       "updatedToast": "Deal aktualisiert",
       "deletedToast": "Deal gelöscht"
+    },
+    "delete": {
+      "button": "Löschen",
+      "title": "Wirklich löschen?",
+      "confirm_one": "{{count}} Company wird gelöscht — das kann nicht rückgängig gemacht werden. Verknüpfte Kontakte bleiben erhalten.",
+      "confirm_other": "{{count}} Companies werden gelöscht — das kann nicht rückgängig gemacht werden. Verknüpfte Kontakte bleiben erhalten.",
+      "confirmOne": "„{{name}}\" wird gelöscht — das kann nicht rückgängig gemacht werden. Verknüpfte Kontakte bleiben erhalten (verlieren nur die Zuordnung).",
+      "doneToast_one": "{{count}} Company gelöscht",
+      "doneToast_other": "{{count}} Companies gelöscht",
+      "doneOneToast": "Company gelöscht"
     }
   }
 }

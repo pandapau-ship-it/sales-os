@@ -373,6 +373,27 @@ für JEDEN UI-Slice**, auch wenn ein Design existiert.
 > Produktentscheidung, **vor** dem Bau der Automatisierung nachzuholen. **Nicht Teil von K-3.**
 > Voll dokumentiert als `#40` in `docs/entscheidungen_komplett.md`.
 
+> **Session 2026-07-18 (Löschen Kontakte + Companies — Soft-Delete — Branch `feat/soft-delete-contacts-companies`, STOP für QA):**
+> Migration **058**: `contacts`+`companies` bekommen `deleted_at`/`deleted_by` + partielle Indizes
+> (`where deleted_at is null`); `audit_write()` erkennt Soft-Delete (`deleted_at` NULL→gesetzt) und loggt
+> `delete_<table>` statt `update_<table>` (generisch via `to_jsonb`, sicher für Tabellen ohne die Spalte).
+> **db.ts:** `softDeleteContacts`/`softDeleteCompanies` (Einzel = Bulk mit einer id); **alle** Kontakt-/
+> Company-Lesequeries filtern jetzt `deleted_at IS NULL` (getContacts · getCompanies · getCompanyDetail ·
+> getContactDetail · getListMembers statisch+dynamisch · findDuplicates · findOrCreateCompany ·
+> getCompanyActivity; Company-Kontakt-Aggregat filtert im Mapper, NICHT als Embed-Filter — sonst würde der
+> Left-Join zum Inner-Join und „Ohne Kontakt"-Firmen verschwinden). **UI:** roter „Löschen"-Button + roter
+> AlertDialog (Anzahl bzw. Name genannt) — Kontakt im HunterSidepanel-Details-Tab; Company im Detail-Header;
+> Bulk in beiden Tabellen. audit_log entsteht automatisch über den Trigger.
+>
+> **[D-delete-rights] — bewusst NOCH OHNE (temporäre Lücke, JETZT dokumentiert):**
+> (1) **Keine Rollenprüfung** — jeder eingeloggte User kann löschen. Wird mit **Settings SET-1/SET-3**
+> (Rechte-Fundament) geschlossen. (2) **Kein Papierkorb-UI** — gelöschte Objekte sind unsichtbar, bleiben
+> aber in der DB (kein Datenverlust); Wiederherstellen-/Papierkorb-Ansicht kommt mit **SET-3**.
+> (3) **Firma löschen = KEINE Kaskade** (Punkt 5 bestätigt): verknüpfte Kontakte bleiben, verlieren nur
+> `company_id`/`primary_company_id` — analog „Company ohne Kontakte bleibt erhalten". Deals unangetastet.
+> **Angewendet:** Migration 058 muss per `supabase db push` auf die Remote-DB (additiv/low-risk) —
+> **db-push = Gate**, Autorisierung beim STOP erfragt (ohne sie zeigen die gefilterten Queries einen Spaltenfehler).
+>
 > **Session 2026-07-17 (K-4b-2 Companies-Detail: Deals + Aktivität + Notizen — Branch `feat/companies-detail-k4b2`, STOP für QA):**
 > Companies-Detailseite komplett: **Deals-Tab** `getDealsByCompany` + `DealsListe variant=detail` (anlegen/
 > bearbeiten/löschen/Stage echt; `createDeal` um `companyId` erweitert, CHECK `deal_owner_present` erfüllt).

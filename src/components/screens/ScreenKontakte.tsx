@@ -12,7 +12,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { createColumnHelper, type RowSelectionState } from "@tanstack/react-table";
 import {
   ChevronDown, Plus, Filter, Users, MailX, Ban, X, List, ListPlus, Pencil, Trash2, UserMinus,
@@ -22,7 +22,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useNowMs } from "@/hooks/useNowMs";
 import { useDataTable } from "@/hooks/useDataTable";
 import { prefetchContactPanel } from "@/lib/prefetch";
-import { getContacts, getLists, getListMembers, renameList, removeFromList, deleteList, type ListView } from "@/lib/db";
+import { getContacts, getLists, getListMembers, renameList, removeFromList, deleteList, softDeleteContacts, type ListView } from "@/lib/db";
 import { contactToKontakteRow, type KontakteRow } from "@/lib/kontakteMappers";
 import { daysSinceIso } from "@/lib/hunterMappers";
 import { evaluateFilter, type FilterDefinition, type FilterNode } from "@/lib/filter";
@@ -140,6 +140,7 @@ export default function ScreenKontakte() {
   const [renamingListId, setRenamingListId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<ListView | null>(null);
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
 
   // ── Daten ─────────────────────────────────────────────────────────────────────
   const contactsQuery = useQuery({
@@ -262,6 +263,17 @@ export default function ScreenKontakte() {
   const clearFilters = () => { setStatusFilter(null); setSourceFilter([]); setIcpFilter([]); setNoContactWay(false); };
   const pickStatus = (id: string | null) => { setNoContactWay(false); setStatusFilter(id); };
   const bulkAction = (label: string) => { toast(t("kontakte.bulk.actionToast", { label, count: selectedCount }), "info"); clearSelection(); };
+  const deleteContactsMutation = useMutation({
+    mutationFn: (ids: string[]) => softDeleteContacts(organizationId, ids, userId),
+    onSuccess: (_d, ids) => {
+      void queryClient.invalidateQueries({ queryKey: ["kontakte", organizationId] });
+      void queryClient.invalidateQueries({ queryKey: ["listMembers", organizationId] });
+      void queryClient.invalidateQueries({ queryKey: ["lists", organizationId] });
+      toast(t("kontakte.delete.doneToast", { count: ids.length }), "success");
+      clearSelection();
+    },
+    onError: (e) => toast((e as Error).message, "error"),
+  });
   const invalidateLists = () => { void queryClient.invalidateQueries({ queryKey: ["lists", organizationId] }); };
   const openList = (l: ListView) => {
     setStatusFilter(null); setSourceFilter([]); setIcpFilter([]); setNoContactWay(false);
@@ -444,6 +456,7 @@ export default function ScreenKontakte() {
             <button onClick={() => setZuListeOpen(true)} className="sherloq-btn-secondary inline-flex items-center gap-1.5"><ListPlus className="w-3.5 h-3.5" /> {t("kontakte.bulk.toList")}</button>
             <button onClick={() => bulkAction(t("kontakte.bulk.tagFull"))} className="sherloq-btn-secondary">{t("kontakte.bulk.tag")}</button>
             <button onClick={() => bulkAction(t("kontakte.bulk.archiveFull"))} className="sherloq-btn-secondary">{t("kontakte.bulk.archive")}</button>
+            <button onClick={() => setBulkDeleteOpen(true)} className="sherloq-btn-secondary inline-flex items-center gap-1.5 text-[var(--signal-urgent-text)] border-[var(--signal-urgent-text)]/30 hover:bg-[var(--signal-urgent-bg)]"><Trash2 className="w-3.5 h-3.5" /> {t("kontakte.bulk.delete")}</button>
             <button onClick={clearSelection} aria-label={t("kontakte.bulk.clear")} data-tip={t("kontakte.bulk.clear")} className="w-8 h-8 rounded-full hover:bg-app-surface flex items-center justify-center text-text-muted cursor-pointer"><X className="w-4 h-4" /></button>
           </div>
         </div>
@@ -488,6 +501,20 @@ export default function ScreenKontakte() {
         }} />
 
       {/* Liste löschen — Bestätigung */}
+      {/* Bulk-Löschen (Soft-Delete) — roter Bestätigungs-Dialog mit Anzahl */}
+      <AlertDialog open={bulkDeleteOpen} onOpenChange={setBulkDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("kontakte.delete.title")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("kontakte.delete.confirm", { count: selectedCount })}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={() => { deleteContactsMutation.mutate(selectedIds); setBulkDeleteOpen(false); }} className="bg-[var(--signal-urgent-text)] hover:opacity-90">{t("kontakte.bulk.delete")}</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <AlertDialog open={!!deleteTarget} onOpenChange={(o) => { if (!o) setDeleteTarget(null); }}>
         <AlertDialogContent>
           <AlertDialogHeader>
