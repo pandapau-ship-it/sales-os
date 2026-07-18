@@ -278,6 +278,12 @@
         (2) **Vorlagen-Erkennung** (`import_templates`, `headerSignature`) = **Folge-Slice** (db-Funktionen fehlen) —
         bewusst ausgeblendet für den ersten Schnitt (Olivers Freigabe). (3) AI-Mapping unbekannter Header = an AI-Pipeline.
         **Migration 059 (import_batch_id) ist auf Remote angewendet** (db push freigegeben).
+        **Live-QA-Funde behoben (18.07.2026):** (1) **Preview-Bug** — `loadDedupUniverse`/`findDuplicates`
+        embeddeten `company:companies(name)` OHNE FK-Hint → `PGRST201` (2 FKs) → `dedupQuery.isError` →
+        Schritt 3 zeigte alles 0 + leere Tabelle. Fix `company:companies!company_id(name)` (live reproduziert
+        + verifiziert) + ehrlicher `isError`-Zweig statt still 0. (2) **i18n** — `common.next` fehlte
+        (roher Text) → de/en/es ergänzt. (3) **UX** — wiederverwendbarer `shared/Stepper` mit CSS-Mikro-
+        Animation (Linie wächst, Kreis-Pop, spiegelverkehrt beim Zurück, `prefers-reduced-motion`).
     - [x] **Schicht 4 Ausführung (design-unabhängig VORGEZOGEN, 18.07.2026)** — Branch
           `feat/k5-import-execution` (fertig-gegated, **Migration 059 NICHT gepusht** — db-push = Gate;
           Branch bewusst NICHT nach main bis zum Push). Beide Agents PASS. `lib/import/execute.ts` (rein +
