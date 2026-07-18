@@ -520,7 +520,8 @@ export async function getContactDetail(
       // Firmen-Embed hier breiter als CONTACT_COMPANY_EMBED: der Details-Tab seedet/schreibt auch
       // Branche/Größe/Stadt/Land der Firma. + Subscription/MRR (Farmer Subscription-Tab, 8d) — Single
       // Source: Plan/Status/Aktiv-seit/MRR/ARR (Cent) aus companies, kein Doppel-Fetch.
-      `*, company:companies!company_id(name, website, domain, industry, size_range, city, country, subscription_plan, subscription_status, subscription_since, mrr_monthly, arr_yearly), deals(id, name, stage, updated_at, stage_updated_at, closed_at, created_at, deleted_at), contact_phones(id, number, label, is_primary, created_at)`,
+      // import_batch: Dateiname des Ursprungs-Imports (System-Feld „Lead-Quelle" zeigt „Import (CSV) — datei.csv").
+      `*, company:companies!company_id(name, website, domain, industry, size_range, city, country, subscription_plan, subscription_status, subscription_since, mrr_monthly, arr_yearly), deals(id, name, stage, updated_at, stage_updated_at, closed_at, created_at, deleted_at), contact_phones(id, number, label, is_primary, created_at), import_batch:import_batches!import_batch_id(filename)`,
     )
     .eq("organization_id", organizationId)
     .eq("id", contactId)
@@ -1397,7 +1398,7 @@ export async function findDuplicates(
       });
     }
   };
-  const sel = "id, email, linkedin_url, first_name, last_name, company:companies(name)";
+  const sel = "id, email, linkedin_url, first_name, last_name, company:companies!company_id(name)";
   const base = () => client.from("contacts").select(sel).eq("organization_id", organizationId).is("deleted_at", null).limit(50); // Soft-Delete: gelöschte nie als Duplikat (058)
 
   // Getrennte, parametrisierte Abfragen (kein .or()-String mit User-Werten → keine
@@ -1576,7 +1577,7 @@ export async function loadDedupUniverse(organizationId: string): Promise<Existin
   if (!client) return [];
   const { data, error } = await client
     .from("contacts")
-    .select("id, email, linkedin_url, first_name, last_name, company:companies(name)")
+    .select("id, email, linkedin_url, first_name, last_name, company:companies!company_id(name)")
     .eq("organization_id", organizationId)
     .is("deleted_at", null);
   if (error) throw error;
@@ -1646,12 +1647,15 @@ export interface ImportExecutionResult {
  * schreibt jede Plan-Zeile über die zentrale `createContact`-Function (lead_source='csv',
  * import_batch_id) inkl. Company-Domain-Match, und trägt die echten Zähler nach. Der Aufrufer
  * (Import-UI/Edge) reicht den Plan aus `buildImportPlan` + den validierten Zeilen herein.
+ * `onProgress` wird nach JEDER Zeile aufgerufen (done/total) → echter Fortschritt in der UI,
+ * kein Fake-Balken.
  */
 export async function runImport(
   organizationId: string,
   createdBy: string | null,
   plan: ImportPlan,
   meta: { filename?: string } = {},
+  onProgress?: (done: number, total: number) => void,
 ): Promise<ImportExecutionResult | null> {
   const client = getSupabaseClient();
   if (!client) return null;
@@ -1664,8 +1668,10 @@ export async function runImport(
   if (batchErr) throw batchErr;
   const batchId = (batch as { id: string }).id;
 
+  const total = plan.toCreate.length;
   let created = 0;
   let failed = 0;
+  let done = 0;
   for (const record of plan.toCreate) {
     try {
       const company_id = await resolveCompanyForImport(organizationId, record.company_name, record.email, batchId);
@@ -1683,12 +1689,14 @@ export async function runImport(
         tags: record.tags ? record.tags.split(",").map((s) => s.trim()).filter(Boolean) : undefined,
         phones: record.phone ? [{ number: record.phone, isPrimary: true }] : undefined,
       };
-      const res = await createContact(organizationId, input, createdBy, { leadSource: "csv", importBatchId: batchId });
+      const res = await createContact(organizationId, input, createdBy, { leadSource: "csv_upload", importBatchId: batchId });
       if (res) created++;
       else failed++;
     } catch {
       failed++; // K8: kaputte Zeile ehrlich zählen, Import läuft weiter
     }
+    done++;
+    onProgress?.(done, total);
   }
 
   const skipped = plan.total - plan.createCount; // Duplikate + Fehler + abgewählte

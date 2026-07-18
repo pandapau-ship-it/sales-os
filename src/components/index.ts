@@ -63,6 +63,7 @@ export { default as SubscriptionBadge } from './farming/SubscriptionBadge';
 
 // ── shared/ (Atome) ─────────────────────────────────────────────────────────
 export { default as Avatar } from './shared/Avatar';
+export { default as Stepper } from './shared/Stepper';
 export { default as Badge } from './shared/Badge';
 export * from './shared/Badge';
 export * from './shared/BrandIcons';

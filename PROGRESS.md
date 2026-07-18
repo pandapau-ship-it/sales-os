@@ -15,7 +15,48 @@
 
 ▶ **1.** [ ] **[BAU+DESIGN] Kontakte & Companies — Slices K-1 bis K-6**
   (`docs/kontakte_companies_bauplan_v1.md`; Designs ScreenKontakte/ScreenCompanies
-  vorhanden — Abgleich nach Dauerregel 4c) · **erledigt: K-1a · K-1a2 · K-1b · K-2 · K-2b · K-3 · K-3b · K-4** · **▶ K-5-UI**
+  vorhanden — Abgleich nach Dauerregel 4c) · **erledigt: K-1a · K-1a2 · K-1b · K-2 · K-2b · K-3 · K-3b · K-4 · K-5 (Engine + Schicht 4 + UI)** · **▶ K-6** (Duplikate verwalten + Merge)
+  · **Folge-Slices offen (Import):** (1) **Vorlagen-Erkennung** (`import_templates`/`headerSignature`, für K-5 bewusst ausgeblendet)
+  · (2) **[D-company-import] Company-only-Import** — Datei nur mit Firmen (z.B. gekaufte Ziel-Account-Liste): eigener
+  Anlage-Weg mit eigenen Pflichtfeldern (**Name ODER Domain**) + eigener Duplikat-Prüfung (Domain exakt/Name unscharf, K2).
+  · **[BUGFIX 18.07.] Details-Tab Honesty (HunterSidepanel):** der Vollansicht-Details-Tab zeigte für JEDEN
+  Kontakt ein hardcodiertes Mock `DEFAULT_DETAILS` („Christian Brand / VP of Sales EMEA / LogixFlow / ICP 87 /
+  Owner Oliver Prossi / Tags / Notiz") — vier Felder (icp/tags/owner/notiz) wurden NIE aus echten Daten geseedet.
+  **DB per Abfrage als KORREKT bewiesen** (kein Datenfehler, reiner UI-Fehler). Fix: `seedContactDetails` (Single
+  Source, wie Farmer) + icp/tags/notiz aus echten `contacts`-Spalten + Owner-Name aus `assigned_to`. Verifiziert.
+  · **[D-contact-city] OFFEN (Entscheidung Oliver):** `contacts` hat **keine** `city`/`country`-Spalten (per
+  information_schema geprüft), obwohl die CRM-Felder-Doku Standort/Stadt + Land für Kontakte vorsieht. Folgen:
+  (a) Import bietet „Stadt/Land"-Mapping an → würde beim Insert **fehlschlagen**, falls ein User eine Stadt-Spalte
+  mappt (Testdatei hatte keine → kein Crash bisher); (b) Details-Tab Standort/Land bleiben immer leer + Speichern
+  würde fehlschlagen (betrifft Hunter UND Farmer via seedContactDetails). **Entscheidung:** Migration `contacts.city/country`
+  ergänzen (per CRM-Doku, empfohlen) — db-push-Gate — ODER die Felder entfernen. Bis dahin: nicht mergen-blockierend
+  (kein Crash ohne gemappte Stadt-Spalte), aber vor produktivem Import zu klären.
+  · **[BUGFIX 18.07.] Details-Tab SYSTEM-Sektion Honesty (HunterSidepanel):** die System-Sektion zeigte
+  **hardcodierte Fake-Literale** (Lead-Quelle „Manuell", Erstellt „12. März 2026", „vor 2 Tagen · E-Mail",
+  Enrichment „Surfe", CRM-ID „HS-48213"). Jetzt aus echten `contacts`-Spalten geseedet (`sys`-Objekt:
+  lead_source→Label, created_at, last_contacted_at, last_reply_at, enrichment_sources; CRM-ID leer, da
+  keine Spalte). NULL→„—". **Render-Test beweist es** (`HunterSidepanel.render.test.tsx`: schlägt auf
+  Fake-Code fehl, besteht auf Fix). Nebenbei: Import schrieb `lead_source='csv'` statt kanonisch
+  `'csv_upload'` → gefixt (+ 5 bestehende Zeilen in DB korrigiert). **Dateiname in der Lead-Quelle:**
+  `getContactDetail` embeddet jetzt `import_batch:import_batches!import_batch_id(filename)` → System-Feld zeigt
+  „Import (CSV) — test_import_kontakte.csv" (nachvollziehbar, aus welcher Datei der Kontakt stammt; Render-Test prüft es).
+  · **VOLLSTÄNDIGE FAKE-WERT-INVENTUR (18.07., ganzer `src/components`-Baum durchgesucht):**
+  **Real-Kontakt-Panels FAKE-FREI** — HunterSidepanel (Person+System), FarmerSidepanel (Person/Firma echt,
+  „Folgt"-Platzhalter ehrlich), NotizenListe/DealsListe **im `isReal`/`dealRows`-Modus** (echte Daten/Autoren).
+  **Verbleibende Fakes NUR in nicht-Real-Flow-Code (dokumentiert, [D-mock-hunter-feed]):** (a) Mock-Fallback-
+  Zweige `NotizenListe.DEFAULT_NOTES`/`DealsListe.MOCK_DEALS` (nur `!isReal`, nie im echten Panel) · (b)
+  `KommunikationPreview` (tot, nur Barrel-Export, nirgends gerendert) · (c) **Legacy-Mock-Hunter/MeinTag-Feed**
+  `CustomerDrawer` + `TaskEntwurfForm`-Defaults + `ScreenHunting`-Mock-Signaldaten (zeigen Mock-Personas by
+  design; importierte echte Kontakte laufen NICHT durch diesen Pfad, sondern durch Kontakte→HunterSidepanel).
+  **[D-mock-hunter-feed]:** dieser Legacy-Mock-Feed wird beim DB-Wiring des Hunter-Signal-Screens bereinigt —
+  eigener Slice, kein Real-Kontakt-Leak.
+  · **[D-details-persist] OFFEN:** Details-Tab-Felder icp/tags/owner/notiz sind editierbar + zeigen jetzt echte Werte,
+  ABER `setDetail` schreibt nur lokal (Toast „Gespeichert" ohne DB-Write) — Persistenz dieser Klassifizierungs-Felder
+  ist ein Folge-Slice (Owner als User-Dropdown → assigned_to; icp/tags/notes → updateContact).
+  · (3) **[D-unified-upload] EIN gemeinsamer Upload-Einstieg** — kein zweiter Button: EINE Upload-Oberfläche für Kontakt-
+  UND Company-Import, **automatische Erkennung an den Spaltenüberschriften** (Personen-Felder → Kontakt-Import, ausschließlich
+  Firmen-Felder → Company-Import), transparente Anzeige in Schritt 2, was erkannt wurde. Zwei Logiken im Hintergrund, ein
+  Bildschirm für den User. *(beide nur dokumentiert, keine Bau-Entscheidung — 18.07.2026)*
   - [x] **K-1a Test-Fundament ZUERST** — vitest eingerichtet (Config in `vite.config.ts`,
         Smoke-Test `src/lib/heatUtils.test.ts` 3/3 grün, npm-Scripts `test`/`test:watch`).
         Commit `3e6ad8b`, gemerged `81d0d33`. **Voraussetzung für [AUTO]-Tests in ALLEN
@@ -263,10 +304,38 @@
   - [x] **K-4 Companies-Screen + Detail** (4c: ScreenCompanies) — K-4a Liste (`feat/companies-list-k4a`) +
         K-4b-1 Übersicht/Kontakte + K-4b-2 Deals/Aktivität/Notizen, alle gemergt. **[D-city]** mit erledigt
         (`contacts.city`/`country` verdrahtet). **Companies-Modul funktional komplett.**
-  - [ ] **▶ K-5-UI Import-Bildschirm** (4c-UI-Slice: Upload → Mapping-Vorschau → Validierungs-Preview → Report).
-        Engine-Kern + **Schicht 4 Ausführung fertig** — es fehlt **nur noch die UI**.
-        **Design fehlt** (UI-Design-Inventar) → Dauerregel 4c: Diagnose + Gap-Liste + AI-Studio-Prompt geliefert
-        (`docs/design_prompt_k5_import.md`) → **wartet auf Olivers Design** (Stop-Grund b).
+  - [x] **K-5-UI Import-Bildschirm FERTIG (Branch `feat/k5-import-ui`, STOP für Live-QA, 18.07.2026)** —
+        Vollbild-Wizard `/app/kontakte/import` (ohne Sidebar), 4 Schritte ECHT verdrahtet: Upload
+        (`parseImportFile` **dynamisch** → xlsx als eigener `parse-*`-Chunk, nicht im Haupt-Bundle) →
+        Mapping (`buildMappingPlan`/`applyMapping`, shadcn-Select) → Preview (`loadDedupUniverse`/
+        `validateImport`/`summarize`, `KpiCard`/`StatusBadge`/`EmptyState`, Fehler-CSV-Download) → Import/Report
+        (`runImport` mit **echtem `onProgress`**, `undoImport`). Einstieg: „Aktionen"-Dropdown in ScreenKontakte.
+        i18n `import.*` (de/en/es), Registry-Eintrag `screen_kontakte_import`. **Design aus AI-Studio-Referenz
+        übersetzt** (Tokens statt Hex, echte Daten statt Mock, echter statt Fake-Fortschritt, `<style>`/Font weg).
+        Beide Agents PASS, Gates grün (140 Tests, audit 0 FAIL). **Nicht umgesetzt / reduziert (Regel B):**
+        (1) **„Zusammenführen" pro Duplikat = K-6** → als deaktivierte Select-Option „kommt mit K-6" sichtbar
+        markiert (nicht weggelassen); Report zeigt daher kein „aktualisiert", nur erstellt/übersprungen/fehlgeschlagen.
+        (2) **Vorlagen-Erkennung** (`import_templates`, `headerSignature`) = **Folge-Slice** (db-Funktionen fehlen) —
+        bewusst ausgeblendet für den ersten Schnitt (Olivers Freigabe). (3) AI-Mapping unbekannter Header = an AI-Pipeline.
+        **Migration 059 (import_batch_id) ist auf Remote angewendet** (db push freigegeben).
+        **Live-QA-Funde behoben (18.07.2026):** (1) **Preview-Bug** — `loadDedupUniverse`/`findDuplicates`
+        embeddeten `company:companies(name)` OHNE FK-Hint → `PGRST201` (2 FKs) → `dedupQuery.isError` →
+        Schritt 3 zeigte alles 0 + leere Tabelle. Fix `company:companies!company_id(name)` (live reproduziert
+        + verifiziert) + ehrlicher `isError`-Zweig statt still 0. (2) **i18n** — `common.next` fehlte
+        (roher Text) → de/en/es ergänzt. (3) **UX** — wiederverwendbarer `shared/Stepper` mit CSS-Mikro-
+        Animation (Linie wächst, Kreis-Pop, spiegelverkehrt beim Zurück, `prefers-reduced-motion`).
+    - [x] **Schicht 4 Ausführung (design-unabhängig VORGEZOGEN, 18.07.2026)** — Branch
+          `feat/k5-import-execution` (fertig-gegated, **Migration 059 NICHT gepusht** — db-push = Gate;
+          Branch bewusst NICHT nach main bis zum Push). Beide Agents PASS. `lib/import/execute.ts` (rein +
+          8 [AUTO]-Tests, gesamt 140): `buildImportPlan` (valid→anlegen, Duplikat/Fehler→skip, Fehler-Override
+          ignoriert = K8-Honesty; **Merge pro Zeile = K-6, bewusst nicht hier**) + `extractEmailDomain`
+          (Company-Domain-Match). `db.ts`: `loadDedupUniverse` (Dedup-Universum in EINER Query = kein N+1) ·
+          `resolveCompanyForImport` (Domain- dann Name-Match, neu mit `import_batch_id`; Domain nicht auf Insert
+          wegen Unique-Constraint) · `runImport` (ruft die **zentrale `createContact`** mit `{leadSource:'csv',
+          importBatchId}` — keine Insert-Kopie K1/K7; echte Zähler K8; kaputte Zeile stoppt nicht) · `undoImport`
+          (soft-delete NUR im Batch neu erstellte contacts+companies, 7-Tage-Frist K4, audit via 058-Trigger).
+          `createContact` um `{leadSource, importBatchId}` erweitert (Single Source); `NewContactInput` +
+          city/country/tags. **Migration 059**: `import_batch_id` (nullable, FK on delete set null, partieller
     - [x] **Schicht 4 Ausführung (design-unabhängig VORGEZOGEN, 18.07.2026)** — Branch
           `feat/k5-import-execution` (fertig-gegated, **Migration 059 NICHT gepusht** — db-push = Gate;
           Branch bewusst NICHT nach main bis zum Push). Beide Agents PASS. `lib/import/execute.ts` (rein +

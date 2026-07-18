@@ -69,6 +69,13 @@ export const COMPONENT_REGISTRY = {
     description: 'Companies: Firmen-Datenbank auf der geteilten Tabelle (K-4a), abgeleiteter Status + Routing',
   },
 
+  screen_kontakte_import: {
+    component: 'ScreenKontakteImport',
+    path: 'components/screens/ScreenKontakteImport',
+    filter: null,
+    description: 'Kontakt-Import (K-5): 4-Schritt-Flow Upload → Mapping → Prüfen → Import (Engine + Schicht 4)',
+  },
+
   screen_company_detail: {
     component: 'ScreenCompanyDetail',
     path: 'components/screens/ScreenCompanyDetail',

@@ -13,6 +13,7 @@ import ActionPanel from "@/components/panels/ActionPanel";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import LinkedinIcon from "@/components/shared/LinkedinIcon";
 import { useToast } from "@/components/shared/toastContext";
+import { validateContactRequired } from "@/lib/contactValidation";
 import { NewDealCard, PanelField, PhoneNumbersField } from '@/components';
 import type { DealDraft, PhoneRow } from '@/components';
 import type { Lead } from "@/types";
@@ -68,7 +69,10 @@ export default function AddSdrLeadPanel({ open, onClose, onAdd }: AddSdrLeadPane
     setShowDeal(false); setDeal(EMPTY_DEAL);
   };
 
-  const canSubmit = Boolean(owner && vorname.trim() && nachname.trim() && (email.trim() || linkedin.trim()) && company.trim());
+  // K1 (Single Source, projektweit): (Vor-+Nachname) ODER LinkedIn. Firma/E-Mail NICHT Pflicht
+  // (früher fälschlich erzwungen — kein Business-Grund, siehe QA 18.07.). Owner bleibt Pflicht (SDR-Zuweisung).
+  const k1 = validateContactRequired({ first_name: vorname, last_name: nachname, linkedin_url: linkedin });
+  const canSubmit = Boolean(owner && k1.ok);
   const dealHint = stage !== "" && !showDeal; // Stage gewählt, aber noch kein Deal
 
   const submit = (e: React.FormEvent) => {
@@ -115,8 +119,14 @@ export default function AddSdrLeadPanel({ open, onClose, onAdd }: AddSdrLeadPane
       <form onSubmit={submit} className="flex-1 flex flex-col min-h-0">
         <div className="flex-1 overflow-y-auto custom-scrollbar p-6 flex flex-col gap-6">
 
-          {/* STUFE 1 — Pflicht, immer sichtbar */}
+          {/* STUFE 1 */}
           <section className="flex flex-col gap-3">
+            {/* K1-Pflichthinweis (projektweit einheitlich, wie KontaktAnlegenPanel + Import):
+                NUR (Vor-+Nachname) ODER LinkedIn ist Pflicht. Firma/E-Mail sind optional. Owner
+                bleibt Pflicht (SDR-Zuweisung, kein K1-Feld). */}
+            <p className="text-[11px] text-text-muted">
+              <span className="text-[var(--signal-urgent-text)]">*</span> Pflicht: Vor- + Nachname oder LinkedIn — alles Weitere ist optional.
+            </p>
             <PanelField label="Owner" required>
               <Select value={owner || undefined} onValueChange={setOwner}>
                 <SelectTrigger className={TRIGGER}><SelectValue placeholder="Zuständig…" /></SelectTrigger>
@@ -125,19 +135,19 @@ export default function AddSdrLeadPanel({ open, onClose, onAdd }: AddSdrLeadPane
             </PanelField>
 
             <div className="grid grid-cols-2 gap-3">
-              <PanelField label="Vorname" required>
+              <PanelField label="Vorname">
                 <input type="text" placeholder="Christian" value={vorname} onChange={(e) => setVorname(e.target.value)} className={FIELD} />
               </PanelField>
-              <PanelField label="Nachname" required>
+              <PanelField label="Nachname">
                 <input type="text" placeholder="Brand" value={nachname} onChange={(e) => setNachname(e.target.value)} className={FIELD} />
               </PanelField>
             </div>
 
-            {/* E-Mail ODER LinkedIn — eines genügt */}
+            {/* E-Mail ODER LinkedIn — LinkedIn erfüllt die K1-Identität, E-Mail ist optional (kein Stern). */}
             <div>
               <label className="text-[11px] text-text-muted font-semibold block mb-1">
-                E-Mail oder LinkedIn<span className="text-[var(--signal-urgent-text)]"> *</span>
-                <span className="font-normal text-text-muted"> — eines genügt</span>
+                E-Mail oder LinkedIn
+                <span className="font-normal text-text-muted"> — LinkedIn genügt als Identität</span>
               </label>
               <div className="flex flex-col gap-2">
                 <div className="relative">
@@ -151,7 +161,7 @@ export default function AddSdrLeadPanel({ open, onClose, onAdd }: AddSdrLeadPane
               </div>
             </div>
 
-            <PanelField label="Firma" required>
+            <PanelField label="Firma">
               <div className="relative">
                 <Search className="w-3.5 h-3.5 text-text-muted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <input type="text" placeholder="Firma suchen oder neu eingeben..." value={company} onChange={(e) => setCompany(e.target.value)} className={`${FIELD} pl-9`} />

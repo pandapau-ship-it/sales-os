@@ -1,4 +1,4 @@
-import type { ContactRow, DealRow, CompanyRow } from '@/types/rows';
+import type { ContactRow, DealRow } from '@/types/rows';
 import type { Lead, Customer, Person } from '@/types';
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -6,9 +6,9 @@ import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tansta
 import { useCurrentOrg } from '@/hooks/useCurrentOrg';
 import { useAuth } from '@/hooks/useAuth';
 import { getContactDetail, getPipelineSettings, getTasksByContact, createTask, updateTask, completeTask, softDeleteTask, getNotesByContact, createNote, updateNote, softDeleteNote, getDealsByContact, getActivityByContact, getContactCommunications, createCommunication, updateContact, updateCompany, getProducts, getOrgUsers, createDeal, updateDeal, updateDealStage, updateDealWon, updateDealLost, softDeleteDeal, softDeleteContacts, createContactPhone, updateContactPhone, setContactPhonePrimary, deleteContactPhone } from '@/lib/db';
-import { contactToProfile, latestActiveDeal, dealToView, communicationToView, CONTACT_STATUS_LABEL, CONTACT_STATUS_SELECTABLE, WON_STAGE_SLUG, LOST_STAGE_SLUG, type CommunicationChannel, type CommunicationDirection } from '@/lib/hunterMappers';
+import { contactToProfile, latestActiveDeal, dealToView, communicationToView, daysSinceIso, CONTACT_STATUS_LABEL, CONTACT_STATUS_SELECTABLE, WON_STAGE_SLUG, LOST_STAGE_SLUG, type CommunicationChannel, type CommunicationDirection } from '@/lib/hunterMappers';
 import { isValidEmail, normalizeUrl, isValidUrl } from '@/lib/validation';
-import { ANREDE_OPTS, SENIORITY_OPTS, SPRACHE_OPTS, LAND_OPTS, BRANCHE_OPTS, GROESSE_OPTS, PHONE_TYPES, DETAIL_MAP } from '@/lib/contactDetailFields';
+import { ANREDE_OPTS, SENIORITY_OPTS, SPRACHE_OPTS, LAND_OPTS, BRANCHE_OPTS, GROESSE_OPTS, PHONE_TYPES, DETAIL_MAP, seedContactDetails, type ContactDetailsState } from '@/lib/contactDetailFields';
 import DealLostModal from './DealLostModal';
 import DealWonModal from './DealWonModal';
 import KommunikationLogModal from './KommunikationLogModal';
@@ -45,16 +45,17 @@ const LEAD_STATUS_OPTS = CONTACT_STATUS_OPTIONS.map((o) => o.label);
 const contactStatusLabel = (slug?: string) => (slug ? CONTACT_STATUS_LABEL[slug] ?? '' : '');
 const contactStatusSlug = (label: string) => CONTACT_STATUS_OPTIONS.find((o) => o.label === label)?.slug;
 
-const DEFAULT_DETAILS = {
-  anrede: 'Herr', vorname: 'Christian', nachname: 'Brand',
-  jobtitel: 'VP of Sales EMEA', seniority: 'VP', abteilung: 'Sales',
-  sprache: 'Deutsch', stadt: 'München', land: 'Deutschland', twitter: '',
-  firma: 'LogixFlow GmbH', branche: 'SaaS', groesse: '51–200',
-  domain: 'logixflow.de', firmaStadt: 'München', firmaLand: 'Deutschland',
-  leadStatus: 'Sales Qualified Lead (SQL)', icp: '87',
-  tags: 'Enterprise · ROI-Fokus · Outreach', owner: 'Oliver Prossi',
-  notiz: 'Budget-Freeze bis Q3 — der ROI-Case ist der Hebel. Demo lief sehr positiv, Abschluss ab Q4 realistisch.',
+// Details-Tab-State: Stammdaten aus der Single Source (ContactDetailsState) + Hunter-Klassifizierung
+// (Lead Status/ICP/Owner/Tags/Notiz). KEINE Fake-Defaults mehr — leer, bis der echte Kontakt geladen
+// ist (Honesty). Früher stand hier ein Mock „Christian Brand …", der bei jedem Kontakt durchschien.
+// Lead-Quelle-Slug → deutsches Label (readonly System-Feld). Deckt beide Schreibweisen ab
+// (Import schrieb historisch „csv"; kanonisch ist „csv_upload"). Unbekannt → Roh-Slug (nie Fake).
+const LEAD_SOURCE_LABEL: Record<string, string> = {
+  csv: 'Import (CSV)', csv_upload: 'Import (CSV)', sherloq: 'Sherloq AI',
+  crm_sync: 'CRM-Sync', crm: 'CRM-Sync', manual: 'Manuell', webhook_api: 'Webhook', webhook: 'Webhook',
 };
+type HunterDetails = ContactDetailsState & { leadStatus: string; icp: string; owner: string; tags: string; notiz: string };
+const EMPTY_DETAILS: HunterDetails = { ...seedContactDetails(null), leadStatus: '', icp: '', owner: '', tags: '', notiz: '' };
 
 // DetailField · DetailSection · StatusBadge · DetailPhoneList → ausgelagert nach
 // src/components/panel-blocks/ (siehe Imports). Hier nur noch deren Komposition.
@@ -80,8 +81,8 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
 
   // Vom User editierbare Felder (kein System-Wert) — lokaler Mock-State.
   const [contact, setContact] = useState({ email: '', linkedin: '', web: '' });
-  const [details, setDetails] = useState(DEFAULT_DETAILS);
-  const setDetail = (k: keyof typeof DEFAULT_DETAILS, v: string) => { setDetails((d) => ({ ...d, [k]: v })); showToast('Gespeichert'); };
+  const [details, setDetails] = useState<HunterDetails>(EMPTY_DETAILS);
+  const setDetail = (k: keyof HunterDetails, v: string) => { setDetails((d) => ({ ...d, [k]: v })); showToast('Gespeichert'); };
 
   // Open-State von der Prop; Inhalt aus gehaltener Kopie (wie CustomerDrawer).
   // Angepasst während des Renders (React: „Adjusting state when a prop changes") — per
@@ -96,8 +97,9 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
     setPrevOpenKey({ personProp, initialAction, initialTab });
     if (personProp) {
       setDisplay(personProp);
-      // Editierbare Felder beim Öffnen zurücksetzen (Kontaktzeile wird unten aus dem Fetch geseedet).
-      setDetails(DEFAULT_DETAILS);
+      // KEIN setDetails(EMPTY_DETAILS)-Reset hier mehr! Der Reset konnte NACH dem Seed (Block unten)
+      // erneut feuern (StrictMode/Timing) und die echten Werte auf leer zurücksetzen → „alle Felder
+      // + Hinzufügen". Der Details-Tab wird ausschließlich beim contactRow-Wechsel geseedet (wie Farmer).
       // Karten-Aktion: Panel direkt mit der passenden Aktion öffnen. ('mail' deferred — Kommunikation P7.)
       if (initialFocusField) { setActiveTab('details'); } // Deep-Link Panel-Stift → Vollansicht Details-Tab
       else if (initialDealEditId) { setDealsAutoEditId(initialDealEditId); setActiveTab('deals'); } // Karten-Bleistift → Deal im Edit-Modus
@@ -138,25 +140,26 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
   // PH2: Telefonnummern kommen read-only direkt aus profile.phones (contact_phones) — kein lokaler State.
   // Während des Renders (React: „Adjusting state when a prop changes") — per Effect zeigte
   // die Kontaktzeile für einen Frame noch die Werte des vorigen Kontakts.
-  const [prevContactRow, setPrevContactRow] = useState(contactRow);
+  // WICHTIG: mit null initialisieren, NICHT mit contactRow. Ist der Detail beim Mount schon
+  // gecacht (Hover-Prefetch, Regel C), wäre contactRow sofort da → init=contactRow würde den
+  // Seed-Guard von Anfang an erfüllen → Seed liefe NIE → Details-Felder blieben leer.
+  const [prevContactRow, setPrevContactRow] = useState<typeof contactRow>(null);
   if (prevContactRow !== contactRow && contactRow) {
     setPrevContactRow(contactRow);
     setContact({ email: profile.email ?? '', linkedin: profile.linkedinUrl ?? '', web: profile.website ?? '' });
-    // Details-Tab aus echten DB-Werten seeden (NULL → leer, kein Fake-Default). Klassifizierung
-    // (Lead Status/ICP/Owner/Tags) bleibt vorerst lokal (außerhalb dieses Slices).
-    const c = contactRow as ContactRow;
-    const co = (c.company ?? {}) as Partial<CompanyRow>;
-    setDetails((d) => ({
-      ...d,
-      anrede: c.salutation ?? '', sprache: c.language ?? '',
-      vorname: c.first_name ?? '', nachname: c.last_name ?? '', // single-source-ok: Details-Tab seedet editierbare Roh-Stammdaten (contactToProfile deckt sie nicht ab)
-      jobtitel: c.job_title ?? '', seniority: c.seniority ?? '', // single-source-ok: editierbares Roh-Feld für den Details-Tab
-      abteilung: c.department ?? '', stadt: c.city ?? '', land: c.country ?? '',
-      twitter: c.twitter_handle ?? '',
-      firma: co.name ?? '', branche: co.industry ?? '', groesse: co.size_range ?? '',
-      domain: co.domain ?? '', firmaStadt: co.city ?? '', firmaLand: co.country ?? '',
+    // Details-Tab KOMPLETT aus echten DB-Werten seeden — Stammdaten über die Single Source
+    // (seedContactDetails, geteilt mit Farmer) + Hunter-Klassifizierung (Lead Status/ICP/Tags/Notiz)
+    // aus den echten contacts-Spalten. NULL → leer (kein Fake). Owner-NAME wird beim Render aus
+    // assigned_to + ownerOptions aufgelöst (kein Fake-„Oliver Prossi" mehr).
+    const c = contactRow as ContactRow & { icp_score?: number | null; tags?: string[] | null; notes?: string | null };
+    setDetails({
+      ...seedContactDetails(c),
       leadStatus: contactStatusLabel(c.contact_status ?? undefined), // echtes contacts.contact_status → Label
-    }));
+      icp: c.icp_score != null ? String(c.icp_score) : '', // single-source-ok: editierbares Roh-Feld (Details-Tab), contactToProfile deckt icp_score als Edit-Wert nicht ab
+      tags: Array.isArray(c.tags) ? c.tags.join(' · ') : '',
+      owner: '', // wird beim Render aus assigned_to aufgelöst (ownerNameForContact)
+      notiz: c.notes ?? '',
+    });
   }
 
   // P3 — Tasks-Tab: echte Tasks des Kontakts + Anlegen/Abhaken (erster Panel-Write).
@@ -354,6 +357,28 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
     queryFn: () => getOrgUsers(organizationId),
   });
   const ownerOptions = (usersQuery.data ?? []).map((u) => ({ id: (u as { id: string }).id, name: (u as { full_name?: string }).full_name ?? '' })).filter((o) => o.name);
+  // Owner-NAME des Kontakts aus assigned_to auflösen (echt, kein Fake). NULL → leer.
+  const assignedTo = (contactRow as { assigned_to?: string | null } | null)?.assigned_to ?? null; // single-source-ok: Owner-Anzeige aus dem Roh-FK (kein Anzeigewert in contactToProfile)
+  const ownerNameForContact = assignedTo ? (ownerOptions.find((o) => o.id === assignedTo)?.name ?? '') : '';
+
+  // System-Sektion (readonly) — ausschließlich aus echten contacts-Spalten. NULL → '' (DetailField
+  // zeigt „—"). KEINE Fake-Defaults mehr (früher hardkodiert „Manuell / 12. März 2026 / Surfe / HS-48213").
+  const sys = ((): { leadSource: string; created: string; lastContact: string; lastReply: string; enrichment: string; crmId: string } => {
+    const cr = contactRow as (ContactRow & { lead_source?: string | null; created_at?: string | null; last_contacted_at?: string | null; last_reply_at?: string | null; enrichment_sources?: string[] | null; import_batch?: { filename?: string | null } | null }) | null;
+    if (!cr) return { leadSource: '', created: '', lastContact: '', lastReply: '', enrichment: '', crmId: '' };
+    const fmtDate = (iso?: string | null) => (iso ? new Date(iso).toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' }) : '');
+    const fmtAgo = (iso?: string | null) => { const d = daysSinceIso(iso); return d == null ? '' : d === 0 ? 'heute' : `vor ${d} ${d === 1 ? 'Tag' : 'Tagen'}`; };
+    const fname = cr.import_batch?.filename ?? ''; // Ursprungs-Datei des Imports (echt aus import_batches)
+    return {
+      // Bei Import zusätzlich den echten Dateinamen anhängen: „Import (CSV) — test_import_kontakte.csv".
+      leadSource: cr.lead_source ? ((LEAD_SOURCE_LABEL[cr.lead_source] ?? cr.lead_source) + (fname ? ` — ${fname}` : '')) : '',
+      created: fmtDate(cr.created_at),
+      lastContact: fmtAgo(cr.last_contacted_at),
+      lastReply: fmtAgo(cr.last_reply_at),
+      enrichment: Array.isArray(cr.enrichment_sources) && cr.enrichment_sources.length ? cr.enrichment_sources.join(', ') : '',
+      crmId: '', // contacts hat keine crm_id-Spalte + kein CRM-Sync → ehrlich leer (nie „HS-48213")
+    };
+  })();
   const createDealMutation = useMutation({
     mutationFn: (v: { name: string; product: string; value: string; termMonths: string; noticePeriodDays: string; expectedCloseDate: string; ownerId: string; stage: string }) =>
       createDeal(organizationId, {
@@ -774,7 +799,7 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
       <DetailSection title="Klassifizierung" icon={Tag} variant="page">
         <DetailField label="Lead Status" value={details.leadStatus} options={LEAD_STATUS_OPTS} onSelect={(v) => { setDetails((d) => ({ ...d, leadStatus: v })); const slug = contactStatusSlug(v); if (slug) updateContactMutation.mutate({ contact_status: slug }); }} />
         <DetailField label="ICP Score" value={details.icp} onSave={(v) => setDetail('icp', v)} />
-        <DetailField label="Owner" value={details.owner} onSave={(v) => setDetail('owner', v)} />
+        <DetailField label="Owner" value={details.owner || ownerNameForContact} onSave={(v) => setDetail('owner', v)} />
         <DetailField label="Tags" value={details.tags} onSave={(v) => setDetail('tags', v)} />
 
         {/* E-Mail-Verifiziert-Badge entfernt: war hardcodiert „Verifiziert" (Mock). Kommt erst echt
@@ -794,12 +819,13 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
 
       {/* System-Felder ganz unten, zusammengeklappt by default */}
       <DetailSection title="System" icon={Clock} collapsible defaultCollapsed variant="page">
-        <DetailField label="Lead-Quelle" value="Manuell" readonly />
-        <DetailField label="Erstellt am" value="12. März 2026" readonly />
-        <DetailField label="Letzter Kontakt" value="vor 2 Tagen · E-Mail" readonly />
-        <DetailField label="Letzte Antwort" value="vor 5 Tagen" readonly />
-        <DetailField label="Enrichment-Quelle" value="Surfe" readonly />
-        <DetailField label="CRM ID" value="HS-48213" readonly />
+        {/* Ausschließlich echte contacts-Spalten — NULL → „—" (kein Fake). */}
+        <DetailField label="Lead-Quelle" value={sys.leadSource} readonly />
+        <DetailField label="Erstellt am" value={sys.created} readonly />
+        <DetailField label="Letzter Kontakt" value={sys.lastContact} readonly />
+        <DetailField label="Letzte Antwort" value={sys.lastReply} readonly />
+        <DetailField label="Enrichment-Quelle" value={sys.enrichment} readonly />
+        <DetailField label="CRM ID" value={sys.crmId} readonly />
       </DetailSection>
     </div>
   );
