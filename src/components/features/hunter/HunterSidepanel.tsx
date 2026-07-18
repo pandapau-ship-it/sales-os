@@ -364,12 +364,14 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
   // System-Sektion (readonly) — ausschließlich aus echten contacts-Spalten. NULL → '' (DetailField
   // zeigt „—"). KEINE Fake-Defaults mehr (früher hardkodiert „Manuell / 12. März 2026 / Surfe / HS-48213").
   const sys = ((): { leadSource: string; created: string; lastContact: string; lastReply: string; enrichment: string; crmId: string } => {
-    const cr = contactRow as (ContactRow & { lead_source?: string | null; created_at?: string | null; last_contacted_at?: string | null; last_reply_at?: string | null; enrichment_sources?: string[] | null }) | null;
+    const cr = contactRow as (ContactRow & { lead_source?: string | null; created_at?: string | null; last_contacted_at?: string | null; last_reply_at?: string | null; enrichment_sources?: string[] | null; import_batch?: { filename?: string | null } | null }) | null;
     if (!cr) return { leadSource: '', created: '', lastContact: '', lastReply: '', enrichment: '', crmId: '' };
     const fmtDate = (iso?: string | null) => (iso ? new Date(iso).toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' }) : '');
     const fmtAgo = (iso?: string | null) => { const d = daysSinceIso(iso); return d == null ? '' : d === 0 ? 'heute' : `vor ${d} ${d === 1 ? 'Tag' : 'Tagen'}`; };
+    const fname = cr.import_batch?.filename ?? ''; // Ursprungs-Datei des Imports (echt aus import_batches)
     return {
-      leadSource: cr.lead_source ? (LEAD_SOURCE_LABEL[cr.lead_source] ?? cr.lead_source) : '',
+      // Bei Import zusätzlich den echten Dateinamen anhängen: „Import (CSV) — test_import_kontakte.csv".
+      leadSource: cr.lead_source ? ((LEAD_SOURCE_LABEL[cr.lead_source] ?? cr.lead_source) + (fname ? ` — ${fname}` : '')) : '',
       created: fmtDate(cr.created_at),
       lastContact: fmtAgo(cr.last_contacted_at),
       lastReply: fmtAgo(cr.last_reply_at),

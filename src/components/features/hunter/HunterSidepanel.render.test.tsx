@@ -23,6 +23,7 @@ const JUERGEN = {
   // System-Felder: echt gesetzt (lead_source) bzw. NULL (last_contacted/reply, enrichment, crm) → Honesty.
   lead_source: "csv_upload", created_at: "2026-07-18T13:23:47Z",
   last_contacted_at: null, last_reply_at: null, enrichment_sources: null,
+  import_batch: { filename: "test_import_kontakte.csv" },
   company: { name: "GrünStrom Energie" },
 };
 
@@ -86,8 +87,8 @@ describe("HunterSidepanel Details-Tab — gerenderter Zustand", () => {
     await waitFor(() => expect(screen.getAllByText("Müller-Schäfer").length).toBeGreaterThan(0), { timeout: 2000 });
     // System-Sektion aufklappen (collapsible defaultCollapsed).
     fireEvent.click(screen.getAllByText("System")[0]);
-    // Echte Lead-Quelle (lead_source='csv_upload' → Label) sichtbar:
-    await waitFor(() => expect(screen.getAllByText("Import (CSV)").length).toBeGreaterThan(0), { timeout: 2000 });
+    // Echte Lead-Quelle inkl. Dateiname (lead_source='csv_upload' + import_batch.filename):
+    await waitFor(() => expect(screen.getAllByText("Import (CSV) — test_import_kontakte.csv").length).toBeGreaterThan(0), { timeout: 2000 });
     // Und die alten Fake-Werte tauchen NIRGENDS mehr auf:
     expect(screen.queryByText("HS-48213")).toBeNull();
     expect(screen.queryByText("Surfe")).toBeNull();

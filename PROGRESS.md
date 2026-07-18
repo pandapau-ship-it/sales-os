@@ -37,7 +37,9 @@
   lead_source→Label, created_at, last_contacted_at, last_reply_at, enrichment_sources; CRM-ID leer, da
   keine Spalte). NULL→„—". **Render-Test beweist es** (`HunterSidepanel.render.test.tsx`: schlägt auf
   Fake-Code fehl, besteht auf Fix). Nebenbei: Import schrieb `lead_source='csv'` statt kanonisch
-  `'csv_upload'` → gefixt (+ 5 bestehende Zeilen in DB korrigiert).
+  `'csv_upload'` → gefixt (+ 5 bestehende Zeilen in DB korrigiert). **Dateiname in der Lead-Quelle:**
+  `getContactDetail` embeddet jetzt `import_batch:import_batches!import_batch_id(filename)` → System-Feld zeigt
+  „Import (CSV) — test_import_kontakte.csv" (nachvollziehbar, aus welcher Datei der Kontakt stammt; Render-Test prüft es).
   · **VOLLSTÄNDIGE FAKE-WERT-INVENTUR (18.07., ganzer `src/components`-Baum durchgesucht):**
   **Real-Kontakt-Panels FAKE-FREI** — HunterSidepanel (Person+System), FarmerSidepanel (Person/Firma echt,
   „Folgt"-Platzhalter ehrlich), NotizenListe/DealsListe **im `isReal`/`dealRows`-Modus** (echte Daten/Autoren).

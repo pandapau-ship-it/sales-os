@@ -520,7 +520,8 @@ export async function getContactDetail(
       // Firmen-Embed hier breiter als CONTACT_COMPANY_EMBED: der Details-Tab seedet/schreibt auch
       // Branche/Größe/Stadt/Land der Firma. + Subscription/MRR (Farmer Subscription-Tab, 8d) — Single
       // Source: Plan/Status/Aktiv-seit/MRR/ARR (Cent) aus companies, kein Doppel-Fetch.
-      `*, company:companies!company_id(name, website, domain, industry, size_range, city, country, subscription_plan, subscription_status, subscription_since, mrr_monthly, arr_yearly), deals(id, name, stage, updated_at, stage_updated_at, closed_at, created_at, deleted_at), contact_phones(id, number, label, is_primary, created_at)`,
+      // import_batch: Dateiname des Ursprungs-Imports (System-Feld „Lead-Quelle" zeigt „Import (CSV) — datei.csv").
+      `*, company:companies!company_id(name, website, domain, industry, size_range, city, country, subscription_plan, subscription_status, subscription_since, mrr_monthly, arr_yearly), deals(id, name, stage, updated_at, stage_updated_at, closed_at, created_at, deleted_at), contact_phones(id, number, label, is_primary, created_at), import_batch:import_batches!import_batch_id(filename)`,
     )
     .eq("organization_id", organizationId)
     .eq("id", contactId)
