@@ -1646,12 +1646,15 @@ export interface ImportExecutionResult {
  * schreibt jede Plan-Zeile über die zentrale `createContact`-Function (lead_source='csv',
  * import_batch_id) inkl. Company-Domain-Match, und trägt die echten Zähler nach. Der Aufrufer
  * (Import-UI/Edge) reicht den Plan aus `buildImportPlan` + den validierten Zeilen herein.
+ * `onProgress` wird nach JEDER Zeile aufgerufen (done/total) → echter Fortschritt in der UI,
+ * kein Fake-Balken.
  */
 export async function runImport(
   organizationId: string,
   createdBy: string | null,
   plan: ImportPlan,
   meta: { filename?: string } = {},
+  onProgress?: (done: number, total: number) => void,
 ): Promise<ImportExecutionResult | null> {
   const client = getSupabaseClient();
   if (!client) return null;
@@ -1664,8 +1667,10 @@ export async function runImport(
   if (batchErr) throw batchErr;
   const batchId = (batch as { id: string }).id;
 
+  const total = plan.toCreate.length;
   let created = 0;
   let failed = 0;
+  let done = 0;
   for (const record of plan.toCreate) {
     try {
       const company_id = await resolveCompanyForImport(organizationId, record.company_name, record.email, batchId);
@@ -1689,6 +1694,8 @@ export async function runImport(
     } catch {
       failed++; // K8: kaputte Zeile ehrlich zählen, Import läuft weiter
     }
+    done++;
+    onProgress?.(done, total);
   }
 
   const skipped = plan.total - plan.createCount; // Duplikate + Fehler + abgewählte

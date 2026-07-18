@@ -30,6 +30,7 @@ import TeamSettings from "@/components/features/settings/TeamSettings";
 import ScreenKontakte from "@/components/screens/ScreenKontakte";
 import ScreenCompanies from "@/components/screens/ScreenCompanies";
 import ScreenCompanyDetail from "@/components/screens/ScreenCompanyDetail";
+import ScreenKontakteImport from "@/components/screens/ScreenKontakteImport";
 import { MfaBanner } from "@/components";
 import { useCurrentOrg } from "@/hooks/useCurrentOrg";
 import CommandPalette from "@/components/shared/CommandPalette";
@@ -102,6 +103,8 @@ export default function App() {
         <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
+        {/* Import = fokussierter Vollbild-Wizard OHNE Sidebar → eigene Route außerhalb des AppLayout. */}
+        <Route path="/app/kontakte/import" element={<Protected><ScreenKontakteImport /></Protected>} />
         <Route
           path="/app"
           element={
