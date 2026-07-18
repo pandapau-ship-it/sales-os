@@ -34,6 +34,7 @@ const CONTACT_FIELDS: Record<string, FieldSpec> = {
   first_name: { type: "text" },
   last_name: { type: "text" },
   email: { type: "text" },
+  linkedin_url: { type: "text" }, // filterbar (u.a. „Ohne Kontaktweg": email + linkedin_url beide is_empty)
   job_title: { type: "text" },
   seniority: { type: "text" },
   city: { type: "text" },

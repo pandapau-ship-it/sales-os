@@ -94,4 +94,20 @@ describe("evaluateFilter — In-Memory-Prädikat (Lifecycle-Trigger)", () => {
   it("ungültiger Filter wirft (kein stilles false)", () => {
     expect(() => evaluateFilter(contacts({ field: "geheim", operator: "eq", value: "x" }), rec)).toThrow();
   });
+
+  // Regression (Kontakte-Lagebild „Ohne Kontaktweg"): linkedin_url MUSS filterbar sein,
+  // sonst wirft validateFilter im Render → weiße Seite. Exakt der buildFilterDef-Output.
+  it("Ohne-Kontaktweg-Filter (email + linkedin_url is_empty) validiert & wertet aus, wirft nicht", () => {
+    const def = contacts({ logic: "AND", rules: [
+      { field: "email", operator: "is_empty" },
+      { field: "linkedin_url", operator: "is_empty" },
+    ] });
+    expect(() => evaluateFilter(def, rec)).not.toThrow();
+    // Kontakt mit Mail → nicht „ohne Kontaktweg".
+    expect(evaluateFilter(def, rec)).toBe(false);
+    // Kontakt ohne beides → Treffer.
+    expect(evaluateFilter(def, { first_name: "Leer", email: null, linkedin_url: null })).toBe(true);
+    // Nur LinkedIn vorhanden → kein Treffer.
+    expect(evaluateFilter(def, { email: null, linkedin_url: "linkedin.com/in/x" })).toBe(false);
+  });
 });

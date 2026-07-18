@@ -324,6 +324,28 @@
         + verifiziert) + ehrlicher `isError`-Zweig statt still 0. (2) **i18n** — `common.next` fehlte
         (roher Text) → de/en/es ergänzt. (3) **UX** — wiederverwendbarer `shared/Stepper` mit CSS-Mikro-
         Animation (Linie wächst, Kreis-Pop, spiegelverkehrt beim Zurück, `prefers-reduced-motion`).
+    - [x] **Live-QA Runde 2 (18.07.2026, mit K-6b) — Diagnose + Fixes:**
+          **(1) „Duplikate nach Import nicht gefunden" = KEIN Bug, erwartet.** `buildImportPlan`: Zeilen mit Status
+          `duplicate` werden per Default **übersprungen** (nicht eingefügt) → nach dem Import existiert nur die
+          bestehende Einzelkopie, kein Paar. Gegen echte DB verifiziert (17 Kontakte, **0** exakte E-Mail-/LinkedIn-/
+          Name-Dupes) → „Duplikate verwalten" zeigt korrekt „Keine gefunden". Wer sie im Merge-Screen sehen will, muss
+          im Import „trotzdem anlegen" wählen. **(2) Ungemappte Spalten = korrekt.** `applyMapping` liest nur Spalten
+          mit `field!==null`; unbekannte Spalten werden ignoriert, der Kontakt wird trotzdem gebaut/importiert (nie
+          verworfen). **(3) BUG behoben — weiße Seite bei „Ohne Kontaktweg".** `linkedin_url` fehlte in der
+          Filter-Registry (`lib/filter/schema.ts CONTACT_FIELDS`) → `validateFilter` warf im `useMemo` → Render-Crash →
+          leere Seite. Fix: `linkedin_url: { type: "text" }` registriert + Regressionstest (`evaluate.test.ts`).
+          **Pill-Audit systematisch:** Kontakte Status-Pills (contact_status) ✅ · Opt-outs ✅ · Filter Quelle/ICP ✅ ·
+          „Ohne Kontaktweg" ❌→✅ · Companies (reines JS-Filtern, kein Schema) Industry/Size/Country/„Ohne Kontakt" ✅.
+          **(4) Undo-Vorschau gebaut:** Undo-Button öffnet jetzt einen `alert-dialog` mit Anzahl der zu entfernenden
+          neu angelegten Kontakte (`result.created`), statt sofort zu löschen. i18n `import.undoConfirm*` in de/en/es.
+    - [ ] **Import v2 — State-of-the-Art-Ideen (NICHT vor Projekt-Ende angehen — reine Politur-Vormerkung).**
+          Erst ganz am Schluss, wenn das gesamte Produkt steht: **(a) Intelligentes KI-Spalten-Mapping** — erkennt auch
+          ungewöhnliche/mehrsprachige Spaltennamen (hängt an AI-Chat/Langfuse, Prompt `import_mapping_v1`, ai_chat C27).
+          **(b) Live-Anreicherung während des Imports** — fehlende Felder (E-Mail/Firma/Jobtitel) automatisch aus
+          LinkedIn/Datenquelle nachladen (`lib/enrichment.ts`, nur leere Felder füllen). **(c) Mapping-Vorlagen** —
+          merkt sich wiederkehrende Datei-Strukturen (`import_templates` + `headerSignature`; db-Funktionen fehlen noch).
+          **(d) Undo mit Detail-Vorschau** — über die reine Anzahl hinaus eine Liste der betroffenen Kontakte (Query auf
+          `import_batch_id`). *(Anzahl-Vorschau ist mit Runde 2 bereits gebaut; die Namensliste bleibt v2.)*
     - [x] **Schicht 4 Ausführung (design-unabhängig VORGEZOGEN, 18.07.2026)** — Branch
           `feat/k5-import-execution` (fertig-gegated, **Migration 059 NICHT gepusht** — db-push = Gate;
           Branch bewusst NICHT nach main bis zum Push). Beide Agents PASS. `lib/import/execute.ts` (rein +

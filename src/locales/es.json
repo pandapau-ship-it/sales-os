@@ -808,7 +808,9 @@
     "undo": "Import rückgängig machen",
     "undoHint": "Entfernt nur die in diesem Import neu erstellten Kontakte (bis 7 Tage).",
     "undoDone": "Import rückgängig gemacht.",
-    "undoFailed": "Rückgängig machen nicht möglich (Frist abgelaufen?)."
+    "undoFailed": "Rückgängig machen nicht möglich (Frist abgelaufen?).",
+    "undoConfirmTitle": "¿Deshacer la importación?",
+    "undoConfirmDesc": "Se eliminarán los {{count}} contactos creados en esta importación (y las empresas creadas en ella). Los contactos que solo se completaron u omitieron no se verán afectados."
   },
   "duplicates": {
     "title": "Duplikate verwalten",

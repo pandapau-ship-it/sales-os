@@ -814,17 +814,28 @@
     "undo": "Import rückgängig machen",
     "undoHint": "Entfernt nur die in diesem Import neu erstellten Kontakte (bis 7 Tage).",
     "undoDone": "Import rückgängig gemacht.",
-    "undoFailed": "Rückgängig machen nicht möglich (Frist abgelaufen?)."
+    "undoFailed": "Rückgängig machen nicht möglich (Frist abgelaufen?).",
+    "undoConfirmTitle": "Import rückgängig machen?",
+    "undoConfirmDesc": "Dabei werden die {{count}} in diesem Import neu angelegten Kontakte entfernt (samt in diesem Import neu angelegter Firmen). Kontakte, die nur ergänzt oder übersprungen wurden, bleiben unberührt."
   },
   "duplicates": {
     "title": "Duplikate verwalten",
     "count_one": "{{count}} möglich",
     "count_other": "{{count}} möglich",
     "backToList": "Zurück zur Liste",
-    "tab": { "contacts": "Kontakte", "companies": "Companies" },
+    "tab": {
+      "contacts": "Kontakte",
+      "companies": "Companies"
+    },
     "levelSure": "Sicher",
     "levelPossible": "Möglich",
-    "reason": { "email": "Gleiche E-Mail", "linkedin": "Gleiches LinkedIn", "domain": "Gleiche Domain", "name": "Ähnlicher Name", "name_company": "Name & Firma ähnlich" },
+    "reason": {
+      "email": "Gleiche E-Mail",
+      "linkedin": "Gleiches LinkedIn",
+      "domain": "Gleiche Domain",
+      "name": "Ähnlicher Name",
+      "name_company": "Name & Firma ähnlich"
+    },
     "merge": "Zusammenführen",
     "notDuplicate": "Kein Duplikat",
     "moreActions": "Weitere Aktionen",
@@ -834,7 +845,22 @@
     "noDiff": "Beide Datensätze sind in allen Feldern identisch — einfach zusammenführen.",
     "missing": "— (fehlt)",
     "honestyNote": "Keine Daten gehen verloren: Alle Deals, Tasks, Notizen, Kommunikation und Listen-Mitgliedschaften beider Datensätze hängen danach am zusammengeführten Datensatz.",
-    "field": { "first_name": "Vorname", "last_name": "Nachname", "email": "E-Mail", "linkedin_url": "LinkedIn", "job_title": "Jobtitel", "seniority": "Seniorität", "department": "Abteilung", "city": "Stadt", "country": "Land", "name": "Name", "domain": "Domain", "website": "Website", "industry": "Branche", "size_range": "Größe" },
+    "field": {
+      "first_name": "Vorname",
+      "last_name": "Nachname",
+      "email": "E-Mail",
+      "linkedin_url": "LinkedIn",
+      "job_title": "Jobtitel",
+      "seniority": "Seniorität",
+      "department": "Abteilung",
+      "city": "Stadt",
+      "country": "Land",
+      "name": "Name",
+      "domain": "Domain",
+      "website": "Website",
+      "industry": "Branche",
+      "size_range": "Größe"
+    },
     "mergedToast": "Datensätze zusammengeführt ✓",
     "deletedToast": "Datensatz gelöscht",
     "dismissedToast": "Als „Kein Duplikat“ markiert",

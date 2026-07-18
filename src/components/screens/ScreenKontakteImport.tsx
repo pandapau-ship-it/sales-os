@@ -34,6 +34,10 @@ import { importInvalidationKeys } from "@/lib/importCache";
 import type { ColumnMapping, ImportField, MappedRecord, ParsedFile, ValidatedRow } from "@/lib/import/types";
 import { KpiCard, StatusBadge, EmptyState, Stepper, LinkedinIcon } from "@/components";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
+  AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const IMPORT_FIELDS: ImportField[] = [
   "first_name", "last_name", "email", "linkedin_url", "phone", "job_title",
@@ -75,6 +79,7 @@ export default function ScreenKontakteImport() {
   const [result, setResult] = useState<{ batchId: string; created: number; skipped: number; failed: number } | null>(null);
   const [importError, setImportError] = useState(false);
   const [undone, setUndone] = useState(false);
+  const [confirmUndo, setConfirmUndo] = useState(false); // Vorschau vor dem Rückgängigmachen
 
   // ── Schritt 1: Datei einlesen (parse.ts dynamisch) ────────────────────────────
   async function handleFile(file: File) {
@@ -211,6 +216,7 @@ export default function ScreenKontakteImport() {
 
   async function doUndo() {
     if (!result) return;
+    setConfirmUndo(false);
     try {
       await undoImport(result.batchId, user?.id ?? null);
       setUndone(true);
@@ -602,7 +608,7 @@ export default function ScreenKontakteImport() {
               </button>
               {!undone && (
                 <>
-                  <button type="button" onClick={doUndo} className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-text-muted hover:text-text-body transition-colors cursor-pointer">
+                  <button type="button" onClick={() => setConfirmUndo(true)} className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-text-muted hover:text-text-body transition-colors cursor-pointer">
                     <RotateCcw className="w-3.5 h-3.5" /> {t("import.undo")}
                   </button>
                   <p className="text-[11px] text-text-muted -mt-2">{t("import.undoHint")}</p>
@@ -610,6 +616,22 @@ export default function ScreenKontakteImport() {
               )}
               {undone && <p className="text-[12px] font-semibold text-[var(--signal-success-text)]">{t("import.undoDone")}</p>}
             </div>
+
+            {/* Undo-Vorschau: zeigt VOR dem Löschen, wie viele neu angelegte Kontakte entfernt werden. */}
+            <AlertDialog open={confirmUndo} onOpenChange={setConfirmUndo}>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>{t("import.undoConfirmTitle")}</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    {t("import.undoConfirmDesc", { count: result.created })}
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+                  <AlertDialogAction onClick={doUndo}>{t("import.undo")}</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         ) : null}
       </div>
