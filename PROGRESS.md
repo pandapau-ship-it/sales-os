@@ -15,7 +15,7 @@
 
 ▶ **1.** [ ] **[BAU+DESIGN] Kontakte & Companies — Slices K-1 bis K-6**
   (`docs/kontakte_companies_bauplan_v1.md`; Designs ScreenKontakte/ScreenCompanies
-  vorhanden — Abgleich nach Dauerregel 4c) · **erledigt: K-1a · K-1a2 · K-1b · K-2 · K-2b · K-3 · K-3b · ▶ K-4**
+  vorhanden — Abgleich nach Dauerregel 4c) · **erledigt: K-1a · K-1a2 · K-1b · K-2 · K-2b · K-3 · K-3b · K-4** · **▶ K-5-UI**
   - [x] **K-1a Test-Fundament ZUERST** — vitest eingerichtet (Config in `vite.config.ts`,
         Smoke-Test `src/lib/heatUtils.test.ts` 3/3 grün, npm-Scripts `test`/`test:watch`).
         Commit `3e6ad8b`, gemerged `81d0d33`. **Voraussetzung für [AUTO]-Tests in ALLEN
@@ -260,8 +260,13 @@
         **Verhaltensänderung (intern, UX identisch):** Bulk-Auswahl nutzt jetzt TanStack-Bordmittel
         (`getIsAllPageRowsSelected` / materialisierte „alle im Filter"-Auswahl) statt eigenem
         `selectAllFiltered`-Flag. Companies (Phase D) baut auf `DataTableCard` + `prefetchCompanyPanel`.
-  - [ ] **▶ K-4 Companies-Screen + Detail** (4c: ScreenCompanies) — Hier auch **[D-city]**
-        (`contacts.city`/`country`-Migration) aufgreifen, da beim Company-/Adress-Wiring fällig.
+  - [x] **K-4 Companies-Screen + Detail** (4c: ScreenCompanies) — K-4a Liste (`feat/companies-list-k4a`) +
+        K-4b-1 Übersicht/Kontakte + K-4b-2 Deals/Aktivität/Notizen, alle gemergt. **[D-city]** mit erledigt
+        (`contacts.city`/`country` verdrahtet). **Companies-Modul funktional komplett.**
+  - [ ] **▶ K-5-UI Import-Bildschirm** (4c-UI-Slice: Upload → Mapping-Vorschau → Validierungs-Preview → Report).
+        Engine-Kern liegt fertig (`src/lib/import/` detect/mapping/validate/parse, [AUTO]-Tests grün) — es fehlt
+        die **UI** + **Schicht 4 Ausführung** (Edge Function, resumierbare Batches, `import_batch_id`-Undo).
+        **Design fehlt** (UI-Design-Inventar) → Dauerregel 4c: Diagnose + Gap-Liste + AI-Studio-Prompt zuerst.
   - [~] **K-5 Smart-Import — Engine-Kern (dep-frei) VORGEZOGEN** (Reihenfolge-Flexibilität
         Dauerregel 4, während K-3-Design bei Oliver läuft — **hier vermerkt, nicht stillschweigend**).
         Branch `feat/k5-import-engine`. Gebaut (rein + [AUTO]-Tests, 28 neu / 108 gesamt):
@@ -373,6 +378,20 @@ für JEDEN UI-Slice**, auch wenn ein Design existiert.
 > Produktentscheidung, **vor** dem Bau der Automatisierung nachzuholen. **Nicht Teil von K-3.**
 > Voll dokumentiert als `#40` in `docs/entscheidungen_komplett.md`.
 
+> **✅ GEMERGT (18.07.2026):** `feat/soft-delete-contacts-companies` → `main` (`--no-ff`, `68d1802`),
+> Branch gelöscht, **origin gepusht**. Bündel: Soft-Delete + Vollansicht-Konsistenz (3 Punkte) + ganze
+> Tabellenzeile klickbar. Migration 058 zuvor per `db push` (Olivers Freigabe) auf Remote angewendet.
+> Doku-Branch `chore/status-invariant-doc` (contact_status-System-Invariante + [D51]-Deal-Stage-Anschluss)
+> separat nach `main` gemergt (`b13c51e`).
+>
+> **[D-card-rowclick] Farmer/HunterCard — ganze Kachel klickbar + Farmer-Prefetch — OFFEN (18.07.2026):**
+> In der geteilten `DataTableCard` (Kontakte + Companies) öffnet inzwischen die **ganze Zeile** die
+> Detailansicht. Die **HunterCard/Farmer-Kacheln** dagegen öffnen aktuell **nur über den Pfeil**, nicht die
+> ganze Kachel/den Namen. Zusätzlich lädt der **Prefetch bei Farmer** ggf. **nicht** die Subscription-/
+> Usage-Daten (`prefetchFarmerPanel` fehlt evtl. — `HunterCard` nutzt `prefetchContactPanel`, das die
+> Farmer-spezifischen Blöcke nicht abdeckt). **Nicht Teil von K-FS1**, kleiner eigenständiger Fix,
+> **TIMING noch offen**. Nur vermerkt, nicht gebaut.
+>
 > **Session 2026-07-18 (Löschen Kontakte + Companies — Soft-Delete — Branch `feat/soft-delete-contacts-companies`, STOP für QA):**
 > Migration **058**: `contacts`+`companies` bekommen `deleted_at`/`deleted_by` + partielle Indizes
 > (`where deleted_at is null`); `audit_write()` erkennt Soft-Delete (`deleted_at` NULL→gesetzt) und loggt
