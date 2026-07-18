@@ -13,9 +13,9 @@
 > [BAU]-Schritt ohne diese Abhängigkeit vorgezogen werden — **Vorziehen hier vermerken,
 > nie stillschweigend**.
 
-▶ **1.** [ ] **[BAU+DESIGN] Kontakte & Companies — Slices K-1 bis K-6**
+**1.** [~] **[BAU+DESIGN] Kontakte & Companies — Slices K-1 bis K-6** — **Kern-Arc K-1…K-6 FERTIG (18.07.2026, in `main`).**
   (`docs/kontakte_companies_bauplan_v1.md`; Designs ScreenKontakte/ScreenCompanies
-  vorhanden — Abgleich nach Dauerregel 4c) · **erledigt: K-1a · K-1a2 · K-1b · K-2 · K-2b · K-3 · K-3b · K-4 · K-5 (Engine + Schicht 4 + UI)** · **▶ K-6** (Duplikate verwalten + Merge)
+  vorhanden — Abgleich nach Dauerregel 4c) · **erledigt: K-1a · K-1a2 · K-1b · K-2 · K-2b · K-3 · K-3b · K-4 · K-5 (Engine + Schicht 4 + UI) · K-6a (Merge-Backend) · K-6-fuzzy · K-6b (Duplikate-verwalten-UI + Merge-Dialog + Löschen, Merge `dc93eb5`) + Import-Live-QA-Runden 2/3** (linkedin_url-Filter-Fix, Undo-Vorschau, Honesty-Undo-Transformation). · **[~] = Folge-Slices bleiben offen** (siehe unten: K-FS1 Hunter-Dedup · Vorlagen-Erkennung · [D-company-import] · merge_candidates-Persistenz · [D-contact-city]-Entscheidung).
   · **Folge-Slices offen (Import):** (1) **Vorlagen-Erkennung** (`import_templates`/`headerSignature`, für K-5 bewusst ausgeblendet)
   · (2) **[D-company-import] Company-only-Import** — Datei nur mit Firmen (z.B. gekaufte Ziel-Account-Liste): eigener
   Anlage-Weg mit eigenen Pflichtfeldern (**Name ODER Domain**) + eigener Duplikat-Prüfung (Domain exakt/Name unscharf, K2).
@@ -24,13 +24,16 @@
   Owner Oliver Prossi / Tags / Notiz") — vier Felder (icp/tags/owner/notiz) wurden NIE aus echten Daten geseedet.
   **DB per Abfrage als KORREKT bewiesen** (kein Datenfehler, reiner UI-Fehler). Fix: `seedContactDetails` (Single
   Source, wie Farmer) + icp/tags/notiz aus echten `contacts`-Spalten + Owner-Name aus `assigned_to`. Verifiziert.
-  · **[D-contact-city] OFFEN (Entscheidung Oliver):** `contacts` hat **keine** `city`/`country`-Spalten (per
-  information_schema geprüft), obwohl die CRM-Felder-Doku Standort/Stadt + Land für Kontakte vorsieht. Folgen:
-  (a) Import bietet „Stadt/Land"-Mapping an → würde beim Insert **fehlschlagen**, falls ein User eine Stadt-Spalte
-  mappt (Testdatei hatte keine → kein Crash bisher); (b) Details-Tab Standort/Land bleiben immer leer + Speichern
-  würde fehlschlagen (betrifft Hunter UND Farmer via seedContactDetails). **Entscheidung:** Migration `contacts.city/country`
-  ergänzen (per CRM-Doku, empfohlen) — db-push-Gate — ODER die Felder entfernen. Bis dahin: nicht mergen-blockierend
-  (kein Crash ohne gemappte Stadt-Spalte), aber vor produktivem Import zu klären.
+  · **[D-contact-city] ERLEDIGT (18.07.2026):** `contacts` hatte **keine** `city`/`country`-Spalten trotz CRM-Doku.
+  Oliver entschied „umsetzen" → **Migration `060_contacts_city_country.sql`** (zwei nullable text-Spalten, rein additiv)
+  **angewendet + Remote verifiziert** (beide Spalten existieren, text, nullable). Der Code war bereits vollständig
+  verdrahtet (`createContact` schreibt city/country, `DETAIL_MAP` stadt→city/land→country, Import-Synonyme,
+  `getContactDetail` `select("*")`) → Import-Stadt/Land-Mapping und Details-Tab Standort/Land funktionieren jetzt
+  (Hunter + Farmer). Kein Code-Change nötig, nur die Spalten fehlten.
+  · **[KB-DEFERRED] KB-DB-Migration bündeln, sobald AI-Chat/RAG-Slice ansteht — NICHT vorher (Oliver-Entscheidung 18.07.).**
+  Die seit KB-Migration 053 (30.06.) fertigen core_crm-Features (Kontakte/Listen/Companies/Suche/Detail/Löschen/Import/
+  Duplikate) sind vollständig im **Seed** `docs/knowledge_base.md` erfasst. Sie werden **bewusst Seed-only** gehalten und
+  erst mit dem AI-Chat/RAG-Slice (der die KB tatsächlich konsumiert) als **eine idempotente KB-Migration** in die DB gebündelt.
   · **[BUGFIX 18.07.] Details-Tab SYSTEM-Sektion Honesty (HunterSidepanel):** die System-Sektion zeigte
   **hardcodierte Fake-Literale** (Lead-Quelle „Manuell", Erstellt „12. März 2026", „vor 2 Tagen · E-Mail",
   Enrichment „Surfe", CRM-ID „HS-48213"). Jetzt aus echten `contacts`-Spalten geseedet (`sys`-Objekt:
@@ -439,7 +442,7 @@
           Live-DOM: echtes Paar/kein Fake · Merge-Dialog A/B + Bestätigung-vor-Ausführung + Override-Wert · Löschen ruft
           softDelete, nicht Merge). Gates alle grün (build/lint/168 Tests/structure/audit 0 FAIL), test-runner + auditor PASS.
 
-**2.** [ ] **[BAU] Vorab-Migration Entitlement & Credits**
+▶ **2.** [ ] **[BAU] Vorab-Migration Entitlement & Credits**
   (`docs/for_ai_sdr_vorab_entitlement_credits.md` — PFLICHT vor AI-SDR-Slice-5)
 
 **3.** [ ] **[OLIVER] Integrations-Session 0**

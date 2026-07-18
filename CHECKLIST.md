@@ -33,6 +33,12 @@
 > **Gate-Läufe (je Modul, Ergebnis):**
 > - **Farmer (30.06.2026): BESTANDEN** ✅ (1)+(2)+(3)+(4) — Details + Deferred siehe `docs/session_uebergabe_2026-06-30.md`.
 > - **Hunter (Konfig-Scope, 30.06.2026): BESTANDEN** ✅ (1)+(2)+(3 für auditierte Werte)+(4) — Deferred (ICP-Berechnung/-Bänder, Signal-Routing-Regel/Resolver-Konfig, Deal-Health-Kompositum, AI-SDR-Gating) siehe Übergabe.
+> - **core_crm — Kontakte & Companies (Kern-Arc K-1…K-6, 18.07.2026): BESTANDEN** ✅ (1)+(2)+(3 für auditierte Werte)+(4) — Details `docs/session_uebergabe_2026-07-18.md`.
+>   - **(1) Single Source ✅** — `contactToProfile`/`contactActiveStage` (Kontakt-Anzeigewerte, audit-erzwungen) · `contactDetailFields`/`DETAIL_MAP` (Details-Tab, Hunter+Farmer) · geteilte `DataTable` (Kontakte+Companies) · `lib/merge.ts` + `classifyDuplicate` (Merge/Dedup, von UI+Import genutzt) · `lib/filter` (EINE Filter-Sprache: Liste+dynamische Listen+Lifecycle) · `createContact` (Import ruft dieselbe Funktion, keine Insert-Kopie).
+>   - **(2) Performance ✅** — audit „N+1" PASS (kein `useQuery` in `.map`); geteilte Query-Keys; `staleTime` gesetzt; `DataTable` virtualisiert; Prefetch-on-hover + `PanelSkeleton`/`placeholderData`; `loadDedupUniverse`/`getDuplicatePairs` = EINE Query (kein N+1). *Scale-Deferred:* Paar-Findung ist client-seitig (bucketed) — bei sehr großen Orgs später server-seitige Dedup-Query.
+>   - **(3) Konfigurierbarkeit [[D51]] — für auditierte Werte ✅** — Pipeline-Stages = `settings.pipeline_stages` (C) · `campaign_match_min_score` = `system_config` (C) · **System-Enums bewusst KEIN Config** (`contact_status`/Won-Lost-Slugs — dokumentierte Invarianten). **Deferred (benannt):** Import-Undo-Fenster (`+7 Tage`, Literal in `db.ts`) und Dedup-Fuzzy-Schwellen (`NAME_COMPANY_MATCH_MIN 0.82` / `COMPANY_NAME_MATCH_MIN 0.85`, Konstanten in `dedup.ts`, B) → später nach `settings` (Code-Kommentar vermerkt es bereits).
+>   - **(4) Honesty ✅** — vollständige Fake-Wert-Inventur (18.07.) → Real-Kontakt-Panels fake-frei; echte EmptyStates (leere Duplikat-/Listen-/Import-Zustände = positiver Zustand); Import-Undo-Ergebnis transformiert sich ehrlich (keine falsche „NEU ERSTELLT"-Stat).
+>   - **Offene Folge-Slices (kein Kern-Blocker, tracked):** merge_candidates-Persistenz („Kein Duplikat") · onBlur-Hard/Soft-Match beim Anlegen + CSV-Review-Dedup-Spalte · **K-FS1** (Hunter-Dedup-Umbau — gehört zum Hunter-Modul, nicht zu core_crm) · Import-Vorlagen-Erkennung · [D-company-import].
 
 ---
 
