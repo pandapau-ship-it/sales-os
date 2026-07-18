@@ -296,6 +296,7 @@
 - [ ] Listen via Pill-Dropdown im Kontakte-Screen + Cmd+K (kein Nav-Punkt)
 - [ ] Companies: nur im Drawer + Settings (Admin) + Cmd+K — kein Nav-Punkt
 - [ ] Duplikat-Erkennung UI: Hard Match (Email/LinkedIn → blockiert) · Soft Match (Name+Company → Banner) · läuft bei Anlegen (onBlur), CSV-Import-Review, "Duplikate verwalten"-Ansicht
+- [x] **"Duplikate verwalten"-Vollbild-Screen (K-6b, 2026-07-18)** — Tabs Kontakte|Companies · Paar-Karten (sicher/möglich) · Merge-Dialog Feld-für-Feld A/B + alert-dialog-Bestätigung → `mergeContacts`/`mergeCompanies` (FK-Kaskade, K-6a) · 3. Aktion „Datensatz löschen" im ⋯-Menü → `softDelete*` · Einstieg im Aktionen-Dropdown (Kontakte + Companies) · Render-Test (Live-DOM). *Offen: merge_candidates-Persistenz für „Kein Duplikat"; onBlur-Hard/Soft-Match beim Anlegen*
 - [ ] Settings (Admin/Owner): Company-Verwaltung, Audit Log, Team, Webhooks, Automation Rules, Billing
 - [ ] Destruktive Aktionen → Bestätigungs-Dialog (Kontakt/Liste/Campaign löschen, Opt-out, CRM-Overwrite)
 - [x] Sliding-Pill-Animation in TopBar

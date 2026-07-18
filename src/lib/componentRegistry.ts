@@ -76,6 +76,13 @@ export const COMPONENT_REGISTRY = {
     description: 'Kontakt-Import (K-5): 4-Schritt-Flow Upload → Mapping → Prüfen → Import (Engine + Schicht 4)',
   },
 
+  screen_duplicates: {
+    component: 'ScreenDuplicates',
+    path: 'components/screens/ScreenDuplicates',
+    filter: null,
+    description: 'Duplikate verwalten (K-6b): Vollbild-Screen, Tabs Kontakte/Companies, Paar-Karten mit Merge-Dialog (Feld-für-Feld A/B) + Löschen einer Seite',
+  },
+
   screen_company_detail: {
     component: 'ScreenCompanyDetail',
     path: 'components/screens/ScreenCompanyDetail',

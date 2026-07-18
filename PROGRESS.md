@@ -324,6 +324,35 @@
         + verifiziert) + ehrlicher `isError`-Zweig statt still 0. (2) **i18n** — `common.next` fehlte
         (roher Text) → de/en/es ergänzt. (3) **UX** — wiederverwendbarer `shared/Stepper` mit CSS-Mikro-
         Animation (Linie wächst, Kreis-Pop, spiegelverkehrt beim Zurück, `prefers-reduced-motion`).
+    - [x] **Live-QA Runde 2 (18.07.2026, mit K-6b) — Diagnose + Fixes:**
+          **(1) „Duplikate nach Import nicht gefunden" = KEIN Bug, erwartet.** `buildImportPlan`: Zeilen mit Status
+          `duplicate` werden per Default **übersprungen** (nicht eingefügt) → nach dem Import existiert nur die
+          bestehende Einzelkopie, kein Paar. Gegen echte DB verifiziert (17 Kontakte, **0** exakte E-Mail-/LinkedIn-/
+          Name-Dupes) → „Duplikate verwalten" zeigt korrekt „Keine gefunden". Wer sie im Merge-Screen sehen will, muss
+          im Import „trotzdem anlegen" wählen. **(2) Ungemappte Spalten = korrekt.** `applyMapping` liest nur Spalten
+          mit `field!==null`; unbekannte Spalten werden ignoriert, der Kontakt wird trotzdem gebaut/importiert (nie
+          verworfen). **(3) BUG behoben — weiße Seite bei „Ohne Kontaktweg".** `linkedin_url` fehlte in der
+          Filter-Registry (`lib/filter/schema.ts CONTACT_FIELDS`) → `validateFilter` warf im `useMemo` → Render-Crash →
+          leere Seite. Fix: `linkedin_url: { type: "text" }` registriert + Regressionstest (`evaluate.test.ts`).
+          **Pill-Audit systematisch:** Kontakte Status-Pills (contact_status) ✅ · Opt-outs ✅ · Filter Quelle/ICP ✅ ·
+          „Ohne Kontaktweg" ❌→✅ · Companies (reines JS-Filtern, kein Schema) Industry/Size/Country/„Ohne Kontakt" ✅.
+          **(4) Undo-Vorschau gebaut:** Undo-Button öffnet jetzt einen `alert-dialog` mit Anzahl der zu entfernenden
+          neu angelegten Kontakte (`result.created`), statt sofort zu löschen. i18n `import.undoConfirm*` in de/en/es.
+          **(5) Honesty-Fix Undo-Ergebnis (Runde 3):** Nach erfolgreichem Undo transformiert sich der GANZE
+          Ergebnis-Block in-place (statt eine falsche „1 NEU ERSTELLT"-Stat stehenzulassen): Icon RotateCcw (info-Ton),
+          Headline `undoneTitle`, Subtext `undoneDesc`, „Neu erstellt"-Stat = alter Wert durchgestrichen + **0**,
+          Undo-Button weg → statische Bestätigung, „Zu den Kontakten" bleibt. Report in reine Komponente
+          **`ImportResultReport`** (named export, prop-driven) extrahiert → Render-Test `ImportResultReport.render.test.tsx`
+          (beide Zustände: doneTitle+echter Wert+Undo-Button ↔ undoneTitle+durchgestrichen+0+kein Undo). i18n
+          `import.undoneTitle/undoneDesc` de/en/es.
+    - [ ] **Import v2 — State-of-the-Art-Ideen (NICHT vor Projekt-Ende angehen — reine Politur-Vormerkung).**
+          Erst ganz am Schluss, wenn das gesamte Produkt steht: **(a) Intelligentes KI-Spalten-Mapping** — erkennt auch
+          ungewöhnliche/mehrsprachige Spaltennamen (hängt an AI-Chat/Langfuse, Prompt `import_mapping_v1`, ai_chat C27).
+          **(b) Live-Anreicherung während des Imports** — fehlende Felder (E-Mail/Firma/Jobtitel) automatisch aus
+          LinkedIn/Datenquelle nachladen (`lib/enrichment.ts`, nur leere Felder füllen). **(c) Mapping-Vorlagen** —
+          merkt sich wiederkehrende Datei-Strukturen (`import_templates` + `headerSignature`; db-Funktionen fehlen noch).
+          **(d) Undo mit Detail-Vorschau** — über die reine Anzahl hinaus eine Liste der betroffenen Kontakte (Query auf
+          `import_batch_id`). *(Anzahl-Vorschau ist mit Runde 2 bereits gebaut; die Namensliste bleibt v2.)*
     - [x] **Schicht 4 Ausführung (design-unabhängig VORGEZOGEN, 18.07.2026)** — Branch
           `feat/k5-import-execution` (fertig-gegated, **Migration 059 NICHT gepusht** — db-push = Gate;
           Branch bewusst NICHT nach main bis zum Push). Beide Agents PASS. `lib/import/execute.ts` (rein +
@@ -393,6 +422,22 @@
           Doppel-Vermeidung (sicher überschreibt möglich). 16 Merge-Tests. `getDuplicatePairs` zeigt beide Stufen.
           **Offen (Folge):** merge_candidates-Persistenz („Kein Duplikat") · **K-6b UI** (Duplikate-verwalten-Screen
           + Merge-Dialog — **braucht Olivers Design**, Prompt `docs/design_prompt_k6_duplicates.md`).
+    - [x] **K-6b UI FERTIG (18.07.2026)** — Branch `feat/k6b-duplicates-ui`. AI-Studio-Export als reine Struktur-/
+          Ablauf-Referenz übersetzt (kein 1:1-Copy: Hex→Tokens, Mock→echte Paare, setTimeout→echter Query-Ladezustand,
+          `<style>`-Tag weg, confirmMerge mit alert-dialog **VOR** Ausführung ergänzt). **`ScreenDuplicates.tsx`**
+          (Vollbild-Route `/app/kontakte/duplicates`, ohne Sidebar — wie Import): Tabs Kontakte|Companies (Initial-Tab aus
+          `?tab=`), echte Queries `getDuplicatePairs`/`getCompanyDuplicatePairs` (K-6a, staleTime 30s, enabled pro Tab),
+          Paar-Karten (Avatar + Level-Badge sicher=warn/möglich=muted + Grund), **Merge-Dialog** (shadcn `dialog`,
+          Feld-für-Feld A/B nur für **abweichende** Felder via `diffFields`, Honesty-Hinweis) → **alert-dialog-Bestätigung**
+          → `mergeContacts`/`mergeCompanies`. **3. Aktion** (Regel-B-Ergänzung): „Datensatz löschen" A/B im **⋯-Überlauf-Menü**
+          (`dropdown-menu`) → alert-dialog → `softDeleteContacts`/`softDeleteCompanies` (**nicht** Merge). Leer-/Lade-/Fehler-
+          Zustand (EmptyState/PanelSkeleton). „Kein Duplikat" = lokales Dismiss (merge_candidates-Persistenz weiter Folge).
+          **Einstieg:** „Duplikate verwalten" im Aktionen-Dropdown von ScreenKontakte **und** ScreenCompanies (`?tab=companies`).
+          `db.ts`: `getCompanyDuplicatePairs` liefert jetzt `CompanyDuplicatePairView` (a/b Records). `diffFields` in `merge.ts`
+          (+ Test, 17 Merge-Tests). **Registry** `screen_duplicates`. **i18n** `duplicates.*` (47 Keys) + `common.retry` +
+          `kontakte.manageDuplicates` in **allen drei** Locales. **Render-Test** `ScreenDuplicates.render.test.tsx` (3 Fälle,
+          Live-DOM: echtes Paar/kein Fake · Merge-Dialog A/B + Bestätigung-vor-Ausführung + Override-Wert · Löschen ruft
+          softDelete, nicht Merge). Gates alle grün (build/lint/168 Tests/structure/audit 0 FAIL), test-runner + auditor PASS.
 
 **2.** [ ] **[BAU] Vorab-Migration Entitlement & Credits**
   (`docs/for_ai_sdr_vorab_entitlement_credits.md` — PFLICHT vor AI-SDR-Slice-5)
