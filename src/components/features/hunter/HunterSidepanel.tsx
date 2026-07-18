@@ -91,8 +91,9 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
     setPrevOpenKey({ personProp, initialAction, initialTab });
     if (personProp) {
       setDisplay(personProp);
-      // Editierbare Felder beim Öffnen zurücksetzen (Kontaktzeile wird unten aus dem Fetch geseedet).
-      setDetails(EMPTY_DETAILS);
+      // KEIN setDetails(EMPTY_DETAILS)-Reset hier mehr! Der Reset konnte NACH dem Seed (Block unten)
+      // erneut feuern (StrictMode/Timing) und die echten Werte auf leer zurücksetzen → „alle Felder
+      // + Hinzufügen". Der Details-Tab wird ausschließlich beim contactRow-Wechsel geseedet (wie Farmer).
       // Karten-Aktion: Panel direkt mit der passenden Aktion öffnen. ('mail' deferred — Kommunikation P7.)
       if (initialFocusField) { setActiveTab('details'); } // Deep-Link Panel-Stift → Vollansicht Details-Tab
       else if (initialDealEditId) { setDealsAutoEditId(initialDealEditId); setActiveTab('deals'); } // Karten-Bleistift → Deal im Edit-Modus
@@ -133,7 +134,10 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
   // PH2: Telefonnummern kommen read-only direkt aus profile.phones (contact_phones) — kein lokaler State.
   // Während des Renders (React: „Adjusting state when a prop changes") — per Effect zeigte
   // die Kontaktzeile für einen Frame noch die Werte des vorigen Kontakts.
-  const [prevContactRow, setPrevContactRow] = useState(contactRow);
+  // WICHTIG: mit null initialisieren, NICHT mit contactRow. Ist der Detail beim Mount schon
+  // gecacht (Hover-Prefetch, Regel C), wäre contactRow sofort da → init=contactRow würde den
+  // Seed-Guard von Anfang an erfüllen → Seed liefe NIE → Details-Felder blieben leer.
+  const [prevContactRow, setPrevContactRow] = useState<typeof contactRow>(null);
   if (prevContactRow !== contactRow && contactRow) {
     setPrevContactRow(contactRow);
     setContact({ email: profile.email ?? '', linkedin: profile.linkedinUrl ?? '', web: profile.website ?? '' });
