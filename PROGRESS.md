@@ -407,7 +407,7 @@
         **NOCH OFFEN:** (a) **AI-Mapping** `import_mapping_v1` (C27/AI-Chat); (b) **UI**
         (Upload/Mapping-Vorschau/Review — mit K-3/K-4-Design); (c) **Schicht 4 Ausführung** (Edge Function,
         resumierbare Batches, `contacts/companies.import_batch_id`-Spalte für Undo, Company-Domain-Match, Report/Undo).
-  - [ ] **▶ K-6 Duplikate verwalten + Merge** — **Diagnose fertig (18.07.2026), wartet auf 2 Entscheidungen + Design.**
+  - [x] **K-6 Duplikate verwalten + Merge — FERTIG (18.07.2026, in `main`).** *(Der folgende Absatz ist die historische Ausgangs-Diagnose; umgesetzt via K-6a Merge-Backend · K-6-fuzzy · K-6b UI — siehe die abgehakten Einträge weiter unten. Die damals offenen „2 Entscheidungen + Design" sind alle getroffen/geliefert.)*
         **Bestand:** `classifyDuplicate`/`classifyCompanyDuplicate` (dedup.ts, K2) + `findDuplicates` (db.ts, Einzel) da;
         **keine** Merge-Funktionen, **merge_candidates-Tabelle existiert NICHT** (per DB geprüft), **kein visuelles Design**
         (§13-Spec in ui_interaktionen vorhanden). **FK-Kaskade Contact-Merge:** communications · contact_phones · deals ·
