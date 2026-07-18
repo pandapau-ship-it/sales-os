@@ -78,19 +78,50 @@ describe("findDuplicatePairs — sichere Paare (E-Mail/LinkedIn exakt)", () => {
     const pairs = findDuplicatePairs([c("1", "a@x.de", "linkedin.com/in/a"), c("2", "a@x.de", "linkedin.com/in/a")]);
     expect(pairs).toHaveLength(1);
   });
-  it("keine Paare ohne exakten Treffer", () => {
-    expect(findDuplicatePairs([c("1", "a@x.de"), c("2", "b@x.de")])).toHaveLength(0);
+  it("keine sicheren Paare ohne exakten E-Mail/LinkedIn-Treffer", () => {
+    // Verschiedene E-Mails, verschiedene Namen/Firmen → gar kein Treffer.
+    const a: ExistingContact = { id: "1", email: "a@x.de", linkedin_url: null, first_name: "Anna", last_name: "Alt", company_name: "Acme" };
+    const b: ExistingContact = { id: "2", email: "b@x.de", linkedin_url: null, first_name: "Bert", last_name: "Berg", company_name: "Zeta" };
+    expect(findDuplicatePairs([a, b])).toHaveLength(0);
+  });
+
+  it("findet ein MÖGLICH-Paar bei gleichem Name + gleicher Firma (ohne E-Mail/LinkedIn)", () => {
+    const a: ExistingContact = { id: "1", email: null, linkedin_url: null, first_name: "Jürgen", last_name: "Müller", company_name: "Acme GmbH" };
+    const b: ExistingContact = { id: "2", email: null, linkedin_url: null, first_name: "Jürgen", last_name: "Müller", company_name: "Acme" };
+    const pairs = findDuplicatePairs([a, b]);
+    expect(pairs).toHaveLength(1);
+    expect(pairs[0].level).toBe("moeglich");
+    expect(pairs[0].matchType).toBe("name_company");
+  });
+
+  it("ein SICHER-Paar wird NICHT zusätzlich als möglich gemeldet (Doppel-Vermeidung)", () => {
+    const a: ExistingContact = { id: "1", email: "same@x.de", linkedin_url: null, first_name: "Jürgen", last_name: "Müller", company_name: "Acme" };
+    const b: ExistingContact = { id: "2", email: "same@x.de", linkedin_url: null, first_name: "Jürgen", last_name: "Müller", company_name: "Acme" };
+    const pairs = findDuplicatePairs([a, b]);
+    expect(pairs).toHaveLength(1);
+    expect(pairs[0].level).toBe("sicher");
   });
 });
 
 describe("findCompanyDuplicatePairs — exakte Domain", () => {
-  it("findet ein Paar bei gleicher Domain", () => {
+  it("findet ein Paar bei gleicher Domain (sicher)", () => {
     const pairs = findCompanyDuplicatePairs([
       { id: "1", name: "Acme GmbH", domain: "acme.de" },
       { id: "2", name: "Acme", domain: "acme.de" },
       { id: "3", name: "Other", domain: "other.de" },
     ]);
     expect(pairs).toHaveLength(1);
+    expect(pairs[0].level).toBe("sicher");
     expect(pairs[0].matchType).toBe("domain");
+  });
+
+  it("findet ein MÖGLICH-Paar bei ähnlichem Namen ohne Domain", () => {
+    const pairs = findCompanyDuplicatePairs([
+      { id: "1", name: "Acme GmbH", domain: null },
+      { id: "2", name: "Acme", domain: null },
+    ]);
+    expect(pairs).toHaveLength(1);
+    expect(pairs[0].level).toBe("moeglich");
+    expect(pairs[0].matchType).toBe("name");
   });
 });

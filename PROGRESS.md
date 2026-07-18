@@ -387,8 +387,12 @@
           (communications/contact_phones/deals/leads/list_members/messages/notes/signals/tasks → Gewinner;
           list_members konfliktbereinigt via UNIQUE(list_id,contact_id); contact_phones entprimärt) + Verlierer
           Soft-Delete (audit via 058-Trigger). **Akzeptanz „Testfall pro Verweistyp"** über FK-Coverage-Tests erfüllt.
-          **Offen (Folge):** Name/Company-**Fuzzy**-Paare (O(n²), bewusst nur exakte Treffer jetzt) · **K-6b UI**
-          (Duplikate-verwalten-Screen + Merge-Dialog — **braucht Olivers Design**, Prompt liegt).
+          **Fuzzy-Paare nachgezogen (18.07., Branch `feat/k6-fuzzy-pairs`):** `findDuplicatePairs`/
+          `findCompanyDuplicatePairs` liefern jetzt auch **möglich**-Paare (Name+Firma bzw. Firmenname unscharf,
+          über `classifyDuplicate` K2). Kontakt-Fuzzy über Firmennamen-Buckets (bounded, kein globales O(n²)),
+          Doppel-Vermeidung (sicher überschreibt möglich). 16 Merge-Tests. `getDuplicatePairs` zeigt beide Stufen.
+          **Offen (Folge):** merge_candidates-Persistenz („Kein Duplikat") · **K-6b UI** (Duplikate-verwalten-Screen
+          + Merge-Dialog — **braucht Olivers Design**, Prompt `docs/design_prompt_k6_duplicates.md`).
 
 **2.** [ ] **[BAU] Vorab-Migration Entitlement & Credits**
   (`docs/for_ai_sdr_vorab_entitlement_credits.md` — PFLICHT vor AI-SDR-Slice-5)
