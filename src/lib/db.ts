@@ -208,7 +208,8 @@ export async function getContacts(
   let q = client
     .from("contacts")
     .select(`*, ${CONTACT_COMPANY_EMBED}, contact_phones(id, number, label, is_primary), owner:users!assigned_to(full_name)`)
-    .eq("organization_id", organizationId);
+    .eq("organization_id", organizationId)
+    .is("deleted_at", null); // Soft-Delete: gelöschte Kontakte nie ausliefern (058)
   if (filters.status) q = q.eq("contact_status", filters.status);
   if (filters.heatStatus) q = q.eq("heat_status", filters.heatStatus);
   if (filters.companyId) q = q.eq("company_id", filters.companyId);
@@ -240,8 +241,11 @@ export async function getCompanies(
     .from("companies")
     // contacts hat ZWEI FKs auf companies (company_id + primary_company_id) → Embed MUSS
     // den FK explizit hinten (`!company_id`), sonst PostgREST-Fehler „more than one relationship".
-    .select(`*, contacts!company_id(id, contact_status, last_contacted_at), deals(id, stage, closed_at, deleted_at)`)
-    .eq("organization_id", organizationId);
+    // deleted_at im Kontakt-Embed → Mapper filtert gelöschte Kontakte aus dem Aggregat (NICHT als
+    // PostgREST-Embed-Filter, der den Left-Join zum Inner-Join machen und „Ohne Kontakt"-Firmen ausblenden würde).
+    .select(`*, contacts!company_id(id, contact_status, last_contacted_at, deleted_at), deals(id, stage, closed_at, deleted_at)`)
+    .eq("organization_id", organizationId)
+    .is("deleted_at", null); // Soft-Delete: gelöschte Companies nie ausliefern (058)
   if (filters.cursor) q = q.lt("created_at", filters.cursor);
   const { data, error } = await q
     .order("created_at", { ascending: false })
@@ -261,9 +265,10 @@ export async function getCompanyDetail(
     .from("companies")
     // contacts hat ZWEI FKs auf companies (company_id + primary_company_id) → Embed MUSS
     // den FK explizit hinten (`!company_id`), sonst PostgREST-Fehler „more than one relationship".
-    .select(`*, contacts!company_id(id, contact_status, last_contacted_at), deals(id, stage, closed_at, deleted_at)`)
+    .select(`*, contacts!company_id(id, contact_status, last_contacted_at, deleted_at), deals(id, stage, closed_at, deleted_at)`)
     .eq("organization_id", organizationId)
     .eq("id", companyId)
+    .is("deleted_at", null) // gelöschte Company → nicht gefunden (058)
     .maybeSingle();
   if (error) throw error;
   return (data as unknown as CompanyListRaw) ?? null;
@@ -342,6 +347,7 @@ export async function getCompanyActivity(
     .select("id, occurred_at, channel, direction, note, contact:contacts!inner(first_name, last_name, company_id)")
     .eq("organization_id", organizationId)
     .eq("contacts.company_id", companyId)
+    .is("contacts.deleted_at", null) // Aktivität gelöschter Kontakte ausblenden (058)
     .order("occurred_at", { ascending: false })
     .limit(limit);
   if (error) throw error;
@@ -370,6 +376,52 @@ export async function createCompany(
     .single();
   if (error) throw error;
   return { id: (data as { id: string }).id };
+}
+
+// ── Soft-Delete (058) — Kontakte + Companies. Einzel = Bulk mit einer id. ─────────
+// Kein Hard-Delete: nur deleted_at/deleted_by setzen. audit_log-Eintrag (delete_<table>)
+// entsteht automatisch über den audit_write-Trigger. KEINE Rollenprüfung ([D-delete-rights]).
+
+/** softDeleteContacts — Kontakte soft-löschen (deleted_at/deleted_by). Leere Liste → no-op. */
+export async function softDeleteContacts(
+  organizationId: string,
+  ids: string[],
+  deletedBy?: string | null,
+): Promise<void> {
+  const client = getSupabaseClient();
+  if (!client || ids.length === 0) return;
+  const { error } = await client
+    .from("contacts")
+    .update({ deleted_at: new Date().toISOString(), deleted_by: deletedBy ?? null })
+    .eq("organization_id", organizationId)
+    .in("id", ids);
+  if (error) throw error;
+}
+
+/**
+ * softDeleteCompanies — Companies soft-löschen. Punkt 5 (bestätigt): KEINE Kaskade — verknüpfte
+ * Kontakte bleiben bestehen und verlieren nur die company_id/primary_company_id-Verknüpfung
+ * (analog „Company ohne Kontakte bleibt erhalten"). Deals bleiben ebenfalls unangetastet.
+ */
+export async function softDeleteCompanies(
+  organizationId: string,
+  ids: string[],
+  deletedBy?: string | null,
+): Promise<void> {
+  const client = getSupabaseClient();
+  if (!client || ids.length === 0) return;
+  // 1) Kontakte entkoppeln (nicht mitlöschen).
+  const { error: e1 } = await client.from("contacts").update({ company_id: null }).eq("organization_id", organizationId).in("company_id", ids);
+  if (e1) throw e1;
+  const { error: e2 } = await client.from("contacts").update({ primary_company_id: null }).eq("organization_id", organizationId).in("primary_company_id", ids);
+  if (e2) throw e2;
+  // 2) Companies soft-löschen.
+  const { error } = await client
+    .from("companies")
+    .update({ deleted_at: new Date().toISOString(), deleted_by: deletedBy ?? null })
+    .eq("organization_id", organizationId)
+    .in("id", ids);
+  if (error) throw error;
 }
 
 export interface DealFilters {
@@ -469,6 +521,7 @@ export async function getContactDetail(
     )
     .eq("organization_id", organizationId)
     .eq("id", contactId)
+    .is("deleted_at", null) // gelöschter Kontakt → nicht gefunden (058)
     .single();
   if (error) return null;
   return (data as unknown as ContactRow) ?? null;
@@ -1342,7 +1395,7 @@ export async function findDuplicates(
     }
   };
   const sel = "id, email, linkedin_url, first_name, last_name, company:companies(name)";
-  const base = () => client.from("contacts").select(sel).eq("organization_id", organizationId).limit(50);
+  const base = () => client.from("contacts").select(sel).eq("organization_id", organizationId).is("deleted_at", null).limit(50); // Soft-Delete: gelöschte nie als Duplikat (058)
 
   // Getrennte, parametrisierte Abfragen (kein .or()-String mit User-Werten → keine
   // PostgREST-Filter-Injection). Vereinigung → puren Klassifizierer entscheiden lassen.
@@ -1436,7 +1489,7 @@ export async function findOrCreateCompany(organizationId: string, name: string):
   const n = name.trim();
   if (!client || !n) return null;
   const { data: existing } = await client
-    .from("companies").select("id").eq("organization_id", organizationId).ilike("name", n).limit(1).maybeSingle();
+    .from("companies").select("id").eq("organization_id", organizationId).is("deleted_at", null).ilike("name", n).limit(1).maybeSingle(); // gelöschte Company nicht wiederbeleben (058)
   if (existing) return (existing as { id: string }).id;
   const { data, error } = await client
     .from("companies").insert({ organization_id: organizationId, name: n }).select("id").single();
@@ -1534,7 +1587,7 @@ export async function getLists(organizationId: string): Promise<ListView[]> {
     let expr: string;
     try { expr = compileToPostgrest(def); } catch { countByList.set(r.id, 0); return; }
     const { count } = await client
-      .from("contacts").select("id", { count: "exact", head: true }).eq("organization_id", organizationId).or(expr);
+      .from("contacts").select("id", { count: "exact", head: true }).eq("organization_id", organizationId).is("deleted_at", null).or(expr); // dynamische Liste zählt keine gelöschten (058)
     countByList.set(r.id, count ?? 0);
   }));
 
@@ -1616,7 +1669,7 @@ export async function getListMembers(
     let expr: string;
     try { expr = compileToPostgrest(list.filterConfig); } catch { return []; }
     const { data, error } = await client
-      .from("contacts").select(`*, ${CONTACT_COMPANY_EMBED}`).eq("organization_id", organizationId).or(expr).limit(1000);
+      .from("contacts").select(`*, ${CONTACT_COMPANY_EMBED}`).eq("organization_id", organizationId).is("deleted_at", null).or(expr).limit(1000); // dynamische Liste ohne gelöschte (058)
     if (error) throw error;
     return (data ?? []) as unknown as ContactRow[];
   }
@@ -1625,5 +1678,8 @@ export async function getListMembers(
     .select(`contact:contacts!contact_id(*, ${CONTACT_COMPANY_EMBED})`)
     .eq("organization_id", organizationId).eq("list_id", list.id).limit(1000);
   if (error) throw error;
-  return ((data ?? []) as Array<{ contact: unknown }>).map((r) => r.contact).filter(Boolean) as unknown as ContactRow[];
+  // Statische Liste: gelöschte Kontakte ausblenden (058) — Embed-Filter würde den Join brechen, daher in JS.
+  return ((data ?? []) as unknown as Array<{ contact: (ContactRow & { deleted_at?: string | null }) | null }>)
+    .map((r) => r.contact)
+    .filter((c): c is ContactRow => !!c && !c.deleted_at) as unknown as ContactRow[];
 }

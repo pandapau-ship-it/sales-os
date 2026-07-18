@@ -691,13 +691,15 @@ export default function FarmerSidepanel({ person: personProp, onClose, onExit, v
         </button>
       </div>
 
-      {/* Hero — randlos integriert (keine Kachel) */}
+      {/* Hero — weiße Card (Vollansicht-Standard, konsistent zu Kontakt/Company; CLAUDE.md:1043 Option B) */}
       <div className="max-w-[1100px] mx-auto px-5 sm:px-10 pt-3 pb-7">
-        <div className="flex items-start justify-between gap-6 flex-wrap">
-          {identityBlock}
-          <div className="flex items-start gap-7 shrink-0">{statusBadges}</div>
+        <div className="rounded-[12px] border border-[var(--border-card)] bg-app-surface px-6 py-5">
+          <div className="flex items-start justify-between gap-6 flex-wrap">
+            {identityBlock}
+            <div className="flex items-start gap-7 shrink-0">{statusBadges}</div>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap mt-7">{renderActions(btnFull)}</div>
         </div>
-        <div className="flex items-center gap-2 flex-wrap mt-7">{renderActions(btnFull)}</div>
       </div>
 
       {/* Tabs — sticky oben, volle Breite */}

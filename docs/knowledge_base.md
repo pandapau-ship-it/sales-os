@@ -461,3 +461,11 @@
 - **value:** Die ganze Firma auf einen Blick — Ansprechpartner, laufende Deals, gesamte Kommunikationshistorie und Notizen an einem Ort, ohne zwischen Screens zu springen. Stammdaten direkt pflegen, neue Kontakte und Deals ohne Umweg anlegen.
 - **module:** core_crm
 - *(K-4b, 2026-07-17)*
+
+### Löschen von Kontakten & Companies (Soft-Delete)
+- **feature:** Löschen (Kontakte & Companies)
+- **what:** Kontakte und Firmen lassen sich löschen — einzeln in der Detailansicht (roter „Löschen"-Button) oder als Massenaktion über die Auswahl-Checkboxen in der Tabelle. Vor dem Löschen kommt immer eine unmissverständliche rote Rückfrage mit Anzahl bzw. Namen. Gelöschtes verschwindet sofort überall (Listen, Suche, Detailseiten, Firmen-Kontaktlisten). Eine gelöschte Firma nimmt ihre Kontakte NICHT mit — die bleiben erhalten und verlieren nur die Firmen-Zuordnung. Nichts wird endgültig aus der Datenbank entfernt (kein Datenverlust); jede Löschung wird protokolliert.
+- **how:** Kontakt/Company öffnen → „Löschen" (rot) → bestätigen. Oder in der Tabelle mehrere auswählen → „Löschen" in der Auswahlleiste → bestätigen.
+- **value:** Aufräumen ohne Angst: falsche oder doppelte Einträge sind schnell weg, aber sicher (Bestätigung, keine echte Vernichtung, alles protokolliert). Firmen lassen sich entfernen, ohne versehentlich die zugehörigen Personen zu verlieren.
+- **module:** core_crm
+- *(Soft-Delete, Migration 058, 2026-07-18. Rollenrechte + Papierkorb folgen mit Settings.)*

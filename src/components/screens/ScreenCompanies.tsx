@@ -11,15 +11,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { createColumnHelper, type RowSelectionState } from "@tanstack/react-table";
-import { ChevronDown, Plus, Building2, Users, X, Globe } from "lucide-react";
+import { ChevronDown, Plus, Building2, Users, X, Globe, Trash2 } from "lucide-react";
 import { useCurrentOrg } from "@/hooks/useCurrentOrg";
 import { useAuth } from "@/hooks/useAuth";
 import { useNowMs } from "@/hooks/useNowMs";
 import { useDataTable } from "@/hooks/useDataTable";
 import { prefetchCompanyPanel } from "@/lib/prefetch";
-import { getCompanies } from "@/lib/db";
+import { getCompanies, softDeleteCompanies } from "@/lib/db";
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogFooter, AlertDialogTitle, AlertDialogDescription, AlertDialogAction, AlertDialogCancel } from "@/components/ui/alert-dialog";
 import { companyToCompaniesRow, formatEuroCents, type CompaniesRow } from "@/lib/companiesMappers";
 import { daysSinceIso } from "@/lib/hunterMappers";
 import { cn } from "@/lib/utils";
@@ -91,6 +92,7 @@ export default function ScreenCompanies() {
   const [sel, setSel] = useState<{ industry: string[]; size: string[]; country: string[] }>({ industry: [], size: [], country: [] });
   const [noContact, setNoContact] = useState(false);
   const [anlegenOpen, setAnlegenOpen] = useState(false);
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
 
   const toggleFilter = (field: keyof typeof sel, id: string) =>
     setSel((s) => ({ ...s, [field]: s[field].includes(id) ? s[field].filter((x) => x !== id) : [...s[field], id] }));
@@ -203,6 +205,16 @@ export default function ScreenCompanies() {
   const clearSelection = () => setRowSelection({});
   const clearFilters = () => { setSel({ industry: [], size: [], country: [] }); setNoContact(false); };
   const bulkAction = (label: string) => { toast(t("companies.bulk.actionToast", { label, count: selectedCount }), "info"); clearSelection(); };
+  const deleteCompaniesMutation = useMutation({
+    mutationFn: (ids: string[]) => softDeleteCompanies(organizationId, ids, userId),
+    onSuccess: (_d, ids) => {
+      void queryClient.invalidateQueries({ queryKey: ["companies", organizationId] });
+      void queryClient.invalidateQueries({ queryKey: ["kontakte", organizationId] }); // entkoppelte Kontakte (company_id → null)
+      toast(t("companies.delete.doneToast", { count: ids.length }), "success");
+      clearSelection();
+    },
+    onError: (e) => toast((e as Error).message, "error"),
+  });
 
   const noHits = hasFilter || search.trim().length > 0;
   const emptyState = (
@@ -266,6 +278,7 @@ export default function ScreenCompanies() {
           <div className="flex items-center gap-2">
             <button onClick={() => bulkAction(t("companies.bulk.tagFull"))} className="sherloq-btn-secondary">{t("companies.bulk.tag")}</button>
             <button onClick={() => bulkAction(t("companies.bulk.exportFull"))} className="sherloq-btn-secondary">{t("companies.bulk.export")}</button>
+            <button onClick={() => setBulkDeleteOpen(true)} className="sherloq-btn-secondary inline-flex items-center gap-1.5 text-[var(--signal-urgent-text)] border-[var(--signal-urgent-text)]/30 hover:bg-[var(--signal-urgent-bg)]"><Trash2 className="w-3.5 h-3.5" /> {t("companies.bulk.delete")}</button>
             <button onClick={clearSelection} aria-label={t("companies.bulk.clear")} data-tip={t("companies.bulk.clear")} className="w-8 h-8 rounded-full hover:bg-app-surface flex items-center justify-center text-text-muted cursor-pointer"><X className="w-4 h-4" /></button>
           </div>
         </div>
@@ -287,6 +300,20 @@ export default function ScreenCompanies() {
       <CompanyAnlegenPanel open={anlegenOpen} organizationId={organizationId}
         onClose={() => setAnlegenOpen(false)}
         onCreated={() => { setAnlegenOpen(false); void queryClient.invalidateQueries({ queryKey: ["companies", organizationId] }); }} />
+
+      {/* Bulk-Löschen (Soft-Delete) — roter Bestätigungs-Dialog mit Anzahl */}
+      <AlertDialog open={bulkDeleteOpen} onOpenChange={setBulkDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("companies.delete.title")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("companies.delete.confirm", { count: selectedCount })}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={() => { deleteCompaniesMutation.mutate(selectedIds); setBulkDeleteOpen(false); }} className="bg-[var(--signal-urgent-text)] hover:opacity-90">{t("companies.bulk.delete")}</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

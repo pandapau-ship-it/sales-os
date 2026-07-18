@@ -11,7 +11,7 @@ import type { CompanyRow } from "@/types/rows";
 import type { ContactRouting } from "@/lib/kontakteMappers";
 
 /** Eingebettete Aggregat-Felder aus getCompanies (contacts/deals der Company). */
-export interface CompanyContactEmbed { id: string; contact_status: string | null; last_contacted_at: string | null }
+export interface CompanyContactEmbed { id: string; contact_status: string | null; last_contacted_at: string | null; deleted_at?: string | null }
 export interface CompanyDealEmbed { id: string; stage: string | null; closed_at: string | null; deleted_at: string | null }
 export type CompanyListRaw = CompanyRow & {
   contacts?: CompanyContactEmbed[] | null;
@@ -79,7 +79,7 @@ export function companyStatus(raw: CompanyListRaw): CompanyStatus {
   const hasOpenDeal = deals.some((d) => !isTerminalStage(d.stage ?? "") && d.closed_at == null && d.deleted_at == null);
   if (hasOpenDeal) return { kind: "pipeline", tone: "info", routing: "hunter" };
 
-  const contacts = raw.contacts ?? [];
+  const contacts = (raw.contacts ?? []).filter((c) => !c.deleted_at); // gelöschte Kontakte zählen nicht (058)
   const hasInCampaign = contacts.some((c) => c.contact_status === "in_campaign");
   if (hasInCampaign) return { kind: "in_campaign", tone: "teal", routing: "ai_sdr" };
 
@@ -95,7 +95,7 @@ function maxIso(dates: (string | null)[]): string | null {
 }
 
 export function companyToCompaniesRow(raw: CompanyListRaw): CompaniesRow {
-  const contacts = raw.contacts ?? [];
+  const contacts = (raw.contacts ?? []).filter((c) => !c.deleted_at); // gelöschte Kontakte nicht mitzählen (058)
   const deals = raw.deals ?? [];
   const city = raw.city ?? undefined;
   const country = raw.country ?? undefined;
