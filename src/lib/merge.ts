@@ -10,7 +10,7 @@
  * `mergeCompanies` — diese Datei liefert nur die reinen, in vitest testbaren Regeln + die FK-Tabellenliste.
  */
 
-import { classifyDuplicate, classifyCompanyDuplicate, type ContactCandidate, type ExistingContact } from "@/lib/dedup";
+import { classifyDuplicate, classifyCompanyDuplicate, normalizeCompanyName, type ContactCandidate, type ExistingContact } from "@/lib/dedup";
 
 /** Beim Contact-Merge zu übernehmende Stammfelder (Telefon = eigene Tabelle, nicht hier). */
 export const MERGEABLE_CONTACT_FIELDS = [
@@ -87,37 +87,58 @@ export interface DuplicatePair<T extends string = string> {
 }
 
 /**
- * Sichere Kontakt-Duplikat-PAARE finden (exakte E-Mail bzw. LinkedIn) — O(n) über Buckets, kein O(n²).
- * Die unscharfe Name+Company-Paarung (O(n²)) ist ein bewusster Folge-Punkt (siehe PROGRESS K-6).
- * Nutzt `classifyDuplicate` als Wahrheit pro Kandidatenpaar (keine Zweitlogik).
+ * Kontakt-Duplikat-PAARE finden — SICHER (E-Mail/LinkedIn exakt, O(n)-Buckets) UND MÖGLICH
+ * (Name+Firma unscharf). Die möglich-Suche wird über den normalisierten FIRMENNAMEN gebucketet
+ * (Kontakte derselben Firma) → nur innerhalb kleiner Buckets pairwise, kein globales O(n²).
+ * `classifyDuplicate` (K2) ist die alleinige Wahrheit pro Paar (keine Zweitlogik). Ein Paar, das
+ * schon „sicher" ist, wird NICHT zusätzlich als „möglich" gemeldet (seen-Set über beide Stufen).
  */
 export function findDuplicatePairs(contacts: ExistingContact[]): DuplicatePair[] {
   const pairs: DuplicatePair[] = [];
   const seen = new Set<string>();
-  const emit = (a: ExistingContact, b: ExistingContact) => {
+  const emit = (a: ExistingContact, b: ExistingContact, onlyLevel?: "sicher" | "moeglich") => {
+    if (a.id === b.id) return;
     const key = [a.id, b.id].sort().join("|");
     if (seen.has(key)) return;
     const hit = classifyDuplicate(a as ContactCandidate, [b]);
-    if (hit && hit.level === "sicher") { seen.add(key); pairs.push({ aId: a.id, bId: b.id, level: hit.level, matchType: hit.matchType }); }
+    if (hit && (!onlyLevel || hit.level === onlyLevel)) { seen.add(key); pairs.push({ aId: a.id, bId: b.id, level: hit.level, matchType: hit.matchType }); }
   };
-  const byKey = (pick: (c: ExistingContact) => string | null | undefined) => {
+  const bucketize = (pick: (c: ExistingContact) => string | null | undefined) => {
     const m = new Map<string, ExistingContact[]>();
     for (const c of contacts) { const k = (pick(c) ?? "").trim().toLowerCase(); if (k) (m.get(k) ?? m.set(k, []).get(k)!).push(c); }
-    for (const bucket of m.values()) for (let i = 0; i < bucket.length; i++) for (let j = i + 1; j < bucket.length; j++) emit(bucket[i], bucket[j]);
+    return m;
   };
-  byKey((c) => c.email);
-  byKey((c) => c.linkedin_url);
+  const scan = (m: Map<string, ExistingContact[]>, onlyLevel?: "sicher" | "moeglich") => {
+    for (const bucket of m.values()) for (let i = 0; i < bucket.length; i++) for (let j = i + 1; j < bucket.length; j++) emit(bucket[i], bucket[j], onlyLevel);
+  };
+  // 1) sicher — exakte E-Mail bzw. LinkedIn.
+  scan(bucketize((c) => c.email), "sicher");
+  scan(bucketize((c) => c.linkedin_url), "sicher");
+  // 2) möglich — Name+Firma unscharf, gebucketet über den normalisierten Firmennamen.
+  scan(bucketize((c) => normalizeCompanyName(c.company_name)), "moeglich");
   return pairs;
 }
 
-/** Company-Duplikat-Paare (exakte Domain) — Name-Fuzzy = Folge-Punkt. */
+/**
+ * Company-Duplikat-PAARE — SICHER (Domain exakt) UND MÖGLICH (Name unscharf). Domain-Buckets für
+ * sicher; die Name-Fuzzy-Suche ist pairwise über alle Companies (typisch << Kontakte). Ein Domain-
+ * Paar wird nicht zusätzlich als möglich gemeldet.
+ */
 export function findCompanyDuplicatePairs(companies: { id: string; name?: string | null; domain?: string | null }[]): DuplicatePair[] {
   const pairs: DuplicatePair[] = [];
-  const m = new Map<string, typeof companies>();
-  for (const c of companies) { const k = (c.domain ?? "").trim().toLowerCase(); if (k) (m.get(k) ?? m.set(k, []).get(k)!).push(c); }
-  for (const bucket of m.values()) for (let i = 0; i < bucket.length; i++) for (let j = i + 1; j < bucket.length; j++) {
-    const hit = classifyCompanyDuplicate({ domain: bucket[i].domain, name: bucket[i].name }, [{ id: bucket[j].id, domain: bucket[j].domain, name: bucket[j].name }]);
-    if (hit && hit.level === "sicher") pairs.push({ aId: bucket[i].id, bId: bucket[j].id, level: hit.level, matchType: hit.matchType });
-  }
+  const seen = new Set<string>();
+  const emit = (a: typeof companies[number], b: typeof companies[number], onlyLevel?: "sicher" | "moeglich") => {
+    if (a.id === b.id) return;
+    const key = [a.id, b.id].sort().join("|");
+    if (seen.has(key)) return;
+    const hit = classifyCompanyDuplicate({ domain: a.domain, name: a.name }, [{ id: b.id, domain: b.domain, name: b.name }]);
+    if (hit && (!onlyLevel || hit.level === onlyLevel)) { seen.add(key); pairs.push({ aId: a.id, bId: b.id, level: hit.level, matchType: hit.matchType }); }
+  };
+  // 1) sicher — Domain-Buckets.
+  const byDomain = new Map<string, typeof companies>();
+  for (const c of companies) { const k = (c.domain ?? "").trim().toLowerCase(); if (k) (byDomain.get(k) ?? byDomain.set(k, []).get(k)!).push(c); }
+  for (const bucket of byDomain.values()) for (let i = 0; i < bucket.length; i++) for (let j = i + 1; j < bucket.length; j++) emit(bucket[i], bucket[j], "sicher");
+  // 2) möglich — Name unscharf (pairwise; Companies sind typischerweise wenige).
+  for (let i = 0; i < companies.length; i++) for (let j = i + 1; j < companies.length; j++) emit(companies[i], companies[j], "moeglich");
   return pairs;
 }
