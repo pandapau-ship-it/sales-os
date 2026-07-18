@@ -758,8 +758,11 @@ Campaign zuweisen · Tag setzen · Archivieren · Export (CSV)
 
 Zugang: Kontakte → Actions → "Duplikate verwalten"
 - Paare nebeneinander + Ähnlichkeits-Indikator
-- "Zusammenführen" → Merge-Dialog: beide Records, User wählt pro Feld welcher Wert bleibt
-- "Kein Duplikat" → ablehnen
+- "Zusammenführen" → Merge-Dialog: beide Records, User wählt pro Feld welcher Wert bleibt.
+  **Vorauswahl je Feld = Auto-Default** (befüllter „Bestand"-Datensatz gewinnt, Lücken aus dem anderen
+  gefüllt), pro Feld übersteuerbar (kanonisch 18.07.2026, K-6a — deckt sich mit CLAUDE Datenqualität #4).
+  Alle FK-Verweise (Deals/Tasks/Notizen/Kommunikation/Listen) wandern zum Gewinner, Verlierer → Papierkorb.
+- "Kein Duplikat" → ablehnen (Persistenz der Merkliste = merge_candidates, K-6b Folge-Slice)
 
 ---
 

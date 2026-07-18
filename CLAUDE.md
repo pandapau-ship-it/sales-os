@@ -4513,8 +4513,11 @@ Bei Bestätigung "Zusammenführen": kein zweiter Datensatz, sondern Anreicherung
 des bestehenden.
 
 - Neues Signal/Communication an bestehenden Kontakt anhängen (nie überschreiben)
-- Fehlende Felder am Bestand auffüllen, vorhandene **nicht** überschreiben
-  (Bestand gewinnt — der User hat ihn bewusst gepflegt)
+- **Feld-Auflösung = „Auto-Default + Pro-Feld-Override" (kanonisch entschieden 18.07.2026, K-6a —
+  vereint diese Regel mit §13):** der befülltere Datensatz gewinnt automatisch, fehlende Felder werden
+  aus dem Verlierer aufgefüllt, vorhandene **nicht** überschreiben (Bestand gewinnt — bewusst gepflegt);
+  im **manuellen Merge-Dialog** (§13) ist die Auswahl **pro Feld übersteuerbar**. Single Source der Regel:
+  `lib/merge.ts resolveMergeFields` (override > Gewinner-Wert > Verlierer-Wert).
 - Kurzakte-Eintrag: "Aus weiterer Quelle ergänzt am …"
 - Läuft bereits eine Sequenz → weiterlaufen lassen, **keine zweite** starten
 - `audit_log`: `source = 'merge'`, beide IDs festhalten

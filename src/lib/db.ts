@@ -41,6 +41,10 @@ import {
 // Direkt aus execute.ts (nicht via Barrel) — der Barrel re-exportiert parse.ts, das xlsx zieht;
 // so bleibt xlsx aus dem db.ts-/Haupt-Bundle (Import-UI lädt parse.ts dynamisch, K-5 Build-Note).
 import { extractEmailDomain, type ImportPlan } from "@/lib/import/execute";
+import {
+  MERGEABLE_CONTACT_FIELDS, MERGEABLE_COMPANY_FIELDS, CONTACT_FK_SIMPLE, COMPANY_FK,
+  resolveMergeFields, findDuplicatePairs, findCompanyDuplicatePairs, type DuplicatePair,
+} from "@/lib/merge";
 import type {
   Lead,
   Customer,
@@ -1735,6 +1739,108 @@ export async function undoImport(
   await client
     .from("import_batches").update({ status: "undone", undone_at: nowIso, updated_at: nowIso }).eq("id", batchId);
   return { removedContacts: ((removed ?? []) as unknown[]).length };
+}
+
+// ── Duplikate verwalten + Merge (K-6a) ────────────────────────────────────────
+// Paar-Findung (sichere Treffer: E-Mail/LinkedIn bzw. Domain exakt) + Merge mit vollständiger
+// FK-Kaskade auf den Gewinner + Soft-Delete des Verlierers. Match-/Feld-Logik ist rein (lib/merge,
+// lib/dedup) — hier nur DB-Zugriff. audit_log via Trigger (058: Soft-Delete = delete_<table>).
+
+export interface DuplicatePairView { a: ContactRow; b: ContactRow; level: DuplicatePair["level"]; matchType: string }
+
+/** Sichere Kontakt-Duplikat-Paare der Org (E-Mail/LinkedIn exakt). Name-Fuzzy = Folge-Punkt (K-6). */
+export async function getDuplicatePairs(organizationId: string): Promise<DuplicatePairView[]> {
+  const client = getSupabaseClient();
+  if (!client) return [];
+  const { data, error } = await client
+    .from("contacts")
+    .select("*, company:companies!company_id(name)")
+    .eq("organization_id", organizationId)
+    .is("deleted_at", null);
+  if (error) throw error;
+  const rows = (data ?? []) as unknown as ContactRow[];
+  const byId = new Map(rows.map((r) => [(r as { id: string }).id, r]));
+  const existing = rows.map((r) => {
+    const c = r as Record<string, unknown>;
+    const company = c.company as { name?: string } | null;
+    return { id: c.id as string, email: (c.email as string) ?? null, linkedin_url: (c.linkedin_url as string) ?? null, first_name: (c.first_name as string) ?? null, last_name: (c.last_name as string) ?? null, company_name: company?.name ?? null };
+  });
+  return findDuplicatePairs(existing)
+    .map((p) => ({ a: byId.get(p.aId)!, b: byId.get(p.bId)!, level: p.level, matchType: p.matchType }))
+    .filter((p) => p.a && p.b);
+}
+
+/** Sichere Company-Duplikat-Paare der Org (Domain exakt). */
+export async function getCompanyDuplicatePairs(organizationId: string): Promise<DuplicatePair[]> {
+  const client = getSupabaseClient();
+  if (!client) return [];
+  const { data, error } = await client
+    .from("companies").select("id, name, domain").eq("organization_id", organizationId).is("deleted_at", null);
+  if (error) throw error;
+  return findCompanyDuplicatePairs((data ?? []) as { id: string; name?: string | null; domain?: string | null }[]);
+}
+
+/**
+ * Zwei Kontakte zusammenführen (K-6a). Gewinner erbt aufgelöste Feldwerte (Auto-Default „Bestand
+ * gewinnt, Lücken füllen" + Pro-Feld-Override); ALLE FK-Verweise des Verlierers wandern zum Gewinner
+ * (list_members konfliktbereinigt, contact_phones entprimärt); Verlierer → Soft-Delete. audit via Trigger.
+ */
+export async function mergeContacts(
+  organizationId: string, winnerId: string, loserId: string,
+  overrides: Record<string, unknown>, mergedBy: string | null,
+): Promise<{ winnerId: string } | null> {
+  const client = getSupabaseClient();
+  if (!client || winnerId === loserId) return null;
+  const { data: recs, error: loadErr } = await client
+    .from("contacts").select("*").eq("organization_id", organizationId).in("id", [winnerId, loserId]).is("deleted_at", null);
+  if (loadErr) throw loadErr;
+  const winner = (recs ?? []).find((r) => (r as { id: string }).id === winnerId) as Record<string, unknown> | undefined;
+  const loser = (recs ?? []).find((r) => (r as { id: string }).id === loserId) as Record<string, unknown> | undefined;
+  if (!winner || !loser) return null;
+
+  // 1) Feldwerte auflösen + auf den Gewinner schreiben (nur der minimale Patch).
+  const patch = resolveMergeFields(winner, loser, MERGEABLE_CONTACT_FIELDS, overrides);
+  if (Object.keys(patch).length) await client.from("contacts").update(patch).eq("id", winnerId);
+
+  // 2) Einfache FK-Tabellen: contact_id des Verlierers → Gewinner.
+  for (const table of CONTACT_FK_SIMPLE) {
+    await client.from(table).update({ contact_id: winnerId }).eq("contact_id", loserId);
+  }
+  // 3) list_members: UNIQUE(list_id,contact_id) → Konflikte (Gewinner schon in Liste) erst entfernen.
+  const { data: winnerLists } = await client.from("list_members").select("list_id").eq("contact_id", winnerId);
+  const winnerListIds = (winnerLists ?? []).map((r) => (r as { list_id: string }).list_id);
+  if (winnerListIds.length) await client.from("list_members").delete().eq("contact_id", loserId).in("list_id", winnerListIds);
+  await client.from("list_members").update({ contact_id: winnerId }).eq("contact_id", loserId);
+  // 4) contact_phones: Nummern des Verlierers übernehmen, aber entprimären (Gewinner-Primär bleibt).
+  await client.from("contact_phones").update({ contact_id: winnerId, is_primary: false }).eq("contact_id", loserId);
+
+  // 5) Verlierer soft-löschen (audit_log delete_contacts via 058-Trigger).
+  await client.from("contacts").update({ deleted_at: new Date().toISOString(), deleted_by: mergedBy }).eq("id", loserId);
+  return { winnerId };
+}
+
+/** Zwei Companies zusammenführen (K-6a). Analog: Feld-Merge + company_id/primary_company_id-Kaskade + Soft-Delete. */
+export async function mergeCompanies(
+  organizationId: string, winnerId: string, loserId: string,
+  overrides: Record<string, unknown>, mergedBy: string | null,
+): Promise<{ winnerId: string } | null> {
+  const client = getSupabaseClient();
+  if (!client || winnerId === loserId) return null;
+  const { data: recs, error: loadErr } = await client
+    .from("companies").select("*").eq("organization_id", organizationId).in("id", [winnerId, loserId]).is("deleted_at", null);
+  if (loadErr) throw loadErr;
+  const winner = (recs ?? []).find((r) => (r as { id: string }).id === winnerId) as Record<string, unknown> | undefined;
+  const loser = (recs ?? []).find((r) => (r as { id: string }).id === loserId) as Record<string, unknown> | undefined;
+  if (!winner || !loser) return null;
+
+  const patch = resolveMergeFields(winner, loser, MERGEABLE_COMPANY_FIELDS, overrides);
+  if (Object.keys(patch).length) await client.from("companies").update(patch).eq("id", winnerId);
+
+  for (const { table, column } of COMPANY_FK) {
+    await client.from(table).update({ [column]: winnerId }).eq(column, loserId);
+  }
+  await client.from("companies").update({ deleted_at: new Date().toISOString(), deleted_by: mergedBy }).eq("id", loserId);
+  return { winnerId };
 }
 
 // ── Listen (K-3b) ────────────────────────────────────────────────────────────

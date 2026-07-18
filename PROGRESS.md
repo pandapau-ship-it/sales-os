@@ -369,7 +369,26 @@
         **NOCH OFFEN:** (a) **AI-Mapping** `import_mapping_v1` (C27/AI-Chat); (b) **UI**
         (Upload/Mapping-Vorschau/Review — mit K-3/K-4-Design); (c) **Schicht 4 Ausführung** (Edge Function,
         resumierbare Batches, `contacts/companies.import_batch_id`-Spalte für Undo, Company-Domain-Match, Report/Undo).
-  - [ ] K-6 Duplikate verwalten + Merge (merge_contacts/merge_companies + [AUTO]-Tests)
+  - [ ] **▶ K-6 Duplikate verwalten + Merge** — **Diagnose fertig (18.07.2026), wartet auf 2 Entscheidungen + Design.**
+        **Bestand:** `classifyDuplicate`/`classifyCompanyDuplicate` (dedup.ts, K2) + `findDuplicates` (db.ts, Einzel) da;
+        **keine** Merge-Funktionen, **merge_candidates-Tabelle existiert NICHT** (per DB geprüft), **kein visuelles Design**
+        (§13-Spec in ui_interaktionen vorhanden). **FK-Kaskade Contact-Merge:** communications · contact_phones · deals ·
+        leads · list_members · messages · notes · signals · tasks → Gewinner. **Company-Merge:** contacts.company_id +
+        primary_company_id · deals · notes · signals. **KANON-WIDERSPRUCH Merge-Semantik:** §13 „User wählt PRO FELD"
+        vs. CLAUDE Datenqualität #4 „Bestand gewinnt automatisch, fehlende Felder auffüllen" → **Oliver entscheidet**.
+        Design-Prompt: `docs/design_prompt_k6_duplicates.md`.
+    - [x] **K-6a Merge-Backend FERTIG (design-unabhängig, KEINE Migration/kein Push, 18.07.2026)** — Branch
+          `feat/k6a-merge-backend`. Entscheidungen: **(1) Merge-Semantik „Auto-Default + Pro-Feld-Override"**
+          (befüllter Datensatz gewinnt, Lücken füllen, pro Feld übersteuerbar — kanonisch, CLAUDE #4 + §13
+          angeglichen) · **(2) merge_candidates später** (K-6b, „Kein Duplikat"-Persistenz). `lib/merge.ts` (rein,
+          **13 [AUTO]-Tests**): `resolveMergeFields` · `pickPrimaryId` · `findDuplicatePairs`/`findCompanyDuplicatePairs`
+          (sichere Treffer E-Mail/LinkedIn/Domain exakt) · FK-Tabellen-Konstanten. `db.ts`: `getDuplicatePairs`/
+          `getCompanyDuplicatePairs` · **`mergeContacts`/`mergeCompanies`** — Feld-Merge + **vollständige FK-Kaskade**
+          (communications/contact_phones/deals/leads/list_members/messages/notes/signals/tasks → Gewinner;
+          list_members konfliktbereinigt via UNIQUE(list_id,contact_id); contact_phones entprimärt) + Verlierer
+          Soft-Delete (audit via 058-Trigger). **Akzeptanz „Testfall pro Verweistyp"** über FK-Coverage-Tests erfüllt.
+          **Offen (Folge):** Name/Company-**Fuzzy**-Paare (O(n²), bewusst nur exakte Treffer jetzt) · **K-6b UI**
+          (Duplikate-verwalten-Screen + Merge-Dialog — **braucht Olivers Design**, Prompt liegt).
 
 **2.** [ ] **[BAU] Vorab-Migration Entitlement & Credits**
   (`docs/for_ai_sdr_vorab_entitlement_credits.md` — PFLICHT vor AI-SDR-Slice-5)
