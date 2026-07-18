@@ -801,27 +801,6 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
         <DetailField label="Enrichment-Quelle" value="Surfe" readonly />
         <DetailField label="CRM ID" value="HS-48213" readonly />
       </DetailSection>
-
-      {/* Danger-Zone: Kontakt löschen (Soft-Delete). Roter Kontext, Bestätigung Pflicht. */}
-      <div className="flex justify-end pt-1">
-        <button type="button" onClick={() => setConfirmContactDelete(true)} disabled={!contactId}
-          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-[10px] border border-[var(--signal-urgent-text)]/30 text-[12px] font-bold text-[var(--signal-urgent-text)] hover:bg-[var(--signal-urgent-bg)] transition-colors cursor-pointer disabled:opacity-50">
-          <Trash2 className="w-3.5 h-3.5" /> {t('kontakte.delete.button')}
-        </button>
-      </div>
-
-      <AlertDialog open={confirmContactDelete} onOpenChange={setConfirmContactDelete}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t('kontakte.delete.title')}</AlertDialogTitle>
-            <AlertDialogDescription>{t('kontakte.delete.confirmOne', { name: profile.name })}</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
-            <AlertDialogAction onClick={() => { deleteContactMutation.mutate(); setConfirmContactDelete(false); }} className="bg-[var(--signal-urgent-text)] hover:opacity-90">{t('kontakte.delete.button')}</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 
@@ -905,10 +884,31 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
         <button onClick={onClose} aria-label="Zurück" data-tip="Zurück" className="w-9 h-9 rounded-full flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-app-surface transition-colors cursor-pointer">
           <ArrowLeft className="w-[18px] h-[18px]" />
         </button>
-        <button onClick={() => (onExit ?? onClose)()} aria-label="Schließen" data-tip="Schließen" className="w-9 h-9 rounded-full flex items-center justify-center text-text-muted hover:text-[var(--signal-urgent-text)] hover:bg-app-surface transition-colors cursor-pointer">
-          <X className="w-[18px] h-[18px]" />
-        </button>
+        <div className="flex items-center gap-2">
+          {/* Kontakt löschen (Vollansicht, oben rechts) — konsistent zur Company-Vollansicht. */}
+          <button type="button" onClick={() => setConfirmContactDelete(true)} disabled={!contactId}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] border border-[var(--signal-urgent-text)]/30 text-[12px] font-semibold text-[var(--signal-urgent-text)] hover:bg-[var(--signal-urgent-bg)] transition-colors cursor-pointer disabled:opacity-50">
+            <Trash2 className="w-3.5 h-3.5" /> {t('kontakte.delete.button')}
+          </button>
+          <button onClick={() => (onExit ?? onClose)()} aria-label="Schließen" data-tip="Schließen" className="w-9 h-9 rounded-full flex items-center justify-center text-text-muted hover:text-[var(--signal-urgent-text)] hover:bg-app-surface transition-colors cursor-pointer">
+            <X className="w-[18px] h-[18px]" />
+          </button>
+        </div>
       </div>
+
+      {/* Kontakt-Löschen-Bestätigung (Vollansicht; immer gerendert, unabhängig vom Tab) */}
+      <AlertDialog open={confirmContactDelete} onOpenChange={setConfirmContactDelete}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('kontakte.delete.title')}</AlertDialogTitle>
+            <AlertDialogDescription>{t('kontakte.delete.confirmOne', { name: profile.name })}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={() => { deleteContactMutation.mutate(); setConfirmContactDelete(false); }} className="bg-[var(--signal-urgent-text)] hover:opacity-90">{t('kontakte.delete.button')}</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Hero — randlos direkt in die Seite integriert (keine Kachel) */}
       <div className="max-w-[1100px] mx-auto px-5 sm:px-10 pt-3 pb-7">
