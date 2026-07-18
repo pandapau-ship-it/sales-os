@@ -1543,9 +1543,13 @@ export async function createContact(
   // Telefonnummern liegen NICHT auf contacts, sondern in contact_phones → vor dem Insert trennen.
   const { phones, ...contactFields } = input;
   const clean = Object.fromEntries(Object.entries(contactFields).filter(([, v]) => v != null && v !== ""));
+  const record: Record<string, unknown> = { organization_id: organizationId, ...clean, lead_source: opts?.leadSource ?? "manual", contact_status: "ohne_campaign", assigned_to, created_by: createdBy };
+  // import_batch_id NUR beim Import setzen — der manuelle Anlege-Pfad referenziert die Spalte NICHT
+  // und bleibt so unabhängig von Migration 059 (die noch nicht gepusht ist).
+  if (opts?.importBatchId) record.import_batch_id = opts.importBatchId;
   const { data, error } = await client
     .from("contacts")
-    .insert({ organization_id: organizationId, ...clean, lead_source: opts?.leadSource ?? "manual", contact_status: "ohne_campaign", assigned_to, created_by: createdBy, import_batch_id: opts?.importBatchId ?? null })
+    .insert(record)
     .select("id")
     .single();
   if (error) throw error;
