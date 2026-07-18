@@ -810,7 +810,9 @@
     "undoDone": "Import rückgängig gemacht.",
     "undoFailed": "Rückgängig machen nicht möglich (Frist abgelaufen?).",
     "undoConfirmTitle": "Undo import?",
-    "undoConfirmDesc": "This removes the {{count}} contacts newly created in this import (along with companies newly created in this import). Contacts that were only enriched or skipped stay untouched."
+    "undoConfirmDesc": "This removes the {{count}} contacts newly created in this import (along with companies newly created in this import). Contacts that were only enriched or skipped stay untouched.",
+    "undoneTitle": "Import undone",
+    "undoneDesc": "The newly created contacts were removed again."
   },
   "duplicates": {
     "title": "Duplikate verwalten",

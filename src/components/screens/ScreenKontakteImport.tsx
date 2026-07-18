@@ -579,44 +579,10 @@ export default function ScreenKontakteImport() {
             </button>
           </div>
         ) : result ? (
-          <div className="bg-app-surface p-10 rounded-[12px] shadow-[var(--shadow-card)] border border-[var(--border-card)] text-center space-y-8">
-            <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto" style={{ background: "var(--signal-success-bg)" }}>
-              <CheckCircle2 className="w-10 h-10" style={{ color: "var(--signal-success-text)" }} />
-            </div>
-            <div>
-              <h2 className="text-[22px] font-bold text-text-primary">{t("import.doneTitle")}</h2>
-              <p className="text-text-muted font-medium mt-2">{t("import.doneDesc")}</p>
-            </div>
-            <div className="grid grid-cols-3 gap-4 bg-app-bg p-6 rounded-[12px] text-left border border-[var(--border-card)]">
-              <div>
-                <div className="text-[26px] font-extrabold text-text-primary">{result.created.toLocaleString("de-DE")}</div>
-                <div className="typo-field-label text-text-muted mt-1">{t("import.reportCreated")}</div>
-              </div>
-              <div>
-                <div className="text-[26px] font-extrabold text-text-primary">{result.skipped.toLocaleString("de-DE")}</div>
-                <div className="typo-field-label text-text-muted mt-1">{t("import.reportSkipped")}</div>
-              </div>
-              <div>
-                <div className={`text-[26px] font-extrabold ${result.failed > 0 ? "text-[var(--signal-urgent-text)]" : "text-text-muted"}`}>{result.failed.toLocaleString("de-DE")}</div>
-                <div className="typo-field-label text-text-muted mt-1">{t("import.reportFailed")}</div>
-              </div>
-            </div>
-
-            <div className="flex flex-col items-center gap-4 pt-2">
-              <button type="button" onClick={exit} className="w-full inline-flex items-center justify-center px-6 py-3 rounded-[10px] text-[14px] font-bold text-on-accent bg-[var(--sherloq-primary)] hover:opacity-90 transition-opacity cursor-pointer">
-                {t("import.toContacts")}
-              </button>
-              {!undone && (
-                <>
-                  <button type="button" onClick={() => setConfirmUndo(true)} className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-text-muted hover:text-text-body transition-colors cursor-pointer">
-                    <RotateCcw className="w-3.5 h-3.5" /> {t("import.undo")}
-                  </button>
-                  <p className="text-[11px] text-text-muted -mt-2">{t("import.undoHint")}</p>
-                </>
-              )}
-              {undone && <p className="text-[12px] font-semibold text-[var(--signal-success-text)]">{t("import.undoDone")}</p>}
-            </div>
-
+          <>
+            <ImportResultReport
+              result={result} undone={undone}
+              onExit={exit} onRequestUndo={() => setConfirmUndo(true)} />
             {/* Undo-Vorschau: zeigt VOR dem Löschen, wie viele neu angelegte Kontakte entfernt werden. */}
             <AlertDialog open={confirmUndo} onOpenChange={setConfirmUndo}>
               <AlertDialogContent>
@@ -632,11 +598,75 @@ export default function ScreenKontakteImport() {
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
-          </div>
+          </>
         ) : null}
       </div>
     );
   }
+}
+
+/** Import-Ergebnis-Karte. Reine Präsentation — transformiert sich per `undone` komplett
+ *  (Honesty: nach Undo darf keine Stat den nicht mehr existierenden Kontakt zeigen). */
+export interface ImportResult { batchId: string; created: number; skipped: number; failed: number }
+export function ImportResultReport({
+  result, undone, onExit, onRequestUndo,
+}: { result: ImportResult; undone: boolean; onExit: () => void; onRequestUndo: () => void }) {
+  const { t } = useTranslation();
+  return (
+    <div className="bg-app-surface p-10 rounded-[12px] shadow-[var(--shadow-card)] border border-[var(--border-card)] text-center space-y-8">
+      <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto"
+        style={{ background: undone ? "var(--signal-info-bg)" : "var(--signal-success-bg)" }}>
+        {undone
+          ? <RotateCcw className="w-10 h-10" style={{ color: "var(--signal-info-text)" }} />
+          : <CheckCircle2 className="w-10 h-10" style={{ color: "var(--signal-success-text)" }} />}
+      </div>
+      <div>
+        <h2 className="text-[22px] font-bold text-text-primary">{t(undone ? "import.undoneTitle" : "import.doneTitle")}</h2>
+        <p className="text-text-muted font-medium mt-2">{t(undone ? "import.undoneDesc" : "import.doneDesc")}</p>
+      </div>
+      <div className="grid grid-cols-3 gap-4 bg-app-bg p-6 rounded-[12px] text-left border border-[var(--border-card)]">
+        <div>
+          {undone ? (
+            // „Neu erstellt" nach Undo: alter Wert durchgestrichen + tatsächlich verbleibende 0.
+            <div className="flex items-baseline gap-2">
+              <span className="text-[18px] font-bold text-text-muted line-through">{result.created.toLocaleString("de-DE")}</span>
+              <span className="text-[26px] font-extrabold text-text-primary">0</span>
+            </div>
+          ) : (
+            <div className="text-[26px] font-extrabold text-text-primary">{result.created.toLocaleString("de-DE")}</div>
+          )}
+          <div className="typo-field-label text-text-muted mt-1">{t("import.reportCreated")}</div>
+        </div>
+        <div>
+          <div className="text-[26px] font-extrabold text-text-primary">{result.skipped.toLocaleString("de-DE")}</div>
+          <div className="typo-field-label text-text-muted mt-1">{t("import.reportSkipped")}</div>
+        </div>
+        <div>
+          <div className={`text-[26px] font-extrabold ${result.failed > 0 ? "text-[var(--signal-urgent-text)]" : "text-text-muted"}`}>{result.failed.toLocaleString("de-DE")}</div>
+          <div className="typo-field-label text-text-muted mt-1">{t("import.reportFailed")}</div>
+        </div>
+      </div>
+
+      <div className="flex flex-col items-center gap-4 pt-2">
+        <button type="button" onClick={onExit} className="w-full inline-flex items-center justify-center px-6 py-3 rounded-[10px] text-[14px] font-bold text-on-accent bg-[var(--sherloq-primary)] hover:opacity-90 transition-opacity cursor-pointer">
+          {t("import.toContacts")}
+        </button>
+        {!undone ? (
+          <>
+            <button type="button" onClick={onRequestUndo} className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-text-muted hover:text-text-body transition-colors cursor-pointer">
+              <RotateCcw className="w-3.5 h-3.5" /> {t("import.undo")}
+            </button>
+            <p className="text-[11px] text-text-muted -mt-2">{t("import.undoHint")}</p>
+          </>
+        ) : (
+          // Undo erledigt: kein zweiter Undo — statische Bestätigung an derselben Stelle.
+          <p className="inline-flex items-center gap-1.5 text-[12px] font-semibold" style={{ color: "var(--signal-info-text)" }}>
+            <CheckCircle2 className="w-3.5 h-3.5" /> {t("import.undoDone")}
+          </p>
+        )}
+      </div>
+    </div>
+  );
 }
 
 function formatBytes(bytes: number): string {

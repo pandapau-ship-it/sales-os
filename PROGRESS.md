@@ -338,6 +338,13 @@
           „Ohne Kontaktweg" ❌→✅ · Companies (reines JS-Filtern, kein Schema) Industry/Size/Country/„Ohne Kontakt" ✅.
           **(4) Undo-Vorschau gebaut:** Undo-Button öffnet jetzt einen `alert-dialog` mit Anzahl der zu entfernenden
           neu angelegten Kontakte (`result.created`), statt sofort zu löschen. i18n `import.undoConfirm*` in de/en/es.
+          **(5) Honesty-Fix Undo-Ergebnis (Runde 3):** Nach erfolgreichem Undo transformiert sich der GANZE
+          Ergebnis-Block in-place (statt eine falsche „1 NEU ERSTELLT"-Stat stehenzulassen): Icon RotateCcw (info-Ton),
+          Headline `undoneTitle`, Subtext `undoneDesc`, „Neu erstellt"-Stat = alter Wert durchgestrichen + **0**,
+          Undo-Button weg → statische Bestätigung, „Zu den Kontakten" bleibt. Report in reine Komponente
+          **`ImportResultReport`** (named export, prop-driven) extrahiert → Render-Test `ImportResultReport.render.test.tsx`
+          (beide Zustände: doneTitle+echter Wert+Undo-Button ↔ undoneTitle+durchgestrichen+0+kein Undo). i18n
+          `import.undoneTitle/undoneDesc` de/en/es.
     - [ ] **Import v2 — State-of-the-Art-Ideen (NICHT vor Projekt-Ende angehen — reine Politur-Vormerkung).**
           Erst ganz am Schluss, wenn das gesamte Produkt steht: **(a) Intelligentes KI-Spalten-Mapping** — erkennt auch
           ungewöhnliche/mehrsprachige Spaltennamen (hängt an AI-Chat/Langfuse, Prompt `import_mapping_v1`, ai_chat C27).

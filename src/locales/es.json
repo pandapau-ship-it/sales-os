@@ -810,7 +810,9 @@
     "undoDone": "Import rückgängig gemacht.",
     "undoFailed": "Rückgängig machen nicht möglich (Frist abgelaufen?).",
     "undoConfirmTitle": "¿Deshacer la importación?",
-    "undoConfirmDesc": "Se eliminarán los {{count}} contactos creados en esta importación (y las empresas creadas en ella). Los contactos que solo se completaron u omitieron no se verán afectados."
+    "undoConfirmDesc": "Se eliminarán los {{count}} contactos creados en esta importación (y las empresas creadas en ella). Los contactos que solo se completaron u omitieron no se verán afectados.",
+    "undoneTitle": "Importación deshecha",
+    "undoneDesc": "Los contactos recién creados se han vuelto a eliminar."
   },
   "duplicates": {
     "title": "Duplikate verwalten",
