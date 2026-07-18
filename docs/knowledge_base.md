@@ -469,3 +469,11 @@
 - **value:** Aufräumen ohne Angst: falsche oder doppelte Einträge sind schnell weg, aber sicher (Bestätigung, keine echte Vernichtung, alles protokolliert). Firmen lassen sich entfernen, ohne versehentlich die zugehörigen Personen zu verlieren.
 - **module:** core_crm
 - *(Soft-Delete, Migration 058, 2026-07-18. Rollenrechte + Papierkorb folgen mit Settings.)*
+
+### Kontakt-Import (CSV & Excel)
+- **feature:** Kontakt-Import
+- **what:** Kontaktlisten aus CSV oder Excel (.xlsx) in vier geführten Schritten importieren: **1 Hochladen** (Datei ziehen/wählen; erkennt Format, Trennzeichen und Encoding automatisch — „deutsches Excel"/Semikolon, kaputte Umlaute inklusive). **2 Zuordnen** (Spalten werden automatisch den richtigen Feldern zugeordnet — Vorname, E-Mail, Firma …; jede Zuordnung ist per Dropdown korrigierbar, unbekannte Spalten bleiben außen vor). **3 Prüfen** (Vorschau mit echten Zahlen: importierbar / Duplikate / Fehler; jede Zeile zeigt ihren Status und den genauen Grund; erkannte Duplikate kann man pro Zeile überspringen oder trotzdem anlegen; „alle sicheren Duplikate überspringen" per Klick; fehlerhafte Zeilen als CSV herunterladbar). **4 Importieren** (echter Fortschritt, danach ein ehrlicher Bericht: neu erstellt / übersprungen / fehlgeschlagen). Firmen werden dabei automatisch über die E-Mail-Domain oder den Namen verknüpft bzw. neu angelegt. Ein kompletter Import lässt sich mit einem Klick rückgängig machen (bis 7 Tage) — es verschwinden nur die neu angelegten Kontakte.
+- **how:** Kontakte → „Aktionen" → „CSV/Excel importieren" → Datei wählen → Zuordnung prüfen → Vorschau prüfen (Duplikate/Fehler bearbeiten) → „X Kontakte importieren" → Bericht; bei Bedarf „Import rückgängig machen".
+- **value:** Eine bestehende Kontaktliste in Minuten sauber im System — ohne manuelles Abtippen, ohne Doppelanlagen und ohne kaputte Umlaute. Man sieht vor dem Import genau, was passiert, und behält die Kontrolle über jeden Zweifelsfall; ein Fehlgriff ist mit einem Klick rückholbar.
+- **module:** core_crm
+- *(K-5-UI, Engine + Schicht 4, 2026-07-18. „Zusammenführen" pro Duplikat und automatische Vorlagen-Erkennung folgen mit K-6 bzw. als Folge-Slice.)*

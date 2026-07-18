@@ -533,7 +533,7 @@ export default function ScreenKontakteImport() {
     return (
       <div className="max-w-2xl mx-auto mt-12">
         {importing ? (
-          <div className="bg-app-surface p-10 rounded-[16px] shadow-[var(--shadow-card)] border border-[var(--border-card)] text-center space-y-6">
+          <div className="bg-app-surface p-10 rounded-[12px] shadow-[var(--shadow-card)] border border-[var(--border-card)] text-center space-y-6">
             <div className="w-16 h-16 bg-[var(--signal-teal-bg)] rounded-full flex items-center justify-center mx-auto">
               <Loader2 className="w-8 h-8 text-[var(--sherloq-primary)] animate-spin" />
             </div>
@@ -544,7 +544,7 @@ export default function ScreenKontakteImport() {
             <p className="text-[13px] font-semibold text-text-muted">{t("import.importingProgress", { done: progress.done, total: progress.total })}</p>
           </div>
         ) : importError ? (
-          <div className="bg-app-surface p-10 rounded-[16px] shadow-[var(--shadow-card)] border border-[var(--border-card)] text-center space-y-6">
+          <div className="bg-app-surface p-10 rounded-[12px] shadow-[var(--shadow-card)] border border-[var(--border-card)] text-center space-y-6">
             <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto" style={{ background: "var(--signal-urgent-bg)" }}>
               <AlertTriangle className="w-8 h-8" style={{ color: "var(--signal-urgent-text)" }} />
             </div>
@@ -557,7 +557,7 @@ export default function ScreenKontakteImport() {
             </button>
           </div>
         ) : result ? (
-          <div className="bg-app-surface p-10 rounded-[16px] shadow-[var(--shadow-card)] border border-[var(--border-card)] text-center space-y-8">
+          <div className="bg-app-surface p-10 rounded-[12px] shadow-[var(--shadow-card)] border border-[var(--border-card)] text-center space-y-8">
             <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto" style={{ background: "var(--signal-success-bg)" }}>
               <CheckCircle2 className="w-10 h-10" style={{ color: "var(--signal-success-text)" }} />
             </div>

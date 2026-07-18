@@ -15,7 +15,8 @@
 
 ▶ **1.** [ ] **[BAU+DESIGN] Kontakte & Companies — Slices K-1 bis K-6**
   (`docs/kontakte_companies_bauplan_v1.md`; Designs ScreenKontakte/ScreenCompanies
-  vorhanden — Abgleich nach Dauerregel 4c) · **erledigt: K-1a · K-1a2 · K-1b · K-2 · K-2b · K-3 · K-3b · K-4** · **▶ K-5-UI**
+  vorhanden — Abgleich nach Dauerregel 4c) · **erledigt: K-1a · K-1a2 · K-1b · K-2 · K-2b · K-3 · K-3b · K-4 · K-5 (Engine + Schicht 4 + UI)** · **▶ K-6** (Duplikate verwalten + Merge)
+  · **Folge-Slice offen:** Import-Vorlagen-Erkennung (`import_templates`/`headerSignature`, für K-5 bewusst ausgeblendet)
   - [x] **K-1a Test-Fundament ZUERST** — vitest eingerichtet (Config in `vite.config.ts`,
         Smoke-Test `src/lib/heatUtils.test.ts` 3/3 grün, npm-Scripts `test`/`test:watch`).
         Commit `3e6ad8b`, gemerged `81d0d33`. **Voraussetzung für [AUTO]-Tests in ALLEN
@@ -263,10 +264,32 @@
   - [x] **K-4 Companies-Screen + Detail** (4c: ScreenCompanies) — K-4a Liste (`feat/companies-list-k4a`) +
         K-4b-1 Übersicht/Kontakte + K-4b-2 Deals/Aktivität/Notizen, alle gemergt. **[D-city]** mit erledigt
         (`contacts.city`/`country` verdrahtet). **Companies-Modul funktional komplett.**
-  - [ ] **▶ K-5-UI Import-Bildschirm** (4c-UI-Slice: Upload → Mapping-Vorschau → Validierungs-Preview → Report).
-        Engine-Kern + **Schicht 4 Ausführung fertig** — es fehlt **nur noch die UI**.
-        **Design fehlt** (UI-Design-Inventar) → Dauerregel 4c: Diagnose + Gap-Liste + AI-Studio-Prompt geliefert
-        (`docs/design_prompt_k5_import.md`) → **wartet auf Olivers Design** (Stop-Grund b).
+  - [x] **K-5-UI Import-Bildschirm FERTIG (Branch `feat/k5-import-ui`, STOP für Live-QA, 18.07.2026)** —
+        Vollbild-Wizard `/app/kontakte/import` (ohne Sidebar), 4 Schritte ECHT verdrahtet: Upload
+        (`parseImportFile` **dynamisch** → xlsx als eigener `parse-*`-Chunk, nicht im Haupt-Bundle) →
+        Mapping (`buildMappingPlan`/`applyMapping`, shadcn-Select) → Preview (`loadDedupUniverse`/
+        `validateImport`/`summarize`, `KpiCard`/`StatusBadge`/`EmptyState`, Fehler-CSV-Download) → Import/Report
+        (`runImport` mit **echtem `onProgress`**, `undoImport`). Einstieg: „Aktionen"-Dropdown in ScreenKontakte.
+        i18n `import.*` (de/en/es), Registry-Eintrag `screen_kontakte_import`. **Design aus AI-Studio-Referenz
+        übersetzt** (Tokens statt Hex, echte Daten statt Mock, echter statt Fake-Fortschritt, `<style>`/Font weg).
+        Beide Agents PASS, Gates grün (140 Tests, audit 0 FAIL). **Nicht umgesetzt / reduziert (Regel B):**
+        (1) **„Zusammenführen" pro Duplikat = K-6** → als deaktivierte Select-Option „kommt mit K-6" sichtbar
+        markiert (nicht weggelassen); Report zeigt daher kein „aktualisiert", nur erstellt/übersprungen/fehlgeschlagen.
+        (2) **Vorlagen-Erkennung** (`import_templates`, `headerSignature`) = **Folge-Slice** (db-Funktionen fehlen) —
+        bewusst ausgeblendet für den ersten Schnitt (Olivers Freigabe). (3) AI-Mapping unbekannter Header = an AI-Pipeline.
+        **Migration 059 (import_batch_id) ist auf Remote angewendet** (db push freigegeben).
+    - [x] **Schicht 4 Ausführung (design-unabhängig VORGEZOGEN, 18.07.2026)** — Branch
+          `feat/k5-import-execution` (fertig-gegated, **Migration 059 NICHT gepusht** — db-push = Gate;
+          Branch bewusst NICHT nach main bis zum Push). Beide Agents PASS. `lib/import/execute.ts` (rein +
+          8 [AUTO]-Tests, gesamt 140): `buildImportPlan` (valid→anlegen, Duplikat/Fehler→skip, Fehler-Override
+          ignoriert = K8-Honesty; **Merge pro Zeile = K-6, bewusst nicht hier**) + `extractEmailDomain`
+          (Company-Domain-Match). `db.ts`: `loadDedupUniverse` (Dedup-Universum in EINER Query = kein N+1) ·
+          `resolveCompanyForImport` (Domain- dann Name-Match, neu mit `import_batch_id`; Domain nicht auf Insert
+          wegen Unique-Constraint) · `runImport` (ruft die **zentrale `createContact`** mit `{leadSource:'csv',
+          importBatchId}` — keine Insert-Kopie K1/K7; echte Zähler K8; kaputte Zeile stoppt nicht) · `undoImport`
+          (soft-delete NUR im Batch neu erstellte contacts+companies, 7-Tage-Frist K4, audit via 058-Trigger).
+          `createContact` um `{leadSource, importBatchId}` erweitert (Single Source); `NewContactInput` +
+          city/country/tags. **Migration 059**: `import_batch_id` (nullable, FK on delete set null, partieller
     - [x] **Schicht 4 Ausführung (design-unabhängig VORGEZOGEN, 18.07.2026)** — Branch
           `feat/k5-import-execution` (fertig-gegated, **Migration 059 NICHT gepusht** — db-push = Gate;
           Branch bewusst NICHT nach main bis zum Push). Beide Agents PASS. `lib/import/execute.ts` (rein +
