@@ -818,7 +818,11 @@
     "undoConfirmTitle": "Import rückgängig machen?",
     "undoConfirmDesc": "Dabei werden die {{count}} in diesem Import neu angelegten Kontakte entfernt (samt in diesem Import neu angelegter Firmen). Kontakte, die nur ergänzt oder übersprungen wurden, bleiben unberührt.",
     "undoneTitle": "Import rückgängig gemacht",
-    "undoneDesc": "Die neu angelegten Kontakte wurden wieder entfernt."
+    "undoneDesc": "Die neu angelegten Kontakte wurden wieder entfernt.",
+    "aichatCtaTitle": "Was willst du mit deinen neuen Leads machen?",
+    "aichatCtaSubtitle": "Frag den AI Chat — er kennt deine frisch importierten Kontakte und legt sofort mit dir los.",
+    "aichatCtaButton": "Mit AI Chat starten",
+    "aichatComingSoon": "Kommt bald"
   },
   "duplicates": {
     "title": "Duplikate verwalten",

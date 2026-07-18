@@ -812,7 +812,11 @@
     "undoConfirmTitle": "Undo import?",
     "undoConfirmDesc": "This removes the {{count}} contacts newly created in this import (along with companies newly created in this import). Contacts that were only enriched or skipped stay untouched.",
     "undoneTitle": "Import undone",
-    "undoneDesc": "The newly created contacts were removed again."
+    "undoneDesc": "The newly created contacts were removed again.",
+    "aichatCtaTitle": "What do you want to do with your new leads?",
+    "aichatCtaSubtitle": "Ask the AI Chat — it knows your freshly imported contacts and gets going with you right away.",
+    "aichatCtaButton": "Start with AI Chat",
+    "aichatComingSoon": "Coming soon"
   },
   "duplicates": {
     "title": "Duplikate verwalten",

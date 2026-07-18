@@ -92,7 +92,7 @@ function LogForm({
     <>
         <DialogHeader>
           <DialogTitle className="typo-card-title text-text-primary">Kontakt protokollieren</DialogTitle>
-          <DialogDescription className="text-[12px] text-text-muted">
+          <DialogDescription className="text-[12px] text-text-body">
             Erfasse einen Touchpoint — aktualisiert „zuletzt kontaktiert".
           </DialogDescription>
         </DialogHeader>

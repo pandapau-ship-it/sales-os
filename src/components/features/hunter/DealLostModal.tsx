@@ -53,7 +53,7 @@ function DealLostForm({
     <>
         <DialogHeader>
           <DialogTitle className="typo-card-title text-text-primary">Deal als verloren markieren</DialogTitle>
-          <DialogDescription className="text-[12px] text-text-muted">
+          <DialogDescription className="text-[12px] text-text-body">
             Der Deal wird geschlossen. Bitte einen Grund angeben.
           </DialogDescription>
         </DialogHeader>
