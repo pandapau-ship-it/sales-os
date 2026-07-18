@@ -221,6 +221,8 @@ export default function ScreenCompanyDetail() {
       {/* Tab-Inhalt */}
       {tab === "overview" && (
         <DetailSection title={t("companies.details.title")} icon={Building2} variant="page" cols={2}>
+          {/* Name = Pflichtfeld (wie Kontakt-Name im Details-Tab): leer wird nicht gespeichert. */}
+          <DetailField label={t("companies.details.name")} value={r.name} onSave={(v) => { if (v.trim()) saveField("name", v); }} />
           <DetailField label={t("companies.details.industry")} value={r.industry ?? ""} options={BRANCHE_OPTS} onSelect={(v) => saveField("industry", v)} />
           <DetailField label={t("companies.details.size")} value={r.sizeRange ?? ""} options={GROESSE_OPTS} onSelect={(v) => saveField("size_range", v)} />
           <DetailField label={t("companies.details.city")} value={r.city ?? ""} onSave={(v) => saveField("city", v)} />
