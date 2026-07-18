@@ -356,6 +356,12 @@
           merkt sich wiederkehrende Datei-Strukturen (`import_templates` + `headerSignature`; db-Funktionen fehlen noch).
           **(d) Undo mit Detail-Vorschau** — über die reine Anzahl hinaus eine Liste der betroffenen Kontakte (Query auf
           `import_batch_id`). *(Anzahl-Vorschau ist mit Runde 2 bereits gebaut; die Namensliste bleibt v2.)*
+    - [ ] **[D-import-aichat-cta]** — Post-Import **AI-Chat-CTA** ist als Platzhalter gebaut (`ImportResultReport`,
+          Erfolgsfall, Button **disabled** + „Coming soon"-Tooltip, i18n `import.aichatCta*`/`aichatComingSoon`).
+          **Sobald der AI Chat gebaut wird** (laut Fahrplan erst nach AI SDR): dieser Button muss den `import_batch_id`
+          (bzw. die Liste der gerade importierten Kontakt-IDs) als **Kontext an die neue Chat-Session** übergeben, damit
+          der Chat direkt weiß, über welche Leads gesprochen wird, ohne dass der Nutzer sie erneut nennen muss.
+          **Jetzt bewusst KEINE Datenübergabe-Logik** — AI-Chat-Architektur (Tool-Registry/Session-Format) steht noch nicht.
     - [x] **Schicht 4 Ausführung (design-unabhängig VORGEZOGEN, 18.07.2026)** — Branch
           `feat/k5-import-execution` (fertig-gegated, **Migration 059 NICHT gepusht** — db-push = Gate;
           Branch bewusst NICHT nach main bis zum Push). Beide Agents PASS. `lib/import/execute.ts` (rein +

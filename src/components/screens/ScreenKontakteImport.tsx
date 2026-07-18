@@ -19,7 +19,7 @@ import { useTranslation } from "react-i18next";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   X, UploadCloud, FileSpreadsheet, AlertCircle, CheckCircle2, ChevronRight,
-  ArrowLeft, Check, AlertTriangle, Download, RotateCcw, Loader2, ListChecks, Users,
+  ArrowLeft, Check, AlertTriangle, Download, RotateCcw, Loader2, ListChecks, Users, Sparkles,
 } from "lucide-react";
 import { useCurrentOrg } from "@/hooks/useCurrentOrg";
 import { useAuth } from "@/hooks/useAuth";
@@ -665,6 +665,22 @@ export function ImportResultReport({
           </p>
         )}
       </div>
+
+      {/* Post-Import AI-Chat-Überleitung — nur im Erfolgsfall (nicht nach Undo). Button ist Platzhalter
+          (Coming soon): der AI Chat existiert noch nicht → keine Datenübergabe (siehe [D-import-aichat-cta]). */}
+      {!undone && (
+        <div className="pt-6 mt-2 border-t border-[var(--border-card)] flex flex-col items-center gap-3">
+          <p className="text-[14px] font-bold text-text-primary">{t("import.aichatCtaTitle")}</p>
+          <p className="text-[12px] text-text-body -mt-1">{t("import.aichatCtaSubtitle")}</p>
+          {/* Wrapper-Span trägt data-tip: ein disabled <button> feuert keine Hover-Events → Tooltip käme sonst nicht. */}
+          <span data-tip={t("import.aichatComingSoon")} className="inline-block">
+            <button type="button" disabled aria-disabled="true"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-[10px] text-[13px] font-bold text-text-muted bg-app-bg border border-[var(--border-card)] opacity-70 cursor-not-allowed">
+              <Sparkles className="w-4 h-4" /> {t("import.aichatCtaButton")}
+            </button>
+          </span>
+        </div>
+      )}
     </div>
   );
 }

@@ -22,7 +22,7 @@ export default function DealCloseModal({
       <DialogContent className="max-w-sm">
         <DialogHeader>
           <DialogTitle className="typo-card-title text-text-primary">Deal abschließen</DialogTitle>
-          <DialogDescription className="text-[12px] text-text-muted">Wie ist dieser Deal ausgegangen?</DialogDescription>
+          <DialogDescription className="text-[12px] text-text-body">Wie ist dieser Deal ausgegangen?</DialogDescription>
         </DialogHeader>
 
         <div className="mt-4 flex flex-col gap-2">

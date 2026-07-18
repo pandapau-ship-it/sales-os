@@ -812,7 +812,11 @@
     "undoConfirmTitle": "¿Deshacer la importación?",
     "undoConfirmDesc": "Se eliminarán los {{count}} contactos creados en esta importación (y las empresas creadas en ella). Los contactos que solo se completaron u omitieron no se verán afectados.",
     "undoneTitle": "Importación deshecha",
-    "undoneDesc": "Los contactos recién creados se han vuelto a eliminar."
+    "undoneDesc": "Los contactos recién creados se han vuelto a eliminar.",
+    "aichatCtaTitle": "¿Qué quieres hacer con tus nuevos leads?",
+    "aichatCtaSubtitle": "Pregunta al AI Chat: conoce tus contactos recién importados y empieza contigo al instante.",
+    "aichatCtaButton": "Empezar con AI Chat",
+    "aichatComingSoon": "Muy pronto"
   },
   "duplicates": {
     "title": "Duplikate verwalten",

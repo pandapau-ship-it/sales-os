@@ -562,6 +562,26 @@ function checkRawShadows(): void {
 }
 checkRawShadows()
 
+// ── Design: Dialog-/AlertDialog-Description lesbar (nicht der schwache Muted-Ton) ─────
+// Wiederkehrender Kontrast-Fehler: erklärender Dialog-Text im schwachen --text-muted (#94A3B8)
+// bzw. muted-foreground → kaum lesbar. Description-Text ist primärer Fließtext → text-text-body.
+// WARN (kein FAIL): narrow-scoped Heuristik auf die Description-Komponenten; Fließtext-Empfehlung.
+function checkDialogDescriptionContrast(): void {
+  const DESC = /<(?:Alert)?DialogDescription\b[^>]*\b(text-text-muted|text-muted-foreground)\b/
+  const offenders: string[] = []
+  for (const f of walk(join(SRC, 'components'), ['.tsx'])) {
+    read(f).split('\n').forEach((lineRaw, i) => {
+      const line = lineRaw.replace(/\/\/.*$/, '')
+      if (DESC.test(line)) offenders.push(`${rel(f)}:${i + 1}`)
+    })
+  }
+  add('Design: Dialog-Description lesbar', offenders.length ? 'WARN' : 'PASS',
+    offenders.length
+      ? `Dialog-/AlertDialog-Description im schwachen Muted-Ton — Fließtext gehört auf text-text-body:\n        ${offenders.join('\n        ')}`
+      : 'Dialog-Descriptions nutzen lesbaren Body-Text (kein schwacher Muted-Ton).')
+}
+checkDialogDescriptionContrast()
+
 // ── Elevation-System: Border ≠ Hintergrundfarbe (unsichtbarer Rahmen) ───────
 // FAIL: border-[var(--signal-*-bg)] zusammen mit bg-[var(--signal-*-bg)] auf derselben Zeile =
 // Rahmen unsichtbar (gleiche Farbe). Karten/Boxen sollen border-[var(--border-card)] nutzen.

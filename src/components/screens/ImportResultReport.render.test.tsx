@@ -26,6 +26,11 @@ describe("ImportResultReport — Undo-Transformation (Live-DOM)", () => {
     expect(screen.queryByText("import.undoneTitle")).toBeNull();
     // Undo-Aktion vorhanden, keine „erledigt"-Bestätigung.
     expect(screen.getByRole("button", { name: /import\.undo/ })).toBeTruthy();
+    // Post-Import AI-Chat-CTA: Titel sichtbar, Button vorhanden ABER deaktiviert, Coming-soon-Tooltip.
+    expect(screen.getByText("import.aichatCtaTitle")).toBeTruthy();
+    const cta = screen.getByRole("button", { name: /import\.aichatCtaButton/ });
+    expect((cta as HTMLButtonElement).disabled).toBe(true);
+    expect(cta.closest("[data-tip]")?.getAttribute("data-tip")).toBe("import.aichatComingSoon");
   });
 
   it("Undo-Zustand (undone=true): undoneTitle, created durchgestrichen + 0, kein Undo-Button", () => {
@@ -49,5 +54,8 @@ describe("ImportResultReport — Undo-Transformation (Live-DOM)", () => {
 
     // 5) „Zu den Kontakten" bleibt einzige Aktion.
     expect(screen.getByRole("button", { name: "import.toContacts" })).toBeTruthy();
+    // 6) Kein AI-Chat-CTA nach Undo (nur im Erfolgsfall).
+    expect(screen.queryByText("import.aichatCtaTitle")).toBeNull();
+    expect(screen.queryByRole("button", { name: /import\.aichatCtaButton/ })).toBeNull();
   });
 });

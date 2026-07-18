@@ -57,7 +57,7 @@ function DealWonForm({
           <DialogTitle className="typo-card-title text-text-primary flex items-center gap-2">
             <PartyPopper className="w-4 h-4 text-[var(--signal-success-text)]" /> Deal gewonnen
           </DialogTitle>
-          <DialogDescription className="text-[12px] text-text-muted">Was hat den Ausschlag gegeben? (optional)</DialogDescription>
+          <DialogDescription className="text-[12px] text-text-body">Was hat den Ausschlag gegeben? (optional)</DialogDescription>
         </DialogHeader>
 
         <div className="mt-3 space-y-5">
