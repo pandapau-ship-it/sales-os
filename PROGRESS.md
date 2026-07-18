@@ -19,6 +19,21 @@
   · **Folge-Slices offen (Import):** (1) **Vorlagen-Erkennung** (`import_templates`/`headerSignature`, für K-5 bewusst ausgeblendet)
   · (2) **[D-company-import] Company-only-Import** — Datei nur mit Firmen (z.B. gekaufte Ziel-Account-Liste): eigener
   Anlage-Weg mit eigenen Pflichtfeldern (**Name ODER Domain**) + eigener Duplikat-Prüfung (Domain exakt/Name unscharf, K2).
+  · **[BUGFIX 18.07.] Details-Tab Honesty (HunterSidepanel):** der Vollansicht-Details-Tab zeigte für JEDEN
+  Kontakt ein hardcodiertes Mock `DEFAULT_DETAILS` („Christian Brand / VP of Sales EMEA / LogixFlow / ICP 87 /
+  Owner Oliver Prossi / Tags / Notiz") — vier Felder (icp/tags/owner/notiz) wurden NIE aus echten Daten geseedet.
+  **DB per Abfrage als KORREKT bewiesen** (kein Datenfehler, reiner UI-Fehler). Fix: `seedContactDetails` (Single
+  Source, wie Farmer) + icp/tags/notiz aus echten `contacts`-Spalten + Owner-Name aus `assigned_to`. Verifiziert.
+  · **[D-contact-city] OFFEN (Entscheidung Oliver):** `contacts` hat **keine** `city`/`country`-Spalten (per
+  information_schema geprüft), obwohl die CRM-Felder-Doku Standort/Stadt + Land für Kontakte vorsieht. Folgen:
+  (a) Import bietet „Stadt/Land"-Mapping an → würde beim Insert **fehlschlagen**, falls ein User eine Stadt-Spalte
+  mappt (Testdatei hatte keine → kein Crash bisher); (b) Details-Tab Standort/Land bleiben immer leer + Speichern
+  würde fehlschlagen (betrifft Hunter UND Farmer via seedContactDetails). **Entscheidung:** Migration `contacts.city/country`
+  ergänzen (per CRM-Doku, empfohlen) — db-push-Gate — ODER die Felder entfernen. Bis dahin: nicht mergen-blockierend
+  (kein Crash ohne gemappte Stadt-Spalte), aber vor produktivem Import zu klären.
+  · **[D-details-persist] OFFEN:** Details-Tab-Felder icp/tags/owner/notiz sind editierbar + zeigen jetzt echte Werte,
+  ABER `setDetail` schreibt nur lokal (Toast „Gespeichert" ohne DB-Write) — Persistenz dieser Klassifizierungs-Felder
+  ist ein Folge-Slice (Owner als User-Dropdown → assigned_to; icp/tags/notes → updateContact).
   · (3) **[D-unified-upload] EIN gemeinsamer Upload-Einstieg** — kein zweiter Button: EINE Upload-Oberfläche für Kontakt-
   UND Company-Import, **automatische Erkennung an den Spaltenüberschriften** (Personen-Felder → Kontakt-Import, ausschließlich
   Firmen-Felder → Company-Import), transparente Anzeige in Schritt 2, was erkannt wurde. Zwei Logiken im Hintergrund, ein
