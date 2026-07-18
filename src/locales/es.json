@@ -842,7 +842,8 @@
       "domain": "Domain",
       "website": "Website",
       "linkedin": "LinkedIn",
-      "crmId": "CRM ID"
+      "crmId": "CRM ID",
+      "name": "Name"
     }
   }
 }
