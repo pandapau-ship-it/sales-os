@@ -5,7 +5,7 @@
  */
 import { StrictMode } from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 // i18n: t(key) → key (Labels sind ohnehin literale Strings im Panel).
@@ -20,6 +20,9 @@ const JUERGEN = {
   seniority: null, department: null, salutation: null, language: null, twitter_handle: null,
   contact_status: "ohne_campaign", icp_score: null, tags: null, notes: null, assigned_to: "u1",
   email: null, linkedin_url: "linkedin.com/in/juergen", company_id: "c1", heat_status: "heiss",
+  // System-Felder: echt gesetzt (lead_source) bzw. NULL (last_contacted/reply, enrichment, crm) → Honesty.
+  lead_source: "csv_upload", created_at: "2026-07-18T13:23:47Z",
+  last_contacted_at: null, last_reply_at: null, enrichment_sources: null,
   company: { name: "GrünStrom Energie" },
 };
 
@@ -76,6 +79,20 @@ describe("HunterSidepanel Details-Tab — gerenderter Zustand", () => {
   it("zeigt echte Werte auch wenn der Detail BEIM ÖFFNEN schon gecacht ist (Hover-Prefetch, Regel C)", async () => {
     renderPanel({ preseed: true });
     await waitFor(() => expect(screen.getAllByText("Müller-Schäfer").length).toBeGreaterThan(0), { timeout: 2000 });
+  });
+
+  it("System-Sektion zeigt echte Werte, KEINE Fakes (Manuell/Surfe/HS-48213/12. März 2026)", async () => {
+    renderPanel();
+    await waitFor(() => expect(screen.getAllByText("Müller-Schäfer").length).toBeGreaterThan(0), { timeout: 2000 });
+    // System-Sektion aufklappen (collapsible defaultCollapsed).
+    fireEvent.click(screen.getAllByText("System")[0]);
+    // Echte Lead-Quelle (lead_source='csv_upload' → Label) sichtbar:
+    await waitFor(() => expect(screen.getAllByText("Import (CSV)").length).toBeGreaterThan(0), { timeout: 2000 });
+    // Und die alten Fake-Werte tauchen NIRGENDS mehr auf:
+    expect(screen.queryByText("HS-48213")).toBeNull();
+    expect(screen.queryByText("Surfe")).toBeNull();
+    expect(screen.queryByText("12. März 2026")).toBeNull();
+    expect(screen.queryByText("vor 2 Tagen · E-Mail")).toBeNull();
   });
 
   it("hält die echten Werte, wenn die person-Prop nach dem Seed neu referenziert wird (Reset-nach-Seed-Bug)", async () => {

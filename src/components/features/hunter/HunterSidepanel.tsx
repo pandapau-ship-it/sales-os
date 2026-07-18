@@ -6,7 +6,7 @@ import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tansta
 import { useCurrentOrg } from '@/hooks/useCurrentOrg';
 import { useAuth } from '@/hooks/useAuth';
 import { getContactDetail, getPipelineSettings, getTasksByContact, createTask, updateTask, completeTask, softDeleteTask, getNotesByContact, createNote, updateNote, softDeleteNote, getDealsByContact, getActivityByContact, getContactCommunications, createCommunication, updateContact, updateCompany, getProducts, getOrgUsers, createDeal, updateDeal, updateDealStage, updateDealWon, updateDealLost, softDeleteDeal, softDeleteContacts, createContactPhone, updateContactPhone, setContactPhonePrimary, deleteContactPhone } from '@/lib/db';
-import { contactToProfile, latestActiveDeal, dealToView, communicationToView, CONTACT_STATUS_LABEL, CONTACT_STATUS_SELECTABLE, WON_STAGE_SLUG, LOST_STAGE_SLUG, type CommunicationChannel, type CommunicationDirection } from '@/lib/hunterMappers';
+import { contactToProfile, latestActiveDeal, dealToView, communicationToView, daysSinceIso, CONTACT_STATUS_LABEL, CONTACT_STATUS_SELECTABLE, WON_STAGE_SLUG, LOST_STAGE_SLUG, type CommunicationChannel, type CommunicationDirection } from '@/lib/hunterMappers';
 import { isValidEmail, normalizeUrl, isValidUrl } from '@/lib/validation';
 import { ANREDE_OPTS, SENIORITY_OPTS, SPRACHE_OPTS, LAND_OPTS, BRANCHE_OPTS, GROESSE_OPTS, PHONE_TYPES, DETAIL_MAP, seedContactDetails, type ContactDetailsState } from '@/lib/contactDetailFields';
 import DealLostModal from './DealLostModal';
@@ -48,6 +48,12 @@ const contactStatusSlug = (label: string) => CONTACT_STATUS_OPTIONS.find((o) => 
 // Details-Tab-State: Stammdaten aus der Single Source (ContactDetailsState) + Hunter-Klassifizierung
 // (Lead Status/ICP/Owner/Tags/Notiz). KEINE Fake-Defaults mehr — leer, bis der echte Kontakt geladen
 // ist (Honesty). Früher stand hier ein Mock „Christian Brand …", der bei jedem Kontakt durchschien.
+// Lead-Quelle-Slug → deutsches Label (readonly System-Feld). Deckt beide Schreibweisen ab
+// (Import schrieb historisch „csv"; kanonisch ist „csv_upload"). Unbekannt → Roh-Slug (nie Fake).
+const LEAD_SOURCE_LABEL: Record<string, string> = {
+  csv: 'Import (CSV)', csv_upload: 'Import (CSV)', sherloq: 'Sherloq AI',
+  crm_sync: 'CRM-Sync', crm: 'CRM-Sync', manual: 'Manuell', webhook_api: 'Webhook', webhook: 'Webhook',
+};
 type HunterDetails = ContactDetailsState & { leadStatus: string; icp: string; owner: string; tags: string; notiz: string };
 const EMPTY_DETAILS: HunterDetails = { ...seedContactDetails(null), leadStatus: '', icp: '', owner: '', tags: '', notiz: '' };
 
@@ -354,6 +360,23 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
   // Owner-NAME des Kontakts aus assigned_to auflösen (echt, kein Fake). NULL → leer.
   const assignedTo = (contactRow as { assigned_to?: string | null } | null)?.assigned_to ?? null; // single-source-ok: Owner-Anzeige aus dem Roh-FK (kein Anzeigewert in contactToProfile)
   const ownerNameForContact = assignedTo ? (ownerOptions.find((o) => o.id === assignedTo)?.name ?? '') : '';
+
+  // System-Sektion (readonly) — ausschließlich aus echten contacts-Spalten. NULL → '' (DetailField
+  // zeigt „—"). KEINE Fake-Defaults mehr (früher hardkodiert „Manuell / 12. März 2026 / Surfe / HS-48213").
+  const sys = ((): { leadSource: string; created: string; lastContact: string; lastReply: string; enrichment: string; crmId: string } => {
+    const cr = contactRow as (ContactRow & { lead_source?: string | null; created_at?: string | null; last_contacted_at?: string | null; last_reply_at?: string | null; enrichment_sources?: string[] | null }) | null;
+    if (!cr) return { leadSource: '', created: '', lastContact: '', lastReply: '', enrichment: '', crmId: '' };
+    const fmtDate = (iso?: string | null) => (iso ? new Date(iso).toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' }) : '');
+    const fmtAgo = (iso?: string | null) => { const d = daysSinceIso(iso); return d == null ? '' : d === 0 ? 'heute' : `vor ${d} ${d === 1 ? 'Tag' : 'Tagen'}`; };
+    return {
+      leadSource: cr.lead_source ? (LEAD_SOURCE_LABEL[cr.lead_source] ?? cr.lead_source) : '',
+      created: fmtDate(cr.created_at),
+      lastContact: fmtAgo(cr.last_contacted_at),
+      lastReply: fmtAgo(cr.last_reply_at),
+      enrichment: Array.isArray(cr.enrichment_sources) && cr.enrichment_sources.length ? cr.enrichment_sources.join(', ') : '',
+      crmId: '', // contacts hat keine crm_id-Spalte + kein CRM-Sync → ehrlich leer (nie „HS-48213")
+    };
+  })();
   const createDealMutation = useMutation({
     mutationFn: (v: { name: string; product: string; value: string; termMonths: string; noticePeriodDays: string; expectedCloseDate: string; ownerId: string; stage: string }) =>
       createDeal(organizationId, {
@@ -794,12 +817,13 @@ export default function HunterSidepanel({ person: personProp, onClose, onExit, v
 
       {/* System-Felder ganz unten, zusammengeklappt by default */}
       <DetailSection title="System" icon={Clock} collapsible defaultCollapsed variant="page">
-        <DetailField label="Lead-Quelle" value="Manuell" readonly />
-        <DetailField label="Erstellt am" value="12. März 2026" readonly />
-        <DetailField label="Letzter Kontakt" value="vor 2 Tagen · E-Mail" readonly />
-        <DetailField label="Letzte Antwort" value="vor 5 Tagen" readonly />
-        <DetailField label="Enrichment-Quelle" value="Surfe" readonly />
-        <DetailField label="CRM ID" value="HS-48213" readonly />
+        {/* Ausschließlich echte contacts-Spalten — NULL → „—" (kein Fake). */}
+        <DetailField label="Lead-Quelle" value={sys.leadSource} readonly />
+        <DetailField label="Erstellt am" value={sys.created} readonly />
+        <DetailField label="Letzter Kontakt" value={sys.lastContact} readonly />
+        <DetailField label="Letzte Antwort" value={sys.lastReply} readonly />
+        <DetailField label="Enrichment-Quelle" value={sys.enrichment} readonly />
+        <DetailField label="CRM ID" value={sys.crmId} readonly />
       </DetailSection>
     </div>
   );

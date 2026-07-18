@@ -31,6 +31,23 @@
   würde fehlschlagen (betrifft Hunter UND Farmer via seedContactDetails). **Entscheidung:** Migration `contacts.city/country`
   ergänzen (per CRM-Doku, empfohlen) — db-push-Gate — ODER die Felder entfernen. Bis dahin: nicht mergen-blockierend
   (kein Crash ohne gemappte Stadt-Spalte), aber vor produktivem Import zu klären.
+  · **[BUGFIX 18.07.] Details-Tab SYSTEM-Sektion Honesty (HunterSidepanel):** die System-Sektion zeigte
+  **hardcodierte Fake-Literale** (Lead-Quelle „Manuell", Erstellt „12. März 2026", „vor 2 Tagen · E-Mail",
+  Enrichment „Surfe", CRM-ID „HS-48213"). Jetzt aus echten `contacts`-Spalten geseedet (`sys`-Objekt:
+  lead_source→Label, created_at, last_contacted_at, last_reply_at, enrichment_sources; CRM-ID leer, da
+  keine Spalte). NULL→„—". **Render-Test beweist es** (`HunterSidepanel.render.test.tsx`: schlägt auf
+  Fake-Code fehl, besteht auf Fix). Nebenbei: Import schrieb `lead_source='csv'` statt kanonisch
+  `'csv_upload'` → gefixt (+ 5 bestehende Zeilen in DB korrigiert).
+  · **VOLLSTÄNDIGE FAKE-WERT-INVENTUR (18.07., ganzer `src/components`-Baum durchgesucht):**
+  **Real-Kontakt-Panels FAKE-FREI** — HunterSidepanel (Person+System), FarmerSidepanel (Person/Firma echt,
+  „Folgt"-Platzhalter ehrlich), NotizenListe/DealsListe **im `isReal`/`dealRows`-Modus** (echte Daten/Autoren).
+  **Verbleibende Fakes NUR in nicht-Real-Flow-Code (dokumentiert, [D-mock-hunter-feed]):** (a) Mock-Fallback-
+  Zweige `NotizenListe.DEFAULT_NOTES`/`DealsListe.MOCK_DEALS` (nur `!isReal`, nie im echten Panel) · (b)
+  `KommunikationPreview` (tot, nur Barrel-Export, nirgends gerendert) · (c) **Legacy-Mock-Hunter/MeinTag-Feed**
+  `CustomerDrawer` + `TaskEntwurfForm`-Defaults + `ScreenHunting`-Mock-Signaldaten (zeigen Mock-Personas by
+  design; importierte echte Kontakte laufen NICHT durch diesen Pfad, sondern durch Kontakte→HunterSidepanel).
+  **[D-mock-hunter-feed]:** dieser Legacy-Mock-Feed wird beim DB-Wiring des Hunter-Signal-Screens bereinigt —
+  eigener Slice, kein Real-Kontakt-Leak.
   · **[D-details-persist] OFFEN:** Details-Tab-Felder icp/tags/owner/notiz sind editierbar + zeigen jetzt echte Werte,
   ABER `setDetail` schreibt nur lokal (Toast „Gespeichert" ohne DB-Write) — Persistenz dieser Klassifizierungs-Felder
   ist ein Folge-Slice (Owner als User-Dropdown → assigned_to; icp/tags/notes → updateContact).

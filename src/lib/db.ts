@@ -1688,7 +1688,7 @@ export async function runImport(
         tags: record.tags ? record.tags.split(",").map((s) => s.trim()).filter(Boolean) : undefined,
         phones: record.phone ? [{ number: record.phone, isPrimary: true }] : undefined,
       };
-      const res = await createContact(organizationId, input, createdBy, { leadSource: "csv", importBatchId: batchId });
+      const res = await createContact(organizationId, input, createdBy, { leadSource: "csv_upload", importBatchId: batchId });
       if (res) created++;
       else failed++;
     } catch {
