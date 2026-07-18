@@ -369,7 +369,15 @@
         **NOCH OFFEN:** (a) **AI-Mapping** `import_mapping_v1` (C27/AI-Chat); (b) **UI**
         (Upload/Mapping-Vorschau/Review — mit K-3/K-4-Design); (c) **Schicht 4 Ausführung** (Edge Function,
         resumierbare Batches, `contacts/companies.import_batch_id`-Spalte für Undo, Company-Domain-Match, Report/Undo).
-  - [ ] K-6 Duplikate verwalten + Merge (merge_contacts/merge_companies + [AUTO]-Tests)
+  - [ ] **▶ K-6 Duplikate verwalten + Merge** — **Diagnose fertig (18.07.2026), wartet auf 2 Entscheidungen + Design.**
+        **Bestand:** `classifyDuplicate`/`classifyCompanyDuplicate` (dedup.ts, K2) + `findDuplicates` (db.ts, Einzel) da;
+        **keine** Merge-Funktionen, **merge_candidates-Tabelle existiert NICHT** (per DB geprüft), **kein visuelles Design**
+        (§13-Spec in ui_interaktionen vorhanden). **FK-Kaskade Contact-Merge:** communications · contact_phones · deals ·
+        leads · list_members · messages · notes · signals · tasks → Gewinner. **Company-Merge:** contacts.company_id +
+        primary_company_id · deals · notes · signals. **KANON-WIDERSPRUCH Merge-Semantik:** §13 „User wählt PRO FELD"
+        vs. CLAUDE Datenqualität #4 „Bestand gewinnt automatisch, fehlende Felder auffüllen" → **Oliver entscheidet**.
+        Design-Prompt: `docs/design_prompt_k6_duplicates.md`. Slice-Split-Vorschlag: K-6a Backend (merge-Fns + FK-Kaskade +
+        [AUTO]-Tests, design-unabhängig) · K-6b UI (Screen + Merge-Dialog, braucht Design).
 
 **2.** [ ] **[BAU] Vorab-Migration Entitlement & Credits**
   (`docs/for_ai_sdr_vorab_entitlement_credits.md` — PFLICHT vor AI-SDR-Slice-5)
