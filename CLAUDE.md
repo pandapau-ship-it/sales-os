@@ -5088,6 +5088,24 @@ Jeder Status-Wechsel schreibt nach `audit_log` (`contact.status_changed`).
 Dieses Feld ist die kanonische Lebenszyklus-Quelle. Es ersetzt verstreute
 Status-Logik (heat/sherloq/pipelineStage steuern Anzeige, nicht den Lebenszyklus).
 
+**SYSTEM-INVARIANTE — `contact_status`-Slugs sind ein festes System-Enum, bewusst KEIN [D51]-Config-Wert
+(analog zu den Won/Lost-Slugs):** Die Lifecycle-Slugs (`ohne_campaign` · `in_campaign` · `pipeline` · `kunde` ·
+`archiviert`, plus `opt_out` als rechtlicher Hard-Block) sind **strukturelle Bezeichner, die die Routing-Logik
+steuern** — `kontakteMappers.routingFor()`: `in_campaign`→**AI SDR** · `pipeline`→**Hunter** · `kunde`→**Farmer**
+(alles andere → kein Routing). Sie sind **NICHT pro Org umbenennbar** — es gibt (bewusst) keinen
+settings-Mechanismus dafür. Die **Anzeige-Labels sind fix**: Pills/Tabellen-Badge über i18n (`kontakte.status.*`),
+das Profil-/Details-Label über `CONTACT_STATUS_LABEL` (`hunterMappers`, Single Source). Enum ändern = Code-Änderung
+an vier Stellen (Slug-Set · `routingFor` · i18n-Labels · `CONTACT_STATUS_LABEL`), nie Org-Config.
+*(Bestätigt 18.07.2026 — Architektur-Diagnose.)*
+
+> **Kontrast zu Deal-Pipeline-STAGES ([D51], das Gegenteil):** Stage-**Namen/Reihenfolge/Anzahl/Schwellen** sind
+> **pro Org konfigurierbar** und werden zur Laufzeit aus `settings.pipeline_stages` gelesen (`getPipelineSettings`
+> → `stageMap` (slug→name) → `StageBadge`/`DealsListe` zeigen den DB-Namen; kein Hardcoding/Übersetzen im
+> gewireten Pfad). **[D51]-Anschluss für den Settings-Bau:** (a) die Settings-**Editor-UI** zum Umbenennen fehlt
+> noch; (b) einige **Mock-/Legacy-Komponenten hardcoden** Stage-Namen (`AddSdrLeadPanel`, `PipelineStagnatedDrawer`,
+> `CustomerDrawer`, `DealsListe`-Mock) → beim Settings-Bau auf `stageMap` umstellen, sonst spiegeln sie eine
+> Umbenennung nicht. Invariant bleiben dort NUR die terminalen Slugs `gewonnen`/`verloren` (siehe DB-Schema-Abschnitt).
+
 ### lead_status — Qualifizierungs-Stufe (NEU, zusätzlich zu contact_status)
 
 Eigenes Feld `lead_status` (Dropdown, system-gesteuert **aber auch manuell änderbar**) —
