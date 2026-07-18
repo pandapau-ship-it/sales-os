@@ -73,12 +73,14 @@ export default function DetailField({
     onCopy?.();
   };
 
-  // System-Wert — gedimmt, nicht editierbar.
+  // System-Wert — nicht editierbar (kein Stift), aber der WERT wird kräftig dargestellt wie
+  // jedes andere Wert-Feld (Konsistenz). Nur bei leerem Wert dezentes „—". Readonly-Signal bleibt
+  // über den fehlenden Edit-Stift + Tooltip „Vom System vergeben".
   if (readonly) {
     return (
       <div className="min-w-0">
         {Label}
-        <div className="text-[14px] font-semibold text-text-muted truncate" data-tip="Vom System vergeben">{value || "—"}</div>
+        <div className={`text-[14px] font-semibold truncate ${value ? "text-text-primary" : "text-text-muted"}`} data-tip="Vom System vergeben">{value || "—"}</div>
       </div>
     );
   }

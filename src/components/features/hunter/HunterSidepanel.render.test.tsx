@@ -89,6 +89,8 @@ describe("HunterSidepanel Details-Tab — gerenderter Zustand", () => {
     fireEvent.click(screen.getAllByText("System")[0]);
     // Echte Lead-Quelle inkl. Dateiname (lead_source='csv_upload' + import_batch.filename):
     await waitFor(() => expect(screen.getAllByText("Import (CSV) — test_import_kontakte.csv").length).toBeGreaterThan(0), { timeout: 2000 });
+    // Konsistenz: der WERT wird kräftig (text-text-primary) dargestellt wie andere Wert-Felder, nicht blass.
+    expect(screen.getAllByText("Import (CSV) — test_import_kontakte.csv")[0].className).toContain("text-text-primary");
     // Und die alten Fake-Werte tauchen NIRGENDS mehr auf:
     expect(screen.queryByText("HS-48213")).toBeNull();
     expect(screen.queryByText("Surfe")).toBeNull();
