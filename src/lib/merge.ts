@@ -79,6 +79,17 @@ export function resolveMergeFields(
 }
 
 /**
+ * Vorauswahl-Seite eines ABWEICHENDEN Felds im Merge-Dialog (K-6a-Default): der befüllte Wert
+ * gewinnt. Spiegelt den Auto-Default von resolveMergeFields (`filled(winner) ? winner : loser`).
+ * Da ein abweichendes Feld immer mindestens eine befüllte Seite hat, liefert dies bei leerem
+ * Gewinner den (befüllten) Verlierer → verhindert stillen Datenverlust im UI-Default.
+ */
+export function defaultMergeSide(winner: Rec, loser: Rec, field: string): "winner" | "loser" {
+  void loser; // Signatur der Symmetrie halber; Auswahl hängt nur am Gewinner-Wert (siehe resolveMergeFields)
+  return filled(winner[field]) ? "winner" : "loser";
+}
+
+/**
  * Feld-Vergleich zweier Datensätze für den Merge-Dialog (K-6b): welche Felder weichen ab, welche
  * sind identisch. Vergleich case-insensitiv/getrimmt (leer == leer). Rein + testbar.
  */
