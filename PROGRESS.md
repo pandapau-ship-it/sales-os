@@ -536,7 +536,10 @@
 
 **6.** [~] **[BAU+DESIGN] Settings SET-1 bis SET-4** (`docs/settings_bauplan_v1.md`;
   **SET-2 wartet auf Olivers vorhandenes Design** — Abgleich nach dessen Abschnitt 6)
-  - **SET-1 Rechte-Fundament GEBAUT 19.07.2026 (Migr. 070/071), wartet auf db push + Freigabe.**
+  - **SET-1 Rechte-Fundament GEBAUT + DB-GEPUSHT + LIVE-VERIFIZIERT 19.07.2026 (Migr. 070/071), wartet auf Merge-Freigabe.**
+    Live-Akzeptanz gegen Remote (11/11 PASS, self-abortierender DO-Block, kein Testdaten-Rest): member ohne Recht→false /
+    grant→sofort true / member-Löschen ohne Recht verweigert / mit Recht ok / Cross-Org-grant verweigert / Letzter-Owner
+    geschützt / audit_log-Eintrag / **ohne Session löschen+merge → „nicht authentifiziert"** / Katalog=3 / member-Matrix=0.
     Serverseitiger Wächter als Postgres-Funktionen (`has_permission` deny>grant>Rolle · `grant`/`revoke_permission`
     Cross-Org+Admin-Hierarchie · `set_user_role` Owner-only+Letzter-Owner-Schutz · `soft_delete_contacts`/
     `_companies`/`_deals` erzwingen `records.delete` → **[D-delete-rights] Teil 1 geschlossen** · Merge über
