@@ -225,8 +225,14 @@
 - [x] **Invitations + Teams** (Migr. **042** Tabellen+RLS+Audit, **043** Trigger-Einladungs-Pfad) — `TeamSettings`-UI unter `/app/settings`; db.ts `getTeamMembers`/`getInvitations`/`createInvitation`/`deleteInvitation`/`updateUserRole`; **db push erfolgt** — *2026-06-22*
 - [x] **KB Migration 044** (Team & Einladungen, module=core) — db push erfolgt — *2026-06-22*
 - [x] **Auth/2FA-Entscheidungen** in CLAUDE.md ([D21]-Block): Email+Passwort+SSO · TOTP-2FA (Owner Pflicht) · Teams · Onboarding · Session-Länge — *2026-06-22*
-- [ ] **[D29] Einladungs-Mail** via Edge Function (`auth.admin.inviteUserByEmail`) — service_role, deferred
-- [ ] **2FA (TOTP)** UI + Enforcement (Owner Pflicht) — deferred
+- [x] **Login-Pflicht [D21]** (19.07.2026) — `Protected` erzwingt Login, Catch-all `NotFoundRedirect` (→ Login statt `/app`),
+  öffentliche Routen explizit vor Catch-all (`/reset` neu · `/invite/:token` + `/unsubscribe` reserviert) + CLAUDE-Dauerregel;
+  Passwort-Reset-Abschluss `/reset`; Logout im Avatar-Dropdown; Dev-Bypass hinter `VITE_DEV_AUTH_BYPASS`;
+  `useCurrentOrg.provisioningError` + `ProvisioningGate`; **invite-only** (Migr. 072); Redirect `state.from` + differenzierte Fehler.
+- [x] **Invite-only Provisioning** (Migr. **072**) — `handle_new_user` legt ohne gültige Einladung keine Org/Owner an (ersetzt 043-Else) — *2026-07-19*
+- [ ] **[D29] Einladungs-Mail** via Edge Function (`auth.admin.inviteUserByEmail`) — service_role, deferred; **Route `/invite/:token` reserviert**
+- [ ] **2FA (TOTP)** UI vorhanden (`MfaBanner`); **Enforcement (Owner Pflicht) → B-3 Launch-Härtung** (deferred, Entscheidung C)
+- [ ] **Verwaiste Auth-User** (abgelehnte invite-only-SSO-Sessions) aufräumen — kleiner Folge-Schritt
 
 ---
 

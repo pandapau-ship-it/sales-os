@@ -8,7 +8,7 @@
  */
 
 import { useState, type FormEvent } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { Navigate, useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Eye, EyeOff } from "lucide-react";
 import {
@@ -16,8 +16,10 @@ import {
   signInWithGoogle,
   signInWithMicrosoft,
   resetPassword,
+  authErrorKey,
+  isAuthDevBypass,
 } from "@/lib/auth";
-import { isSupabaseConfigured } from "@/lib/db";
+import { useAuth } from "@/hooks/useAuth";
 import { Input } from "@/components/ui/input";
 import { GoogleIcon, MicrosoftIcon } from "@/components";
 
@@ -25,7 +27,9 @@ type Mode = "login" | "forgot" | "resetSent";
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { t } = useTranslation();
+  const { session } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
@@ -33,8 +37,13 @@ export default function Login() {
   const [error, setError] = useState<string | null>(null);
   const [mode, setMode] = useState<Mode>("login");
 
-  // Phase 0 ohne Backend → direkt in die App (Dev-Bypass).
-  if (!isSupabaseConfigured()) return <Navigate to="/app/meintag" replace />;
+  // Ziel nach dem Login: der ursprünglich angeforderte Pfad (Deep-Link) oder Mein Tag.
+  const from = (location.state as { from?: string } | null)?.from;
+  const target = from && from.startsWith("/app") ? from : "/app/meintag";
+
+  // Dev-Bypass (nur mit explizitem Flag) ODER bereits eingeloggt → direkt in die App.
+  if (isAuthDevBypass()) return <Navigate to="/app/meintag" replace />;
+  if (session) return <Navigate to={target} replace />;
 
   const onLogin = async (e: FormEvent) => {
     e.preventDefault();
@@ -43,12 +52,12 @@ export default function Login() {
     try {
       const { error: signInError } = await signInWithEmail(email, password);
       if (signInError) {
-        setError(t("login.error"));
+        setError(t(authErrorKey(signInError)));
         return;
       }
-      navigate("/app/meintag", { replace: true });
+      navigate(target, { replace: true });
     } catch {
-      setError(t("login.error"));
+      setError(t("login.errorNetwork"));
     } finally {
       setLoading(false);
     }
@@ -61,12 +70,12 @@ export default function Login() {
     try {
       const { error: resetError } = await resetPassword(email);
       if (resetError) {
-        setError(t("login.error"));
+        setError(t(authErrorKey(resetError)));
         return;
       }
       setMode("resetSent");
     } catch {
-      setError(t("login.error"));
+      setError(t("login.errorNetwork"));
     } finally {
       setLoading(false);
     }
@@ -77,9 +86,9 @@ export default function Login() {
     setError(null);
     try {
       const { error: oauthError } = await fn();
-      if (oauthError) setError(t("login.error"));
+      if (oauthError) setError(t(authErrorKey(oauthError)));
     } catch {
-      setError(t("login.error"));
+      setError(t("login.errorNetwork"));
     }
   };
 

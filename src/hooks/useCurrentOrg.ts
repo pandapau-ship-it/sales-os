@@ -20,10 +20,12 @@ export function useCurrentOrg(): {
   organizationId: string;
   role: string;
   loading: boolean;
+  /** Eingeloggt, aber kein public.users-Datensatz (invite-only-Ablehnung / Provisioning-Fehler). */
+  provisioningError: boolean;
 } {
   const { user } = useAuth();
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isSuccess } = useQuery({
     // Nur abfragen, wenn ein eingeloggter User da ist; sonst greift der Fallback.
     enabled: !!user?.id,
     queryKey: ["currentOrg", user?.id],
@@ -33,12 +35,17 @@ export function useCurrentOrg(): {
 
   // Kein User → Demo-Fallback (sofort verfügbar, kein Ladezustand).
   if (!user?.id) {
-    return { organizationId: DEMO_ORGANIZATION_ID, role: "member", loading: false };
+    return { organizationId: DEMO_ORGANIZATION_ID, role: "member", loading: false, provisioningError: false };
   }
+
+  // Eingeloggt, Query erfolgreich, aber KEINE Zeile → nicht provisioniert. Sichtbar machen
+  // (nicht still auf Demo-Org ausweichen — das verschleierte den invite-only-/Provisioning-Fall).
+  const provisioningError = isSuccess && !data;
 
   return {
     organizationId: data?.organization_id ?? DEMO_ORGANIZATION_ID,
     role: data?.role ?? "member",
     loading: isLoading,
+    provisioningError,
   };
 }

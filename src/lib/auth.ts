@@ -24,6 +24,21 @@ export type { Session, User };
 const callbackUrl = () =>
   typeof window !== "undefined" ? `${window.location.origin}/auth/callback` : undefined;
 
+// Passwort-Reset-Link kehrt auf die eigene Set-Password-Seite zurück (nicht /auth/callback):
+// detectSessionInUrl etabliert dort die Recovery-Session, /reset zeigt das Neu-Setzen-Formular.
+const resetUrl = () =>
+  typeof window !== "undefined" ? `${window.location.origin}/reset` : undefined;
+
+/**
+ * isAuthDevBypass — Login-Pflicht NUR für lokalen, ausdrücklich eingeschalteten Dev-Betrieb umgehen.
+ * Erfordert `import.meta.env.DEV` UND `VITE_DEV_AUTH_BYPASS === "true"` — beides. Ohne das Flag gilt
+ * echte Login-Pflicht (auch env-los: dann bleibt man auf dem Login-Screen). Nie in Produktion aktiv
+ * (import.meta.env.DEV ist im Build false). Zentrale Quelle für Protected/Login/Catch-all/Gate.
+ */
+export function isAuthDevBypass(): boolean {
+  return import.meta.env.DEV === true && import.meta.env.VITE_DEV_AUTH_BYPASS === "true";
+}
+
 /** Email + Passwort Login. Wirft, wenn Supabase nicht konfiguriert ist. */
 export async function signInWithEmail(email: string, password: string) {
   const client = getSupabaseClient();
@@ -33,13 +48,43 @@ export async function signInWithEmail(email: string, password: string) {
   return client.auth.signInWithPassword({ email, password });
 }
 
-/** Passwort-Reset-Link an die Email senden. */
+/** Passwort-Reset-Link an die Email senden (Rückkehr auf /reset zum Neu-Setzen). */
 export async function resetPassword(email: string) {
   const client = getSupabaseClient();
   if (!client) {
     throw new Error("Auth ist nicht konfiguriert (Supabase-Env fehlt).");
   }
-  return client.auth.resetPasswordForEmail(email, { redirectTo: callbackUrl() });
+  return client.auth.resetPasswordForEmail(email, { redirectTo: resetUrl() });
+}
+
+/** Neues Passwort setzen (nach Recovery-Link). Erfordert die aktive Recovery-Session. */
+export async function updatePassword(newPassword: string) {
+  const client = getSupabaseClient();
+  if (!client) {
+    throw new Error("Auth ist nicht konfiguriert (Supabase-Env fehlt).");
+  }
+  return client.auth.updateUser({ password: newPassword });
+}
+
+/**
+ * authErrorKey — Supabase-Auth-Fehler auf eine verständliche i18n-Meldung mappen (statt EIN Textbaustein).
+ * Unterscheidet: falsche Zugangsdaten · zu viele Versuche (Rate-Limit) · keine Verbindung · sonst generisch.
+ * (Regel „Fehlerbehandlung aus User-Sicht": nie technischer Code, immer Handlung.)
+ */
+export function authErrorKey(
+  err: { message?: string; status?: number; code?: string } | null | undefined,
+): string {
+  if (!err) return "login.errorGeneric";
+  const code = (err.code ?? "").toLowerCase();
+  const status = err.status ?? 0;
+  const msg = (err.message ?? "").toLowerCase();
+  if (status === 429 || code.includes("rate") || msg.includes("rate limit") || msg.includes("too many"))
+    return "login.errorRate";
+  if (msg.includes("failed to fetch") || msg.includes("network") || msg.includes("load failed"))
+    return "login.errorNetwork";
+  if (code.includes("invalid_credentials") || msg.includes("invalid login") || msg.includes("invalid credentials"))
+    return "login.errorCredentials";
+  return "login.errorGeneric";
 }
 
 /** Google SSO (Redirect-Flow). */

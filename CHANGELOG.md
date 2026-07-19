@@ -6,6 +6,20 @@
 
 ## Unreleased
 
+- **feat:** Login-Pflicht [D21] — Rest-Lücken geschlossen (kein Neubau; Auth war bereits voll gebaut).
+  **Öffentliche-Routen-Architektur:** Catch-all `NotFoundRedirect` (unbekannt + nicht eingeloggt → Login `/`,
+  nie blind `/app`); öffentliche Routen explizit VOR Catch-all; `/reset` neu, `/invite/:token` + `/unsubscribe`
+  als öffentliche Platzhalter reserviert; **neue CLAUDE.md-Dauerregel „Öffentliche Routen".** `Protected`/
+  `NotFoundRedirect` als eigene testbare Komponenten. **Passwort-Reset vervollständigt** (`/reset` = neues PW
+  setzen, `updatePassword`; Reset-Mail führt jetzt dorthin). **Logout** im Avatar-Dropdown (Sidebar) — `signOut`
+  war ungenutzt. **Dev-Bypass hinter Flag** (`isAuthDevBypass` = `import.meta.env.DEV` + `VITE_DEV_AUTH_BYPASS`),
+  nie in Prod; ersetzt den impliziten „env-fehlt"-Bypass. **`useCurrentOrg` gehärtet:** `provisioningError`
+  (eingeloggt ohne `users`-Row) → sichtbares `ProvisioningGate` statt stiller Demo-Org. **Invite-only (Migr. 072):**
+  `handle_new_user` legt ohne gültige Einladung keine Org/Owner mehr an → „Zugang nur auf Einladung". **Redirect
+  nach Login** (`state.from`, Deep-Link) + **differenzierte Fehler** (`authErrorKey`: falsches PW / Rate-Limit /
+  Verbindung). i18n de/en/es. 12 neue [AUTO]-Tests (Protected/Catch-all/authErrorKey/provisioningError).
+  Haken: MFA-Zwang → B-3 · Invite-Annahmeseite → [D29] · SET-2 „Mein Profil/Sicherheit" (greenfield).
+
 - **feat:** Settings SET-1 — Rechte-Fundament (echter serverseitiger Wächter, Migr. 070/071).
   Zwei GLOBALE datengetriebene Katalog-Tabellen `permission_catalog` (**v1: 3 Rechte, nur heute-existierend**
   — `team.invite`/`records.delete`/`records.merge`; Zukunfts-Rechte kommen mit ihrem Modul, Registry in
