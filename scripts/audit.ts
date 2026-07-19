@@ -81,10 +81,13 @@ function checkDatabase(): void {
   // Globale Katalog-/Betriebs-Tabellen OHNE organization_id (dokumentierte Ausnahme):
   // plans/plan_limits/billing_config (entitlement 061/064) + cron_runs/system_alerts/cron_expectations
   // (Betrieb B-1, Migr. 068 — Betriebs-Telemetrie/-Alarme betreffen die Infrastruktur, nicht eine
-  // Kunden-Org). Alle mandantenübergreifend: öffentlich lesbar (RLS select), Write nur service_role.
+  // Kunden-Org) + permission_catalog/role_permissions (Rechte-Fundament SET-1, Migr. 070 — der
+  // Rechte-Katalog + die Rollen-Matrix sind produktweit identisch, nicht pro Org). Alle
+  // mandantenübergreifend: öffentlich lesbar (RLS select), Write nur service_role.
   const GLOBAL_TABLES = new Set([
     'plans', 'plan_limits', 'billing_config',
     'cron_runs', 'system_alerts', 'cron_expectations',
+    'permission_catalog', 'role_permissions',
   ])
   const missingOrg: string[] = []
   for (const t of tables) {

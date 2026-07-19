@@ -534,8 +534,16 @@
     App-Öffnen sichtbar) · Sentry/`lib/monitoring.ts` → B-2 (ErrorBoundary-Anker steht) · Status-Seite + Mini-
     Indikator → B-4 (B-1 bleibt backend-only).
 
-**6.** [ ] **[BAU+DESIGN] Settings SET-1 bis SET-4** (`docs/settings_bauplan_v1.md`;
+**6.** [~] **[BAU+DESIGN] Settings SET-1 bis SET-4** (`docs/settings_bauplan_v1.md`;
   **SET-2 wartet auf Olivers vorhandenes Design** — Abgleich nach dessen Abschnitt 6)
+  - **SET-1 Rechte-Fundament GEBAUT 19.07.2026 (Migr. 070/071), wartet auf db push + Freigabe.**
+    Serverseitiger Wächter als Postgres-Funktionen (`has_permission` deny>grant>Rolle · `grant`/`revoke_permission`
+    Cross-Org+Admin-Hierarchie · `set_user_role` Owner-only+Letzter-Owner-Schutz · `soft_delete_contacts`/
+    `_companies` erzwingen `records.delete` → **[D-delete-rights] geschlossen**). Global `permission_catalog`
+    + `role_permissions` (datengetriebene Matrix), `user_permissions` gehärtet (`effect` grant|deny, UNIQUE,
+    Audit). TS-Spiegel `lib/permissions.ts`, Hook `useEffectivePermissions`. Verstreute Rollen-Checks abgelöst
+    (`TeamSettings`/`MfaBanner`/`updateUserRole`). **NICHT jetzt:** Einzelrechte-/Papierkorb-UI (SET-3),
+    Nav-Rollen-Ausblendung (SET-2), AI-Chat-Tool-Bindung.
   - **AI-Studio-Design-Abgleich (19.07.2026) → Bauplan Abschnitt 8** (Seiten→Slice-Timing ·
     Nav-komplett-in-SET-2 · Won/Lost-Invariante · Regel-A-Diagnose 8.T). Drei neue Entscheidungen:
     - **[SET-KB-1]** neue Gruppe **„Mein Unternehmen"** (final 19.07.2026; Untertitel „Was die AI über
@@ -659,9 +667,10 @@ für JEDEN UI-Slice**, auch wenn ein Design existiert.
 > Hunter, Farmer öffnen weiter das 820px-Schnellpanel (Deeplinks laufen ausschließlich über ScreenHunting/
 > ScreenFarming-Panels, vom Kontakte-Pfeil unberührt).
 >
-> **[D-delete-rights] — bewusst NOCH OHNE (temporäre Lücke, JETZT dokumentiert):**
-> (1) **Keine Rollenprüfung** — jeder eingeloggte User kann löschen. Wird mit **Settings SET-1/SET-3**
-> (Rechte-Fundament) geschlossen. (2) **Kein Papierkorb-UI** — gelöschte Objekte sind unsichtbar, bleiben
+> **[D-delete-rights] — Teil (1) GESCHLOSSEN 19.07.2026 mit Settings SET-1:**
+> (1) ~~Keine Rollenprüfung~~ → **erledigt:** `soft_delete_contacts`/`soft_delete_companies` (Migr. 071)
+> erzwingen serverseitig `has_permission(actor, 'records.delete')` + Org-Scope; `records.delete` liegt bei
+> owner/admin (Rollen-Matrix 070), member/viewer NICHT. (2) **Kein Papierkorb-UI** — gelöschte Objekte sind unsichtbar, bleiben
 > aber in der DB (kein Datenverlust); Wiederherstellen-/Papierkorb-Ansicht kommt mit **SET-3**.
 > (3) **Firma löschen = KEINE Kaskade** (Punkt 5 bestätigt): verknüpfte Kontakte bleiben, verlieren nur
 > `company_id`/`primary_company_id` — analog „Company ohne Kontakte bleibt erhalten". Deals unangetastet.

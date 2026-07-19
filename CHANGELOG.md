@@ -6,6 +6,22 @@
 
 ## Unreleased
 
+- **feat:** Settings SET-1 — Rechte-Fundament (echter serverseitiger Wächter, Migr. 070/071).
+  Zwei GLOBALE datengetriebene Katalog-Tabellen `permission_catalog` (11 Rechte) + `role_permissions`
+  (Rollen-Matrix owner=alles · admin=alles außer `billing.*` · member=`export.all` · viewer=∅) — beide in
+  audit `GLOBAL_TABLES`. `user_permissions` (007) gehärtet: `effect`-Spalte (`grant`|`deny`, v1 nur grant —
+  Tür offen für Subtraktion) + `UNIQUE(user_id, permission)` + Audit-Trigger. **Guard als Postgres-Funktionen**
+  (security definer, `auth.uid()` als nicht-spoofbarer Actor, Org-Scope je Write): `has_permission`
+  (deny > grant > Rolle) · `effective_permissions` (fürs Caching) · `grant_permission`/`revoke_permission`
+  (Actor owner/admin, Cross-Org-Schutz, Admin-Hierarchie: kein `billing.*`, nicht an Owner/Admin) ·
+  `set_user_role` (nur Owner, Cross-Org-Schutz, **Letzter-Owner-Schutz**). **[D-delete-rights] geschlossen:**
+  `soft_delete_contacts`/`soft_delete_companies` server-erzwingen `records.delete` (RPC statt Direkt-Update in
+  `db.ts`). TS-Spiegel `src/lib/permissions.ts` (Katalog/Matrix/`effectivePermissions`, +Test) für UI-Gating.
+  Hook `useEffectivePermissions` (Caching, ein Aufruf/Session). Verstreute Rollen-Checks abgelöst:
+  `TeamSettings.canInvite` → `has('team.invite')`, `MfaBanner` → `isElevatedRole`, `updateUserRole` →
+  `set_user_role`-RPC („serverseitig" jetzt wahr). Haken (NICHT jetzt): AI-Chat-Tool-Bindung ·
+  Einzelrechte-/Papierkorb-UI (SET-3) · Nav-Rollen-Ausblendung (SET-2).
+
 - **feat:** Betrieb & Überwachung B-1 (Minimal, Migr. 068/069). Drei globale Tabellen `cron_runs`
   (Lauf-Telemetrie) · `system_alerts` (Betriebs-Alarme) · `cron_expectations` (Erwartungs-Katalog +
   Klartext-Templates) — alle in audit `GLOBAL_TABLES`. Cron-Wrapper `cron_run_start`/`cron_run_finish`;

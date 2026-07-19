@@ -16,6 +16,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { UserPlus, X } from "lucide-react";
 import { useCurrentOrg } from "@/hooks/useCurrentOrg";
 import { useAuth } from "@/hooks/useAuth";
+import { useEffectivePermissions } from "@/hooks/usePermissions";
 import {
   getTeamMembers,
   getInvitations,
@@ -40,10 +41,13 @@ export default function TeamSettings() {
   const { t } = useTranslation();
   const { organizationId, role: myRole } = useCurrentOrg();
   const { user } = useAuth();
+  const { has } = useEffectivePermissions();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const canInvite = myRole === "owner" || myRole === "admin";
+  // SET-1: Einladen über das zentrale Recht (statt Inline-Rollenvergleich); Server erzwingt erneut.
+  const canInvite = has("team.invite");
+  // Rollenwechsel bleibt strukturell Owner-only (Spiegel set_user_role-RPC, kein granulares Recht).
   const canChangeRole = myRole === "owner";
 
   const roleLabel = (r: string) =>

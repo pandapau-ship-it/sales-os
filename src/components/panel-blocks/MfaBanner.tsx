@@ -12,6 +12,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ShieldAlert } from "lucide-react";
 import { useMfaStatus } from "@/hooks/useMfaStatus";
+import { isElevatedRole } from "@/lib/permissions";
 import { enrollMfaTotp, verifyMfaTotp } from "@/lib/auth";
 import { useToast } from "@/components/shared/toastContext";
 import { Input } from "@/components/ui/input";
@@ -42,8 +43,7 @@ export default function MfaBanner({ role }: { role: string }) {
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
 
-  const eligibleRole = role === "owner" || role === "admin";
-  if (!eligibleRole || loading || enrolled || dismissed) return null;
+  if (!isElevatedRole(role) || loading || enrolled || dismissed) return null;
 
   const snooze = (days: number) => {
     localStorage.setItem(DISMISS_KEY, new Date(Date.now() + days * DAY_MS).toISOString());

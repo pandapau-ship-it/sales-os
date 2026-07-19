@@ -5289,19 +5289,31 @@ Jede Edge Function prüft zuerst: hat dieser User das Recht für diese Aktion?
 | Reports ansehen | ✅ | ✅ | ✅ | ✅ |
 | Audit Log ansehen | ✅ | ✅ | ❌ | ❌ |
 
-**Individuelle Rechte-Überschreibung (nur Owner):** Owner kann pro Mitglied einzelne
-Rechte **additiv** ergänzen (z.B. Member X darf zusätzlich Automation Rules ändern).
-Basisrechte aus der Rolle, Überschreibungen addieren sich **on top** — **nie subtraktiv**
-(können nur erweitern, nie einschränken).
+**Individuelle Rechte-Überschreibung (Owner + Admin, Admin eingeschränkt):** Owner (und Admin
+für Nicht-Billing-Rechte, nicht an Owner/Admins) kann pro Mitglied einzelne Rechte ergänzen
+(z.B. Member X darf zusätzlich Automation Rules ändern).
+
+> **AKTUALISIERT 19.07.2026 (Settings SET-1, autorisierte Entscheidung) — ersetzt „nie subtraktiv":**
+> `user_permissions` trägt eine **`effect`-Spalte (`grant` | `deny`)**. Der Guard rechnet
+> **`deny` > `grant` > Rolle** (`has_permission`, Migr. 071). **v1 nutzt ausschließlich `grant`
+> (rein additiv, wie ursprünglich)** — die `deny`-Fähigkeit (einer Rolle ein Recht individuell
+> *entziehen*) ist bewusst im Schema/Guard angelegt, damit die spätere Subtraktion **ohne
+> Migration/Guard-Umbau** möglich ist. Die alte Zusage „Überschreibungen nie subtraktiv" gilt nur
+> noch als **v1-Betriebsregel** (in v1 werden keine `deny`-Einträge gesetzt), nicht mehr als
+> Architektur-Grenze. Single Source: DB-Seed `role_permissions`/`permission_catalog` (070) ↔
+> TS-Spiegel `src/lib/permissions.ts` — gemeinsam pflegen.
 
 ```sql
+-- Ausgangsschema Migr. 007, gehärtet in Migr. 070 (SET-1):
 user_permissions (
   id              uuid PK,
   organization_id uuid FK,
   user_id         uuid FK → users,
-  permission      text,           -- z.B. 'automation_rules.edit'
-  granted_by      uuid FK → users, -- muss owner sein
-  created_at      timestamptz
+  permission      text,           -- muss in permission_catalog existieren
+  effect          text NOT NULL DEFAULT 'grant',  -- 'grant' | 'deny' (v1: nur grant)
+  granted_by      uuid FK → users, -- Actor (owner/admin), auth.uid()
+  created_at      timestamptz,
+  UNIQUE (user_id, permission)     -- ein Eintrag je (user, permission): grant ODER deny
 )
 ```
 
