@@ -72,21 +72,37 @@ export function subscribeToDeals<T>(
  * lädt bei jeder Änderung neu, kein Payload-Merge nötig. RLS greift auf der Realtime-Seite mit →
  * nur eigene Zeilen. Ohne Client/User (Demo-Modus) No-op. removeChannel im Cleanup aufrufen.
  */
+// FIX 1: eindeutiges Channel-Topic pro Subscription. Supabase verlangt eindeutige Topics — zwei
+// Subscriber auf denselben Topic (TopBar + ScreenNotifications) bzw. StrictMode-Doppelläufe
+// kollidierten sonst („tried to subscribe multiple times") und schalteten die App weiß.
+let channelSeq = 0;
+
 export function subscribeToNotifications(
   userId: string,
   onChange: () => void,
 ): Unsubscribe {
   const client = getSupabaseClient();
   if (!client || !userId) return () => {};
-  const channel = client
-    .channel(`notifications:${userId}`)
-    .on(
-      "postgres_changes",
-      { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${userId}` },
-      () => onChange(),
-    )
-    .subscribe();
-  return () => {
-    void client.removeChannel(channel);
-  };
+  // FIX 2: defensiver Guard — ein Realtime-Fehler läuft in der Effect-Phase und würde ohne
+  // ErrorBoundary den Baum unmounten (weiße Seite). Hier abfangen → App bleibt stehen.
+  try {
+    const channel = client
+      .channel(`notifications:${userId}:${++channelSeq}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${userId}` },
+        () => onChange(),
+      )
+      .subscribe();
+    return () => {
+      try {
+        void client.removeChannel(channel);
+      } catch {
+        /* Cleanup-Fehler dürfen die App nie stören */
+      }
+    };
+  } catch (e) {
+    console.error("subscribeToNotifications failed", e);
+    return () => {};
+  }
 }

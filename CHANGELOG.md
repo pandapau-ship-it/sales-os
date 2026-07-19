@@ -6,6 +6,15 @@
 
 ## Unreleased
 
+- **fix:** Weiße Seite auf /app/notifications behoben. Ursache: `subscribeToNotifications` nutzte für
+  beide Subscriber (TopBar + ScreenNotifications) denselben Channel-Topic → Supabase-Kollision
+  („tried to subscribe multiple times"), in der Effect-Phase geworfen, ohne ErrorBoundary → React
+  unmountet den Baum. Fix: eindeutiges Topic pro Subscription (`notifications:${user}:${n}`) + try/catch-
+  Guard (Realtime-Fehler schaltet die App nie weiß). Zusätzlich: EINE globale `ErrorBoundary` (freundliche
+  Fallback-UI + Reload, Konsole-Log, B-1-Anschlusspunkt für Monitoring). Regressionstests: realtime
+  (eindeutige Topics/Guard), ErrorBoundary (Fallback statt weiß), ScreenNotifications-Realdata (echtes
+  i18n + 4 Kategorien). Der Render-Test war grün, weil alle Tests `@/lib/realtime` mockten.
+
 - **feat:** Mitteilungs-Glocke + Mitteilungsseite N-S2-Minimal (Option A, Route). TopBar-Glocke mit
   echtem Ungelesen-Badge (RLS-Query, live via Realtime). Route `/app/notifications`: Standardansicht
   nur Ungelesenes in 4 Gruppen (Braucht dich/System/Berichte/Team via `notifications.ts`-Registry),

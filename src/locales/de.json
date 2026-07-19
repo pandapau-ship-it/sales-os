@@ -100,7 +100,12 @@
     "generic": "Etwas hat nicht geklappt. Bitte erneut versuchen.",
     "saveFailed": "Speichern war nicht möglich.",
     "loadFailed": "Daten konnten nicht geladen werden.",
-    "offline": "Keine Verbindung. Wir versuchen es automatisch erneut."
+    "offline": "Keine Verbindung. Wir versuchen es automatisch erneut.",
+    "boundary": {
+      "title": "Da ist etwas schiefgelaufen",
+      "body": "Die Seite konnte nicht geladen werden. Lade sie neu — deine Daten sind sicher.",
+      "reload": "Seite neu laden"
+    }
   },
   "tooltips": {
     "settings": "Einstellungen",

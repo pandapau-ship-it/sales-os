@@ -38,6 +38,7 @@ import { useCurrentOrg } from "@/hooks/useCurrentOrg";
 import CommandPalette from "@/components/shared/CommandPalette";
 import { ToastProvider } from "@/components/shared/Toast";
 import TooltipLayer from "@/components/shared/TooltipLayer";
+import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
 // Referenz-Wiring der fertigen Bestands-Screens mit Mock-Daten (temporär, Phase 2 ersetzt es).
 import {
   MeinTagReference,
@@ -98,6 +99,7 @@ function Protected({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   return (
+    <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <ToastProvider>
         <TooltipLayer />
@@ -133,5 +135,6 @@ export default function App() {
         </BrowserRouter>
       </ToastProvider>
     </QueryClientProvider>
+    </ErrorBoundary>
   );
 }

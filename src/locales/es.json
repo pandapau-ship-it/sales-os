@@ -100,7 +100,12 @@
     "generic": "Etwas hat nicht geklappt. Bitte erneut versuchen.",
     "saveFailed": "Speichern war nicht möglich.",
     "loadFailed": "Daten konnten nicht geladen werden.",
-    "offline": "Keine Verbindung. Wir versuchen es automatisch erneut."
+    "offline": "Keine Verbindung. Wir versuchen es automatisch erneut.",
+    "boundary": {
+      "title": "Algo salió mal",
+      "body": "No se pudo cargar la página. Recárgala — tus datos están a salvo.",
+      "reload": "Recargar página"
+    }
   },
   "tooltips": {
     "settings": "Einstellungen",
