@@ -235,6 +235,107 @@ Settings-Nav (springt zu Sektionen — bei 15+ Seiten Pflicht).
 6. i18n für alles; Regel-Sätze als Templates mit Wert-Slots, nicht String-Bastelei.
 
 ---
-*Sales OS · Settings Bauplan v1.2 · Juli 2026 · S1–S7 final · Design vorhanden (wird nachgereicht) — Abgleich vor SET-2 Pflicht*
+
+## 8. AI-STUDIO-DESIGN-ABGLEICH (19.07.2026) — Struktur, Timing, Datenmodell
+
+> Oliver hat ein vollständiges Settings-Design (20 Seiten) aus AI Studio gegen diesen
+> Bauplan abgeglichen. Ergebnis fließt hier ein, BEVOR ein Settings-Screen gebaut wird.
+> Das Design selbst ist NICHT Teil dieses Dokuments — hier nur Struktur/Timing/Datenmodell.
+
+### 8.A — Seiten → SET-Slice → Timing (Zuordnungs-Tabelle)
+
+| Settings-Seite | SET-Slice | Timing |
+|---|---|---|
+| Workspace / Allgemein (Org-Name, **Sprache & Region** = Sprache/Zeitzone/Datumsformat/Währung, Logo) | SET-2 | **JETZT** — „Sprache & Region" ist **keine eigene Seite**, sondern Teil von Workspace |
+| Branding (Logo, Farben) | SET-2 | **JETZT** |
+| Benachrichtigungen (Grundgerüst) | SET-2 | **JETZT** (Grundgerüst); Matrix-Rest mit **N-S2** |
+| Mitglieder (Team-Tabelle, Einladen) | SET-3 | **JETZT** |
+| Rollen & Rechte (Matrix + user_permissions) | SET-1 (Fundament) + SET-3 (UI) | **JETZT** |
+| Automatisierung / Aktionsmodus (globale Defaults Manual/Semi/Auto) | SET-4 | **JETZT** |
+| Pipeline Stages (Reihenfolge/Namen; Won/Lost = Invariante) | SET-4 | **JETZT** |
+| Audit Log (read-only) | SET-6 — **vorziehbar** | **JETZT vorziehbar** (Daten laufen ab Tag 1) |
+| Abo & Credits (Anzeige „Internal" + echte Verbrauchszahlen) | SET-2/Abo-Serie | **Anzeige nach Entitlement-Migration**; Kauf-Flow erst **Launch (A-Serie)** |
+| Mailbox & Limits (Warmup, Hard-Cap, Versand-Modus) | SET-5 | **SPÄTER — mit AI SDR** |
+| Automation Rules (Trigger-Logik) | SET-5 | **SPÄTER — mit AI SDR** (hängt an **[D-lead-status]**) |
+| Campaign Builder | — | **SPÄTER — AI-SDR-Kern, KEIN Settings-Thema** |
+| Integrations-Manager (echte OAuth) | SET-6 | **SPÄTER — mit AI SDR** (echte OAuth-Flows) |
+
+### 8.B — Drei dokumentierte Entscheidungen
+
+**[SET-KB-1] Neue Settings-Gruppe „Mein Unternehmen" (final, → 8.E; Untertitel z.B.
+„Was die AI über euch weiß") — drei DAUERHAFTE Seiten:**
+- **Company Profile** — Wer ist das Unternehmen (Positionierung, Zielmarkt, Kontext).
+- **Personal Voice Card** — Tonalität/Stil pro User für AI-generierte Nachrichten.
+- **Product & Pricing** — Produkt-/Nutzen-/Wettbewerber-/Preis-Kontext als Futter für die
+  AI-Nachrichten-Generierung. **Bewusst eine dauerhafte eigene Seite** (SOTA-Muster:
+  zentrales AI-Kontext-Zuhause), nicht später wegkonsolidieren.
+
+**[SET-KB-2] Diese drei Seiten werden aus dem Onboarding-Modul HERAUSGELÖST und VOR
+AI SDR eingeplant.** Begründung: der AI SDR braucht Company-Profil + Voice + Produktwissen
+als Kontext, kommt aber **vor** dem Onboarding. Henne-Ei-Auflösung über **drei getrennte
+Ebenen**:
+1. **DB-Tabellen** — `org_profile`, `voice_profiles`, **neu: `product_info`** → **jetzt einplanen.**
+   ⚠ Diagnose 8.T: `org_profile`/`voice_profiles` existieren **noch NICHT** → alle drei neu
+   anlegen (nicht nur `product_info`). Vorhandene `products`-Tabelle (Migr. 028) ist minimal
+   (name/description/is_active) → **NICHT** als Product-&-Pricing-Kontext missbrauchen; die
+   reichere `product_info` ist eine eigene Tabelle (Nutzen/Wettbewerber/Preis-Kontext als Text).
+2. **Settings-Seiten** — anzeigen + **MANUELL editierbar** → **jetzt einplanen.**
+3. **AI-Befüllung** (Website-Crawl → AI-Zusammenfassung) → **SPÄTER mit Onboarding**, dockt an
+   **dieselben Tabellen** an, **KEIN Umbau**.
+- Leere Felder zeigen ehrlich leer / „Folgt" (**Honesty-Regel**). Erst-Befüllung manuell mit
+  echten Produktdaten, bis die AI-Pipeline existiert.
+
+**[SET-KB-3] FALLBACK-REGEL (Vermerk für den AI-SDR-Bauplan):** Die Nachrichten-Generierung
+des AI SDR **muss auch mit leeren** Company/Voice/Product-Feldern funktionieren (generischer
+Basis-Prompt/Vorlage). Gefüllte Felder **verbessern** die Ausgabe, sind **keine harte
+Voraussetzung**. Das System muss **ohne Onboarding voll funktionieren.**
+→ Gehört zusätzlich als Regel in `docs/ai_sdr_bauplan_v1.md` (Sequenz-Engine/Nachrichten-Slice)
+— beim AI-SDR-Slice-0-Doku-Angleich mitziehen.
+
+### 8.C — Navigation komplett (Bauplan-Regel)
+
+Die Settings-Navigation (**alle Gruppen + alle Menüpunkte**) wird **EINMAL vollständig
+gebaut (SET-2)** — die Seiten dahinter gestaffelt. Noch nicht gebaute Seiten → **ehrliche
+„Folgt"-Seite** oder **rollenbasiert ausgeblendet**, **nie eine leere Baustelle**.
+(Konsistent mit S1 „Andock-Prinzip" + Abschnitt 6 Zustand „Folgt".)
+
+### 8.D — Design-Fund als Bauplan-Regel: Pipeline Stages Won **UND** Lost
+
+Pipeline Stages behandelt **SOWOHL „Gewonnen" ALS AUCH „Verloren"** als **unlöschbare
+System-Invariante** (Slugs `gewonnen`/`verloren`) — **beide unantastbar**, nicht nur „Gewonnen".
+Verankert in CLAUDE.md (DB-Schema-Invariante + `hunterMappers` `WON_STAGE_SLUG`/`LOST_STAGE_SLUG`/
+`isTerminalStage` ↔ Edge `_shared/terminalStages.ts`). SET-4-UI: beide fixiert dargestellt
+(nicht löschbar/umbenennbar), nicht versteckt. (Präzisiert SET-4 + Falle 4.)
+
+### 8.E — Gruppen-Name: „Mein Unternehmen" (ENTSCHIEDEN 19.07.2026)
+
+**Final: „Mein Unternehmen"** — Untertitel z.B. „Was die AI über euch weiß".
+Direkt, besitzanzeigend, DE-nativ, matcht die Sidebar-Sprache (Mein Tag / Mein Profil).
+„Knowledge Base" (zu generisch, klingt nach Support-Docs) verworfen; ebenso die
+Alternativen „Unternehmens-Kontext" (zu technisch) und „AI-Wissen"/„AI-Kontext"
+(liest sich wie AI-Einstellungen statt Unternehmens-Stammdaten).
+
+### 8.T — Diagnose-Snapshot (Regel A, Stand 19.07.2026) — Bestand für spätere Slices
+
+| Baustein | Status | Fundort |
+|---|---|---|
+| Settings-Screen / Routing / Nav-Grundgerüst | **teilweise** — Route `/app/settings` rendert NUR `TeamSettings` direkt; **keine Shell/Gruppen-Nav** | `App.tsx:127`, `features/settings/TeamSettings.tsx` |
+| `user_permissions` | **existiert** | Migr. 007 |
+| `invitations` (+ teams) | **existiert** | Migr. 042 (`db.ts` `getInvitations`/`createInvitation`) |
+| `org_profile` | **fehlt — neu** (SET-KB-2) | — |
+| `voice_profiles` | **fehlt — neu** (SET-KB-2) | — |
+| `product_info` | **fehlt — neu** (SET-KB-2); `products` (028) ist minimal, **nicht** dasselbe | — |
+| `pipeline_stages` + Won/Lost-Slugs | **existiert** — JSONB top-level in `settings` (seed 012); Won/Lost in `hunterMappers` + Edge-Mirror | Migr. 006/012, `hunterMappers.ts:404` |
+| `audit_log` + Trigger | **existiert** — Tabelle (006) + security-definer `audit_write`-Trigger (010) | Migr. 006/010 |
+| Automation-Defaults (Manual/Semi/Auto) + Schwellen (Heat/Churn/Follow-up) | **existiert** — `settings.automation_defaults` (`default_automation_level: semi`) + `settings.thresholds` (heat_status/churn_risk …) | Migr. 006/012 |
+
+**Neu anzulegen für die JETZT-Slices:** `org_profile` · `voice_profiles` · `product_info`
+(SET-KB-2 Ebene 1) · Settings-Shell/Gruppen-Nav (SET-2) · Rechte-Katalog-Konstanten +
+Rollen-Matrix Single Source (SET-1). Alles Übrige oben ist **Bestand** und wird angedockt,
+nicht neu gebaut.
+
+---
+*Sales OS · Settings Bauplan v1.3 · Juli 2026 · S1–S8 · Design vorhanden (wird nachgereicht) — Abgleich vor SET-2 Pflicht*
+*v1.3 (19.07.2026): Abschnitt 8 (AI-Studio-Design-Abgleich) — Seiten→Slice-Timing · [SET-KB-1/2/3] · Nav-komplett-Regel · Won/Lost-Invariante · Gruppen-Name offen · Regel-A-Diagnose*
 *SOTA-geprüft (Linear/Notion-Muster: Admin-Rechtevergabe, Audit-Sichtbarkeit, zuletzt-geändert-von, Danger Zone)*
 *Damit ist [D51] vollständig aufgelöst: Prinzip war aktiv, die Admin-Ebene ist hiermit spezifiziert.*
