@@ -150,6 +150,23 @@ gespiegelt (Muster wie `hunterMappers` ↔ `_shared/terminalStages.ts`):
 - **Referenz + Testbarkeit:** `src/lib/credits.ts` (+ `credits.test.ts`) — für Schätzung/UI
   (Credits statt Token) und die [AUTO]-Tests. **Ändert sich die Formel → beide gleich halten.**
 
+**Fundament-Härtung (Migration 064, 19.07.2026) — Diagnose-Punkte 0 + 5 gebaut:**
+- **Punkt 0 (Rückwirkungsfreiheit):** `consume_credits` friert die zum Buchungszeitpunkt
+  angewandten Parameter in `credit_transactions.metadata` ein (`applied_tokens_per_credit`,
+  `applied_model_factor`, `applied_min_credits_per_action` + `raw_credit_calc`). Vergangene
+  Buchungen sind für immer erklärbar; eine spätere Config-Änderung wirkt **nie** rückwirkend
+  (der Saldo summiert die fixen `amount`-Werte, nichts wird neu berechnet).
+- **Punkt 5 (globaler Default-Layer):** neue globale Singleton-Tabelle `billing_config`
+  (org-unabhängig, Katalog-Ausnahme wie plans/plan_limits). `_billing_config` liest jetzt
+  **global → per-Key-Override aus `settings.billing`**. Bereits geseedete Orgs (061) behalten
+  ihren vollen Override (kein Verhaltenswechsel); **neue Orgs erben global**. Ein globaler
+  Preiswechsel = **eine** Zeile statt jede Org einzeln. TS-Spiegel: `resolveBillingConfig` /
+  `buildFrozenChargeMeta` in `src/lib/credits.ts` (+Tests).
+- **⚠ Provisioning-Regel** (in `docs/onboarding_signup_draft_v0_9.md` vermerkt): Org-Provisioning
+  beim Onboarding darf `settings.billing` **NICHT** automatisch seeden — sonst würde jede neue Org
+  wieder zum Override und der globale Default nie geerbt.
+- **Punkte 1–4 bleiben dokumentierte Andock-Haken** (siehe unten), bewusst nicht gebaut.
+
 **[HAKEN] aiCall()-Verdrahtung — bewusst NICHT gebaut.** `src/lib/ai.ts`/`aiCall()` existiert
 im Repo noch nicht. `consume_credits` wird **beim ersten echten AI-Call-Slice (AI-SDR bzw.
 AI-Chat)** an der zentralen `aiCall`-Stelle angeklemmt: nach jedem erfolgreichen Call

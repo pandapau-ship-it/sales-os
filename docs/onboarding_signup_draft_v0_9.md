@@ -93,6 +93,12 @@ S6 Abschluss-Automatik (Campaign-Entwurf + Mein-Tag-Anbindung) + Nudges.
 5. Campaign-Entwurf (O8) respektiert alle AI-SDR-Regeln (nie aktiv, Send-Gates greifen).
 6. org_profile fließt in generate_message/Messaging-Briefs als Kontext — Single Source,
    keine Kopien in Campaigns.
+7. **Org-Provisioning darf `settings.billing` NICHT automatisch seeden** (Entitlement-Layer,
+   Migration 064 Punkt 5). Neue Orgs **erben den globalen Abrechnungs-Default** aus
+   `billing_config` — ein per-Org-`settings.billing`-Eintrag wird nur bei einem **bewussten
+   Override-Grund** gesetzt. Sonst würde jede neue Org zum Override und ein globaler Preiswechsel
+   griffe nicht mehr. (Regel hier verankert, weil Onboarding als LETZTES Modul gebaut wird und
+   sie sonst verloren ginge.)
 
 ---
 

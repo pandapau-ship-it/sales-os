@@ -463,6 +463,11 @@
   - **Haken (bewusst NICHT gebaut, dokumentiert §9):** (a) `aiCall()`-Verdrahtung — `lib/ai.ts`
     existiert noch nicht, `consume_credits` wird am ersten echten AI-Call-Slice angeklemmt · (b)
     Promo/Voucher-`redemption_codes` (Bonus-Topf additiv andockbar, kein Umbau) — Launch-Phase.
+  - **Fundament-Härtung Migr. 064 (19.07.2026), wartet auf db push:** Punkt 0 (angewandte Parameter
+    in `credit_transactions.metadata` eingefroren → Rückwirkungsfreiheit) + Punkt 5 (globale
+    `billing_config` + `_billing_config` global→per-Key-Override; bestehende Orgs behalten Override,
+    neue erben global). TS-Spiegel `resolveBillingConfig`/`buildFrozenChargeMeta` + Tests. Onboarding-
+    Provisioning-Regel vermerkt. **Diagnose-Punkte 1-4 bleiben dokumentierte Andock-Haken** (nicht gebaut).
 
 **3.** [ ] **[OLIVER] Integrations-Session 0**
   (`docs/integrations_masterplan.md` Abschnitt 2 — Nango · Google-Testing-App ·

@@ -198,7 +198,7 @@
 - [ ] `daily_briefings` — Mein Tag Top 5 (priorities jsonb, generated_at, user_id)
 - [ ] `custom_dashboards` (v2/v3 — jetzt anlegen, Widget-Layout jsonb)
 - [ ] `chat_sessions` + `chat_messages` (content jsonb = Block-Array, langfuse_trace_id) — *AI Chat*
-- [~] Billing-Tabellen: `plans`, `plan_limits`, `organization_subscription`, `credit_balance`, `credit_transactions`, `addons` — Tabellen (008) + RLS/Policies (011) + **Entitlement-Layer (Migr. 061–063: metadata-Spalte, `settings.billing`, Seeds internal-Plan `-1`, RPCs `check_entitlement`/`check_credit_balance`/`consume_credits`, Monats-Reset-Cron)** gebaut (19.07.2026). Offen: `aiCall()`-Verdrahtung (Haken, erster echter AI-Call-Slice) · Kauf-Flow (Launch/A-Serie)
+- [~] Billing-Tabellen: `plans`, `plan_limits`, `organization_subscription`, `credit_balance`, `credit_transactions`, `addons` — Tabellen (008) + RLS/Policies (011) + **Entitlement-Layer (Migr. 061–063: metadata-Spalte, `settings.billing`, Seeds internal-Plan `-1`, RPCs `check_entitlement`/`check_credit_balance`/`consume_credits`, Monats-Reset-Cron)** gebaut (19.07.2026). **Härtung Migr. 064:** Rückwirkungsfreiheit (angewandte Parameter in `credit_transactions.metadata` eingefroren) + globaler Default-Layer (`billing_config` + `_billing_config` global→per-Key-Override). Offen: `aiCall()`-Verdrahtung (Haken, erster echter AI-Call-Slice) · Kauf-Flow (Launch/A-Serie) · Andock-Haken Diagnose-Punkte 1-4 (action_prices/grant_credits/count-enforcement)
 - [ ] `settings` JSONB: `modules`, `automation_defaults`, `thresholds` (churn_weights/upsell_weights/stagnation_days_per_stage/heat_status_days/trial/onboarding/meeting_prep), `sending_defaults`
 
 ### Pflichtfelder pro Tabellentyp

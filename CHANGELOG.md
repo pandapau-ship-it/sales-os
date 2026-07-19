@@ -6,6 +6,14 @@
 
 ## Unreleased
 
+- **feat:** Billing-Fundament-Härtung (Migration 064, additiv auf 061-063). Punkt 0:
+  `consume_credits` friert die angewandten Parameter (tokens_per_credit/model_factor/min) in
+  `credit_transactions.metadata` ein → Rückwirkungsfreiheit, vergangene Buchungen für immer
+  erklärbar. Punkt 5: globale `billing_config`-Singleton-Tabelle + `_billing_config` liest
+  global → per-Key-Override aus `settings.billing` (bestehende Orgs behalten Override, neue erben
+  global). TS-Spiegel `resolveBillingConfig`/`buildFrozenChargeMeta` (+Tests). Onboarding-Regel
+  „kein Auto-Seed von settings.billing" vermerkt. Punkte 1-4 bleiben dokumentierte Andock-Haken.
+
 - **feat:** Entitlement- & Credit-Layer (Vorab-Migration vor AI-SDR-Slice-5, Option A).
   Additive Migrationen 061–063 auf den Billing-Tabellen (008): `credit_transactions.metadata`,
   `settings.billing` ([D51]-Config statt nicht-existenter `system_config`), Seeds (internal-Plan
