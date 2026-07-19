@@ -78,9 +78,14 @@ function checkDatabase(): void {
     return
   }
 
+  // Globale Katalog-Tabellen OHNE organization_id (dokumentierte Ausnahme, entitlement 061):
+  // plans/plan_limits sind mandantenübergreifend — öffentlich lesbar (RLS select), Write nur
+  // service_role. Bewusst kein organization_id (Pricing-Doku §10 / for_ai_sdr_vorab_entitlement §1).
+  const GLOBAL_TABLES = new Set(['plans', 'plan_limits'])
   const missingOrg: string[] = []
   for (const t of tables) {
     if (t === 'organizations') continue // die Basis selbst
+    if (GLOBAL_TABLES.has(t)) continue // globale Katalog-Tabellen (siehe oben)
     if (!new RegExp(`${t}[\\s\\S]{0,2000}organization_id`).test(sql)) missingOrg.push(t)
   }
   const hasRls = /enable\s+row\s+level\s+security/.test(sql)

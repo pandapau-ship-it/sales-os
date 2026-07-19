@@ -123,5 +123,64 @@ Enforcement-Punkte (Abo-Draft A4) rufen check_entitlement/check_credit_balance v
 Anfang an — die Antwort ist intern immer ja, der Aufruf ist trotzdem Pflicht.
 
 ---
-*Sales OS · FOR AI SDR — Vorab-Migration Entitlement & Credits · Juli 2026 · baureif*
-*Parameter tokens_per_credit/Faktoren: Startwerte — Kalibrierung nach echten Daten via system_config*
+
+## 9. UMSETZUNGS-NOTIZEN (19.07.2026, Slice gebaut — Option A)
+
+**Migrationen:** `061_entitlement_credit_layer.sql` (metadata-Spalte · `settings.billing` ·
+Seeds) · `062_entitlement_functions.sql` (3 RPCs + Helper `_billing_config`) ·
+`063_cron_credit_monthly_reset.sql` (Reset-Funktion + täglicher Cron).
+008 (Tabellen) wiederverwendet — nichts davon geändert.
+
+**RLS war bereits vollständig da (Migration 011).** Erst-Diagnose übersah 011 (die zentrale
+RLS-Migration): sie aktiviert RLS + Policies für **alle 6** Billing-Tabellen
+(org-Isolation auf organization_subscription/credit_balance/credit_transactions/addons;
+`plans_public_read`/`plan_limits_public_read`). 061 legt daher **keine** RLS/Policies an
+(sonst Namens-Kollision beim db push). plans/plan_limits bleiben die dokumentierte
+org_id-Ausnahme in `scripts/audit.ts` (`GLOBAL_TABLES`).
+
+**Config-Heimat = `settings.billing`, NICHT `system_config`.** Das Projekt hat **keine**
+`system_config`-Tabelle; die kanonische, laufzeit-gelesene, per-Org-Config-Heimat ist die
+`settings`-Tabelle (JSONB-Spalten). Die in §2 als „system_config-Keys" genannten Werte
+(`billing_enabled`/`tokens_per_credit`/`min_credits_per_action`/`model_credit_factors`)
+leben daher in `settings.billing` — [D51] Kategorie C erfüllt (per Org, chat-änderbar).
+
+**Formel-Single-Source mit Spiegel:** Die Rechen-/Entscheidungslogik liegt zweimal, bewusst
+gespiegelt (Muster wie `hunterMappers` ↔ `_shared/terminalStages.ts`):
+- **Laufzeit-Wahrheit:** die SQL-RPCs (atomare Abbuchung in der DB, race-frei).
+- **Referenz + Testbarkeit:** `src/lib/credits.ts` (+ `credits.test.ts`) — für Schätzung/UI
+  (Credits statt Token) und die [AUTO]-Tests. **Ändert sich die Formel → beide gleich halten.**
+
+**[HAKEN] aiCall()-Verdrahtung — bewusst NICHT gebaut.** `src/lib/ai.ts`/`aiCall()` existiert
+im Repo noch nicht. `consume_credits` wird **beim ersten echten AI-Call-Slice (AI-SDR bzw.
+AI-Chat)** an der zentralen `aiCall`-Stelle angeklemmt: nach jedem erfolgreichen Call
+`consume_credits(org, 'ai', function_name, reference_id, {model,input_tokens,output_tokens,
+total_tokens,langfuse_trace_id,function_name})`, fire-and-forget (Zähl-Fehler darf den Call
+nie scheitern lassen). Bis dahin ist die RPC fertig und per Migration einsatzbereit.
+
+**[HAKEN] Promo-/Voucher-Code — VORBEREITET, nicht gebaut.**
+- Intern wird NICHTS über einen Code freigeschaltet — „unlimited" kommt **ausschließlich**
+  über den `internal`-Plan-Seed (DB/serverseitig, nie über UI). Kein Nutzer kann sich selbst
+  hochstufen.
+- Der additive **Bonus-Topf** ist bereits sauber andockbar: `check_credit_balance` berechnet
+  `available` als **Summe der Grant-Quellen** (`included + purchased − used`) und `credits.ts`
+  kennt ein optionales `bonus`-Feld (Default 0, heute wirkungslos). Ein späterer Topf wird als
+  **weiterer Summand** ergänzt — **kein Umbau** von `consume`/`check`. Einschätzung: **sauber
+  möglich, keine erzwungene Struktur-Entscheidung jetzt** (der Summen-Ausdruck ist die einzige
+  Stelle, die später eine Zeile bekommt).
+- **Skizze `redemption_codes`** (spätere Billing-/Launch-Phase — KEINE Tabelle/Migration jetzt):
+  ```
+  redemption_codes(
+    id uuid pk, code text unique, kind text,          -- bonus_credits | free_month | beta_access
+    credit_type text, amount int,                      -- z.B. +500 ai-Credits
+    valid_from timestamptz, valid_until timestamptz,
+    max_redemptions int, redeemed_count int default 0,
+    organization_id uuid null,                         -- null bis eingelöst (globaler Code)
+    created_by uuid, created_at timestamptz )
+  redemptions( code_id, organization_id, redeemed_by, redeemed_at )  -- Einlösungs-Log
+  ```
+  Einlösung schreibt in einen Bonus-Topf (neue Spalte `credit_balance.bonus` oder eigene
+  Tabelle), den `available` dann mitsummiert. Enforcement bleibt in den `check_*`-Functions.
+
+---
+*Sales OS · FOR AI SDR — Vorab-Migration Entitlement & Credits · Juli 2026 · baureif · Slice gebaut 19.07.2026 (§9)*
+*Parameter tokens_per_credit/Faktoren: Startwerte — Kalibrierung nach echten Daten via settings.billing ([D51])*

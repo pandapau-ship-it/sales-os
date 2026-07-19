@@ -6,6 +6,15 @@
 
 ## Unreleased
 
+- **feat:** Entitlement- & Credit-Layer (Vorab-Migration vor AI-SDR-Slice-5, Option A).
+  Additive Migrationen 061–063 auf den Billing-Tabellen (008): `credit_transactions.metadata`,
+  `settings.billing` ([D51]-Config statt nicht-existenter `system_config`), Seeds (internal-Plan
+  `-1`, Subscription + credit_balance je Org, Billing-Config). RLS war bereits vollständig in 011
+  (plans/plan_limits global — dokumentierte audit-Ausnahme `GLOBAL_TABLES`). RPCs `check_entitlement` /
+  `check_credit_balance` / `consume_credits` (atomar, security definer, intern blockiert nie).
+  Monats-Reset-Cron. Formel-Spiegel `src/lib/credits.ts` (+19 Tests). `aiCall()`-Verdrahtung +
+  Promo/Voucher (redemption_codes) als dokumentierte Haken. (docs §9)
+
 - **docs:** Git-Workflow als harte Regel verankert — niemals direkt auf `main`,
   immer Feature-Branch (`feature/`·`fix/`·`chore/`), regelmäßige Commits. (CLAUDE.md Selbst-Wartung + Repository)
 - **feat:** Service-Abstraktion `lib/db|auth|storage|realtime` — einzige Supabase-Swap-Stelle; audit-geprüft.

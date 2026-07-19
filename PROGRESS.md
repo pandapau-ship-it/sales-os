@@ -448,8 +448,21 @@
           Live-DOM: echtes Paar/kein Fake · Merge-Dialog A/B + Bestätigung-vor-Ausführung + Override-Wert · Löschen ruft
           softDelete, nicht Merge). Gates alle grün (build/lint/168 Tests/structure/audit 0 FAIL), test-runner + auditor PASS.
 
-▶ **2.** [ ] **[BAU] Vorab-Migration Entitlement & Credits**
+▶ **2.** [~] **[BAU] Vorab-Migration Entitlement & Credits**
   (`docs/for_ai_sdr_vorab_entitlement_credits.md` — PFLICHT vor AI-SDR-Slice-5)
+  - **GEBAUT 19.07.2026 (Option A), wartet auf db push + Freigabe** (▶ bleibt bis Merge stehen).
+    Branch `feature/entitlement-credit-layer`. Additive Migr. **061** (metadata-Spalte ·
+    `settings.billing` als [D51]-Config-Heimat statt nicht-existenter `system_config` · Seeds
+    internal-Plan `-1`/Subscription/credit_balance/Config; **RLS bereits vollständig in 011**, nicht
+    dupliziert) · **062**
+    (RPCs `check_entitlement`/`check_credit_balance`/`consume_credits` + `_billing_config`, atomar,
+    security definer, intern blockiert nie, kein Plan-Name-Vergleich) · **063** (`reset_credit_balances`
+    + täglicher Cron). Formel-Spiegel `src/lib/credits.ts` (+`credits.test.ts` 19 Tests, Mirror-Pattern
+    wie `_shared/terminalStages.ts`). `audit.ts` GLOBAL_TABLES-Ausnahme (plans/plan_limits). Gates: build/
+    lint/190 Tests/structure/audit **0 FAIL**; test-runner + auditor **PASS**.
+  - **Haken (bewusst NICHT gebaut, dokumentiert §9):** (a) `aiCall()`-Verdrahtung — `lib/ai.ts`
+    existiert noch nicht, `consume_credits` wird am ersten echten AI-Call-Slice angeklemmt · (b)
+    Promo/Voucher-`redemption_codes` (Bonus-Topf additiv andockbar, kein Umbau) — Launch-Phase.
 
 **3.** [ ] **[OLIVER] Integrations-Session 0**
   (`docs/integrations_masterplan.md` Abschnitt 2 — Nango · Google-Testing-App ·
