@@ -201,6 +201,8 @@
 - [~] Billing-Tabellen: `plans`, `plan_limits`, `organization_subscription`, `credit_balance`, `credit_transactions`, `addons` — Tabellen (008) + RLS/Policies (011) + **Entitlement-Layer (Migr. 061–063: metadata-Spalte, `settings.billing`, Seeds internal-Plan `-1`, RPCs `check_entitlement`/`check_credit_balance`/`consume_credits`, Monats-Reset-Cron)** gebaut (19.07.2026). **Härtung Migr. 064:** Rückwirkungsfreiheit (angewandte Parameter in `credit_transactions.metadata` eingefroren) + globaler Default-Layer (`billing_config` + `_billing_config` global→per-Key-Override). Offen: `aiCall()`-Verdrahtung (Haken, erster echter AI-Call-Slice) · Kauf-Flow (Launch/A-Serie) · Andock-Haken Diagnose-Punkte 1-4 (action_prices/grant_credits/count-enforcement)
 - [ ] `settings` JSONB: `modules`, `automation_defaults`, `thresholds` (churn_weights/upsell_weights/stagnation_days_per_stage/heat_status_days/trial/onboarding/meeting_prep), `sending_defaults`
 
+- [~] **Betrieb & Überwachung B-1** (Migr. 068/069): `cron_runs`/`system_alerts`/`cron_expectations` (global, audit `GLOBAL_TABLES`) · Cron-Wrapper `cron_run_start`/`cron_run_finish` · **alle 6 Crons umgestellt** (063/067 DB + 035/037/049/051 Edge, Deploy nötig) · Watchdog (15 Min, gebündelt → `system_alerts` + `notify()` System) · Retention-Cron · Klartext-Registry `alertTemplates.ts` · `/health`-Stub. **Folge:** B9/aiCall-Überwachung · System-Mail-Kanal (B-2, jetzt In-App-only) · Sentry (B-2) · Status-Seite (B-4)
+
 ### Pflichtfelder pro Tabellentyp
 - [ ] Aktionen: `source`, `execution_mode`, `executed_by`, `approved_by`, `approved_at` — *AI-Automation*
 - [ ] Sending: `sending_channel/provider`, `external_message_id`, `delivery_status`, `sent/delivered/read_at`

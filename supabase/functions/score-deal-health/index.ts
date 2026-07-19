@@ -26,14 +26,18 @@ const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
 
 Deno.serve(async (req) => {
+  const supabase = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+  );
+  let runId: string | null = null; // B-1: Cron-Lauf-Protokoll (nur Voll-Läufe, kein einzelner dealId)
   try {
     const { organizationId, dealId } = await req.json().catch(() => ({}));
     if (!organizationId) return json({ error: "organizationId required" }, 400);
-
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-    );
+    if (!dealId) {
+      const { data } = await supabase.rpc("cron_run_start", { p_job: "score-deal-health-daily" });
+      runId = data as string | null;
+    }
 
     // 2. Aktive Deals (nicht-terminal, nicht soft-gelöscht).
     let q = supabase
@@ -66,8 +70,10 @@ Deno.serve(async (req) => {
       updated++;
     }
 
+    if (runId) await supabase.rpc("cron_run_finish", { p_run_id: runId, p_status: "success", p_items: updated });
     return json({ updated, org_id: organizationId });
   } catch (e) {
+    if (runId) await supabase.rpc("cron_run_finish", { p_run_id: runId, p_status: "failed", p_error: String(e) });
     return json({ error: String(e instanceof Error ? e.message : e) }, 500);
   }
 });

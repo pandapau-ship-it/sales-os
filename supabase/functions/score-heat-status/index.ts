@@ -44,14 +44,18 @@ const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
 
 Deno.serve(async (req) => {
+  const supabase = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+  );
+  let runId: string | null = null; // B-1: Cron-Lauf-Protokoll (nur Voll-Läufe, kein einzelner contactId)
   try {
     const { organizationId, contactId } = await req.json().catch(() => ({}));
     if (!organizationId) return json({ error: "organizationId required" }, 400);
-
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-    );
+    if (!contactId) {
+      const { data } = await supabase.rpc("cron_run_start", { p_job: "score-heat-status-daily" });
+      runId = data as string | null;
+    }
 
     // 2. Heat-Schwellen aus settings (eine Zeile pro Org), frisch.
     const { data: settings, error: sErr } = await supabase
@@ -95,8 +99,10 @@ Deno.serve(async (req) => {
       updated++;
     }
 
+    if (runId) await supabase.rpc("cron_run_finish", { p_run_id: runId, p_status: "success", p_items: updated });
     return json({ updated, skipped, org_id: organizationId });
   } catch (e) {
+    if (runId) await supabase.rpc("cron_run_finish", { p_run_id: runId, p_status: "failed", p_error: String(e) });
     // Supabase-Fehler sind oft Plain-Objects (PostgrestError) → nicht Error-Instanz. Voll serialisieren.
     const msg = e instanceof Error ? e.message
       : (e && typeof e === "object" ? JSON.stringify(e) : String(e));

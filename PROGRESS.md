@@ -521,7 +521,18 @@
     später auch über den AI Chat änderbar sein, nicht nur über die Settings-UI — passt zum
     Konfigurierbarkeits-Prinzip [D51]. Umsetzung mit dem AI-Chat-Slice, kein Mehraufwand jetzt.
 
-**5.** [ ] **[BAU] Betrieb Slice B-1 MINIMAL** (`docs/betrieb_ueberwachung_bauplan_v1.md`)
+**5.** [~] **[BAU] Betrieb Slice B-1 MINIMAL** (`docs/betrieb_ueberwachung_bauplan_v1.md`)
+  - **GEBAUT 19.07.2026, wartet auf db push + Edge-Deploy + Freigabe.** Branch `feature/ops-monitoring-b1`.
+    Migr. **068** (`cron_runs`/`system_alerts`/`cron_expectations` global + RLS + Indizes + Klartext-Seeds) ·
+    **069** (`cron_run_start`/`cron_run_finish`-Wrapper · Retention-Cron · 063/067 umgestellt · `run_watchdog`
+    gebündelt + Watchdog-Cron 15 Min). 4 Edge-Crons (035/037/049/051) schreiben cron_runs in ihren Functions.
+    `alertTemplates.ts` (+Test). `/health`-Stub. audit `GLOBAL_TABLES` += 3 Tabellen. Gates 0 FAIL, test-runner
+    + auditor. **⚠ Edge-Deploy nötig** (`supabase functions deploy score-*`) damit die 4 Edge-Crons cron_runs
+    schreiben — separate Aktion neben db push.
+  - **Bewusst Folge-Slices/Haken:** B9 (aiCall-Fehlererfassung + KI-Smoke-Test) → mit erstem `aiCall`/`lib/ai.ts` ·
+    System-Mail-Kanal (Critical-Mails) → B-2 (jetzt In-App-only, dokumentierter Preis: Nacht-Ausfälle erst beim
+    App-Öffnen sichtbar) · Sentry/`lib/monitoring.ts` → B-2 (ErrorBoundary-Anker steht) · Status-Seite + Mini-
+    Indikator → B-4 (B-1 bleibt backend-only).
 
 **6.** [ ] **[BAU+DESIGN] Settings SET-1 bis SET-4** (`docs/settings_bauplan_v1.md`;
   **SET-2 wartet auf Olivers vorhandenes Design** — Abgleich nach dessen Abschnitt 6)
