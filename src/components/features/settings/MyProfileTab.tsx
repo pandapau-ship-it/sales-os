@@ -88,7 +88,7 @@ export default function MyProfileTab() {
             </div>
             <div>
               <FieldLabel>{t("personal.profile.role")}</FieldLabel>
-              <span className="inline-flex items-center px-2.5 py-1.5 rounded-[7px] bg-app-bg text-text-body typo-chip border border-border">
+              <span className="inline-flex items-center px-2.5 py-1.5 rounded-[7px] bg-app-bg text-text-body typo-chip">
                 {roleLabel}
               </span>
             </div>
