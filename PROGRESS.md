@@ -508,6 +508,9 @@
     ohne Org-Guard/`REVOKE` (bewusst wie `consume_credits` — in N-S1 nur server-seitig SQL-Cron/Edge genutzt).
     **Bevor** sie als **Frontend-RPC** exponiert werden (N-S2), org-scopen (auth_org_id-Prüfung im
     authenticated-Pfad, service_role/Cron ausgenommen) + `REVOKE EXECUTE FROM anon/authenticated`.
+  - **[D-notify-ai-chat-config]:** Die Benachrichtigungs-Einstellungen (`settings.notifications`) sollen
+    später auch über den AI Chat änderbar sein, nicht nur über die Settings-UI — passt zum
+    Konfigurierbarkeits-Prinzip [D51]. Umsetzung mit dem AI-Chat-Slice, kein Mehraufwand jetzt.
 
 **5.** [ ] **[BAU] Betrieb Slice B-1 MINIMAL** (`docs/betrieb_ueberwachung_bauplan_v1.md`)
 
