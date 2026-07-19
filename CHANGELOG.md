@@ -14,6 +14,8 @@
   (reine RLS-Queries, kein `notify()`). `realtime.ts` `subscribeToNotifications` echt verdrahtet
   (user-gefilterter postgres_changes-Channel). Registry `screen_notifications`, i18n, +7 Tests. Keine
   Migration. Inline-Source-Buttons/Settings-Matrix/Popup/Feed bleiben Folge-Slices (N-S3/N-S4).
+- **feat:** N-S2 Polish (ruhe-konform, reduced-motion-aware): dezenter Badge-Ring-Puls nur bei Zuwachs ·
+  sanftes Ausblenden beim Als-gelesen · Cmd+K-Eintrag „Mitteilungen" · ruhige Gruppen-Count-Chips.
 
 - **feat:** Mitteilungs-Fundament N-S1 (Migrationen 065-067). Tabellen `notifications`
   (user-gerichtet) + `activity_events` (Ambient-Feed) + `settings.notifications` (Matrix, additiv).

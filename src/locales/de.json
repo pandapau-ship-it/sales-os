@@ -29,7 +29,8 @@
     "inbox": "Posteingang",
     "companies": "Companies",
     "settings": "Einstellungen",
-    "profil": "Profil"
+    "profil": "Profil",
+    "notifications": "Mitteilungen"
   },
   "settings": {
     "systemConfigTitle": "Sales OS Systemkonfiguration",

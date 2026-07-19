@@ -47,6 +47,19 @@ export default function TopBar({ onOpenCommandPalette }: TopBarProps) {
   });
   const unread = unreadQuery.data ?? 0;
 
+  // Dezenter Badge-Puls NUR bei Zuwachs (neue Mitteilung), einmalig (N-S2 Polish 1, Ruhe-Prinzip).
+  const prevUnread = useRef(unread);
+  const [pulse, setPulse] = useState(false);
+  useEffect(() => {
+    if (unread > prevUnread.current) {
+      setPulse(true);
+      const id = setTimeout(() => setPulse(false), 700);
+      prevUnread.current = unread;
+      return () => clearTimeout(id);
+    }
+    prevUnread.current = unread;
+  }, [unread]);
+
   useEffect(() => {
     if (!user?.id) return;
     return subscribeToNotifications(user.id, () => {
@@ -177,7 +190,7 @@ export default function TopBar({ onOpenCommandPalette }: TopBarProps) {
           <Bell className="w-4 h-4" />
           {unread > 0 && (
             <span
-              className="absolute -top-1 -right-1 min-w-[16px] h-[16px] px-1 rounded-full bg-[var(--signal-urgent-text)] text-on-accent text-[9px] font-bold flex items-center justify-center tabular-nums"
+              className={`absolute -top-1 -right-1 min-w-[16px] h-[16px] px-1 rounded-full bg-[var(--signal-urgent-text)] text-on-accent text-[9px] font-bold flex items-center justify-center tabular-nums ${pulse ? "badge-pulse" : ""}`}
               aria-label={t("notifications.unreadCount", { count: unread })}
             >
               {unread > 9 ? "9+" : unread}

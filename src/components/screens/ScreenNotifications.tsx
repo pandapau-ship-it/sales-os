@@ -82,12 +82,22 @@ export default function ScreenNotifications() {
     onSuccess: invalidate,
   });
 
+  const [exiting, setExiting] = useState<Set<string>>(new Set());
   const items = listQuery.data ?? [];
   const groups = groupByNotificationGroup(items);
 
   function openItem(n: NotificationRow) {
-    if (!n.read_at) markRead.mutate(n.id); // N13: Klick = gelesen
-    if (n.link) navigate(n.link);
+    // Mit Link → sofort gelesen + navigieren (Seite wechselt, keine Fade-Animation nötig).
+    if (n.link) {
+      if (!n.read_at) markRead.mutate(n.id);
+      navigate(n.link);
+      return;
+    }
+    // Ohne Link → sanftes Ausblenden, dann gelesen markieren (N13 + Polish 2, reduced-motion-aware via CSS).
+    if (!n.read_at) {
+      setExiting((s) => new Set(s).add(n.id));
+      window.setTimeout(() => markRead.mutate(n.id), 200);
+    }
   }
 
   return (
@@ -133,12 +143,13 @@ export default function ScreenNotifications() {
         <div className="space-y-6">
           {groups.map((g) => (
             <section key={g.group}>
-              <div className="typo-section-label text-text-muted mb-2">
+              <div className="typo-section-label text-text-muted mb-2 flex items-center gap-1.5">
                 {t(`notifications.groups.${g.group as NotificationGroup}`)}
+                <span className="font-semibold tabular-nums opacity-70">· {g.items.length}</span>
               </div>
               <div className="space-y-1.5">
                 {g.items.map((n) => (
-                  <NotificationRowItem key={n.id} n={n} t={t} onOpen={openItem} />
+                  <NotificationRowItem key={n.id} n={n} t={t} onOpen={openItem} exiting={exiting.has(n.id)} />
                 ))}
               </div>
             </section>
@@ -160,19 +171,22 @@ function NotificationRowItem({
   t,
   onOpen,
   read,
+  exiting,
 }: {
   n: NotificationRow;
   t: (k: string, o?: Record<string, unknown>) => string;
   onOpen: (n: NotificationRow) => void;
   read?: boolean;
+  exiting?: boolean;
 }) {
   return (
     <button
       type="button"
       onClick={() => onOpen(n)}
       className={cn(
-        "w-full text-left flex items-start gap-3 px-4 py-3 rounded-[10px] border border-[var(--border-card)] bg-app-surface hover:bg-app-bg transition-colors cursor-pointer",
+        "w-full text-left flex items-start gap-3 px-4 py-3 rounded-[10px] border border-[var(--border-card)] bg-app-surface hover:bg-app-bg transition-all duration-200 motion-reduce:transition-none cursor-pointer",
         read && "opacity-70",
+        exiting && "opacity-0 -translate-x-2 pointer-events-none", // Polish 2: sanftes Ausblenden beim Als-gelesen
       )}
     >
       <span

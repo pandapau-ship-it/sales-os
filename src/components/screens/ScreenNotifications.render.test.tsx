@@ -73,6 +73,8 @@ describe("ScreenNotifications — Live-DOM", () => {
     await waitFor(() => expect(screen.getByText("Freigabe angefragt")).toBeTruthy());
     // Gruppen-Label der richtigen Gruppe.
     expect(screen.getByText("notifications.groups.braucht_dich")).toBeTruthy();
+    // Polish 4: ruhiger Gruppen-Count-Chip.
+    expect(screen.getByText("· 1")).toBeTruthy();
   });
 
   it("Klick auf Zeile → markiert gelesen + navigiert zum link", async () => {
