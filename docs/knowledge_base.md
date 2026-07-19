@@ -486,3 +486,12 @@
 - **value:** Doppelte Einträge sind der Reputations-Killer im Vertrieb — sie führen zu peinlichem Doppel-Kontakt und falschen Zahlen. Dieser Bildschirm räumt sie in Minuten auf, ohne dass ein einziger Touchpoint, Deal oder eine Aufgabe verloren geht, und bei jedem Zweifelsfall entscheidet der Mensch pro Feld.
 - **module:** core_crm
 - *(K-6b UI, Merge-Backend K-6a, 2026-07-18. „Kein Duplikat" merkt sich der Screen aktuell nur bis zum Neuladen — dauerhafte Merkung folgt als Folge-Slice.)*
+
+---
+
+- **feature:** Rechte-Fundament (Rollen & Berechtigungen) — *intern (module: core, für Kunden unsichtbar)*
+- **what:** Serverseitiger Wächter, der bei jedem schreibenden Vorgang prüft, ob der handelnde Nutzer das nötige Recht hat. Rechte ergeben sich aus der Rolle (Owner/Admin/Member/Viewer) plus optionalen Einzel-Zuweisungen (grant/deny, deny schlägt grant). Umgesetzt als Postgres-Funktionen (`has_permission`, `grant_permission`/`revoke_permission`, `set_user_role`, `soft_delete_contacts`/`_companies`) mit `auth.uid()` als nicht-fälschbarem Actor und strikter Org-Isolation. Katalog (`permission_catalog`) und Rollen-Matrix (`role_permissions`) liegen als globale Daten-Tabellen; die UI spiegelt sie (`src/lib/permissions.ts`) nur zum Ausblenden — die echte Durchsetzung ist immer serverseitig. Enthält: Cross-Org-Schutz, Admin-Hierarchie (Admin vergibt keine Billing-Rechte, nicht an Owner/Admins), Letzter-Owner-Schutz, Löschen nur mit `records.delete`.
+- **how:** (intern) Guard-Funktionen in Migr. 070/071; UI prüft über `useEffectivePermissions().has(...)`.
+- **value:** *(intern — nicht an Kunden ausgespielt)* Fundament für sichere Mehrbenutzer-Nutzung: kein Nutzer kann mehr Aktionen auslösen, als seine Rolle/Rechte erlauben, auch nicht durch direkte API-Zugriffe.
+- **module:** core
+- *(Settings SET-1, 2026-07-19. Einzelrechte-/Papierkorb-UI folgt SET-3, AI-Chat-Tool-Bindung später.)*

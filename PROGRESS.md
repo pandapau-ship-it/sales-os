@@ -534,8 +534,39 @@
     App-Öffnen sichtbar) · Sentry/`lib/monitoring.ts` → B-2 (ErrorBoundary-Anker steht) · Status-Seite + Mini-
     Indikator → B-4 (B-1 bleibt backend-only).
 
-**6.** [ ] **[BAU+DESIGN] Settings SET-1 bis SET-4** (`docs/settings_bauplan_v1.md`;
+**6.** [~] **[BAU+DESIGN] Settings SET-1 bis SET-4** (`docs/settings_bauplan_v1.md`;
   **SET-2 wartet auf Olivers vorhandenes Design** — Abgleich nach dessen Abschnitt 6)
+  - **SET-1 Rechte-Fundament GEBAUT + DB-GEPUSHT + LIVE-VERIFIZIERT 19.07.2026 (Migr. 070/071), wartet auf Merge-Freigabe.**
+    Live-Akzeptanz gegen Remote (11/11 PASS, self-abortierender DO-Block, kein Testdaten-Rest): member ohne Recht→false /
+    grant→sofort true / member-Löschen ohne Recht verweigert / mit Recht ok / Cross-Org-grant verweigert / Letzter-Owner
+    geschützt / audit_log-Eintrag / **ohne Session löschen+merge → „nicht authentifiziert"** / Katalog=3 / member-Matrix=0.
+    Serverseitiger Wächter als Postgres-Funktionen (`has_permission` deny>grant>Rolle · `grant`/`revoke_permission`
+    Cross-Org+Admin-Hierarchie · `set_user_role` Owner-only+Letzter-Owner-Schutz · `soft_delete_contacts`/
+    `_companies`/`_deals` erzwingen `records.delete` → **[D-delete-rights] Teil 1 geschlossen** · Merge über
+    `assert_permission('records.merge')`). Global `permission_catalog` + `role_permissions` (datengetriebene
+    Matrix), `user_permissions` gehärtet (`effect` grant|deny, UNIQUE, Audit). TS-Spiegel `lib/permissions.ts`,
+    Hook `useEffectivePermissions` (fail-safe), UI-Gate `RequiresPermission`/`usePermission`, CLAUDE-Dauerregel
+    „Rechte-Check-Pflicht". Verstreute Rollen-Checks abgelöst (`TeamSettings`/`MfaBanner`/`updateUserRole`).
+    **Katalog-Umfang v1 (Teil-D-Scan, Option 3): NUR heute-existierend** — `team.invite` · `records.delete` ·
+    `records.merge`. **NICHT jetzt:** Einzelrechte-/Papierkorb-UI (SET-3), Nav-Rollen-Ausblendung (SET-2),
+    AI-Chat-Tool-Bindung, Viewer-Read-only-Enforcement.
+
+  - **▶ RECHTE-KATALOG — ZUKUNFTS-REGISTRY (Teil-D-Scan 19.07.2026).** Diese Rechte existieren HEUTE noch
+    nicht im Katalog und werden **MIT ihrem Modul** hinzugefügt (`permission_catalog` 070 + `role_permissions`
+    + TS-Spiegel + `<RequiresPermission>` + Server-Guard — die 3 Fragen der Dauerregel). **Beim jeweiligen
+    Modul-Bau abhaken:**
+    - [ ] `rules.edit` — Automation-Rules / Schwellen / Duplicate-Detection-Regeln (Settings/AI-SDR)
+    - [ ] `campaigns.manage` · `templates.manage` — AI SDR
+    - [ ] `pipeline.manage` — Pipeline-Stages-Config-UI (Settings SET-2+)
+    - [ ] `integrations.manage` — Integrationen + Webhook-Config (Endphase)
+    - [ ] `billing.manage` · `billing.approve_credits` — Billing-UI (Launch; `billing.`-Filter in Matrix schon vorbereitet)
+    - [ ] `trash.purge` — Papierkorb (SET-3)
+    - [ ] `export.all` — Gesamt-Daten-Export (noch nicht gebaut)
+    - [ ] `audit.view` — Audit-Log-Screen + Import-Verlauf (Settings)
+    - [ ] `settings.manage` · `branding.manage` — Workspace-Settings/Produkte&Pricing/Branding (SET-2+)
+    - [ ] `lists.share` — Team-Listen teilen / Listen-Rechte (Settings)
+    - [ ] **Viewer-Read-only-Enforcement** — Basis-CRUD (Kontakte/Companies/Tasks/Listen anlegen/bearbeiten,
+      Opt-out) ist heute nirgends rollen-gated; Viewer-Sperre kommt mit dem Viewer-Modus (RLS/Guard).
   - **AI-Studio-Design-Abgleich (19.07.2026) → Bauplan Abschnitt 8** (Seiten→Slice-Timing ·
     Nav-komplett-in-SET-2 · Won/Lost-Invariante · Regel-A-Diagnose 8.T). Drei neue Entscheidungen:
     - **[SET-KB-1]** neue Gruppe **„Mein Unternehmen"** (final 19.07.2026; Untertitel „Was die AI über
@@ -659,9 +690,10 @@ für JEDEN UI-Slice**, auch wenn ein Design existiert.
 > Hunter, Farmer öffnen weiter das 820px-Schnellpanel (Deeplinks laufen ausschließlich über ScreenHunting/
 > ScreenFarming-Panels, vom Kontakte-Pfeil unberührt).
 >
-> **[D-delete-rights] — bewusst NOCH OHNE (temporäre Lücke, JETZT dokumentiert):**
-> (1) **Keine Rollenprüfung** — jeder eingeloggte User kann löschen. Wird mit **Settings SET-1/SET-3**
-> (Rechte-Fundament) geschlossen. (2) **Kein Papierkorb-UI** — gelöschte Objekte sind unsichtbar, bleiben
+> **[D-delete-rights] — Teil (1) GESCHLOSSEN 19.07.2026 mit Settings SET-1:**
+> (1) ~~Keine Rollenprüfung~~ → **erledigt:** `soft_delete_contacts`/`soft_delete_companies` (Migr. 071)
+> erzwingen serverseitig `has_permission(actor, 'records.delete')` + Org-Scope; `records.delete` liegt bei
+> owner/admin (Rollen-Matrix 070), member/viewer NICHT. (2) **Kein Papierkorb-UI** — gelöschte Objekte sind unsichtbar, bleiben
 > aber in der DB (kein Datenverlust); Wiederherstellen-/Papierkorb-Ansicht kommt mit **SET-3**.
 > (3) **Firma löschen = KEINE Kaskade** (Punkt 5 bestätigt): verknüpfte Kontakte bleiben, verlieren nur
 > `company_id`/`primary_company_id` — analog „Company ohne Kontakte bleibt erhalten". Deals unangetastet.

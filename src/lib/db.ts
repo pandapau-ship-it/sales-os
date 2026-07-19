@@ -393,15 +393,12 @@ export async function createCompany(
 export async function softDeleteContacts(
   organizationId: string,
   ids: string[],
-  deletedBy?: string | null,
+  _deletedBy?: string | null, // Actor = auth.uid() serverseitig (SET-1), Param nur noch API-kompatibel
 ): Promise<void> {
   const client = getSupabaseClient();
   if (!client || ids.length === 0) return;
-  const { error } = await client
-    .from("contacts")
-    .update({ deleted_at: new Date().toISOString(), deleted_by: deletedBy ?? null })
-    .eq("organization_id", organizationId)
-    .in("id", ids);
+  // SET-1: server-erzwungen über RPC (has_permission('records.delete') + Org-Scope), nicht mehr direkter Update.
+  const { error } = await client.rpc("soft_delete_contacts", { p_org: organizationId, p_ids: ids });
   if (error) throw error;
 }
 
@@ -413,21 +410,12 @@ export async function softDeleteContacts(
 export async function softDeleteCompanies(
   organizationId: string,
   ids: string[],
-  deletedBy?: string | null,
+  _deletedBy?: string | null, // Actor = auth.uid() serverseitig (SET-1)
 ): Promise<void> {
   const client = getSupabaseClient();
   if (!client || ids.length === 0) return;
-  // 1) Kontakte entkoppeln (nicht mitlöschen).
-  const { error: e1 } = await client.from("contacts").update({ company_id: null }).eq("organization_id", organizationId).in("company_id", ids);
-  if (e1) throw e1;
-  const { error: e2 } = await client.from("contacts").update({ primary_company_id: null }).eq("organization_id", organizationId).in("primary_company_id", ids);
-  if (e2) throw e2;
-  // 2) Companies soft-löschen.
-  const { error } = await client
-    .from("companies")
-    .update({ deleted_at: new Date().toISOString(), deleted_by: deletedBy ?? null })
-    .eq("organization_id", organizationId)
-    .in("id", ids);
+  // SET-1: RPC entkoppelt Kontakte + soft-löscht Companies (has_permission('records.delete') + Org-Scope).
+  const { error } = await client.rpc("soft_delete_companies", { p_org: organizationId, p_ids: ids });
   if (error) throw error;
 }
 
@@ -1293,19 +1281,42 @@ export async function deleteInvitation(
   if (error) throw error;
 }
 
-/** updateUserRole — Rolle eines Mitglieds ändern (nur Owner, RLS/Rechte serverseitig), org-gescoped. */
+/** updateUserRole — Rolle eines Mitglieds ändern. SET-1: server-erzwungen via set_user_role-RPC
+ * (nur Owner, Cross-Org-Schutz, Letzter-Owner-Schutz) — nicht mehr direkter Update. */
 export async function updateUserRole(
   userId: string,
-  organizationId: string,
+  _organizationId: string, // Org-Scope serverseitig (Actor-Org == Ziel-Org)
   role: string,
 ): Promise<void> {
   const client = getSupabaseClient();
   if (!client) return;
-  const { error } = await client
-    .from("users")
-    .update({ role })
-    .eq("id", userId)
-    .eq("organization_id", organizationId);
+  const { error } = await client.rpc("set_user_role", { p_target: userId, p_role: role });
+  if (error) throw error;
+}
+
+// ── Rechte (SET-1) — RPC-Wrapper (Guard serverseitig) ────────────────────────
+/** Effektive Rechte eines Users (Rollen ∪ grants − denies) — fürs UI-Caching (useEffectivePermissions). */
+export async function getEffectivePermissions(userId: string): Promise<string[]> {
+  const client = getSupabaseClient();
+  if (!client || !userId) return [];
+  const { data, error } = await client.rpc("effective_permissions", { p_user: userId });
+  if (error) throw error;
+  return (data as string[] | null) ?? [];
+}
+
+/** Einzelrecht zuweisen/entziehen (Actor = auth.uid()); effect 'grant' (Default) oder 'deny' (subtraktiv). */
+export async function grantPermission(target: string, permission: string, effect: "grant" | "deny" = "grant"): Promise<void> {
+  const client = getSupabaseClient();
+  if (!client) return;
+  const { error } = await client.rpc("grant_permission", { p_target: target, p_permission: permission, p_effect: effect });
+  if (error) throw error;
+}
+
+/** Individuelles Einzelrecht wieder entfernen (zurück auf Rollen-Default). */
+export async function revokePermission(target: string, permission: string): Promise<void> {
+  const client = getSupabaseClient();
+  if (!client) return;
+  const { error } = await client.rpc("revoke_permission", { p_target: target, p_permission: permission });
   if (error) throw error;
 }
 
@@ -1386,11 +1397,9 @@ export async function softDeleteDeal(
 ): Promise<void> {
   const client = getSupabaseClient();
   if (!client) return;
-  const { error } = await client
-    .from("deals")
-    .update({ deleted_at: new Date().toISOString() })
-    .eq("id", dealId)
-    .eq("organization_id", organizationId);
+  // SET-1: server-erzwungen über RPC (has_permission('records.delete') + Org-Scope) — records.delete
+  // deckt laut Katalog „Kontakte/Companies/Deals löschen" ab.
+  const { error } = await client.rpc("soft_delete_deals", { p_org: organizationId, p_ids: [dealId] });
   if (error) throw error;
 }
 
@@ -1868,6 +1877,9 @@ export async function mergeContacts(
 ): Promise<{ winnerId: string } | null> {
   const client = getSupabaseClient();
   if (!client || winnerId === loserId) return null;
+  // SET-1: Vorab-Gate — Merge (mehrstufige Orchestrierung) erfordert serverseitig records.merge.
+  const { error: permErr } = await client.rpc("assert_permission", { p_permission: "records.merge" });
+  if (permErr) throw permErr;
   const { data: recs, error: loadErr } = await client
     .from("contacts").select("*").eq("organization_id", organizationId).in("id", [winnerId, loserId]).is("deleted_at", null);
   if (loadErr) throw loadErr;
@@ -1903,6 +1915,9 @@ export async function mergeCompanies(
 ): Promise<{ winnerId: string } | null> {
   const client = getSupabaseClient();
   if (!client || winnerId === loserId) return null;
+  // SET-1: Vorab-Gate — Merge erfordert serverseitig records.merge.
+  const { error: permErr } = await client.rpc("assert_permission", { p_permission: "records.merge" });
+  if (permErr) throw permErr;
   const { data: recs, error: loadErr } = await client
     .from("companies").select("*").eq("organization_id", organizationId).in("id", [winnerId, loserId]).is("deleted_at", null);
   if (loadErr) throw loadErr;

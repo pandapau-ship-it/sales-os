@@ -102,6 +102,22 @@ CREATE TABLE knowledge_base (
 );
 ALTER TABLE knowledge_base ENABLE ROW LEVEL SECURITY;
 
+### GLOBALE REGEL — Rechte-Check-Pflicht (dauerhaft, analog zur Cron-Wrapper-Pflicht)
+
+> Jedes künftige Feature, das eine Aktion mit **Rechte-Relevanz** einführt (Sichtbarkeit,
+> Ändern, Löschen, Freigeben von etwas), MUSS bei seinem Bau explizit prüfen:
+> 1. **Gehört dazu ein neues Recht in den Katalog?** → `permission_catalog` (Migr. 070) +
+>    Rollen-Matrix `role_permissions` + TS-Spiegel `src/lib/permissions.ts` (gemeinsam pflegen).
+> 2. **Ist das UI-Element mit `<RequiresPermission permission="…">` (oder `usePermission`) geschützt?**
+>    (`src/components/shared/RequiresPermission.tsx` — eine Zeile, zentraler Guard.)
+> 3. **Ist die SERVERSEITIGE Prüfung vorhanden** (`has_permission(auth.uid(), …)` in einer RPC/Edge-Function),
+>    **nicht nur die UI-Ausblendung?** UI-Ausblenden ≠ Sicherheit.
+>
+> Diese Prüfung ist ab sofort **fester Bestandteil JEDES Slice-Baus, unabhängig vom Modul** —
+> **kein Merge ohne diese Prüfung** (Prüffrage 6 „vor jedem Commit"; von test-runner/auditor mitgeführt).
+> Neue Rechte für **künftige Module** (AI SDR, Billing-UI, …) entstehen mit dem jeweiligen Modul —
+> der Katalog wächst mit, wird nie auf Vorrat gefüllt.
+
 ### AUF ANFRAGE (nicht automatisch)
 → scripts/audit.ts ausführen wenn Oliver explizit prüfen möchte
 → CHECKLIST.md vollständig durchgehen
@@ -113,7 +129,9 @@ ALTER TABLE knowledge_base ENABLE ROW LEVEL SECURITY;
   · `BrandIcons` · `CommunicationChain` · `CustomerDrawer` · `Badge` · `TooltipLayer` · `DataTableCard`
   · `ColumnConfigPopover` (geteilte Tabellen-Mechanik, K-3 Phase C — von Kontakte + Companies genutzt)
   · `TableSearch` · `Stepper` (geteilter Wizard-Fortschritt mit Mikro-Animation, K-5 — für künftige Wizard-Flows)
-  · `ErrorBoundary` (EINE globale Top-Level-Fehler-Boundary, N-S2 — Fallback-UI statt weißer Seite).
+  · `ErrorBoundary` (EINE globale Top-Level-Fehler-Boundary, N-S2 — Fallback-UI statt weißer Seite)
+  · `RequiresPermission` (zentraler Rechte-Gate-Wrapper + `usePermission`-Hook, SET-1 — blendet
+  rechte-relevante UI mit EINER Zeile aus; Server erzwingt zusätzlich).
   Alles andere → `panel-blocks/`
   bzw. `features/[modul]/`. Neue erlaubte shared-Datei → Allowlist im Script ergänzen.
 → Punkt **3** der **„GATES VOR JEDEM MERGE"** (Session Protocol — dort die vollständige Liste).
@@ -135,6 +153,10 @@ Wenn neue Abschnitte in CLAUDE.md hinzukommen:
    → Kein autonomer DB-Write ohne audit_log. Keine Ausnahme.
 5. Gibt es einen neuen konfigurierbaren Wert (Schwellenwert, Limit, Text, Flag)?
    → Erst in system_config anlegen, dann im Code referenzieren. Nie hardcodieren. Nie umgekehrt.
+6. Führt das Feature eine rechte-relevante Aktion ein (Sichtbarkeit/Ändern/Löschen/Freigeben)?
+   → **GLOBALE REGEL — Rechte-Check-Pflicht** (siehe Selbst-Wartung). (1) Neues Recht in den Katalog
+   (`permission_catalog` 070 + `src/lib/permissions.ts`)? (2) UI mit `<RequiresPermission>`/`usePermission`
+   geschützt? (3) **Serverseitige** Prüfung (`has_permission` in RPC/Edge), nicht nur UI-Ausblendung?
 
 ### PRE-PUSH CHECKLISTE — DB-Features (Pflicht vor jedem git push)
 
@@ -5289,21 +5311,39 @@ Jede Edge Function prüft zuerst: hat dieser User das Recht für diese Aktion?
 | Reports ansehen | ✅ | ✅ | ✅ | ✅ |
 | Audit Log ansehen | ✅ | ✅ | ❌ | ❌ |
 
-**Individuelle Rechte-Überschreibung (nur Owner):** Owner kann pro Mitglied einzelne
-Rechte **additiv** ergänzen (z.B. Member X darf zusätzlich Automation Rules ändern).
-Basisrechte aus der Rolle, Überschreibungen addieren sich **on top** — **nie subtraktiv**
-(können nur erweitern, nie einschränken).
+**Individuelle Rechte-Überschreibung (Owner + Admin, Admin eingeschränkt):** Owner (und Admin
+für Nicht-Billing-Rechte, nicht an Owner/Admins) kann pro Mitglied einzelne Rechte ergänzen
+(z.B. Member X darf zusätzlich Automation Rules ändern).
+
+> **AKTUALISIERT 19.07.2026 (Settings SET-1, autorisierte Entscheidung) — ersetzt „nie subtraktiv":**
+> `user_permissions` trägt eine **`effect`-Spalte (`grant` | `deny`)**. Der Guard rechnet
+> **`deny` > `grant` > Rolle** (`has_permission`, Migr. 071). **v1 nutzt ausschließlich `grant`
+> (rein additiv, wie ursprünglich)** — die `deny`-Fähigkeit (einer Rolle ein Recht individuell
+> *entziehen*) ist bewusst im Schema/Guard angelegt, damit die spätere Subtraktion **ohne
+> Migration/Guard-Umbau** möglich ist. Die alte Zusage „Überschreibungen nie subtraktiv" gilt nur
+> noch als **v1-Betriebsregel** (in v1 werden keine `deny`-Einträge gesetzt), nicht mehr als
+> Architektur-Grenze. Single Source: DB-Seed `role_permissions`/`permission_catalog` (070) ↔
+> TS-Spiegel `src/lib/permissions.ts` — gemeinsam pflegen.
 
 ```sql
+-- Ausgangsschema Migr. 007, gehärtet in Migr. 070 (SET-1):
 user_permissions (
   id              uuid PK,
   organization_id uuid FK,
   user_id         uuid FK → users,
-  permission      text,           -- z.B. 'automation_rules.edit'
-  granted_by      uuid FK → users, -- muss owner sein
-  created_at      timestamptz
+  permission      text,           -- muss in permission_catalog existieren
+  effect          text NOT NULL DEFAULT 'grant',  -- 'grant' | 'deny' (v1: nur grant)
+  granted_by      uuid FK → users, -- Actor (owner/admin), auth.uid()
+  created_at      timestamptz,
+  UNIQUE (user_id, permission)     -- ein Eintrag je (user, permission): grant ODER deny
 )
 ```
+
+> **Katalog-Umfang (Stand SET-1, 19.07.2026):** Die Matrix oben ist der **Ziel-Endzustand**. Der
+> **`permission_catalog` v1 enthält NUR die heute gebauten Rechte** — `team.invite` · `records.delete` ·
+> `records.merge`. Alle übrigen Rechte (rules.edit, campaigns.manage, pipeline.manage, billing.*, export.all,
+> trash.purge, audit.view, settings.manage, branding.manage, lists.share …) werden **MIT ihrem Modul**
+> ergänzt (Dauerregel „Rechte-Check-Pflicht"). Zukunfts-Registry: PROGRESS.md.
 
 ### Was nur Admin/Owner sieht — in Settings (nicht in der Haupt-Navigation)
 - Company-Verwaltung (alle Companies, Duplikate zusammenführen)

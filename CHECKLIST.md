@@ -194,7 +194,7 @@
 - [ ] `mailboxes` — warmup_phase, current_daily_limit, bounce_rate, spam_rate, status
 - [ ] `blacklisted_domains` — disposable/spam/catch-all/manual (Email-Verifizierung Ebene A)
 - [ ] `churn_rules` + `upsell_rules` (v2 — jetzt anlegen, Feature später, additiv zu Basis-Signalen)
-- [ ] `user_permissions` — individuelle additive Rechte-Überschreibung (nur Owner vergibt)
+- [x] `permission_catalog` + `role_permissions` (SET-1, Migr. 070 — globale datengetriebene Matrix) · `user_permissions` gehärtet (`effect` grant|deny, UNIQUE, Audit-Trigger) — *2026-07-19*
 - [ ] `daily_briefings` — Mein Tag Top 5 (priorities jsonb, generated_at, user_id)
 - [ ] `custom_dashboards` (v2/v3 — jetzt anlegen, Widget-Layout jsonb)
 - [ ] `chat_sessions` + `chat_messages` (content jsonb = Block-Array, langfuse_trace_id) — *AI Chat*
@@ -399,8 +399,13 @@
 - [ ] Permission-Check vor jedem Write — *RLS + Edge Function prüfen `role`*
 - [ ] Opt-out: stoppt alle Sequences sofort, irreversibel, von niemandem überschreibbar — *höchste Priorität*
 - [ ] Audit Log nur für Admin/Owner einsehbar (Settings)
-- [ ] Vollständige Rechte-Matrix (owner/admin/member/viewer) durchsetzen — *RLS + Edge Function pro Aktion*
-- [ ] `user_permissions`: additive Überschreibung (nur Owner vergibt, nie subtraktiv)
+- [~] Vollständige Rechte-Matrix (owner/admin/member/viewer) durchsetzen — **SET-1 Fundament (Migr. 070/071):**
+  `has_permission` (deny>grant>Rolle) als serverseitiger Guard in `soft_delete_*`/`set_user_role`; UI-Gating via
+  `useEffectivePermissions`. **Offen:** flächendeckende Guard-Nutzung in allen künftigen Write-Pfaden — *2026-07-19*
+- [~] `user_permissions`: Einzelrecht-Überschreibung — **Backend fertig** (`grant_permission`/`revoke_permission`,
+  `effect` grant|deny). **Offen (SET-3):** Einzelrechte-UI. — *2026-07-19*
+- [x] **[D-delete-rights] Teil 1 (Löschen server-erzwungen)** — `soft_delete_contacts`/`_companies` prüfen
+  `records.delete` + Org-Scope (Migr. 071). Offen: Papierkorb-UI (SET-3). — *2026-07-19*
 - [ ] DSGVO-Löschung: Opt-out → Suppression 90T → anonymisieren · Account-Kündigung 30T → komplett löschen · Export vor Löschung
 - [ ] Fehler-Eskalation: AI 3× fail / Mailbox gesperrt → Owner+Admin via Email+In-App
 

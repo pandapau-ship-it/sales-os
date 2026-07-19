@@ -6,6 +6,31 @@
 
 ## Unreleased
 
+- **feat:** Settings SET-1 — Rechte-Fundament (echter serverseitiger Wächter, Migr. 070/071).
+  Zwei GLOBALE datengetriebene Katalog-Tabellen `permission_catalog` (**v1: 3 Rechte, nur heute-existierend**
+  — `team.invite`/`records.delete`/`records.merge`; Zukunfts-Rechte kommen mit ihrem Modul, Registry in
+  PROGRESS.md) + `role_permissions` (Rollen-Matrix owner=alles · admin=alles außer `billing.*` · member/viewer=∅) — beide in
+  audit `GLOBAL_TABLES`. `user_permissions` (007) gehärtet: `effect`-Spalte (`grant`|`deny`, v1 nur grant —
+  Tür offen für Subtraktion) + `UNIQUE(user_id, permission)` + Audit-Trigger. **Guard als Postgres-Funktionen**
+  (security definer, `auth.uid()` als nicht-spoofbarer Actor, Org-Scope je Write): `has_permission`
+  (deny > grant > Rolle) · `effective_permissions` (Caching, Org-/Actor-Check → kein Cross-Tenant-Leak) ·
+  `grant_permission`/`revoke_permission` (Actor owner/admin, Cross-Org-Schutz, Admin-Hierarchie: kein
+  `billing.*`, nicht an Owner/Admin) · `set_user_role` (nur Owner, Cross-Org-Schutz, **Letzter-Owner-Schutz**).
+  **[D-delete-rights] geschlossen:** `soft_delete_contacts`/`_companies`/`_deals` server-erzwingen
+  `records.delete` (RPC statt Direkt-Update in `db.ts`).
+  **Projekt-weiter Rechte-Scan (Teil-D-Ergänzung):** heute-existierende Lücken erfasst → **`records.merge`**
+  (Duplikat-Merge `mergeContacts`/`mergeCompanies` war ungeschützt → serverseitiges Vorab-Gate
+  `assert_permission`) + **`soft_delete_deals`** (Deal-Löschen war ungeschützt). Wiederverwendbarer UI-Gate
+  **`RequiresPermission`/`usePermission`** (shared) + **neue CLAUDE.md-Dauerregel „GLOBALE REGEL —
+  Rechte-Check-Pflicht"** (analog Cron-Wrapper: neues Recht? UI-Gate? Server-Prüfung? — kein Merge ohne
+  diese 3 Fragen; als Prüffrage 6 „vor jedem Commit"). Hook `useEffectivePermissions` (Caching,
+  ein Aufruf/Session, **fail-safe Rollen-Fallback** wenn RPC (noch) nicht erreichbar).
+  TS-Spiegel `src/lib/permissions.ts` (Katalog/Matrix/`effectivePermissions`, +Test). Verstreute
+  Rollen-Checks abgelöst: `TeamSettings.canInvite` → `has('team.invite')`, `MfaBanner` → `isElevatedRole`,
+  `updateUserRole` → `set_user_role`-RPC („serverseitig" jetzt wahr). Haken (NICHT jetzt): AI-Chat-Tool-Bindung ·
+  Einzelrechte-/Papierkorb-UI (SET-3) · Nav-Rollen-Ausblendung (SET-2) · Rechte künftiger Module entstehen
+  mit dem Modul (Katalog wächst mit, nie auf Vorrat).
+
 - **feat:** Betrieb & Überwachung B-1 (Minimal, Migr. 068/069). Drei globale Tabellen `cron_runs`
   (Lauf-Telemetrie) · `system_alerts` (Betriebs-Alarme) · `cron_expectations` (Erwartungs-Katalog +
   Klartext-Templates) — alle in audit `GLOBAL_TABLES`. Cron-Wrapper `cron_run_start`/`cron_run_finish`;

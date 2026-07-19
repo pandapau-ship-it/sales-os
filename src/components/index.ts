@@ -77,6 +77,8 @@ export { default as DataTableCard } from './shared/DataTableCard';
 export type { DataTableCardProps } from './shared/DataTableCard';
 export { default as ColumnConfigPopover } from './shared/ColumnConfigPopover';
 export { default as TableSearch } from './shared/TableSearch';
+export { RequiresPermission } from './shared/RequiresPermission';
+export { usePermission } from '@/hooks/usePermissions';
 export * from './shared/ICPDonut';
 export { default as LinkedinIcon } from './shared/LinkedinIcon';
 export * from './shared/Toast';
