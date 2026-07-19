@@ -147,7 +147,20 @@
     "resetSentBody": "Please check your inbox.",
     "backToLogin": "Back to sign in",
     "callback": "Finishing sign-in…",
-    "error": "That didn't work just now — please try again"
+    "error": "That didn't work just now — please try again",
+    "errorCredentials": "Email or password is incorrect",
+    "errorRate": "Too many attempts — please wait a moment and try again",
+    "errorNetwork": "No connection — please check your internet",
+    "errorGeneric": "That didn't work just now — please try again",
+    "resetNewTitle": "Set a new password",
+    "resetNewSubtitle": "Choose a new password for your account",
+    "resetInvalidBody": "This link is invalid or expired. Request a new one.",
+    "resetNewPassword": "New password",
+    "resetNewConfirm": "Confirm password",
+    "resetNewSubmit": "Save password",
+    "resetNewLoading": "Saving…",
+    "resetNewTooShort": "At least 8 characters",
+    "resetNewMismatch": "Passwords do not match"
   },
   "hunter": {
     "title": "Hunter",
@@ -1068,5 +1081,15 @@
       "hoursAgo": "vor {{count}} Std.",
       "daysAgo": "vor {{count}} T."
     }
+  },
+  "auth": {
+    "logout": "Sign out",
+    "myProfile": "My profile",
+    "inviteOnlyTitle": "Access by invitation only",
+    "inviteOnlyBody": "Your account is not linked to an organization yet. Please ask your administrator for an invitation.",
+    "invitePlaceholderTitle": "Invitation",
+    "invitePlaceholderBody": "This page will be provided with the invitation flow.",
+    "unsubPlaceholderTitle": "Unsubscribe",
+    "unsubPlaceholderBody": "This page will be provided with the email layer."
   }
 }

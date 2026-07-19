@@ -495,3 +495,12 @@
 - **value:** *(intern — nicht an Kunden ausgespielt)* Fundament für sichere Mehrbenutzer-Nutzung: kein Nutzer kann mehr Aktionen auslösen, als seine Rolle/Rechte erlauben, auch nicht durch direkte API-Zugriffe.
 - **module:** core
 - *(Settings SET-1, 2026-07-19. Einzelrechte-/Papierkorb-UI folgt SET-3, AI-Chat-Tool-Bindung später.)*
+
+---
+
+- **feature:** Sichere Anmeldung & Zugang (Login-Pflicht)
+- **what:** Der Zugang zu Sales OS ist geschützt: Anmeldung per E-Mail+Passwort oder Google-/Microsoft-Konto, mit „Passwort vergessen"-Ablauf (Link per E-Mail → neues Passwort setzen). Neue Team-Mitglieder kommen **nur per Einladung** ins System — niemand kann sich ungefragt selbst eine Organisation anlegen. Nach dem Login landet man genau dort, wo man hin wollte (auch bei geteilten Links). Abmelden geht jederzeit über das Profil-Menü. Bleibt man 30 Tage angemeldet; die Sitzung wird im Hintergrund sicher erneuert.
+- **how:** Anmelden auf der Login-Seite (E-Mail+Passwort oder SSO); Passwort vergessen → Link → neues Passwort; Team einladen über Einstellungen → Team; abmelden über das Avatar-Menü unten links.
+- **value:** Kundendaten sind nur für eingeladene, angemeldete Personen zugänglich — ein Grundpfeiler für Vertrauen und DSGVO-Konformität. Der einladungsbasierte Zugang verhindert Wildwuchs an Konten, und der reibungslose Login (Deep-Link-Rückkehr, SSO, Angemeldet-bleiben) hält das Team ohne Reibung produktiv.
+- **module:** core
+- *(Login-Pflicht [D21], 2026-07-19. MFA-Zwang für Owner + Einladungs-Mailversand folgen später.)*

@@ -118,6 +118,17 @@ ALTER TABLE knowledge_base ENABLE ROW LEVEL SECURITY;
 > Neue Rechte für **künftige Module** (AI SDR, Billing-UI, …) entstehen mit dem jeweiligen Modul —
 > der Katalog wächst mit, wird nie auf Vorrat gefüllt.
 
+### GLOBALE REGEL — Öffentliche Routen (dauerhaft, [D21] Login-Pflicht)
+
+> Die App erzwingt Login (`Protected` unter `/app/*`; Catch-all `NotFoundRedirect`: unbekannt +
+> nicht eingeloggt → Login `/`, **nie** blind `/app`). **Jede Route, die von Personen OHNE Account
+> aufgerufen wird, MUSS als EXPLIZITE öffentliche Route VOR dem Catch-all in `App.tsx` stehen** —
+> niemals dem Catch-all überlassen (sonst landet ein externer Klick im Login = Funktions-/DSGVO-Bruch).
+> Öffentlich sind heute: `/` (Login) · `/auth/callback` · `/reset` · **reserviert:** `/invite/:token`
+> (Einladungs-Annahme, [D29]) · `/unsubscribe` (DSGVO, Sending-Layer). Webhooks (Cal.com/Stripe/Inbound)
+> sind **keine** React-Routen → eigene Absicherung (Signatur/`x-webhook-secret`/service_role), nie Login.
+> **Neue öffentliche Route = explizit + vor Catch-all + hier ergänzen.**
+
 ### AUF ANFRAGE (nicht automatisch)
 → scripts/audit.ts ausführen wenn Oliver explizit prüfen möchte
 → CHECKLIST.md vollständig durchgehen
@@ -2271,6 +2282,28 @@ Service Role Key nur in Edge Functions — nie im Client.
 - Refresh Token verlängert sich bei Aktivität
 - **Auto-Logout nach 90 Tagen** ohne Aktivität
 - **Sofort-Logout** bei: manuell / Sicherheitsvorfall
+
+#### Umsetzungsstand — Login-Pflicht-Slice (19.07.2026, verifiziert)
+- **Auth ist VOLL gebaut, kein Mock** (`lib/auth.ts`: Email+PW, Reset, Google/Microsoft-SSO, MFA-Enroll/Verify,
+  onAuthChange). Der alte Vermerk „Phase 5 nicht gestartet" war **veraltet** — hiermit korrigiert. **Login wird
+  erzwungen** (`Protected` unter `/app/*`; Redirect merkt `state.from` → Deep-Link-Rückkehr; differenzierte
+  Fehlermeldungen via `authErrorKey`). Reset-Flow **vervollständigt** (`/reset` = neues Passwort setzen).
+  **Logout** im Avatar-Dropdown (Sidebar). Client: `persistSession`+`autoRefreshToken` (Silent-Refresh, Cross-Tab).
+- **INVITE-ONLY (Entscheidung B):** `handle_new_user` (Migr. **072**) legt bei einem neuen Auth-User OHNE gültige
+  Einladung **keine** Org/Owner mehr an (No-op). Ergebnis: Session ohne `users`-Row → App zeigt `ProvisioningGate`
+  („Zugang nur auf Einladung" + Logout). **Neue Orgs entstehen künftig NUR über den Onboarding-Flow** (deferred [O]),
+  nicht per Self-Signup. `useCurrentOrg` macht den nicht-provisionierten Zustand **sichtbar** (`provisioningError`),
+  statt still auf die Demo-Org auszuweichen.
+- **Dev-Bypass hinter explizitem Flag (Entscheidung A):** `isAuthDevBypass()` = `import.meta.env.DEV` **UND**
+  `VITE_DEV_AUTH_BYPASS === "true"`. Ohne Flag gilt echte Login-Pflicht (auch env-los). In Produktion nie aktiv
+  (`DEV` = false im Build). **Für lokale Browser-QA** wird dieses Flag gesetzt (dokumentierter QA-Zugang) — es wird
+  **kein** Prod-Auth-User mit bekanntem Passwort geseedet (Sicherheits-Entscheidung). `.env.example`-Zeile
+  `VITE_DEV_AUTH_BYPASS=` ist manuell zu ergänzen (Datei ist tool-seitig gesperrt).
+- **NICHT jetzt (dokumentierte Haken):** AAL2/**MFA-Zwang** für Owner → **B-3** Launch-Sicherheitshärtung
+  (Entscheidung C) · **Einladungs-Annahmeseite** mit Mailversand → **[D29]** (nur `/invite/:token` reserviert) ·
+  „Angemeldet bleiben"-Toggle · Verwaiste-Auth-User-Cleanup (abgelehnte invite-only-SSO-Sessions).
+- **Onboarding-Draft-Widerspruch geklärt:** Der ältere Onboarding-Entwurf sagt „Login/Registrierung existieren
+  bereits" — das ist **jetzt verifiziert korrekt** (Auth voll gebaut). Keine Änderung an der Onboarding-Doku nötig.
 
 #### `teams` + `team_members` Tabellen (neu — in der [D21]-Phase anlegen)
 ```sql

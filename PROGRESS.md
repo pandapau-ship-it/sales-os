@@ -551,6 +551,17 @@
     `records.merge`. **NICHT jetzt:** Einzelrechte-/Papierkorb-UI (SET-3), Nav-Rollen-Ausblendung (SET-2),
     AI-Chat-Tool-Bindung, Viewer-Read-only-Enforcement.
 
+  - **LOGIN-PFLICHT [D21] GEBAUT 19.07.2026 (vorgezogen), wartet auf db push (Migr. 072) + Merge-Freigabe.**
+    Auth war bereits voll gebaut (Korrektur der „Phase 5"-Altnotiz). Geschlossen: Catch-all `NotFoundRedirect`
+    (unbekannt+nicht-eingeloggt → Login), öffentliche Routen explizit vor Catch-all (`/reset` neu, `/invite/:token`
+    + `/unsubscribe` reserviert), **CLAUDE-Dauerregel „Öffentliche Routen"** · Passwort-Reset-Abschluss `/reset` ·
+    Logout im Avatar-Dropdown · Dev-Bypass hinter `VITE_DEV_AUTH_BYPASS` (nie Prod) · `useCurrentOrg.provisioningError`
+    + `ProvisioningGate` · **invite-only** (Migr. 072: `handle_new_user` legt ohne Einladung keine Org an) · Redirect
+    `state.from` + differenzierte Fehler. **Entscheidungen A/B/C:** Bypass geflaggt · invite-only · MFA-Zwang→B-3.
+    **NICHT jetzt:** MFA-Zwang (B-3) · Invite-Annahmeseite+Mail ([D29]) · SET-2 „Mein Profil/Sicherheit" (greenfield,
+    verifiziert: existiert noch nicht) · „Angemeldet bleiben"-Toggle · Verwaiste-Auth-User-Cleanup.
+    **Manuell:** `.env.example` um `VITE_DEV_AUTH_BYPASS=` ergänzen (Datei tool-seitig gesperrt).
+
   - **▶ RECHTE-KATALOG — ZUKUNFTS-REGISTRY (Teil-D-Scan 19.07.2026).** Diese Rechte existieren HEUTE noch
     nicht im Katalog und werden **MIT ihrem Modul** hinzugefügt (`permission_catalog` 070 + `role_permissions`
     + TS-Spiegel + `<RequiresPermission>` + Server-Guard — die 3 Fragen der Dauerregel). **Beim jeweiligen

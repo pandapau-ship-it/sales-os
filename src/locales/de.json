@@ -147,7 +147,20 @@
     "resetSentBody": "Prüfe dein Postfach.",
     "backToLogin": "Zurück zur Anmeldung",
     "callback": "Anmeldung wird abgeschlossen…",
-    "error": "Das hat gerade nicht geklappt — bitte erneut versuchen"
+    "error": "Das hat gerade nicht geklappt — bitte erneut versuchen",
+    "errorCredentials": "E-Mail oder Passwort ist falsch",
+    "errorRate": "Zu viele Versuche — bitte kurz warten und erneut probieren",
+    "errorNetwork": "Keine Verbindung — bitte prüfe dein Internet",
+    "errorGeneric": "Das hat gerade nicht geklappt — bitte erneut versuchen",
+    "resetNewTitle": "Neues Passwort setzen",
+    "resetNewSubtitle": "Wähle ein neues Passwort für dein Konto",
+    "resetInvalidBody": "Der Link ist ungültig oder abgelaufen. Fordere einen neuen an.",
+    "resetNewPassword": "Neues Passwort",
+    "resetNewConfirm": "Passwort bestätigen",
+    "resetNewSubmit": "Passwort speichern",
+    "resetNewLoading": "Wird gespeichert…",
+    "resetNewTooShort": "Mindestens 8 Zeichen",
+    "resetNewMismatch": "Die Passwörter stimmen nicht überein"
   },
   "hunter": {
     "title": "Hunter",
@@ -1074,5 +1087,15 @@
       "hoursAgo": "vor {{count}} Std.",
       "daysAgo": "vor {{count}} T."
     }
+  },
+  "auth": {
+    "logout": "Abmelden",
+    "myProfile": "Mein Profil",
+    "inviteOnlyTitle": "Zugang nur auf Einladung",
+    "inviteOnlyBody": "Dein Konto ist noch keiner Organisation zugeordnet. Bitte wende dich an deinen Administrator für eine Einladung.",
+    "invitePlaceholderTitle": "Einladung",
+    "invitePlaceholderBody": "Diese Seite wird mit dem Einladungs-Versand bereitgestellt.",
+    "unsubPlaceholderTitle": "Abmelden",
+    "unsubPlaceholderBody": "Diese Seite wird mit dem E-Mail-Versand bereitgestellt."
   }
 }

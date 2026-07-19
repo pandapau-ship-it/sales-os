@@ -20,12 +20,16 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 // i18n-Init vor dem ersten Render (Default de).
 import "@/lib/i18n";
-import { useAuth } from "@/hooks/useAuth";
-import { isSupabaseConfigured } from "@/lib/db";
+import { isAuthDevBypass } from "@/lib/auth";
 import Sidebar from "@/components/layout/Sidebar";
 import TopBar from "@/components/layout/TopBar";
 import Login from "@/components/auth/Login";
 import AuthCallback from "@/components/auth/AuthCallback";
+import ResetPassword from "@/components/auth/ResetPassword";
+import PublicPlaceholder from "@/components/auth/PublicPlaceholder";
+import ProvisioningGate from "@/components/auth/ProvisioningGate";
+import { Protected } from "@/components/auth/Protected";
+import { NotFoundRedirect } from "@/components/auth/NotFoundRedirect";
 import TeamSettings from "@/components/features/settings/TeamSettings";
 import ScreenKontakte from "@/components/screens/ScreenKontakte";
 import ScreenCompanies from "@/components/screens/ScreenCompanies";
@@ -59,7 +63,7 @@ function ComingSoon({ nameKey }: { nameKey: string }) {
 /** Layout-Shell: TopBar oben, Sidebar links, Screen im Outlet. */
 function AppLayout() {
   const [showPalette, setShowPalette] = useState(false);
-  const { role } = useCurrentOrg(); // 2FA-Empfehlung nur für Owner/Admin (MfaBanner entscheidet selbst)
+  const { role, provisioningError } = useCurrentOrg(); // 2FA-Empfehlung nur für Owner/Admin (MfaBanner entscheidet selbst)
 
   // Globaler Cmd/Ctrl+K Shortcut öffnet die Command Palette.
   useEffect(() => {
@@ -72,6 +76,10 @@ function AppLayout() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
+
+  // Eingeloggt, aber keiner Org zugeordnet (invite-only / Provisioning-Fehler) → sichtbares Gate
+  // statt still auf die Demo-Org auszuweichen. Im Dev-Bypass unterdrückt. (Nach allen Hooks.)
+  if (provisioningError && !isAuthDevBypass()) return <ProvisioningGate />;
 
   return (
     <div className="min-h-screen flex flex-col bg-app-bg text-text-body font-sans">
@@ -88,15 +96,6 @@ function AppLayout() {
   );
 }
 
-/** Schützt /app. Phase 0 ohne Backend: Dev-Bypass (kein Gate). */
-function Protected({ children }: { children: React.ReactNode }) {
-  const { session, loading } = useAuth();
-  if (!isSupabaseConfigured()) return <>{children}</>;
-  if (loading) return null;
-  if (!session) return <Navigate to="/" replace />;
-  return <>{children}</>;
-}
-
 export default function App() {
   return (
     <ErrorBoundary>
@@ -105,8 +104,13 @@ export default function App() {
         <TooltipLayer />
         <BrowserRouter>
         <Routes>
+        {/* ── ÖFFENTLICHE Routen (kein Login) — MÜSSEN vor dem Catch-all stehen (CLAUDE.md-Regel) ── */}
         <Route path="/" element={<Login />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
+        <Route path="/reset" element={<ResetPassword />} />
+        {/* Reservierte öffentliche Pfade — Seiten folgen mit ihren Modulen ([D29] / Sending-Layer). */}
+        <Route path="/invite/:token" element={<PublicPlaceholder titleKey="auth.invitePlaceholderTitle" bodyKey="auth.invitePlaceholderBody" />} />
+        <Route path="/unsubscribe" element={<PublicPlaceholder titleKey="auth.unsubPlaceholderTitle" bodyKey="auth.unsubPlaceholderBody" />} />
         {/* Import = fokussierter Vollbild-Wizard OHNE Sidebar → eigene Route außerhalb des AppLayout. */}
         <Route path="/app/kontakte/import" element={<Protected><ScreenKontakteImport /></Protected>} />
         {/* Duplikate verwalten = fokussierter Vollbild-Screen ohne Sidebar (K-6b). */}
@@ -130,7 +134,8 @@ export default function App() {
           <Route path="settings" element={<TeamSettings />} />
           <Route path="notifications" element={<ScreenNotifications />} />
         </Route>
-          <Route path="*" element={<Navigate to="/app/meintag" replace />} />
+          {/* Catch-all: unbekannt + nicht eingeloggt → Login (/), sonst App. Nie blind auf /app. */}
+          <Route path="*" element={<NotFoundRedirect />} />
         </Routes>
         </BrowserRouter>
       </ToastProvider>

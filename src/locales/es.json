@@ -147,7 +147,20 @@
     "resetSentBody": "Revisa tu bandeja de entrada.",
     "backToLogin": "Volver al inicio de sesión",
     "callback": "Finalizando el inicio de sesión…",
-    "error": "No funcionó ahora mismo — inténtalo de nuevo"
+    "error": "No funcionó ahora mismo — inténtalo de nuevo",
+    "errorCredentials": "El correo o la contraseña son incorrectos",
+    "errorRate": "Demasiados intentos — espera un momento e inténtalo de nuevo",
+    "errorNetwork": "Sin conexión — comprueba tu internet",
+    "errorGeneric": "No funcionó en este momento — inténtalo de nuevo",
+    "resetNewTitle": "Establecer nueva contraseña",
+    "resetNewSubtitle": "Elige una nueva contraseña para tu cuenta",
+    "resetInvalidBody": "El enlace no es válido o ha caducado. Solicita uno nuevo.",
+    "resetNewPassword": "Nueva contraseña",
+    "resetNewConfirm": "Confirmar contraseña",
+    "resetNewSubmit": "Guardar contraseña",
+    "resetNewLoading": "Guardando…",
+    "resetNewTooShort": "Al menos 8 caracteres",
+    "resetNewMismatch": "Las contraseñas no coinciden"
   },
   "hunter": {
     "title": "Hunter",
@@ -1068,5 +1081,15 @@
       "hoursAgo": "vor {{count}} Std.",
       "daysAgo": "vor {{count}} T."
     }
+  },
+  "auth": {
+    "logout": "Cerrar sesión",
+    "myProfile": "Mi perfil",
+    "inviteOnlyTitle": "Acceso solo por invitación",
+    "inviteOnlyBody": "Tu cuenta aún no está vinculada a una organización. Pide una invitación a tu administrador.",
+    "invitePlaceholderTitle": "Invitación",
+    "invitePlaceholderBody": "Esta página se habilitará con el flujo de invitaciones.",
+    "unsubPlaceholderTitle": "Darse de baja",
+    "unsubPlaceholderBody": "Esta página se habilitará con la capa de correo."
   }
 }

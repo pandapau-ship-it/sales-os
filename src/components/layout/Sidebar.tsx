@@ -22,6 +22,8 @@ import {
   Users,
   Building2,
   Settings as SettingsIcon,
+  LogOut,
+  UserCircle,
 } from "lucide-react";
 import {
   Tooltip,
@@ -29,8 +31,18 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useTheme } from "@/hooks/useTheme";
 import { useModules, type ModuleKey } from "@/hooks/useModules";
+import { useAuth } from "@/hooks/useAuth";
+import { signOut } from "@/lib/auth";
 import { NAV } from "@/lib/navBehavior";
 
 interface NavIcon {
@@ -48,7 +60,13 @@ export default function Sidebar() {
   const { t } = useTranslation();
   const { theme, toggleTheme } = useTheme();
   const { hasModule } = useModules();
+  const { user } = useAuth();
   const isDark = theme === "dark";
+
+  const doLogout = async () => {
+    await signOut();
+    navigate("/", { replace: true });
+  };
 
   const screens: NavIcon[] = [
     { route: "meintag", labelKey: "nav.meintag", icon: <Sun className={ICON} strokeWidth={1.5} /> },
@@ -122,18 +140,42 @@ export default function Sidebar() {
             <TooltipContent side="right">{isDark ? t("theme.light") : t("theme.dark")}</TooltipContent>
           </Tooltip>
 
-          {/* Avatar / Profil */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                aria-label={t("nav.profil")}
-                className="w-[34px] h-[34px] mt-1 rounded-[10px] bg-sherloq-primary text-on-accent text-[11px] font-semibold flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity"
-              >
-                OS
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="right">{t("nav.profil")}</TooltipContent>
-          </Tooltip>
+          {/* Avatar / Profil — Dropdown mit Logout (Platz für „Mein Profil" folgt in SET-2) */}
+          <DropdownMenu>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    aria-label={t("nav.profil")}
+                    className="w-[34px] h-[34px] mt-1 rounded-[10px] bg-sherloq-primary text-on-accent text-[11px] font-semibold flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity"
+                  >
+                    OS
+                  </button>
+                </DropdownMenuTrigger>
+              </TooltipTrigger>
+              <TooltipContent side="right">{t("nav.profil")}</TooltipContent>
+            </Tooltip>
+            <DropdownMenuContent side="right" align="end" className="w-56">
+              {user?.email && (
+                <>
+                  <DropdownMenuLabel className="truncate font-normal text-text-muted">
+                    {user.email}
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                </>
+              )}
+              <DropdownMenuItem disabled>
+                <UserCircle className="w-4 h-4" />
+                {t("auth.myProfile")}
+                <span className="ml-auto text-[10px] text-text-muted">{t("common.comingSoon")}</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onSelect={() => { void doLogout(); }}>
+                <LogOut className="w-4 h-4" />
+                {t("auth.logout")}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </aside>
     </TooltipProvider>
