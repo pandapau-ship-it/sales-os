@@ -22,7 +22,7 @@ export interface AlertTemplate {
 /** job_name → Klartext-Template. Neuer überwachter Cron = Eintrag hier + Seed-Zeile in cron_expectations. */
 export const ALERT_TEMPLATES: Record<string, AlertTemplate> = {
   "score-deal-health-daily": {
-    what: "Der tägliche Deal-Gesundheits-Check (Stagnations-Erkennung) ist nicht durchgelaufen.",
+    what: "Der tägliche Check, ob Deals zu lange in einer Phase feststecken (Stagnation), ist nicht durchgelaufen.",
     hypothesis: "Möglicherweise war die Datenbank kurz nicht erreichbar oder ein Zugangsschlüssel ist abgelaufen.",
     meaning: "Stagnations-Hinweise auf Deals könnten heute veraltet sein, bis der nächste Lauf erfolgreich ist.",
   },
@@ -42,9 +42,9 @@ export const ALERT_TEMPLATES: Record<string, AlertTemplate> = {
     meaning: "Upsell-Hinweise im Farmer könnten veraltet sein, bis der nächste Lauf klappt.",
   },
   "credit-monthly-reset": {
-    what: "Der tägliche Wächter für den Credit-Verbrauchs-Reset ist nicht durchgelaufen.",
-    hypothesis: "Kurzer Datenbank-Ausfall oder ein Zugangsproblem.",
-    meaning: "Am Monatswechsel könnten die Credit-Zähler nicht korrekt auf 0 zurückgesetzt werden.",
+    what: "Die tägliche Prüfung, ob die verbrauchten Credits zum Monatsanfang zurückgesetzt werden müssen, ist nicht durchgelaufen.",
+    hypothesis: "Vermutlich war die Datenbank kurz nicht erreichbar oder ein Zugang ist abgelaufen.",
+    meaning: "Zum Monatswechsel könnte das Credit-Guthaben nicht korrekt zurückgesetzt werden — dann stimmt die angezeigte Restmenge nicht.",
   },
   "notifications-cleanup": {
     what: "Das tägliche Aufräumen alter Mitteilungen und Aktivitäten ist nicht durchgelaufen.",
@@ -52,9 +52,9 @@ export const ALERT_TEMPLATES: Record<string, AlertTemplate> = {
     meaning: "Alte Mitteilungen sammeln sich vorübergehend an — unkritisch, wird beim nächsten Lauf nachgeholt.",
   },
   "cron-runs-cleanup": {
-    what: "Das tägliche Aufräumen der Cron-Lauf-Protokolle ist nicht durchgelaufen.",
-    hypothesis: "Kurzer Datenbank-Ausfall oder ein Zugangsproblem.",
-    meaning: "Die Lauf-Protokolle wachsen vorübergehend an — unkritisch, wird beim nächsten Lauf nachgeholt.",
+    what: "Das tägliche Aufräumen der internen Protokolle über automatische Hintergrund-Aufgaben ist nicht durchgelaufen.",
+    hypothesis: "Vermutlich war die Datenbank kurz nicht erreichbar oder ein Zugang ist abgelaufen.",
+    meaning: "Diese internen Protokolle wachsen vorübergehend an — unkritisch, wird beim nächsten Lauf automatisch nachgeholt.",
   },
 };
 

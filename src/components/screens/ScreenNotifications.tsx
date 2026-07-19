@@ -196,7 +196,8 @@ function NotificationRowItem({
       />
       <span className="min-w-0 flex-1">
         <span className="typo-card-title text-text-primary block truncate">{n.title}</span>
-        {n.body && <span className="typo-subline text-text-muted block truncate">{n.body}</span>}
+        {/* Beschreibung (WAS/Vermutung/Bedeutung) NIE kürzen — vollständig umbrechen, Karte wächst mit. */}
+        {n.body && <span className="typo-subline text-text-muted block break-words whitespace-pre-line">{n.body}</span>}
       </span>
       <span className="typo-subline text-text-muted shrink-0 whitespace-nowrap">{relTime(n.created_at, t)}</span>
       {n.link && <ChevronRight className="w-4 h-4 text-text-muted shrink-0 mt-0.5" />}
