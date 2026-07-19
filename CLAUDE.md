@@ -4316,6 +4316,19 @@ Wenn die Antwort "alle laden und rendern" ist → Pagination + Virtualisierung f
 
 ## Notifications — Pflichtregeln (Infrastruktur jetzt, Regeln später)
 
+> ⚠ **TEIL-ERSETZT durch `docs/mitteilungssystem_bauplan_v1.md` (kanonisch, N-S1 gebaut 19.07.2026).**
+> Bei Widerspruch gilt der Bauplan (BAUPHASEN-WEGWEISER-Konflikt-Regel). Zwei konkrete Angleichungen
+> gegenüber dem Text unten:
+> - **`notify()`/`log_activity()` sind Postgres-Funktionen** (Migration 066, aufrufbar von SQL-Cron,
+>   Edge UND Frontend-RPC = eine Quelle, analog `consume_credits`) — **nicht nur** ein TS-`lib/notify.ts`.
+>   Ein späterer dünner TS/Edge-Wrapper darf existieren, ruft aber diese DB-Funktion.
+> - **Präferenz-Matrix-DEFAULT lebt in `settings.notifications`** (JSONB, **per Org** — `settings` ist
+>   org-unique; gebaut/geseedet in 065), **nicht** in einer eigenen `notification_preferences`-Tabelle.
+>   Der **per-User-Override** (N6 „pro User") kommt in **N-S2** über `user_preferences` (Migr. 057) —
+>   NICHT über eine neue Tabelle. Der `notifications`-Tabellenteil unten gilt weiter (plus `user_id` im
+>   Idempotenz-Key + `activity_events`-Feed).
+> Der Rest dieser Sektion (Event-Katalog, Kanal-Adapter-Prinzip, „später"-Liste) bleibt gültig.
+
 > **Kernprinzip:** Die Verkabelung (Tabellen, abstrakte Kanäle, Event-Typen) steht
 > von Tag 1. Die konkreten Versand-Regeln (wann, wo, wie oft) sind reine Config —
 > jederzeit änderbar ohne Code-Umbau. Wie `aiCall()` und `sendEmail()`:
