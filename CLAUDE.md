@@ -129,6 +129,23 @@ ALTER TABLE knowledge_base ENABLE ROW LEVEL SECURITY;
 > sind **keine** React-Routen → eigene Absicherung (Signatur/`x-webhook-secret`/service_role), nie Login.
 > **Neue öffentliche Route = explizit + vor Catch-all + hier ergänzen.**
 
+### GLOBALE REGEL — Nav-Sichtbarkeit = ZWEI Ebenen (dauerhaft, [D51]/Entitlement-Schutz)
+
+> Ob ein Nav-/Sidebar-Eintrag erscheint, hängt von **ZWEI** Bedingungen ab, die **UND-verknüpft**
+> sind — nie nur einer:
+> 1. **Firmen-Entitlement** — ist das Modul laut Abo/Plan der Org aktiv? (`useModules().hasModule(...)`)
+> 2. **Persönliche Präferenz** — will DIESER User es sehen? (`user_preferences` „Ansicht", `getNavPreferences`)
+>
+> **Ein Modul ist NUR sichtbar, wenn BEIDE erfüllt sind.** Die persönliche Einstellung wirkt ausschließlich
+> **INNERHALB** dessen, was die Firma freigeschaltet hat — sie kann ein nicht-gebuchtes Modul **nie**
+> einblenden (sonst Entitlement-Bruch). Der `hasModule`-Check bleibt der Sidebar-Render-Logik **vorgeschaltet**.
+> **In der „Ansicht"-Einstellung** werden nicht-gebuchte Module **nie als normal bedienbarer Toggle** gezeigt —
+> entweder ausblenden oder ausgegraut mit Hinweis („Nicht in eurem Plan enthalten").
+>
+> **Jede künftige Änderung an Sidebar-/Nav-Sichtbarkeitslogik MUSS beide Ebenen explizit gegenprüfen** —
+> nie nur eine annehmen. Regressionstest Pflicht: *Org ohne Modul X + User schaltet X sichtbar → X erscheint
+> trotzdem NICHT.* (Erste Umsetzung: `Sidebar.tsx` `visibleNav`, `AppearanceTab.tsx` `isEntitled`.)
+
 ### AUF ANFRAGE (nicht automatisch)
 → scripts/audit.ts ausführen wenn Oliver explizit prüfen möchte
 → CHECKLIST.md vollständig durchgehen

@@ -6,6 +6,15 @@
 
 ## Unreleased
 
+- **fix:** SET-2 Ansicht — **Entitlement-Ehrlichkeit** (Modul-Plan × persönliche Präferenz). Die Sidebar
+  kombinierte beide Ebenen bereits korrekt (`hasModule` UND `!hidden`, AND-verknüpft — ein nicht-gebuchtes
+  Modul erscheint nie, auch wenn der User es „sichtbar" schaltet). **Gefixt:** der „Ansicht"-Reiter zeigte
+  für nicht-gebuchte Module (`ai-sdr`/`hunter`/`farmer`) einen normal bedienbaren Toggle → jetzt **ausgegraut +
+  Hinweis „Nicht in eurem Plan enthalten" + deaktivierter Toggle** (`AppearanceTab.isEntitled`). **Neue
+  CLAUDE.md-Dauerregel „Nav-Sichtbarkeit = zwei Ebenen"** (analog Rechte-Check-Pflicht). 2 Entitlement-
+  Regressionstests (Org ohne Farmer + User schaltet sichtbar → Farmer bleibt weg; nicht-gebuchtes Modul =
+  disabled Toggle, kein Save). i18n de/en/es.
+
 - **fix/feat:** SET-2 „Mein Profil"-Fixes (nach Live-Test, Migr. 074). **Bug:** Sidebar ignorierte die
   Ansicht-Prefs (hardcodierte Nav-Listen) → liest jetzt `getNavPreferences` mit gleichem Query-Key wie
   AppearanceTab, wendet `hidden`+`order` an → Ausblenden/Reihenfolge wirkt **sofort ohne Reload** (2 Regressionstests;

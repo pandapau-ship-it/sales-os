@@ -12,6 +12,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Sun, Bot, Target, Sprout, Users, Building2, Settings as SettingsIcon, Lock, ChevronUp, ChevronDown } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useCurrentOrg } from "@/hooks/useCurrentOrg";
+import { useModules, type ModuleKey } from "@/hooks/useModules";
 import { useSaveState } from "@/hooks/useSaveState";
 import { getNavPreferences, setNavPreferences } from "@/lib/db";
 import { NAV_DEFAULTS, type NavPreferences } from "@/lib/settingsDefaults";
@@ -21,6 +22,10 @@ import { Switch } from "@/components/ui/switch";
 const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   meintag: Sun, "ai-sdr": Bot, hunter: Target, farmer: Sprout, kontakte: Users, companies: Building2,
 };
+// Modul-gebundene Nav-Einträge (Firmen-Entitlement). meintag/kontakte/companies sind immer verfügbar.
+const MODULE: Record<string, ModuleKey | undefined> = {
+  "ai-sdr": "ai_sdr", hunter: "hunter", farmer: "farmer",
+};
 const LABEL_KEY: Record<string, string> = {
   meintag: "nav.meintag", "ai-sdr": "nav.aisdr", hunter: "nav.hunter", farmer: "nav.farmer", kontakte: "nav.kontakte", companies: "nav.companies",
 };
@@ -29,8 +34,12 @@ export default function AppearanceTab() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const { organizationId } = useCurrentOrg();
+  const { hasModule } = useModules();
   const qc = useQueryClient();
   const save = useSaveState();
+
+  // Firmen-Entitlement: ist das Modul im Plan der Org aktiv? (Persönliche Präferenz wirkt nur INNERHALB.)
+  const isEntitled = (route: string) => { const m = MODULE[route]; return !m || hasModule(m); };
 
   const query = useQuery({
     enabled: !!user?.id,
@@ -75,9 +84,10 @@ export default function AppearanceTab() {
         <div className="border border-border rounded-[12px] overflow-hidden divide-y divide-[var(--border-card)]">
           {prefs.order.map((route, idx) => {
             const Icon = ICONS[route];
-            const visible = !prefs.hidden.includes(route);
+            const entitled = isEntitled(route);
+            const visible = entitled && !prefs.hidden.includes(route);
             return (
-              <div key={route} className="flex items-center justify-between p-3 bg-app-surface hover:bg-app-bg transition-colors">
+              <div key={route} className={`flex items-center justify-between p-3 bg-app-surface transition-colors ${entitled ? "hover:bg-app-bg" : "opacity-60"}`}>
                 <div className="flex items-center gap-3">
                   <div className="flex flex-col">
                     <button
@@ -106,7 +116,15 @@ export default function AppearanceTab() {
                     <span className="text-sm font-semibold">{t(LABEL_KEY[route])}</span>
                   </div>
                 </div>
-                <Switch checked={visible} onCheckedChange={() => toggle(route)} aria-label={t(LABEL_KEY[route])} />
+                {entitled ? (
+                  <Switch checked={visible} onCheckedChange={() => toggle(route)} aria-label={t(LABEL_KEY[route])} />
+                ) : (
+                  // Nicht im Plan der Org gebucht → kein bedienbarer Toggle, klarer Hinweis (Entitlement-Ehrlichkeit).
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-[11px] text-text-muted">{t("personal.appearance.notInPlan")}</span>
+                    <Switch checked={false} disabled aria-label={t(LABEL_KEY[route])} />
+                  </div>
+                )}
               </div>
             );
           })}

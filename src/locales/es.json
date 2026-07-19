@@ -1132,7 +1132,8 @@
       "moveUp": "Subir",
       "moveDown": "Bajar",
       "hint": "Los módulos ocultos siguen accesibles por la búsqueda (⌘K) y el chat de IA. Solo cambia la barra izquierda.",
-      "reset": "Restablecer"
+      "reset": "Restablecer",
+      "notInPlan": "No incluido en tu plan"
     },
     "security": {
       "pwTitle": "Cambiar contraseña",

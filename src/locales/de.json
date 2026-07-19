@@ -1138,7 +1138,8 @@
       "moveUp": "Nach oben",
       "moveDown": "Nach unten",
       "hint": "Ausgeblendete Module bleiben über die Suche (⌘K) und den AI-Chat erreichbar. Dies ändert nur die linke Leiste.",
-      "reset": "Auf Standard zurücksetzen"
+      "reset": "Auf Standard zurücksetzen",
+      "notInPlan": "Nicht in eurem Plan enthalten"
     },
     "security": {
       "pwTitle": "Passwort ändern",

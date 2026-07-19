@@ -1132,7 +1132,8 @@
       "moveUp": "Move up",
       "moveDown": "Move down",
       "hint": "Hidden modules stay reachable via search (⌘K) and the AI chat. This only changes the left bar.",
-      "reset": "Reset to default"
+      "reset": "Reset to default",
+      "notInPlan": "Not included in your plan"
     },
     "security": {
       "pwTitle": "Change password",
