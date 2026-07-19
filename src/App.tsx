@@ -32,6 +32,7 @@ import ScreenCompanies from "@/components/screens/ScreenCompanies";
 import ScreenCompanyDetail from "@/components/screens/ScreenCompanyDetail";
 import ScreenKontakteImport from "@/components/screens/ScreenKontakteImport";
 import ScreenDuplicates from "@/components/screens/ScreenDuplicates";
+import ScreenNotifications from "@/components/screens/ScreenNotifications";
 import { MfaBanner } from "@/components";
 import { useCurrentOrg } from "@/hooks/useCurrentOrg";
 import CommandPalette from "@/components/shared/CommandPalette";
@@ -125,6 +126,7 @@ export default function App() {
           <Route path="companies" element={<ScreenCompanies />} />
           <Route path="companies/:id" element={<ScreenCompanyDetail />} />
           <Route path="settings" element={<TeamSettings />} />
+          <Route path="notifications" element={<ScreenNotifications />} />
         </Route>
           <Route path="*" element={<Navigate to="/app/meintag" replace />} />
         </Routes>

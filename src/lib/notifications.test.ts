@@ -9,6 +9,7 @@ import {
   isKnownSeverity,
   groupOf,
   notificationIdempotencyKey,
+  groupByNotificationGroup,
 } from "./notifications";
 
 // Diese Tests decken die reine Registry-/Key-Logik ab. Das DB-Verhalten von notify()/log_activity()
@@ -40,6 +41,28 @@ describe("Registry — bekannte Werte stabil & datengetrieben (Punkt 2)", () => 
     expect(isKnownSeverity("urgent")).toBe(true);
     expect(isKnownSeverity("panic")).toBe(false);
     expect(groupOf("was_neues")).toBeNull();
+  });
+});
+
+describe("groupByNotificationGroup — 4 Gruppen, feste Reihenfolge, leere weg (N2)", () => {
+  it("gruppiert in fester Reihenfolge, leere Gruppen weggelassen", () => {
+    const items = [
+      { id: "1", category: "team" },
+      { id: "2", category: "approval" }, // braucht_dich
+      { id: "3", category: "report" }, // berichte
+    ];
+    const g = groupByNotificationGroup(items);
+    expect(g.map((x) => x.group)).toEqual(["braucht_dich", "berichte", "team"]); // system fehlt (leer)
+    expect(g[0].items[0].id).toBe("2");
+  });
+  it("unbekannte category → Gruppe system (sichtbar, nie verschluckt)", () => {
+    const g = groupByNotificationGroup([{ id: "x", category: "was_neues" }]);
+    expect(g).toHaveLength(1);
+    expect(g[0].group).toBe("system");
+    expect(g[0].items[0].id).toBe("x");
+  });
+  it("leere Eingabe → keine Gruppen", () => {
+    expect(groupByNotificationGroup([])).toEqual([]);
   });
 });
 

@@ -809,6 +809,77 @@ export async function completeTask(
   if (error) throw error;
 }
 
+// ── Notifications (N-S2) — reine RLS-Queries (notifications_own = org + user). ─
+// Kein notify()-Aufruf hier: die Glocke LIEST/markiert-gelesen nur eigene Zeilen (RLS-geschützt).
+// Ohne Login-Session (auth.uid() null) liefert RLS korrekt leer → Glocke bleibt leer, kein Fehler.
+export interface NotificationRow {
+  id: string;
+  category: string;
+  severity: string;
+  title: string;
+  body: string | null;
+  link: string | null;
+  source_type: string;
+  source_id: string;
+  read_at: string | null;
+  created_at: string;
+}
+
+/** Mitteilungen des eingeloggten Users. mode 'unread' = Standardansicht (N13), 'history' = Verlauf (90T). */
+export async function getNotifications(
+  organizationId: string,
+  mode: "unread" | "history" = "unread",
+): Promise<NotificationRow[]> {
+  const client = getSupabaseClient();
+  if (!client) return [];
+  let q = client
+    .from("notifications")
+    .select("id, category, severity, title, body, link, source_type, source_id, read_at, created_at")
+    .eq("organization_id", organizationId);
+  q = mode === "unread" ? q.is("read_at", null) : q.not("read_at", "is", null);
+  const { data, error } = await q.order("created_at", { ascending: false }).limit(100);
+  if (error) throw error;
+  return (data ?? []) as NotificationRow[];
+}
+
+/** Ungelesen-Count für das Glocken-Badge (leichte count-Query). */
+export async function getUnreadNotificationCount(organizationId: string): Promise<number> {
+  const client = getSupabaseClient();
+  if (!client) return 0;
+  const { count, error } = await client
+    .from("notifications")
+    .select("id", { count: "exact", head: true })
+    .eq("organization_id", organizationId)
+    .is("read_at", null);
+  if (error) throw error;
+  return count ?? 0;
+}
+
+/** Eine Mitteilung als gelesen markieren (N13: verschwindet danach aus der Standardansicht). */
+export async function markNotificationRead(id: string, organizationId: string): Promise<void> {
+  const client = getSupabaseClient();
+  if (!client) return;
+  const { error } = await client
+    .from("notifications")
+    .update({ read_at: new Date().toISOString() })
+    .eq("id", id)
+    .eq("organization_id", organizationId)
+    .is("read_at", null); // idempotent: schon Gelesenes nicht anfassen
+  if (error) throw error;
+}
+
+/** Alle ungelesenen Mitteilungen des Users als gelesen markieren. */
+export async function markAllNotificationsRead(organizationId: string): Promise<void> {
+  const client = getSupabaseClient();
+  if (!client) return;
+  const { error } = await client
+    .from("notifications")
+    .update({ read_at: new Date().toISOString() })
+    .eq("organization_id", organizationId)
+    .is("read_at", null);
+  if (error) throw error;
+}
+
 /**
  * getTasksByContact — alle Tasks eines Kontakts fürs Panel (P3). Offene zuerst
  * (completed_at NULL), dann nach Fälligkeit; erledigte abgesetzt unten.

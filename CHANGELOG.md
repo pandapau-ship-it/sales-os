@@ -6,6 +6,15 @@
 
 ## Unreleased
 
+- **feat:** Mitteilungs-Glocke + Mitteilungsseite N-S2-Minimal (Option A, Route). TopBar-Glocke mit
+  echtem Ungelesen-Badge (RLS-Query, live via Realtime). Route `/app/notifications`: Standardansicht
+  nur Ungelesenes in 4 Gruppen (Braucht dich/System/Berichte/Team via `notifications.ts`-Registry),
+  Verlauf-Tab (90T), Klick=gelesen+verschwindet+Navigation (N13), „Alle als gelesen", EmptyState.
+  db.ts `getNotifications`/`getUnreadNotificationCount`/`markNotificationRead`/`markAllNotificationsRead`
+  (reine RLS-Queries, kein `notify()`). `realtime.ts` `subscribeToNotifications` echt verdrahtet
+  (user-gefilterter postgres_changes-Channel). Registry `screen_notifications`, i18n, +7 Tests. Keine
+  Migration. Inline-Source-Buttons/Settings-Matrix/Popup/Feed bleiben Folge-Slices (N-S3/N-S4).
+
 - **feat:** Mitteilungs-Fundament N-S1 (Migrationen 065-067). Tabellen `notifications`
   (user-gerichtet) + `activity_events` (Ambient-Feed) + `settings.notifications` (Matrix, additiv).
   **Idempotenz-Key MIT `user_id`** (`UNIQUE(org,user,source_type,source_id,category)`) → Mehr-

@@ -1054,6 +1054,19 @@
       "normal": "Normal",
       "high": "Hoch",
       "urgent": "Dringend"
+    },
+    "tabs": {
+      "open": "Offen",
+      "history": "Verlauf"
+    },
+    "emptyHistory": "Kein Verlauf.",
+    "unreadCount_one": "{{count}} ungelesene Mitteilung",
+    "unreadCount_other": "{{count}} ungelesene Mitteilungen",
+    "time": {
+      "justNow": "gerade eben",
+      "minutesAgo": "vor {{count}} Min.",
+      "hoursAgo": "vor {{count}} Std.",
+      "daysAgo": "vor {{count}} T."
     }
   }
 }

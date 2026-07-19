@@ -82,6 +82,12 @@ export const COMPONENT_REGISTRY = {
     filter: null,
     description: 'Duplikate verwalten (K-6b): Vollbild-Screen, Tabs Kontakte/Companies, Paar-Karten mit Merge-Dialog (Feld-für-Feld A/B) + Löschen einer Seite',
   },
+  screen_notifications: {
+    component: 'ScreenNotifications',
+    path: 'components/screens/ScreenNotifications',
+    filter: null,
+    description: 'Mitteilungsseite (N-S2): Glocke → Route /app/notifications, Standardansicht nur Ungelesenes in 4 Gruppen (Braucht dich/System/Berichte/Team) + Verlauf-Tab, Klick=gelesen (N13)',
+  },
 
   screen_company_detail: {
     component: 'ScreenCompanyDetail',

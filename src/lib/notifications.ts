@@ -59,6 +59,31 @@ export const ACTIVITY_EVENT_TYPES = [
 ] as const;
 export type ActivityEventType = (typeof ACTIVITY_EVENT_TYPES)[number];
 
+/** Anzeige-Reihenfolge der vier Gruppen auf der Mitteilungsseite (N2). */
+export const NOTIFICATION_GROUP_ORDER: readonly NotificationGroup[] = [
+  "braucht_dich",
+  "system",
+  "berichte",
+  "team",
+] as const;
+
+/**
+ * Gruppiert Mitteilungen nach Anzeige-Gruppe (N2), in fester Reihenfolge, leere Gruppen weggelassen.
+ * Unbekannte category (künftiges Modul ohne Registry-Eintrag) → Gruppe „system" (sichtbar, nie
+ * verschluckt — Honesty). Rein + testbar; die Mitteilungsseite rendert genau daraus.
+ */
+export function groupByNotificationGroup<T extends { category: string }>(
+  items: readonly T[],
+): Array<{ group: NotificationGroup; items: T[] }> {
+  const buckets: Record<NotificationGroup, T[]> = { braucht_dich: [], system: [], berichte: [], team: [] };
+  for (const it of items) {
+    (buckets[groupOf(it.category) ?? "system"]).push(it);
+  }
+  return NOTIFICATION_GROUP_ORDER.map((group) => ({ group, items: buckets[group] })).filter(
+    (g) => g.items.length > 0,
+  );
+}
+
 export function isKnownCategory(v: string): v is NotificationCategory {
   return v in NOTIFICATION_CATEGORIES;
 }
