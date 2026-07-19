@@ -504,3 +504,12 @@
 - **value:** Kundendaten sind nur für eingeladene, angemeldete Personen zugänglich — ein Grundpfeiler für Vertrauen und DSGVO-Konformität. Der einladungsbasierte Zugang verhindert Wildwuchs an Konten, und der reibungslose Login (Deep-Link-Rückkehr, SSO, Angemeldet-bleiben) hält das Team ohne Reibung produktiv.
 - **module:** core
 - *(Login-Pflicht [D21], 2026-07-19. MFA-Zwang für Owner + Einladungs-Mailversand folgen später.)*
+
+---
+
+- **feature:** Einstellungen-Datengrundlage (SET-2 Backend) — *intern (module: core, für Kunden unsichtbar, noch keine UI)*
+- **what:** Datengrundlage für die späteren Einstellungs-Seiten: Workspace-Allgemein (Sprache/Zeitzone/Datumsformat/Währung in `settings.general`, Org-Name/Logo org-seitig), Mein Profil (`users.booking_provider/booking_link/signature`), Ansicht (Navigation pro Person über `user_preferences`), Sicherheit (Passwort ändern + SSO-Anzeige). Alle Änderungen laufen über zentrale, serverseitig validierte Funktionen mit Protokollierung (`update_general_settings` mit Recht `settings.manage`, `update_my_profile` für eigene Daten) — nie roher Direkt-Schreibzugriff aus der Oberfläche. Defaults liegen an einer Stelle (`settingsDefaults.ts`); die Navigations-Sichtbarkeit baut auf dem Rechte-Katalog (SET-1) auf.
+- **how:** (intern) db.ts `getGeneralSettings`/`updateGeneralSettings`/`getMyProfile`/`updateMyProfile`/`getNavPreferences`/`setNavPreferences`; RPCs Migr. 073.
+- **value:** *(intern — nicht an Kunden ausgespielt)* Fundament für die Einstellungs-Oberfläche: konsistente, geprüfte, protokollierte Konfiguration pro Organisation und pro Person, ohne dass die spätere UI eigene Schreib-/Validierungslogik erfindet.
+- **module:** core
+- *(Settings SET-2 Backend, 2026-07-19. UI-Seiten folgen nach Design; Voice-Profil mit SET-KB-2.)*

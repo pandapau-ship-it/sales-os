@@ -551,6 +551,15 @@
     `records.merge`. **NICHT jetzt:** Einzelrechte-/Papierkorb-UI (SET-3), Nav-Rollen-Ausblendung (SET-2),
     AI-Chat-Tool-Bindung, Viewer-Read-only-Enforcement.
 
+  - **SET-2 BACKEND/DATENGRUNDLAGE GEBAUT 19.07.2026 (keine UI), wartet auf db push (Migr. 073) + Merge-Freigabe.**
+    Allgemein: `settings.general` (Sprache/Zeitzone/Datumsformat/Währung); Mein Profil: `users.booking_provider/
+    booking_link/signature`; neues Recht `settings.manage` (owner+admin). Validierte Update-RPCs `update_general_settings`
+    / `update_my_profile` (audit_log, Falle 2). Merge-Lesen mit Defaults zentral: `settingsDefaults.ts` +
+    db.ts `getGeneralSettings/getMyProfile/getNavPreferences`. Ansicht via `user_preferences` (057, kein Schema nötig).
+    Sicherheit: `updatePassword` (vorhanden) + `getUserIdentities`. Area-5 Rollen-Sichtbarkeit: `settingsNav.ts`
+    (baut auf SET-1). **NICHT gebaut (Auftrag):** jede UI/Screen · Voice-Inhalt (SET-KB-2). **Welche Bereiche
+    brauchten neue Backend-Arbeit:** Allgemein + Mein Profil (neu) · Ansicht/Sicherheit/Shell = bereits vorbereitet.
+
   - **LOGIN-PFLICHT [D21] GEBAUT 19.07.2026 (vorgezogen), wartet auf db push (Migr. 072) + Merge-Freigabe.**
     Auth war bereits voll gebaut (Korrektur der „Phase 5"-Altnotiz). Geschlossen: Catch-all `NotFoundRedirect`
     (unbekannt+nicht-eingeloggt → Login), öffentliche Routen explizit vor Catch-all (`/reset` neu, `/invite/:token`
@@ -574,7 +583,8 @@
     - [ ] `trash.purge` — Papierkorb (SET-3)
     - [ ] `export.all` — Gesamt-Daten-Export (noch nicht gebaut)
     - [ ] `audit.view` — Audit-Log-Screen + Import-Verlauf (Settings)
-    - [ ] `settings.manage` · `branding.manage` — Workspace-Settings/Produkte&Pricing/Branding (SET-2+)
+    - [x] `settings.manage` — **GEBAUT SET-2 (19.07.2026, Migr. 073)**: Workspace/Allgemein-Einstellungen (owner+admin)
+    - [ ] `branding.manage` — Produkte&Pricing/erweitertes Branding (SET-2+; Logo läuft vorerst über `settings.manage`)
     - [ ] `lists.share` — Team-Listen teilen / Listen-Rechte (Settings)
     - [ ] **Viewer-Read-only-Enforcement** — Basis-CRUD (Kontakte/Companies/Tasks/Listen anlegen/bearbeiten,
       Opt-out) ist heute nirgends rollen-gated; Viewer-Sperre kommt mit dem Viewer-Modus (RLS/Guard).

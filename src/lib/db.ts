@@ -62,6 +62,11 @@ import type { ContactRow, CompanyRow, DealRow, CommunicationRow, TaskRow, DueTas
 import type { CompanyListRaw } from "@/lib/companiesMappers";
 import type { CompanyActivityRow } from "@/lib/hunterMappers";
 import { compileToPostgrest, type FilterDefinition } from "@/lib/filter";
+import {
+  mergeGeneral, type GeneralSettings,
+  mergeNav, type NavPreferences, NAV_PREF_KEY,
+  type MyProfile,
+} from "@/lib/settingsDefaults";
 
 // ── Supabase Client — EINZIGER Init-Punkt im gesamten Projekt ────────────────
 // createClient() läuft AUSSCHLIESSLICH hier (audit-erzwungen). auth/storage/
@@ -1568,6 +1573,65 @@ export async function setUserPreference(
     .from("user_preferences")
     .upsert({ user_id: userId, organization_id: organizationId, key, value }, { onConflict: "user_id,key" });
   if (error) throw error;
+}
+
+// ── Settings SET-2 — Allgemein · Mein Profil · Ansicht (nur Datengrundlage, kein UI) ──────────────
+// Falle 2: Änderungen NUR über die zentralen RPCs (validiert + audit_log serverseitig) — nie rohes
+// settings-JSONB aus Komponenten. Falle 3: Defaults an EINER Stelle (settingsDefaults.ts).
+
+/** Allgemein (Merge-Lesen): settings.general + Org-Name + Logo, mit Defaults gefüllt. */
+export async function getGeneralSettings(
+  organizationId: string,
+): Promise<GeneralSettings & { name: string | null; logo_url: string | null }> {
+  const client = getSupabaseClient();
+  if (!client) return { ...mergeGeneral(null), name: null, logo_url: null };
+  const [{ data: s }, { data: o }] = await Promise.all([
+    client.from("settings").select("general").eq("organization_id", organizationId).maybeSingle(),
+    client.from("organizations").select("name, branding").eq("id", organizationId).maybeSingle(),
+  ]);
+  const general = mergeGeneral((s?.general as Partial<GeneralSettings> | null) ?? null);
+  const branding = (o?.branding as { logo_url?: string } | null) ?? null;
+  return { ...general, name: (o?.name as string | null) ?? null, logo_url: branding?.logo_url ?? null };
+}
+
+/** Allgemein ändern (validiert + audit_log + settings.manage serverseitig). patch ⊆ {name,logo_url,language,timezone,date_format,currency}. */
+export async function updateGeneralSettings(patch: Record<string, string>): Promise<void> {
+  const client = getSupabaseClient();
+  if (!client) return;
+  const { error } = await client.rpc("update_general_settings", { p_patch: patch });
+  if (error) throw error;
+}
+
+/** Mein Profil lesen (eigener users-Datensatz). */
+export async function getMyProfile(userId: string): Promise<(MyProfile & { role: string; email: string }) | null> {
+  const client = getSupabaseClient();
+  if (!client) return null;
+  const { data, error } = await client
+    .from("users")
+    .select("full_name, avatar_url, booking_provider, booking_link, signature, role, email")
+    .eq("id", userId)
+    .maybeSingle();
+  if (error || !data) return null;
+  return data as MyProfile & { role: string; email: string };
+}
+
+/** Mein Profil ändern (eigener Datensatz, validiert + audit_log serverseitig). patch ⊆ {full_name,avatar_url,booking_provider,booking_link,signature}. */
+export async function updateMyProfile(patch: Record<string, string>): Promise<void> {
+  const client = getSupabaseClient();
+  if (!client) return;
+  const { error } = await client.rpc("update_my_profile", { p_patch: patch });
+  if (error) throw error;
+}
+
+/** Ansicht (Nav-Sichtbarkeit+Reihenfolge) lesen — Merge/Reparatur, `settings` nie versteckt. */
+export async function getNavPreferences(userId: string, organizationId: string): Promise<NavPreferences> {
+  const raw = await getUserPreference<Partial<NavPreferences>>(userId, organizationId, NAV_PREF_KEY);
+  return mergeNav(raw);
+}
+
+/** Ansicht setzen — vor dem Speichern normalisiert (settings nie versteckt, kein Eintrag verloren). Persönlicher UI-State (kein audit). */
+export async function setNavPreferences(userId: string, organizationId: string, prefs: Partial<NavPreferences>): Promise<void> {
+  await setUserPreference(userId, organizationId, NAV_PREF_KEY, mergeNav(prefs));
 }
 
 // ── K-3 CP4: Kontakt anlegen (voller Pfad — Validierung/Dedup passieren im UI) ────

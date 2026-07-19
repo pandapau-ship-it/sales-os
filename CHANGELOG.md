@@ -6,6 +6,21 @@
 
 ## Unreleased
 
+- **feat:** Settings SET-2 — **nur Backend/Datengrundlage** (keine UI, Migr. 073). **Allgemein:** neue
+  `settings.general` jsonb (Sprache/Zeitzone/Datumsformat/Währung, Defaults geseedet); Org-Name/Logo bleiben
+  org-seitig (`organizations.name`/`branding.logo_url`). **Mein Profil:** neue `users`-Spalten `booking_provider`
+  · `booking_link` · `signature` (Voice = deferred SET-KB-2). **Neues Recht `settings.manage`** (owner+admin) im
+  SET-1-Katalog (Migr. 073 + TS-Spiegel `permissions.ts`). **Zentrale validierte Update-RPCs mit audit_log**
+  (Falle 2, server-erzwungen): `update_general_settings` (Recht `settings.manage`, Key-Whitelist + Wert-Validierung)
+  · `update_my_profile` (eigener Datensatz, Booking-URL/Längen-Validierung). **Merge-Lesen mit Defaults an EINER
+  Stelle** (Falle 3): `src/lib/settingsDefaults.ts` (`mergeGeneral`/`mergeNav`) + db.ts `getGeneralSettings`/
+  `getMyProfile`/`updateGeneralSettings`/`updateMyProfile`. **Ansicht** (Nav-Sichtbarkeit+Reihenfolge) über
+  bestehendes `user_preferences` (057) — `getNavPreferences`/`setNavPreferences` (settings nie versteckt, kein
+  Eintrag verloren; rein persönlicher UI-State, kein audit). **Sicherheit:** Passwort-Ändern via bestehendem
+  `lib/auth.updatePassword`; SSO-Anzeige `getUserIdentities` (Lesefunktion). **Area 5 Rollen-Sichtbarkeit** baut
+  direkt auf SET-1 auf: `src/lib/settingsNav.ts` (Gruppen→Sichtbarkeit `self`/`elevated`/Permission). 11 neue
+  [AUTO]-Tests (Merge-Logik, Nav-Regeln, Sichtbarkeit, settings.manage). RPC-Validierung/audit → Live-Verify.
+
 - **feat:** Login-Pflicht [D21] — Rest-Lücken geschlossen (kein Neubau; Auth war bereits voll gebaut).
   **Öffentliche-Routen-Architektur:** Catch-all `NotFoundRedirect` (unbekannt + nicht eingeloggt → Login `/`,
   nie blind `/app`); öffentliche Routen explizit VOR Catch-all; `/reset` neu, `/invite/:token` + `/unsubscribe`

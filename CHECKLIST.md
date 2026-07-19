@@ -230,6 +230,7 @@
   Passwort-Reset-Abschluss `/reset`; Logout im Avatar-Dropdown; Dev-Bypass hinter `VITE_DEV_AUTH_BYPASS`;
   `useCurrentOrg.provisioningError` + `ProvisioningGate`; **invite-only** (Migr. 072); Redirect `state.from` + differenzierte Fehler.
 - [x] **Invite-only Provisioning** (Migr. **072**) — `handle_new_user` legt ohne gültige Einladung keine Org/Owner an (ersetzt 043-Else) — *2026-07-19*
+- [~] **Settings SET-2 — Backend/Datengrundlage** (Migr. **073**, keine UI): `settings.general` (Sprache/Zeitzone/Datumsformat/Währung) · `users.booking_provider/booking_link/signature` · Recht `settings.manage` (owner+admin) · validierte Update-RPCs `update_general_settings`/`update_my_profile` (+audit_log) · zentrale Merge-Defaults `settingsDefaults.ts` · Ansicht via `user_preferences` (057) · SSO-Anzeige `getUserIdentities` · Rollen-Sichtbarkeit `settingsNav.ts`. **Offen: UI/Screens (Folge-Slice nach Design), Voice-Inhalt (SET-KB-2).** — *2026-07-19*
 - [ ] **[D29] Einladungs-Mail** via Edge Function (`auth.admin.inviteUserByEmail`) — service_role, deferred; **Route `/invite/:token` reserviert**
 - [ ] **2FA (TOTP)** UI vorhanden (`MfaBanner`); **Enforcement (Owner Pflicht) → B-3 Launch-Härtung** (deferred, Entscheidung C)
 - [ ] **Verwaiste Auth-User** (abgelehnte invite-only-SSO-Sessions) aufräumen — kleiner Folge-Schritt
