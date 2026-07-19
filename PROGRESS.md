@@ -462,6 +462,16 @@
 
 **6.** [ ] **[BAU+DESIGN] Settings SET-1 bis SET-4** (`docs/settings_bauplan_v1.md`;
   **SET-2 wartet auf Olivers vorhandenes Design** — Abgleich nach dessen Abschnitt 6)
+  - **AI-Studio-Design-Abgleich (19.07.2026) → Bauplan Abschnitt 8** (Seiten→Slice-Timing ·
+    Nav-komplett-in-SET-2 · Won/Lost-Invariante · Regel-A-Diagnose 8.T). Drei neue Entscheidungen:
+    - **[SET-KB-1]** neue Gruppe **„Mein Unternehmen"** (final 19.07.2026; Untertitel „Was die AI über
+      euch weiß") mit 3 dauerhaften Seiten: Company Profile · Personal Voice Card · Product & Pricing.
+    - **[SET-KB-2]** aus Onboarding herausgelöst, VOR AI SDR: **DB-Tabellen `org_profile` ·
+      `voice_profiles` · `product_info` jetzt einplanen** (alle drei fehlen — `products` (028) ist NICHT
+      dasselbe) + Settings-Seiten manuell editierbar jetzt; AI-Befüllung (Crawl) später mit Onboarding,
+      kein Umbau. Leere Felder = ehrlich „Folgt".
+    - **[SET-KB-3]** Fallback-Regel (→ auch `ai_sdr_bauplan_v1.md`): Nachrichten-Generierung MUSS ohne
+      Company/Voice/Product-Felder funktionieren; gefüllt = besser, nicht Voraussetzung.
 
 **7.** [ ] **[BAU+DESIGN] AI SDR Slices 0–14** (`docs/ai_sdr_bauplan_v1.md` +
   `docs/for_ai_sdr_testplan_kritische_pfade.md`; UI-Slices über Dauerregel 4c)
