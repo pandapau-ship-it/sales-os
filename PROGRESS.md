@@ -469,10 +469,28 @@
     neue erben global). TS-Spiegel `resolveBillingConfig`/`buildFrozenChargeMeta` + Tests. Onboarding-
     Provisioning-Regel vermerkt. **Diagnose-Punkte 1-4 bleiben dokumentierte Andock-Haken** (nicht gebaut).
 
-**3.** [ ] **[OLIVER] Integrations-Session 0**
+**3.** [~] **[OLIVER] Integrations-Session 0** — *teilweise erledigt (19.07.2026)*
   (`docs/integrations_masterplan.md` Abschnitt 2 — Nango · Google-Testing-App ·
   Microsoft-App · Langfuse · Gemini-Key · System-Mail-Kanal.
   Auf „weiter" lieferst du die **Klick-Anleitung** und verdrahtest danach die Keys.)
+  - **✅ Nango + Outlook:** Account/Projekt live, Outlook über Nangos geteilte Test-App,
+    eine Test-Connection (`panda.pau@web.de`, `connection_id f615aa32-…`, `errors:[]`) verifiziert.
+    `nango_secret_key` im Supabase Vault (Konvention lowercase snake_case wie `app_service_role_key`,
+    README dokumentiert). API-Erreichbarkeit smoke-getestet (`GET /connection`).
+  - **⬜ Offen:** Google Mail (→ **[D-google-own-app]**) · Langfuse-Key · Gemini-Key · System-Mail-Kanal.
+
+  > **[D-google-own-app]:** Google Mail braucht eine EIGENE Google-Cloud-OAuth-App (Testing-Modus,
+  > eigene Konten als Test-User) statt Nangos geteilter App — Nangos Standard-App wird von Google
+  > für Gmail-Scopes blockiert. Aufwand: ca. 15-20 Min, komplett selbst gemacht, KEINE Wartezeit/
+  > Verifizierung nötig (nur Testing-Modus). Muss erledigt sein, bevor Google-Mailbox-Verbindungen
+  > im AI SDR genutzt werden können. Outlook ist unabhängig davon bereits nutzbar.
+
+  > **[D-nango-own-apps]:** Aktuell läuft die Mailbox-Verbindung über Nangos geteilte Standard-App
+  > (zeigt „Nango" statt „Sherloq" im Consent-Screen der Nutzer, feste Standard-Scopes). Muss auf
+  > eine EIGENE Google-Cloud-App + Microsoft-Entra-App-Registrierung umgestellt werden, BEVOR ein
+  > echter externer Nutzer (nicht nur wir selbst) eine Mailbox verbindet — wichtig für Vertrauen/
+  > Branding beim Consent-Screen und volle Scope-Kontrolle. Umstellung ist unkritisch (nur Austausch
+  > der Credentials in Nango, kein Code-Umbau).
 
 **4.** [ ] **[BAU] Mitteilungs-Fundament N-S1 + N-S2-Minimal** (`docs/mitteilungssystem_bauplan_v1.md`)
 
