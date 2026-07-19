@@ -7,6 +7,9 @@ import {
   availableCredits,
   decideEntitlement,
   decideCreditCharge,
+  resolveBillingConfig,
+  buildFrozenChargeMeta,
+  type BillingConfig,
 } from "./credits";
 
 // Diese Tests spiegeln die Akzeptanzkriterien aus
@@ -125,6 +128,98 @@ describe("Enforcement NUR wenn billing_enabled=true (Akzeptanz #5)", () => {
         cost: 1,
       }),
     ).toBe(false);
+  });
+});
+
+// ── Migration 064 — Fundament-Härtung ────────────────────────────────────────
+
+const GLOBAL: BillingConfig = {
+  billingEnabled: false,
+  tokensPerCredit: 5000,
+  minCreditsPerAction: 1,
+  modelCreditFactors: {},
+};
+
+describe("Punkt 5 — resolveBillingConfig: global → per-Key-Override", () => {
+  it("Org OHNE Override erbt komplett global", () => {
+    expect(resolveBillingConfig(GLOBAL, null)).toEqual(GLOBAL);
+    expect(resolveBillingConfig(GLOBAL, {})).toEqual(GLOBAL);
+  });
+
+  it("Org MIT eigenem Eintrag nutzt weiterhin ihren Override (voller Block)", () => {
+    const org: Partial<BillingConfig> = {
+      billingEnabled: true,
+      tokensPerCredit: 2500,
+      minCreditsPerAction: 2,
+      modelCreditFactors: { "expensive-model": 3 },
+    };
+    expect(resolveBillingConfig(GLOBAL, org)).toEqual(org);
+  });
+
+  it("partieller Override: gesetzte Keys gewinnen, Rest erbt global", () => {
+    const r = resolveBillingConfig(GLOBAL, { tokensPerCredit: 8000 });
+    expect(r.tokensPerCredit).toBe(8000); // Override
+    expect(r.minCreditsPerAction).toBe(1); // global
+    expect(r.billingEnabled).toBe(false); // global
+    expect(r.modelCreditFactors).toEqual({}); // global
+  });
+
+  it("billing_enabled=false als expliziter Override wird respektiert (nicht als 'ungesetzt')", () => {
+    const g2: BillingConfig = { ...GLOBAL, billingEnabled: true };
+    expect(resolveBillingConfig(g2, { billingEnabled: false }).billingEnabled).toBe(false);
+  });
+
+  it("tokensPerCredit<=0 gilt als ungesetzt → global (Schutz wie SQL nullif)", () => {
+    expect(resolveBillingConfig(GLOBAL, { tokensPerCredit: 0 }).tokensPerCredit).toBe(5000);
+  });
+
+  it("änderung am globalen Default trägt zu erbenden Orgs, nicht zu Override-Orgs", () => {
+    const g2: BillingConfig = { ...GLOBAL, tokensPerCredit: 2500 };
+    expect(resolveBillingConfig(g2, null).tokensPerCredit).toBe(2500); // erbt neuen Default
+    expect(resolveBillingConfig(g2, { tokensPerCredit: 5000 }).tokensPerCredit).toBe(5000); // Override bleibt
+  });
+});
+
+describe("Punkt 0 — buildFrozenChargeMeta: angewandte Parameter eingefroren, nie rückwirkend", () => {
+  it("friert die zum Buchungszeitpunkt angewandten Parameter ein", () => {
+    const cfgA = resolveBillingConfig(GLOBAL, null); // tpc 5000
+    const cost = computeCreditCost({
+      totalTokens: 7200,
+      tokensPerCredit: cfgA.tokensPerCredit,
+      modelFactor: 1.0,
+      minCreditsPerAction: cfgA.minCreditsPerAction,
+    });
+    const frozen = buildFrozenChargeMeta({
+      tokensPerCredit: cfgA.tokensPerCredit,
+      modelFactor: 1.0,
+      minCreditsPerAction: cfgA.minCreditsPerAction,
+      creditCost: cost,
+    });
+    expect(frozen).toEqual({
+      raw_credit_calc: 2,
+      applied_tokens_per_credit: 5000,
+      applied_model_factor: 1.0,
+      applied_min_credits_per_action: 1,
+    });
+  });
+
+  it("spätere Config-Änderung ändert die ALTE eingefrorene Buchung NICHT, neue nutzt neuen Wert", () => {
+    // Buchung 1 unter Faktor/Preis A (tpc 5000)
+    const costA = computeCreditCost({ totalTokens: 7200, tokensPerCredit: 5000, minCreditsPerAction: 1 });
+    const frozenA = buildFrozenChargeMeta({ tokensPerCredit: 5000, modelFactor: 1.0, minCreditsPerAction: 1, creditCost: costA });
+    // Config ändert sich auf B (tpc 2500) → neue Buchung teurer
+    const costB = computeCreditCost({ totalTokens: 7200, tokensPerCredit: 2500, minCreditsPerAction: 1 });
+    const frozenB = buildFrozenChargeMeta({ tokensPerCredit: 2500, modelFactor: 1.0, minCreditsPerAction: 1, creditCost: costB });
+    // Alte Buchung unverändert (X/A), neue nutzt B:
+    expect(frozenA.applied_tokens_per_credit).toBe(5000);
+    expect(frozenA.raw_credit_calc).toBe(2);
+    expect(frozenB.applied_tokens_per_credit).toBe(2500);
+    expect(frozenB.raw_credit_calc).toBe(3); // 7200/2500 → ceil 3
+  });
+
+  it("Nicht-AI: applied_model_factor = null (Faktor nicht anwendbar)", () => {
+    const frozen = buildFrozenChargeMeta({ tokensPerCredit: 5000, modelFactor: null, minCreditsPerAction: 1, creditCost: 1 });
+    expect(frozen.applied_model_factor).toBeNull();
   });
 });
 

@@ -108,3 +108,58 @@ export function decideCreditCharge(opts: {
   if (isUnlimited(opts.balance.includedMonthly)) return true;
   return availableCredits(opts.balance) >= opts.cost;
 }
+
+// ── Migration 064 — Fundament-Härtung ────────────────────────────────────────
+
+export interface BillingConfig {
+  billingEnabled: boolean;
+  tokensPerCredit: number;
+  minCreditsPerAction: number;
+  modelCreditFactors: Record<string, number>;
+}
+
+/**
+ * Punkt 5 — Globaler Default + per-Key-Override. Spiegelt `_billing_config` (SQL, 064):
+ * pro Key gewinnt der Org-Override (settings.billing) WENN gesetzt, sonst der globale Default.
+ * `tokensPerCredit <= 0` gilt als „nicht gesetzt" (Schutz, wie SQL `nullif(...,0)`).
+ * Eine Org OHNE Override erbt komplett global; einzelne Keys sind mischbar.
+ */
+export function resolveBillingConfig(
+  global: BillingConfig,
+  orgOverride: Partial<BillingConfig> | null | undefined,
+): BillingConfig {
+  const o = orgOverride ?? {};
+  return {
+    billingEnabled: o.billingEnabled ?? global.billingEnabled,
+    tokensPerCredit:
+      o.tokensPerCredit != null && o.tokensPerCredit > 0 ? o.tokensPerCredit : global.tokensPerCredit,
+    minCreditsPerAction: o.minCreditsPerAction ?? global.minCreditsPerAction,
+    modelCreditFactors: o.modelCreditFactors ?? global.modelCreditFactors,
+  };
+}
+
+export interface FrozenChargeMeta {
+  raw_credit_calc: number;
+  applied_tokens_per_credit: number;
+  applied_model_factor: number | null; // null für Nicht-AI (Faktor nicht anwendbar)
+  applied_min_credits_per_action: number;
+}
+
+/**
+ * Punkt 0 — Rückwirkungsfreiheit. Spiegelt die metadata-Ergänzung in `consume_credits` (SQL, 064):
+ * die ZUM BUCHUNGSZEITPUNKT angewandten Parameter werden eingefroren in die Transaktion geschrieben.
+ * Eine spätere Config-Änderung wirkt NIE rückwirkend — die Zeile bleibt für immer erklärbar.
+ */
+export function buildFrozenChargeMeta(opts: {
+  tokensPerCredit: number;
+  modelFactor: number | null;
+  minCreditsPerAction: number;
+  creditCost: number;
+}): FrozenChargeMeta {
+  return {
+    raw_credit_calc: opts.creditCost,
+    applied_tokens_per_credit: opts.tokensPerCredit,
+    applied_model_factor: opts.modelFactor,
+    applied_min_credits_per_action: opts.minCreditsPerAction,
+  };
+}
