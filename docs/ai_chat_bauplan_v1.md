@@ -506,6 +506,26 @@ angelegt, manueller Testlauf erzeugt Report-Nachricht mit insight/chart-Blöcken
 Mitteilung; "Schreib allen aus der Liste eine persönliche Mail" → Review-Liste →
 Versand real.
 
+**[C2-Ergänzung 1 — Bedingungs-basierte Erinnerungen]** Neben zeitbasierten Jobs (jeden Montag,
+monatlich) soll C2/`scheduled_jobs` auch BEDINGUNGS-basierte Erinnerungen unterstützen: der Chat legt
+eine Regel an, die bei jedem Durchlauf eine Bedingung gegen den Analyse-Katalog (C3) prüft (z.B.
+"Anzahl neuer Kontakte ohne zugewiesene Aufgabe > 10") und nur bei Erfüllung eine Mitteilung/Chat-
+Nachricht auslöst — nicht bei jedem Lauf wie ein reiner Zeit-Job. Beispiel-Formulierung des Nutzers:
+"Erinnere mich, wenn ich mehr als 10 neue Kontakte ohne Aufgabe habe." Technisch nah am
+`scheduled_jobs`-Muster (C2) UND am Cron-Wächter-Prinzip aus **Betrieb B-1** (regelmäßig prüfen, bei
+Bedingung erfüllt → `notify()`) — beide Muster sind bereits im Projekt vorhanden und wiederverwendbar.
+
+**[C2-Ergänzung 2 — Plan-Limit]** Die Anzahl gleichzeitig aktiver `scheduled_jobs` (zeit- UND
+bedingungsbasiert zusammen) pro Org ist ein plan-abhängiges Limit — z.B. Starter = 2, Growth = 5,
+Scale = 8 (konkrete Zahlen später final). Nutzt die BEREITS BESTEHENDE Entitlement-Infrastruktur
+(Migrationen 061-064, `plan_limits`-Tabelle, `check_entitlement()`-Function) — KEIN neuer Mechanismus
+nötig. Beim Anlegen eines neuen Jobs prüft der Chat vor dem Speichern `check_entitlement(org,
+'scheduled_jobs')` gegen die aktuelle Zahl aktiver Jobs. Ist das Limit erreicht: freundlicher Hinweis +
+ggf. Verweis auf Upgrade (analog zum bestehenden Upgrade-Prompt-Muster aus dem Modul-System).
+Internal-Plan (wir selbst) bleibt unlimited (-1), wie bei allen anderen Limits bereits etabliert.
+Feature-Key `'scheduled_jobs'` muss bei Bau von Slice 9 als neue Zeile in `plan_limits` ergänzt werden —
+reine Daten, kein Schema-Umbau, folgt demselben Muster wie alle anderen Limits.
+
 ### SLICE 10 — Externe Recherche (experimentell markiert)
 Websearch-Tool im aiCall (Anthropic web_search) für Ad-hoc-Fragen + Jobs mit
 requires_web · **research_contact(contact_id)-Tool: recherchiert den öffentlichen
