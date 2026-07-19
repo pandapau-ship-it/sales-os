@@ -1603,16 +1603,26 @@ export async function updateGeneralSettings(patch: Record<string, string>): Prom
 }
 
 /** Mein Profil lesen (eigener users-Datensatz). */
-export async function getMyProfile(userId: string): Promise<(MyProfile & { role: string; email: string }) | null> {
+export async function getMyProfile(userId: string): Promise<(MyProfile & { role: string; email: string; created_at: string | null }) | null> {
   const client = getSupabaseClient();
   if (!client) return null;
   const { data, error } = await client
     .from("users")
-    .select("full_name, avatar_url, booking_provider, booking_link, signature, role, email")
+    .select("full_name, avatar_url, booking_provider, booking_link, signature, role, email, created_at")
     .eq("id", userId)
     .maybeSingle();
   if (error || !data) return null;
-  return data as MyProfile & { role: string; email: string };
+  return data as MyProfile & { role: string; email: string; created_at: string | null };
+}
+
+/** Profil-Statistik: eigene (assigned_to) Kontakte + deren distinct Companies (Zähl-Funktion, Migr. 074). */
+export async function getProfileStats(): Promise<{ contacts: number; companies: number }> {
+  const client = getSupabaseClient();
+  if (!client) return { contacts: 0, companies: 0 };
+  const { data, error } = await client.rpc("get_profile_stats");
+  if (error || !data) return { contacts: 0, companies: 0 };
+  const d = data as { contacts?: number; companies?: number };
+  return { contacts: d.contacts ?? 0, companies: d.companies ?? 0 };
 }
 
 /** Mein Profil ändern (eigener Datensatz, validiert + audit_log serverseitig). patch ⊆ {full_name,avatar_url,booking_provider,booking_link,signature}. */

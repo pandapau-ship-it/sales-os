@@ -12,7 +12,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useCurrentOrg } from "@/hooks/useCurrentOrg";
 import { useSaveState } from "@/hooks/useSaveState";
-import { getMyProfile, updateMyProfile, setUserPreference } from "@/lib/db";
+import { getMyProfile, updateMyProfile, setUserPreference, getProfileStats } from "@/lib/db";
 import { setLanguage, type Language } from "@/lib/i18n";
 import { isValidUrl } from "@/lib/validation";
 import { Avatar, SettingsCard } from "@/components";
@@ -25,9 +25,8 @@ import {
 const LANGUAGES: { code: Language; label: string }[] = [
   { code: "de", label: "Deutsch" }, { code: "en", label: "English" }, { code: "es", label: "Español" },
 ];
-const PROVIDERS: { code: string; label: string }[] = [
-  { code: "calendly", label: "Calendly" }, { code: "cal_com", label: "Cal.com" }, { code: "google_calendar", label: "Google Calendar" },
-];
+// E3-Kanon: Cal.com oder externer Link (beliebiger Anbieter).
+const PROVIDERS = ["calcom", "external"] as const;
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
   return <label className="typo-field-label text-text-muted mb-1.5 block">{children}</label>;
@@ -46,6 +45,19 @@ export default function MyProfileTab() {
     staleTime: 60_000,
   });
   const p = profileQuery.data;
+
+  // Profil-Statistik (eigene Kontakte + deren Companies) — reine Zähl-Abfrage.
+  const statsQuery = useQuery({
+    enabled: !!user?.id,
+    queryKey: ["profileStats", user?.id],
+    queryFn: getProfileStats,
+    staleTime: 60_000,
+  });
+  const stats = statsQuery.data;
+
+  const memberSince = p?.created_at
+    ? new Date(p.created_at).toLocaleDateString(i18n.language, { year: "numeric", month: "long", day: "numeric" })
+    : null;
 
   const general = useSaveState();
   const lang = useSaveState();
@@ -94,6 +106,18 @@ export default function MyProfileTab() {
             </div>
           </div>
         </div>
+
+        {/* Dezente Statistik-Zeile + „Dabei seit" — reine Anzeige, echte Zähl-Daten */}
+        {(stats || memberSince) && (
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-1 pt-4 mt-1 border-t border-[var(--border-card)] text-[12px] text-text-muted">
+            {stats && <span>{t("personal.profile.statsContacts", { count: stats.contacts })}</span>}
+            {stats && <span aria-hidden className="text-border">·</span>}
+            {stats && <span>{t("personal.profile.statsCompanies", { count: stats.companies })}</span>}
+            {memberSince && (
+              <span className="ml-auto">{t("personal.profile.memberSince", { date: memberSince })}</span>
+            )}
+          </div>
+        )}
       </SettingsCard>
 
       {/* Sprache */}
@@ -126,7 +150,7 @@ export default function MyProfileTab() {
             >
               <SelectTrigger><SelectValue placeholder={t("personal.profile.providerPlaceholder")} /></SelectTrigger>
               <SelectContent>
-                {PROVIDERS.map((pr) => <SelectItem key={pr.code} value={pr.code}>{pr.label}</SelectItem>)}
+                {PROVIDERS.map((code) => <SelectItem key={code} value={code}>{t(`personal.profile.provider_${code}`)}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
@@ -142,7 +166,7 @@ export default function MyProfileTab() {
                 if (linkVal && !isValidUrl(linkVal)) { setLinkError(true); return; }
                 void booking.run(save.mutateAsync({ booking_link: linkVal }));
               }}
-              placeholder="https://..."
+              placeholder={p?.booking_provider === "external" ? t("personal.profile.bookingLinkExternalPlaceholder") : "https://..."}
             />
             {linkError && <p className="text-[12px] text-signal-urgent mt-1" role="alert">{t("personal.profile.linkInvalid")}</p>}
           </div>
@@ -154,7 +178,7 @@ export default function MyProfileTab() {
         <div>
           <FieldLabel>{t("personal.profile.signature")}</FieldLabel>
           <Textarea
-            rows={4}
+            rows={8}
             value={sigVal}
             onChange={(e) => setSignature(e.target.value)}
             onBlur={() => { if (sigVal !== (p?.signature ?? "")) void sig.run(save.mutateAsync({ signature: sigVal })); }}

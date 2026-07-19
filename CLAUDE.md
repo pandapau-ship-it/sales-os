@@ -5475,6 +5475,12 @@ Unten:
 - Notifications (Glocke) sitzt in der **Top-Bar**, nicht in der Rail. Tasks laufen über Cmd+K.
 - Integrationen (Jira etc.) erscheinen **zusätzlich nur** wenn das Modul aktiviert ist (`useModules`).
 - Verhältnis zur Top-Nav: die vier Screens sind die primäre Navigation; diese Rail-Struktur ist verbindlich.
+- **Reihenfolge + Sichtbarkeit der Screen-/Daten-Icons sind pro User konfigurierbar** (SET-2 „Ansicht",
+  `user_preferences`): die Sidebar liest `getNavPreferences` (Query-Key `['navPrefs', userId]`) und wendet
+  `order`+`hidden` an — plus das Modul-Gate (`useModules`). Der obige Aufbau ist die **Default-Reihenfolge**;
+  der Screens/Daten-Mittel-Divider entfällt, sobald frei sortiert wird. **`settings` (Einstellungen) ist NIE
+  ausblendbar/sortierbar** (fest). Ausgeblendetes bleibt per Cmd+K/Chat erreichbar. Änderung in „Ansicht"
+  invalidiert denselben Query-Key → Sidebar aktualisiert sofort ohne Reload.
 
 ---
 

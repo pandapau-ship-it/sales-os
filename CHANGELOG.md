@@ -6,6 +6,17 @@
 
 ## Unreleased
 
+- **fix/feat:** SET-2 „Mein Profil"-Fixes (nach Live-Test, Migr. 074). **Bug:** Sidebar ignorierte die
+  Ansicht-Prefs (hardcodierte Nav-Listen) → liest jetzt `getNavPreferences` mit gleichem Query-Key wie
+  AppearanceTab, wendet `hidden`+`order` an → Ausblenden/Reihenfolge wirkt **sofort ohne Reload** (2 Regressionstests;
+  Screens/Data-Mittel-Divider entfällt zugunsten der freien Reihenfolge). **Korrektur:** `booking_provider` auf
+  E3-Kanon `calcom`|`external` (Migr. 074 `update_my_profile`-Whitelist + `settingsDefaults.BOOKING_PROVIDERS`);
+  UI „Cal.com" / „Externer Link" mit freiem URL-Feld (beschreibender Platzhalter). **Ergänzungen:** Signatur
+  8 Zeilen · Rolle-Anzeige verifiziert · **Statistik** (eigene Kontakte + deren Companies, neue Funktion
+  `get_profile_stats`) · **„Dabei seit"** (users.created_at, `getMyProfile` um `created_at` erweitert). i18n
+  de/en/es. Deferred dokumentiert: `[D-profile-signature-richtext]` · `[D-profile-avatar-upload]` ·
+  `[D-profile-team-view]` · `[D-profile-usage-analytics]` (PROGRESS.md).
+
 - **feat:** Settings SET-2 „Persönlich"-UI — Mein Profil · Ansicht · Sicherheit (an das fertige SET-2-Backend
   gebunden, echte Daten). **Zugang gebündelt hinter dem Avatar-Dropdown** (Route `/app/profil`, 3 interne
   Reiter via `PanelTabs`) — **nicht** in der Haupt-Settings-Nav (Bauplan-Struktur-Korrektur eingetragen).

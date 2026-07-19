@@ -39,10 +39,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useQuery } from "@tanstack/react-query";
 import { useTheme } from "@/hooks/useTheme";
 import { useModules, type ModuleKey } from "@/hooks/useModules";
 import { useAuth } from "@/hooks/useAuth";
+import { useCurrentOrg } from "@/hooks/useCurrentOrg";
 import { signOut } from "@/lib/auth";
+import { getNavPreferences } from "@/lib/db";
+import { NAV_DEFAULTS } from "@/lib/settingsDefaults";
 import { NAV } from "@/lib/navBehavior";
 
 interface NavIcon {
@@ -61,6 +65,7 @@ export default function Sidebar() {
   const { theme, toggleTheme } = useTheme();
   const { hasModule } = useModules();
   const { user } = useAuth();
+  const { organizationId } = useCurrentOrg();
   const isDark = theme === "dark";
 
   const doLogout = async () => {
@@ -68,17 +73,31 @@ export default function Sidebar() {
     navigate("/", { replace: true });
   };
 
-  const screens: NavIcon[] = [
-    { route: "meintag", labelKey: "nav.meintag", icon: <Sun className={ICON} strokeWidth={1.5} /> },
-    { route: "ai-sdr", labelKey: "nav.aisdr", icon: <Bot className={ICON} strokeWidth={1.5} />, module: "ai_sdr" },
-    { route: "hunter", labelKey: "nav.hunter", icon: <Target className={ICON} strokeWidth={1.5} />, module: "hunter" },
-    { route: "farmer", labelKey: "nav.farmer", icon: <Sprout className={ICON} strokeWidth={1.5} />, module: "farmer" },
-  ];
+  // Persönliche Ansicht-Prefs (user_preferences 057) — SELBER Query-Key wie AppearanceTab, damit
+  // eine Änderung dort (invalidateQueries) die Sidebar SOFORT ohne Reload aktualisiert.
+  const navPrefsQuery = useQuery({
+    enabled: !!user?.id,
+    queryKey: ["navPrefs", user?.id],
+    queryFn: () => getNavPreferences(user!.id, organizationId),
+    staleTime: 60_000,
+  });
+  const prefs = navPrefsQuery.data ?? NAV_DEFAULTS;
 
-  const data: NavIcon[] = [
-    { route: "kontakte", labelKey: "nav.kontakte", icon: <Users className={ICON} strokeWidth={1.5} /> },
-    { route: "companies", labelKey: "nav.companies", icon: <Building2 className={ICON} strokeWidth={1.5} /> },
-  ];
+  // Kanonische Nav-Einträge je Route (Reihenfolge/Sichtbarkeit steuert die Ansicht-Pref).
+  const ALL_NAV: Record<string, NavIcon> = {
+    meintag: { route: "meintag", labelKey: "nav.meintag", icon: <Sun className={ICON} strokeWidth={1.5} /> },
+    "ai-sdr": { route: "ai-sdr", labelKey: "nav.aisdr", icon: <Bot className={ICON} strokeWidth={1.5} />, module: "ai_sdr" },
+    hunter: { route: "hunter", labelKey: "nav.hunter", icon: <Target className={ICON} strokeWidth={1.5} />, module: "hunter" },
+    farmer: { route: "farmer", labelKey: "nav.farmer", icon: <Sprout className={ICON} strokeWidth={1.5} />, module: "farmer" },
+    kontakte: { route: "kontakte", labelKey: "nav.kontakte", icon: <Users className={ICON} strokeWidth={1.5} /> },
+    companies: { route: "companies", labelKey: "nav.companies", icon: <Building2 className={ICON} strokeWidth={1.5} /> },
+  };
+
+  // Reihenfolge aus der Pref, Ausgeblendetes raus, dann Modul-Gate (nicht-aktive Module bleiben unsichtbar).
+  const visibleNav: NavIcon[] = prefs.order
+    .filter((r) => !prefs.hidden.includes(r))
+    .map((r) => ALL_NAV[r])
+    .filter((it): it is NavIcon => !!it && (!it.module || hasModule(it.module)));
 
   const isActive = (route: string) => pathname.startsWith(`/app/${route}`);
 
@@ -106,13 +125,8 @@ export default function Sidebar() {
   return (
     <TooltipProvider delayDuration={300}>
       <aside className={`w-[56px] min-w-[56px] h-[calc(100vh-80px)] ${NAV.surface} ${NAV.radius} flex flex-col items-center py-4 select-none sticky top-[68px] ml-4 z-20`}>
-        {/* Screens */}
-        <div className="flex flex-col gap-2 items-center">{screens.map(renderIcon)}</div>
-
-        <div className="w-[28px] h-px bg-border my-3" />
-
-        {/* Datenbank */}
-        <div className="flex flex-col gap-2 items-center">{data.map(renderIcon)}</div>
+        {/* Nav-Einträge in persönlicher Reihenfolge (Ansicht-Pref) — Ausgeblendetes fehlt hier */}
+        <div className="flex flex-col gap-2 items-center">{visibleNav.map(renderIcon)}</div>
 
         <div className="flex-1" />
 

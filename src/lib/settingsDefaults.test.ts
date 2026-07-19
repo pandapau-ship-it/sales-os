@@ -1,7 +1,13 @@
 import { describe, it, expect } from "vitest";
 import {
-  GENERAL_DEFAULTS, mergeGeneral, NAV_HIDEABLE, NAV_DEFAULTS, mergeNav,
+  GENERAL_DEFAULTS, mergeGeneral, NAV_HIDEABLE, NAV_DEFAULTS, mergeNav, BOOKING_PROVIDERS,
 } from "./settingsDefaults";
+
+describe("BOOKING_PROVIDERS — E3-Kanon (calcom | external)", () => {
+  it("genau zwei Werte: calcom + external", () => {
+    expect([...BOOKING_PROVIDERS]).toEqual(["calcom", "external"]);
+  });
+});
 
 describe("mergeGeneral — Defaults an EINER Stelle (Falle 3)", () => {
   it("null → volle Defaults", () => {

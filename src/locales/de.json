@@ -1124,7 +1124,13 @@
       "sigTitle": "E-Mail-Signatur",
       "sigDesc": "Deine Signatur für den Versand aus Sherloq.",
       "signature": "Signatur",
-      "sigPlaceholder": "Viele Grüße, …"
+      "sigPlaceholder": "Viele Grüße, …",
+      "provider_calcom": "Cal.com",
+      "provider_external": "Externer Link",
+      "bookingLinkExternalPlaceholder": "z.B. HubSpot, Google Kalender, Outlook Bookings — beliebiger Link",
+      "statsContacts": "{{count}} Kontakte",
+      "statsCompanies": "{{count}} Companies",
+      "memberSince": "Dabei seit {{date}}"
     },
     "appearance": {
       "navTitle": "Seitenleiste anpassen",

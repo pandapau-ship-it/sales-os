@@ -31,7 +31,8 @@ export function mergeGeneral(raw: Partial<GeneralSettings> | null | undefined): 
 }
 
 // ── Mein Profil ──────────────────────────────────────────────────────────────
-export const BOOKING_PROVIDERS = ["calendly", "cal_com", "google_calendar"] as const;
+// E3 (ai_sdr_bauplan): 'calcom' = Cal.com · 'external' = beliebiger Link (HubSpot/Google/Outlook …).
+export const BOOKING_PROVIDERS = ["calcom", "external"] as const;
 export type BookingProvider = (typeof BOOKING_PROVIDERS)[number];
 
 export interface MyProfile {

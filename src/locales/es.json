@@ -1118,7 +1118,13 @@
       "sigTitle": "Firma de correo",
       "sigDesc": "Tu firma para enviar desde Sherloq.",
       "signature": "Firma",
-      "sigPlaceholder": "Un saludo, …"
+      "sigPlaceholder": "Un saludo, …",
+      "provider_calcom": "Cal.com",
+      "provider_external": "Enlace externo",
+      "bookingLinkExternalPlaceholder": "p. ej. HubSpot, Google Calendar, Outlook Bookings — cualquier enlace",
+      "statsContacts": "{{count}} contactos",
+      "statsCompanies": "{{count}} empresas",
+      "memberSince": "Miembro desde {{date}}"
     },
     "appearance": {
       "navTitle": "Personalizar barra lateral",
