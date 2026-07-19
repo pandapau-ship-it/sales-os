@@ -5339,6 +5339,12 @@ user_permissions (
 )
 ```
 
+> **Katalog-Umfang (Stand SET-1, 19.07.2026):** Die Matrix oben ist der **Ziel-Endzustand**. Der
+> **`permission_catalog` v1 enthält NUR die heute gebauten Rechte** — `team.invite` · `records.delete` ·
+> `records.merge`. Alle übrigen Rechte (rules.edit, campaigns.manage, pipeline.manage, billing.*, export.all,
+> trash.purge, audit.view, settings.manage, branding.manage, lists.share …) werden **MIT ihrem Modul**
+> ergänzt (Dauerregel „Rechte-Check-Pflicht"). Zukunfts-Registry: PROGRESS.md.
+
 ### Was nur Admin/Owner sieht — in Settings (nicht in der Haupt-Navigation)
 - Company-Verwaltung (alle Companies, Duplikate zusammenführen)
 - Import-Verlauf / Audit Log (wer hat was wann importiert)

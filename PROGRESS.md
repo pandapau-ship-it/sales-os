@@ -539,11 +539,31 @@
   - **SET-1 Rechte-Fundament GEBAUT 19.07.2026 (Migr. 070/071), wartet auf db push + Freigabe.**
     Serverseitiger Wächter als Postgres-Funktionen (`has_permission` deny>grant>Rolle · `grant`/`revoke_permission`
     Cross-Org+Admin-Hierarchie · `set_user_role` Owner-only+Letzter-Owner-Schutz · `soft_delete_contacts`/
-    `_companies` erzwingen `records.delete` → **[D-delete-rights] geschlossen**). Global `permission_catalog`
-    + `role_permissions` (datengetriebene Matrix), `user_permissions` gehärtet (`effect` grant|deny, UNIQUE,
-    Audit). TS-Spiegel `lib/permissions.ts`, Hook `useEffectivePermissions`. Verstreute Rollen-Checks abgelöst
-    (`TeamSettings`/`MfaBanner`/`updateUserRole`). **NICHT jetzt:** Einzelrechte-/Papierkorb-UI (SET-3),
-    Nav-Rollen-Ausblendung (SET-2), AI-Chat-Tool-Bindung.
+    `_companies`/`_deals` erzwingen `records.delete` → **[D-delete-rights] Teil 1 geschlossen** · Merge über
+    `assert_permission('records.merge')`). Global `permission_catalog` + `role_permissions` (datengetriebene
+    Matrix), `user_permissions` gehärtet (`effect` grant|deny, UNIQUE, Audit). TS-Spiegel `lib/permissions.ts`,
+    Hook `useEffectivePermissions` (fail-safe), UI-Gate `RequiresPermission`/`usePermission`, CLAUDE-Dauerregel
+    „Rechte-Check-Pflicht". Verstreute Rollen-Checks abgelöst (`TeamSettings`/`MfaBanner`/`updateUserRole`).
+    **Katalog-Umfang v1 (Teil-D-Scan, Option 3): NUR heute-existierend** — `team.invite` · `records.delete` ·
+    `records.merge`. **NICHT jetzt:** Einzelrechte-/Papierkorb-UI (SET-3), Nav-Rollen-Ausblendung (SET-2),
+    AI-Chat-Tool-Bindung, Viewer-Read-only-Enforcement.
+
+  - **▶ RECHTE-KATALOG — ZUKUNFTS-REGISTRY (Teil-D-Scan 19.07.2026).** Diese Rechte existieren HEUTE noch
+    nicht im Katalog und werden **MIT ihrem Modul** hinzugefügt (`permission_catalog` 070 + `role_permissions`
+    + TS-Spiegel + `<RequiresPermission>` + Server-Guard — die 3 Fragen der Dauerregel). **Beim jeweiligen
+    Modul-Bau abhaken:**
+    - [ ] `rules.edit` — Automation-Rules / Schwellen / Duplicate-Detection-Regeln (Settings/AI-SDR)
+    - [ ] `campaigns.manage` · `templates.manage` — AI SDR
+    - [ ] `pipeline.manage` — Pipeline-Stages-Config-UI (Settings SET-2+)
+    - [ ] `integrations.manage` — Integrationen + Webhook-Config (Endphase)
+    - [ ] `billing.manage` · `billing.approve_credits` — Billing-UI (Launch; `billing.`-Filter in Matrix schon vorbereitet)
+    - [ ] `trash.purge` — Papierkorb (SET-3)
+    - [ ] `export.all` — Gesamt-Daten-Export (noch nicht gebaut)
+    - [ ] `audit.view` — Audit-Log-Screen + Import-Verlauf (Settings)
+    - [ ] `settings.manage` · `branding.manage` — Workspace-Settings/Produkte&Pricing/Branding (SET-2+)
+    - [ ] `lists.share` — Team-Listen teilen / Listen-Rechte (Settings)
+    - [ ] **Viewer-Read-only-Enforcement** — Basis-CRUD (Kontakte/Companies/Tasks/Listen anlegen/bearbeiten,
+      Opt-out) ist heute nirgends rollen-gated; Viewer-Sperre kommt mit dem Viewer-Modus (RLS/Guard).
   - **AI-Studio-Design-Abgleich (19.07.2026) → Bauplan Abschnitt 8** (Seiten→Slice-Timing ·
     Nav-komplett-in-SET-2 · Won/Lost-Invariante · Regel-A-Diagnose 8.T). Drei neue Entscheidungen:
     - **[SET-KB-1]** neue Gruppe **„Mein Unternehmen"** (final 19.07.2026; Untertitel „Was die AI über

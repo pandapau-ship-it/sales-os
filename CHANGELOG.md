@@ -7,8 +7,9 @@
 ## Unreleased
 
 - **feat:** Settings SET-1 — Rechte-Fundament (echter serverseitiger Wächter, Migr. 070/071).
-  Zwei GLOBALE datengetriebene Katalog-Tabellen `permission_catalog` (12 Rechte) + `role_permissions`
-  (Rollen-Matrix owner=alles · admin=alles außer `billing.*` · member=`export.all` · viewer=∅) — beide in
+  Zwei GLOBALE datengetriebene Katalog-Tabellen `permission_catalog` (**v1: 3 Rechte, nur heute-existierend**
+  — `team.invite`/`records.delete`/`records.merge`; Zukunfts-Rechte kommen mit ihrem Modul, Registry in
+  PROGRESS.md) + `role_permissions` (Rollen-Matrix owner=alles · admin=alles außer `billing.*` · member/viewer=∅) — beide in
   audit `GLOBAL_TABLES`. `user_permissions` (007) gehärtet: `effect`-Spalte (`grant`|`deny`, v1 nur grant —
   Tür offen für Subtraktion) + `UNIQUE(user_id, permission)` + Audit-Trigger. **Guard als Postgres-Funktionen**
   (security definer, `auth.uid()` als nicht-spoofbarer Actor, Org-Scope je Write): `has_permission`

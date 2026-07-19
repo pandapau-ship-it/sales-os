@@ -7,18 +7,20 @@ import {
   isElevatedRole,
 } from "./permissions";
 
-describe("Rollen-Matrix (Spiegel role_permissions-Seed, 070)", () => {
+describe("Rollen-Matrix (Spiegel role_permissions-Seed, 070) — v1-Katalog (3 Rechte, heute-existierend)", () => {
+  it("Katalog v1 = genau team.invite, records.delete, records.merge", () => {
+    expect([...PERMISSIONS].sort()).toEqual(["records.delete", "records.merge", "team.invite"]);
+  });
   it("owner hat ALLE Rechte", () => {
     expect([...ROLE_PERMISSIONS.owner].sort()).toEqual([...PERMISSIONS].sort());
   });
-  it("admin hat alles AUSSER billing.*", () => {
-    expect(ROLE_PERMISSIONS.admin).not.toContain("billing.manage");
-    expect(ROLE_PERMISSIONS.admin).not.toContain("billing.approve_credits");
+  it("admin hat alle drei v1-Rechte (keines ist billing)", () => {
     expect(ROLE_PERMISSIONS.admin).toContain("records.delete");
+    expect(ROLE_PERMISSIONS.admin).toContain("records.merge");
     expect(ROLE_PERMISSIONS.admin).toContain("team.invite");
   });
-  it("member = nur export.all, viewer = nichts", () => {
-    expect(ROLE_PERMISSIONS.member).toEqual(["export.all"]);
+  it("member = keine erhöhten Rechte, viewer = nichts", () => {
+    expect(ROLE_PERMISSIONS.member).toEqual([]);
     expect(ROLE_PERMISSIONS.viewer).toEqual([]);
   });
   it("records.delete nur owner/admin (member/viewer NICHT) — [D-delete-rights]", () => {
@@ -36,9 +38,9 @@ describe("Rollen-Matrix (Spiegel role_permissions-Seed, 070)", () => {
 });
 
 describe("effectivePermissions — deny > grant > Rolle (Spiegel has_permission SQL)", () => {
-  it("Einzel-Grant erweitert additiv (Member bekommt rules.edit)", () => {
-    expect(hasPermission("member", "rules.edit")).toBe(false);
-    expect(hasPermission("member", "rules.edit", [{ permission: "rules.edit", effect: "grant" }])).toBe(true);
+  it("Einzel-Grant erweitert additiv (Member bekommt records.delete)", () => {
+    expect(hasPermission("member", "records.delete")).toBe(false);
+    expect(hasPermission("member", "records.delete", [{ permission: "records.delete", effect: "grant" }])).toBe(true);
   });
   it("Deny entzieht ein Rollen-Recht (subtraktiv) — deny gewinnt", () => {
     expect(hasPermission("admin", "records.delete")).toBe(true);
@@ -46,10 +48,10 @@ describe("effectivePermissions — deny > grant > Rolle (Spiegel has_permission 
   });
   it("Deny gewinnt auch über Grant derselben Permission", () => {
     const ov = [
-      { permission: "campaigns.manage", effect: "grant" as const },
-      { permission: "campaigns.manage", effect: "deny" as const },
+      { permission: "records.merge", effect: "grant" as const },
+      { permission: "records.merge", effect: "deny" as const },
     ];
-    expect(hasPermission("member", "campaigns.manage", ov)).toBe(false);
+    expect(hasPermission("member", "records.merge", ov)).toBe(false);
   });
   it("unbekannte Rolle → keine Rechte", () => {
     expect(effectivePermissions("was_neues").size).toBe(0);

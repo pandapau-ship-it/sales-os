@@ -10,33 +10,19 @@
  * WICHTIG: Die UI-Prüfung (has()) blendet nur aus — die echte Sicherheit ist der Server-Guard.
  */
 
+// KATALOG-UMFANG v1 (Teil-D-Scan, 19.07.2026): NUR heute-existierende Features. Zukünftige Rechte
+// (rules.edit · campaigns.manage · templates.manage · pipeline.manage · integrations.manage ·
+//  billing.* · trash.purge · export.all · audit.view · settings.manage · branding.manage · lists.share)
+// kommen MIT ihrem Modul → Registry in PROGRESS.md. Spiegel des DB-Seeds (Migr. 070) — gemeinsam pflegen.
 export const PERMISSIONS = [
-  "rules.edit",
-  "campaigns.manage",
-  "templates.manage",
-  "pipeline.manage",
-  "integrations.manage",
   "team.invite",
-  "billing.approve_credits",
-  "billing.manage",
-  "trash.purge",
-  "export.all",
   "records.delete",
   "records.merge",
 ] as const;
 export type Permission = (typeof PERMISSIONS)[number];
 
 export const PERMISSION_LABELS: Record<Permission, string> = {
-  "rules.edit": "Regeln/Actions/Schwellen ändern",
-  "campaigns.manage": "Campaigns verwalten",
-  "templates.manage": "Templates verwalten",
-  "pipeline.manage": "Pipeline-Stages konfigurieren",
-  "integrations.manage": "Integrationen verbinden",
   "team.invite": "Team einladen/deaktivieren",
-  "billing.approve_credits": "Credit-Käufe freigeben",
-  "billing.manage": "Billing/Plan verwalten",
-  "trash.purge": "Endgültig löschen",
-  "export.all": "Gesamt-Daten exportieren",
   "records.delete": "Kontakte/Companies/Deals löschen",
   "records.merge": "Duplikate zusammenführen",
 };
@@ -45,13 +31,15 @@ export type Role = "owner" | "admin" | "member" | "viewer";
 export const ROLES: readonly Role[] = ["owner", "admin", "member", "viewer"];
 
 /**
- * Rollen-Matrix (Spiegel role_permissions-Seed, 070). owner = alles; admin = alles außer billing.*;
- * member = nur Export; viewer = nichts. Neue Rolle/Recht = hier + DB-Seed ergänzen (Daten).
+ * Rollen-Matrix (Spiegel role_permissions-Seed, 070). v1: alle drei Rechte sind Admin-Ebene →
+ * owner = alles; admin = alles außer billing.* (v1: keine billing-Rechte → alle drei);
+ * member/viewer = keine erhöhten Rechte (Basis-CRUD ohne Katalog-Recht). Neue Rolle/Recht = hier
+ * + DB-Seed (070) ergänzen. `billing.`-Filter bleibt vorbereitet für künftige billing-Rechte.
  */
 export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
   owner: PERMISSIONS,
   admin: PERMISSIONS.filter((p) => !p.startsWith("billing.")),
-  member: ["export.all"],
+  member: [],
   viewer: [],
 };
 

@@ -12,17 +12,13 @@ create table permission_catalog (
 alter table permission_catalog enable row level security;
 create policy "permission_catalog_read_all" on permission_catalog for select using (true);
 
+-- KATALOG-UMFANG v1 (Entscheidung 19.07.2026, Teil-D-Scan): NUR heute-existierende Features.
+-- Zukünftige Rechte (rules.edit · campaigns.manage · templates.manage · pipeline.manage ·
+-- integrations.manage · billing.manage · billing.approve_credits · trash.purge · export.all ·
+-- audit.view · settings.manage · branding.manage · lists.share) entstehen MIT ihrem Modul —
+-- Registry in PROGRESS.md „Rechte-Katalog — Zukunfts-Registry". Katalog nie auf Vorrat füllen.
 insert into permission_catalog (permission, description) values
- ('rules.edit',              'Regeln/Actions/Schwellen/Automation-Defaults ändern'),
- ('campaigns.manage',        'Campaigns aktivieren/pausieren/verwalten'),
- ('templates.manage',        'Nachrichten-Templates verwalten'),
- ('pipeline.manage',         'Pipeline-Stages konfigurieren'),
- ('integrations.manage',     'Integrationen verbinden/trennen'),
  ('team.invite',             'Team-Mitglieder einladen/deaktivieren'),
- ('billing.approve_credits', 'Credit-Käufe freigeben'),
- ('billing.manage',          'Billing/Plan verwalten'),
- ('trash.purge',             'Endgültig löschen (Papierkorb leeren)'),
- ('export.all',              'Gesamt-Daten exportieren'),
  ('records.delete',          'Kontakte/Companies/Deals löschen (Soft-Delete)'),
  ('records.merge',           'Duplikate zusammenführen (Kontakte/Companies)');
 
@@ -36,15 +32,15 @@ alter table role_permissions enable row level security;
 create policy "role_permissions_read_all" on role_permissions for select using (true);
 
 -- Seed der Standard-Matrix (Spiegel src/lib/permissions.ts — keep in sync).
+-- Alle drei v1-Rechte sind Admin-Ebene (Einladen/Löschen/Merge) → owner + admin; member/viewer: keine.
 -- owner: ALLES.
 insert into role_permissions (role, permission)
 select 'owner', permission from permission_catalog;
--- admin: alles AUSSER billing.* (Owner-Sache).
+-- admin: alles AUSSER billing.* (Owner-Sache; v1 enthält keine billing-Rechte → faktisch alle drei).
 insert into role_permissions (role, permission)
 select 'admin', permission from permission_catalog where permission not like 'billing.%';
--- member: nur Export (arbeitet mit Daten, ändert keine Regeln/löscht keine Records).
-insert into role_permissions (role, permission) values ('member', 'export.all');
--- viewer: keine erhöhten Rechte (nur lesen).
+-- member / viewer: keine erhöhten Rechte in v1 (Basis-CRUD läuft ohne Katalog-Recht; Export/Regeln
+-- /Löschen sind entweder nicht gebaut oder Admin-Ebene). Erweitert sich mit den künftigen Modulen.
 
 -- ── user_permissions härten (007): effect-Spalte (grant|deny) + UNIQUE + audit ─
 -- effect ermöglicht SUBTRAKTION (einer Rolle ein Recht individuell ENTZIEHEN) — v1 nutzt nur 'grant',
