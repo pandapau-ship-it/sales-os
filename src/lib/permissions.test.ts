@@ -7,17 +7,26 @@ import {
   isElevatedRole,
 } from "./permissions";
 
-describe("Rollen-Matrix (Spiegel role_permissions-Seed, 070) — v1-Katalog (3 Rechte, heute-existierend)", () => {
-  it("Katalog v1 = genau team.invite, records.delete, records.merge", () => {
-    expect([...PERMISSIONS].sort()).toEqual(["records.delete", "records.merge", "team.invite"]);
+describe("Rollen-Matrix (Spiegel role_permissions-Seed, 070/073) — heute-existierende Rechte", () => {
+  it("Katalog = genau team.invite, records.delete, records.merge, settings.manage", () => {
+    expect([...PERMISSIONS].sort()).toEqual(
+      ["records.delete", "records.merge", "settings.manage", "team.invite"],
+    );
   });
   it("owner hat ALLE Rechte", () => {
     expect([...ROLE_PERMISSIONS.owner].sort()).toEqual([...PERMISSIONS].sort());
   });
-  it("admin hat alle drei v1-Rechte (keines ist billing)", () => {
+  it("admin hat alle Rechte (keines ist billing)", () => {
     expect(ROLE_PERMISSIONS.admin).toContain("records.delete");
     expect(ROLE_PERMISSIONS.admin).toContain("records.merge");
     expect(ROLE_PERMISSIONS.admin).toContain("team.invite");
+    expect(ROLE_PERMISSIONS.admin).toContain("settings.manage");
+  });
+  it("settings.manage nur owner/admin (member/viewer NICHT) — SET-2", () => {
+    expect(hasPermission("owner", "settings.manage")).toBe(true);
+    expect(hasPermission("admin", "settings.manage")).toBe(true);
+    expect(hasPermission("member", "settings.manage")).toBe(false);
+    expect(hasPermission("viewer", "settings.manage")).toBe(false);
   });
   it("member = keine erhöhten Rechte, viewer = nichts", () => {
     expect(ROLE_PERMISSIONS.member).toEqual([]);

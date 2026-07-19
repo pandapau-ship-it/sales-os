@@ -10,14 +10,16 @@
  * WICHTIG: Die UI-Prüfung (has()) blendet nur aus — die echte Sicherheit ist der Server-Guard.
  */
 
-// KATALOG-UMFANG v1 (Teil-D-Scan, 19.07.2026): NUR heute-existierende Features. Zukünftige Rechte
+// KATALOG-UMFANG: NUR heute-existierende Features (wächst mit den Modulen). Noch offene Rechte
 // (rules.edit · campaigns.manage · templates.manage · pipeline.manage · integrations.manage ·
-//  billing.* · trash.purge · export.all · audit.view · settings.manage · branding.manage · lists.share)
-// kommen MIT ihrem Modul → Registry in PROGRESS.md. Spiegel des DB-Seeds (Migr. 070) — gemeinsam pflegen.
+//  billing.* · trash.purge · export.all · audit.view · branding.manage · lists.share) kommen MIT
+// ihrem Modul → Registry in PROGRESS.md. Spiegel des DB-Seeds (Migr. 070/073) — gemeinsam pflegen.
+// `settings.manage` kam mit SET-2 (Workspace/Allgemein-Einstellungen, Migr. 073).
 export const PERMISSIONS = [
   "team.invite",
   "records.delete",
   "records.merge",
+  "settings.manage",
 ] as const;
 export type Permission = (typeof PERMISSIONS)[number];
 
@@ -25,6 +27,7 @@ export const PERMISSION_LABELS: Record<Permission, string> = {
   "team.invite": "Team einladen/deaktivieren",
   "records.delete": "Kontakte/Companies/Deals löschen",
   "records.merge": "Duplikate zusammenführen",
+  "settings.manage": "Workspace-Einstellungen ändern",
 };
 
 export type Role = "owner" | "admin" | "member" | "viewer";

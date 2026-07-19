@@ -169,6 +169,18 @@ export async function verifyMfaTotp(factorId: string, code: string) {
 }
 
 /**
+ * getUserIdentities — verbundene Anmelde-Provider des eingeloggten Users (Settings → Sicherheit, SET-2).
+ * Reine Lesefunktion (kein Backend nötig): liefert z.B. ['email','google','azure']. Leer/ohne Session → [].
+ */
+export async function getUserIdentities(): Promise<string[]> {
+  const client = getSupabaseClient();
+  if (!client) return [];
+  const { data, error } = await client.auth.getUserIdentities();
+  if (error || !data) return [];
+  return (data.identities ?? []).map((i) => i.provider);
+}
+
+/**
  * Auth-State-Listener. Gibt eine Unsubscribe-Funktion zurück.
  * Bei fehlender Konfiguration ein No-op-Unsubscribe.
  */
