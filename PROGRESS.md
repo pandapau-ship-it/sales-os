@@ -492,7 +492,22 @@
   > Branding beim Consent-Screen und volle Scope-Kontrolle. Umstellung ist unkritisch (nur Austausch
   > der Credentials in Nango, kein Code-Umbau).
 
-**4.** [ ] **[BAU] Mitteilungs-Fundament N-S1 + N-S2-Minimal** (`docs/mitteilungssystem_bauplan_v1.md`)
+**4.** [~] **[BAU] Mitteilungs-Fundament N-S1 + N-S2-Minimal** (`docs/mitteilungssystem_bauplan_v1.md`)
+  - **N-S1 GEBAUT 19.07.2026, wartet auf db push + Freigabe.** Branch `feature/notifications-foundation-ns1`.
+    Migr. **065** (`notifications` + `activity_events` + `settings.notifications` additiv · Idempotenz-Key
+    **MIT `user_id`** · Pflicht-Indizes inkl. partiell `read_at IS NULL` · RLS · Realtime `supabase_realtime`
+    + `notifications`) · **066** (`notify()` Idempotenz-Upsert N12 + Rollen-Fanout + „Zeile schreiben →
+    Fan-out später"; `log_activity()`) · **067** (Cleanup-Cron DELETE: read >90T / activity >30T). Registry
+    `src/lib/notifications.ts` (+`.test.ts` 9 Tests). i18n `notifications.*` (3 Locales). Alle
+    Zukunftsfähigkeits-Fixes drin (Punkte 2/3/5 + Realtime); Punkt 4 (Kanäle) + AI-Chat-Lesetool nur
+    dokumentiert. **CLAUDE.md Notifications-Sektion angeglichen** (settings.notifications statt
+    notification_preferences; Postgres-`notify()`). **N-S2 (Glocke/UI) = Folge-Slice**, hier nicht gebaut.
+  - **Diagnose-Konsequenz für später:** Realtime-CLIENT-Verdrahtung (`realtime.ts`-Body, aktuell Stub) +
+    `activity_events` in die Publication gehören zu N-S2/N-S3.
+  - **[D-notify-rpc-guard] vor N-S2 (Auditor-Hinweis):** `notify()`/`log_activity()` sind security-definer
+    ohne Org-Guard/`REVOKE` (bewusst wie `consume_credits` — in N-S1 nur server-seitig SQL-Cron/Edge genutzt).
+    **Bevor** sie als **Frontend-RPC** exponiert werden (N-S2), org-scopen (auth_org_id-Prüfung im
+    authenticated-Pfad, service_role/Cron ausgenommen) + `REVOKE EXECUTE FROM anon/authenticated`.
 
 **5.** [ ] **[BAU] Betrieb Slice B-1 MINIMAL** (`docs/betrieb_ueberwachung_bauplan_v1.md`)
 

@@ -6,6 +6,16 @@
 
 ## Unreleased
 
+- **feat:** Mitteilungs-Fundament N-S1 (Migrationen 065-067). Tabellen `notifications`
+  (user-gerichtet) + `activity_events` (Ambient-Feed) + `settings.notifications` (Matrix, additiv).
+  **Idempotenz-Key MIT `user_id`** (`UNIQUE(org,user,source_type,source_id,category)`) → Mehr-
+  Empfänger-Mitteilungen fallen nicht in eine Zeile (Diagnose Punkt 5). Postgres-Funktionen
+  `notify()` (Idempotenz-Upsert N12, Rollen-Fanout, „Zeile schreiben → Fan-out später") +
+  `log_activity()`. Pflicht-Indizes (partiell `read_at IS NULL`, created_at, occurred_at). Realtime
+  DB-seitig aktiviert (`supabase_realtime` + `notifications`). Cleanup-Cron (DELETE: read >90T /
+  activity >30T). `category`/`source_type` = TEXT + Registry `src/lib/notifications.ts` (neue Quelle
+  = nur Daten). Kanal-Fan-out (Push/Slack) + AI-Chat-Lesetool bleiben dokumentierte Haken.
+
 - **fix:** Merge-Dialog wendet den K-6a-Default jetzt auch im UI an (Duplikate verwalten).
   Gewinner = befüllterer Datensatz via `pickPrimaryId` (statt Paar-Reihenfolge); Vorauswahl pro
   abweichendem Feld auf den befüllten Wert (`defaultMergeSide`, Spiegel von `resolveMergeFields`).

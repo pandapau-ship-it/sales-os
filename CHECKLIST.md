@@ -168,7 +168,7 @@
 - [ ] sequences, sequence_rules, contact_sequences, kurzakte_entries *(Append-Only)*
 - [ ] signals — *inkl. `routed_to`/`routed_at`/`routing_reason` (Signal Routing)*
 - [ ] user_modules, system_config, audit_log, ai_usage, error_log
-- [ ] notifications, notification_preferences — *Notification-Infrastruktur*
+- [~] notifications, ~~notification_preferences~~ — *Notification-Infrastruktur* — **N-S1 gebaut (Migr. 065-067):** `notifications` + `activity_events` + `settings.notifications` (statt eigener `notification_preferences`-Tabelle) · `notify()`/`log_activity()` Postgres-Funktionen · Idempotenz-Key mit `user_id` · Realtime + Cleanup-Cron. Offen: N-S2 Glocke/UI · Kanal-Fan-out (Push/Slack, dokumentiert)
 - [ ] merge_candidates — *Duplikat-Entscheidung durch User*
 - [ ] invitations, api_usage, data_deletion_requests — *SaaS/DSGVO*
 - [ ] pipeline_stages *(in DB, nicht hardcoded)*, heat_status_config
@@ -420,7 +420,7 @@
 - [ ] `aiCall()` loggt `ai_usage` + `api_usage` — *Kosten/Limits pro Org*
 - [ ] `aiChat.ts` auf `aiCall()` migrieren *(audit WARN: nutzt SDK noch direkt)*
 - [ ] Langfuse-Integration (ein-Datei-Change in `aiCall()`)
-- [ ] `src/lib/notify.ts` — `notify()` + Event-Katalog — *einziger Notification-Eintrittspunkt*
+- [~] `notify()` + Event-Katalog — *einziger Notification-Eintrittspunkt* — **N-S1: als Postgres-Funktion** gebaut (Migr. 066, aufrufbar SQL-Cron/Edge/RPC), Registry `src/lib/notifications.ts`. Ein späterer dünner TS/Edge-Wrapper ruft diese Funktion.
 - [ ] Signal Routing in `process_new_lead`/`classify_intent` — *kein Signal an zwei Orten*
 - [ ] **Automation Risk-Level** (final): globaler Override Low/Medium/High über allen Campaigns
   - [ ] High Risk = immer `requires_human` (hardcoded false) — *Opt-out, Termin-Bestätigung, Löschen, CRM-Overwrite*

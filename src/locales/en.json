@@ -1031,5 +1031,23 @@
       "doneToast_other": "{{count}} Companies gelöscht",
       "doneOneToast": "Company gelöscht"
     }
+  },
+  "notifications": {
+    "title": "Mitteilungen",
+    "empty": "Nichts Offenes — alles erledigt.",
+    "markAllRead": "Alle als gelesen",
+    "history": "Verlauf",
+    "groups": {
+      "braucht_dich": "Braucht dich",
+      "system": "System",
+      "berichte": "Berichte",
+      "team": "Team"
+    },
+    "severity": {
+      "low": "Niedrig",
+      "normal": "Normal",
+      "high": "Hoch",
+      "urgent": "Dringend"
+    }
   }
 }
