@@ -15,7 +15,9 @@ import { Sun, Bot, Target, Sprout, Bell } from "lucide-react";
 import { NAV } from "@/lib/navBehavior";
 import { useCurrentOrg } from "@/hooks/useCurrentOrg";
 import { useAuth } from "@/hooks/useAuth";
-import { getUnreadNotificationCount } from "@/lib/db";
+import { useModules, type ModuleKey } from "@/hooks/useModules";
+import { getUnreadNotificationCount, getNavPreferences } from "@/lib/db";
+import { NAV_DEFAULTS } from "@/lib/settingsDefaults";
 import { subscribeToNotifications } from "@/lib/realtime";
 
 interface TopBarProps {
@@ -24,12 +26,14 @@ interface TopBarProps {
 
 const ICON = "w-4 h-4";
 
-const NAV_ITEMS = [
-  { route: "meintag", labelKey: "nav.meintag", icon: <Sun className={ICON} /> },
-  { route: "ai-sdr", labelKey: "nav.aisdr", icon: <Bot className={ICON} /> },
-  { route: "hunter", labelKey: "nav.hunter", icon: <Target className={ICON} /> },
-  { route: "farmer", labelKey: "nav.farmer", icon: <Sprout className={ICON} /> },
-];
+// Primäre Sektionen (nur diese 4 zeigt die TopBar). Sichtbarkeit/Reihenfolge steuern
+// Firmen-Entitlement (useModules) UND persönliche Ansicht-Pref (user_preferences) — GENAU wie Sidebar.
+const PRIMARY_NAV: Record<string, { labelKey: string; icon: React.ReactNode; module?: ModuleKey }> = {
+  meintag: { labelKey: "nav.meintag", icon: <Sun className={ICON} /> },
+  "ai-sdr": { labelKey: "nav.aisdr", icon: <Bot className={ICON} />, module: "ai_sdr" },
+  hunter: { labelKey: "nav.hunter", icon: <Target className={ICON} />, module: "hunter" },
+  farmer: { labelKey: "nav.farmer", icon: <Sprout className={ICON} />, module: "farmer" },
+};
 
 export default function TopBar({ onOpenCommandPalette }: TopBarProps) {
   const navigate = useNavigate();
@@ -37,7 +41,24 @@ export default function TopBar({ onOpenCommandPalette }: TopBarProps) {
   const { t } = useTranslation();
   const { organizationId } = useCurrentOrg();
   const { user } = useAuth();
+  const { hasModule } = useModules();
   const qc = useQueryClient();
+
+  // Persönliche Ansicht-Prefs — SELBER Query-Key wie Sidebar/AppearanceTab → Änderung wirkt sofort,
+  // gleichzeitig links UND oben, ohne Reload.
+  const navPrefsQuery = useQuery({
+    enabled: !!user?.id,
+    queryKey: ["navPrefs", user?.id],
+    queryFn: () => getNavPreferences(user!.id, organizationId),
+    staleTime: 60_000,
+  });
+  const prefs = navPrefsQuery.data ?? NAV_DEFAULTS;
+
+  // Reihenfolge aus der Pref, Ausgeblendetes raus, dann Firmen-Entitlement (beide Ebenen, AND).
+  const NAV_ITEMS = prefs.order
+    .filter((r) => r in PRIMARY_NAV && !prefs.hidden.includes(r))
+    .map((r) => ({ route: r, ...PRIMARY_NAV[r] }))
+    .filter((it) => !it.module || hasModule(it.module));
 
   // Glocken-Badge: echter Ungelesen-Count (RLS → nur eigene; ohne Session leer). Realtime hält ihn live.
   const unreadQuery = useQuery({
@@ -79,7 +100,7 @@ export default function TopBar({ onOpenCommandPalette }: TopBarProps) {
   useEffect(() => {
     const btn = buttonRefs.current[activeIndex];
     if (btn) setSlider({ left: btn.offsetLeft, width: btn.offsetWidth, ready: true });
-  }, [activeIndex, t]);
+  }, [activeIndex, t, NAV_ITEMS.length]);
 
   return (
     <header

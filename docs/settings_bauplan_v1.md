@@ -47,15 +47,26 @@ VERBINDUNGEN
 │                       Stripe/Usage-API — Status ehrlich (verbunden/nicht/Fehler)
 └─ Mitteilungen         Matrix Kategorie × Kanal (N6) + Prep-Mail-Option (N7)
 
-PERSÖNLICH
-├─ Mein Profil          Name, Rolle, Personal Voice (O5), Booking-Quelle (E3),
-│                       Signatur, Sprache
+PERSÖNLICH  ⚠ ZUGANG KORRIGIERT (19.07.2026) — NICHT in der Haupt-Settings-Nav
+├─ Mein Profil          Name, Rolle, Booking-Quelle (E3), Signatur, Sprache
+│                       (Personal Voice NICHT hier → „Mein Unternehmen"-Gruppe, s.u.)
 ├─ Ansicht              Navigation pro User ein-/ausblenden + Reihenfolge. Regeln:
 │                       rein visuell (NIE ein Recht) · alles ausblendbar außer
 │                       Settings · Ausgeblendetes bleibt per Deeplink + Chat
 │                       erreichbar · Chat kann es steuern ("blende Farmer aus" =
 │                       Settings-Wert) · getrennt vom Org-Modul-System (Entitlement)
 └─ Sicherheit           Passwort ändern, aktive SSO-Verbindung (Anzeige)
+
+> **STRUKTUR-KORREKTUR (verbindlich, 19.07.2026):** Die drei „Persönlich"-Seiten (Mein Profil ·
+> Ansicht · Sicherheit) sind **KEINE eigenen Punkte in der Haupt-Settings-Navigation** (`/app/settings`).
+> Zugang ist **EIN gebündelter Bereich hinter dem Avatar-Dropdown** (Profil-Icon unten links, zeigt heute
+> „Mein Profil" neben „Abmelden") mit **drei internen Reitern** (Mein Profil / Ansicht / Sicherheit).
+> **Keine Duplizierung** in der Haupt-Settings-Nav. **Begründung:** Persönliche (user-scoped) Einstellungen
+> gehören zum Nutzer, nicht zur Org-Verwaltung — der Avatar ist der erwartete, aufgeräumte Ort dafür (Muster
+> wie Linear/Notion); die Haupt-Settings-Nav bleibt auf Org-/Team-Themen fokussiert. **Personal Voice** gehört
+> NICHT in „Mein Profil", sondern später in die **„Mein Unternehmen"-Gruppe** der Haupt-Settings-Nav (SET-KB-1/2).
+> `settingsNav.ts` markiert diese drei Seiten weiterhin als `visibility:'self'` — die künftige Haupt-Shell
+> rendert sie aber **nicht** als eigene Nav-Einträge (Zugang = Avatar).
 
 SYSTEM (nur Owner/Admin)
 ├─ Status               B4 — Cron-Läufe, Queues, Alerts (Betriebs-Plan)

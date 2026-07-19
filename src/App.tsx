@@ -31,6 +31,7 @@ import ProvisioningGate from "@/components/auth/ProvisioningGate";
 import { Protected } from "@/components/auth/Protected";
 import { NotFoundRedirect } from "@/components/auth/NotFoundRedirect";
 import TeamSettings from "@/components/features/settings/TeamSettings";
+import PersonalSettings from "@/components/features/settings/PersonalSettings";
 import ScreenKontakte from "@/components/screens/ScreenKontakte";
 import ScreenCompanies from "@/components/screens/ScreenCompanies";
 import ScreenCompanyDetail from "@/components/screens/ScreenCompanyDetail";
@@ -132,6 +133,7 @@ export default function App() {
           <Route path="companies" element={<ScreenCompanies />} />
           <Route path="companies/:id" element={<ScreenCompanyDetail />} />
           <Route path="settings" element={<TeamSettings />} />
+          <Route path="profil" element={<PersonalSettings />} />
           <Route path="notifications" element={<ScreenNotifications />} />
         </Route>
           {/* Catch-all: unbekannt + nicht eingeloggt → Login (/), sonst App. Nie blind auf /app. */}

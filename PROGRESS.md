@@ -551,6 +551,34 @@
     `records.merge`. **NICHT jetzt:** Einzelrechte-/Papierkorb-UI (SET-3), Nav-Rollen-Ausblendung (SET-2),
     AI-Chat-Tool-Bindung, Viewer-Read-only-Enforcement.
 
+  - **SET-2 „PERSÖNLICH"-UI FIXES 19.07.2026 (nach Live-Test), wartet auf db push (Migr. 074) + Merge.**
+    (1) **Bug behoben:** Sidebar las die Ansicht-Prefs nicht (hardcodierte Listen) → liest jetzt `getNavPreferences`
+    mit gleichem Query-Key wie AppearanceTab → Ausblenden/Reihenfolge wirkt **sofort ohne Reload** (Regressionstest).
+    (2) **booking_provider auf E3-Kanon** (`calcom`|`external`, Migr. 074 `update_my_profile`) — UI: „Cal.com" /
+    „Externer Link" (freies URL-Feld). (3) Signatur größer (8 Zeilen), Rolle-Anzeige verifiziert, **Statistik**
+    (eigene Kontakte + deren Companies via `get_profile_stats`), **„Dabei seit"** (users.created_at).
+    **Sidebar-Änderung:** Screens/Data-Mittel-Divider entfällt (flache Reihenfolge, da Ansicht frei sortiert).
+  - **DEFERRED — „Mein Profil"-Folge-Ideen (dokumentiert, kein Bau jetzt):**
+    - **[D-profile-signature-richtext]** — Signatur mit Formatierung (fett/kursiv/Link/Bild). Braucht echten
+      Rich-Text-Editor + sichere Speicher-Entscheidung (HTML-Sanitizing). Eigener kleiner Folge-Slice im Profil.
+    - **[D-profile-avatar-upload]** — echter Bild-Upload (aktuell nur Initialen/Anzeige, Entscheidung B). Braucht
+      `lib/storage`-Infrastruktur. Eigener kleiner Folge-Slice.
+    - **[D-profile-team-view]** — Team-Zugehörigkeit geprüft & verworfen: aktuell deckungsgleich mit der Org
+      (keine Unter-Teams im System). Neu bewerten, falls echte Unter-Teams eingeführt werden.
+    - **[D-profile-usage-analytics]** — tiefere Nutzungs-/Aktivitäts-Statistik (Login-Häufigkeit, Verlauf) bewusst
+      NICHT auf „Mein Profil" → künftiges „Berichte"-Modul (Recht „Reports ansehen" existiert, Seite nicht).
+      Verwandt: `last_seen_at` aus SET-3-Diagnose — sobald dort befüllt, könnte „Zuletzt aktiv" auch hier dezent
+      erscheinen. Nur vermerkt.
+
+  - **SET-2 „PERSÖNLICH"-UI GEBAUT 19.07.2026 (Mein Profil/Ansicht/Sicherheit), wartet auf Merge-Freigabe.**
+    Zugang gebündelt hinter dem Avatar-Dropdown (Route `/app/profil`, 3 Reiter via `PanelTabs`) — NICHT in der
+    Haupt-Settings-Nav (Bauplan-Struktur-Korrektur eingetragen, `6a2ed07`). Echte Daten: `updateMyProfile`
+    (Name/Booking/Signatur, Auto-Save) · Sprache via `setLanguage`+`user_preferences('ui.language')` ·
+    `getNavPreferences`/`setNavPreferences` (Nav ein/aus + Reihenfolge, Einstellungen fest) · Passwort mit
+    Re-Auth-Verifikation + `updatePassword` · SSO-Anzeige `getUserIdentities`. Neu: `SettingsCard` + `useSaveState`,
+    shadcn `switch`/`textarea`, `typo-page-title`. **Keine Personal-Voice-Karte** (→ Mein Unternehmen). 11 Render-Tests.
+    Entscheidungen A–F wie vorgeschlagen. **Kein db push nötig** (reine UI auf vorhandenem Backend).
+
   - **SET-2 BACKEND/DATENGRUNDLAGE GEBAUT 19.07.2026 (keine UI), wartet auf db push (Migr. 073) + Merge-Freigabe.**
     Allgemein: `settings.general` (Sprache/Zeitzone/Datumsformat/Währung); Mein Profil: `users.booking_provider/
     booking_link/signature`; neues Recht `settings.manage` (owner+admin). Validierte Update-RPCs `update_general_settings`

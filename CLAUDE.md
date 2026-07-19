@@ -129,6 +129,33 @@ ALTER TABLE knowledge_base ENABLE ROW LEVEL SECURITY;
 > sind **keine** React-Routen → eigene Absicherung (Signatur/`x-webhook-secret`/service_role), nie Login.
 > **Neue öffentliche Route = explizit + vor Catch-all + hier ergänzen.**
 
+### GLOBALE REGEL — Nav-Sichtbarkeit = ZWEI Ebenen (dauerhaft, [D51]/Entitlement-Schutz)
+
+> Ob ein Nav-/Sidebar-Eintrag erscheint, hängt von **ZWEI** Bedingungen ab, die **UND-verknüpft**
+> sind — nie nur einer:
+> 1. **Firmen-Entitlement** — ist das Modul laut Abo/Plan der Org aktiv? (`useModules().hasModule(...)`)
+> 2. **Persönliche Präferenz** — will DIESER User es sehen? (`user_preferences` „Ansicht", `getNavPreferences`)
+>
+> **Ein Modul ist NUR sichtbar, wenn BEIDE erfüllt sind.** Die persönliche Einstellung wirkt ausschließlich
+> **INNERHALB** dessen, was die Firma freigeschaltet hat — sie kann ein nicht-gebuchtes Modul **nie**
+> einblenden (sonst Entitlement-Bruch). Der `hasModule`-Check bleibt der Sidebar-Render-Logik **vorgeschaltet**.
+> **In der „Ansicht"-Einstellung** werden nicht-gebuchte Module **nie als normal bedienbarer Toggle** gezeigt —
+> entweder ausblenden oder ausgegraut mit Hinweis („Nicht in eurem Plan enthalten").
+>
+> **Jede künftige Änderung an Nav-Sichtbarkeitslogik MUSS (a) beide Ebenen explizit gegenprüfen UND
+> (b) ALLE Navigations-Oberflächen gleichzeitig berücksichtigen** — nie nur eine Komponente fixen und
+> eine andere vergessen. **Die Nav-Oberflächen sind:**
+> - **Sidebar** (`Sidebar.tsx` `visibleNav`) — beide Ebenen (hasModule UND !hidden).
+> - **TopBar** (`TopBar.tsx` `NAV_ITEMS`) — beide Ebenen, **identisch** zur Sidebar (was links weg ist, ist oben weg).
+> - **Cmd+K / CommandPalette** (`CommandPalette.tsx` `navItems`) — **NUR** Firmen-Entitlement (`hasModule`),
+>   **NICHT** die persönliche `hidden`-Pref: Ausgeblendetes bleibt bewusst per Cmd+K/Chat erreichbar
+>   (Designregel „Cmd+K ist Zugriff, nicht Awareness"). Ein nicht-gebuchtes Modul wird aber auch hier nie angeboten.
+> - **„Ansicht"-Einstellung** (`AppearanceTab.tsx` `isEntitled`) — nicht-gebuchte Module ausgegraut, kein bedienbarer Toggle.
+>
+> **Regressionstest Pflicht — für JEDE sichtbare Nav-Oberfläche:** *Org ohne Modul X + User schaltet X sichtbar
+> → X erscheint trotzdem NICHT (weder links noch oben).* Und: *User blendet X aus → X verschwindet aus Sidebar
+> UND TopBar gleichzeitig, ohne Reload* (gemeinsamer Query-Key `['navPrefs', userId]`).
+
 ### AUF ANFRAGE (nicht automatisch)
 → scripts/audit.ts ausführen wenn Oliver explizit prüfen möchte
 → CHECKLIST.md vollständig durchgehen
@@ -1006,6 +1033,7 @@ Alle prop-driven, Tokens-only, Dark-Mode automatisch.
 | `TaskAnlegenForm` | „Keine Task"-Action-Panel-Inhalt (Header + Kontext-/KI-Meldungen) des `NoTaskDrawer`; das Formular kommt aus `TaskFormular` (geteilt, identisch zum Info-Panel); `person`/`onClose`/`onToast` |
 | `TaskEntwurfForm` | Task-Entwurf (Header + Kontakt-Bar + Kanal/Titel/AI-Entwurf/Priorität + Speichern) — Inhalt des `TaskDrawer` (850px-Overlay) |
 | `PanelSkeleton` | Lade-Platzhalter für Info-Panel-Tabs während `isLoading` (statt leerem Inhalt). Token-only `animate-pulse`, In-Panel-Box-Stil (border-card, kein Schatten); Props `rows`/`height`. Greift nur beim ersten Laden — `placeholderData: keepPreviousData` hält bei Folge-Öffnungen die vorigen Daten. Prefetch-on-Hover (`lib/prefetch.ts` via `HunterCard`) füllt den Cache vorab → oft instant. |
+| `SettingsCard` | Karten-Sektion für Settings-Seiten (Ebene-1-Karte auf Seiten-BG): Titel (`typo-card-title`) · Beschreibung (`typo-subline`) · dezenter Header-Slot **„Gespeichert ✓"** (Prop `saved`: `'saving'`/`'saved'`/`null`, Token `signal-success`). Kein Analog: `DetailSection` hat weder Beschreibung noch Save-Slot. Erste Nutzung: SET-2 „Persönlich"-UI (`MyProfileTab`/`AppearanceTab`/`SecurityTab`). Echter Save-Zustand über `useSaveState`-Hook (kein Fake-Delay). |
 | `KontaktZeile` `KiKurzakte` `PanelHeader` `PanelField` `NewDealCard` `ErledigtAction` `KommunikationPreview` `OffeneTasks` `ActiveSequenceChain` `AktiveSignale` `PanelFooter` `ActionFooter` `ActionComposer` `PhoneNumbersField` `HunterCard` `SignalRow` `FollowUpKaltCard` `PipelineStagniertCard` `PipelineKeineTaskCard` `LinkedinSignalCard` `NewInPipelineCards` `SequenceLeadCards` | weitere Blöcke (Panel-/Karten-/Formular-Komposition) |
 
 > Neuer panel-block → **sofort** in diese Tabelle **und** in `panel-blocks/index.ts` (Barrel) eintragen.
@@ -5474,6 +5502,12 @@ Unten:
 - Notifications (Glocke) sitzt in der **Top-Bar**, nicht in der Rail. Tasks laufen über Cmd+K.
 - Integrationen (Jira etc.) erscheinen **zusätzlich nur** wenn das Modul aktiviert ist (`useModules`).
 - Verhältnis zur Top-Nav: die vier Screens sind die primäre Navigation; diese Rail-Struktur ist verbindlich.
+- **Reihenfolge + Sichtbarkeit der Screen-/Daten-Icons sind pro User konfigurierbar** (SET-2 „Ansicht",
+  `user_preferences`): die Sidebar liest `getNavPreferences` (Query-Key `['navPrefs', userId]`) und wendet
+  `order`+`hidden` an — plus das Modul-Gate (`useModules`). Der obige Aufbau ist die **Default-Reihenfolge**;
+  der Screens/Daten-Mittel-Divider entfällt, sobald frei sortiert wird. **`settings` (Einstellungen) ist NIE
+  ausblendbar/sortierbar** (fest). Ausgeblendetes bleibt per Cmd+K/Chat erreichbar. Änderung in „Ansicht"
+  invalidiert denselben Query-Key → Sidebar aktualisiert sofort ohne Reload.
 
 ---
 

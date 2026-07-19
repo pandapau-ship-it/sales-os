@@ -513,3 +513,12 @@
 - **value:** *(intern — nicht an Kunden ausgespielt)* Fundament für die Einstellungs-Oberfläche: konsistente, geprüfte, protokollierte Konfiguration pro Organisation und pro Person, ohne dass die spätere UI eigene Schreib-/Validierungslogik erfindet.
 - **module:** core
 - *(Settings SET-2 Backend, 2026-07-19. UI-Seiten folgen nach Design; Voice-Profil mit SET-KB-2.)*
+
+---
+
+- **feature:** Persönliche Einstellungen (Mein Profil · Ansicht · Sicherheit)
+- **what:** Ein aufgeräumter persönlicher Bereich hinter dem Profil-Menü (unten links). **Mein Profil:** Name, Avatar, Rolle (Anzeige), Oberflächen-Sprache (Deutsch/English/Español), Booking-Quelle (Calendly/Cal.com/Google Calendar + Link, damit Leads direkt Termine buchen) und E-Mail-Signatur — jede Änderung wird sofort und automatisch gespeichert („Gespeichert ✓"). **Ansicht:** die linke Seitenleiste selbst zusammenstellen — Module ein-/ausblenden und die Reihenfolge ändern; „Einstellungen" bleibt immer sichtbar, und ausgeblendete Module bleiben über die Suche (⌘K) und den AI-Chat erreichbar. **Sicherheit:** Passwort ändern (das aktuelle Passwort wird zur Sicherheit geprüft) und sehen, über welche Konten (Google/Microsoft) man angemeldet ist.
+- **how:** Profil-Icon unten links → „Mein Profil" → Reiter Mein Profil / Ansicht / Sicherheit.
+- **value:** Jede Person richtet Sherloq nach sich selbst ein — Sprache, Kalender-Link und Signatur für professionelle Terminbuchung und E-Mails, eine aufgeräumte Seitenleiste ohne ungenutzte Module, und volle Kontrolle über die eigene Kontosicherheit. Weniger Reibung im Alltag, mehr Fokus auf den Vertrieb.
+- **module:** core
+- *(SET-2 „Persönlich"-UI, 2026-07-19. Personal Voice folgt in „Mein Unternehmen"; Avatar-Upload als kleiner Folge-Schritt.)*

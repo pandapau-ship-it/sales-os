@@ -6,6 +6,51 @@
 
 ## Unreleased
 
+- **fix/feat:** SET-2 Nav-Sichtbarkeit vollständig + Statistik-Pills. **Bug (TopBar):** die oberen
+  Pills (Mein Tag/AI SDR/Hunter/Farmer) ignorierten Modul-Plan + persönliche Pref (hardcodierte Liste) —
+  jetzt liest `TopBar` `getNavPreferences` (gleicher Query-Key `['navPrefs',userId]` wie Sidebar) + `hasModule`,
+  wendet `hidden`+`order` an → **identisch zur Sidebar**, gleichzeitig, ohne Reload. **Cmd+K/CommandPalette:**
+  filtert jetzt nach **Firmen-Entitlement** (`hasModule` — nicht-gebuchte Module werden nicht angeboten),
+  **aber NICHT** nach `hidden` (Ausgeblendetes bleibt per Cmd+K/Chat erreichbar, Designregel). **Alle Nav-
+  Oberflächen** geprüft: Sidebar ✓ · TopBar (gefixt) · Cmd+K (gefixt) · „Ansicht"-Einstellung ✓. **CLAUDE.md-
+  Dauerregel erweitert:** Nav-Sichtbarkeit muss ALLE Oberflächen gleichzeitig + beide Ebenen berücksichtigen.
+  **Statistik-Pills:** Kontakte/Companies je als Pill mit Lucide-Icon (Users/Building2) + teal-Token-Hintergrund,
+  „Dabei seit" textuell daneben. Regressionstests: TopBar (Entitlement + persönlich) + Cmd+K (Entitlement).
+
+- **fix:** SET-2 Ansicht — **Entitlement-Ehrlichkeit** (Modul-Plan × persönliche Präferenz). Die Sidebar
+  kombinierte beide Ebenen bereits korrekt (`hasModule` UND `!hidden`, AND-verknüpft — ein nicht-gebuchtes
+  Modul erscheint nie, auch wenn der User es „sichtbar" schaltet). **Gefixt:** der „Ansicht"-Reiter zeigte
+  für nicht-gebuchte Module (`ai-sdr`/`hunter`/`farmer`) einen normal bedienbaren Toggle → jetzt **ausgegraut +
+  Hinweis „Nicht in eurem Plan enthalten" + deaktivierter Toggle** (`AppearanceTab.isEntitled`). **Neue
+  CLAUDE.md-Dauerregel „Nav-Sichtbarkeit = zwei Ebenen"** (analog Rechte-Check-Pflicht). 2 Entitlement-
+  Regressionstests (Org ohne Farmer + User schaltet sichtbar → Farmer bleibt weg; nicht-gebuchtes Modul =
+  disabled Toggle, kein Save). i18n de/en/es.
+
+- **fix/feat:** SET-2 „Mein Profil"-Fixes (nach Live-Test, Migr. 074). **Bug:** Sidebar ignorierte die
+  Ansicht-Prefs (hardcodierte Nav-Listen) → liest jetzt `getNavPreferences` mit gleichem Query-Key wie
+  AppearanceTab, wendet `hidden`+`order` an → Ausblenden/Reihenfolge wirkt **sofort ohne Reload** (2 Regressionstests;
+  Screens/Data-Mittel-Divider entfällt zugunsten der freien Reihenfolge). **Korrektur:** `booking_provider` auf
+  E3-Kanon `calcom`|`external` (Migr. 074 `update_my_profile`-Whitelist + `settingsDefaults.BOOKING_PROVIDERS`);
+  UI „Cal.com" / „Externer Link" mit freiem URL-Feld (beschreibender Platzhalter). **Ergänzungen:** Signatur
+  8 Zeilen · Rolle-Anzeige verifiziert · **Statistik** (eigene Kontakte + deren Companies, neue Funktion
+  `get_profile_stats`) · **„Dabei seit"** (users.created_at, `getMyProfile` um `created_at` erweitert). i18n
+  de/en/es. Deferred dokumentiert: `[D-profile-signature-richtext]` · `[D-profile-avatar-upload]` ·
+  `[D-profile-team-view]` · `[D-profile-usage-analytics]` (PROGRESS.md).
+
+- **feat:** Settings SET-2 „Persönlich"-UI — Mein Profil · Ansicht · Sicherheit (an das fertige SET-2-Backend
+  gebunden, echte Daten). **Zugang gebündelt hinter dem Avatar-Dropdown** (Route `/app/profil`, 3 interne
+  Reiter via `PanelTabs`) — **nicht** in der Haupt-Settings-Nav (Bauplan-Struktur-Korrektur eingetragen).
+  **Mein Profil:** Avatar (Anzeige) · Name · Rolle (read-only) · Sprache (`setLanguage` + Persistenz
+  `user_preferences('ui.language')`) · Booking-Provider/Link · Signatur → `updateMyProfile`, Auto-Save je Karte;
+  **keine** Personal-Voice-Karte (gehört in „Mein Unternehmen"). **Ansicht:** Nav ein-/ausblenden (shadcn `switch`)
+  + Reihenfolge (Hoch/Runter-Pfeile) → `getNavPreferences`/`setNavPreferences`; „Einstellungen" fest/nicht
+  ausblendbar. **Sicherheit:** Passwort ändern mit **Re-Auth-Verifikation** des aktuellen PW (`signInWithEmail`)
+  → `updatePassword`; „Angemeldet über" read-only aus `getUserIdentities`. Neuer Baustein `SettingsCard`
+  (Titel/Beschreibung/„Gespeichert ✓") + Hook `useSaveState` (echter Speicher-Zustand, kein Fake-Delay).
+  Referenz-Export nur als Struktur-Vorlage (alle Mock-Daten/Hex/`<style>`/native Elemente ersetzt). shadcn
+  `switch`+`textarea` ergänzt. i18n de/en/es (`personal.*`). Avatar-Dropdown „Mein Profil" verdrahtet
+  (kein „wird gebaut" mehr). 11 Render-Tests. `typo-page-title`-Primitive.
+
 - **feat:** Settings SET-2 — **nur Backend/Datengrundlage** (keine UI, Migr. 073). **Allgemein:** neue
   `settings.general` jsonb (Sprache/Zeitzone/Datumsformat/Währung, Defaults geseedet); Org-Name/Logo bleiben
   org-seitig (`organizations.name`/`branding.logo_url`). **Mein Profil:** neue `users`-Spalten `booking_provider`
