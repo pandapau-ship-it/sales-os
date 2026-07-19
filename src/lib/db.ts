@@ -1397,11 +1397,9 @@ export async function softDeleteDeal(
 ): Promise<void> {
   const client = getSupabaseClient();
   if (!client) return;
-  const { error } = await client
-    .from("deals")
-    .update({ deleted_at: new Date().toISOString() })
-    .eq("id", dealId)
-    .eq("organization_id", organizationId);
+  // SET-1: server-erzwungen über RPC (has_permission('records.delete') + Org-Scope) — records.delete
+  // deckt laut Katalog „Kontakte/Companies/Deals löschen" ab.
+  const { error } = await client.rpc("soft_delete_deals", { p_org: organizationId, p_ids: [dealId] });
   if (error) throw error;
 }
 
@@ -1879,6 +1877,9 @@ export async function mergeContacts(
 ): Promise<{ winnerId: string } | null> {
   const client = getSupabaseClient();
   if (!client || winnerId === loserId) return null;
+  // SET-1: Vorab-Gate — Merge (mehrstufige Orchestrierung) erfordert serverseitig records.merge.
+  const { error: permErr } = await client.rpc("assert_permission", { p_permission: "records.merge" });
+  if (permErr) throw permErr;
   const { data: recs, error: loadErr } = await client
     .from("contacts").select("*").eq("organization_id", organizationId).in("id", [winnerId, loserId]).is("deleted_at", null);
   if (loadErr) throw loadErr;
@@ -1914,6 +1915,9 @@ export async function mergeCompanies(
 ): Promise<{ winnerId: string } | null> {
   const client = getSupabaseClient();
   if (!client || winnerId === loserId) return null;
+  // SET-1: Vorab-Gate — Merge erfordert serverseitig records.merge.
+  const { error: permErr } = await client.rpc("assert_permission", { p_permission: "records.merge" });
+  if (permErr) throw permErr;
   const { data: recs, error: loadErr } = await client
     .from("companies").select("*").eq("organization_id", organizationId).in("id", [winnerId, loserId]).is("deleted_at", null);
   if (loadErr) throw loadErr;

@@ -22,6 +22,7 @@ export const PERMISSIONS = [
   "trash.purge",
   "export.all",
   "records.delete",
+  "records.merge",
 ] as const;
 export type Permission = (typeof PERMISSIONS)[number];
 
@@ -37,6 +38,7 @@ export const PERMISSION_LABELS: Record<Permission, string> = {
   "trash.purge": "Endgültig löschen",
   "export.all": "Gesamt-Daten exportieren",
   "records.delete": "Kontakte/Companies/Deals löschen",
+  "records.merge": "Duplikate zusammenführen",
 };
 
 export type Role = "owner" | "admin" | "member" | "viewer";

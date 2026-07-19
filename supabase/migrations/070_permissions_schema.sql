@@ -23,7 +23,8 @@ insert into permission_catalog (permission, description) values
  ('billing.manage',          'Billing/Plan verwalten'),
  ('trash.purge',             'Endgültig löschen (Papierkorb leeren)'),
  ('export.all',              'Gesamt-Daten exportieren'),
- ('records.delete',          'Kontakte/Companies/Deals löschen (Soft-Delete)');
+ ('records.delete',          'Kontakte/Companies/Deals löschen (Soft-Delete)'),
+ ('records.merge',           'Duplikate zusammenführen (Kontakte/Companies)');
 
 -- ── role_permissions — Rollen-Matrix (global, datengetrieben; neue Rolle/Recht = Daten) ─
 create table role_permissions (

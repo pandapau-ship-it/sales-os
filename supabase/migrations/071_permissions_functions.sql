@@ -120,6 +120,32 @@ begin
 end;
 $$;
 
+create or replace function soft_delete_deals(p_org uuid, p_ids uuid[])
+returns int language plpgsql security definer set search_path = public as $$
+declare v_actor uuid := auth.uid(); v_n int;
+begin
+  if v_actor is null then raise exception 'nicht authentifiziert'; end if;
+  if (select organization_id from users where id = v_actor) is distinct from p_org then raise exception 'fremde Organisation'; end if;
+  if not has_permission(v_actor, 'records.delete') then raise exception 'Kein Recht zum Loeschen (records.delete)'; end if;
+  update deals set deleted_at = now()
+   where organization_id = p_org and id = any(p_ids) and deleted_at is null;
+  get diagnostics v_n = row_count;
+  return v_n;
+end;
+$$;
+
+-- ── assert_permission — serverseitiges Vorab-Gate für mehrstufige Client-Orchestrierungen ─
+-- (z.B. Duplikat-Merge: der Merge läuft aus mehreren Writes in db.ts; dieser Gatekeeper bricht
+--  VOR dem ersten Write ab, wenn der Actor das Recht nicht hat. Actor = auth.uid(), nicht spoofbar.)
+create or replace function assert_permission(p_permission text)
+returns void language plpgsql security definer set search_path = public as $$
+declare v_actor uuid := auth.uid();
+begin
+  if v_actor is null then raise exception 'nicht authentifiziert'; end if;
+  if not has_permission(v_actor, p_permission) then raise exception 'Kein Recht: %', p_permission; end if;
+end;
+$$;
+
 -- ── set_user_role — nur Owner, Cross-Org-Schutz, Letzter-Owner-Schutz ────────
 create or replace function set_user_role(p_target uuid, p_role text)
 returns void language plpgsql security definer set search_path = public as $$

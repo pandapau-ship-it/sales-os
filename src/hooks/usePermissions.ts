@@ -22,21 +22,29 @@ export function useEffectivePermissions(): {
   const { user } = useAuth();
   const { role } = useCurrentOrg();
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, isSuccess } = useQuery({
     enabled: !!user?.id,
     queryKey: ["effectivePermissions", user?.id],
     queryFn: () => getEffectivePermissions(user!.id),
     staleTime: 5 * 60_000, // Rechte ändern sich selten pro Session; Mutationen invalidieren gezielt
+    retry: false,          // RPC fehlt/greift nicht → sofort auf Rollen-Fallback, kein Spinner-Stau
   });
 
-  // Ohne Session: Rollen-Default aus der Matrix (UI-Anzeige; Server erzwingt real).
-  const permissions = new Set<string>(
-    user?.id ? (data ?? []) : (ROLE_PERMISSIONS[(role as Role)] ?? []),
-  );
+  // Rollen-Default aus der Matrix als FAIL-SAFE: ohne Session, ODER wenn die RPC (noch) nicht
+  // erreichbar ist (z.B. Migration noch nicht gepusht) → nie fälschlich ALLES ausblenden.
+  // v1 setzt keine deny-Overrides → Matrix == effektive Rechte; der Server erzwingt ohnehin erneut.
+  const roleFallback = ROLE_PERMISSIONS[(role as Role)] ?? [];
+  const source = user?.id && isSuccess && data ? data : roleFallback;
+  const permissions = new Set<string>(source);
 
   return {
     permissions,
     has: (permission: string) => permissions.has(permission),
-    loading: !!user?.id && isLoading,
+    loading: !!user?.id && isLoading && !isError,
   };
+}
+
+/** Imperative Einzelabfrage (disabled-Zustand, bedingte Handler). `usePermission("x.y") → boolean`. */
+export function usePermission(permission: string): boolean {
+  return useEffectivePermissions().has(permission);
 }

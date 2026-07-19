@@ -102,6 +102,22 @@ CREATE TABLE knowledge_base (
 );
 ALTER TABLE knowledge_base ENABLE ROW LEVEL SECURITY;
 
+### GLOBALE REGEL — Rechte-Check-Pflicht (dauerhaft, analog zur Cron-Wrapper-Pflicht)
+
+> Jedes künftige Feature, das eine Aktion mit **Rechte-Relevanz** einführt (Sichtbarkeit,
+> Ändern, Löschen, Freigeben von etwas), MUSS bei seinem Bau explizit prüfen:
+> 1. **Gehört dazu ein neues Recht in den Katalog?** → `permission_catalog` (Migr. 070) +
+>    Rollen-Matrix `role_permissions` + TS-Spiegel `src/lib/permissions.ts` (gemeinsam pflegen).
+> 2. **Ist das UI-Element mit `<RequiresPermission permission="…">` (oder `usePermission`) geschützt?**
+>    (`src/components/shared/RequiresPermission.tsx` — eine Zeile, zentraler Guard.)
+> 3. **Ist die SERVERSEITIGE Prüfung vorhanden** (`has_permission(auth.uid(), …)` in einer RPC/Edge-Function),
+>    **nicht nur die UI-Ausblendung?** UI-Ausblenden ≠ Sicherheit.
+>
+> Diese Prüfung ist ab sofort **fester Bestandteil JEDES Slice-Baus, unabhängig vom Modul** —
+> **kein Merge ohne diese Prüfung** (Prüffrage 6 „vor jedem Commit"; von test-runner/auditor mitgeführt).
+> Neue Rechte für **künftige Module** (AI SDR, Billing-UI, …) entstehen mit dem jeweiligen Modul —
+> der Katalog wächst mit, wird nie auf Vorrat gefüllt.
+
 ### AUF ANFRAGE (nicht automatisch)
 → scripts/audit.ts ausführen wenn Oliver explizit prüfen möchte
 → CHECKLIST.md vollständig durchgehen
@@ -113,7 +129,9 @@ ALTER TABLE knowledge_base ENABLE ROW LEVEL SECURITY;
   · `BrandIcons` · `CommunicationChain` · `CustomerDrawer` · `Badge` · `TooltipLayer` · `DataTableCard`
   · `ColumnConfigPopover` (geteilte Tabellen-Mechanik, K-3 Phase C — von Kontakte + Companies genutzt)
   · `TableSearch` · `Stepper` (geteilter Wizard-Fortschritt mit Mikro-Animation, K-5 — für künftige Wizard-Flows)
-  · `ErrorBoundary` (EINE globale Top-Level-Fehler-Boundary, N-S2 — Fallback-UI statt weißer Seite).
+  · `ErrorBoundary` (EINE globale Top-Level-Fehler-Boundary, N-S2 — Fallback-UI statt weißer Seite)
+  · `RequiresPermission` (zentraler Rechte-Gate-Wrapper + `usePermission`-Hook, SET-1 — blendet
+  rechte-relevante UI mit EINER Zeile aus; Server erzwingt zusätzlich).
   Alles andere → `panel-blocks/`
   bzw. `features/[modul]/`. Neue erlaubte shared-Datei → Allowlist im Script ergänzen.
 → Punkt **3** der **„GATES VOR JEDEM MERGE"** (Session Protocol — dort die vollständige Liste).
@@ -135,6 +153,10 @@ Wenn neue Abschnitte in CLAUDE.md hinzukommen:
    → Kein autonomer DB-Write ohne audit_log. Keine Ausnahme.
 5. Gibt es einen neuen konfigurierbaren Wert (Schwellenwert, Limit, Text, Flag)?
    → Erst in system_config anlegen, dann im Code referenzieren. Nie hardcodieren. Nie umgekehrt.
+6. Führt das Feature eine rechte-relevante Aktion ein (Sichtbarkeit/Ändern/Löschen/Freigeben)?
+   → **GLOBALE REGEL — Rechte-Check-Pflicht** (siehe Selbst-Wartung). (1) Neues Recht in den Katalog
+   (`permission_catalog` 070 + `src/lib/permissions.ts`)? (2) UI mit `<RequiresPermission>`/`usePermission`
+   geschützt? (3) **Serverseitige** Prüfung (`has_permission` in RPC/Edge), nicht nur UI-Ausblendung?
 
 ### PRE-PUSH CHECKLISTE — DB-Features (Pflicht vor jedem git push)
 

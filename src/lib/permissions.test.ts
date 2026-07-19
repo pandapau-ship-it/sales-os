@@ -27,6 +27,12 @@ describe("Rollen-Matrix (Spiegel role_permissions-Seed, 070)", () => {
     expect(hasPermission("member", "records.delete")).toBe(false);
     expect(hasPermission("viewer", "records.delete")).toBe(false);
   });
+  it("records.merge nur owner/admin (Duplikat-Merge existiert heute) — Teil-D-Scan", () => {
+    expect(hasPermission("owner", "records.merge")).toBe(true);
+    expect(hasPermission("admin", "records.merge")).toBe(true);
+    expect(hasPermission("member", "records.merge")).toBe(false);
+    expect(hasPermission("viewer", "records.merge")).toBe(false);
+  });
 });
 
 describe("effectivePermissions — deny > grant > Rolle (Spiegel has_permission SQL)", () => {
