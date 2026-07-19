@@ -10,6 +10,7 @@
 
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useModules, type ModuleKey } from "@/hooks/useModules";
 import {
   Sun,
   Bot,
@@ -42,22 +43,27 @@ const ICON = "w-4 h-4 text-text-muted";
 export default function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { hasModule } = useModules();
 
   const go = (route: string) => {
     navigate(`/app/${route}`);
     onOpenChange(false);
   };
 
-  const navItems = [
+  // Cmd+K filtert NUR nach Firmen-Entitlement (nicht-gebuchte Module werden nicht angeboten) —
+  // aber NICHT nach der persönlichen Ansicht-Pref: Ausgeblendetes bleibt bewusst per Cmd+K/Chat
+  // erreichbar (CLAUDE-Designregel „Ausgeblendetes bleibt per Deeplink + Chat erreichbar").
+  const navItems = ([
     { route: "meintag", labelKey: "nav.meintag", icon: <Sun className={ICON} /> },
-    { route: "ai-sdr", labelKey: "nav.aisdr", icon: <Bot className={ICON} /> },
-    { route: "hunter", labelKey: "nav.hunter", icon: <Target className={ICON} /> },
-    { route: "farmer", labelKey: "nav.farmer", icon: <Sprout className={ICON} /> },
+    { route: "ai-sdr", labelKey: "nav.aisdr", icon: <Bot className={ICON} />, module: "ai_sdr" as ModuleKey },
+    { route: "hunter", labelKey: "nav.hunter", icon: <Target className={ICON} />, module: "hunter" as ModuleKey },
+    { route: "farmer", labelKey: "nav.farmer", icon: <Sprout className={ICON} />, module: "farmer" as ModuleKey },
     { route: "kontakte", labelKey: "nav.kontakte", icon: <Users className={ICON} /> },
     { route: "companies", labelKey: "nav.companies", icon: <Building2 className={ICON} /> },
     { route: "notifications", labelKey: "nav.notifications", icon: <Bell className={ICON} /> },
     { route: "settings", labelKey: "nav.settings", icon: <SettingsIcon className={ICON} /> },
-  ];
+  ] as { route: string; labelKey: string; icon: React.ReactNode; module?: ModuleKey }[])
+    .filter((it) => !it.module || hasModule(it.module));
 
   const quickActions = [
     { key: "newContact", labelKey: "cmdk.newContact", icon: <UserPlus className={ICON} /> },

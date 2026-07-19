@@ -8,6 +8,7 @@
  */
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Users, Building2 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useCurrentOrg } from "@/hooks/useCurrentOrg";
@@ -107,14 +108,23 @@ export default function MyProfileTab() {
           </div>
         </div>
 
-        {/* Dezente Statistik-Zeile + „Dabei seit" — reine Anzeige, echte Zähl-Daten */}
+        {/* Statistik-Pills (echte Zähl-Daten) + „Dabei seit" textuell rechts */}
         {(stats || memberSince) && (
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-1 pt-4 mt-1 border-t border-[var(--border-card)] text-[12px] text-text-muted">
-            {stats && <span>{t("personal.profile.statsContacts", { count: stats.contacts })}</span>}
-            {stats && <span aria-hidden className="text-border">·</span>}
-            {stats && <span>{t("personal.profile.statsCompanies", { count: stats.companies })}</span>}
+          <div className="flex flex-wrap items-center gap-3 pt-4 mt-1 border-t border-[var(--border-card)]">
+            {stats && (
+              <>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full typo-chip bg-[var(--signal-teal-bg)] text-[var(--signal-teal-text)]">
+                  <Users className="w-3.5 h-3.5" />
+                  {t("personal.profile.statsContacts", { count: stats.contacts })}
+                </span>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full typo-chip bg-[var(--signal-teal-bg)] text-[var(--signal-teal-text)]">
+                  <Building2 className="w-3.5 h-3.5" />
+                  {t("personal.profile.statsCompanies", { count: stats.companies })}
+                </span>
+              </>
+            )}
             {memberSince && (
-              <span className="ml-auto">{t("personal.profile.memberSince", { date: memberSince })}</span>
+              <span className="ml-auto text-[12px] text-text-muted">{t("personal.profile.memberSince", { date: memberSince })}</span>
             )}
           </div>
         )}

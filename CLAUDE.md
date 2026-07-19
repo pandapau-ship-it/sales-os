@@ -142,9 +142,19 @@ ALTER TABLE knowledge_base ENABLE ROW LEVEL SECURITY;
 > **In der „Ansicht"-Einstellung** werden nicht-gebuchte Module **nie als normal bedienbarer Toggle** gezeigt —
 > entweder ausblenden oder ausgegraut mit Hinweis („Nicht in eurem Plan enthalten").
 >
-> **Jede künftige Änderung an Sidebar-/Nav-Sichtbarkeitslogik MUSS beide Ebenen explizit gegenprüfen** —
-> nie nur eine annehmen. Regressionstest Pflicht: *Org ohne Modul X + User schaltet X sichtbar → X erscheint
-> trotzdem NICHT.* (Erste Umsetzung: `Sidebar.tsx` `visibleNav`, `AppearanceTab.tsx` `isEntitled`.)
+> **Jede künftige Änderung an Nav-Sichtbarkeitslogik MUSS (a) beide Ebenen explizit gegenprüfen UND
+> (b) ALLE Navigations-Oberflächen gleichzeitig berücksichtigen** — nie nur eine Komponente fixen und
+> eine andere vergessen. **Die Nav-Oberflächen sind:**
+> - **Sidebar** (`Sidebar.tsx` `visibleNav`) — beide Ebenen (hasModule UND !hidden).
+> - **TopBar** (`TopBar.tsx` `NAV_ITEMS`) — beide Ebenen, **identisch** zur Sidebar (was links weg ist, ist oben weg).
+> - **Cmd+K / CommandPalette** (`CommandPalette.tsx` `navItems`) — **NUR** Firmen-Entitlement (`hasModule`),
+>   **NICHT** die persönliche `hidden`-Pref: Ausgeblendetes bleibt bewusst per Cmd+K/Chat erreichbar
+>   (Designregel „Cmd+K ist Zugriff, nicht Awareness"). Ein nicht-gebuchtes Modul wird aber auch hier nie angeboten.
+> - **„Ansicht"-Einstellung** (`AppearanceTab.tsx` `isEntitled`) — nicht-gebuchte Module ausgegraut, kein bedienbarer Toggle.
+>
+> **Regressionstest Pflicht — für JEDE sichtbare Nav-Oberfläche:** *Org ohne Modul X + User schaltet X sichtbar
+> → X erscheint trotzdem NICHT (weder links noch oben).* Und: *User blendet X aus → X verschwindet aus Sidebar
+> UND TopBar gleichzeitig, ohne Reload* (gemeinsamer Query-Key `['navPrefs', userId]`).
 
 ### AUF ANFRAGE (nicht automatisch)
 → scripts/audit.ts ausführen wenn Oliver explizit prüfen möchte

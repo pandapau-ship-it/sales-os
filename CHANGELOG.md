@@ -6,6 +6,17 @@
 
 ## Unreleased
 
+- **fix/feat:** SET-2 Nav-Sichtbarkeit vollständig + Statistik-Pills. **Bug (TopBar):** die oberen
+  Pills (Mein Tag/AI SDR/Hunter/Farmer) ignorierten Modul-Plan + persönliche Pref (hardcodierte Liste) —
+  jetzt liest `TopBar` `getNavPreferences` (gleicher Query-Key `['navPrefs',userId]` wie Sidebar) + `hasModule`,
+  wendet `hidden`+`order` an → **identisch zur Sidebar**, gleichzeitig, ohne Reload. **Cmd+K/CommandPalette:**
+  filtert jetzt nach **Firmen-Entitlement** (`hasModule` — nicht-gebuchte Module werden nicht angeboten),
+  **aber NICHT** nach `hidden` (Ausgeblendetes bleibt per Cmd+K/Chat erreichbar, Designregel). **Alle Nav-
+  Oberflächen** geprüft: Sidebar ✓ · TopBar (gefixt) · Cmd+K (gefixt) · „Ansicht"-Einstellung ✓. **CLAUDE.md-
+  Dauerregel erweitert:** Nav-Sichtbarkeit muss ALLE Oberflächen gleichzeitig + beide Ebenen berücksichtigen.
+  **Statistik-Pills:** Kontakte/Companies je als Pill mit Lucide-Icon (Users/Building2) + teal-Token-Hintergrund,
+  „Dabei seit" textuell daneben. Regressionstests: TopBar (Entitlement + persönlich) + Cmd+K (Entitlement).
+
 - **fix:** SET-2 Ansicht — **Entitlement-Ehrlichkeit** (Modul-Plan × persönliche Präferenz). Die Sidebar
   kombinierte beide Ebenen bereits korrekt (`hasModule` UND `!hidden`, AND-verknüpft — ein nicht-gebuchtes
   Modul erscheint nie, auch wenn der User es „sichtbar" schaltet). **Gefixt:** der „Ansicht"-Reiter zeigte
