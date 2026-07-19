@@ -18,7 +18,7 @@ import {
   getDuplicatePairs, getCompanyDuplicatePairs, mergeContacts, mergeCompanies,
   softDeleteContacts, softDeleteCompanies, type DuplicatePairView, type CompanyDuplicatePairView,
 } from "@/lib/db";
-import { diffFields } from "@/lib/merge";
+import { diffFields, pickPrimaryId, defaultMergeSide } from "@/lib/merge";
 import { Avatar, StatusBadge, EmptyState, PanelSkeleton } from "@/components";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import {
@@ -102,12 +102,20 @@ export default function ScreenDuplicates() {
     onError: (e) => toast((e as Error).message, "error"),
   });
 
-  function openMerge(a: Rec, b: Rec) {
-    const { differing } = diffFields(a, b, fields);
+  function openMerge(rec1: Rec, rec2: Rec) {
+    // K-6a-Default: Gewinner = befüllterer Datensatz (nicht Paar-Reihenfolge). Der Gewinner
+    // ist Seite „A" (bleibt, Verlierer wird soft-gelöscht + FK-Kaskade). Pro Feld bleibt die
+    // Auswahl manuell umschaltbar.
+    const winnerId = pickPrimaryId(rec1, rec2, fields);
+    const winner = (rec1 as { id: string }).id === winnerId ? rec1 : rec2;
+    const loser = winner === rec1 ? rec2 : rec1;
+    const { differing } = diffFields(winner, loser, fields);
+    // Vorauswahl pro abweichendem Feld auf den BEFÜLLTEN Wert (verhindert stillen Datenverlust,
+    // wenn der Gewinner an einem Feld leer, der Verlierer aber befüllt ist).
     const pre: Record<string, "A" | "B"> = {};
-    for (const f of differing) pre[f] = "A"; // Vorauswahl A (Basis/befüllter Datensatz), pro Feld änderbar
+    for (const f of differing) pre[f] = defaultMergeSide(winner, loser, f) === "loser" ? "B" : "A";
     setSelections(pre);
-    setMergePair({ a, b, fields: differing });
+    setMergePair({ a: winner, b: loser, fields: differing });
   }
   function dismiss(key: string) { setDismissed((s) => new Set(s).add(key)); toast(t("duplicates.dismissedToast"), "info"); }
 

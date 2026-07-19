@@ -6,6 +6,12 @@
 
 ## Unreleased
 
+- **fix:** Merge-Dialog wendet den K-6a-Default jetzt auch im UI an (Duplikate verwalten).
+  Gewinner = befüllterer Datensatz via `pickPrimaryId` (statt Paar-Reihenfolge); Vorauswahl pro
+  abweichendem Feld auf den befüllten Wert (`defaultMergeSide`, Spiegel von `resolveMergeFields`).
+  Verhindert stillen Datenverlust, wenn der Gewinner an einem Feld leer und der Verlierer befüllt
+  ist. Manuelle Pro-Feld-Override-Auswahl bleibt unverändert. Reiner Frontend-Fix (+4 Tests).
+
 - **feat:** Billing-Fundament-Härtung (Migration 064, additiv auf 061-063). Punkt 0:
   `consume_credits` friert die angewandten Parameter (tokens_per_credit/model_factor/min) in
   `credit_transactions.metadata` ein → Rückwirkungsfreiheit, vergangene Buchungen für immer

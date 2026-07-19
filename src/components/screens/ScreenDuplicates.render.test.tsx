@@ -36,11 +36,23 @@ const PAIR = {
   matchType: "email",
 };
 
+// K-6a-Fix-Fixture: Paar-Reihenfolge = EMPTIER zuerst (e1), FÜLLER zweiter (f1).
+// e1 befüllt: first/last/email/city (4). f1 befüllt: first/last/email/linkedin/job_title (5) → f1 ist Primär.
+// Feld city: f1 (Gewinner) LEER, e1 (Verlierer) befüllt → Default muss e1-Wert „Hamburg" wählen.
+const PAIR_FILL = {
+  a: { id: "e1", first_name: "Tom", last_name: "Fischer", email: "tf@x.io", linkedin_url: null, job_title: null, seniority: null, department: null, city: "Hamburg", country: null, company: { name: "X" } }, // single-source-ok: Test-Fixture der DB-Rohzeile
+  b: { id: "f1", first_name: "Thomas", last_name: "Fischer", email: "tf@x.io", linkedin_url: "https://linkedin.com/in/thomas", job_title: "CTO", seniority: null, department: null, city: null, country: null, company: { name: "X" } }, // single-source-ok: Test-Fixture der DB-Rohzeile
+  level: "sicher" as const,
+  matchType: "email",
+};
+
+let dupPairs: unknown[] = [PAIR];
+
 const mergeContacts = vi.fn(() => Promise.resolve());
 const softDeleteContacts = vi.fn(() => Promise.resolve());
 
 vi.mock("@/lib/db", () => ({
-  getDuplicatePairs: vi.fn(() => Promise.resolve([PAIR])),
+  getDuplicatePairs: vi.fn(() => Promise.resolve(dupPairs)),
   getCompanyDuplicatePairs: vi.fn(() => Promise.resolve([])),
   mergeContacts: (...a: unknown[]) => mergeContacts(...(a as [])),
   mergeCompanies: vi.fn(() => Promise.resolve()),
@@ -62,7 +74,7 @@ function renderScreen() {
 }
 
 describe("ScreenDuplicates — Live-DOM", () => {
-  beforeEach(() => { mergeContacts.mockClear(); softDeleteContacts.mockClear(); });
+  beforeEach(() => { mergeContacts.mockClear(); softDeleteContacts.mockClear(); dupPairs = [PAIR]; });
   afterEach(() => cleanup());
 
   it("zeigt das echte Paar (beide Namen + Grund), kein Fake", async () => {
@@ -101,6 +113,34 @@ describe("ScreenDuplicates — Live-DOM", () => {
     expect(call[1]).toBe("a1");
     expect(call[2]).toBe("b1");
     expect((call[3] as Record<string, unknown>).job_title).toBe("CTO");
+  });
+
+  it("K-6a-Default: Gewinner = befüllterer Datensatz (nicht Paar-Reihenfolge), leeres Feld erbt Verlierer-Wert", async () => {
+    dupPairs = [PAIR_FILL];
+    renderScreen();
+    // Paar-Reihenfolge: e1 (Tom) zuerst, f1 (Thomas) zweiter.
+    await waitFor(() => expect(screen.getByText("Tom Fischer")).toBeTruthy());
+
+    fireEvent.click(screen.getByRole("button", { name: /duplicates\.merge/ }));
+    const dialog = await screen.findByRole("dialog");
+    // city ist ein abweichendes Feld (f1 leer / e1 "Hamburg") → als A/B sichtbar, "Hamburg" 1×.
+    expect(within(dialog).getAllByText("duplicates.field.city").length).toBe(2);
+    expect(within(dialog).getAllByText("Hamburg").length).toBe(1);
+
+    fireEvent.click(within(dialog).getByRole("button", { name: /duplicates\.merge/ }));
+    const alert = await screen.findByRole("alertdialog");
+    fireEvent.click(within(alert).getByRole("button", { name: "duplicates.merge" }));
+    await waitFor(() => expect(mergeContacts).toHaveBeenCalledTimes(1));
+
+    const call = mergeContacts.mock.calls[0] as unknown[];
+    // (1) Gewinner = f1 (befüllterer via pickPrimaryId), NICHT e1 (Paar-Reihenfolge).
+    expect(call[1]).toBe("f1");
+    expect(call[2]).toBe("e1");
+    const overrides = call[3] as Record<string, unknown>;
+    // (2) city am Gewinner (f1) leer → Vorauswahl erbt Verlierer-Wert "Hamburg" (kein Datenverlust).
+    expect(overrides.city).toBe("Hamburg");
+    // Gewinner-befülltes Feld bleibt Gewinner-Wert.
+    expect(overrides.job_title).toBe("CTO");
   });
 
   it("3. Aktion Löschen ruft softDeleteContacts (kein Merge) nach Bestätigung", async () => {

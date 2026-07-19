@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   countFilled, pickPrimaryId, resolveMergeFields, findDuplicatePairs, findCompanyDuplicatePairs,
-  diffFields, CONTACT_FK_SIMPLE, CONTACT_FK_SPECIAL, COMPANY_FK,
+  diffFields, defaultMergeSide, CONTACT_FK_SIMPLE, CONTACT_FK_SPECIAL, COMPANY_FK,
 } from "./merge";
 import type { ExistingContact } from "./dedup";
 
@@ -19,6 +19,19 @@ describe("countFilled / pickPrimaryId", () => {
     const a = { id: "a", first_name: "A", created_at: "2026-05-01" };
     const b = { id: "b", first_name: "B", created_at: "2026-01-01" };
     expect(pickPrimaryId(a, b, ["first_name"])).toBe("b");
+  });
+});
+
+describe("defaultMergeSide — K-6a-Vorauswahl (befüllter Wert gewinnt)", () => {
+  it("Gewinner am Feld befüllt → winner", () => {
+    expect(defaultMergeSide({ job_title: "CTO" }, { job_title: null }, "job_title")).toBe("winner");
+  });
+  it("Gewinner am Feld leer, Verlierer befüllt → loser (kein Datenverlust)", () => {
+    expect(defaultMergeSide({ linkedin_url: null }, { linkedin_url: "ln" }, "linkedin_url")).toBe("loser");
+    expect(defaultMergeSide({ city: "" }, { city: "Berlin" }, "city")).toBe("loser");
+  });
+  it("beide befüllt (abweichend) → winner (Gewinner-Wert vorbelegt, manuell überschreibbar)", () => {
+    expect(defaultMergeSide({ first_name: "Thomas" }, { first_name: "Tom" }, "first_name")).toBe("winner");
   });
 });
 
