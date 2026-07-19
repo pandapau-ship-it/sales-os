@@ -6,6 +6,17 @@
 
 ## Unreleased
 
+- **feat:** Betrieb & Überwachung B-1 (Minimal, Migr. 068/069). Drei globale Tabellen `cron_runs`
+  (Lauf-Telemetrie) · `system_alerts` (Betriebs-Alarme) · `cron_expectations` (Erwartungs-Katalog +
+  Klartext-Templates) — alle in audit `GLOBAL_TABLES`. Cron-Wrapper `cron_run_start`/`cron_run_finish`;
+  **alle 6 bestehenden Crons umgestellt** (063/067 DB-seitig neu geschedult; 035/037/049/051 schreiben
+  in ihren Edge-Functions — Deploy nötig). Watchdog-Cron (alle 15 Min) prüft Erwartungs-Katalog, **bündelt**
+  gleichzeitige Ausfälle in EINE `system_alerts`-Zeile + EIN `notify()` (Kategorie System, nur interne
+  Ops-Orgs, N12-Dedupe), Selbstheilung bei Erholung. Retention-Cron (Erfolg 7T / Fehler 30T) + Indizes.
+  Klartext-Registry `src/lib/alertTemplates.ts` (WAS/Vermutung/Bedeutung, +Test, Spiegel des DB-Seeds).
+  `/health`-Endpoint-Stub (B-2-Andockpunkt). **In-App-only** (System-Mail-Kanal = B-2). Haken: B9
+  (aiCall-Überwachung), Sentry, Status-Seite/Mini-Indikator = B-2/B-4.
+
 - **fix:** Weiße Seite auf /app/notifications behoben. Ursache: `subscribeToNotifications` nutzte für
   beide Subscriber (TopBar + ScreenNotifications) denselben Channel-Topic → Supabase-Kollision
   („tried to subscribe multiple times"), in der Effect-Phase geworfen, ohne ErrorBoundary → React

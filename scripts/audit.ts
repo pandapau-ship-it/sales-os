@@ -78,11 +78,14 @@ function checkDatabase(): void {
     return
   }
 
-  // Globale Katalog-Tabellen OHNE organization_id (dokumentierte Ausnahme, entitlement 061/064):
-  // plans/plan_limits/billing_config sind mandantenübergreifend — öffentlich lesbar (RLS select),
-  // Write nur service_role. Bewusst kein organization_id (Pricing-Doku §10 / entitlement §1;
-  // billing_config = globaler Abrechnungs-Default, Migration 064 Punkt 5).
-  const GLOBAL_TABLES = new Set(['plans', 'plan_limits', 'billing_config'])
+  // Globale Katalog-/Betriebs-Tabellen OHNE organization_id (dokumentierte Ausnahme):
+  // plans/plan_limits/billing_config (entitlement 061/064) + cron_runs/system_alerts/cron_expectations
+  // (Betrieb B-1, Migr. 068 — Betriebs-Telemetrie/-Alarme betreffen die Infrastruktur, nicht eine
+  // Kunden-Org). Alle mandantenübergreifend: öffentlich lesbar (RLS select), Write nur service_role.
+  const GLOBAL_TABLES = new Set([
+    'plans', 'plan_limits', 'billing_config',
+    'cron_runs', 'system_alerts', 'cron_expectations',
+  ])
   const missingOrg: string[] = []
   for (const t of tables) {
     if (t === 'organizations') continue // die Basis selbst

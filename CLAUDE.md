@@ -370,9 +370,14 @@ PROGRESS.md **vermerkt — nie stillschweigend**.
 - **b) Prompts-as-Code.** Neue AI-Funktion = **Prompt-File in `/prompts`** (Frontmatter:
   id, version, purpose, verwendende Function) **+ Inventar-Eintrag** in `/prompts/README.md`
   — **beides im selben PR, sonst kein Merge**. *(ai_chat_bauplan C27 / 5c)*
-- **c) Neuer Cron = Cron-Wrapper + Erwartungs-Katalog-Eintrag** (`cron_runs`, system_config)
-  im selben PR. Jeder **kritische Pfad** (Senden · Buchen · Zahlen · Löschen · Merge)
-  definiert seinen **Alarm-Fall**. *(betrieb_ueberwachung B2 / B3)*
+- **c) Neuer Cron = Cron-Wrapper + Erwartungs-Katalog-Eintrag im selben PR** (B-1 gebaut, Migr. 068/069).
+  Konkret: Der Cron-Command umschließt seine Arbeit mit **`cron_run_start(job)` / `cron_run_finish(run_id,
+  status,error,items)`** (schreibt `cron_runs`); soll der Job überwacht werden, **eine Zeile in
+  `cron_expectations`** (job_name · max_interval_minutes · Klartext WAS/Vermutung/Bedeutung, gespiegelt in
+  `src/lib/alertTemplates.ts`). Edge-Cron: die cron_runs-Writes gehören in die **Edge-Function** (dort läuft
+  die Arbeit), nicht in den `net.http_post`-Aufruf. Der **Watchdog** (`run_watchdog`, alle 15 Min) alarmiert
+  gebündelt via `system_alerts` + `notify()` (Kategorie System). Jeder **kritische Pfad** (Senden · Buchen ·
+  Zahlen · Löschen · Merge) definiert seinen **Alarm-Fall**. *(betrieb_ueberwachung B2 / B3)*
 - **d) Drei Architektur-Weichen — ab sofort verbindlich.** (1) **EINE** Bedingungs-/Filter-Sprache
   als gemeinsame Lib — erstmals gebaut in `kontakte_companies_bauplan` **Slice K-2**; dynamische
   Listen, Lifecycle-Trigger und Analyse-Katalog nutzen dieselbe, **nie eine zweite**, **nie
