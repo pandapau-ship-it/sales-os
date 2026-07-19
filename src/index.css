@@ -488,6 +488,16 @@ body {
 .deeplink-flash { animation: deeplink-flash 1.5s ease-out forwards; }
 @media (prefers-reduced-motion: reduce) { .deeplink-flash { animation: none; } }
 
+/* Glocken-Badge: einmaliger, dezenter Ring-Puls bei NEUER Mitteilung (Zuwachs des Ungelesen-Counts).
+   Kein Dauer-Blinken, kein Ton — passt zum Ruhe-Prinzip (N-S2 Polish 1). */
+@keyframes badge-pulse {
+  0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--signal-urgent-text) 55%, transparent); }
+  70%  { box-shadow: 0 0 0 7px color-mix(in srgb, var(--signal-urgent-text) 0%, transparent); }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+.badge-pulse { animation: badge-pulse 0.7s ease-out; }
+@media (prefers-reduced-motion: reduce) { .badge-pulse { animation: none; } }
+
 /* Stepper (Wizard-Fortschritt) — Linie „wächst" zum nächsten Punkt, der Kreis „poppt" beim Ankommen.
    Wiederverwendbar (shared/Stepper). calm/intelligent: dezent + kurz. Beim Zurück läuft die
    Linie durch dieselbe width-Transition spiegelverkehrt zurück. */

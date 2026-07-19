@@ -10,8 +10,13 @@
 import { useRef, useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Sun, Bot, Target, Sprout } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Sun, Bot, Target, Sprout, Bell } from "lucide-react";
 import { NAV } from "@/lib/navBehavior";
+import { useCurrentOrg } from "@/hooks/useCurrentOrg";
+import { useAuth } from "@/hooks/useAuth";
+import { getUnreadNotificationCount } from "@/lib/db";
+import { subscribeToNotifications } from "@/lib/realtime";
 
 interface TopBarProps {
   onOpenCommandPalette: () => void;
@@ -30,6 +35,38 @@ export default function TopBar({ onOpenCommandPalette }: TopBarProps) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const { t } = useTranslation();
+  const { organizationId } = useCurrentOrg();
+  const { user } = useAuth();
+  const qc = useQueryClient();
+
+  // Glocken-Badge: echter Ungelesen-Count (RLS → nur eigene; ohne Session leer). Realtime hält ihn live.
+  const unreadQuery = useQuery({
+    queryKey: ["notificationCount", organizationId],
+    queryFn: () => getUnreadNotificationCount(organizationId),
+    staleTime: 30_000,
+  });
+  const unread = unreadQuery.data ?? 0;
+
+  // Dezenter Badge-Puls NUR bei Zuwachs (neue Mitteilung), einmalig (N-S2 Polish 1, Ruhe-Prinzip).
+  const prevUnread = useRef(unread);
+  const [pulse, setPulse] = useState(false);
+  useEffect(() => {
+    if (unread > prevUnread.current) {
+      setPulse(true);
+      const id = setTimeout(() => setPulse(false), 700);
+      prevUnread.current = unread;
+      return () => clearTimeout(id);
+    }
+    prevUnread.current = unread;
+  }, [unread]);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    return subscribeToNotifications(user.id, () => {
+      void qc.invalidateQueries({ queryKey: ["notificationCount", organizationId] });
+      void qc.invalidateQueries({ queryKey: ["notifications", organizationId] });
+    });
+  }, [user?.id, organizationId, qc]);
 
   const activeIndex = Math.max(
     0,
@@ -134,6 +171,31 @@ export default function TopBar({ onOpenCommandPalette }: TopBarProps) {
           >
             ⌘K
           </span>
+        </button>
+
+        <button
+          onClick={() => navigate("/app/notifications")}
+          aria-label={t("notifications.title")}
+          data-tip={t("notifications.title")}
+          style={{
+            width: 30,
+            height: 30,
+            border: "1px solid var(--border-strong)",
+            borderRadius: 9,
+            background: "var(--surface)",
+            position: "relative",
+          }}
+          className="flex items-center justify-center text-text-muted cursor-pointer transition-colors hover:bg-[var(--app-bg)] hover:text-text-primary"
+        >
+          <Bell className="w-4 h-4" />
+          {unread > 0 && (
+            <span
+              className={`absolute -top-1 -right-1 min-w-[16px] h-[16px] px-1 rounded-full bg-[var(--signal-urgent-text)] text-on-accent text-[9px] font-bold flex items-center justify-center tabular-nums ${pulse ? "badge-pulse" : ""}`}
+              aria-label={t("notifications.unreadCount", { count: unread })}
+            >
+              {unread > 9 ? "9+" : unread}
+            </span>
+          )}
         </button>
 
         <button

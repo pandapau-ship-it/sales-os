@@ -493,6 +493,15 @@
   > der Credentials in Nango, kein Code-Umbau).
 
 **4.** [~] **[BAU] Mitteilungs-Fundament N-S1 + N-S2-Minimal** (`docs/mitteilungssystem_bauplan_v1.md`)
+  - **N-S2-MINIMAL GEBAUT 19.07.2026 (Option A/Route), wartet auf Freigabe.** Branch
+    `feature/notifications-bell-ns2`. TopBar-Glocke + Ungelesen-Badge (RLS-Query, Realtime live) ·
+    Route `/app/notifications` (4 Gruppen nur Ungelesenes · Verlauf-Tab 90T · Klick=gelesen+navigate N13 ·
+    Alle-als-gelesen · EmptyState) · db.ts 4 RLS-Queries (kein `notify()`) · `realtime.ts`
+    `subscribeToNotifications` echt verdrahtet (user-gefiltert) · Registry `screen_notifications` · i18n ·
+    +7 Tests. **Keine Migration.** Gates 0 FAIL, test-runner + auditor. **Live-QA nur eingeloggt** (RLS;
+    Demo-Modus = leer, korrekt). **Bewusst Folge-Slices:** Inline-Source-Buttons (Chat C6/Betrieb B3) ·
+    Settings-Matrix (N-S4) · Aktions-Popup+E-Mail (N-S4) · Aktivitätsfenster (N-S3) · Client-Realtime für
+    andere Listen (Stub bleibt).
   - **N-S1 GEBAUT 19.07.2026, wartet auf db push + Freigabe.** Branch `feature/notifications-foundation-ns1`.
     Migr. **065** (`notifications` + `activity_events` + `settings.notifications` additiv · Idempotenz-Key
     **MIT `user_id`** · Pflicht-Indizes inkl. partiell `read_at IS NULL` · RLS · Realtime `supabase_realtime`

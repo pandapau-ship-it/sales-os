@@ -6,6 +6,26 @@
 
 ## Unreleased
 
+- **fix:** Weiße Seite auf /app/notifications behoben. Ursache: `subscribeToNotifications` nutzte für
+  beide Subscriber (TopBar + ScreenNotifications) denselben Channel-Topic → Supabase-Kollision
+  („tried to subscribe multiple times"), in der Effect-Phase geworfen, ohne ErrorBoundary → React
+  unmountet den Baum. Fix: eindeutiges Topic pro Subscription (`notifications:${user}:${n}`) + try/catch-
+  Guard (Realtime-Fehler schaltet die App nie weiß). Zusätzlich: EINE globale `ErrorBoundary` (freundliche
+  Fallback-UI + Reload, Konsole-Log, B-1-Anschlusspunkt für Monitoring). Regressionstests: realtime
+  (eindeutige Topics/Guard), ErrorBoundary (Fallback statt weiß), ScreenNotifications-Realdata (echtes
+  i18n + 4 Kategorien). Der Render-Test war grün, weil alle Tests `@/lib/realtime` mockten.
+
+- **feat:** Mitteilungs-Glocke + Mitteilungsseite N-S2-Minimal (Option A, Route). TopBar-Glocke mit
+  echtem Ungelesen-Badge (RLS-Query, live via Realtime). Route `/app/notifications`: Standardansicht
+  nur Ungelesenes in 4 Gruppen (Braucht dich/System/Berichte/Team via `notifications.ts`-Registry),
+  Verlauf-Tab (90T), Klick=gelesen+verschwindet+Navigation (N13), „Alle als gelesen", EmptyState.
+  db.ts `getNotifications`/`getUnreadNotificationCount`/`markNotificationRead`/`markAllNotificationsRead`
+  (reine RLS-Queries, kein `notify()`). `realtime.ts` `subscribeToNotifications` echt verdrahtet
+  (user-gefilterter postgres_changes-Channel). Registry `screen_notifications`, i18n, +7 Tests. Keine
+  Migration. Inline-Source-Buttons/Settings-Matrix/Popup/Feed bleiben Folge-Slices (N-S3/N-S4).
+- **feat:** N-S2 Polish (ruhe-konform, reduced-motion-aware): dezenter Badge-Ring-Puls nur bei Zuwachs ·
+  sanftes Ausblenden beim Als-gelesen · Cmd+K-Eintrag „Mitteilungen" · ruhige Gruppen-Count-Chips.
+
 - **feat:** Mitteilungs-Fundament N-S1 (Migrationen 065-067). Tabellen `notifications`
   (user-gerichtet) + `activity_events` (Ambient-Feed) + `settings.notifications` (Matrix, additiv).
   **Idempotenz-Key MIT `user_id`** (`UNIQUE(org,user,source_type,source_id,category)`) → Mehr-

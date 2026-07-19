@@ -17,6 +17,7 @@ import {
   Sprout,
   Users,
   Building2,
+  Bell,
   Settings as SettingsIcon,
   UserPlus,
   CheckSquare,
@@ -54,6 +55,7 @@ export default function CommandPalette({ open, onOpenChange }: CommandPalettePro
     { route: "farmer", labelKey: "nav.farmer", icon: <Sprout className={ICON} /> },
     { route: "kontakte", labelKey: "nav.kontakte", icon: <Users className={ICON} /> },
     { route: "companies", labelKey: "nav.companies", icon: <Building2 className={ICON} /> },
+    { route: "notifications", labelKey: "nav.notifications", icon: <Bell className={ICON} /> },
     { route: "settings", labelKey: "nav.settings", icon: <SettingsIcon className={ICON} /> },
   ];
 
