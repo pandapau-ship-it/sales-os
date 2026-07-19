@@ -6,6 +6,20 @@
 
 ## Unreleased
 
+- **feat:** Settings SET-2 „Persönlich"-UI — Mein Profil · Ansicht · Sicherheit (an das fertige SET-2-Backend
+  gebunden, echte Daten). **Zugang gebündelt hinter dem Avatar-Dropdown** (Route `/app/profil`, 3 interne
+  Reiter via `PanelTabs`) — **nicht** in der Haupt-Settings-Nav (Bauplan-Struktur-Korrektur eingetragen).
+  **Mein Profil:** Avatar (Anzeige) · Name · Rolle (read-only) · Sprache (`setLanguage` + Persistenz
+  `user_preferences('ui.language')`) · Booking-Provider/Link · Signatur → `updateMyProfile`, Auto-Save je Karte;
+  **keine** Personal-Voice-Karte (gehört in „Mein Unternehmen"). **Ansicht:** Nav ein-/ausblenden (shadcn `switch`)
+  + Reihenfolge (Hoch/Runter-Pfeile) → `getNavPreferences`/`setNavPreferences`; „Einstellungen" fest/nicht
+  ausblendbar. **Sicherheit:** Passwort ändern mit **Re-Auth-Verifikation** des aktuellen PW (`signInWithEmail`)
+  → `updatePassword`; „Angemeldet über" read-only aus `getUserIdentities`. Neuer Baustein `SettingsCard`
+  (Titel/Beschreibung/„Gespeichert ✓") + Hook `useSaveState` (echter Speicher-Zustand, kein Fake-Delay).
+  Referenz-Export nur als Struktur-Vorlage (alle Mock-Daten/Hex/`<style>`/native Elemente ersetzt). shadcn
+  `switch`+`textarea` ergänzt. i18n de/en/es (`personal.*`). Avatar-Dropdown „Mein Profil" verdrahtet
+  (kein „wird gebaut" mehr). 11 Render-Tests. `typo-page-title`-Primitive.
+
 - **feat:** Settings SET-2 — **nur Backend/Datengrundlage** (keine UI, Migr. 073). **Allgemein:** neue
   `settings.general` jsonb (Sprache/Zeitzone/Datumsformat/Währung, Defaults geseedet); Org-Name/Logo bleiben
   org-seitig (`organizations.name`/`branding.logo_url`). **Mein Profil:** neue `users`-Spalten `booking_provider`

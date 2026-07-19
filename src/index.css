@@ -449,6 +449,8 @@ body {
 .typo-subline        { font-size: 11px; font-weight: 400; }
 /* Chip/Badge-Text (Produkt-/Kanal-/Prioritäts-Pills) */
 .typo-chip           { font-size: 10px; font-weight: 700; }
+/* Seiten-Überschrift (Screen-Titel, z.B. Persönliche Einstellungen) */
+.typo-page-title     { font-size: 20px; font-weight: 800; }
 
 /* Custom scrollbar */
 .custom-scrollbar::-webkit-scrollbar        { width: 6px; }

@@ -551,6 +551,15 @@
     `records.merge`. **NICHT jetzt:** Einzelrechte-/Papierkorb-UI (SET-3), Nav-Rollen-Ausblendung (SET-2),
     AI-Chat-Tool-Bindung, Viewer-Read-only-Enforcement.
 
+  - **SET-2 „PERSÖNLICH"-UI GEBAUT 19.07.2026 (Mein Profil/Ansicht/Sicherheit), wartet auf Merge-Freigabe.**
+    Zugang gebündelt hinter dem Avatar-Dropdown (Route `/app/profil`, 3 Reiter via `PanelTabs`) — NICHT in der
+    Haupt-Settings-Nav (Bauplan-Struktur-Korrektur eingetragen, `6a2ed07`). Echte Daten: `updateMyProfile`
+    (Name/Booking/Signatur, Auto-Save) · Sprache via `setLanguage`+`user_preferences('ui.language')` ·
+    `getNavPreferences`/`setNavPreferences` (Nav ein/aus + Reihenfolge, Einstellungen fest) · Passwort mit
+    Re-Auth-Verifikation + `updatePassword` · SSO-Anzeige `getUserIdentities`. Neu: `SettingsCard` + `useSaveState`,
+    shadcn `switch`/`textarea`, `typo-page-title`. **Keine Personal-Voice-Karte** (→ Mein Unternehmen). 11 Render-Tests.
+    Entscheidungen A–F wie vorgeschlagen. **Kein db push nötig** (reine UI auf vorhandenem Backend).
+
   - **SET-2 BACKEND/DATENGRUNDLAGE GEBAUT 19.07.2026 (keine UI), wartet auf db push (Migr. 073) + Merge-Freigabe.**
     Allgemein: `settings.general` (Sprache/Zeitzone/Datumsformat/Währung); Mein Profil: `users.booking_provider/
     booking_link/signature`; neues Recht `settings.manage` (owner+admin). Validierte Update-RPCs `update_general_settings`

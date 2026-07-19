@@ -456,6 +456,8 @@ function checkTypographyTokens(): void {
     'CompanyAnlegenPanel',
     // K-4b-1 geteilte kompakte Kontakt-Zeile (K-FS1-Basis)
     'CompactContactRow',
+    // SET-2 „Persönlich"-UI (Avatar-Bereich): Karten-Baustein + 3 Reiter
+    'SettingsCard', 'PersonalSettings', 'MyProfileTab', 'AppearanceTab', 'SecurityTab',
   ])
   // panel-blocks/ + features/ + farming/ (Farmer-Hilfskomponenten).
   const files = [

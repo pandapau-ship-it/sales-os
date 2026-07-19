@@ -164,10 +164,9 @@ export default function Sidebar() {
                   <DropdownMenuSeparator />
                 </>
               )}
-              <DropdownMenuItem disabled>
+              <DropdownMenuItem onSelect={() => navigate("/app/profil")}>
                 <UserCircle className="w-4 h-4" />
                 {t("auth.myProfile")}
-                <span className="ml-auto text-[10px] text-text-muted">{t("common.comingSoon")}</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onSelect={() => { void doLogout(); }}>
