@@ -35,7 +35,7 @@ ARBEITSWEISE
 └─ Mein Tag             Ranking-Gewichte (M2/M3) in Klartext
 
 AI
-├─ Modelle & Provider   Multi-LLM: Provider + Modell PRO AUFGABE (Mail-Generierung,
+├─ AI-Modelle           Multi-LLM: Provider + Modell PRO AUFGABE (Mail-Generierung,
 │                       Chat, Klassifizierung, Briefing, Embeddings) — reine Settings-
 │                       Werte, Start: Google (bestehende Entscheidung)
 ├─ AI SDR               Mailbox & Limits (inkl. Warmup, Hard-Cap, Versand-Modus E25) ·
@@ -77,8 +77,8 @@ PERSÖNLICH  ⚠ ZUGANG KORRIGIERT (19.07.2026) — NICHT in der Haupt-Settings-
 > rendert sie aber **nicht** als eigene Nav-Einträge (Zugang = Avatar).
 
 SYSTEM (nur Owner/Admin)
-├─ Status               B4 — Cron-Läufe, Queues, Alerts (Betriebs-Plan)
-└─ Audit-Log            Wer hat was wann geändert — read-only Tabelle mit Filtern
+├─ Systemstatus         B4 — Cron-Läufe, Queues, Alerts (Betriebs-Plan)
+└─ Änderungsprotokoll   Wer hat was wann geändert — read-only Tabelle mit Filtern
                         (Daten existieren komplett; nur Sichtbarmachung)
 ```
 

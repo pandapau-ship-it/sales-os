@@ -27,7 +27,7 @@ export default function PublicPlaceholder({ titleKey, bodyKey }: { titleKey: str
         </div>
         <h1 className="text-[16px] font-semibold text-text-primary">{t(titleKey)}</h1>
         <p className="text-[12px] text-text-muted">{t(bodyKey)}</p>
-        <Link to="/" className="sherloq-btn-secondary mt-1 text-[13px]">{t("auth.toLogin")}</Link>
+        <Link to="/" className="sherloq-btn-secondary mt-1">{t("auth.toLogin")}</Link>
       </div>
     </div>
   );
