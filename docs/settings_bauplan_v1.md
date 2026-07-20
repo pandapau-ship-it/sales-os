@@ -61,7 +61,10 @@ PERSÖNLICH  ⚠ ZUGANG KORRIGIERT (19.07.2026) — NICHT in der Haupt-Settings-
 > Ansicht · Sicherheit) sind **KEINE eigenen Punkte in der Haupt-Settings-Navigation** (`/app/settings`).
 > Zugang ist **EIN gebündelter Bereich hinter dem Avatar-Dropdown** (Profil-Icon unten links, zeigt heute
 > „Mein Profil" neben „Abmelden") mit **drei internen Reitern** (Mein Profil / Ansicht / Sicherheit).
-> **Keine Duplizierung** in der Haupt-Settings-Nav. **Begründung:** Persönliche (user-scoped) Einstellungen
+> **Keine Duplizierung** in der Haupt-Settings-Nav. **PRÄZISIERT (SET-3, 19.07.2026):** Die Settings-Nav
+> zeigt unten **EINEN einzelnen, dezenten Verweis „Persönliche Einstellungen ↗"**, der auf `/app/profil`
+> springt — **kein eigener Gruppen-Block, keine Seiten-Duplikate**. (Auffindbarkeit ohne Doppelstruktur.)
+> **Begründung:** Persönliche (user-scoped) Einstellungen
 > gehören zum Nutzer, nicht zur Org-Verwaltung — der Avatar ist der erwartete, aufgeräumte Ort dafür (Muster
 > wie Linear/Notion); die Haupt-Settings-Nav bleibt auf Org-/Team-Themen fokussiert. **Personal Voice** gehört
 > NICHT in „Mein Profil", sondern später in die **„Mein Unternehmen"-Gruppe** der Haupt-Settings-Nav (SET-KB-1/2).
