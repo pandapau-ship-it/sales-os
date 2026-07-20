@@ -19,6 +19,7 @@ import {
 } from "@/lib/settingsNav";
 import { cn } from "@/lib/utils";
 import TeamMembersPage from "./TeamMembersPage";
+import ProductPricingPage from "./ProductPricingPage";
 
 export default function SettingsShell() {
   const navigate = useNavigate();
@@ -103,6 +104,7 @@ export default function SettingsShell() {
       {/* Rechte Seite: aktive Settings-Seite (aktuell nur Team & Rechte gebaut) */}
       <div className="flex-1 min-w-0">
         {active === "team" && <TeamMembersPage />}
+        {active === "product-pricing" && <ProductPricingPage />}
       </div>
     </div>
   );

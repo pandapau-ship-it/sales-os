@@ -4,6 +4,21 @@
 > Format: `add:` neu · `update:` geändert · `fix:` behoben · `refactor:` · `docs:`
 > Neueste oben.
 
+## 2026-07-20 — Mein Unternehmen 1/3: Produkte & Preise
+- **feat:** Settings → Mein Unternehmen → **Produkte & Preise** (Migr. 077). `org_profile` als schlankes
+  Grundgerüst (USPs · Wettbewerber · `field_meta` inkl. **`locked`** als Schutz gegen den späteren
+  Website-Scan). `products` (028) **additiv erweitert** (benefit/audience/price/price_model,
+  description → jsonb) statt einer zweiten `product_info`-Tabelle — sonst hätte der Nutzer sein
+  Produkt im Deal-Dropdown nicht wiedergefunden.
+- **Preis-Freigabe pro Produkt** (`ai_may_reference_price`, Default **false**): die KI darf einen Preis
+  nur nennen, wenn er für genau dieses Produkt bewusst freigegeben wurde — als **harte Bedingung** in
+  `docs/ai_sdr_bauplan_v1.md` verankert, nicht als Hinweis.
+- **Ein Schreibweg** (`update_org_profile`/`update_product`/`create_product`/`delete_product`, weiches
+  Entfernen) nach dem SET-2-Muster: Key-Whitelist · `settings.manage` · `audit_log`. Stift, künftiger
+  KI-Knopf und künftiger AI-Chat teilen ihn. Feldpfade sind ab jetzt stabil.
+- **Kein Pflichtfeld** im gesamten Bereich; Textfelder als `jsonb` (Mehrsprach-Andockhaken, `i18nText`);
+  regelbasierte **Vollständigkeits-Anzeige mit Wirkungshinweis** (welches leere Feld bringt am meisten).
+
 ## 2026-07-20 — Settings-Nav vervollständigt + Platzhalter ohne Sackgasse
 - Gruppe **Mein Unternehmen** ergänzt (Unternehmensprofil · Personal Voice · Produkte & Preise) —
   war in `settings_bauplan_v1.md` 8.B/8.E entschieden, in Abschnitt 1 aber nicht geführt und darum

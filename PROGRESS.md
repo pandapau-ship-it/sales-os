@@ -609,6 +609,40 @@
     verifiziert: existiert noch nicht) · „Angemeldet bleiben"-Toggle · Verwaiste-Auth-User-Cleanup.
     **Manuell:** `.env.example` um `VITE_DEV_AUTH_BYPASS=` ergänzen (Datei tool-seitig gesperrt).
 
+  - **▶ „MEIN UNTERNEHMEN" — BEREICHSWEITE REGELN + ARCHITEKTUR FÜR SLICE 2/3 (20.07.2026).**
+    Slice 1/3 „Produkte & Preise" ist gebaut (Migr. 077). Die folgenden Setzungen gelten für den
+    **gesamten** Bereich und sind beim Bau von Slice 2/3 **verbindlich** — nicht neu verhandeln:
+    - **KEIN Feld in diesem Bereich ist Pflicht.** Nur `id` + `organization_id` sind technisch Pflicht.
+      Der Nutzer füllt in seinem Tempo; leere Felder zeigt die UI ehrlich leer, nie als Warnung.
+    - **`org_profile` wird nur ADDITIV erweitert** (Slice 3 hängt seine Felder an) — kein Umbau,
+      keine zweite Tabelle. `field_meta` (Feldpfad → source/updated_at/confidence/**locked**) existiert
+      bereits; `locked` schützt Handarbeit vor dem späteren Website-Scan und muss von jedem künftigen
+      Auto-Befüller respektiert werden.
+    - **Feldpfade sind STABIL** (`org.usps` · `org.competitors` · `product.<id>.<feld>`); Slice 2/3
+      setzen das Muster fort (`voice.<channel>.<feld>` · `icp.<id>.<feld>` · `persona.<id>.<feld>`).
+      Umbenennen bricht den späteren AI-Chat-Zugriff → nicht umbenennen.
+    - **Mehrsprachigkeit:** Textfelder liegen als `jsonb` (heute ein reiner String, später
+      `{de:…,en:…}`) — Lese-Helfer `src/lib/i18nText.ts` `textOf()`. Neue Textfelder in Slice 2/3
+      **ebenfalls jsonb**, nie `text`.
+    - **Ein Schreibweg:** alles über die validierten RPCs (`update_org_profile`/`update_product`,
+      Muster 073) mit Key-Whitelist + `audit_log`. Stift, KI-Knopf und künftiger AI-Chat teilen ihn.
+    - **[SLICE 3] ICPs/Personas — feste Architektur-Vorgabe (jetzt NICHT bauen):**
+      ICPs gehören der **eigenen Organisation**, nicht einer Kunden-Company; **mehrere ICPs pro Org**.
+      `org_icps` (organization_id · name · description · fit_level · `attributes jsonb` erweiterbar) und
+      `org_personas` (referenziert `org_icps`, **mehrere Personas je ICP**). Jede Persona trägt
+      **wachsende Listen**: mehrere Pain Points · mehrere Original-Zitate **getrennt nach „wörtlich"
+      vs. „abgeleitet"** · mehrere Job-Titel-Synonyme — jeweils Arrays, frei erweiterbar. Alle Felder
+      optional. Muss `match_persona` aus `ai_sdr_bauplan_v1.md` genügen (Abgleich gegen
+      `role_pattern`-Synonyme).
+    - **[KONFIG-AUDIT vormerken]** Die Wirkungs-Reihenfolge der Vollständigkeits-Hinweise
+      (`src/lib/companyKnowledge.ts`: Nutzen > Zielgruppe > USP > Beschreibung > Wettbewerb) ist heute
+      eine hartkodierte Empfehlungs-Priorität — für einen Ausfüllhinweis vertretbar, aber [D51] nennt
+      „Prioritäten/Reihenfolgen" ausdrücklich. Beim Modul-Abschluss-Gate prüfen.
+    - **[SLICE 2] Vorgemerkt:** Personal Voice bekommt **von Anfang an fünf Kanäle**
+      (`overview` · `post` · `comment` · `dm` · **`email`**) — das Design kennt nur die ersten vier,
+      der AI SDR mailt aber primär. Dazu das Live-Beispiel **„So klingt das"** (WOW-Idee, gehört
+      inhaltlich zu Voice, nicht zu Produkten).
+
   - **▶ RECHTE-KATALOG — ZUKUNFTS-REGISTRY (Teil-D-Scan 19.07.2026).** Diese Rechte existieren HEUTE noch
     nicht im Katalog und werden **MIT ihrem Modul** hinzugefügt (`permission_catalog` 070 + `role_permissions`
     + TS-Spiegel + `<RequiresPermission>` + Server-Guard — die 3 Fragen der Dauerregel). **Beim jeweiligen

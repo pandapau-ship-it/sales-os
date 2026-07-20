@@ -1266,5 +1266,68 @@
     "records.delete": "Eliminar contactos/empresas/negocios",
     "records.merge": "Fusionar duplicados",
     "settings.manage": "Cambiar ajustes del workspace"
+  },
+  "company": {
+    "productPricingIntro": "Lo que la IA sabe sobre vuestra oferta al escribir mensajes. Nada es obligatorio.",
+    "completeness": "Completitud",
+    "completenessHelp": "Cuanto más añadáis, más concreta será la IA.",
+    "filledOf": "{{filled}} de {{total}} rellenados",
+    "hint": {
+      "noProducts": "Añade primero un producto — sin él la IA no tiene nada que contar.",
+      "benefit": "Lo que más aporta ahora: el beneficio principal de «{{product}}».",
+      "audience": "Lo que más aporta ahora: el público de «{{product}}».",
+      "usps": "Lo que más aporta ahora: un USP — la IA construye el pitch con él.",
+      "description": "Lo que más aporta ahora: la descripción breve de «{{product}}».",
+      "competitorWhy": "Lo que más aporta ahora: por qué vosotros y no la competencia.",
+      "done": "Todo lo esencial está rellenado."
+    },
+    "products": "Productos",
+    "productsHelp": "Lo que vendéis. Varios productos posibles, todos los campos opcionales.",
+    "noProducts": "Aún no hay ningún producto.",
+    "addProduct": "Añadir producto",
+    "removeProduct": "Eliminar producto",
+    "removeProductConfirm": "«{{name}}» se eliminará de esta lista. Los negocios existentes mantienen su referencia.",
+    "unnamedProduct": "Producto sin nombre",
+    "field": {
+      "name": "Nombre",
+      "description": "Descripción breve",
+      "benefit": "Beneficio principal",
+      "audience": "Público",
+      "price": "Precio (opcional)",
+      "priceModel": "Modelo de precio"
+    },
+    "placeholder": {
+      "name": "Nombre del producto",
+      "description": "¿Qué es?",
+      "benefit": "¿Qué resuelve?",
+      "audience": "¿Para quién es?",
+      "price": "p. ej. 149 € o a consultar",
+      "priceModel": "Selecciona",
+      "usp": "¿Qué os hace especiales?",
+      "competitor": "p. ej. HubSpot",
+      "whyUs": "¿Por qué sois la mejor opción?"
+    },
+    "priceModel": {
+      "per_seat": "por asiento",
+      "monthly": "mensual",
+      "one_time": "pago único"
+    },
+    "priceRelease": "La IA puede mencionar este precio en los mensajes",
+    "priceReleaseHelp": "Desactivado por defecto: los precios cambian y suelen ser negociables. Actívalo solo si este precio es vinculante.",
+    "usps": "Puntos de venta únicos",
+    "uspsHelp": "Se aplica a toda la empresa, no a un producto.",
+    "usp": "USP {{n}}",
+    "addUsp": "Añadir USP",
+    "removeUsp": "Eliminar USP",
+    "competitors": "Competencia",
+    "competitorsHelp": "Contra quién competís — y por qué vosotros.",
+    "addCompetitor": "Añadir",
+    "removeCompetitor": "Eliminar competidor",
+    "whyUs": "¿Por qué vosotros en vez de {{name}}?",
+    "aiHint": "El botón de IA en cada campo propondrá contenido para ese campo. Próximamente.",
+    "editField": "Editar {{field}}",
+    "aiSuggest": "Que la IA proponga {{field}}",
+    "emptyField": "Aún sin contenido",
+    "saveFailed": "No ha funcionado — inténtalo de nuevo."
   }
 }

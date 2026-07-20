@@ -62,9 +62,9 @@ describe("Vollständige Settings-Navigation (SET-3, Bauplan Abschnitt 1)", () =>
     }
   });
 
-  it("NUR 'team' ist gebaut — alles andere in der Haupt-Nav ausgegraut ('Folgt')", () => {
+  it("gebaut sind 'team' + 'product-pricing' — alles andere ausgegraut ('Folgt')", () => {
     const builtInNav = SETTINGS_PAGES.filter((p) => p.group !== "personal" && p.built).map((p) => p.key);
-    expect(builtInNav).toEqual(["team"]);
+    expect(builtInNav).toEqual(["team", "product-pricing"]);
   });
 
   it("Persönlich-Seiten bleiben Registry-Einträge mit Route auf /app/profil", () => {
