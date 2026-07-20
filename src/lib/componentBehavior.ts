@@ -141,4 +141,6 @@ export const FIELD =
   "placeholder-[var(--text-muted)]";
 
 /** Mehrzeilige Variante — gleiche Optik, nur Höhe/Umbruch abweichend. */
-export const FIELD_MULTILINE = `${FIELD} leading-relaxed resize-y`;
+// `md:text-[13px]` überschreibt das `md:text-sm` aus dem shadcn-Textarea-Primitiv —
+// sonst wären mehrzeilige Felder ab Tablet 14px, einzeilige 13px.
+export const FIELD_MULTILINE = `${FIELD} md:text-[13px] leading-relaxed resize-y`;

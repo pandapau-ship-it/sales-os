@@ -266,14 +266,21 @@ export default function ProductPricingPage() {
                     onSave={(v) => patchProduct(p.id, { price: v })}
                   />
                   <div>
-                    <span className="typo-field-label text-text-muted block mb-1.5">
+                    <label
+                      htmlFor={`price-model-${p.id}`}
+                      className="typo-field-label text-text-muted block mb-1.5"
+                    >
                       {t("company.field.priceModel")}
-                    </span>
+                    </label>
                     <Select
                       value={p.price_model ?? ""}
                       onValueChange={(v) => patchProduct(p.id, { price_model: v })}
                     >
-                      <SelectTrigger className="h-9 text-[13px]">
+                      <SelectTrigger
+                        id={`price-model-${p.id}`}
+                        aria-label={t("company.field.priceModel")}
+                        className="h-9 text-[13px]"
+                      >
                         <SelectValue placeholder={t("company.placeholder.priceModel")} />
                       </SelectTrigger>
                       <SelectContent>
