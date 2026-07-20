@@ -51,8 +51,10 @@ export default function ProductPricingPage() {
   const canEdit = has("settings.manage");
 
   const [confirmDelete, setConfirmDelete] = useState<ProductRow | null>(null);
-  // Genau EIN Produkt offen (zuletzt bearbeitetes bzw. erstes) — der Rest bleibt eine ruhige Zeile.
-  const [openId, setOpenId] = useState<string | null>(null);
+  // Offenes Produkt. Drei Zustände bewusst getrennt, sonst verhält sich der Chevron des ersten
+  // Produkts anders als alle anderen: `undefined` = noch keine Wahl getroffen (→ erstes Produkt
+  // offen) · `null` = bewusst alles zugeklappt · id = diese Karte offen.
+  const [openId, setOpenId] = useState<string | null | undefined>(undefined);
 
   const productsQuery = useQuery({
     queryKey: ["productsFull", organizationId],
@@ -92,8 +94,14 @@ export default function ProductPricingPage() {
     "product",
   );
 
-  // Ohne bewusste Auswahl ist das ERSTE Produkt offen — nie alle gleichzeitig.
-  const isOpen = (id: string) => (openId ?? products[0]?.id) === id;
+  // Ohne bewusste Auswahl ist das ERSTE Produkt offen — nie alle gleichzeitig. Zeigt die Auswahl
+  // auf ein nicht mehr existierendes Produkt (gerade gelöscht), fällt sie auf das erste zurück,
+  // statt die Seite komplett zugeklappt stehen zu lassen.
+  const activeId =
+    openId === undefined || (openId !== null && !products.some((p) => p.id === openId))
+      ? products[0]?.id
+      : openId;
+  const isOpen = (id: string) => activeId === id;
 
   /** Kurzer Status für die zugeklappte Zeile — zeigt an, was noch fehlt (aus derselben Registry). */
   const statusOf = (p: ProductRow) => {
@@ -109,6 +117,12 @@ export default function ProductPricingPage() {
   const addProduct = async () => {
     const id = await createProduct();
     if (id) setOpenId(id); // neues Produkt kommt aufgeklappt — man will sofort tippen
+  };
+
+  const removeProduct = async (p: ProductRow) => {
+    await deleteProduct(p.id);
+    // Auswahl zurücksetzen: sonst zeigt sie auf eine gelöschte id (→ nichts mehr offen).
+    setOpenId(undefined);
   };
 
   const hintText = completeness.nextHint
@@ -218,7 +232,7 @@ export default function ProductPricingPage() {
                   onSave={(v) => patchProduct(p.id, { name: v })}
                 />
                 <KnowledgeField
-                    canEdit={canEdit}
+                  canEdit={canEdit}
                   label={t("company.field.description")}
                   value={textOf(p.description)}
                   placeholder={t("company.placeholder.description")}
@@ -226,7 +240,7 @@ export default function ProductPricingPage() {
                   onSave={(v) => patchProduct(p.id, { description: v })}
                 />
                 <KnowledgeField
-                    canEdit={canEdit}
+                  canEdit={canEdit}
                   label={t("company.field.benefit")}
                   value={textOf(p.benefit)}
                   placeholder={t("company.placeholder.benefit")}
@@ -234,7 +248,7 @@ export default function ProductPricingPage() {
                   onSave={(v) => patchProduct(p.id, { benefit: v })}
                 />
                 <KnowledgeField
-                    canEdit={canEdit}
+                  canEdit={canEdit}
                   label={t("company.field.audience")}
                   value={textOf(p.audience)}
                   placeholder={t("company.placeholder.audience")}
@@ -243,7 +257,7 @@ export default function ProductPricingPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <KnowledgeField
-                    canEdit={canEdit}
+                  canEdit={canEdit}
                     label={t("company.field.price")}
                     value={p.price ?? ""}
                     placeholder={t("company.placeholder.price")}
@@ -326,7 +340,7 @@ export default function ProductPricingPage() {
             <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
-                if (confirmDelete) void write(saveProducts, deleteProduct(confirmDelete.id));
+                if (confirmDelete) void write(saveProducts, removeProduct(confirmDelete));
                 setConfirmDelete(null);
               }}
             >

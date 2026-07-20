@@ -13,7 +13,7 @@
  * Sanfter Anreiz, kein Zwang: es gibt in diesem Bereich keine Pflichtfelder.
  */
 import { isEmptyText, type I18nText } from "./i18nText";
-import { IMPORTANCE_ORDER, importanceOf, pathFor, type Importance } from "./fieldImportance";
+import { IMPORTANCE_ORDER, importanceOf, pathFor, type Importance, type HintKey } from "./fieldImportance";
 
 export interface KnowledgeProduct {
   id: string;
@@ -45,7 +45,7 @@ export interface MissingField {
   importance: Importance;
   reason: string;
   /** i18n-Suffix (`company.hint.<hintKey>`). */
-  hintKey: string;
+  hintKey: HintKey;
   /** Menschlicher Bezug für die Rückfrage („welches Produkt?"), null bei Firmen-Feldern. */
   subject: string | null;
 }
@@ -55,7 +55,7 @@ export interface CompletenessResult {
   total: number;
   percent: number;
   /** Wirkungsvollster nächster Schritt — null, wenn required+recommended vollständig sind. */
-  nextHint: string | null;
+  nextHint: HintKey | "noProducts" | null;
   productName: string | null;
   /** Alle fehlenden Felder in Registry-Reihenfolge (required zuerst). */
   missing: MissingField[];

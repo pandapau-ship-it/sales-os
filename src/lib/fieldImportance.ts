@@ -22,6 +22,14 @@
 
 export type Importance = "required" | "recommended" | "optional";
 
+/**
+ * Erlaubte Hinweis-Schlüssel (`company.hint.<hintKey>` in den Locales). Bewusst eine feste Union:
+ * ein Tippfehler fällt so beim Bauen auf und nicht erst als fehlender Text in der Oberfläche.
+ */
+export type HintKey =
+  | "name" | "benefit" | "audience" | "usps" | "description"
+  | "competitorWhy" | "price" | "priceModel";
+
 export interface FieldImportanceEntry {
   /** Pfad-Vorlage mit `<id>`-Platzhalter, z.B. "product.<id>.benefit". STABIL — nie umbenennen. */
   path: string;
@@ -31,7 +39,7 @@ export interface FieldImportanceEntry {
   /** Rang innerhalb derselben Einstufung (kleiner = zuerst). Steuert den Wirkungshinweis. */
   order: number;
   /** i18n-Suffix des Hinweistexts der Vollständigkeits-Anzeige (`company.hint.<hintKey>`). */
-  hintKey: string;
+  hintKey: HintKey;
 }
 
 /**

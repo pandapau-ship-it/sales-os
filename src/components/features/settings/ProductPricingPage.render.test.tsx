@@ -128,6 +128,29 @@ describe("ProductPricingPage", () => {
     await waitFor(() => expect(createProduct).toHaveBeenCalled());
   });
 
+  it("Chevron des OFFENEN Produkts klappt es wirklich zu (auch beim ersten — kein toter Klick)", async () => {
+    renderPage();
+    await screen.findByLabelText("company.priceRelease");
+    // Kopfzeile ist der Button mit aria-expanded (der Name steht auch im Feld darunter).
+    const header = document.querySelector("[aria-expanded]") as HTMLButtonElement;
+    expect(header.getAttribute("aria-expanded")).toBe("true");
+    fireEvent.click(header);
+    await waitFor(() => expect(screen.queryByLabelText("company.priceRelease")).toBeNull());
+    expect(header.getAttribute("aria-expanded")).toBe("false");
+  });
+
+  it("nach dem Löschen des offenen Produkts steht die Seite NICHT komplett zu", async () => {
+    PRODUCTS = [{ ...PRODUCT }, { ...PRODUCT, id: "p2", name: "Zweites" }];
+    renderPage();
+    await waitFor(() => expect(screen.getAllByLabelText("company.priceRelease")).toHaveLength(1));
+    fireEvent.click(screen.getAllByLabelText("company.removeProduct")[0]);
+    fireEvent.click(await screen.findByText("company.removeProduct", { selector: "button" }));
+    await waitFor(() => expect(deleteProduct).toHaveBeenCalledWith("p1"));
+    // Das verbleibende Produkt rückt nach und ist offen — nicht alles zugeklappt.
+    PRODUCTS = [{ ...PRODUCT, id: "p2", name: "Zweites" }];
+    await waitFor(() => expect(screen.getAllByLabelText("company.priceRelease")).toHaveLength(1));
+  });
+
   it("Produkt-weiter KI-Knopf ist sichtbar, aber nicht bedienbar (Folgt)", async () => {
     renderPage();
     const btn = await screen.findByLabelText("company.aiFillProduct");
