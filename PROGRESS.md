@@ -638,6 +638,17 @@
       (`src/lib/companyKnowledge.ts`: Nutzen > Zielgruppe > USP > Beschreibung > Wettbewerb) ist heute
       eine hartkodierte Empfehlungs-Priorität — für einen Ausfüllhinweis vertretbar, aber [D51] nennt
       „Prioritäten/Reihenfolgen" ausdrücklich. Beim Modul-Abschluss-Gate prüfen.
+    - **[VERBINDLICH FÜR SLICE 2 + 3] Feld-Muster: durchgehend sichtbare Eingabefelder.**
+      Entschieden 20.07.2026 nach Live-Test. Jedes Feld in „Mein Unternehmen" zeigt **Label oben,
+      darunter IMMER ein sichtbares graues Eingabefeld** (`FIELD`/`FIELD_MULTILINE` aus
+      `componentBehavior.ts`), gespeichert beim **Verlassen des Feldes**. **KEIN Stift, kein
+      Read-Mode-Zwischenschritt** — der zuvor gebaute Read-Mode (Wert als Text, Klick öffnet ein
+      Feld) ließ die Seite weiß und randlos wirken und wich von der Design-Referenz ab. Begründung:
+      Das sind **Ausfüll**-Seiten (man kommt her, um zu tippen), keine Lese-Flächen. Read-Mode +
+      Inline-Edit bleibt richtig für CRM-Panels (`DetailField`) — dort ist Lesen der Normalfall.
+      **Der KI-Knopf pro Feld bleibt** (Vorschlag für genau dieses Feld). Umgesetzt im geteilten
+      Baustein `KnowledgeField` → gilt automatisch für Personal Voice und Unternehmensprofil;
+      **in Slice 2/3 nicht erneut zur Diskussion stellen.**
     - **[SLICE 3 — UMZUG] USP + Wettbewerber ziehen auf die künftige Company-Profile-Seite um.**
       Backend ist bereits vorhanden (`org_profile.usps` / `org_profile.competitors` +
       `update_org_profile`) — nur das UI-Zuhause wechselt. Die Sektionen wurden am 20.07.2026

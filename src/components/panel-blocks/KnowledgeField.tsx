@@ -1,27 +1,32 @@
 /**
- * KnowledgeField — ein Feld im Bereich „Mein Unternehmen" (Produkte & Preise, später Personal
- * Voice + Unternehmensprofil). Trägt die verbindliche Doppel-Affordanz:
+ * KnowledgeField — ein Feld im Bereich „Mein Unternehmen" (Produkte & Preise, Personal Voice,
+ * Unternehmensprofil). VERBINDLICHES Muster für den gesamten Bereich (entschieden 20.07.2026):
  *
- *   Stift (Pencil)   → manuelles Bearbeiten; speichert über die ZENTRALE Update-Funktion des Aufrufers
- *                 (update_product / update_org_profile) — es gibt keinen zweiten Schreibweg.
- *   KI-Knopf (Sparkles) → erzeugt später einen Vorschlag für GENAU DIESES Feld (nicht die ganze Seite).
- *                 Heute bewusst ausgegraut + „Folgt" — `lib/ai.ts` existiert noch nicht, und ein
- *                 Knopf, der so tut als könne er etwas, wäre ein Honesty-Bruch.
+ *   Label oben, darunter IMMER ein sichtbares graues Eingabefeld (FIELD-Kanon), gespeichert beim
+ *   Verlassen des Feldes. KEIN Stift, kein Read-Mode-Zwischenschritt.
  *
- * Regel A: `DetailField` (panel-blocks) deckt das nicht ab — es kennt keinen zweiten Aktions-Slot
- * und ist auf CRM-Panel-Semantik (copyable/href/options) zugeschnitten. Daher eigener, schlanker
- * Baustein, bewusst geteilt für die zwei Folge-Slices.
+ * Warum: Das ist eine Ausfüll-Seite — man kommt her, UM zu tippen, nicht um zu lesen. Der zuvor
+ * gebaute Read-Mode (Wert als Text, Klick öffnet ein Feld) ließ die Seite weiß und randlos wirken
+ * und wich von der Design-Referenz ab. Read-Mode + Inline-Edit bleibt das richtige Muster für
+ * LESE-Flächen (`DetailField` in den CRM-Panels) — hier ist es das falsche.
  *
- * Leer ist ein gültiger Zustand: in diesem Bereich gibt es KEINE Pflichtfelder. Leere Felder
- * zeigen den Platzhalter, nie eine Warnung.
+ * Der KI-Knopf pro Feld bleibt: er erzeugt später einen Vorschlag für GENAU DIESES Feld (nicht für
+ * die ganze Seite) und schreibt über denselben zentralen Weg wie die Tastatureingabe. Heute bewusst
+ * ausgegraut + „Folgt" — `lib/ai.ts` existiert noch nicht, und ein Knopf, der so tut, als könne er
+ * etwas, wäre ein Honesty-Bruch.
+ *
+ * Regel A: `DetailField` (panel-blocks) deckt das nicht ab — es ist genau der Read-Mode-Baustein
+ * und kennt keinen zweiten Aktions-Slot (KI). Daher eigener, schlanker Baustein, geteilt über alle
+ * drei Slices.
+ *
+ * Leer ist ein gültiger Zustand: in diesem Bereich gibt es KEINE Pflichtfelder — nie eine Warnung.
  */
-import { useState, useRef, useEffect } from "react";
+import { useState, useId } from "react";
 import { useTranslation } from "react-i18next";
-import { Pencil, Sparkles } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Sparkles } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { HOVER_ACTIONS, FIELD, FIELD_MULTILINE } from "@/lib/componentBehavior";
+import { FIELD, FIELD_MULTILINE } from "@/lib/componentBehavior";
 
 export default function KnowledgeField({
   label, value, placeholder, multiline = false, rows = 3, canEdit = true, onSave,
@@ -36,88 +41,54 @@ export default function KnowledgeField({
   onSave: (next: string) => void | Promise<void>;
 }) {
   const { t } = useTranslation();
-  const [editing, setEditing] = useState(false);
+  const id = useId();
   const [draft, setDraft] = useState(value);
-  const ref = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
+  const [lastValue, setLastValue] = useState(value);
 
-  useEffect(() => { if (editing) ref.current?.focus(); }, [editing]);
+  // Fremde Änderung (Refetch nach dem Speichern, anderes Gerät) WÄHREND des Renderns übernehmen —
+  // Reacts empfohlener Weg statt eines Sync-Effects. Was gerade getippt wird, bleibt erhalten,
+  // solange sich der Server-Wert nicht ändert.
+  if (value !== lastValue) {
+    setLastValue(value);
+    setDraft(value);
+  }
 
-  // Der Entwurf wird beim ÖFFNEN aus dem aktuellen Wert gesetzt (nicht per Sync-Effect) —
-  // so überschreibt ein Hintergrund-Refetch nie, was gerade getippt wird.
-  const startEdit = () => { if (!canEdit) return; setDraft(value); setEditing(true); };
+  const commit = () => { if (draft !== value) void onSave(draft); };
 
-  const commit = () => {
-    setEditing(false);
-    if (draft !== value) void onSave(draft);
+  const shared = {
+    id,
+    value: draft,
+    placeholder,
+    disabled: !canEdit,
+    onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setDraft(e.target.value),
+    onBlur: commit,
   };
 
   return (
-    <div className="group">
+    <div>
       <div className="flex items-center justify-between gap-2 mb-1.5">
-        <span className="typo-field-label text-text-muted">{label}</span>
-        <div className={cn("flex items-center gap-0.5", HOVER_ACTIONS)}>
-          {canEdit && <button
-            type="button"
-            onClick={startEdit}
-            aria-label={t("company.editField", { field: label })}
-            data-tip={t("common.edit")}
-            className="w-7 h-7 rounded-[6px] text-text-muted hover:bg-app-bg hover:text-text-primary flex items-center justify-center transition-colors cursor-pointer"
-          >
-            <Pencil className="w-3.5 h-3.5" />
-          </button>}
-          <button
-            type="button"
-            disabled
-            aria-label={t("company.aiSuggest", { field: label })}
-            aria-disabled="true"
-            data-tip={t("settings.nav.comingSoon")}
-            className="w-7 h-7 rounded-[6px] text-text-muted opacity-40 cursor-not-allowed flex items-center justify-center"
-          >
-            <Sparkles className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      </div>
-
-      {editing ? (
-        multiline ? (
-          <Textarea
-            ref={ref as React.Ref<HTMLTextAreaElement>}
-            rows={rows}
-            className={FIELD_MULTILINE}
-            value={draft}
-            placeholder={placeholder}
-            onChange={(e) => setDraft(e.target.value)}
-            onBlur={commit}
-            onKeyDown={(e) => { if (e.key === "Escape") { setDraft(value); setEditing(false); } }}
-          />
-        ) : (
-          <Input
-            ref={ref as React.Ref<HTMLInputElement>}
-            className={FIELD}
-            value={draft}
-            placeholder={placeholder}
-            onChange={(e) => setDraft(e.target.value)}
-            onBlur={commit}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") commit();
-              if (e.key === "Escape") { setDraft(value); setEditing(false); }
-            }}
-          />
-        )
-      ) : (
+        <label htmlFor={id} className="typo-field-label text-text-muted">{label}</label>
         <button
           type="button"
-          onClick={startEdit}
-          disabled={!canEdit}
-          className={cn(
-            "w-full text-left text-[13px] text-text-body whitespace-pre-wrap min-h-[20px]",
-            canEdit ? "cursor-text" : "cursor-default",
-          )}
+          disabled
+          aria-disabled="true"
+          aria-label={t("company.aiSuggest", { field: label })}
+          data-tip={t("settings.nav.comingSoon")}
+          className="w-7 h-7 rounded-[6px] text-text-muted opacity-40 cursor-not-allowed flex items-center justify-center shrink-0"
         >
-          {value.trim().length > 0
-            ? value
-            : <span className="text-text-muted">{placeholder ?? t("company.emptyField")}</span>}
+          <Sparkles className="w-3.5 h-3.5" />
         </button>
+      </div>
+
+      {multiline ? (
+        <Textarea {...shared} rows={rows} className={FIELD_MULTILINE} />
+      ) : (
+        <Input
+          {...shared}
+          className={FIELD}
+          // Enter beendet die Eingabe wie das Verlassen des Feldes (mehrzeilig: echter Umbruch).
+          onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
+        />
       )}
     </div>
   );

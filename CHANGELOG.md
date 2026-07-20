@@ -4,6 +4,16 @@
 > Format: `add:` neu · `update:` geändert · `fix:` behoben · `refactor:` · `docs:`
 > Neueste oben.
 
+## 2026-07-20 — Mein Unternehmen: durchgehend sichtbare Eingabefelder
+- **fix/UX:** Die Felder waren im Ruhezustand gar keine Felder — der Wert stand als Text auf der
+  weißen Karte, ein `<input>` entstand erst nach einem Klick. Der graue Kanon lag also korrekt an,
+  war aber unsichtbar. Ursache war ein **Muster-Bruch**: Read-Mode + Inline-Edit (`DetailField`)
+  statt der Ausfüll-Optik der Design-Referenz — von mir stillschweigend gewählt (REGEL-B-Verstoß).
+- **Jetzt verbindlich für den ganzen Bereich** (auch Slice 2/3, in PROGRESS.md festgehalten):
+  Label oben, darunter **immer** ein sichtbares graues Feld, gespeichert beim Verlassen. Kein
+  Stift. Der KI-Knopf je Feld bleibt. Umgesetzt im geteilten `KnowledgeField`.
+- **[AUTO]:** Regressionstest, dass die Felder **beim Laden** als `input`/`textarea` im DOM sind.
+
 ## 2026-07-20 — Produkte & Preise: Korrekturen + Wichtigkeits-Registry
 - **fix:** Eingabefelder nutzten die rohen shadcn-Primitive (weiß bzw. shadcn-Rohtokens) statt des
   Projekt-Kanons. Der graue `FIELD`-Kanon existierte bisher als **Copy-Paste an ~22 Stellen** —

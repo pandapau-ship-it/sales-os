@@ -88,14 +88,21 @@ describe("ProductPricingPage", () => {
   it("leeres Feld lässt sich leer lassen UND leer speichern (kein Pflichtfeld-Zwang)", async () => {
     PRODUCTS = [{ ...PRODUCT, benefit: "alt" }];
     renderPage();
-    const pencils = await screen.findAllByLabelText(/company\.editField/);
-    // 2. Stift = Kurzbeschreibung … wir nehmen den Nutzen-Stift über sein Label.
-    const benefitPencil = pencils.find((p) => p.getAttribute("aria-label")?.includes("benefit"))!;
-    fireEvent.click(benefitPencil);
-    const box = document.querySelector("textarea") as HTMLTextAreaElement;
+    const box = await screen.findByDisplayValue("alt");
     fireEvent.change(box, { target: { value: "" } });
     fireEvent.blur(box);
     await waitFor(() => expect(updateProduct).toHaveBeenCalledWith("p1", { benefit: "" }));
+  });
+
+  it("Felder sind BEIM LADEN als input/textarea da — nicht erst nach einem Klick", async () => {
+    renderPage();
+    await screen.findByLabelText("company.priceRelease");
+    // Name + Preis als <input>, Kurzbeschreibung + Hauptnutzen + Zielgruppe … alle sofort vorhanden.
+    expect(document.querySelectorAll("input, textarea").length).toBeGreaterThanOrEqual(5);
+    expect(screen.getByLabelText("company.field.benefit").tagName.toLowerCase()).toBe("textarea");
+    expect(screen.getByLabelText("company.field.name").tagName.toLowerCase()).toBe("input");
+    // …und es gibt KEINEN Bearbeiten-Stift mehr (das Feld IST editierbar).
+    expect(screen.queryAllByLabelText(/company\.editField/)).toHaveLength(0);
   });
 
   it("USP- und Wettbewerber-Sektion sind NICHT mehr auf dieser Seite (ziehen zu Slice 3 um)", async () => {
@@ -195,8 +202,7 @@ describe("ProductPricingPage", () => {
 
   it("Eingabefelder nutzen den grauen FIELD-Kanon, nicht den weißen shadcn-Default", async () => {
     renderPage();
-    const pencils = await screen.findAllByLabelText(/company\.editField/);
-    fireEvent.click(pencils[0]);
+    await screen.findByLabelText("company.priceRelease");
     const input = document.querySelector("input, textarea") as HTMLElement;
     expect(input.className).toContain("bg-app-bg");        // grauer Kanon
     expect(input.className).not.toContain("bg-app-surface"); // nicht weiß
