@@ -705,13 +705,14 @@
     nicht genannt, gehören aber sachlich dazu):
     - Kontakte/Companies: `createContact` · `updateContact` · `createCompany` · `updateCompany`
     - Deals: `createDeal` · `updateDeal` · `updateDealStage` · `updateDealWon` · `updateDealLost`
-    - Tasks/Notizen/Kommunikation: `createTask` · `updateTask` · `completeTask` · `setTaskCompleted` ·
-      `softDeleteTask` · `createNote` · `updateNote` · `softDeleteNote` · `createCompanyNote` ·
+    - Tasks/Notizen/Kommunikation: `createTask` · `updateTask` · `completeTask` · `softDeleteTask` · `createNote` · `updateNote` · `softDeleteNote` · `createCompanyNote` ·
       `createCommunication`
     - Telefonnummern: `createContactPhone` · `updateContactPhone` · `setContactPhonePrimary` ·
       `deleteContactPhone`
     - Listen: `createList` · `renameList` · `addToList` · `removeFromList` · `deleteList`
-    - Leads: `createLead` · `updateLeadStage` · `assignLeadOwner`
+    - Leads *(heute Prototyp-Stubs ohne echten DB-Write bzw. nur lesend — beim Nachhol-Slice
+      prüfen, ob sie dann real sind)*: `createLead` · `updateLeadStage` · `assignLeadOwner` ·
+      `setTaskCompleted` · `upgradeSubscription` · `publishMarketingPost`
     - Mitteilungen: `markNotificationRead` · `markAllNotificationsRead`
     - Import: `runImport` · `undoImport` *(rückgängig machen = destruktiv, klar chat-relevant)*
     - Sonstiges: `mergeContacts` · `mergeCompanies` · `deleteInvitation` · `setUserPreference` ·
