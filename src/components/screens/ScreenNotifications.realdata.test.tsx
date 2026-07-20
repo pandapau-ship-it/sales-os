@@ -29,10 +29,10 @@ vi.mock("@/lib/realtime", () => ({ subscribeToNotifications: () => () => {} }));
 
 const now = new Date().toISOString();
 const FOUR = [
-  { id: "1", category: "approval", severity: "high", title: "Freigabe", body: "b", link: "/app/kontakte", source_type: "approval_requests", source_id: "a", read_at: null, created_at: now },
-  { id: "2", category: "system_alert", severity: "urgent", title: "Cron", body: "b", link: null, source_type: "system_alerts", source_id: "b", read_at: null, created_at: now },
-  { id: "3", category: "report", severity: "normal", title: "Bericht", body: "b", link: "/app/hunter", source_type: "cron_runs", source_id: "c", read_at: null, created_at: now },
-  { id: "4", category: "team", severity: "normal", title: "Team", body: null, link: null, source_type: "invitations", source_id: "d", read_at: null, created_at: now },
+  { id: "1", category: "approval", severity: "high", title: "Freigabe", body: "b", link: "/app/kontakte", source_type: "approval_requests", source_id: "a", read_at: null, created_at: now, updated_at: now },
+  { id: "2", category: "system_alert", severity: "urgent", title: "Cron", body: "b", link: null, source_type: "system_alerts", source_id: "b", read_at: null, created_at: now, updated_at: now },
+  { id: "3", category: "report", severity: "normal", title: "Bericht", body: "b", link: "/app/hunter", source_type: "cron_runs", source_id: "c", read_at: null, created_at: now, updated_at: now },
+  { id: "4", category: "team", severity: "normal", title: "Team", body: null, link: null, source_type: "invitations", source_id: "d", read_at: null, created_at: now, updated_at: now },
 ];
 vi.mock("@/lib/db", () => ({
   getNotifications: (_o: string, mode: string) => Promise.resolve(mode === "unread" ? FOUR : []),

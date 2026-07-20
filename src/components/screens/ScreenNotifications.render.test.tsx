@@ -56,6 +56,7 @@ const NOTIF = {
   source_id: "req-1",
   read_at: null,
   created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString(),
 };
 
 describe("ScreenNotifications — Live-DOM", () => {
@@ -85,6 +86,22 @@ describe("ScreenNotifications — Live-DOM", () => {
     await waitFor(() => expect(markRead).toHaveBeenCalledTimes(1));
     expect(markRead.mock.calls[0][0]).toBe("n1");
     expect(navigateMock).toHaveBeenCalledWith("/app/x");
+  });
+
+  it("erneut ausgelöste Mitteilung zeigt die NEUE Zeit (updated_at), nicht die alte Erstellung", async () => {
+    const now = Date.now();
+    unread = [{
+      ...NOTIF,
+      id: "n-updated",
+      title: "1 Betriebs-Job(s) nicht durchgelaufen",
+      created_at: new Date(now - 13 * 60 * 60 * 1000).toISOString(), // vor 13 Stunden erstmals erstellt
+      updated_at: new Date(now - 2 * 60 * 1000).toISOString(),       // vor 2 Minuten erneut ausgelöst
+    }];
+    renderScreen();
+    await waitFor(() => expect(screen.getByText("1 Betriebs-Job(s) nicht durchgelaufen")).toBeTruthy());
+    // Frische Zeit (Minuten) — NICHT die 13 Stunden alte Erst-Erstellung.
+    expect(screen.getByText("notifications.time.minutesAgo")).toBeTruthy();
+    expect(screen.queryByText("notifications.time.hoursAgo")).toBeNull();
   });
 
   it("lange, mehrzeilige Beschreibung wird VOLLSTÄNDIG angezeigt — keine Kürzung (truncate)", async () => {

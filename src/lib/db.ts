@@ -816,6 +816,9 @@ export interface NotificationRow {
   source_id: string;
   read_at: string | null;
   created_at: string;
+  /** Zeitpunkt der letzten Aktualisierung. Ändert sich NUR, wenn notify() dieselbe Mitteilung
+   *  erneut auslöst (ON CONFLICT) — „gelesen markieren" fasst ihn nicht an. Basis der Zeitanzeige. */
+  updated_at: string;
 }
 
 /** Mitteilungen des eingeloggten Users. mode 'unread' = Standardansicht (N13), 'history' = Verlauf (90T). */
@@ -827,10 +830,12 @@ export async function getNotifications(
   if (!client) return [];
   let q = client
     .from("notifications")
-    .select("id, category, severity, title, body, link, source_type, source_id, read_at, created_at")
+    .select("id, category, severity, title, body, link, source_type, source_id, read_at, created_at, updated_at")
     .eq("organization_id", organizationId);
   q = mode === "unread" ? q.is("read_at", null) : q.not("read_at", "is", null);
-  const { data, error } = await q.order("created_at", { ascending: false }).limit(100);
+  // Nach updated_at sortieren, damit Position und angezeigte Zeit dieselbe Quelle haben:
+  // eine erneut ausgelöste Mitteilung ist frische Aktivität und gehört nach oben.
+  const { data, error } = await q.order("updated_at", { ascending: false }).limit(100);
   if (error) throw error;
   return (data ?? []) as NotificationRow[];
 }
