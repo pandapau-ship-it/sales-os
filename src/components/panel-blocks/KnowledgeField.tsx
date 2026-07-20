@@ -21,7 +21,7 @@
  *
  * Leer ist ein gültiger Zustand: in diesem Bereich gibt es KEINE Pflichtfelder — nie eine Warnung.
  */
-import { useState, useId, useRef } from "react";
+import { useState, useId } from "react";
 import { useTranslation } from "react-i18next";
 import { Sparkles } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -46,14 +46,16 @@ export default function KnowledgeField({
   const [lastValue, setLastValue] = useState(value);
   // Solange das Feld den Fokus hat, gewinnt das Getippte — sonst könnte ein Refetch, der direkt
   // nach dem Speichern eintrifft, eine bereits begonnene neue Eingabe überschreiben.
-  const focused = useRef(false);
+  // Bewusst State und kein Ref: der Wert wird WÄHREND des Renderns gelesen, und Refs dürfen dort
+  // nicht angefasst werden (react-hooks/refs).
+  const [focused, setFocused] = useState(false);
 
   // Fremde Änderung (Refetch nach dem Speichern, anderes Gerät) WÄHREND des Renderns übernehmen —
   // Reacts empfohlener Weg statt eines Sync-Effects. Was gerade getippt wird, bleibt erhalten,
   // solange sich der Server-Wert nicht ändert.
   if (value !== lastValue) {
     setLastValue(value);
-    if (!focused.current) setDraft(value);
+    if (!focused) setDraft(value);
   }
 
   const commit = () => { if (draft !== value) void onSave(draft); };
@@ -64,8 +66,8 @@ export default function KnowledgeField({
     placeholder,
     disabled: !canEdit,
     onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setDraft(e.target.value),
-    onFocus: () => { focused.current = true; },
-    onBlur: () => { focused.current = false; commit(); },
+    onFocus: () => setFocused(true),
+    onBlur: () => { setFocused(false); commit(); },
   };
 
   return (

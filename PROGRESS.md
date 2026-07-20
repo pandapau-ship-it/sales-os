@@ -703,13 +703,21 @@
     **B) Schreibwege im Frontend OHNE eigene RPC** (direkte Tabellen-Writes in `src/lib/db.ts` — sie sind
     genauso chat-fähig und dürfen bei der Nachhol-Runde **nicht vergessen werden**; im Prompt waren sie
     nicht genannt, gehören aber sachlich dazu):
-    `createContact` · `updateContact` · `createCompany` · `updateCompany` · `createDeal` · `updateDeal` ·
-    `updateDealStage` · `updateDealWon` · `updateDealLost` · `softDeleteDeal` · `createTask` · `updateTask` ·
-    `completeTask` · `setTaskCompleted` · `softDeleteTask` · `createNote` · `updateNote` · `softDeleteNote` ·
-    `createCompanyNote` · `createCommunication` · `createContactPhone` · `updateContactPhone` ·
-    `setContactPhonePrimary` · `deleteContactPhone` · `createList` · `addToList` · `deleteList` ·
-    `mergeContacts` · `mergeCompanies` · `createLead` · `updateLeadStage` · `assignLeadOwner` ·
-    `deleteInvitation` · `setUserPreference` · `setNavPreferences`
+    - Kontakte/Companies: `createContact` · `updateContact` · `createCompany` · `updateCompany`
+    - Deals: `createDeal` · `updateDeal` · `updateDealStage` · `updateDealWon` · `updateDealLost`
+    - Tasks/Notizen/Kommunikation: `createTask` · `updateTask` · `completeTask` · `setTaskCompleted` ·
+      `softDeleteTask` · `createNote` · `updateNote` · `softDeleteNote` · `createCompanyNote` ·
+      `createCommunication`
+    - Telefonnummern: `createContactPhone` · `updateContactPhone` · `setContactPhonePrimary` ·
+      `deleteContactPhone`
+    - Listen: `createList` · `renameList` · `addToList` · `removeFromList` · `deleteList`
+    - Leads: `createLead` · `updateLeadStage` · `assignLeadOwner`
+    - Mitteilungen: `markNotificationRead` · `markAllNotificationsRead`
+    - Import: `runImport` · `undoImport` *(rückgängig machen = destruktiv, klar chat-relevant)*
+    - Sonstiges: `mergeContacts` · `mergeCompanies` · `deleteInvitation` · `setUserPreference` ·
+      `setNavPreferences`
+    *(`softDeleteDeal` steht NICHT hier — es ruft `soft_delete_deals` und ist über Liste A geführt.
+    `findOrCreateCompany`/`loadDedupUniverse` sind Import-interne Helfer, keine Chat-Aktionen.)*
 
     **NICHT auf der Liste** (bewusst, weil nicht chat-fähig): Trigger-Funktionen (`audit_write`,
     `update_updated_at`, `bump_contact_last_contacted`, `handle_new_user`), interne Wächter/Helfer

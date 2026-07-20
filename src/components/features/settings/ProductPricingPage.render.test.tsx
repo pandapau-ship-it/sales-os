@@ -101,8 +101,10 @@ describe("ProductPricingPage", () => {
     expect(document.querySelectorAll("input, textarea").length).toBeGreaterThanOrEqual(5);
     expect(screen.getByLabelText("company.field.benefit").tagName.toLowerCase()).toBe("textarea");
     expect(screen.getByLabelText("company.field.name").tagName.toLowerCase()).toBe("input");
-    // …und es gibt KEINEN Bearbeiten-Stift mehr (das Feld IST editierbar).
-    expect(screen.queryAllByLabelText(/company\.editField/)).toHaveLength(0);
+    // …und es gibt KEINEN Bearbeiten-Stift mehr (das Feld IST editierbar). Geprüft am Icon-Button
+    // selbst, nicht an einem i18n-Key, den es nicht mehr gibt (der wäre trivial erfüllt).
+    const iconButtons = screen.getAllByRole("button").filter((b) => b.querySelector("svg"));
+    expect(iconButtons.some((b) => b.className.includes("hover:text-text-primary"))).toBe(false);
   });
 
   it("USP- und Wettbewerber-Sektion sind NICHT mehr auf dieser Seite (ziehen zu Slice 3 um)", async () => {

@@ -12,7 +12,7 @@
   `docs/knowledge_base.md`: dort **erklärendes** Wissen (Fragen beantworten), hier **handelndes**
   Wissen (ausführen). Erster Anwendungsfall: `src/lib/fieldImportance.ts`.
 - **docs:** PROGRESS.md „▶ CHAT-AKTIONS-VERTRÄGE — NACHZUHOLENDE BESTANDS-FUNKTIONEN" — vollständige
-  Bestandsliste aller vor der Regel gebauten, potenziell chat-fähigen Funktionen (25 RPCs + 35
+  Bestandsliste aller vor der Regel gebauten, potenziell chat-fähigen Funktionen (25 RPCs + 40
   direkte Schreibwege aus `db.ts`), bewusst **nicht** klassifiziert; die Einstufung erfolgt gebündelt
   mit dem AI-Chat-Baustein.
 
