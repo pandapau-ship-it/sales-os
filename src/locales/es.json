@@ -1330,7 +1330,7 @@
     "saveFailed": "No ha funcionado — inténtalo de nuevo.",
     "aiFill": "Rellenar con IA",
     "aiFillProduct": "Que la IA rellene todos los campos de este producto",
-    "statusComplete": "completo",
-    "statusMissing": "{{n}} pendientes"
+    "statusMissing": "{{n}} pendientes",
+    "statusMissingTip": "A la IA aún le faltan estos datos"
   }
 }

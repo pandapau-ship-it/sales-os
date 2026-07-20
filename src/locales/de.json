@@ -1336,7 +1336,7 @@
     "saveFailed": "Hat gerade nicht geklappt — bitte nochmal versuchen.",
     "aiFill": "KI ausfüllen",
     "aiFillProduct": "Alle Felder dieses Produkts von der KI ausfüllen lassen",
-    "statusComplete": "vollständig",
-    "statusMissing": "{{n}} offen"
+    "statusMissing": "{{n}} offen",
+    "statusMissingTip": "Diese Angaben fehlen der AI noch"
   }
 }

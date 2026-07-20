@@ -4,6 +4,17 @@
 > Format: `add:` neu · `update:` geändert · `fix:` behoben · `refactor:` · `docs:`
 > Neueste oben.
 
+## 2026-07-20 — Produkte & Preise: Fehl-Hinweis auf Karten + KI-Knöpfe als Pill
+- **feat:** Eingeklappte Produkte zeigen jetzt dezent, **wie viele wichtige Angaben fehlen**
+  („2 offen", neutral-grau mit Punkt, kein Warn-Ton). Vollständige Produkte zeigen **gar keinen**
+  Hinweis. Gezählt über `computeCompleteness` — dieselbe Registry wie die Vollständigkeits-Anzeige,
+  keine zweite Logik.
+- **feat:** KI-Knöpfe (Feld-Ebene **und** „KI ausfüllen" je Produkt) tragen den neuen Pill-Kanon
+  `AI_PILL`/`AI_PILL_PENDING` in `componentBehavior.ts` — Teal-Tint wie die Statistik-Pills in
+  „Mein Profil", damit KI-Aktionen als eigene Klasse lesbar sind. Funktion bleibt „Folgt"
+  (nicht bedienbar), bis `lib/ai.ts` existiert.
+- Beides sitzt in geteilten Bausteinen → gilt automatisch für Slice 2 + 3 (in PROGRESS.md fixiert).
+
 ## 2026-07-20 — Globale Regel: Chat-Aktions-Vertrag-Pflicht
 - **docs:** Neue dauerhafte Regel in CLAUDE.md (analog Rechte-Check- und Cron-Wrapper-Pflicht): jede
   künftig chat-fähige Funktion legt **beim Bau** fest, welche Parameter `required`/`recommended`/

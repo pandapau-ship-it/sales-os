@@ -121,7 +121,7 @@ describe("ProductPricingPage", () => {
     // Nur die Felder des ersten Produkts sind da → ein Preis-Schalter, nicht zwei.
     await waitFor(() => expect(screen.getAllByLabelText("company.priceRelease")).toHaveLength(1));
     expect(screen.getByText("Zweites")).toBeTruthy();               // Kopfzeile sichtbar
-    expect(screen.getAllByText(/company\.statusMissing/).length).toBe(1); // Status nur am zugeklappten
+    expect(screen.getAllByText(/company\.statusMissing:/).length).toBe(1); // Hinweis nur am zugeklappten
   });
 
   it("Klick auf eine zugeklappte Kopfzeile öffnet sie und schließt die andere", async () => {
@@ -130,8 +130,8 @@ describe("ProductPricingPage", () => {
     await waitFor(() => expect(screen.getAllByLabelText("company.priceRelease")).toHaveLength(1));
     fireEvent.click(screen.getByText("Zweites"));
     await waitFor(() => expect(screen.getAllByLabelText("company.priceRelease")).toHaveLength(1));
-    // …und jetzt trägt das ERSTE die Status-Kurzinfo (ist also zu).
-    expect(screen.getAllByText(/company\.statusMissing/).length).toBe(1);
+    // …und jetzt trägt das ERSTE die Kurzinfo (ist also zu).
+    expect(screen.getAllByText(/company\.statusMissing:/).length).toBe(1);
   });
 
   it("Plus-Knopf legt an und klappt das neue Produkt auf", async () => {
@@ -194,6 +194,41 @@ describe("ProductPricingPage", () => {
     await waitFor(() =>
       expect(headerOf("Drittes").getAttribute("aria-expanded")).toBe("true"),
     );
+  });
+
+  it("zugeklapptes Produkt zeigt, WIE VIELE wichtige Angaben fehlen (aus derselben Registry)", async () => {
+    // p2 fehlt alles außer dem Namen → 3 offen (Nutzen · Zielgruppe · Kurzbeschreibung).
+    PRODUCTS = [{ ...PRODUCT }, { ...PRODUCT, id: "p2", name: "Zweites" }];
+    renderPage();
+    await waitFor(() => expect(screen.getAllByLabelText("company.priceRelease")).toHaveLength(1));
+    const hint = screen.getByText(/company\.statusMissing:/);
+    expect(hint.textContent).toContain('"n":3');
+    // Neutraler Ton — kein Warn-/Urgent-Token auf dem Hinweis.
+    expect(hint.className).toContain("text-text-muted");
+    expect(hint.className).not.toMatch(/signal-(urgent|warn)/);
+  });
+
+  it("vollständiges Produkt zeigt im zugeklappten Zustand GAR KEINEN Hinweis", async () => {
+    PRODUCTS = [
+      { ...PRODUCT },
+      { ...PRODUCT, id: "p2", name: "Fertig", description: "d", benefit: "b", audience: "a" },
+    ];
+    renderPage();
+    await waitFor(() => expect(screen.getAllByLabelText("company.priceRelease")).toHaveLength(1));
+    expect(screen.getByText("Fertig")).toBeTruthy();                    // Zeile da …
+    expect(screen.queryAllByText(/company\.statusMissing:/)).toHaveLength(0); // … aber kein Hinweis
+  });
+
+  it("KI-Knöpfe tragen den Pill-Kanon (Teal-Tint, rounded-full) und bleiben nicht bedienbar", async () => {
+    renderPage();
+    const productBtn = await screen.findByLabelText("company.aiFillProduct");
+    const fieldBtns = screen.getAllByLabelText(/company\.aiSuggest/);
+    for (const b of [productBtn, ...fieldBtns]) {
+      expect(b.className).toContain("rounded-full");
+      expect(b.className).toContain("signal-teal-bg");
+      expect(b.className).toContain("cursor-not-allowed");
+      expect((b as HTMLButtonElement).disabled).toBe(true); // „Folgt" bleibt „Folgt"
+    }
   });
 
   it("Produkt-weiter KI-Knopf ist sichtbar, aber nicht bedienbar (Folgt)", async () => {

@@ -1330,7 +1330,7 @@
     "saveFailed": "That didn't work just now — please try again.",
     "aiFill": "AI fill",
     "aiFillProduct": "Let AI fill in all fields of this product",
-    "statusComplete": "complete",
-    "statusMissing": "{{n}} open"
+    "statusMissing": "{{n}} open",
+    "statusMissingTip": "The AI is still missing these details"
   }
 }

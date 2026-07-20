@@ -17,6 +17,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
+import { AI_PILL_PENDING } from "@/lib/componentBehavior";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, Trash2, Sparkles, ChevronDown } from "lucide-react";
 import { useCurrentOrg } from "@/hooks/useCurrentOrg";
@@ -103,15 +104,17 @@ export default function ProductPricingPage() {
       : openId;
   const isOpen = (id: string) => activeId === id;
 
-  /** Kurzer Status für die zugeklappte Zeile — zeigt an, was noch fehlt (aus derselben Registry). */
-  const statusOf = (p: ProductRow) => {
-    const open = computeCompleteness({ products: [{
+  /**
+   * Wie viele wichtige Angaben fehlen diesem Produkt noch? Nutzt DIESELBE Registry wie die
+   * Vollständigkeits-Anzeige oben (`fieldImportance.ts`) — keine zweite, parallele Logik.
+   * 0 = nichts required/recommended offen → auf der zugeklappten Zeile erscheint gar kein Hinweis.
+   */
+  const openCountOf = (p: ProductRow) => {
+    const r = computeCompleteness({ products: [{
       id: p.id, name: p.name, description: p.description, benefit: p.benefit,
       audience: p.audience, price: p.price, price_model: p.price_model,
     }] }, "product");
-    return open.filled === open.total
-      ? t("company.statusComplete")
-      : t("company.statusMissing", { n: open.total - open.filled });
+    return r.total - r.filled;
   };
 
   const addProduct = async () => {
@@ -191,9 +194,15 @@ export default function ProductPricingPage() {
                   <span className="typo-card-title text-text-primary truncate">
                     {p.name.trim() || t("company.unnamedProduct")}
                   </span>
-                  {!isOpen(p.id) && (
-                    <span className="typo-chip text-text-muted shrink-0">
-                      {statusOf(p)}
+                  {/* Zugeklappt: dezenter Hinweis, WENN etwas Wichtiges fehlt. Neutral-grau,
+                      kein Warn-Ton — es ist eine Einladung, kein Alarm. Vollständig → nichts. */}
+                  {!isOpen(p.id) && openCountOf(p) > 0 && (
+                    <span
+                      className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full typo-chip bg-app-bg text-text-muted shrink-0"
+                      data-tip={t("company.statusMissingTip")}
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full bg-[var(--text-muted)] shrink-0" />
+                      {t("company.statusMissing", { n: openCountOf(p) })}
                     </span>
                   )}
                 </button>
@@ -205,7 +214,7 @@ export default function ProductPricingPage() {
                   aria-disabled="true"
                   aria-label={t("company.aiFillProduct")}
                   data-tip={t("settings.nav.comingSoon")}
-                  className="h-8 px-2.5 rounded-[8px] text-text-muted opacity-40 cursor-not-allowed flex items-center gap-1.5 shrink-0 text-[12px] font-medium"
+                  className={`${AI_PILL_PENDING} px-2.5 py-1 shrink-0`}
                 >
                   <Sparkles className="w-3.5 h-3.5" />
                   {t("company.aiFill")}

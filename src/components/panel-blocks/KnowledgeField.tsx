@@ -26,7 +26,7 @@ import { useTranslation } from "react-i18next";
 import { Sparkles } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { FIELD, FIELD_MULTILINE } from "@/lib/componentBehavior";
+import { FIELD, FIELD_MULTILINE, AI_PILL_PENDING } from "@/lib/componentBehavior";
 
 export default function KnowledgeField({
   label, value, placeholder, multiline = false, rows = 3, canEdit = true, onSave,
@@ -80,9 +80,9 @@ export default function KnowledgeField({
           aria-disabled="true"
           aria-label={t("company.aiSuggest", { field: label })}
           data-tip={t("settings.nav.comingSoon")}
-          className="w-7 h-7 rounded-[6px] text-text-muted opacity-40 cursor-not-allowed flex items-center justify-center shrink-0"
+          className={`${AI_PILL_PENDING} px-2 py-0.5 shrink-0`}
         >
-          <Sparkles className="w-3.5 h-3.5" />
+          <Sparkles className="w-3 h-3" />
         </button>
       </div>
 

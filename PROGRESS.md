@@ -649,6 +649,14 @@
       **Der KI-Knopf pro Feld bleibt** (Vorschlag für genau dieses Feld). Umgesetzt im geteilten
       Baustein `KnowledgeField` → gilt automatisch für Personal Voice und Unternehmensprofil;
       **in Slice 2/3 nicht erneut zur Diskussion stellen.**
+      **Ergänzt 20.07.2026 (ebenfalls verbindlich):** (a) **KI-Knöpfe tragen den Pill-Kanon**
+      `AI_PILL`/`AI_PILL_PENDING` (`componentBehavior.ts`, Teal-Tint wie die Statistik-Pills in
+      „Mein Profil") — auf Feld-Ebene UND je Karte/Abschnitt, damit KI-Aktionen als eigene Klasse
+      lesbar sind statt als weiteres graues Icon. Solange `lib/ai.ts` fehlt: ausschließlich
+      `AI_PILL_PENDING` (sichtbar, aber nicht bedienbar). (b) **Eingeklappte Karten zeigen einen
+      dezenten „X offen"-Hinweis**, wenn required/recommended fehlen — neutral-grau, nie Warn-Ton;
+      vollständig = **gar kein** Hinweis. Zählung IMMER über `computeCompleteness` (dieselbe
+      Registry wie die Vollständigkeits-Anzeige), nie eine zweite Logik.
     - **[SLICE 3 — UMZUG] USP + Wettbewerber ziehen auf die künftige Company-Profile-Seite um.**
       Backend ist bereits vorhanden (`org_profile.usps` / `org_profile.competitors` +
       `update_org_profile`) — nur das UI-Zuhause wechselt. Die Sektionen wurden am 20.07.2026
