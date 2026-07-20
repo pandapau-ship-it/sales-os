@@ -22,20 +22,16 @@ vi.mock("@/hooks/usePermissions", () => ({
 vi.mock("@/components/shared/toastContext", () => ({ useToast: () => ({ toast: vi.fn() }) }));
 
 const updateProduct = vi.fn((_id: string, _patch: unknown) => Promise.resolve());
-const updateOrgProfile = vi.fn((_patch: unknown) => Promise.resolve());
 const createProduct = vi.fn(() => Promise.resolve("new"));
 const deleteProduct = vi.fn((_id: string) => Promise.resolve());
 
 let PRODUCTS: unknown[] = [];
-let ORG: unknown = { usps: [], competitors: [] };
 
 vi.mock("@/lib/db", () => ({
   getProductsFull: () => Promise.resolve(PRODUCTS),
-  getOrgProfileLite: () => Promise.resolve(ORG),
   createProduct: () => createProduct(),
   updateProduct: (id: string, patch: unknown) => updateProduct(id, patch),
   deleteProduct: (id: string) => deleteProduct(id),
-  updateOrgProfile: (patch: unknown) => updateOrgProfile(patch),
 }));
 
 import ProductPricingPage from "./ProductPricingPage";
@@ -54,10 +50,10 @@ function renderPage() {
   );
 }
 
-beforeEach(() => { PRODUCTS = [{ ...PRODUCT }]; ORG = { usps: [], competitors: [] }; });
+beforeEach(() => { PRODUCTS = [{ ...PRODUCT }]; });
 afterEach(() => {
   cleanup();
-  [updateProduct, updateOrgProfile, createProduct, deleteProduct].forEach((m) => m.mockClear());
+  [updateProduct, createProduct, deleteProduct].forEach((m) => m.mockClear());
 });
 
 describe("ProductPricingPage", () => {
@@ -98,30 +94,54 @@ describe("ProductPricingPage", () => {
     await waitFor(() => expect(updateProduct).toHaveBeenCalledWith("p1", { benefit: "" }));
   });
 
-  it("mehrere USPs unabhängig hinzufügbar und entfernbar", async () => {
-    ORG = { usps: [{ id: "u1", text: "erster" }, { id: "u2", text: "zweiter" }], competitors: [] };
+  it("USP- und Wettbewerber-Sektion sind NICHT mehr auf dieser Seite (ziehen zu Slice 3 um)", async () => {
     renderPage();
-    // Erst auf die geladenen USPs warten — sonst klickt der Test vor dem Query-Ergebnis.
-    await waitFor(() => expect(screen.getAllByLabelText("company.removeUsp")).toHaveLength(2));
-    fireEvent.click(screen.getByText("company.addUsp"));
-    await waitFor(() => expect(updateOrgProfile).toHaveBeenCalled());
-    expect((updateOrgProfile.mock.calls[0][0] as { usps: unknown[] }).usps).toHaveLength(3);
-
-    updateOrgProfile.mockClear();
-    fireEvent.click(screen.getAllByLabelText("company.removeUsp")[0]);
-    await waitFor(() => expect(updateOrgProfile).toHaveBeenCalled());
-    const left = (updateOrgProfile.mock.calls[0][0] as { usps: { id: string }[] }).usps;
-    expect(left.map((u) => u.id)).toEqual(["u2"]); // nur der geklickte ist weg
+    await screen.findByLabelText("company.priceRelease");
+    for (const key of ["company.usps", "company.competitors", "company.addUsp", "company.addCompetitor"]) {
+      expect(screen.queryByText(key), key).toBeNull();
+    }
   });
 
-  it("Wettbewerber hinzufügen schreibt Name + leere Begründung (Begründung optional)", async () => {
+  it("genau EIN Produkt ist aufgeklappt, der Rest zeigt nur Name + Status", async () => {
+    PRODUCTS = [{ ...PRODUCT }, { ...PRODUCT, id: "p2", name: "Zweites" }];
     renderPage();
-    const input = await screen.findByPlaceholderText("company.placeholder.competitor");
-    fireEvent.change(input, { target: { value: "HubSpot" } });
-    fireEvent.click(screen.getByText("company.addCompetitor"));
-    await waitFor(() => expect(updateOrgProfile).toHaveBeenCalled());
-    const list = (updateOrgProfile.mock.calls[0][0] as { competitors: { name: string; why_us: string }[] }).competitors;
-    expect(list[0]).toMatchObject({ name: "HubSpot", why_us: "" });
+    // Nur die Felder des ersten Produkts sind da → ein Preis-Schalter, nicht zwei.
+    await waitFor(() => expect(screen.getAllByLabelText("company.priceRelease")).toHaveLength(1));
+    expect(screen.getByText("Zweites")).toBeTruthy();               // Kopfzeile sichtbar
+    expect(screen.getAllByText(/company\.statusMissing/).length).toBe(1); // Status nur am zugeklappten
+  });
+
+  it("Klick auf eine zugeklappte Kopfzeile öffnet sie und schließt die andere", async () => {
+    PRODUCTS = [{ ...PRODUCT }, { ...PRODUCT, id: "p2", name: "Zweites" }];
+    renderPage();
+    await waitFor(() => expect(screen.getAllByLabelText("company.priceRelease")).toHaveLength(1));
+    fireEvent.click(screen.getByText("Zweites"));
+    await waitFor(() => expect(screen.getAllByLabelText("company.priceRelease")).toHaveLength(1));
+    // …und jetzt trägt das ERSTE die Status-Kurzinfo (ist also zu).
+    expect(screen.getAllByText(/company\.statusMissing/).length).toBe(1);
+  });
+
+  it("Plus-Knopf legt an und klappt das neue Produkt auf", async () => {
+    renderPage();
+    await screen.findByLabelText("company.priceRelease");
+    fireEvent.click(screen.getByText("company.addProduct"));
+    await waitFor(() => expect(createProduct).toHaveBeenCalled());
+  });
+
+  it("Produkt-weiter KI-Knopf ist sichtbar, aber nicht bedienbar (Folgt)", async () => {
+    renderPage();
+    const btn = await screen.findByLabelText("company.aiFillProduct");
+    expect((btn as HTMLButtonElement).disabled).toBe(true);
+  });
+
+  it("Eingabefelder nutzen den grauen FIELD-Kanon, nicht den weißen shadcn-Default", async () => {
+    renderPage();
+    const pencils = await screen.findAllByLabelText(/company\.editField/);
+    fireEvent.click(pencils[0]);
+    const input = document.querySelector("input, textarea") as HTMLElement;
+    expect(input.className).toContain("bg-app-bg");        // grauer Kanon
+    expect(input.className).not.toContain("bg-app-surface"); // nicht weiß
+    expect(input.className).toContain("rounded-[10px]");
   });
 
   it("Vollständigkeit zeigt den Wirkungshinweis auf das wichtigste leere Feld", async () => {

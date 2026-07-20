@@ -21,7 +21,7 @@ import { Pencil, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { HOVER_ACTIONS } from "@/lib/componentBehavior";
+import { HOVER_ACTIONS, FIELD, FIELD_MULTILINE } from "@/lib/componentBehavior";
 
 export default function KnowledgeField({
   label, value, placeholder, multiline = false, rows = 3, canEdit = true, onSave,
@@ -83,6 +83,7 @@ export default function KnowledgeField({
           <Textarea
             ref={ref as React.Ref<HTMLTextAreaElement>}
             rows={rows}
+            className={FIELD_MULTILINE}
             value={draft}
             placeholder={placeholder}
             onChange={(e) => setDraft(e.target.value)}
@@ -92,6 +93,7 @@ export default function KnowledgeField({
         ) : (
           <Input
             ref={ref as React.Ref<HTMLInputElement>}
+            className={FIELD}
             value={draft}
             placeholder={placeholder}
             onChange={(e) => setDraft(e.target.value)}

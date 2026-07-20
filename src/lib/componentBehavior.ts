@@ -122,3 +122,23 @@ export const TABLE = {
   /** Datenzeile — nur Trennlinie + Hover, kein Schatten/Box. */
   row: "border-b border-[var(--border-card)] last:border-0 hover:bg-app-bg",
 } as const;
+
+/**
+ * FIELD — Kanon-Optik JEDES Eingabefeldes (Text/Textarea/Select-Trigger) im Projekt:
+ * GRAUE Füllung `bg-app-bg`, 10px Radius, Border erst im Fokus in Markenfarbe.
+ *
+ * Warum hier: dieser String existierte bisher als Copy-Paste an ~22 Stellen (zuerst in
+ * `AddSdrLeadPanel`, daher „FIELD-Kanon" in CLAUDE.md) — und die rohen shadcn-Primitive
+ * `Input`/`Textarea` bringen eine ANDERE Optik mit (weiß bzw. shadcn-Rohtokens). Wer sie
+ * ungeklassed benutzt, weicht unbemerkt vom Rest der App ab (genau so entstand der weiße
+ * Eingabe-Hintergrund in „Produkte & Preise"). Ab jetzt: eine Quelle.
+ *
+ * Anwendung: `<Input className={FIELD} />` bzw. `<Textarea className={FIELD_MULTILINE} />`.
+ */
+export const FIELD =
+  "w-full text-[13px] font-sans px-3.5 py-2.5 bg-app-bg border border-border " +
+  "focus:border-[var(--sherloq-primary)] rounded-[10px] focus:outline-none transition-colors " +
+  "placeholder-[var(--text-muted)]";
+
+/** Mehrzeilige Variante — gleiche Optik, nur Höhe/Umbruch abweichend. */
+export const FIELD_MULTILINE = `${FIELD} leading-relaxed resize-y`;

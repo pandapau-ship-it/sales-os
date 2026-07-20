@@ -638,6 +638,23 @@
       (`src/lib/companyKnowledge.ts`: Nutzen > Zielgruppe > USP > Beschreibung > Wettbewerb) ist heute
       eine hartkodierte Empfehlungs-Priorität — für einen Ausfüllhinweis vertretbar, aber [D51] nennt
       „Prioritäten/Reihenfolgen" ausdrücklich. Beim Modul-Abschluss-Gate prüfen.
+    - **[SLICE 3 — UMZUG] USP + Wettbewerber ziehen auf die künftige Company-Profile-Seite um.**
+      Backend ist bereits vorhanden (`org_profile.usps` / `org_profile.competitors` +
+      `update_org_profile`) — nur das UI-Zuhause wechselt. Die Sektionen wurden am 20.07.2026
+      bewusst von „Produkte & Preise" **entfernt**; bis Slice 3 gebaut ist, sind beide Listen über
+      **keine** Oberfläche erreichbar. Bewusst so: lieber kurz unerreichbar als dauerhaft am
+      falschen Ort (Honesty). Die Wichtigkeits-Registry führt sie weiter (`org.usps` recommended,
+      `org.competitors` optional) — die Produktseite zählt sie über `scope: "product"` nicht mit,
+      damit kein Hinweis auf ein Feld zeigt, das dort gar nicht existiert.
+    - **[OFFEN — Oliver entscheidet] Aktions-bezogene Pflichtfelder für den AI Chat.** Die
+      Wichtigkeits-Registry (`src/lib/fieldImportance.ts`) stuft Felder **global** ein
+      (required/recommended/optional + Begründung) und treibt heute die Vollständigkeits-Anzeige,
+      später den Chat („Progressive Ausführung", ai_chat_bauplan Abschnitt 5a). Eine künftige
+      Chat-**Aktion** kann aber andere Anforderungen haben als eine andere („Nachricht schreiben"
+      braucht den Nutzen, „Produkt umbenennen" nur den Namen). Ob dafür eine zweite, aktions-
+      bezogene Ebene ergänzt wird (Aktion → Pflichtfelder, verweist auf dieselben Feldpfade),
+      ist **bewusst offen** und wird beim Bau des Chat-Tool-Layers entschieden. Die Feldpfade
+      bleiben in jedem Fall unverändert — kein Umbau nötig.
     - **[SLICE 2] Vorgemerkt:** Personal Voice bekommt **von Anfang an fünf Kanäle**
       (`overview` · `post` · `comment` · `dm` · **`email`**) — das Design kennt nur die ersten vier,
       der AI SDR mailt aber primär. Dazu das Live-Beispiel **„So klingt das"** (WOW-Idee, gehört

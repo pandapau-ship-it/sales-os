@@ -1279,7 +1279,8 @@
       "usps": "Biggest win right now: one USP — the AI builds the pitch from it.",
       "description": "Biggest win right now: the short description of \"{{product}}\".",
       "competitorWhy": "Biggest win right now: why you over your competitor — helps with objections.",
-      "done": "Everything essential is filled in."
+      "done": "Everything essential is filled in.",
+      "name": "Biggest win right now: a product name — without it no message can name the offering."
     },
     "products": "Products",
     "productsHelp": "What you sell. Multiple products possible, all fields optional.",
@@ -1328,6 +1329,10 @@
     "editField": "Edit {{field}}",
     "aiSuggest": "Let AI suggest {{field}}",
     "emptyField": "Nothing entered yet",
-    "saveFailed": "That didn't work just now — please try again."
+    "saveFailed": "That didn't work just now — please try again.",
+    "aiFill": "AI fill",
+    "aiFillProduct": "Let AI fill in all fields of this product",
+    "statusComplete": "complete",
+    "statusMissing": "{{n}} open"
   }
 }

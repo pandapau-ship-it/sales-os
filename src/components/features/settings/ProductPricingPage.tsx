@@ -8,25 +8,27 @@
  * Rechte-Check + audit_log). Stift, künftiger KI-Knopf und künftiger AI-Chat teilen sich damit
  * denselben Weg — kein zweiter Schreibpfad für dieselbe Sache.
  *
- * USPs + Wettbewerber gehören der FIRMA (org_profile), nicht dem Produkt: sie werden hier nur
- * gezeigt/gepflegt, damit sie nicht doppelt existieren, wenn Slice 3 das Unternehmensprofil baut.
+ * USPs + Wettbewerber liegen zwar auf Firmen-Ebene (org_profile) und flossen anfangs hier ein —
+ * sie sind bewusst WIEDER ENTFERNT: ihr Zuhause ist die Company-Profile-Seite (Slice 3). Das
+ * Backend (org_profile.usps/competitors, update_org_profile) bleibt unverändert bestehen; bis
+ * Slice 3 gebaut ist, sind die beiden Listen über keine Oberfläche erreichbar. Bewusst so —
+ * lieber kurz unerreichbar als dauerhaft am falschen Ort (Honesty).
  */
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { cn } from "@/lib/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, Trash2, X, Sparkles } from "lucide-react";
+import { Plus, Trash2, Sparkles, ChevronDown } from "lucide-react";
 import { useCurrentOrg } from "@/hooks/useCurrentOrg";
 import { useEffectivePermissions } from "@/hooks/usePermissions";
 import { useSaveState } from "@/hooks/useSaveState";
 import {
-  getProductsFull, getOrgProfileLite, createProduct, updateProduct, deleteProduct, updateOrgProfile,
-  type ProductRow, type OrgProfileLite,
+  getProductsFull, createProduct, updateProduct, deleteProduct, type ProductRow,
 } from "@/lib/db";
 import { textOf } from "@/lib/i18nText";
 import { computeCompleteness } from "@/lib/companyKnowledge";
 import { SettingsCard, KnowledgeField } from "@/components";
 import { useToast } from "@/components/shared/toastContext";
-import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
@@ -38,9 +40,6 @@ import {
 
 const PRICE_MODELS = ["per_seat", "monthly", "one_time"] as const;
 
-/** Stabile id für neue Listen-Einträge (USP/Wettbewerber) — trägt die Zuordnung beim Bearbeiten. */
-const newId = () => `i${Date.now().toString(36)}${Math.floor(Math.random() * 1e4).toString(36)}`;
-
 export default function ProductPricingPage() {
   const { t } = useTranslation();
   const { organizationId } = useCurrentOrg();
@@ -49,12 +48,11 @@ export default function ProductPricingPage() {
   const qc = useQueryClient();
   // Je Karte ein eigener Zustand — sonst blinkt „Gespeichert ✓" in allen drei Karten gleichzeitig.
   const saveProducts = useSaveState();
-  const saveUsps = useSaveState();
-  const saveComp = useSaveState();
   const canEdit = has("settings.manage");
 
   const [confirmDelete, setConfirmDelete] = useState<ProductRow | null>(null);
-  const [newCompetitor, setNewCompetitor] = useState("");
+  // Genau EIN Produkt offen (zuletzt bearbeitetes bzw. erstes) — der Rest bleibt eine ruhige Zeile.
+  const [openId, setOpenId] = useState<string | null>(null);
 
   const productsQuery = useQuery({
     queryKey: ["productsFull", organizationId],
@@ -62,19 +60,10 @@ export default function ProductPricingPage() {
     enabled: !!organizationId,
     staleTime: 60_000,
   });
-  const orgQuery = useQuery({
-    queryKey: ["orgProfileLite", organizationId],
-    queryFn: () => getOrgProfileLite(organizationId),
-    enabled: !!organizationId,
-    staleTime: 60_000,
-  });
-
   const products = productsQuery.data ?? [];
-  const org: OrgProfileLite = orgQuery.data ?? { usps: [], competitors: [] };
 
   const invalidate = () => {
     void qc.invalidateQueries({ queryKey: ["productsFull", organizationId] });
-    void qc.invalidateQueries({ queryKey: ["orgProfileLite", organizationId] });
     void qc.invalidateQueries({ queryKey: ["products", organizationId] }); // Deal-Dropdown teilt die Tabelle
   };
 
@@ -90,16 +79,37 @@ export default function ProductPricingPage() {
 
   const patchProduct = (id: string, patch: Record<string, unknown>) =>
     write(saveProducts, updateProduct(id, patch));
-  const patchOrg = (where: ReturnType<typeof useSaveState>, patch: Record<string, unknown>) =>
-    write(where, updateOrgProfile(patch));
 
-  const completeness = computeCompleteness({
-    products: products.map((p) => ({
-      id: p.id, name: p.name, description: p.description, benefit: p.benefit, audience: p.audience,
-    })),
-    usps: org.usps,
-    competitors: org.competitors,
-  });
+  // scope "product": diese Seite urteilt nur über das, was sie auch anbietet —
+  // USPs/Wettbewerber leben jetzt auf der Company-Profile-Seite (Slice 3).
+  const completeness = computeCompleteness(
+    {
+      products: products.map((p) => ({
+        id: p.id, name: p.name, description: p.description,
+        benefit: p.benefit, audience: p.audience, price: p.price, price_model: p.price_model,
+      })),
+    },
+    "product",
+  );
+
+  // Ohne bewusste Auswahl ist das ERSTE Produkt offen — nie alle gleichzeitig.
+  const isOpen = (id: string) => (openId ?? products[0]?.id) === id;
+
+  /** Kurzer Status für die zugeklappte Zeile — zeigt an, was noch fehlt (aus derselben Registry). */
+  const statusOf = (p: ProductRow) => {
+    const open = computeCompleteness({ products: [{
+      id: p.id, name: p.name, description: p.description, benefit: p.benefit,
+      audience: p.audience, price: p.price, price_model: p.price_model,
+    }] }, "product");
+    return open.filled === open.total
+      ? t("company.statusComplete")
+      : t("company.statusMissing", { n: open.total - open.filled });
+  };
+
+  const addProduct = async () => {
+    const id = await createProduct();
+    if (id) setOpenId(id); // neues Produkt kommt aufgeklappt — man will sofort tippen
+  };
 
   const hintText = completeness.nextHint
     ? t(`company.hint.${completeness.nextHint}`, { product: completeness.productName ?? "" })
@@ -146,18 +156,45 @@ export default function ProductPricingPage() {
           {products.map((p) => (
             <article
               key={p.id}
-              className="border border-[var(--border-card)] rounded-[12px] p-5 bg-app-surface group/product"
+              className="border border-[var(--border-card)] rounded-[12px] bg-app-surface group/product overflow-hidden"
             >
-              <div className="flex items-start justify-between gap-3 mb-4">
-                <div className="flex-1 min-w-0">
-                  <KnowledgeField
-                    canEdit={canEdit}
-                    label={t("company.field.name")}
-                    value={p.name}
-                    placeholder={t("company.placeholder.name")}
-                    onSave={(v) => patchProduct(p.id, { name: v })}
+              {/* Kopfzeile: immer sichtbar. Zugeklappt = Name + Status, ein Klick öffnet. */}
+              <div className="flex items-center gap-3 px-5 py-4">
+                <button
+                  type="button"
+                  onClick={() => setOpenId(isOpen(p.id) ? null : p.id)}
+                  aria-expanded={isOpen(p.id)}
+                  className="flex items-center gap-2 flex-1 min-w-0 text-left cursor-pointer"
+                >
+                  <ChevronDown
+                    className={cn(
+                      "w-4 h-4 text-text-muted transition-transform shrink-0",
+                      isOpen(p.id) ? "" : "-rotate-90",
+                    )}
                   />
-                </div>
+                  <span className="typo-card-title text-text-primary truncate">
+                    {p.name.trim() || t("company.unnamedProduct")}
+                  </span>
+                  {!isOpen(p.id) && (
+                    <span className="typo-chip text-text-muted shrink-0">
+                      {statusOf(p)}
+                    </span>
+                  )}
+                </button>
+
+                {/* Teil 3: KI füllt SPÄTER das ganze Produkt auf einmal — heute ehrlich „Folgt". */}
+                <button
+                  type="button"
+                  disabled
+                  aria-disabled="true"
+                  aria-label={t("company.aiFillProduct")}
+                  data-tip={t("settings.nav.comingSoon")}
+                  className="h-8 px-2.5 rounded-[8px] text-text-muted opacity-40 cursor-not-allowed flex items-center gap-1.5 shrink-0 text-[12px] font-medium"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  {t("company.aiFill")}
+                </button>
+
                 {canEdit && (
                   <button
                     type="button"
@@ -171,7 +208,15 @@ export default function ProductPricingPage() {
                 )}
               </div>
 
-              <div className="space-y-4">
+              {isOpen(p.id) && (
+              <div className="space-y-4 px-5 pb-5">
+                <KnowledgeField
+                  canEdit={canEdit}
+                  label={t("company.field.name")}
+                  value={p.name}
+                  placeholder={t("company.placeholder.name")}
+                  onSave={(v) => patchProduct(p.id, { name: v })}
+                />
                 <KnowledgeField
                     canEdit={canEdit}
                   label={t("company.field.description")}
@@ -244,6 +289,7 @@ export default function ProductPricingPage() {
                   </div>
                 </div>
               </div>
+              )}
             </article>
           ))}
         </div>
@@ -251,128 +297,13 @@ export default function ProductPricingPage() {
         {canEdit && (
           <button
             type="button"
-            onClick={() => write(saveProducts, createProduct())}
+            onClick={() => void write(saveProducts, addProduct())}
             className="sherloq-btn-secondary mt-4 inline-flex items-center gap-1.5"
           >
             <Plus className="w-4 h-4" />
             {t("company.addProduct")}
           </button>
         )}
-      </SettingsCard>
-
-      {/* USPs — Firmen-Ebene (org_profile), hier nur gepflegt */}
-      <SettingsCard title={t("company.usps")} description={t("company.uspsHelp")} saved={saveUsps.state}>
-        <div className="space-y-3">
-          {org.usps.map((u, i) => (
-            <div key={u.id} className="flex items-start gap-2 group/usp">
-              <div className="flex-1 min-w-0">
-                <KnowledgeField
-                    canEdit={canEdit}
-                  label={t("company.usp", { n: i + 1 })}
-                  value={textOf(u.text)}
-                  placeholder={t("company.placeholder.usp")}
-                  multiline
-                  rows={2}
-                  onSave={(v) =>
-                    patchOrg(saveUsps, { usps: org.usps.map((x) => (x.id === u.id ? { ...x, text: v } : x)) })
-                  }
-                />
-              </div>
-              {canEdit && (
-                <button
-                  type="button"
-                  onClick={() => patchOrg(saveUsps, { usps: org.usps.filter((x) => x.id !== u.id) })}
-                  aria-label={t("company.removeUsp")}
-                  data-tip={t("company.removeUsp")}
-                  className="w-7 h-7 mt-5 rounded-[6px] text-text-muted hover:bg-app-bg hover:text-signal-urgent flex items-center justify-center transition-colors cursor-pointer shrink-0 opacity-0 group-hover/usp:opacity-100 focus-within:opacity-100"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              )}
-            </div>
-          ))}
-        </div>
-        {canEdit && (
-          <button
-            type="button"
-            onClick={() => patchOrg(saveUsps, { usps: [...org.usps, { id: newId(), text: "" }] })}
-            className="sherloq-btn-secondary mt-4 inline-flex items-center gap-1.5"
-          >
-            <Plus className="w-4 h-4" />
-            {t("company.addUsp")}
-          </button>
-        )}
-      </SettingsCard>
-
-      {/* Wettbewerber — ebenfalls Firmen-Ebene */}
-      <SettingsCard
-        title={t("company.competitors")}
-        description={t("company.competitorsHelp")}
-        saved={saveProducts.state}
-      >
-        {canEdit && (
-          <div className="flex gap-2 mb-4">
-            <Input
-              value={newCompetitor}
-              placeholder={t("company.placeholder.competitor")}
-              onChange={(e) => setNewCompetitor(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key !== "Enter") return;
-                e.preventDefault();
-                const name = newCompetitor.trim();
-                if (!name) return;
-                setNewCompetitor("");
-                void patchOrg(saveComp, { competitors: [...org.competitors, { id: newId(), name, why_us: "" }] });
-              }}
-            />
-            <button
-              type="button"
-              onClick={() => {
-                const name = newCompetitor.trim();
-                if (!name) return;
-                setNewCompetitor("");
-                void patchOrg(saveComp, { competitors: [...org.competitors, { id: newId(), name, why_us: "" }] });
-              }}
-              className="sherloq-btn-secondary shrink-0"
-            >
-              {t("company.addCompetitor")}
-            </button>
-          </div>
-        )}
-
-        <div className="space-y-4">
-          {org.competitors.map((c) => (
-            <div key={c.id} className="border border-[var(--border-card)] rounded-[8px] p-4 group/comp">
-              <div className="flex items-center justify-between gap-2 mb-2">
-                <span className="text-[13px] font-semibold text-text-primary">{c.name}</span>
-                {canEdit && (
-                  <button
-                    type="button"
-                    onClick={() => patchOrg(saveComp, { competitors: org.competitors.filter((x) => x.id !== c.id) })}
-                    aria-label={t("company.removeCompetitor")}
-                    data-tip={t("company.removeCompetitor")}
-                    className="w-7 h-7 rounded-[6px] text-text-muted hover:bg-app-bg hover:text-signal-urgent flex items-center justify-center transition-colors cursor-pointer shrink-0 opacity-0 group-hover/comp:opacity-100 focus-within:opacity-100"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                )}
-              </div>
-              <KnowledgeField
-                    canEdit={canEdit}
-                label={t("company.whyUs", { name: c.name })}
-                value={textOf(c.why_us)}
-                placeholder={t("company.placeholder.whyUs")}
-                multiline
-                rows={2}
-                onSave={(v) =>
-                  patchOrg(saveComp, {
-                    competitors: org.competitors.map((x) => (x.id === c.id ? { ...x, why_us: v } : x)),
-                  })
-                }
-              />
-            </div>
-          ))}
-        </div>
       </SettingsCard>
 
       {/* Was der KI-Knopf später kann — ehrlich als „Folgt", statt einen toten Knopf zu erklären */}

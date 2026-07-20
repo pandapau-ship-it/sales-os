@@ -1285,7 +1285,8 @@
       "usps": "Am meisten bringt jetzt: ein USP — daraus formuliert die AI den Pitch.",
       "description": "Am meisten bringt jetzt: die Kurzbeschreibung von „{{product}}\".",
       "competitorWhy": "Am meisten bringt jetzt: warum ihr statt eurem Wettbewerber — das hilft bei Einwänden.",
-      "done": "Alles Wesentliche ist gefüllt."
+      "done": "Alles Wesentliche ist gefüllt.",
+      "name": "Am meisten bringt jetzt: ein Produktname — ohne ihn kann keine Nachricht das Angebot benennen."
     },
     "products": "Produkte",
     "productsHelp": "Was ihr verkauft. Mehrere Produkte möglich, alle Felder optional.",
@@ -1334,6 +1335,10 @@
     "editField": "{{field}} bearbeiten",
     "aiSuggest": "{{field}} von der KI vorschlagen lassen",
     "emptyField": "Noch nichts eingetragen",
-    "saveFailed": "Hat gerade nicht geklappt — bitte nochmal versuchen."
+    "saveFailed": "Hat gerade nicht geklappt — bitte nochmal versuchen.",
+    "aiFill": "KI ausfüllen",
+    "aiFillProduct": "Alle Felder dieses Produkts von der KI ausfüllen lassen",
+    "statusComplete": "vollständig",
+    "statusMissing": "{{n}} offen"
   }
 }

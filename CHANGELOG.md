@@ -4,6 +4,22 @@
 > Format: `add:` neu · `update:` geändert · `fix:` behoben · `refactor:` · `docs:`
 > Neueste oben.
 
+## 2026-07-20 — Produkte & Preise: Korrekturen + Wichtigkeits-Registry
+- **fix:** Eingabefelder nutzten die rohen shadcn-Primitive (weiß bzw. shadcn-Rohtokens) statt des
+  Projekt-Kanons. Der graue `FIELD`-Kanon existierte bisher als **Copy-Paste an ~22 Stellen** —
+  er lebt jetzt als `FIELD`/`FIELD_MULTILINE` in `componentBehavior.ts` (eine Quelle).
+- **UX:** Produkte sind **einklappbar** — genau eines offen (zuletzt bearbeitetes bzw. erstes),
+  die übrigen als ruhige Zeile mit Name + „X offen". „+ Produkt" legt an und klappt sofort auf.
+- **feat:** **„KI ausfüllen" pro Produkt** (oben rechts am Block) — wie die Feld-Knöpfe heute
+  ausgegraut + „Folgt"; ruft später denselben zentralen Schreibweg (`update_product`).
+- **UI entfernt:** USP- und Wettbewerber-Sektionen — ihr Zuhause ist die Company-Profile-Seite
+  (Slice 3). Backend unverändert; bis dahin bewusst über keine Oberfläche erreichbar.
+- **feat (projektweit):** **Wichtigkeits-Registry** `src/lib/fieldImportance.ts` — Feldpfad →
+  `required | recommended | optional` + Begründung. Sie treibt jetzt die Vollständigkeits-Anzeige
+  (deren Rangfolge vorher im Berechnungs-Code hartkodiert war) **und** später den AI Chat.
+  Neue Dauerregel **„Progressive Ausführung"** in `ai_chat_bauplan_v1.md` Abschnitt 5a: der Chat
+  führt aus was geht, **fragt** bei fehlenden Pflichtangaben nach und **erfindet nie**.
+
 ## 2026-07-20 — Mein Unternehmen 1/3: Produkte & Preise
 - **feat:** Settings → Mein Unternehmen → **Produkte & Preise** (Migr. 077). `org_profile` als schlankes
   Grundgerüst (USPs · Wettbewerber · `field_meta` inkl. **`locked`** als Schutz gegen den späteren
