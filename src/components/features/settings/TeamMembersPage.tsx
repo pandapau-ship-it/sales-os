@@ -10,7 +10,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { UserPlus, X, Copy, MoreHorizontal, Inbox } from "lucide-react";
+import { UserPlus, X, Copy, MoreHorizontal, Inbox, ShieldCheck } from "lucide-react";
 import { useCurrentOrg } from "@/hooks/useCurrentOrg";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffectivePermissions } from "@/hooks/usePermissions";
@@ -163,7 +163,7 @@ export default function TeamMembersPage() {
             return (
               <div
                 key={m.id}
-                className="flex items-center gap-3 p-3 bg-app-surface"
+                className="flex items-center gap-3 p-3 bg-app-surface hover:bg-app-bg transition-colors"
                 {...prefetch(organizationId ? () => prefetchMemberPanel(qc, organizationId, m.id) : undefined)}
               >
                 <Avatar name={m.full_name || m.email} size={32} />
@@ -179,6 +179,25 @@ export default function TeamMembersPage() {
                   <div className="typo-subline text-text-muted truncate">{m.email}</div>
                 </button>
 
+                {/* Rolle — VOR dem Status. Nur „Owner" bekommt einen dezenten farbigen Hintergrund
+                    (seltene, besondere Rolle), alle anderen bleiben neutral/grau. Reuse: StatusBadge
+                    (kanonisches Badge, Token-Farben) — kein eigenes Farb-Muster erfunden. Keine
+                    „Rolle"/„Status"-Überschriften (eine Zeile pro Person ist selbsterklärend). */}
+                {canChangeRole && !isSelf ? (
+                  <div className="w-[130px] shrink-0">
+                    <Select value={m.role} onValueChange={(next) => setConfirm({ kind: "role", member: m, nextRole: next })}>
+                      <SelectTrigger className="h-8 text-[13px]"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {ROLES.map((r) => <SelectItem key={r} value={r} className="text-[13px]">{roleLabel(r)}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                ) : (
+                  <div className="shrink-0">
+                    <StatusBadge tone={m.role === "owner" ? "info" : "muted"} label={roleLabel(m.role)} />
+                  </div>
+                )}
+
                 {/* Status */}
                 <StatusBadge
                   tone={deactivated ? "muted" : "success"}
@@ -190,19 +209,15 @@ export default function TeamMembersPage() {
                   {lastActive(m.last_seen_at, t)}
                 </span>
 
-                {/* Rolle */}
-                <div className="w-[130px] shrink-0">
-                  {canChangeRole && !isSelf ? (
-                    <Select value={m.role} onValueChange={(next) => setConfirm({ kind: "role", member: m, nextRole: next })}>
-                      <SelectTrigger className="h-8 text-[13px]"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {ROLES.map((r) => <SelectItem key={r} value={r} className="text-[13px]">{roleLabel(r)}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <span className="typo-chip text-text-body">{roleLabel(m.role)}</span>
-                  )}
-                </div>
+                {/* Expliziter Knopf — macht die Klickbarkeit sichtbar (öffnet das Rechte-Panel). */}
+                <button
+                  type="button"
+                  onClick={() => setDetailId(m.id)}
+                  aria-label={t("settings.members.viewPermissions")}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-[8px] text-[12px] font-medium text-text-body bg-app-surface hover:bg-app-bg border border-border transition-colors cursor-pointer shrink-0"
+                >
+                  <ShieldCheck className="w-3.5 h-3.5" /> {t("settings.members.viewPermissions")}
+                </button>
 
                 {/* Aktionen */}
                 {canInvite && !isSelf && (
