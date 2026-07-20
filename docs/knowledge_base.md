@@ -540,3 +540,21 @@
 - **value:** Die KI schreibt nur so gut, wie sie euer Angebot kennt. Wer hier zehn Minuten investiert, bekommt Nachrichten, die den echten Nutzen und die richtige Zielgruppe treffen, statt allgemeiner Floskeln — und behält gleichzeitig die volle Kontrolle darüber, ob jemals ein Preis nach außen genannt wird.
 - **module:** core
 - *(Mein Unternehmen Slice 1/3, 2026-07-20. Personal Voice und Unternehmensprofil inkl. Zielgruppen/Personas folgen; der KI-Vorschlags-Knopf je Feld ist vorbereitet und kommt mit der AI-Anbindung.)*
+
+---
+
+- **feature:** Mitteilungen (Glocke) & Aktivitätsfenster
+- **what:** Ein zentraler Ort für alles, was Aufmerksamkeit braucht: Die Glocke oben zeigt ungelesene Mitteilungen mit Zahl und öffnet eine Liste nach Kategorien (System, Erinnerungen, Hinweise). Mitteilungen kommen live an — ohne die Seite neu zu laden. Wird dieselbe Sache erneut ausgelöst (etwa ein Alarm, der weiterhin besteht), entsteht **keine zweite Meldung**: die vorhandene wird aktualisiert und rückt wieder nach oben, mit der Zeit der letzten Aktualisierung. Daneben zeigt ein Aktivitätsfenster, was zuletzt im System passiert ist. Gelesenes lässt sich einzeln oder gesammelt abhaken; Alte Einträge räumt das System selbst weg.
+- **how:** Glocke oben rechts anklicken. Eine Mitteilung anklicken springt direkt zum betroffenen Element.
+- **value:** Nichts Wichtiges geht unter, und der Posteingang läuft trotzdem nicht über: statt zehn gleicher Meldungen sieht man eine, die aktuell ist. Was heute zählt, ist an einer Stelle sichtbar — ohne dass jemand Listen manuell durchgehen muss.
+- **module:** core
+- *(Mitteilungs-Fundament N-S1 + N-S2-Minimal, 19.07.2026. Die Einstell-Matrix je Kategorie und Kanal folgt mit N-S2 vollständig; E-Mail-/Push-Versand kommt mit dem Sending-Layer.)*
+
+---
+
+- **feature:** Betriebs-Überwachung (Cron-Wächter & Systemalarme) — *intern (module: core, für Kunden unsichtbar)*
+- **what:** Das System überwacht seine eigenen Hintergrund-Läufe. Jeder geplante Lauf meldet Start, Ende, Dauer und wie viele Datensätze er verarbeitet hat. Ein Wächter prüft alle 15 Minuten, ob ein Lauf überfällig ist oder gescheitert — und meldet das als Systemalarm in den Mitteilungen, in verständlicher Sprache statt in technischen Kürzeln: was nicht lief, was das vermutlich bedeutet und was jetzt zu tun ist. Läuft der Job wieder, schließt sich der Alarm von selbst.
+- **how:** Läuft automatisch im Hintergrund. Alarme erscheinen in den Mitteilungen unter „System".
+- **value:** Ausfälle fallen dem Team auf, bevor sie beim Kunden ankommen — ein stiller Job, der wochenlang nicht läuft, kann sich nicht mehr verstecken. Das schützt genau die Automatiken, auf die sich der Vertrieb täglich verlässt.
+- **module:** core
+- *(Betrieb B-1, 19.07.2026 + Alarm-Wording 20.07.2026. Eine Status-Seite in den Einstellungen folgt mit B-4.)*

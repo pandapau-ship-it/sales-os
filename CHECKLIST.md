@@ -15,7 +15,12 @@
 - [x] EIN Schreibweg: `update_org_profile` / `update_product` / `create_product` / `delete_product` (weich) — Key-Whitelist + `settings.manage` + `audit_log`
 - [x] Stabile Feldpfade dokumentiert (`org.usps` · `product.<id>.<feld>`)
 - [x] Texte als `jsonb` (Mehrsprach-Andockhaken, `i18nText.textOf`)
-- [x] UI: Stift + KI-Knopf (ausgegraut/„Folgt") je Feld · Vollständigkeit mit Wirkungshinweis · kein Herkunfts-Marker
+- [x] UI: **durchgehend sichtbare graue Felder** (`FIELD`-Kanon; Muster-Korrektur nach Live-Test — kein Read-Mode/Stift), KI-Knopf je Feld im Pill-Kanon · Vollständigkeit mit Wirkungshinweis · kein Herkunfts-Marker
+- [x] Einklappbare Produktkarten mit „X offen"-Hinweis (neutral, aus derselben Registry) + „KI ausfüllen" je Produkt („Folgt")
+- [x] **Wichtigkeits-Registry** `fieldImportance.ts` als EINZIGE Quelle der Feld-Wichtigkeit (treibt die Vollständigkeits-Anzeige heute, den AI-Chat später)
+- [x] Globale Regel **„Chat-Aktions-Vertrag-Pflicht"** (CLAUDE.md) + **„Progressive Ausführung"** (ai_chat_bauplan 5a) + Bestandsliste der vor der Regel gebauten chat-fähigen Funktionen (PROGRESS.md)
+- [x] `FIELD`/`FIELD_MULTILINE` + `AI_PILL`/`AI_PILL_PENDING` als zentrale Kanons in `componentBehavior.ts`
+- [ ] **chore:** ~22 Copy-Paste-Stellen des FIELD-Kanons auf die zentrale Konstante ziehen (eigener Slice)
 - [ ] Slice 2 Personal Voice (5 Kanäle inkl. `email`) · [ ] Slice 3 Unternehmensprofil + `org_icps`/`org_personas`
 
 ## 🚦 Modul-Abschluss-Gate (PFLICHT — bei JEDEM abgeschlossenen Modul durchgehen)
