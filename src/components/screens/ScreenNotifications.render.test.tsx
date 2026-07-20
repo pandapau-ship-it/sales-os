@@ -87,6 +87,20 @@ describe("ScreenNotifications — Live-DOM", () => {
     expect(navigateMock).toHaveBeenCalledWith("/app/x");
   });
 
+  it("lange, mehrzeilige Beschreibung wird VOLLSTÄNDIG angezeigt — keine Kürzung (truncate)", async () => {
+    const longBody =
+      "• Der tägliche Check ist nicht durchgelaufen.\n  Vermutung: Die Datenbank war kurz nicht erreichbar.\n  Bedeutung: Die Hinweise könnten veraltet sein, bis der nächste Lauf erfolgreich ist.";
+    unread = [{ ...NOTIF, id: "n-long", title: "7 Betriebs-Job(s) nicht durchgelaufen", body: longBody }];
+    renderScreen();
+    await waitFor(() => expect(screen.getByText("7 Betriebs-Job(s) nicht durchgelaufen")).toBeTruthy());
+    // Der wichtige, zuvor abgeschnittene Teil (Vermutung + Bedeutung) ist tatsächlich im DOM.
+    const bodyEl = screen.getByText(/Bedeutung: Die Hinweise könnten veraltet sein/);
+    expect(bodyEl.textContent).toContain("Vermutung");
+    // Die Beschreibungs-Zeile hat KEIN truncate mehr, sondern umbricht vollständig.
+    expect(bodyEl.className).not.toContain("truncate");
+    expect(bodyEl.className).toContain("break-words");
+  });
+
   it("Alle-als-gelesen ruft die Mutation", async () => {
     unread = [NOTIF];
     renderScreen();

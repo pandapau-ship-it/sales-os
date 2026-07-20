@@ -6,6 +6,18 @@
 
 ## Unreleased
 
+- **fix:** Mitteilungen — Beschreibungstext wurde abgeschnitten. `ScreenNotifications` klammerte den
+  Body per `truncate` (einzeilig, „…") → der wichtige Teil (Vermutung + Bedeutung) war unlesbar. Jetzt
+  `break-words whitespace-pre-line` → vollständiger, mehrzeiliger Umbruch (Watchdog liefert `\n`-getrennte
+  WAS/Vermutung/Bedeutung), Karte wächst mit. [AUTO]-Regressionstest (lange mehrzeilige Mitteilung, kein
+  truncate).
+- **fix:** Betriebs-Alarm-Texte verständlicher (B-1, Migr. 075 + TS-Spiegel `alertTemplates.ts`). 3 von 7
+  Klartext-Templates entjargont/präzisiert: `score-deal-health-daily` (WAS klarer), `credit-monthly-reset`
+  (WAS entschachtelt + Bedeutung mit konkreter Folge), `cron-runs-cleanup` („Cron-Lauf-Protokolle" →
+  „interne Protokolle über automatische Hintergrund-Aufgaben"). Andere 4 geprüft, bereits klar (Heat/Churn/
+  Upsell sind Produktbegriffe, keine Funktionsnamen). DB `cron_expectations` (Laufzeit-Quelle) + TS-Spiegel
+  identisch gehalten.
+
 - **fix/feat:** SET-2 Nav-Sichtbarkeit vollständig + Statistik-Pills. **Bug (TopBar):** die oberen
   Pills (Mein Tag/AI SDR/Hunter/Farmer) ignorierten Modul-Plan + persönliche Pref (hardcodierte Liste) —
   jetzt liest `TopBar` `getNavPreferences` (gleicher Query-Key `['navPrefs',userId]` wie Sidebar) + `hasModule`,
