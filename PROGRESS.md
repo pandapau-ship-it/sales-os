@@ -664,12 +664,60 @@
       Chat-**Aktion** kann aber andere Anforderungen haben als eine andere („Nachricht schreiben"
       braucht den Nutzen, „Produkt umbenennen" nur den Namen). Ob dafür eine zweite, aktions-
       bezogene Ebene ergänzt wird (Aktion → Pflichtfelder, verweist auf dieselben Feldpfade),
-      ist **bewusst offen** und wird beim Bau des Chat-Tool-Layers entschieden. Die Feldpfade
-      bleiben in jedem Fall unverändert — kein Umbau nötig.
+      ist **bewusst offen** (Entscheidung A vom 20.07.2026: jetzt KEINE leere Aktions-Ebene auf Vorrat)
+      und wird beim Bau des Chat-Tool-Layers entschieden. Die Feldpfade bleiben in jedem Fall
+      unverändert — kein Umbau nötig.
+      **Zwei konkrete Struktur-Befunde für diesen Zeitpunkt (aus der Übertragbarkeits-Prüfung 20.07.):**
+      (a) `hintKey` ist ein UI-Feld der Vollständigkeits-Anzeige — für rein chat-fähige Funktionen ohne
+      solche Anzeige muss es **optional** werden (heute Pflichtfeld des Registry-Eintrags).
+      (b) Die Registry adressiert **gespeicherte Felder**; Chat-Aktionen haben **Parameter**, die nicht
+      immer einem Feld entsprechen (`set_user_role(p_role)`, Lost-Reason, `p_ids[]`). Ein künftiger
+      Aktions-Vertrag braucht daher **Funktionsname + Parametername** als Schlüssel und verweist NUR
+      dort auf einen Feldpfad, wo es einen gibt.
     - **[SLICE 2] Vorgemerkt:** Personal Voice bekommt **von Anfang an fünf Kanäle**
       (`overview` · `post` · `comment` · `dm` · **`email`**) — das Design kennt nur die ersten vier,
       der AI SDR mailt aber primär. Dazu das Live-Beispiel **„So klingt das"** (WOW-Idee, gehört
       inhaltlich zu Voice, nicht zu Produkten).
+
+  - **▶ CHAT-AKTIONS-VERTRÄGE — NACHZUHOLENDE BESTANDS-FUNKTIONEN (20.07.2026).**
+    Die neue globale Regel **„Chat-Aktions-Vertrag-Pflicht"** (CLAUDE.md) gilt ab jetzt für **NEUE**
+    Funktionen. Die folgenden Funktionen wurden **VOR** dieser Regel gebaut und brauchen die
+    `required`/`recommended`/`optional`-Einstufung noch **nachträglich** — das passiert **NICHT jetzt**,
+    sondern **gebündelt als Diagnose-First-Schritt, sobald der AI-Chat-Baustein selbst ansteht**
+    (letztes Modul im Fahrplan). Grund: die Funktionen sind noch nicht stabil genug; eine frühere
+    Einstufung müsste vermutlich mehrfach nachgezogen werden.
+    **Reine Bestandsliste — bewusst NICHT klassifiziert.**
+
+    **A) Postgres-RPCs (geschäftlich relevant, `security definer`):**
+    - Rechte & Team: `grant_permission` · `revoke_permission` · `set_user_role` · `deactivate_member` ·
+      `reactivate_member` · `remove_member` · `create_invitation` · `effective_permissions` (Auskunft)
+    - Einstellungen & Profil: `update_general_settings` · `update_my_profile` · `get_profile_stats` (Auskunft)
+    - Mein Unternehmen: `update_product` · `create_product` · `delete_product` · `update_org_profile`
+      *(einziger Bereich, der die Einstufung bereits HAT — `src/lib/fieldImportance.ts`)*
+    - Datensätze: `soft_delete_contacts` · `soft_delete_companies` · `soft_delete_deals`
+    - Mitteilungen & Aktivität: `notify` · `log_activity`
+    - Credits & Entitlement: `consume_credits` · `check_entitlement` · `check_credit_balance` ·
+      `reset_credit_balances`
+    - Telemetrie mit Nutzerbezug: `set_last_seen`
+
+    **B) Schreibwege im Frontend OHNE eigene RPC** (direkte Tabellen-Writes in `src/lib/db.ts` — sie sind
+    genauso chat-fähig und dürfen bei der Nachhol-Runde **nicht vergessen werden**; im Prompt waren sie
+    nicht genannt, gehören aber sachlich dazu):
+    `createContact` · `updateContact` · `createCompany` · `updateCompany` · `createDeal` · `updateDeal` ·
+    `updateDealStage` · `updateDealWon` · `updateDealLost` · `softDeleteDeal` · `createTask` · `updateTask` ·
+    `completeTask` · `setTaskCompleted` · `softDeleteTask` · `createNote` · `updateNote` · `softDeleteNote` ·
+    `createCompanyNote` · `createCommunication` · `createContactPhone` · `updateContactPhone` ·
+    `setContactPhonePrimary` · `deleteContactPhone` · `createList` · `addToList` · `deleteList` ·
+    `mergeContacts` · `mergeCompanies` · `createLead` · `updateLeadStage` · `assignLeadOwner` ·
+    `deleteInvitation` · `setUserPreference` · `setNavPreferences`
+
+    **NICHT auf der Liste** (bewusst, weil nicht chat-fähig): Trigger-Funktionen (`audit_write`,
+    `update_updated_at`, `bump_contact_last_contacted`, `handle_new_user`), interne Wächter/Helfer
+    (`auth_org_id`, `has_permission`, `assert_permission`, `assert_member_action`,
+    `assert_not_last_owner`, `_billing_config`) und Betriebs-/Cron-Funktionen (`cron_run_start`,
+    `cron_run_finish`, `run_watchdog`, `cleanup_notifications`, `cleanup_activity_events`,
+    `cleanup_cron_runs`). Insgesamt geprüft: **41 DB-Funktionen** (vollständiger grep über alle
+    Migrationen) + die Schreibwege aus `db.ts`.
 
   - **▶ RECHTE-KATALOG — ZUKUNFTS-REGISTRY (Teil-D-Scan 19.07.2026).** Diese Rechte existieren HEUTE noch
     nicht im Katalog und werden **MIT ihrem Modul** hinzugefügt (`permission_catalog` 070 + `role_permissions`

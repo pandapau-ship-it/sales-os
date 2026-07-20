@@ -4,6 +4,18 @@
 > Format: `add:` neu · `update:` geändert · `fix:` behoben · `refactor:` · `docs:`
 > Neueste oben.
 
+## 2026-07-20 — Globale Regel: Chat-Aktions-Vertrag-Pflicht
+- **docs:** Neue dauerhafte Regel in CLAUDE.md (analog Rechte-Check- und Cron-Wrapper-Pflicht): jede
+  künftig chat-fähige Funktion legt **beim Bau** fest, welche Parameter `required`/`recommended`/
+  `optional` sind; die Einstufung lebt **bei der Funktion**, der Chat **fragt nach** statt zu
+  blockieren und **erfindet nie** eine Pflichtangabe. Ausdrückliche Abgrenzung zu
+  `docs/knowledge_base.md`: dort **erklärendes** Wissen (Fragen beantworten), hier **handelndes**
+  Wissen (ausführen). Erster Anwendungsfall: `src/lib/fieldImportance.ts`.
+- **docs:** PROGRESS.md „▶ CHAT-AKTIONS-VERTRÄGE — NACHZUHOLENDE BESTANDS-FUNKTIONEN" — vollständige
+  Bestandsliste aller vor der Regel gebauten, potenziell chat-fähigen Funktionen (25 RPCs + 35
+  direkte Schreibwege aus `db.ts`), bewusst **nicht** klassifiziert; die Einstufung erfolgt gebündelt
+  mit dem AI-Chat-Baustein.
+
 ## 2026-07-20 — Mein Unternehmen: durchgehend sichtbare Eingabefelder
 - **fix/UX:** Die Felder waren im Ruhezustand gar keine Felder — der Wert stand als Text auf der
   weißen Karte, ein `<input>` entstand erst nach einem Klick. Der graue Kanon lag also korrekt an,

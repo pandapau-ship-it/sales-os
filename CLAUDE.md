@@ -118,6 +118,34 @@ ALTER TABLE knowledge_base ENABLE ROW LEVEL SECURITY;
 > Neue Rechte für **künftige Module** (AI SDR, Billing-UI, …) entstehen mit dem jeweiligen Modul —
 > der Katalog wächst mit, wird nie auf Vorrat gefüllt.
 
+### GLOBALE REGEL — Chat-Aktions-Vertrag-Pflicht (dauerhaft, seit 20.07.2026)
+
+> **Jede Funktion/RPC, die künftig für den AI Chat freigegeben wird, MUSS schon BEIM BAU festlegen,
+> welche Parameter `required` · `recommended` · `optional` sind — nicht nachträglich draufgesetzt.**
+>
+> 1. **Die Einstufung lebt DIREKT BEI DER FUNKTION** (Single Source). Kein separates Extra-Dokument,
+>    das veraltet: der Vertrag steht bei der Funktion, die er beschreibt — für RPCs beim TS-Aufrufer
+>    in `src/lib/db.ts` (jeder RPC-Aufruf läuft dort durch), für reine Frontend-Logik bei der Funktion selbst.
+> 2. **Der Chat FRAGT NACH statt zu blockieren.** Fehlt ein `required`-Parameter → **eine konkrete,
+>    begründete Rückfrage**, dann ausführen. Fehlt nur `recommended`/`optional` → **ganz normal ausführen**,
+>    ohne Nachfrage, ohne Warnung. Eine Aktion wegen fehlender optionaler Angaben komplett zu verweigern,
+>    ist ein Regelverstoß.
+> 3. **Der Chat ERFINDET NIE eine fehlende Pflichtangabe** — nicht raten, nicht schätzen, nicht aus
+>    ähnlichen Datensätzen übernehmen, nicht mit einer Floskel überbrücken (**Honesty-Regel**).
+>
+> **Diese Prüfung ist ab sofort fester Bestandteil JEDES Slice-Baus, der eine potenziell chat-fähige
+> Funktion einführt** — analog zur Rechte-Check-Pflicht und zur Cron-Wrapper-Pflicht.
+>
+> **Abgrenzung (wichtig, nicht verwechseln):** `docs/knowledge_base.md` ist **erklärendes** Wissen —
+> damit beantwortet der Chat Fragen („was macht Feature X?"). Der Aktions-Vertrag ist **handelndes**
+> Wissen — damit weiß der Chat, was er zum **Ausführen** braucht. Zwei getrennte Konzepte, beide Pflicht.
+>
+> **Erster Anwendungsfall + heutiger Stand:** `src/lib/fieldImportance.ts` (Feldpfad → Einstufung +
+> Begründung) für „Mein Unternehmen"; Lese-Schnittstelle `missingRequired()`; ausformulierte
+> Chat-Regel in `docs/ai_chat_bauplan_v1.md` Abschnitt **5a „Progressive Ausführung"**.
+> **Bestands-Funktionen von VOR dieser Regel** werden gebündelt nachgezogen, sobald der AI-Chat-Baustein
+> ansteht → Liste in PROGRESS.md „▶ CHAT-AKTIONS-VERTRÄGE — NACHZUHOLENDE BESTANDS-FUNKTIONEN".
+
 ### GLOBALE REGEL — Öffentliche Routen (dauerhaft, [D21] Login-Pflicht)
 
 > Die App erzwingt Login (`Protected` unter `/app/*`; Catch-all `NotFoundRedirect`: unbekannt +
