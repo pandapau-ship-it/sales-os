@@ -140,6 +140,14 @@
   --on-accent:        #FFFFFF;   /* Text/Icon auf farbigem/dunklem Grund — bleibt hell in beiden Modi */
   --inverse-surface:  #111827;   /* dunkle Fläche (Toasts) — Light */
   --scrim:            #0B1120;   /* Overlay/Backdrop — fix dunkel in beiden Modi */
+
+  /* Voice-Trainer-Kachel — BEWUSSTE EINZELFALL-AUSNAHME (Entscheidung Oliver 20.07.2026):
+     GENAU diese eine Kachel übernimmt die Original-Referenz-Optik (dunkel + türkis), immer dunkel
+     in beiden Modi (wie ein Toast). KEINE generelle Regeländerung — überall sonst neutrale Tokens.
+     Hex lebt hier in index.css (erlaubt), NICHT als roher Wert im JSX. */
+  --voice-trainer-surface: #171C26;  /* fast-schwarze Kachelfläche */
+  --voice-trainer-accent:  #2DD4BF;  /* türkise Überschrift/Icon */
+  --voice-trainer-muted:   #9CA3AF;  /* heller Fließtext auf dunkel */
 }
 
 /* ─── Dark Mode — überschreibt NUR die Tokens, @theme inline folgt automatisch ──

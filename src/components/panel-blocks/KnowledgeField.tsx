@@ -21,7 +21,7 @@
  *
  * Leer ist ein gültiger Zustand: in diesem Bereich gibt es KEINE Pflichtfelder — nie eine Warnung.
  */
-import { useState, useId } from "react";
+import { useState, useId, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Sparkles } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -29,7 +29,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { FIELD, FIELD_MULTILINE, AI_PILL_PENDING } from "@/lib/componentBehavior";
 
 export default function KnowledgeField({
-  label, value, placeholder, multiline = false, rows = 3, canEdit = true, onSave,
+  label, value, placeholder, multiline = false, rows = 3, canEdit = true, icon, onSave,
 }: {
   label: string;
   value: string;
@@ -38,6 +38,8 @@ export default function KnowledgeField({
   rows?: number;
   /** false → nur lesen (fehlendes Recht). Gleiche Gating-Logik wie die übrigen Aktionen der Seite. */
   canEdit?: boolean;
+  /** Optionales Icon links vom Label (z.B. Bestätigungs-/Warn-Symbol bei „immer"/„nie"). */
+  icon?: ReactNode;
   onSave: (next: string) => void | Promise<void>;
 }) {
   const { t } = useTranslation();
@@ -73,7 +75,10 @@ export default function KnowledgeField({
   return (
     <div>
       <div className="flex items-center justify-between gap-2 mb-1.5">
-        <label htmlFor={id} className="typo-field-label text-text-muted">{label}</label>
+        <label htmlFor={id} className="typo-field-label text-text-muted inline-flex items-center gap-1.5">
+          {icon}
+          {label}
+        </label>
         <button
           type="button"
           disabled

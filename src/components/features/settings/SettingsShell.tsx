@@ -20,6 +20,7 @@ import {
 import { cn } from "@/lib/utils";
 import TeamMembersPage from "./TeamMembersPage";
 import ProductPricingPage from "./ProductPricingPage";
+import PersonalVoicePage from "./PersonalVoicePage";
 
 export default function SettingsShell() {
   const navigate = useNavigate();
@@ -105,6 +106,7 @@ export default function SettingsShell() {
       <div className="flex-1 min-w-0">
         {active === "team" && <TeamMembersPage />}
         {active === "product-pricing" && <ProductPricingPage />}
+        {active === "personal-voice" && <PersonalVoicePage />}
       </div>
     </div>
   );

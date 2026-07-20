@@ -51,6 +51,7 @@ export { default as NeueListeDialog } from './features/kontakte/NeueListeDialog'
 // ── features/settings/ ──────────────────────────────────────────────────────
 export { default as SettingsShell } from './features/settings/SettingsShell';
 export { default as ProductPricingPage } from './features/settings/ProductPricingPage';
+export { default as PersonalVoicePage } from './features/settings/PersonalVoicePage';
 export { default as TeamMembersPage } from './features/settings/TeamMembersPage';
 export { default as MemberDetailPanel } from './features/settings/MemberDetailPanel';
 

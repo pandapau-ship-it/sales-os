@@ -21,7 +21,20 @@
 - [x] Globale Regel **„Chat-Aktions-Vertrag-Pflicht"** (CLAUDE.md) + **„Progressive Ausführung"** (ai_chat_bauplan 5a) + Bestandsliste der vor der Regel gebauten chat-fähigen Funktionen (PROGRESS.md)
 - [x] `FIELD`/`FIELD_MULTILINE` + `AI_PILL`/`AI_PILL_PENDING` als zentrale Kanons in `componentBehavior.ts`
 - [ ] **chore:** ~22 Copy-Paste-Stellen des FIELD-Kanons auf die zentrale Konstante ziehen (eigener Slice)
-- [ ] Slice 2 Personal Voice (5 Kanäle inkl. `email`) · [ ] Slice 3 Unternehmensprofil + `org_icps`/`org_personas`
+
+### Mein Unternehmen (SET-KB-2) — Slice 2/3 „Personal Voice" (20.07.2026, GEMERGT)
+- [x] `voice_profiles` (Migr. **078**): pro User (`organization_id`+`user_id` NOT NULL, CASCADE), RLS pro-User (`user_id=auth.uid() AND org`), `UNIQUE(org,user)`, `field_meta`-locked, updated_at-/audit-Trigger
+- [x] **Einziger Schreibweg** `update_voice_profile` (Migr. **079**): Self-Service (kein `settings.manage`), Top-**und** Sub-Key-Whitelist, `field_meta`-locked pro Feld, **Shallow-Merge je Kanal** (save-on-blur-sicher), `audit_log`
+- [x] RPC **live per self-abortierendem DO-Block getestet** (gültiger Patch · unbekannter Key wirft · Shallow-Merge bewiesen · fremde Identität abgewiesen · Rollback ohne Rückstand)
+- [x] 5 Kanäle **overview + post/comment/dm/email** (`email` bewusste 5. Ergänzung); stabile Feldpfade `voice.<channel>.<feld>` (078/079)
+- [x] Kanal-Felder Schreibstil · Aufmacher · **Do's&Don'ts als zwei benannte Teile im SELBEN Feld** (`dos_donts={always,never}`, keine Migration) · **Beispiele ganz unten**
+- [x] Vollständigkeits-Ring über **dieselbe Registry** (`fieldImportance.ts` +20 Voice-Felder, Scope `"voice"` in `computeCompleteness`) — keine zweite Logik
+- [x] **AI-Voice-Trainer = bewusste Einzelfall-Ausnahme** (Original-Dunkel-Optik türkis via Tokens `--voice-trainer-*` in `index.css`, kein Hex im JSX) + zwei echte `ui/button` (size sm, rounded-full) — KI bleibt `AI_PILL_PENDING` „Folgt"
+- [x] Voice-Karte + Trainer **nebeneinander (6/6)**; `KI ausfüllen`-Pill im Kanäle-Header (wie Produkte)
+- [x] Reusable: `SettingsCard` (`headerAction`/`className`) · `KnowledgeField` (Label-`icon`); i18n `voice.*` in de/en/es; Render-Tests (15) + Voice-Scope-Tests
+- [x] Honesty: leere Voice → ehrlicher Leerzustand; Jobtitel/Firma nur bedingt (users-Spalten fehlen → korrekt unsichtbar, Logik vorbereitet, `// single-source-ok`)
+- [ ] **[D-voice-admin-help]** Owner/Admin hilft neuem Mitglied bei leerer Voice — bewusst deferred
+- [ ] Slice 3 Unternehmensprofil + `org_icps`/`org_personas` + Umzug USPs/Wettbewerber
 
 ## 🚦 Modul-Abschluss-Gate (PFLICHT — bei JEDEM abgeschlossenen Modul durchgehen)
 

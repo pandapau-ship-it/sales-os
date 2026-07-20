@@ -1286,7 +1286,15 @@
       "description": "Am meisten bringt jetzt: die Kurzbeschreibung von „{{product}}\".",
       "competitorWhy": "Am meisten bringt jetzt: warum ihr statt eurem Wettbewerber — das hilft bei Einwänden.",
       "done": "Alles Wesentliche ist gefüllt.",
-      "name": "Am meisten bringt jetzt: ein Produktname — ohne ihn kann keine Nachricht das Angebot benennen."
+      "name": "Am meisten bringt jetzt: ein Produktname — ohne ihn kann keine Nachricht das Angebot benennen.",
+      "voiceBio": "Am meisten bringt jetzt: ein Kurzprofil — wer schreibt hier eigentlich?",
+      "voiceThemes": "Am meisten bringt jetzt: deine Kernthemen — gute Aufhänger für die AI.",
+      "voiceStyle": "Am meisten bringt jetzt: dein Verkaufs-/Argumentationsstil.",
+      "voiceTone": "Am meisten bringt jetzt: dein Grundton — damit klingt die AI nach dir.",
+      "voiceSamples": "Am meisten bringt jetzt: echte Beispiele — das stärkste Signal für deinen Stil.",
+      "voiceSentenceStyle": "Am meisten bringt jetzt: dein Satzbau/Rhythmus.",
+      "voiceHooks": "Am meisten bringt jetzt: deine typischen Aufhänger.",
+      "voiceDosDonts": "Am meisten bringt jetzt: deine Do's & Don'ts."
     },
     "products": "Produkte",
     "productsHelp": "Was ihr verkauft. Mehrere Produkte möglich, alle Felder optional.",
@@ -1338,5 +1346,42 @@
     "aiFillProduct": "Alle Felder dieses Produkts von der KI ausfüllen lassen",
     "statusMissing": "{{n}} offen",
     "statusMissingTip": "Diese Angaben fehlen der AI noch"
+  },
+  "voice": {
+    "intro": "Deine persönliche Schreibstimme. Der AI SDR nutzt sie später, um in DEINER Stimme zu texten. Nichts ist Pflicht — füll aus, was passt.",
+    "previewTitle": "Voice-Karte",
+    "previewHelp": "Wessen Schreibstimme das ist.",
+    "previewEmpty": "Vervollständige zuerst dein Profil, dann erscheint hier deine Voice-Karte.",
+    "trainerTitle": "AI Voice Trainer",
+    "trainerHelp": "Später analysiert die KI deine bisherigen Inhalte und erstellt daraus automatisch dein Voice-Profil.",
+    "trainerCta": "Aus Inhalten analysieren",
+    "trainerChatCta": "Chat-Einrichtung",
+    "completenessHelp": "Je mehr hier steht, desto genauer trifft die AI später deinen Ton.",
+    "channelsTitle": "Kanäle",
+    "channelsHelp": "Pro Kanal, wie du dort schreibst. Alles optional.",
+    "tab": {
+      "overview": "Übersicht",
+      "post": "Post",
+      "comment": "Kommentar",
+      "dm": "DM",
+      "email": "E-Mail"
+    },
+    "overview": {
+      "bio": { "label": "Kurzprofil", "ph": "Wer bist du, was machst du?" },
+      "style": { "label": "Verkaufs-/Argumentationsstil", "ph": "Wie überzeugst du? Problem-first, Story, Zahlen …" },
+      "tone": { "label": "Grundton", "ph": "z. B. direkt, analytisch, warm" },
+      "themes": { "label": "Kernthemen", "ph": "Worüber schreibst/sprichst du am liebsten?" }
+    },
+    "field": {
+      "samples": { "label": "Beispiele", "ph": "Füge ein paar echte Beispiele ein, die typisch für dich sind." },
+      "writingStyle": { "label": "Schreibstil", "ph": "z. B. kurze, prägnante Sätze; klare Zeilenumbrüche" },
+      "hooks": { "label": "Aufmacher", "ph": "Womit steigst du ein?" },
+      "dosAlways": { "label": "Das machst du immer", "ph": "Was in deinen Nachrichten immer vorkommt" },
+      "dosNever": { "label": "Das machst du nie", "ph": "Was in deinen Nachrichten nie vorkommt" }
+    },
+    "soundsLike": "So klingt das",
+    "aiFill": "KI ausfüllen",
+    "aiFillAll": "Alle Voice-Felder von der KI ausfüllen lassen",
+    "aiHint": "Der KI-Knopf erzeugt später einen Vorschlag für genau dieses Feld. Folgt."
   }
 }

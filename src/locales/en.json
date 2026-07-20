@@ -1280,7 +1280,15 @@
       "description": "Biggest win right now: the short description of \"{{product}}\".",
       "competitorWhy": "Biggest win right now: why you over your competitor — helps with objections.",
       "done": "Everything essential is filled in.",
-      "name": "Biggest win right now: a product name — without it no message can name the offering."
+      "name": "Biggest win right now: a product name — without it no message can name the offering.",
+      "voiceBio": "Biggest win right now: a short profile — who is writing here?",
+      "voiceThemes": "Biggest win right now: your core topics — good hooks for the AI.",
+      "voiceStyle": "Biggest win right now: your selling/reasoning style.",
+      "voiceTone": "Biggest win right now: your baseline tone — so the AI sounds like you.",
+      "voiceSamples": "Biggest win right now: real examples — the strongest signal for your style.",
+      "voiceSentenceStyle": "Biggest win right now: your sentence structure/rhythm.",
+      "voiceHooks": "Biggest win right now: your typical hooks.",
+      "voiceDosDonts": "Biggest win right now: your do's & don'ts."
     },
     "products": "Products",
     "productsHelp": "What you sell. Multiple products possible, all fields optional.",
@@ -1332,5 +1340,42 @@
     "aiFillProduct": "Let AI fill in all fields of this product",
     "statusMissing": "{{n}} open",
     "statusMissingTip": "The AI is still missing these details"
+  },
+  "voice": {
+    "intro": "Your personal writing voice. The AI SDR will use it to write in YOUR voice. Nothing is required — fill in what fits.",
+    "previewTitle": "Voice card",
+    "previewHelp": "Whose writing voice this is.",
+    "previewEmpty": "Complete your profile first, then your voice card appears here.",
+    "trainerTitle": "AI Voice Trainer",
+    "trainerHelp": "Later, the AI analyzes your past content and builds your voice profile automatically.",
+    "trainerCta": "Analyze from content",
+    "trainerChatCta": "Chat setup",
+    "completenessHelp": "The more you add here, the more accurately the AI will match your tone.",
+    "channelsTitle": "Channels",
+    "channelsHelp": "Per channel, how you write there. All optional.",
+    "tab": {
+      "overview": "Overview",
+      "post": "Post",
+      "comment": "Comment",
+      "dm": "DM",
+      "email": "Email"
+    },
+    "overview": {
+      "bio": { "label": "Short profile", "ph": "Who are you, what do you do?" },
+      "style": { "label": "Selling / reasoning style", "ph": "How do you convince? Problem-first, story, numbers …" },
+      "tone": { "label": "Baseline tone", "ph": "e.g. direct, analytical, warm" },
+      "themes": { "label": "Core topics", "ph": "What do you write/talk about most?" }
+    },
+    "field": {
+      "samples": { "label": "Examples", "ph": "Paste a few real examples that are typical of you." },
+      "writingStyle": { "label": "Writing style", "ph": "e.g. short, punchy sentences; clear line breaks" },
+      "hooks": { "label": "Opener", "ph": "How do you open?" },
+      "dosAlways": { "label": "What you always do", "ph": "What always appears in your messages" },
+      "dosNever": { "label": "What you never do", "ph": "What never appears in your messages" }
+    },
+    "soundsLike": "How it sounds",
+    "aiFill": "AI fill",
+    "aiFillAll": "Let AI fill in all voice fields",
+    "aiHint": "The AI button will later generate a suggestion for exactly this field. Coming soon."
   }
 }

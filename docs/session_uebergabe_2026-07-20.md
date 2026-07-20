@@ -95,3 +95,46 @@ das falsche **Feld-Muster** (Felder existierten erst nach einem Klick — kein T
 **grüner Regressionstest, der den Bug nie erreichte**. Dazu ein Verfahrensfehler: `npm run lint | tail -1`
 schnitt eine echte Fehlermeldung ab. Konsequenz: Gate-Ausgaben **vollständig** lesen, und bei
 Verhaltens-Fixes die **Gegenprobe** fahren (Test muss auf dem alten Code rot sein).
+
+---
+
+## Nachtrag — „Mein Unternehmen" 2/3 „Personal Voice" (fertig + gemergt 20.07.2026)
+
+Zweite Seite der Gruppe „Mein Unternehmen". Die eigene Schreibstimme **pro User**
+(`visibility:'self'`), klar getrennt von `contacts.personality_profile` (Empfänger).
+
+**DB (gepusht + remote verifiziert):**
+- **078** `voice_profiles` — `organization_id`+`user_id` NOT NULL (CASCADE), RLS pro-User
+  (`user_id=auth.uid() AND organization_id=auth_org_id()`), `UNIQUE(org,user)`, `field_meta`-locked
+  (wie 077), updated_at-/audit-Trigger. `primary_channel` bewusst kein UI (Feld liegt ungenutzt).
+- **079** `update_voice_profile` — **einziger** Schreibweg, Self-Service (kein `settings.manage`),
+  Top-**und** Sub-Key-Whitelist, `field_meta`-locked pro Feld, **Shallow-Merge je Kanal**
+  (save-on-blur-sicher), `audit_log`. **Live per self-abortierendem DO-Block getestet** (gültiger
+  Patch → locked/manual · unbekannter Key wirft · Shallow-Merge bewiesen · fremde Identität
+  abgewiesen; Rollback ohne Rückstand — die einzige Business-Logik des Slices, ohne Unit-Test).
+
+**UI (`features/settings/PersonalVoicePage`):** 5 Kanäle **overview + post/comment/dm/email**
+(`email` die bewusste 5. Ergänzung) via `PanelTabs`; je Feld `KnowledgeField`. Kanal-Felder:
+Schreibstil · Aufmacher · **„Das machst du immer" (✓) / „…nie" (⚠)** — zwei benannte Teile im
+**selben** Feld `dos_donts` (`{always,never}`, keine Migration) · **Beispiele ganz unten**. Voice-Karte
++ **AI-Voice-Trainer nebeneinander (6/6)**; die Trainer-Kachel ist eine **bewusste Einzelfall-Ausnahme**
+(Original-Dunkel-Optik türkis, Tokens `--voice-trainer-*` in `index.css`, **kein Hex im JSX**) mit **zwei
+echten `ui/button`** (size sm, gefüllt+hell, rounded-full). Alle KI-Aktionen bleiben `AI_PILL_PENDING`
+„Folgt" bis `lib/ai.ts`. Vollständigkeits-Ring über **dieselbe Registry** (`fieldImportance.ts` +20
+Voice-Felder, neuer Scope `"voice"` in `computeCompleteness`). `KI ausfüllen`-Pill im Kanäle-Header.
+
+**Reusable dabei entstanden:** `SettingsCard` um optionale `headerAction`/`className` erweitert (via `cn`) ·
+`KnowledgeField` um optionalen Label-`icon`. **Honesty:** leere Voice → ehrlicher Leerzustand; Jobtitel/Firma
+nur bedingt (users-Tabelle hat die Spalten nicht → korrekt unsichtbar, Logik vorbereitet, `// single-source-ok`).
+i18n `voice.*` in de/en/es. Render-Tests (15) + Voice-Scope-Tests; Gates grün, test-runner + auditor PASS,
+5 Tabs + Trainer je Screenshot live-verifiziert.
+
+**Offen:** Slice 3 (Unternehmensprofil + `org_icps`/`org_personas` + Umzug USPs/Wettbewerber) ·
+**[D-voice-admin-help]** (Owner/Admin hilft neuem Mitglied bei leerer Voice) bewusst deferred.
+
+## Neue Entscheidung dieser Runde
+| Thema | Entscheidung |
+|---|---|
+| AI-Voice-Trainer-Optik | **Bewusste Einzelfall-Ausnahme** von „keine Original-Farben": genau diese eine Kachel bekommt die dunkle Referenz-Optik (türkis), token-basiert in `index.css`. Überall sonst neutrale Tokens. |
+| Do's & Don'ts | Zwei benannte UI-Teile („immer"/„nie") im **selben** DB-Feld `dos_donts` — keine neue Migration. |
+| Trainer-Buttons | Echte `ui/button` (size sm), bleiben **disabled/„Folgt"** bis `lib/ai.ts` (Honesty). |
