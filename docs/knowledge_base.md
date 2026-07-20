@@ -522,3 +522,12 @@
 - **value:** Jede Person richtet Sherloq nach sich selbst ein — Sprache, Kalender-Link und Signatur für professionelle Terminbuchung und E-Mails, eine aufgeräumte Seitenleiste ohne ungenutzte Module, und volle Kontrolle über die eigene Kontosicherheit. Weniger Reibung im Alltag, mehr Fokus auf den Vertrieb.
 - **module:** core
 - *(SET-2 „Persönlich"-UI, 2026-07-19. Personal Voice folgt in „Mein Unternehmen"; Avatar-Upload als kleiner Folge-Schritt.)*
+
+---
+
+- **feature:** Team & Rechte (Einstellungen)
+- **what:** Der zentrale Ort, um zu sehen und zu steuern, wer im Team ist und was jede Person darf. Die Mitglieder-Liste zeigt Name, Rolle, Status (aktiv/deaktiviert) und wann jemand zuletzt aktiv war. Neue Personen lädt man per E-Mail mit einer Rolle ein — lädt man dieselbe Adresse versehentlich zweimal ein, wird die bestehende Einladung erneuert statt eine Dublette anzulegen, und wer schon Mitglied ist, wird freundlich erkannt. Solange der automatische E-Mail-Versand noch nicht steht, kann man den Einladungslink mit einem Klick kopieren und selbst verschicken. Über das Personen-Detail vergibt man **einzelne Zusatzrechte** über die Rolle hinaus; Rechte, die schon aus der Rolle kommen, sind sichtbar, aber nicht einzeln abwählbar. Jede Änderung (Rolle, Deaktivieren, Reaktivieren, Entfernen) verlangt eine ausdrückliche Bestätigung und wird protokolliert — im Personen-Detail sieht man den Verlauf. **Schutzregeln, die immer greifen:** der letzte Owner kann nicht degradiert, deaktiviert oder entfernt werden; niemand kann sich selbst aussperren; ein Admin kann einen Owner nicht ändern. „Entfernen" löscht nichts hart — zugewiesene Kontakte und Deals behalten ihren Bezug.
+- **how:** Einstellungen (Zahnrad) → Organisation → Team & Rechte. Person anklicken für Details und Einzelrechte.
+- **value:** Wer was darf, ist an einem Ort sichtbar, in einem Klick änderbar und lückenlos nachvollziehbar — ohne dass jemand versehentlich den letzten Administrator entfernt oder sich selbst aussperrt. Neue Kolleginnen und Kollegen sind in Sekunden eingeladen, ausscheidende sofort deaktiviert, und die Datenhistorie bleibt dabei vollständig erhalten.
+- **module:** core
+- *(Settings SET-3, 2026-07-19. Offene Anfragen, Audit-Log-Seite und automatischer Einladungs-Mailversand folgen.)*

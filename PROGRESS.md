@@ -570,6 +570,16 @@
       Verwandt: `last_seen_at` aus SET-3-Diagnose — sobald dort befüllt, könnte „Zuletzt aktiv" auch hier dezent
       erscheinen. Nur vermerkt.
 
+  - **SET-3 TEAM & RECHTE GEBAUT 19.07.2026 (Backend + UI, Migr. 076 gepusht + 18/18 live-verifiziert), wartet auf Merge-Freigabe.**
+    Settings-Shell `/app/settings` mit Zurück-Button + VOLLSTÄNDIGER Gruppen-Nav (Bauplan Abschnitt 1) — nur „Team & Rechte"
+    gebaut, Rest ausgegraut/„Folgt" (künftige Slices setzen nur `built:true` in `settingsNav.ts`, keine Struktur-Änderung mehr).
+    Persönlich = dezenter Verweis auf /app/profil (keine Gruppe). Mitglieder (Rolle/Status/zuletzt aktiv/Aktionen), Einladen
+    mit Dedup + Link-Kopieren, Offene Anfragen als „Folgt"-Karte, Personen-Detail mit `PERMISSIONS.map()`-Rechten + Historie.
+    Backend: `users.status` (weiches „removed", kein Hard-Delete), Guards (Cross-Org/Selbst-Lockout/letzter Owner/Admin≠Owner),
+    zwei Audit-Lücken geschlossen (`set_user_role`, personen-gescoptes `grant/revoke_permission`), `set_last_seen`.
+    **NICHT jetzt (Haken):** echtes Realtime für `user_permissions` · volle Audit-Log-Seite (SET-6) · `approval_requests` (C6)
+    · Einladungs-Mailversand ([D29]) · Inhalt der ausgegrauten Gruppen (je eigener Slice).
+
   - **SET-2 „PERSÖNLICH"-UI GEBAUT 19.07.2026 (Mein Profil/Ansicht/Sicherheit), wartet auf Merge-Freigabe.**
     Zugang gebündelt hinter dem Avatar-Dropdown (Route `/app/profil`, 3 Reiter via `PanelTabs`) — NICHT in der
     Haupt-Settings-Nav (Bauplan-Struktur-Korrektur eingetragen, `6a2ed07`). Echte Daten: `updateMyProfile`

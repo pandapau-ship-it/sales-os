@@ -30,7 +30,7 @@ import PublicPlaceholder from "@/components/auth/PublicPlaceholder";
 import ProvisioningGate from "@/components/auth/ProvisioningGate";
 import { Protected } from "@/components/auth/Protected";
 import { NotFoundRedirect } from "@/components/auth/NotFoundRedirect";
-import TeamSettings from "@/components/features/settings/TeamSettings";
+import SettingsShell from "@/components/features/settings/SettingsShell";
 import PersonalSettings from "@/components/features/settings/PersonalSettings";
 import ScreenKontakte from "@/components/screens/ScreenKontakte";
 import ScreenCompanies from "@/components/screens/ScreenCompanies";
@@ -40,6 +40,8 @@ import ScreenDuplicates from "@/components/screens/ScreenDuplicates";
 import ScreenNotifications from "@/components/screens/ScreenNotifications";
 import { MfaBanner } from "@/components";
 import { useCurrentOrg } from "@/hooks/useCurrentOrg";
+import { useAuth } from "@/hooks/useAuth";
+import { setLastSeen } from "@/lib/db";
 import CommandPalette from "@/components/shared/CommandPalette";
 import { ToastProvider } from "@/components/shared/Toast";
 import TooltipLayer from "@/components/shared/TooltipLayer";
@@ -65,6 +67,12 @@ function ComingSoon({ nameKey }: { nameKey: string }) {
 function AppLayout() {
   const [showPalette, setShowPalette] = useState(false);
   const { role, provisioningError } = useCurrentOrg(); // 2FA-Empfehlung nur für Owner/Admin (MfaBanner entscheidet selbst)
+  const { user } = useAuth();
+
+  // „Zuletzt aktiv" einmal pro Session setzen (Team-Seite zeigt es; ohne Session serverseitig No-op).
+  useEffect(() => {
+    if (user?.id) void setLastSeen();
+  }, [user?.id]);
 
   // Globaler Cmd/Ctrl+K Shortcut öffnet die Command Palette.
   useEffect(() => {
@@ -132,7 +140,7 @@ export default function App() {
           <Route path="kontakte" element={<ScreenKontakte />} />
           <Route path="companies" element={<ScreenCompanies />} />
           <Route path="companies/:id" element={<ScreenCompanyDetail />} />
-          <Route path="settings" element={<TeamSettings />} />
+          <Route path="settings" element={<SettingsShell />} />
           <Route path="profil" element={<PersonalSettings />} />
           <Route path="notifications" element={<ScreenNotifications />} />
         </Route>

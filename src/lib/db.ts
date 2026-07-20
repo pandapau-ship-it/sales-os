@@ -1223,9 +1223,65 @@ export async function getTeamMembers(
   if (!client) return [];
   const { data, error } = await client
     .from("users")
-    .select("id, full_name, email, role, created_at")
+    .select("id, full_name, email, role, created_at, status, last_seen_at")
     .eq("organization_id", organizationId)
+    .neq("status", "removed") // weich Entfernte erscheinen nicht mehr in der Team-Liste (Zeile bleibt)
     .order("created_at", { ascending: true });
+  if (error) throw error;
+  return data ?? [];
+}
+
+// ── SET-3: Mitglieder-Lebenszyklus (Migr. 076) — alle Guards serverseitig ────
+/** Mitglied deaktivieren (Recht team.invite; letzter Owner + Selbst-Lockout serverseitig blockiert). */
+export async function deactivateMember(target: string): Promise<void> {
+  const client = getSupabaseClient();
+  if (!client) return;
+  const { error } = await client.rpc("deactivate_member", { p_target: target });
+  if (error) throw error;
+}
+
+/** Mitglied wieder aktivieren. */
+export async function reactivateMember(target: string): Promise<void> {
+  const client = getSupabaseClient();
+  if (!client) return;
+  const { error } = await client.rpc("reactivate_member", { p_target: target });
+  if (error) throw error;
+}
+
+/** Mitglied entfernen — WEICH (status='removed'), kein Hard-Delete: Zuordnungen bleiben intakt. */
+export async function removeMember(target: string): Promise<void> {
+  const client = getSupabaseClient();
+  if (!client) return;
+  const { error } = await client.rpc("remove_member", { p_target: target });
+  if (error) throw error;
+}
+
+/** „Zuletzt aktiv"-Zeitstempel setzen (einmal pro Session; ohne Session serverseitig No-op). */
+export async function setLastSeen(): Promise<void> {
+  const client = getSupabaseClient();
+  if (!client) return;
+  await client.rpc("set_last_seen"); // Fehler bewusst ignoriert: reine Komfort-Info, nie blockierend
+}
+
+/**
+ * Personen-gescopte Rechte-/Rollen-Historie (Personen-Detail, SET-3). Muster wie getActivityByContact:
+ * audit_log-Einträge mit entity_type='user' + entity_id = betroffene Person, „Wer" via users-Embed.
+ * Die VOLLE Audit-Log-Seite mit Filtern ist SET-6 — das hier ist bewusst nur der Personen-Ausschnitt.
+ */
+export async function getMemberAuditLog(
+  organizationId: string,
+  userId: string,
+): Promise<Record<string, unknown>[]> {
+  const client = getSupabaseClient();
+  if (!client) return [];
+  const { data, error } = await client
+    .from("audit_log")
+    .select("id, action, entity_type, entity_id, user_id, metadata, created_at, user:users(full_name)")
+    .eq("organization_id", organizationId)
+    .eq("entity_type", "user")
+    .eq("entity_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(50);
   if (error) throw error;
   return data ?? [];
 }
@@ -1238,7 +1294,8 @@ export async function getInvitations(
   if (!client) return [];
   const { data, error } = await client
     .from("invitations")
-    .select("id, email, role, created_at, expires_at")
+    // token: für „Einladungslink kopieren" (Mailversand ist deferred [D29]) — RLS hält ihn org-intern.
+    .select("id, email, role, created_at, expires_at, token")
     .eq("organization_id", organizationId)
     .is("accepted_at", null)
     .order("created_at", { ascending: false });
@@ -1255,20 +1312,17 @@ export async function getInvitations(
  * persistiert. Beim späteren Registrieren greift der Provisioning-Trigger (043).
  */
 export async function createInvitation(
-  organizationId: string,
+  _organizationId: string, // Org + Actor kommen serverseitig aus auth.uid() (SET-3, Migr. 076)
   email: string,
   role: string,
-  invitedBy?: string,
-): Promise<void> {
+  _invitedBy?: string,
+): Promise<"created" | "renewed" | "already_member"> {
   const client = getSupabaseClient();
-  if (!client) return;
-  const { error } = await client.from("invitations").insert({
-    organization_id: organizationId,
-    email: email.trim().toLowerCase(),
-    role,
-    invited_by: invitedBy ?? null,
-  });
+  if (!client) return "created";
+  // Server erzwingt Recht `team.invite`, Org-Scope und Dedup (schon Mitglied / offene Einladung erneuern).
+  const { data, error } = await client.rpc("create_invitation", { p_email: email, p_role: role });
   if (error) throw error;
+  return (data as "created" | "renewed" | "already_member") ?? "created";
 }
 
 /** deleteInvitation — offene Einladung zurückziehen, org-gescoped. */
