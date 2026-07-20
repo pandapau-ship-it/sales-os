@@ -121,8 +121,10 @@ export default function ProductPricingPage() {
 
   const removeProduct = async (p: ProductRow) => {
     await deleteProduct(p.id);
-    // Auswahl zurücksetzen: sonst zeigt sie auf eine gelöschte id (→ nichts mehr offen).
-    setOpenId(undefined);
+    // Nur die Auswahl zurücksetzen, wenn das GELÖSCHTE Produkt das offene war — sonst würde
+    // das Löschen einer anderen Karte die Ansicht des Nutzers ungefragt umspringen lassen
+    // (und ein bewusst zugeklappter Zustand ginge verloren).
+    setOpenId((cur) => (cur === p.id ? undefined : cur));
   };
 
   const hintText = completeness.nextHint

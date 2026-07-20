@@ -50,6 +50,10 @@ function renderPage() {
   );
 }
 
+/** Kopfzeile eines Produkts. Bei offener Karte steht der Name zweimal im DOM (Kopf + Namensfeld) —
+ *  der Kopf kommt zuerst. */
+const headerOf = (name: string) => screen.getAllByText(name)[0].closest("[aria-expanded]") as HTMLElement;
+
 beforeEach(() => { PRODUCTS = [{ ...PRODUCT }]; });
 afterEach(() => {
   cleanup();
@@ -139,16 +143,48 @@ describe("ProductPricingPage", () => {
     expect(header.getAttribute("aria-expanded")).toBe("false");
   });
 
-  it("nach dem Löschen des offenen Produkts steht die Seite NICHT komplett zu", async () => {
+  it("nach dem Löschen des OFFENEN Produkts ist das verbleibende offen (nicht alles zu)", async () => {
     PRODUCTS = [{ ...PRODUCT }, { ...PRODUCT, id: "p2", name: "Zweites" }];
     renderPage();
     await waitFor(() => expect(screen.getAllByLabelText("company.priceRelease")).toHaveLength(1));
-    fireEvent.click(screen.getAllByLabelText("company.removeProduct")[0]);
+
+    // Auswahl EXPLIZIT auf p2 setzen — nur so entsteht der Fehlerzustand (openId zeigt auf p2).
+    fireEvent.click(screen.getByText("Zweites"));
+    await waitFor(() =>
+      expect(document.querySelectorAll('[aria-expanded="true"]')).toHaveLength(1),
+    );
+    expect(headerOf("Zweites").getAttribute("aria-expanded")).toBe("true");
+
+    // Genau dieses offene Produkt löschen; die Rest-Liste steht VOR dem Bestätigen bereit,
+    // damit der Refetch nach invalidate() wirklich nur noch p1 liefert.
+    fireEvent.click(screen.getAllByLabelText("company.removeProduct")[1]);
+    PRODUCTS = [{ ...PRODUCT }];
     fireEvent.click(await screen.findByText("company.removeProduct", { selector: "button" }));
-    await waitFor(() => expect(deleteProduct).toHaveBeenCalledWith("p1"));
-    // Das verbleibende Produkt rückt nach und ist offen — nicht alles zugeklappt.
-    PRODUCTS = [{ ...PRODUCT, id: "p2", name: "Zweites" }];
+    await waitFor(() => expect(deleteProduct).toHaveBeenCalledWith("p2"));
+
+    // p1 muss jetzt AUFGEKLAPPT sein — vorher stand die Seite komplett zu.
+    await waitFor(() => expect(screen.queryByText("Zweites")).toBeNull());
+    expect(headerOf("Sales OS").getAttribute("aria-expanded")).toBe("true");
+  });
+
+  it("Löschen einer ANDEREN Karte lässt die eigene Auswahl in Ruhe", async () => {
+    PRODUCTS = [{ ...PRODUCT }, { ...PRODUCT, id: "p2", name: "Zweites" }, { ...PRODUCT, id: "p3", name: "Drittes" }];
+    renderPage();
     await waitFor(() => expect(screen.getAllByLabelText("company.priceRelease")).toHaveLength(1));
+    fireEvent.click(screen.getByText("Drittes")); // p3 offen
+    await waitFor(() =>
+      expect(headerOf("Drittes").getAttribute("aria-expanded")).toBe("true"),
+    );
+
+    fireEvent.click(screen.getAllByLabelText("company.removeProduct")[1]); // p2 löschen
+    PRODUCTS = [{ ...PRODUCT }, { ...PRODUCT, id: "p3", name: "Drittes" }];
+    fireEvent.click(await screen.findByText("company.removeProduct", { selector: "button" }));
+    await waitFor(() => expect(deleteProduct).toHaveBeenCalledWith("p2"));
+
+    // p3 bleibt offen — die Ansicht springt nicht ungefragt auf das erste Produkt.
+    await waitFor(() =>
+      expect(headerOf("Drittes").getAttribute("aria-expanded")).toBe("true"),
+    );
   });
 
   it("Produkt-weiter KI-Knopf ist sichtbar, aber nicht bedienbar (Folgt)", async () => {
