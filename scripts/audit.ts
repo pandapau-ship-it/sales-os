@@ -458,6 +458,8 @@ function checkTypographyTokens(): void {
     'CompactContactRow',
     // SET-2 „Persönlich"-UI (Avatar-Bereich): Karten-Baustein + 3 Reiter
     'SettingsCard', 'PersonalSettings', 'MyProfileTab', 'AppearanceTab', 'SecurityTab',
+    // SET-3 Settings-Shell + Team & Rechte
+    'SettingsShell', 'TeamMembersPage', 'MemberDetailPanel',
   ])
   // panel-blocks/ + features/ + farming/ (Farmer-Hilfskomponenten).
   const files = [

@@ -14,6 +14,8 @@ import { UserPlus, X, Copy, MoreHorizontal, Inbox } from "lucide-react";
 import { useCurrentOrg } from "@/hooks/useCurrentOrg";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffectivePermissions } from "@/hooks/usePermissions";
+import { useHoverPrefetch } from "@/hooks/useHoverPrefetch";
+import { prefetchMemberPanel } from "@/lib/prefetch";
 import {
   getTeamMembers, getInvitations, createInvitation, deleteInvitation,
   updateUserRole, deactivateMember, reactivateMember, removeMember,
@@ -67,6 +69,8 @@ export default function TeamMembersPage() {
   const { has } = useEffectivePermissions();
   const { toast } = useToast();
   const qc = useQueryClient();
+  // REGEL C: Hover-Intent-Prefetch — das Detail-Panel lädt Rechte + Historie per Query.
+  const prefetch = useHoverPrefetch();
 
   const canInvite = has("team.invite");
   const canChangeRole = myRole === "owner"; // Spiegel set_user_role (Owner-only, strukturell)
@@ -157,7 +161,11 @@ export default function TeamMembersPage() {
             const isSelf = m.id === user?.id;
             const deactivated = m.status === "deactivated";
             return (
-              <div key={m.id} className="flex items-center gap-3 p-3 bg-app-surface">
+              <div
+                key={m.id}
+                className="flex items-center gap-3 p-3 bg-app-surface"
+                {...prefetch(organizationId ? () => prefetchMemberPanel(qc, organizationId, m.id) : undefined)}
+              >
                 <Avatar name={m.full_name || m.email} size={32} />
                 <button
                   type="button"

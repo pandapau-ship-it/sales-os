@@ -16,6 +16,8 @@ import {
   getNotesByContact,
   getContactCommunications,
   getCompanyDetail,
+  getEffectivePermissions,
+  getMemberAuditLog,
 } from "@/lib/db";
 
 /**
@@ -78,5 +80,27 @@ export function prefetchCompanyPanel(
     queryKey: ['companyDetail', organizationId, companyId],
     queryFn: () => getCompanyDetail(organizationId, companyId),
     staleTime: 30_000,
+  });
+}
+
+/**
+ * Lädt das Personen-Detail (Settings → Team & Rechte) vor: effektive Rechte + personen-gescopte
+ * Historie. Gleiche queryKeys wie `MemberDetailPanel` → kein Doppel-Fetch, `staleTime` gilt.
+ * (REGEL C: jede Affordance, die ein query-geladenes Detail-Panel öffnet, prefetcht bei Hover-Intent.)
+ */
+export function prefetchMemberPanel(
+  queryClient: QueryClient,
+  organizationId: string,
+  memberId: string,
+): void {
+  void queryClient.prefetchQuery({
+    queryKey: ["effectivePermissions", memberId],
+    queryFn: () => getEffectivePermissions(memberId),
+    staleTime: 60_000,
+  });
+  void queryClient.prefetchQuery({
+    queryKey: ["memberAudit", organizationId, memberId],
+    queryFn: () => getMemberAuditLog(organizationId, memberId),
+    staleTime: 60_000,
   });
 }
