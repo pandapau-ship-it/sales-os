@@ -55,7 +55,7 @@ export const SETTINGS_PAGES: readonly SettingsPage[] = [
   { key: "papierkorb",        group: "organisation", visibility: "elevated",        built: false }, // C5 / SET-3-Folge
   // MEIN UNTERNEHMEN — „Was die AI über euch weiß" (Bauplan 8.B [SET-KB-1] + 8.E)
   { key: "unternehmensprofil", group: "unternehmen", visibility: "settings.manage", built: false }, // SET-KB-2, org-weit
-  { key: "personal-voice",    group: "unternehmen",  visibility: "self",            built: false }, // Voice Card ist PRO USER
+  { key: "personal-voice",    group: "unternehmen",  visibility: "self",            built: true  }, // Slice 2/3 GEBAUT (Migr. 078/079), pro User
   { key: "product-pricing",   group: "unternehmen",  visibility: "settings.manage", built: true  }, // Slice 1/3 GEBAUT (Migr. 077)
   // ARBEITSWEISE
   { key: "regeln",            group: "arbeitsweise", visibility: "settings.manage", built: false }, // SET-4

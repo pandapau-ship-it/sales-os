@@ -462,6 +462,8 @@ function checkTypographyTokens(): void {
     'SettingsShell', 'TeamMembersPage', 'MemberDetailPanel',
     // „Mein Unternehmen" Slice 1/3 — Produkte & Preise
     'ProductPricingPage', 'KnowledgeField',
+    // „Mein Unternehmen" Slice 2/3 — Personal Voice
+    'PersonalVoicePage',
   ])
   // panel-blocks/ + features/ + farming/ (Farmer-Hilfskomponenten).
   const files = [

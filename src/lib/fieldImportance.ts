@@ -28,7 +28,11 @@ export type Importance = "required" | "recommended" | "optional";
  */
 export type HintKey =
   | "name" | "benefit" | "audience" | "usps" | "description"
-  | "competitorWhy" | "price" | "priceModel";
+  | "competitorWhy" | "price" | "priceModel"
+  // Personal Voice (Slice 2/3). Overview-Felder je eigener Key, Kanal-Felder teilen sich
+  // einen Key über alle Kanäle (post/comment/dm/email) — der Hinweis benennt die Feld-ART.
+  | "voiceBio" | "voiceThemes" | "voiceStyle" | "voiceTone"
+  | "voiceSamples" | "voiceSentenceStyle" | "voiceHooks" | "voiceDosDonts";
 
 export interface FieldImportanceEntry {
   /** Pfad-Vorlage mit `<id>`-Platzhalter, z.B. "product.<id>.benefit". STABIL — nie umbenennen. */
@@ -105,6 +109,55 @@ export const FIELD_IMPORTANCE: readonly FieldImportanceEntry[] = [
     order: 8,
     hintKey: "priceModel",
   },
+
+  // ── Personal Voice (Slice 2/3, Migr. 078/079) ──────────────────────────────
+  // Pfade sind LITERAL (kein <id>) und exakt die in 078/079 eingefrorenen.
+  // Nichts required (bereichsweite Regel: kein Pflichtfeld). `recommended` zählt in den Ring,
+  // `optional` nicht — so entsteht ein Anreiz für die wirksamsten Felder ohne Druck.
+  { path: "voice.overview.bio",   importance: "recommended", order: 9,  hintKey: "voiceBio",
+    reason: "Wer schreibt? Ohne Kurzprofil klingt jeder AI-Text beliebig." },
+  { path: "voice.overview.style", importance: "recommended", order: 10, hintKey: "voiceStyle",
+    reason: "Der Verkaufs-/Argumentationsstil prägt jede erzeugte Nachricht." },
+  { path: "voice.overview.tone",  importance: "recommended", order: 11, hintKey: "voiceTone",
+    reason: "Der Grundton entscheidet, ob die AI in deiner Stimme klingt." },
+  { path: "voice.overview.themes", importance: "optional", order: 12, hintKey: "voiceThemes",
+    reason: "Kernthemen helfen bei Aufhängern, sind aber nicht zwingend." },
+
+  { path: "voice.post.samples",         importance: "recommended", order: 13, hintKey: "voiceSamples",
+    reason: "Echte Beispiele sind das stärkste Signal für deinen Post-Stil." },
+  { path: "voice.post.sentence_style",  importance: "recommended", order: 14, hintKey: "voiceSentenceStyle",
+    reason: "Satzbau/Rhythmus prägen, wie ein Post von dir klingt." },
+  { path: "voice.post.hooks",     importance: "optional", order: 15, hintKey: "voiceHooks",
+    reason: "Aufhänger-Muster schärfen den Einstieg, sind aber optional." },
+  { path: "voice.post.dos_donts", importance: "optional", order: 16, hintKey: "voiceDosDonts",
+    reason: "Do's & Don'ts verfeinern nur — die AI schreibt auch ohne sie." },
+
+  { path: "voice.comment.samples",        importance: "recommended", order: 17, hintKey: "voiceSamples",
+    reason: "Echte Kommentar-Beispiele zeigen deinen Reply-Stil am besten." },
+  { path: "voice.comment.sentence_style", importance: "recommended", order: 18, hintKey: "voiceSentenceStyle",
+    reason: "Kommentare sind kürzer — der Satzbau ist hier besonders eigen." },
+  { path: "voice.comment.hooks",     importance: "optional", order: 19, hintKey: "voiceHooks",
+    reason: "Reaktionsmuster verfeinern nur, sind nicht zwingend." },
+  { path: "voice.comment.dos_donts", importance: "optional", order: 20, hintKey: "voiceDosDonts",
+    reason: "Do's & Don'ts verfeinern nur — die AI schreibt auch ohne sie." },
+
+  { path: "voice.dm.samples",         importance: "recommended", order: 21, hintKey: "voiceSamples",
+    reason: "Echte DM-Beispiele zeigen deinen 1:1-Ton am direktesten." },
+  { path: "voice.dm.sentence_style",  importance: "recommended", order: 22, hintKey: "voiceSentenceStyle",
+    reason: "DMs sind persönlich — der Satzbau macht den Unterschied." },
+  { path: "voice.dm.hooks",     importance: "optional", order: 23, hintKey: "voiceHooks",
+    reason: "Einstiegsmuster verfeinern nur, sind nicht zwingend." },
+  { path: "voice.dm.dos_donts", importance: "optional", order: 24, hintKey: "voiceDosDonts",
+    reason: "Do's & Don'ts verfeinern nur — die AI schreibt auch ohne sie." },
+
+  { path: "voice.email.samples",        importance: "recommended", order: 25, hintKey: "voiceSamples",
+    reason: "Der AI SDR mailt primär — echte E-Mail-Beispiele wiegen hier schwer." },
+  { path: "voice.email.sentence_style", importance: "recommended", order: 26, hintKey: "voiceSentenceStyle",
+    reason: "E-Mail-Satzbau prägt, wie deine Outreach-Mails klingen." },
+  { path: "voice.email.hooks",     importance: "optional", order: 27, hintKey: "voiceHooks",
+    reason: "Betreff-/Einstiegsmuster verfeinern nur, sind nicht zwingend." },
+  { path: "voice.email.dos_donts", importance: "optional", order: 28, hintKey: "voiceDosDonts",
+    reason: "Do's & Don'ts verfeinern nur — die AI schreibt auch ohne sie." },
 ] as const;
 
 const byPath = new Map(FIELD_IMPORTANCE.map((e) => [e.path, e]));

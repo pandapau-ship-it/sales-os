@@ -25,10 +25,27 @@ export interface KnowledgeProduct {
   price_model?: string | null;
 }
 
+/** Ein Kanal der Personal Voice (post/comment/dm/email) — die vier eingefrorenen Felder (078/079). */
+export interface KnowledgeVoiceChannel {
+  samples: I18nText;
+  sentence_style: I18nText;
+  hooks: I18nText;
+  dos_donts: I18nText;
+}
+/** Voice-Eingabe für die Vollständigkeits-Zählung. Struktur spiegelt die Feldpfade `voice.*`. */
+export interface KnowledgeVoice {
+  overview: { bio: I18nText; themes: I18nText; style: I18nText; tone: I18nText };
+  post: KnowledgeVoiceChannel;
+  comment: KnowledgeVoiceChannel;
+  dm: KnowledgeVoiceChannel;
+  email: KnowledgeVoiceChannel;
+}
+
 export interface KnowledgeInput {
   products: KnowledgeProduct[];
   usps?: { text: I18nText }[];
   competitors?: { name: string; why_us: I18nText }[];
+  voice?: KnowledgeVoice;
 }
 
 /**
@@ -36,7 +53,7 @@ export interface KnowledgeInput {
  * sonst entsteht ein Hinweis auf ein Feld, das man dort gar nicht ausfüllen kann (so geschehen,
  * als USPs von der Produktseite auf die Company-Profile-Seite umzogen).
  */
-export type KnowledgeScope = "all" | "product" | "org";
+export type KnowledgeScope = "all" | "product" | "org" | "voice";
 
 /** Ein konkret fehlendes Feld — Grundlage für Hinweis (heute) und Chat-Rückfrage (später). */
 export interface MissingField {
@@ -72,7 +89,16 @@ function valueOf(input: KnowledgeInput, template: string, product?: KnowledgePro
     case "product.<id>.price_model": return product?.price_model ?? "";
     case "org.usps": return (input.usps ?? []).some((u) => !isEmptyText(u.text));
     case "org.competitors": return (input.competitors ?? []).some((c) => !isEmptyText(c.why_us));
-    default: return "";
+    default:
+      // Voice-Pfade sind LITERAL ("voice.<gruppe>.<feld>") — generisch aus input.voice lesen.
+      if (template.startsWith("voice.")) {
+        const v = input.voice;
+        if (!v) return "";
+        const [, group, field] = template.split(".");
+        const obj = (v as unknown as Record<string, Record<string, I18nText>>)[group];
+        return obj?.[field] ?? "";
+      }
+      return "";
   }
 }
 
@@ -93,9 +119,15 @@ export function computeCompleteness(
   let total = 0;
 
   for (const entry of IMPORTANCE_ORDER) {
-    const isProductField = entry.path.startsWith("product.");
-    if (scope === "product" && !isProductField) continue;
-    if (scope === "org" && isProductField) continue;
+    // Jedes Feld gehört genau EINER Domäne. Eine gescopte Seite urteilt nur über die eigene.
+    const kind = entry.path.startsWith("product.")
+      ? "product"
+      : entry.path.startsWith("voice.")
+        ? "voice"
+        : "org";
+    if (scope !== "all" && scope !== kind) continue;
+    // Nur Produkt-Felder haben mehrere Datensätze (je Produkt). org-/voice-Pfade sind literal.
+    const isProductField = kind === "product";
     const targets: (KnowledgeProduct | undefined)[] = isProductField ? input.products : [undefined];
     for (const p of targets) {
       const counts = entry.importance !== "optional";
@@ -118,7 +150,9 @@ export function computeCompleteness(
 
   const percent = total === 0 ? 0 : Math.round((filled / total) * 100);
 
-  if (input.products.length === 0) {
+  // „Kein Produkt → leg eins an" gilt nur, wo Produkte überhaupt zur Domäne gehören.
+  // Für scope "voice"/"org" wäre der Hinweis sinnlos (dort gibt es keine Produkte).
+  if ((scope === "product" || scope === "all") && input.products.length === 0) {
     return { filled, total, percent, nextHint: "noProducts", productName: null, missing };
   }
   // Der Wirkungshinweis nennt NUR required/recommended. Optionales (Preis, Preis-Modell,

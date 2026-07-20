@@ -570,6 +570,30 @@
       Verwandt: `last_seen_at` aus SET-3-Diagnose — sobald dort befüllt, könnte „Zuletzt aktiv" auch hier dezent
       erscheinen. Nur vermerkt.
 
+  - **MEIN UNTERNEHMEN 2/3 „PERSONAL VOICE" FERTIG + GEMERGT 20.07.2026** (Migr. **078/079** gepusht +
+    remote verifiziert; Gates grün, test-runner + auditor PASS; 5 Tabs live-verifiziert je Screenshot).
+    Die eigene Schreibstimme **pro User** (`visibility:'self'`) — was der AI SDR später zum Texten in
+    DEINER Stimme braucht, klar getrennt von `contacts.personality_profile` (Empfänger). **DB:**
+    `voice_profiles` (078, org+user, RLS pro-User `user_id=auth.uid() AND org`, UNIQUE(org,user),
+    `field_meta`-locked wie 077) · **einziger Schreibweg** `update_voice_profile` (079, Self-Service
+    ohne `settings.manage`, Top-**und** Sub-Key-Whitelist, Shallow-Merge je Kanal save-on-blur-sicher,
+    `audit_log`). **RPC live per self-abortierendem DO-Block getestet** (gültiger Patch → locked/manual ·
+    unbekannter Key wirft · Shallow-Merge bewiesen · fremde Identität abgewiesen; Rollback, 0 Rückstände).
+    **UI** `PersonalVoicePage` (features/settings): 5 Kanäle **overview + post/comment/dm/email** (email die
+    bewusste 5. Ergänzung, das Design kennt sie nicht) via `PanelTabs`; je Feld `KnowledgeField`; Kanal-Felder
+    **Schreibstil · Aufmacher · „Das machst du immer" (✓) / „…nie" (⚠) · Beispiele (ganz unten)** — die zwei
+    Do's&Don'ts-Teile leben im **selben** Feld `dos_donts` (`{always,never}`, keine Migration). **Voice-Karte
+    + AI-Voice-Trainer nebeneinander (6/6);** die Trainer-Kachel ist eine **bewusste Einzelfall-Ausnahme**
+    (Original-Dunkel-Optik türkis, Tokens `--voice-trainer-*` in `index.css`, kein Hex im JSX) mit **zwei
+    echten `ui/button`** (size sm, gefüllt+hell, rounded-full) — alle KI-Aktionen bleiben `AI_PILL_PENDING`
+    „Folgt" bis `lib/ai.ts`. Vollständigkeits-Ring über **dieselbe Registry** (`fieldImportance.ts` +20 Voice-
+    Felder, neuer Scope `"voice"` in `computeCompleteness`). `KI ausfüllen`-Pill im Kanäle-Header (wie Produkte).
+    **Reusable dabei:** `SettingsCard` um optionale `headerAction`/`className` erweitert · `KnowledgeField` um
+    optionalen Label-`icon`. **Honesty:** leere Voice → ehrlicher Leerzustand; Jobtitel/Firma nur bedingt
+    (users-Tabelle hat die Spalten nicht → korrekt unsichtbar, Logik vorbereitet). i18n `voice.*` in de/en/es.
+    **Offen:** Slice 3 (Unternehmensprofil + `org_icps`/`org_personas` + Umzug USPs/Wettbewerber).
+    **[D-voice-admin-help]** (Owner/Admin hilft neuem Mitglied bei leerer Voice) bewusst deferred.
+
   - **MEIN UNTERNEHMEN 1/3 „PRODUKTE & PREISE" FERTIG + GEMERGT 20.07.2026** (Migr. 077 gepusht,
     11/11 live-verifiziert, Merge `963b3a2`). Erste Seite der Gruppe **„Mein Unternehmen"** (SET-KB-2).
     `org_profile` als schlankes Gerüst (usps/competitors/`field_meta` **mit `locked`** als Schutz vor dem
@@ -699,10 +723,9 @@
       immer einem Feld entsprechen (`set_user_role(p_role)`, Lost-Reason, `p_ids[]`). Ein künftiger
       Aktions-Vertrag braucht daher **Funktionsname + Parametername** als Schlüssel und verweist NUR
       dort auf einen Feldpfad, wo es einen gibt.
-    - **[SLICE 2] Vorgemerkt:** Personal Voice bekommt **von Anfang an fünf Kanäle**
-      (`overview` · `post` · `comment` · `dm` · **`email`**) — das Design kennt nur die ersten vier,
-      der AI SDR mailt aber primär. Dazu das Live-Beispiel **„So klingt das"** (WOW-Idee, gehört
-      inhaltlich zu Voice, nicht zu Produkten).
+    - **[SLICE 2] ✅ ERLEDIGT + GEMERGT 20.07.2026** (siehe „MEIN UNTERNEHMEN 2/3" oben): fünf Kanäle
+      (`overview` · `post` · `comment` · `dm` · **`email`**) umgesetzt; das Live-Beispiel **„So klingt das"**
+      ist als `AI_PILL_PENDING`-„Folgt" angelegt (echtes AI-Feature, kommt mit `lib/ai.ts`).
 
   - **▶ CHAT-AKTIONS-VERTRÄGE — NACHZUHOLENDE BESTANDS-FUNKTIONEN (20.07.2026).**
     Die neue globale Regel **„Chat-Aktions-Vertrag-Pflicht"** (CLAUDE.md) gilt ab jetzt für **NEUE**

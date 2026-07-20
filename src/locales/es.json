@@ -1280,7 +1280,15 @@
       "description": "Lo que más aporta ahora: la descripción breve de «{{product}}».",
       "competitorWhy": "Lo que más aporta ahora: por qué vosotros y no la competencia.",
       "done": "Todo lo esencial está rellenado.",
-      "name": "Lo que más aporta ahora: un nombre de producto."
+      "name": "Lo que más aporta ahora: un nombre de producto.",
+      "voiceBio": "Lo que más aporta ahora: un perfil breve — ¿quién escribe aquí?",
+      "voiceThemes": "Lo que más aporta ahora: tus temas clave — buenos ganchos para la IA.",
+      "voiceStyle": "Lo que más aporta ahora: tu estilo de venta/argumentación.",
+      "voiceTone": "Lo que más aporta ahora: tu tono de base — para que la IA suene como tú.",
+      "voiceSamples": "Lo que más aporta ahora: ejemplos reales — la señal más fuerte de tu estilo.",
+      "voiceSentenceStyle": "Lo que más aporta ahora: tu estructura de frases/ritmo.",
+      "voiceHooks": "Lo que más aporta ahora: tus ganchos habituales.",
+      "voiceDosDonts": "Lo que más aporta ahora: tus normas (qué sí / qué no)."
     },
     "products": "Productos",
     "productsHelp": "Lo que vendéis. Varios productos posibles, todos los campos opcionales.",
@@ -1332,5 +1340,42 @@
     "aiFillProduct": "Que la IA rellene todos los campos de este producto",
     "statusMissing": "{{n}} pendientes",
     "statusMissingTip": "A la IA aún le faltan estos datos"
+  },
+  "voice": {
+    "intro": "Tu voz de escritura personal. El AI SDR la usará para escribir con TU voz. Nada es obligatorio: rellena lo que encaje.",
+    "previewTitle": "Tarjeta de voz",
+    "previewHelp": "De quién es esta voz de escritura.",
+    "previewEmpty": "Completa primero tu perfil y aquí aparecerá tu tarjeta de voz.",
+    "trainerTitle": "AI Voice Trainer",
+    "trainerHelp": "Más adelante, la IA analiza tu contenido anterior y crea tu perfil de voz automáticamente.",
+    "trainerCta": "Analizar desde el contenido",
+    "trainerChatCta": "Configuración del chat",
+    "completenessHelp": "Cuanto más rellenes aquí, mejor reflejará la IA tu tono.",
+    "channelsTitle": "Canales",
+    "channelsHelp": "Por canal, cómo escribes allí. Todo opcional.",
+    "tab": {
+      "overview": "Resumen",
+      "post": "Publicación",
+      "comment": "Comentario",
+      "dm": "MD",
+      "email": "Correo"
+    },
+    "overview": {
+      "bio": { "label": "Perfil breve", "ph": "¿Quién eres y a qué te dedicas?" },
+      "style": { "label": "Estilo de venta / argumentación", "ph": "¿Cómo convences? Problema primero, historia, números …" },
+      "tone": { "label": "Tono de base", "ph": "p. ej. directo, analítico, cercano" },
+      "themes": { "label": "Temas clave", "ph": "¿Sobre qué escribes/hablas más?" }
+    },
+    "field": {
+      "samples": { "label": "Ejemplos", "ph": "Pega algunos ejemplos reales que sean típicos de ti." },
+      "writingStyle": { "label": "Estilo de escritura", "ph": "p. ej. frases cortas y directas; saltos de línea claros" },
+      "hooks": { "label": "Gancho", "ph": "¿Cómo empiezas?" },
+      "dosAlways": { "label": "Lo que siempre haces", "ph": "Lo que siempre aparece en tus mensajes" },
+      "dosNever": { "label": "Lo que nunca haces", "ph": "Lo que nunca aparece en tus mensajes" }
+    },
+    "soundsLike": "Así suena",
+    "aiFill": "Rellenar con IA",
+    "aiFillAll": "Que la IA rellene todos los campos de voz",
+    "aiHint": "El botón de IA generará más adelante una sugerencia para exactamente este campo. Próximamente."
   }
 }

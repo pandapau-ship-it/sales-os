@@ -1778,6 +1778,96 @@ export async function updateOrgProfile(patch: Record<string, unknown>): Promise<
   if (error) throw error;
 }
 
+// ── Personal Voice (Mein Unternehmen 2/3, Migr. 078/079) ─────────────────────
+// Die eigene Schreibstimme des Users (pro User, visibility:'self'). Texte sind mehrsprach-fähig
+// (I18nText — heute reiner String). Getrennt von contacts.personality_profile (Empfänger).
+
+/** Kanal „Overview" — abgeleitete/gepflegte Kurzcharakteristik der Stimme. */
+export interface VoiceOverview {
+  bio?: I18nText;
+  themes?: I18nText;
+  style?: I18nText;
+  tone?: I18nText;
+}
+/**
+ * Do's & Don'ts EINES Kanals — zwei benannte Teile DESSELBEN Feldes `dos_donts` (kein neues
+ * DB-Feld, keine Migration). Jeder Teil ist mehrsprach-fähig (I18nText).
+ */
+export interface VoiceDosDonts {
+  always?: I18nText; // „Das machst du immer"
+  never?: I18nText;  // „Das machst du nie"
+}
+/** Schreib-Kanal (Post/Comment/DM/Email) — gleiche Struktur. */
+export interface VoiceChannel {
+  samples?: I18nText;
+  sentence_style?: I18nText;
+  hooks?: I18nText;
+  dos_donts?: VoiceDosDonts;
+}
+export type VoiceChannelKey = "post" | "comment" | "dm" | "email";
+
+/** Voice-Profil des Users. Leere Zeile → alle Kanäle leer, primary_channel = 'email' (Default). */
+export interface VoiceProfile {
+  overview: VoiceOverview;
+  post: VoiceChannel;
+  comment: VoiceChannel;
+  dm: VoiceChannel;
+  email: VoiceChannel;
+  primary_channel: VoiceChannelKey;
+}
+
+const EMPTY_VOICE_PROFILE: VoiceProfile = {
+  overview: {},
+  post: {},
+  comment: {},
+  dm: {},
+  email: {},
+  primary_channel: "email",
+};
+
+/**
+ * getMyVoiceProfile — die EIGENE Voice-Zeile (RLS scopet ohnehin auf user_id=auth.uid()).
+ * Existiert noch keine Zeile → normalisierte Leer-Struktur (kein null, kein Fake). org+user
+ * werden zusätzlich explizit gefiltert (defensiv, wie getOrgProfileLite auf organization_id).
+ */
+export async function getMyVoiceProfile(
+  organizationId: string,
+  userId: string,
+): Promise<VoiceProfile> {
+  const client = getSupabaseClient();
+  if (!client) return { ...EMPTY_VOICE_PROFILE };
+  const { data, error } = await client
+    .from("voice_profiles")
+    .select("overview, post, comment, dm, email, primary_channel")
+    .eq("organization_id", organizationId)
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) return { ...EMPTY_VOICE_PROFILE };
+  const row = data as Partial<VoiceProfile>;
+  return {
+    overview: (row.overview as VoiceOverview | null) ?? {},
+    post: (row.post as VoiceChannel | null) ?? {},
+    comment: (row.comment as VoiceChannel | null) ?? {},
+    dm: (row.dm as VoiceChannel | null) ?? {},
+    email: (row.email as VoiceChannel | null) ?? {},
+    primary_channel: (row.primary_channel as VoiceChannelKey | null) ?? "email",
+  };
+}
+
+/**
+ * updateVoiceProfile — EINZIGER Schreibweg (Self-Service, kein settings.manage). Der Server
+ * merged Kanäle SHALLOW (nur gelieferte Sub-Felder) und sperrt field_meta pro Feld → save-on-blur
+ * je Feld ist rennsicher. patch ⊆ {overview, post, comment, dm, email, primary_channel}, wobei
+ * jeder Kanal ⊆ seinen erlaubten Sub-Feldern ist.
+ */
+export async function updateVoiceProfile(patch: Record<string, unknown>): Promise<void> {
+  const client = getSupabaseClient();
+  if (!client) return;
+  const { error } = await client.rpc("update_voice_profile", { p_patch: patch });
+  if (error) throw error;
+}
+
 /** Ansicht (Nav-Sichtbarkeit+Reihenfolge) lesen — Merge/Reparatur, `settings` nie versteckt. */
 export async function getNavPreferences(userId: string, organizationId: string): Promise<NavPreferences> {
   const raw = await getUserPreference<Partial<NavPreferences>>(userId, organizationId, NAV_PREF_KEY);

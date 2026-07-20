@@ -543,6 +543,15 @@
 
 ---
 
+- **feature:** Personal Voice (deine Schreibstimme)
+- **what:** Hier hinterlegt jede Person ihre eigene Schreibstimme — getrennt nach fünf Kanälen (Übersicht, Post, Kommentar, DM und E-Mail). Pro Kanal beschreibst du deinen Schreibstil, deine typischen Aufmacher, was in deinen Nachrichten immer bzw. nie vorkommt, und fügst echte Beispiele ein. Nichts davon ist Pflicht — du füllst aus, was passt, und ein Fortschritts-Ring zeigt dezent, was am meisten bringt. Alles ist privat: nur du siehst und pflegst deine eigene Stimme.
+- **how:** Einstellungen → Mein Unternehmen → Personal Voice. In die Felder des jeweiligen Kanal-Tabs schreiben; gespeichert wird automatisch beim Verlassen des Feldes.
+- **value:** Die KI schreibt später Nachrichten so, wie DU sie schreiben würdest — statt generischer Vorlagen. Das klingt echt, spart das mühsame Umschreiben jeder Nachricht und hebt die Antwortquote, weil Empfänger einen Menschen und keinen Textbaustein lesen.
+- **module:** ai_sdr
+- *(Mein Unternehmen Slice 2/3, 2026-07-20. Der „AI Voice Trainer" (analysiert vergangene Inhalte automatisch), das Live-Beispiel „So klingt das" und der „KI ausfüllen"-Knopf sind angelegt und kommen mit der AI-Anbindung.)*
+
+---
+
 - **feature:** Mitteilungen (Glocke) & Aktivitätsfenster
 - **what:** Ein zentraler Ort für alles, was Aufmerksamkeit braucht: Die Glocke oben zeigt ungelesene Mitteilungen mit Zahl und öffnet eine Liste nach Kategorien (System, Erinnerungen, Hinweise). Mitteilungen kommen live an — ohne die Seite neu zu laden. Wird dieselbe Sache erneut ausgelöst (etwa ein Alarm, der weiterhin besteht), entsteht **keine zweite Meldung**: die vorhandene wird aktualisiert und rückt wieder nach oben, mit der Zeit der letzten Aktualisierung. Daneben zeigt ein Aktivitätsfenster, was zuletzt im System passiert ist. Gelesenes lässt sich einzeln oder gesammelt abhaken; Alte Einträge räumt das System selbst weg.
 - **how:** Glocke oben rechts anklicken. Eine Mitteilung anklicken springt direkt zum betroffenen Element.

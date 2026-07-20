@@ -10,26 +10,38 @@
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Check, Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export type SaveState = "saving" | "saved" | null;
 
 export default function SettingsCard({
-  title, description, saved = null, children,
+  title, description, saved = null, headerAction, className, children,
 }: {
   title: string;
   description?: string;
   saved?: SaveState;
+  /** Optionaler Aktions-Slot oben rechts (z.B. „KI ausfüllen"-Pill), links vom Speicher-Zustand. */
+  headerAction?: ReactNode;
+  /** Zusätzliche Klassen für die Karte (z.B. `mb-0 h-full` im Grid). Überschreibt via cn(). */
+  className?: string;
   children: ReactNode;
 }) {
   const { t } = useTranslation();
   return (
-    <section className="bg-app-surface rounded-[12px] border border-[var(--border-card)] shadow-[var(--shadow-card)] p-6 mb-6">
+    <section
+      className={cn(
+        "bg-app-surface rounded-[12px] border border-[var(--border-card)] shadow-[var(--shadow-card)] p-6 mb-6",
+        className,
+      )}
+    >
       <div className="flex justify-between items-start mb-5 gap-4">
         <div>
           <h3 className="typo-card-title text-text-primary">{title}</h3>
           {description && <p className="typo-subline text-text-muted mt-1">{description}</p>}
         </div>
-        <div className="h-5 flex items-center shrink-0">
+        <div className="flex items-center gap-2 shrink-0">
+          {headerAction}
+          <div className="h-5 flex items-center">
           {saved === "saving" && (
             <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-text-muted">
               <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -42,6 +54,7 @@ export default function SettingsCard({
               {t("personal.saved")}
             </span>
           )}
+          </div>
         </div>
       </div>
       <div className="space-y-5">{children}</div>

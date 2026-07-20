@@ -100,3 +100,58 @@ describe("missingRequired — dieselbe Registry für den künftigen AI Chat", ()
     expect(missing[0].subject).toBe("Sales OS");
   });
 });
+
+describe("Personal Voice — scope 'voice' (Slice 2/3)", () => {
+  const ch = (o: Partial<{ samples: string; sentence_style: string; hooks: string; dos_donts: string }> = {}) =>
+    ({ samples: "", sentence_style: "", hooks: "", dos_donts: "", ...o });
+  const voice = (over: Partial<{ bio: string; themes: string; style: string; tone: string }> = {}) => ({
+    overview: { bio: "", themes: "", style: "", tone: "", ...over },
+    post: ch(), comment: ch(), dm: ch(), email: ch(),
+  });
+  const input = (v = voice()) => ({ products: [], voice: v });
+
+  it("zählt NUR recommended Voice-Felder: 3 Overview + 2×4 Kanäle = 11 (optional zählt nicht)", () => {
+    const r = computeCompleteness(input(), "voice");
+    expect(r.total).toBe(11);
+    expect(r.filled).toBe(0);
+    expect(r.percent).toBe(0);
+  });
+
+  it("leeres Profil weist auf das wichtigste Feld hin (voiceBio), NICHT auf noProducts", () => {
+    const r = computeCompleteness(input(), "voice");
+    expect(r.nextHint).toBe("voiceBio"); // der noProducts-Zweig darf bei scope voice NIE greifen
+  });
+
+  it("gefüllte recommended Felder erhöhen die Quote; optional (themes) bleibt außen vor", () => {
+    const v = voice({ bio: "x", style: "y", tone: "z", themes: "egal" });
+    v.post = ch({ samples: "s", sentence_style: "ss", hooks: "h", dos_donts: "d" });
+    const r = computeCompleteness(input(v), "voice");
+    // 3 Overview-recommended + 2 Post-recommended = 5 gefüllt; themes/hooks/dos_donts zählen nicht.
+    expect(r.filled).toBe(5);
+    expect(r.total).toBe(11);
+  });
+
+  it("alles recommended gefüllt → 100 %, kein nächster Hinweis (done)", () => {
+    const filledCh = ch({ samples: "s", sentence_style: "ss" });
+    const v = { overview: { bio: "b", themes: "", style: "s", tone: "t" },
+      post: filledCh, comment: filledCh, dm: filledCh, email: filledCh };
+    const r = computeCompleteness(input(v), "voice");
+    expect(r.filled).toBe(11);
+    expect(r.percent).toBe(100);
+    expect(r.nextHint).toBeNull();
+  });
+
+  it("scope 'voice' ignoriert Produkt-/Firmen-Felder vollständig", () => {
+    const r = computeCompleteness(
+      { products: [full()], usps: [{ text: "u" }], voice: voice() },
+      "voice",
+    );
+    expect(r.total).toBe(11); // nur Voice-Felder, keine Produkt-/USP-Felder
+    expect(r.missing.every((m) => m.path.startsWith("voice."))).toBe(true);
+  });
+
+  it("scope 'product' zählt keine Voice-Felder (Domänen sauber getrennt)", () => {
+    const r = computeCompleteness({ products: [full()], voice: voice() }, "product");
+    expect(r.missing.some((m) => m.path.startsWith("voice."))).toBe(false);
+  });
+});
