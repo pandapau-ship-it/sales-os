@@ -122,3 +122,43 @@ export const TABLE = {
   /** Datenzeile — nur Trennlinie + Hover, kein Schatten/Box. */
   row: "border-b border-[var(--border-card)] last:border-0 hover:bg-app-bg",
 } as const;
+
+/**
+ * FIELD — Kanon-Optik JEDES Eingabefeldes (Text/Textarea/Select-Trigger) im Projekt:
+ * GRAUE Füllung `bg-app-bg`, 10px Radius, Border erst im Fokus in Markenfarbe.
+ *
+ * Warum hier: dieser String existierte bisher als Copy-Paste an ~22 Stellen (zuerst in
+ * `AddSdrLeadPanel`, daher „FIELD-Kanon" in CLAUDE.md) — und die rohen shadcn-Primitive
+ * `Input`/`Textarea` bringen eine ANDERE Optik mit (weiß bzw. shadcn-Rohtokens). Wer sie
+ * ungeklassed benutzt, weicht unbemerkt vom Rest der App ab (genau so entstand der weiße
+ * Eingabe-Hintergrund in „Produkte & Preise"). Ab jetzt: eine Quelle.
+ *
+ * Anwendung: `<Input className={FIELD} />` bzw. `<Textarea className={FIELD_MULTILINE} />`.
+ */
+export const FIELD =
+  "w-full text-[13px] font-sans px-3.5 py-2.5 bg-app-bg border border-border " +
+  "focus:border-[var(--sherloq-primary)] rounded-[10px] focus:outline-none transition-colors " +
+  "placeholder-[var(--text-muted)]";
+
+/** Mehrzeilige Variante — gleiche Optik, nur Höhe/Umbruch abweichend. */
+// `md:text-[13px]` überschreibt das `md:text-sm` aus dem shadcn-Textarea-Primitiv —
+// sonst wären mehrzeilige Felder ab Tablet 14px, einzeilige 13px.
+export const FIELD_MULTILINE = `${FIELD} md:text-[13px] leading-relaxed resize-y`;
+
+/**
+ * AI_PILL — Optik JEDES KI-Knopfes (Feld-Ebene und ganze Karte/Abschnitt).
+ *
+ * Übernimmt bewusst den Pill-Kanon der Statistik-Kacheln aus „Mein Profil"
+ * (`rounded-full` + `typo-chip` + Teal-Tint aus den Signal-Tokens): KI-Aktionen sollen als
+ * eigene, wiedererkennbare Klasse von Aktionen lesbar sein — nicht als weiteres graues Icon
+ * zwischen Stift und Papierkorb.
+ *
+ * `AI_PILL_PENDING` ist der Zustand „Folgt": derselbe Tint, sichtbar abgeschwächt und nicht
+ * bedienbar. Solange `lib/ai.ts` fehlt, ist das der einzige erlaubte Zustand — ein Knopf, der
+ * so tut, als könne er etwas, wäre ein Honesty-Bruch.
+ */
+export const AI_PILL =
+  "inline-flex items-center gap-1.5 rounded-full typo-chip " +
+  "bg-[var(--signal-teal-bg)] text-[var(--signal-teal-text)] transition-colors";
+
+export const AI_PILL_PENDING = `${AI_PILL} opacity-60 cursor-not-allowed`;

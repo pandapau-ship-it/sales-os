@@ -8,6 +8,16 @@
 
 ---
 
+### Mein Unternehmen (SET-KB-2) — Slice 1/3 „Produkte & Preise" (20.07.2026)
+- [x] `org_profile` als schlankes Grundgerüst (usps · competitors · **field_meta mit `locked`**), nur additiv erweiterbar
+- [x] `products` (028) additiv erweitert statt zweiter `product_info`-Tabelle — eine Produkt-Quelle für Deal-Dropdown UND AI-Kontext
+- [x] **`ai_may_reference_price` pro Produkt, Default false** + harte Bedingung im AI-SDR-Bauplan verankert
+- [x] EIN Schreibweg: `update_org_profile` / `update_product` / `create_product` / `delete_product` (weich) — Key-Whitelist + `settings.manage` + `audit_log`
+- [x] Stabile Feldpfade dokumentiert (`org.usps` · `product.<id>.<feld>`)
+- [x] Texte als `jsonb` (Mehrsprach-Andockhaken, `i18nText.textOf`)
+- [x] UI: Stift + KI-Knopf (ausgegraut/„Folgt") je Feld · Vollständigkeit mit Wirkungshinweis · kein Herkunfts-Marker
+- [ ] Slice 2 Personal Voice (5 Kanäle inkl. `email`) · [ ] Slice 3 Unternehmensprofil + `org_icps`/`org_personas`
+
 ## 🚦 Modul-Abschluss-Gate (PFLICHT — bei JEDEM abgeschlossenen Modul durchgehen)
 
 > Wiederkehrendes Gate, analog zum Code-Review. **Bevor ein Modul als „fertig" gilt**, die vier Prinzipien

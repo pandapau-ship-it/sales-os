@@ -229,6 +229,47 @@ und erzwingt: danger_level destructive/send → confirmation-Block Pflicht vor A
 
 ---
 
+## 5a. PROGRESSIVE AUSFÜHRUNG — nie blockieren, immer nachfragen (PROJEKTWEITE DAUERREGEL)
+
+> **Entschieden 20.07.2026. Gilt für JEDE Aktion, die der Chat ausführen kann — nicht nur für
+> „Mein Unternehmen"-Felder. Neue Chat-Aktion = diese Regel mitbauen.**
+
+Der Chat arbeitet mit dem, was da ist. Drei Verhaltensweisen, in dieser Reihenfolge:
+
+1. **AUSFÜHREN, was möglich ist.** Fehlt nur Optionales oder Empfohlenes, wird die Aktion
+   **normal ausgeführt** — mit dem vorhandenen Kontext, ohne Nachfrage, ohne Warnhinweis.
+   Der Chat verweigert **NIE** eine Aktion, weil etwas Nicht-Pflichtiges fehlt.
+2. **NACHFRAGEN, wenn eine PFLICHT-Angabe fehlt.** Statt abzubrechen („geht nicht") stellt der
+   Chat **eine konkrete, begründete Rückfrage** und führt danach aus. Die Begründung kommt aus
+   der Registry (`reason`), damit die Frage nachvollziehbar ist:
+   > „Ich kann die Mail schreiben — mir fehlt noch der Hauptnutzen von *Sales OS*.
+   >  Ohne ihn bleibt der Text generisch. Was löst das Produkt für den Kunden?"
+3. **NIEMALS ERFINDEN.** Eine fehlende Pflichtangabe wird **nie** geraten, geschätzt, aus
+   ähnlichen Datensätzen übernommen oder mit einer Floskel überbrückt (**Honesty-Regel**).
+   Lieber eine Rückfrage mehr als ein plausibel klingender falscher Satz.
+
+**Woher weiß der Chat, was Pflicht ist?** Aus **einer** Quelle: der Wichtigkeits-Registry
+**`src/lib/fieldImportance.ts`** — Feldpfad → `required | recommended | optional` + Begründung.
+Dieselbe Registry treibt bereits die Vollständigkeits-Anzeige in der UI; es gibt **kein zweites,
+paralleles System**. Wer eine Einstufung ändert, ändert beide Verbraucher zugleich.
+
+**`required` heißt NICHT „Pflichtfeld im Formular".** Die UI blockiert nie und erzwingt nichts —
+der Nutzer darf jedes Feld leer lassen. `required` heißt ausschließlich: *ohne diese Angabe kann
+die AI-Aktion nicht sinnvoll ausgeführt werden* → Rückfrage vor der Ausführung.
+
+**Lese-Schnittstelle (existiert bereits):** `missingRequired(input, scope)` in
+`src/lib/companyKnowledge.ts` liefert die offenen Pflichtangaben inkl. `path`, `reason` und
+`subject` (welcher Datensatz) — genau das Material für die Rückfrage. Der Chat selbst ist noch
+nicht gebaut; die Regel und ihre Datenquelle stehen aber ab jetzt.
+
+**Offener Andock-Punkt (bewusst NICHT entschieden, → PROGRESS.md):** Die Registry stuft Felder
+**global** ein. Eine künftige Chat-Aktion kann andere Anforderungen haben als eine andere
+(„Nachricht schreiben" braucht den Nutzen; „Produkt umbenennen" nur den Namen). Ob dafür eine
+**aktions-bezogene Ebene** (Aktion → Pflichtfelder) ergänzt wird, entscheidet Oliver beim Bau
+des Tool-Layers — die Feldpfade selbst bleiben davon unberührt.
+
+---
+
 ## 5b. RAG-PIPELINE — SPEZIFIKATION (C11, gebaut in Slice 2R)
 
 ### 5b.1 Datenmodell

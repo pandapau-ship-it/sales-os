@@ -531,3 +531,12 @@
 - **value:** Wer was darf, ist an einem Ort sichtbar, in einem Klick änderbar und lückenlos nachvollziehbar — ohne dass jemand versehentlich den letzten Administrator entfernt oder sich selbst aussperrt. Neue Kolleginnen und Kollegen sind in Sekunden eingeladen, ausscheidende sofort deaktiviert, und die Datenhistorie bleibt dabei vollständig erhalten.
 - **module:** core
 - *(Settings SET-3, 2026-07-19. Offene Anfragen, Audit-Log-Seite und automatischer Einladungs-Mailversand folgen.)*
+
+---
+
+- **feature:** Produkte & Preise (Mein Unternehmen)
+- **what:** Hier steht, was ihr verkauft — je Produkt Name, Kurzbeschreibung, Hauptnutzen, Zielgruppe und optional Preis und Preis-Modell. Dazu kommen eure Unique Selling Points und eure Wettbewerber samt der Antwort auf „Warum ihr statt denen?". Genau dieses Wissen nutzt die KI später, wenn sie Nachrichten für euch schreibt. **Nichts davon ist ein Pflichtfeld** — ihr füllt aus, was passt, wann es passt. Eine Fortschrittsanzeige sagt euch dabei ehrlich, welche einzelne Angabe gerade am meisten bringen würde. **Beim Preis entscheidet ihr bewusst:** ein Schalter je Produkt legt fest, ob die KI diesen Preis überhaupt in Nachrichten nennen darf — standardmäßig ist das aus, auch wenn ein Preis eingetragen ist.
+- **how:** Einstellungen (Zahnrad) → Mein Unternehmen → Produkte & Preise. Auf ein Feld oder den Stift klicken, tippen, fertig — es wird sofort gespeichert.
+- **value:** Die KI schreibt nur so gut, wie sie euer Angebot kennt. Wer hier zehn Minuten investiert, bekommt Nachrichten, die den echten Nutzen und die richtige Zielgruppe treffen, statt allgemeiner Floskeln — und behält gleichzeitig die volle Kontrolle darüber, ob jemals ein Preis nach außen genannt wird.
+- **module:** core
+- *(Mein Unternehmen Slice 1/3, 2026-07-20. Personal Voice und Unternehmensprofil inkl. Zielgruppen/Personas folgen; der KI-Vorschlags-Knopf je Feld ist vorbereitet und kommt mit der AI-Anbindung.)*

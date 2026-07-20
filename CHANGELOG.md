@@ -4,6 +4,70 @@
 > Format: `add:` neu · `update:` geändert · `fix:` behoben · `refactor:` · `docs:`
 > Neueste oben.
 
+## 2026-07-20 — Produkte & Preise: Fehl-Hinweis auf Karten + KI-Knöpfe als Pill
+- **feat:** Eingeklappte Produkte zeigen jetzt dezent, **wie viele wichtige Angaben fehlen**
+  („2 offen", neutral-grau mit Punkt, kein Warn-Ton). Vollständige Produkte zeigen **gar keinen**
+  Hinweis. Gezählt über `computeCompleteness` — dieselbe Registry wie die Vollständigkeits-Anzeige,
+  keine zweite Logik.
+- **feat:** KI-Knöpfe (Feld-Ebene **und** „KI ausfüllen" je Produkt) tragen den neuen Pill-Kanon
+  `AI_PILL`/`AI_PILL_PENDING` in `componentBehavior.ts` — Teal-Tint wie die Statistik-Pills in
+  „Mein Profil", damit KI-Aktionen als eigene Klasse lesbar sind. Funktion bleibt „Folgt"
+  (nicht bedienbar), bis `lib/ai.ts` existiert.
+- Beides sitzt in geteilten Bausteinen → gilt automatisch für Slice 2 + 3 (in PROGRESS.md fixiert).
+
+## 2026-07-20 — Globale Regel: Chat-Aktions-Vertrag-Pflicht
+- **docs:** Neue dauerhafte Regel in CLAUDE.md (analog Rechte-Check- und Cron-Wrapper-Pflicht): jede
+  künftig chat-fähige Funktion legt **beim Bau** fest, welche Parameter `required`/`recommended`/
+  `optional` sind; die Einstufung lebt **bei der Funktion**, der Chat **fragt nach** statt zu
+  blockieren und **erfindet nie** eine Pflichtangabe. Ausdrückliche Abgrenzung zu
+  `docs/knowledge_base.md`: dort **erklärendes** Wissen (Fragen beantworten), hier **handelndes**
+  Wissen (ausführen). Erster Anwendungsfall: `src/lib/fieldImportance.ts`.
+- **docs:** PROGRESS.md „▶ CHAT-AKTIONS-VERTRÄGE — NACHZUHOLENDE BESTANDS-FUNKTIONEN" — vollständige
+  Bestandsliste aller vor der Regel gebauten, potenziell chat-fähigen Funktionen (25 RPCs + 40
+  direkte Schreibwege aus `db.ts`), bewusst **nicht** klassifiziert; die Einstufung erfolgt gebündelt
+  mit dem AI-Chat-Baustein.
+
+## 2026-07-20 — Mein Unternehmen: durchgehend sichtbare Eingabefelder
+- **fix/UX:** Die Felder waren im Ruhezustand gar keine Felder — der Wert stand als Text auf der
+  weißen Karte, ein `<input>` entstand erst nach einem Klick. Der graue Kanon lag also korrekt an,
+  war aber unsichtbar. Ursache war ein **Muster-Bruch**: Read-Mode + Inline-Edit (`DetailField`)
+  statt der Ausfüll-Optik der Design-Referenz — von mir stillschweigend gewählt (REGEL-B-Verstoß).
+- **Jetzt verbindlich für den ganzen Bereich** (auch Slice 2/3, in PROGRESS.md festgehalten):
+  Label oben, darunter **immer** ein sichtbares graues Feld, gespeichert beim Verlassen. Kein
+  Stift. Der KI-Knopf je Feld bleibt. Umgesetzt im geteilten `KnowledgeField`.
+- **[AUTO]:** Regressionstest, dass die Felder **beim Laden** als `input`/`textarea` im DOM sind.
+
+## 2026-07-20 — Produkte & Preise: Korrekturen + Wichtigkeits-Registry
+- **fix:** Eingabefelder nutzten die rohen shadcn-Primitive (weiß bzw. shadcn-Rohtokens) statt des
+  Projekt-Kanons. Der graue `FIELD`-Kanon existierte bisher als **Copy-Paste an ~22 Stellen** —
+  er lebt jetzt als `FIELD`/`FIELD_MULTILINE` in `componentBehavior.ts` (eine Quelle).
+- **UX:** Produkte sind **einklappbar** — genau eines offen (zuletzt bearbeitetes bzw. erstes),
+  die übrigen als ruhige Zeile mit Name + „X offen". „+ Produkt" legt an und klappt sofort auf.
+- **feat:** **„KI ausfüllen" pro Produkt** (oben rechts am Block) — wie die Feld-Knöpfe heute
+  ausgegraut + „Folgt"; ruft später denselben zentralen Schreibweg (`update_product`).
+- **UI entfernt:** USP- und Wettbewerber-Sektionen — ihr Zuhause ist die Company-Profile-Seite
+  (Slice 3). Backend unverändert; bis dahin bewusst über keine Oberfläche erreichbar.
+- **feat (projektweit):** **Wichtigkeits-Registry** `src/lib/fieldImportance.ts` — Feldpfad →
+  `required | recommended | optional` + Begründung. Sie treibt jetzt die Vollständigkeits-Anzeige
+  (deren Rangfolge vorher im Berechnungs-Code hartkodiert war) **und** später den AI Chat.
+  Neue Dauerregel **„Progressive Ausführung"** in `ai_chat_bauplan_v1.md` Abschnitt 5a: der Chat
+  führt aus was geht, **fragt** bei fehlenden Pflichtangaben nach und **erfindet nie**.
+
+## 2026-07-20 — Mein Unternehmen 1/3: Produkte & Preise
+- **feat:** Settings → Mein Unternehmen → **Produkte & Preise** (Migr. 077). `org_profile` als schlankes
+  Grundgerüst (USPs · Wettbewerber · `field_meta` inkl. **`locked`** als Schutz gegen den späteren
+  Website-Scan). `products` (028) **additiv erweitert** (benefit/audience/price/price_model,
+  description → jsonb) statt einer zweiten `product_info`-Tabelle — sonst hätte der Nutzer sein
+  Produkt im Deal-Dropdown nicht wiedergefunden.
+- **Preis-Freigabe pro Produkt** (`ai_may_reference_price`, Default **false**): die KI darf einen Preis
+  nur nennen, wenn er für genau dieses Produkt bewusst freigegeben wurde — als **harte Bedingung** in
+  `docs/ai_sdr_bauplan_v1.md` verankert, nicht als Hinweis.
+- **Ein Schreibweg** (`update_org_profile`/`update_product`/`create_product`/`delete_product`, weiches
+  Entfernen) nach dem SET-2-Muster: Key-Whitelist · `settings.manage` · `audit_log`. Stift, künftiger
+  KI-Knopf und künftiger AI-Chat teilen ihn. Feldpfade sind ab jetzt stabil.
+- **Kein Pflichtfeld** im gesamten Bereich; Textfelder als `jsonb` (Mehrsprach-Andockhaken, `i18nText`);
+  regelbasierte **Vollständigkeits-Anzeige mit Wirkungshinweis** (welches leere Feld bringt am meisten).
+
 ## 2026-07-20 — Settings-Nav vervollständigt + Platzhalter ohne Sackgasse
 - Gruppe **Mein Unternehmen** ergänzt (Unternehmensprofil · Personal Voice · Produkte & Preise) —
   war in `settings_bauplan_v1.md` 8.B/8.E entschieden, in Abschnitt 1 aber nicht geführt und darum

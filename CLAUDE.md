@@ -118,6 +118,34 @@ ALTER TABLE knowledge_base ENABLE ROW LEVEL SECURITY;
 > Neue Rechte für **künftige Module** (AI SDR, Billing-UI, …) entstehen mit dem jeweiligen Modul —
 > der Katalog wächst mit, wird nie auf Vorrat gefüllt.
 
+### GLOBALE REGEL — Chat-Aktions-Vertrag-Pflicht (dauerhaft, seit 20.07.2026)
+
+> **Jede Funktion/RPC, die künftig für den AI Chat freigegeben wird, MUSS schon BEIM BAU festlegen,
+> welche Parameter `required` · `recommended` · `optional` sind — nicht nachträglich draufgesetzt.**
+>
+> 1. **Die Einstufung lebt DIREKT BEI DER FUNKTION** (Single Source). Kein separates Extra-Dokument,
+>    das veraltet: der Vertrag steht bei der Funktion, die er beschreibt — für RPCs beim TS-Aufrufer
+>    in `src/lib/db.ts` (jeder RPC-Aufruf läuft dort durch), für reine Frontend-Logik bei der Funktion selbst.
+> 2. **Der Chat FRAGT NACH statt zu blockieren.** Fehlt ein `required`-Parameter → **eine konkrete,
+>    begründete Rückfrage**, dann ausführen. Fehlt nur `recommended`/`optional` → **ganz normal ausführen**,
+>    ohne Nachfrage, ohne Warnung. Eine Aktion wegen fehlender optionaler Angaben komplett zu verweigern,
+>    ist ein Regelverstoß.
+> 3. **Der Chat ERFINDET NIE eine fehlende Pflichtangabe** — nicht raten, nicht schätzen, nicht aus
+>    ähnlichen Datensätzen übernehmen, nicht mit einer Floskel überbrücken (**Honesty-Regel**).
+>
+> **Diese Prüfung ist ab sofort fester Bestandteil JEDES Slice-Baus, der eine potenziell chat-fähige
+> Funktion einführt** — analog zur Rechte-Check-Pflicht und zur Cron-Wrapper-Pflicht.
+>
+> **Abgrenzung (wichtig, nicht verwechseln):** `docs/knowledge_base.md` ist **erklärendes** Wissen —
+> damit beantwortet der Chat Fragen („was macht Feature X?"). Der Aktions-Vertrag ist **handelndes**
+> Wissen — damit weiß der Chat, was er zum **Ausführen** braucht. Zwei getrennte Konzepte, beide Pflicht.
+>
+> **Erster Anwendungsfall + heutiger Stand:** `src/lib/fieldImportance.ts` (Feldpfad → Einstufung +
+> Begründung) für „Mein Unternehmen"; Lese-Schnittstelle `missingRequired()`; ausformulierte
+> Chat-Regel in `docs/ai_chat_bauplan_v1.md` Abschnitt **5a „Progressive Ausführung"**.
+> **Bestands-Funktionen von VOR dieser Regel** werden gebündelt nachgezogen, sobald der AI-Chat-Baustein
+> ansteht → Liste in PROGRESS.md „▶ CHAT-AKTIONS-VERTRÄGE — NACHZUHOLENDE BESTANDS-FUNKTIONEN".
+
 ### GLOBALE REGEL — Öffentliche Routen (dauerhaft, [D21] Login-Pflicht)
 
 > Die App erzwingt Login (`Protected` unter `/app/*`; Catch-all `NotFoundRedirect`: unbekannt +
@@ -1033,6 +1061,7 @@ Alle prop-driven, Tokens-only, Dark-Mode automatisch.
 | `TaskAnlegenForm` | „Keine Task"-Action-Panel-Inhalt (Header + Kontext-/KI-Meldungen) des `NoTaskDrawer`; das Formular kommt aus `TaskFormular` (geteilt, identisch zum Info-Panel); `person`/`onClose`/`onToast` |
 | `TaskEntwurfForm` | Task-Entwurf (Header + Kontakt-Bar + Kanal/Titel/AI-Entwurf/Priorität + Speichern) — Inhalt des `TaskDrawer` (850px-Overlay) |
 | `PanelSkeleton` | Lade-Platzhalter für Info-Panel-Tabs während `isLoading` (statt leerem Inhalt). Token-only `animate-pulse`, In-Panel-Box-Stil (border-card, kein Schatten); Props `rows`/`height`. Greift nur beim ersten Laden — `placeholderData: keepPreviousData` hält bei Folge-Öffnungen die vorigen Daten. Prefetch-on-Hover (`lib/prefetch.ts` via `HunterCard`) füllt den Cache vorab → oft instant. |
+| `KnowledgeField` | Feld im Bereich „Mein Unternehmen" (Produkte & Preise · Personal Voice · Unternehmensprofil). **Verbindliches Muster des Bereichs: Label oben, darunter IMMER ein sichtbares graues Eingabefeld (`FIELD`-Kanon), gespeichert beim Verlassen — kein Stift, kein Read-Mode.** Diese Seiten werden ausgefüllt, nicht gelesen; Read-Mode + Inline-Edit bleibt den CRM-Panels (`DetailField`) vorbehalten. Dazu **ein KI-Knopf je Feld** im Pill-Kanon `AI_PILL_PENDING` (Teal-Tint wie die Statistik-Pills; Vorschlag für GENAU DIESES Feld; heute nicht bedienbar + „Folgt", da `lib/ai.ts` fehlt) — er schreibt später über denselben zentralen Weg wie die Tastatureingabe. Leer ist gültig (keine Pflichtfelder in diesem Bereich) |
 | `SettingsCard` | Karten-Sektion für Settings-Seiten (Ebene-1-Karte auf Seiten-BG): Titel (`typo-card-title`) · Beschreibung (`typo-subline`) · dezenter Header-Slot **„Gespeichert ✓"** (Prop `saved`: `'saving'`/`'saved'`/`null`, Token `signal-success`). Kein Analog: `DetailSection` hat weder Beschreibung noch Save-Slot. Erste Nutzung: SET-2 „Persönlich"-UI (`MyProfileTab`/`AppearanceTab`/`SecurityTab`). Echter Save-Zustand über `useSaveState`-Hook (kein Fake-Delay). |
 | `KontaktZeile` `KiKurzakte` `PanelHeader` `PanelField` `NewDealCard` `ErledigtAction` `KommunikationPreview` `OffeneTasks` `ActiveSequenceChain` `AktiveSignale` `PanelFooter` `ActionFooter` `ActionComposer` `PhoneNumbersField` `HunterCard` `SignalRow` `FollowUpKaltCard` `PipelineStagniertCard` `PipelineKeineTaskCard` `LinkedinSignalCard` `NewInPipelineCards` `SequenceLeadCards` | weitere Blöcke (Panel-/Karten-/Formular-Komposition) |
 
@@ -1055,6 +1084,7 @@ Alle prop-driven, Tokens-only, Dark-Mode automatisch.
 |---|---|
 | `SettingsShell` | Einstiegs-Ansicht der Einstellungen (`/app/settings`, SET-3): Zurück-Button oben links · links die VOLLSTÄNDIGE Gruppen-Nav aus `settingsNav.ts` (Bauplan Abschnitt 1) · rechts die aktive Seite. Nicht gebaute Seiten sind ausgegraut + „Folgt" (nicht klickbar/fokussierbar) — künftige Slices setzen nur `built:true`. Unten EIN dezenter Verweis „Persönliche Einstellungen ↗" → `/app/profil` (Persönlich ist bewusst KEINE Nav-Gruppe). |
 | `TeamMembersPage` | Settings → Organisation → Team & Rechte (SET-3): Mitglieder (Rolle · Status aktiv/deaktiviert · „zuletzt aktiv" aus `last_seen_at` · Aktionen), Einladen (`create_invitation` mit Dedup) + offene Einladungen mit „Link kopieren" (Mailversand deferred [D29]), „Offene Anfragen" als ehrliche „Folgt"-Karte (C6). JEDE ändernde Aktion (Rollenwechsel/Deaktivieren/Reaktivieren/Entfernen) läuft über `alert-dialog`; danach `invalidateQueries`. |
+| `ProductPricingPage` | Settings → Mein Unternehmen → **Produkte & Preise** (Slice 1/3, Migr. 077): Produktliste (alle Felder optional) · **Preis-Freigabe pro Produkt** (`ai_may_reference_price`, Standard AUS — die KI darf den Preis sonst nie nennen) · USPs + Wettbewerber (leben in `org_profile`, Firmen-Ebene, Single Source) · regelbasierte **Vollständigkeits-Anzeige mit Wirkungshinweis**. Schreiben ausschließlich über `update_product`/`update_org_profile`. |
 | `MemberDetailPanel` | Personen-Detail (820px `InfoPanel`): Einzelrechte ZWINGEND über `PERMISSIONS.map()` (neues Katalog-Recht erscheint automatisch, kein UI-Code), Rollen-Rechte sichtbar aber fest (v1 additiv), Schreiben via `grant_permission`/`revoke_permission`; personen-gescopte Historie aus `getMemberAuditLog`. |
 
 ### Komponenten in `features/farmer/` (via `@/components`)

@@ -1272,5 +1272,71 @@
     "records.delete": "Kontakte/Companies/Deals löschen",
     "records.merge": "Duplikate zusammenführen",
     "settings.manage": "Workspace-Einstellungen ändern"
+  },
+  "company": {
+    "productPricingIntro": "Was die AI über euer Angebot weiß, wenn sie Nachrichten schreibt. Nichts hier ist Pflicht — füll aus, was passt.",
+    "completeness": "Vollständigkeit",
+    "completenessHelp": "Je mehr hier steht, desto konkreter schreibt die AI später.",
+    "filledOf": "{{filled}} von {{total}} gefüllt",
+    "hint": {
+      "noProducts": "Leg zuerst ein Produkt an — ohne Produkt hat die AI nichts zu erzählen.",
+      "benefit": "Am meisten bringt jetzt: der Hauptnutzen von „{{product}}\" — er trägt jede Nachricht.",
+      "audience": "Am meisten bringt jetzt: die Zielgruppe von „{{product}}\" — damit trifft die Ansprache.",
+      "usps": "Am meisten bringt jetzt: ein USP — daraus formuliert die AI den Pitch.",
+      "description": "Am meisten bringt jetzt: die Kurzbeschreibung von „{{product}}\".",
+      "competitorWhy": "Am meisten bringt jetzt: warum ihr statt eurem Wettbewerber — das hilft bei Einwänden.",
+      "done": "Alles Wesentliche ist gefüllt.",
+      "name": "Am meisten bringt jetzt: ein Produktname — ohne ihn kann keine Nachricht das Angebot benennen."
+    },
+    "products": "Produkte",
+    "productsHelp": "Was ihr verkauft. Mehrere Produkte möglich, alle Felder optional.",
+    "noProducts": "Noch kein Produkt angelegt.",
+    "addProduct": "Produkt hinzufügen",
+    "removeProduct": "Produkt entfernen",
+    "removeProductConfirm": "„{{name}}\" wird aus dieser Liste entfernt. Bestehende Deals behalten ihren Bezug.",
+    "unnamedProduct": "Produkt ohne Namen",
+    "field": {
+      "name": "Name",
+      "description": "Kurzbeschreibung",
+      "benefit": "Hauptnutzen",
+      "audience": "Zielgruppe",
+      "price": "Preis (optional)",
+      "priceModel": "Preis-Modell"
+    },
+    "placeholder": {
+      "name": "Produktname",
+      "description": "Was ist es?",
+      "benefit": "Was löst es?",
+      "audience": "Für wen ist es?",
+      "price": "z. B. 149 € oder auf Anfrage",
+      "priceModel": "Bitte wählen",
+      "usp": "Was macht euch besonders?",
+      "competitor": "z. B. HubSpot",
+      "whyUs": "Warum seid ihr die bessere Wahl?"
+    },
+    "priceModel": {
+      "per_seat": "pro Seat",
+      "monthly": "monatlich",
+      "one_time": "einmalig"
+    },
+    "priceRelease": "KI darf diesen Preis in Nachrichten erwähnen",
+    "priceReleaseHelp": "Standardmäßig aus: Preise ändern sich und sind oft verhandelbar. Aktiviere das nur, wenn dieser Preis verbindlich ist und in Nachrichten genannt werden darf.",
+    "usps": "Unique Selling Points",
+    "uspsHelp": "Gilt für die ganze Firma, nicht für ein einzelnes Produkt.",
+    "usp": "USP {{n}}",
+    "addUsp": "USP hinzufügen",
+    "removeUsp": "USP entfernen",
+    "competitors": "Wettbewerber",
+    "competitorsHelp": "Gegen wen tretet ihr an — und warum ihr. Gilt firmenweit.",
+    "addCompetitor": "Hinzufügen",
+    "removeCompetitor": "Wettbewerber entfernen",
+    "whyUs": "Warum ihr statt {{name}}?",
+    "aiHint": "Der KI-Knopf an jedem Feld erzeugt später einen Vorschlag für genau dieses Feld. Folgt.",
+    "aiSuggest": "{{field}} von der KI vorschlagen lassen",
+    "saveFailed": "Hat gerade nicht geklappt — bitte nochmal versuchen.",
+    "aiFill": "KI ausfüllen",
+    "aiFillProduct": "Alle Felder dieses Produkts von der KI ausfüllen lassen",
+    "statusMissing": "{{n}} offen",
+    "statusMissingTip": "Diese Angaben fehlen der AI noch"
   }
 }

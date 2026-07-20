@@ -26,6 +26,7 @@ import {
   INITIAL_KPIS,
 } from "@/data";
 import { WON_STAGE_SLUG, LOST_STAGE_SLUG } from "@/lib/hunterMappers";
+import type { I18nText } from "@/lib/i18nText";
 import {
   classifyDuplicate,
   type ContactCandidate,
@@ -1689,6 +1690,91 @@ export async function updateMyProfile(patch: Record<string, string>): Promise<vo
   const client = getSupabaseClient();
   if (!client) return;
   const { error } = await client.rpc("update_my_profile", { p_patch: patch });
+  if (error) throw error;
+}
+
+// ── „Mein Unternehmen" Slice 1: Produkte & Preise (Migr. 077) ─────────────────────────────────
+// Schreiben läuft AUSSCHLIESSLICH über die RPCs — sie prüfen Recht (settings.manage), Org und
+// Keys und schreiben audit_log. Kein direktes .update() auf products/org_profile von hier.
+
+/** Ein Produkt im „Mein Unternehmen"-Sinn (AI-Kontext). Texte sind mehrsprach-fähig (I18nText). */
+export interface ProductRow {
+  id: string;
+  name: string;
+  description: I18nText;
+  benefit: I18nText;
+  audience: I18nText;
+  price: string | null;
+  price_model: string | null;
+  /** Preis-Freigabe PRO Produkt — false = KI darf den Preis nie in Nachrichten nennen. */
+  ai_may_reference_price: boolean;
+}
+
+export interface OrgProfileLite {
+  usps: { id: string; text: I18nText }[];
+  competitors: { id: string; name: string; why_us: I18nText }[];
+}
+
+/** Produkte der Org für die Settings-Seite (aktive, volle Felder — nicht das Deal-Dropdown). */
+export async function getProductsFull(organizationId: string): Promise<ProductRow[]> {
+  const client = getSupabaseClient();
+  if (!client) return [];
+  const { data, error } = await client
+    .from("products")
+    .select("id, name, description, benefit, audience, price, price_model, ai_may_reference_price")
+    .eq("organization_id", organizationId)
+    .eq("is_active", true)
+    .order("created_at", { ascending: true });
+  if (error) throw error;
+  return (data ?? []) as unknown as ProductRow[];
+}
+
+/** Firmen-Ebene: USPs + Wettbewerber (Single Source — die Produktseite zeigt sie nur). */
+export async function getOrgProfileLite(organizationId: string): Promise<OrgProfileLite> {
+  const client = getSupabaseClient();
+  if (!client) return { usps: [], competitors: [] };
+  const { data, error } = await client
+    .from("org_profile")
+    .select("usps, competitors")
+    .eq("organization_id", organizationId)
+    .maybeSingle();
+  if (error) throw error;
+  return {
+    usps: ((data?.usps as OrgProfileLite["usps"] | null) ?? []),
+    competitors: ((data?.competitors as OrgProfileLite["competitors"] | null) ?? []),
+  };
+}
+
+/** Neues (leeres) Produkt anlegen — alle Inhalte optional. Gibt die neue id zurück. */
+export async function createProduct(): Promise<string | null> {
+  const client = getSupabaseClient();
+  if (!client) return null;
+  const { data, error } = await client.rpc("create_product");
+  if (error) throw error;
+  return (data as string) ?? null;
+}
+
+/** Produkt-Feld(er) ändern. patch ⊆ {name,description,benefit,audience,price,price_model,ai_may_reference_price}. */
+export async function updateProduct(id: string, patch: Record<string, unknown>): Promise<void> {
+  const client = getSupabaseClient();
+  if (!client) return;
+  const { error } = await client.rpc("update_product", { p_id: id, p_patch: patch });
+  if (error) throw error;
+}
+
+/** Produkt entfernen — weich (is_active=false), damit alte Deals ihren Bezug behalten. */
+export async function deleteProduct(id: string): Promise<void> {
+  const client = getSupabaseClient();
+  if (!client) return;
+  const { error } = await client.rpc("delete_product", { p_id: id });
+  if (error) throw error;
+}
+
+/** USPs/Wettbewerber ändern. patch ⊆ {usps, competitors} — jeweils die VOLLE Liste. */
+export async function updateOrgProfile(patch: Record<string, unknown>): Promise<void> {
+  const client = getSupabaseClient();
+  if (!client) return;
+  const { error } = await client.rpc("update_org_profile", { p_patch: patch });
   if (error) throw error;
 }
 

@@ -609,6 +609,133 @@
     verifiziert: existiert noch nicht) · „Angemeldet bleiben"-Toggle · Verwaiste-Auth-User-Cleanup.
     **Manuell:** `.env.example` um `VITE_DEV_AUTH_BYPASS=` ergänzen (Datei tool-seitig gesperrt).
 
+  - **▶ „MEIN UNTERNEHMEN" — BEREICHSWEITE REGELN + ARCHITEKTUR FÜR SLICE 2/3 (20.07.2026).**
+    Slice 1/3 „Produkte & Preise" ist gebaut (Migr. 077). Die folgenden Setzungen gelten für den
+    **gesamten** Bereich und sind beim Bau von Slice 2/3 **verbindlich** — nicht neu verhandeln:
+    - **KEIN Feld in diesem Bereich ist Pflicht.** Nur `id` + `organization_id` sind technisch Pflicht.
+      Der Nutzer füllt in seinem Tempo; leere Felder zeigt die UI ehrlich leer, nie als Warnung.
+    - **`org_profile` wird nur ADDITIV erweitert** (Slice 3 hängt seine Felder an) — kein Umbau,
+      keine zweite Tabelle. `field_meta` (Feldpfad → source/updated_at/confidence/**locked**) existiert
+      bereits; `locked` schützt Handarbeit vor dem späteren Website-Scan und muss von jedem künftigen
+      Auto-Befüller respektiert werden.
+    - **Feldpfade sind STABIL** (`org.usps` · `org.competitors` · `product.<id>.<feld>`); Slice 2/3
+      setzen das Muster fort (`voice.<channel>.<feld>` · `icp.<id>.<feld>` · `persona.<id>.<feld>`).
+      Umbenennen bricht den späteren AI-Chat-Zugriff → nicht umbenennen.
+    - **Mehrsprachigkeit:** Textfelder liegen als `jsonb` (heute ein reiner String, später
+      `{de:…,en:…}`) — Lese-Helfer `src/lib/i18nText.ts` `textOf()`. Neue Textfelder in Slice 2/3
+      **ebenfalls jsonb**, nie `text`.
+    - **Ein Schreibweg:** alles über die validierten RPCs (`update_org_profile`/`update_product`,
+      Muster 073) mit Key-Whitelist + `audit_log`. Stift, KI-Knopf und künftiger AI-Chat teilen ihn.
+    - **[SLICE 3] ICPs/Personas — feste Architektur-Vorgabe (jetzt NICHT bauen):**
+      ICPs gehören der **eigenen Organisation**, nicht einer Kunden-Company; **mehrere ICPs pro Org**.
+      `org_icps` (organization_id · name · description · fit_level · `attributes jsonb` erweiterbar) und
+      `org_personas` (referenziert `org_icps`, **mehrere Personas je ICP**). Jede Persona trägt
+      **wachsende Listen**: mehrere Pain Points · mehrere Original-Zitate **getrennt nach „wörtlich"
+      vs. „abgeleitet"** · mehrere Job-Titel-Synonyme — jeweils Arrays, frei erweiterbar. Alle Felder
+      optional. Muss `match_persona` aus `ai_sdr_bauplan_v1.md` genügen (Abgleich gegen
+      `role_pattern`-Synonyme).
+    - **[KONFIG-AUDIT vormerken]** Die Wirkungs-Reihenfolge der Vollständigkeits-Hinweise
+      (`src/lib/companyKnowledge.ts`: Nutzen > Zielgruppe > USP > Beschreibung > Wettbewerb) ist heute
+      eine hartkodierte Empfehlungs-Priorität — für einen Ausfüllhinweis vertretbar, aber [D51] nennt
+      „Prioritäten/Reihenfolgen" ausdrücklich. Beim Modul-Abschluss-Gate prüfen.
+    - **[VERBINDLICH FÜR SLICE 2 + 3] Feld-Muster: durchgehend sichtbare Eingabefelder.**
+      Entschieden 20.07.2026 nach Live-Test. Jedes Feld in „Mein Unternehmen" zeigt **Label oben,
+      darunter IMMER ein sichtbares graues Eingabefeld** (`FIELD`/`FIELD_MULTILINE` aus
+      `componentBehavior.ts`), gespeichert beim **Verlassen des Feldes**. **KEIN Stift, kein
+      Read-Mode-Zwischenschritt** — der zuvor gebaute Read-Mode (Wert als Text, Klick öffnet ein
+      Feld) ließ die Seite weiß und randlos wirken und wich von der Design-Referenz ab. Begründung:
+      Das sind **Ausfüll**-Seiten (man kommt her, um zu tippen), keine Lese-Flächen. Read-Mode +
+      Inline-Edit bleibt richtig für CRM-Panels (`DetailField`) — dort ist Lesen der Normalfall.
+      **Der KI-Knopf pro Feld bleibt** (Vorschlag für genau dieses Feld). Umgesetzt im geteilten
+      Baustein `KnowledgeField` → gilt automatisch für Personal Voice und Unternehmensprofil;
+      **in Slice 2/3 nicht erneut zur Diskussion stellen.**
+      **Ergänzt 20.07.2026 (ebenfalls verbindlich):** (a) **KI-Knöpfe tragen den Pill-Kanon**
+      `AI_PILL`/`AI_PILL_PENDING` (`componentBehavior.ts`, Teal-Tint wie die Statistik-Pills in
+      „Mein Profil") — auf Feld-Ebene UND je Karte/Abschnitt, damit KI-Aktionen als eigene Klasse
+      lesbar sind statt als weiteres graues Icon. Solange `lib/ai.ts` fehlt: ausschließlich
+      `AI_PILL_PENDING` (sichtbar, aber nicht bedienbar). (b) **Eingeklappte Karten zeigen einen
+      dezenten „X offen"-Hinweis**, wenn required/recommended fehlen — neutral-grau, nie Warn-Ton;
+      vollständig = **gar kein** Hinweis. Zählung IMMER über `computeCompleteness` (dieselbe
+      Registry wie die Vollständigkeits-Anzeige), nie eine zweite Logik.
+    - **[SLICE 3 — UMZUG] USP + Wettbewerber ziehen auf die künftige Company-Profile-Seite um.**
+      Backend ist bereits vorhanden (`org_profile.usps` / `org_profile.competitors` +
+      `update_org_profile`) — nur das UI-Zuhause wechselt. Die Sektionen wurden am 20.07.2026
+      bewusst von „Produkte & Preise" **entfernt**; bis Slice 3 gebaut ist, sind beide Listen über
+      **keine** Oberfläche erreichbar. Bewusst so: lieber kurz unerreichbar als dauerhaft am
+      falschen Ort (Honesty). Die Wichtigkeits-Registry führt sie weiter (`org.usps` recommended,
+      `org.competitors` optional) — die Produktseite zählt sie über `scope: "product"` nicht mit,
+      damit kein Hinweis auf ein Feld zeigt, das dort gar nicht existiert.
+    - **[OFFEN — Oliver entscheidet] Aktions-bezogene Pflichtfelder für den AI Chat.** Die
+      Wichtigkeits-Registry (`src/lib/fieldImportance.ts`) stuft Felder **global** ein
+      (required/recommended/optional + Begründung) und treibt heute die Vollständigkeits-Anzeige,
+      später den Chat („Progressive Ausführung", ai_chat_bauplan Abschnitt 5a). Eine künftige
+      Chat-**Aktion** kann aber andere Anforderungen haben als eine andere („Nachricht schreiben"
+      braucht den Nutzen, „Produkt umbenennen" nur den Namen). Ob dafür eine zweite, aktions-
+      bezogene Ebene ergänzt wird (Aktion → Pflichtfelder, verweist auf dieselben Feldpfade),
+      ist **bewusst offen** (Entscheidung A vom 20.07.2026: jetzt KEINE leere Aktions-Ebene auf Vorrat)
+      und wird beim Bau des Chat-Tool-Layers entschieden. Die Feldpfade bleiben in jedem Fall
+      unverändert — kein Umbau nötig.
+      **Zwei konkrete Struktur-Befunde für diesen Zeitpunkt (aus der Übertragbarkeits-Prüfung 20.07.):**
+      (a) `hintKey` ist ein UI-Feld der Vollständigkeits-Anzeige — für rein chat-fähige Funktionen ohne
+      solche Anzeige muss es **optional** werden (heute Pflichtfeld des Registry-Eintrags).
+      (b) Die Registry adressiert **gespeicherte Felder**; Chat-Aktionen haben **Parameter**, die nicht
+      immer einem Feld entsprechen (`set_user_role(p_role)`, Lost-Reason, `p_ids[]`). Ein künftiger
+      Aktions-Vertrag braucht daher **Funktionsname + Parametername** als Schlüssel und verweist NUR
+      dort auf einen Feldpfad, wo es einen gibt.
+    - **[SLICE 2] Vorgemerkt:** Personal Voice bekommt **von Anfang an fünf Kanäle**
+      (`overview` · `post` · `comment` · `dm` · **`email`**) — das Design kennt nur die ersten vier,
+      der AI SDR mailt aber primär. Dazu das Live-Beispiel **„So klingt das"** (WOW-Idee, gehört
+      inhaltlich zu Voice, nicht zu Produkten).
+
+  - **▶ CHAT-AKTIONS-VERTRÄGE — NACHZUHOLENDE BESTANDS-FUNKTIONEN (20.07.2026).**
+    Die neue globale Regel **„Chat-Aktions-Vertrag-Pflicht"** (CLAUDE.md) gilt ab jetzt für **NEUE**
+    Funktionen. Die folgenden Funktionen wurden **VOR** dieser Regel gebaut und brauchen die
+    `required`/`recommended`/`optional`-Einstufung noch **nachträglich** — das passiert **NICHT jetzt**,
+    sondern **gebündelt als Diagnose-First-Schritt, sobald der AI-Chat-Baustein selbst ansteht**
+    (letztes Modul im Fahrplan). Grund: die Funktionen sind noch nicht stabil genug; eine frühere
+    Einstufung müsste vermutlich mehrfach nachgezogen werden.
+    **Reine Bestandsliste — bewusst NICHT klassifiziert.**
+
+    **A) Postgres-RPCs (geschäftlich relevant, `security definer`):**
+    - Rechte & Team: `grant_permission` · `revoke_permission` · `set_user_role` · `deactivate_member` ·
+      `reactivate_member` · `remove_member` · `create_invitation` · `effective_permissions` (Auskunft)
+    - Einstellungen & Profil: `update_general_settings` · `update_my_profile` · `get_profile_stats` (Auskunft)
+    - Mein Unternehmen: `update_product` · `create_product` · `delete_product` · `update_org_profile`
+      *(einziger Bereich, der die Einstufung bereits HAT — `src/lib/fieldImportance.ts`)*
+    - Datensätze: `soft_delete_contacts` · `soft_delete_companies` · `soft_delete_deals`
+    - Mitteilungen & Aktivität: `notify` · `log_activity`
+    - Credits & Entitlement: `consume_credits` · `check_entitlement` · `check_credit_balance` ·
+      `reset_credit_balances`
+    - Telemetrie mit Nutzerbezug: `set_last_seen`
+
+    **B) Schreibwege im Frontend OHNE eigene RPC** (direkte Tabellen-Writes in `src/lib/db.ts` — sie sind
+    genauso chat-fähig und dürfen bei der Nachhol-Runde **nicht vergessen werden**; im Prompt waren sie
+    nicht genannt, gehören aber sachlich dazu):
+    - Kontakte/Companies: `createContact` · `updateContact` · `createCompany` · `updateCompany`
+    - Deals: `createDeal` · `updateDeal` · `updateDealStage` · `updateDealWon` · `updateDealLost`
+    - Tasks/Notizen/Kommunikation: `createTask` · `updateTask` · `completeTask` · `softDeleteTask` · `createNote` · `updateNote` · `softDeleteNote` · `createCompanyNote` ·
+      `createCommunication`
+    - Telefonnummern: `createContactPhone` · `updateContactPhone` · `setContactPhonePrimary` ·
+      `deleteContactPhone`
+    - Listen: `createList` · `renameList` · `addToList` · `removeFromList` · `deleteList`
+    - Leads *(heute Prototyp-Stubs ohne echten DB-Write bzw. nur lesend — beim Nachhol-Slice
+      prüfen, ob sie dann real sind)*: `createLead` · `updateLeadStage` · `assignLeadOwner` ·
+      `setTaskCompleted` · `upgradeSubscription` · `publishMarketingPost`
+    - Mitteilungen: `markNotificationRead` · `markAllNotificationsRead`
+    - Import: `runImport` · `undoImport` *(rückgängig machen = destruktiv, klar chat-relevant)*
+    - Sonstiges: `mergeContacts` · `mergeCompanies` · `deleteInvitation` · `setUserPreference` ·
+      `setNavPreferences`
+    *(`softDeleteDeal` steht NICHT hier — es ruft `soft_delete_deals` und ist über Liste A geführt.
+    `findOrCreateCompany`/`loadDedupUniverse` sind Import-interne Helfer, keine Chat-Aktionen.)*
+
+    **NICHT auf der Liste** (bewusst, weil nicht chat-fähig): Trigger-Funktionen (`audit_write`,
+    `update_updated_at`, `bump_contact_last_contacted`, `handle_new_user`), interne Wächter/Helfer
+    (`auth_org_id`, `has_permission`, `assert_permission`, `assert_member_action`,
+    `assert_not_last_owner`, `_billing_config`) und Betriebs-/Cron-Funktionen (`cron_run_start`,
+    `cron_run_finish`, `run_watchdog`, `cleanup_notifications`, `cleanup_activity_events`,
+    `cleanup_cron_runs`). Insgesamt geprüft: **41 DB-Funktionen** (vollständiger grep über alle
+    Migrationen) + die Schreibwege aus `db.ts`.
+
   - **▶ RECHTE-KATALOG — ZUKUNFTS-REGISTRY (Teil-D-Scan 19.07.2026).** Diese Rechte existieren HEUTE noch
     nicht im Katalog und werden **MIT ihrem Modul** hinzugefügt (`permission_catalog` 070 + `role_permissions`
     + TS-Spiegel + `<RequiresPermission>` + Server-Guard — die 3 Fragen der Dauerregel). **Beim jeweiligen

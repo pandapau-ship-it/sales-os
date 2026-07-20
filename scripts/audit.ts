@@ -460,6 +460,8 @@ function checkTypographyTokens(): void {
     'SettingsCard', 'PersonalSettings', 'MyProfileTab', 'AppearanceTab', 'SecurityTab',
     // SET-3 Settings-Shell + Team & Rechte
     'SettingsShell', 'TeamMembersPage', 'MemberDetailPanel',
+    // „Mein Unternehmen" Slice 1/3 — Produkte & Preise
+    'ProductPricingPage', 'KnowledgeField',
   ])
   // panel-blocks/ + features/ + farming/ (Farmer-Hilfskomponenten).
   const files = [

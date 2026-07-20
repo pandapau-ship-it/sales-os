@@ -386,6 +386,20 @@ Realtime-Channel `org:{organization_id}`, AI nur via aiCall() + Langfuse-Prompt-
 >    - **Single Source:** derselbe `org_profile`-Datensatz wird auch vom AI Chat und
 >      ICP-Scoring genutzt — keine Kopien in Campaigns.
 >
+> 1b. **PREIS-FREIGABE PRO PRODUKT — HARTE BEDINGUNG, keine Empfehlung (20.07.2026, Migr. 077):**
+>    Vor JEDER Verwendung von Preisdaten prüft `generate_message` das Feld
+>    **`products.ai_may_reference_price`** des betroffenen Produkts.
+>    - **false (Standard)** → der Preis dieses Produkts darf **NIEMALS** in der generierten Nachricht
+>      genannt, umschrieben, angedeutet oder als Spanne/„ab X" verwendet werden — **auch dann nicht,
+>      wenn `products.price` gefüllt ist**. Der Preis geht in diesem Fall gar nicht erst in den Prompt.
+>    - **true** → der Nutzer hat den Preis für genau dieses Produkt bewusst freigegeben; er darf
+>      verwendet werden.
+>    - Die Freigabe gilt **pro Produkt**, nie global. Mehrere Produkte in einer Nachricht → je Produkt
+>      einzeln prüfen.
+>    **Begründung:** Preise ändern sich und sind oft verhandelbar; eine KI, die ungefragt Preise nennt,
+>    erzeugt Verbindlichkeit, die niemand zugesagt hat. Ein Verstoß hiergegen ist ein Release-Blocker,
+>    kein Schönheitsfehler — der Testplan führt ihn als kritischen Pfad.
+
 > 2. **PERSONAL VOICE:** `voice_profiles` des **sendenden** Users (Onboarding **O5** /
 >    Settings „Mein Profil") als Stil-Anweisung in den Prompt („Schreibe im Stil dieses
 >    Users: Tonalität, Formalität, Satzlänge, typische Gruß-/Schlussmuster").

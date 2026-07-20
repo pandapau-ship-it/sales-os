@@ -1266,5 +1266,71 @@
     "records.delete": "Delete contacts/companies/deals",
     "records.merge": "Merge duplicates",
     "settings.manage": "Change workspace settings"
+  },
+  "company": {
+    "productPricingIntro": "What the AI knows about your offering when it writes messages. Nothing here is required.",
+    "completeness": "Completeness",
+    "completenessHelp": "The more you add, the more specific the AI can write.",
+    "filledOf": "{{filled}} of {{total}} filled",
+    "hint": {
+      "noProducts": "Add a product first — without one the AI has nothing to talk about.",
+      "benefit": "Biggest win right now: the main benefit of \"{{product}}\" — it carries every message.",
+      "audience": "Biggest win right now: the audience for \"{{product}}\".",
+      "usps": "Biggest win right now: one USP — the AI builds the pitch from it.",
+      "description": "Biggest win right now: the short description of \"{{product}}\".",
+      "competitorWhy": "Biggest win right now: why you over your competitor — helps with objections.",
+      "done": "Everything essential is filled in.",
+      "name": "Biggest win right now: a product name — without it no message can name the offering."
+    },
+    "products": "Products",
+    "productsHelp": "What you sell. Multiple products possible, all fields optional.",
+    "noProducts": "No product added yet.",
+    "addProduct": "Add product",
+    "removeProduct": "Remove product",
+    "removeProductConfirm": "\"{{name}}\" will be removed from this list. Existing deals keep their reference.",
+    "unnamedProduct": "Unnamed product",
+    "field": {
+      "name": "Name",
+      "description": "Short description",
+      "benefit": "Main benefit",
+      "audience": "Audience",
+      "price": "Price (optional)",
+      "priceModel": "Pricing model"
+    },
+    "placeholder": {
+      "name": "Product name",
+      "description": "What is it?",
+      "benefit": "What does it solve?",
+      "audience": "Who is it for?",
+      "price": "e.g. €149 or on request",
+      "priceModel": "Please select",
+      "usp": "What makes you special?",
+      "competitor": "e.g. HubSpot",
+      "whyUs": "Why are you the better choice?"
+    },
+    "priceModel": {
+      "per_seat": "per seat",
+      "monthly": "monthly",
+      "one_time": "one-time"
+    },
+    "priceRelease": "AI may mention this price in messages",
+    "priceReleaseHelp": "Off by default: prices change and are often negotiable. Only turn this on if this price is binding and may be quoted.",
+    "usps": "Unique selling points",
+    "uspsHelp": "Applies to the whole company, not a single product.",
+    "usp": "USP {{n}}",
+    "addUsp": "Add USP",
+    "removeUsp": "Remove USP",
+    "competitors": "Competitors",
+    "competitorsHelp": "Who you compete with — and why you. Company-wide.",
+    "addCompetitor": "Add",
+    "removeCompetitor": "Remove competitor",
+    "whyUs": "Why you instead of {{name}}?",
+    "aiHint": "The AI button on each field will later suggest content for that field. Coming soon.",
+    "aiSuggest": "Let AI suggest {{field}}",
+    "saveFailed": "That didn't work just now — please try again.",
+    "aiFill": "AI fill",
+    "aiFillProduct": "Let AI fill in all fields of this product",
+    "statusMissing": "{{n}} open",
+    "statusMissingTip": "The AI is still missing these details"
   }
 }
