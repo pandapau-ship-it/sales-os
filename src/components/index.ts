@@ -49,7 +49,7 @@ export { default as ZuListeDialog } from './features/kontakte/ZuListeDialog';
 export { default as NeueListeDialog } from './features/kontakte/NeueListeDialog';
 
 // ── features/settings/ ──────────────────────────────────────────────────────
-export { default as TeamSettings } from './features/settings/TeamSettings';
+export { default as SettingsShell } from './features/settings/SettingsShell';
 
 // ── farming/ (Farmer-Screen-Hilfskomponenten, analog shared/) ────────────────
 export { default as FarmerKpiCards } from './farming/FarmerKpiCards';

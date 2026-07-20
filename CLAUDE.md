@@ -1053,7 +1053,9 @@ Alle prop-driven, Tokens-only, Dark-Mode automatisch.
 
 | Komponente | Zweck |
 |---|---|
-| `TeamSettings` | Settings → Team ([D21]): Mitglieder-Tabelle (Name/Email/Rolle/Seit), Rollen-Dropdown (nur Owner), „Mitglied einladen" (Owner/Admin → shadcn-Dialog, Email+Rolle), offene Einladungen mit „Zurückziehen". Org/Rolle aus `useCurrentOrg`, `invited_by` aus `useAuth`; Writes über `getTeamMembers`/`getInvitations`/`createInvitation`/`deleteInvitation`/`updateUserRole`. Gerendert unter `/app/settings`. Mailversand der Einladung = Edge Function (deferred [D29]) |
+| `SettingsShell` | Einstiegs-Ansicht der Einstellungen (`/app/settings`, SET-3): Zurück-Button oben links · links die VOLLSTÄNDIGE Gruppen-Nav aus `settingsNav.ts` (Bauplan Abschnitt 1) · rechts die aktive Seite. Nicht gebaute Seiten sind ausgegraut + „Folgt" (nicht klickbar/fokussierbar) — künftige Slices setzen nur `built:true`. Unten EIN dezenter Verweis „Persönliche Einstellungen ↗" → `/app/profil` (Persönlich ist bewusst KEINE Nav-Gruppe). |
+| `TeamMembersPage` | Settings → Organisation → Team & Rechte (SET-3): Mitglieder (Rolle · Status aktiv/deaktiviert · „zuletzt aktiv" aus `last_seen_at` · Aktionen), Einladen (`create_invitation` mit Dedup) + offene Einladungen mit „Link kopieren" (Mailversand deferred [D29]), „Offene Anfragen" als ehrliche „Folgt"-Karte (C6). JEDE ändernde Aktion (Rollenwechsel/Deaktivieren/Reaktivieren/Entfernen) läuft über `alert-dialog`; danach `invalidateQueries`. |
+| `MemberDetailPanel` | Personen-Detail (820px `InfoPanel`): Einzelrechte ZWINGEND über `PERMISSIONS.map()` (neues Katalog-Recht erscheint automatisch, kein UI-Code), Rollen-Rechte sichtbar aber fest (v1 additiv), Schreiben via `grant_permission`/`revoke_permission`; personen-gescopte Historie aus `getMemberAuditLog`. |
 
 ### Komponenten in `features/farmer/` (via `@/components`)
 

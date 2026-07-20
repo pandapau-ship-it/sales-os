@@ -6,6 +6,23 @@
 
 ## Unreleased
 
+- **feat:** Settings SET-3 — Team & Rechte (Backend + UI, Migr. 076). **Settings-Shell** (`/app/settings`):
+  Zurück-Button + **vollständige Gruppen-Navigation** nach Bauplan (ORGANISATION · ARBEITSWEISE · AI ·
+  VERBINDUNGEN · SYSTEM) aus `settingsNav.ts` — nur „Team & Rechte" gebaut, alles andere ausgegraut +
+  „Folgt" (nicht klickbar/fokussierbar); künftige Slices setzen nur `built:true`. Persönlich bleibt KEINE
+  Gruppe: EIN dezenter Verweis → `/app/profil`. **Mitglieder-Seite:** Rolle · Status (aktiv/deaktiviert) ·
+  „zuletzt aktiv" (`last_seen_at`, jetzt befüllt via `set_last_seen`) · Aktionen; Einladen mit **Dedup**
+  (`create_invitation` → created/renewed/already_member) + „Einladungslink kopieren" (Mailversand deferred
+  [D29]); „Offene Anfragen" als ehrliche „Folgt"-Karte (C6). **JEDE ändernde Aktion** (Rollenwechsel,
+  Deaktivieren, Reaktivieren, Entfernen) über `alert-dialog`, danach `invalidateQueries` (kein Reload).
+  **Personen-Detail** (`InfoPanel`): Einzelrechte **datengetrieben über `PERMISSIONS.map()`** (neues
+  Katalog-Recht erscheint automatisch), Rollen-Rechte fest (v1 additiv), personen-gescopte Historie.
+  **Backend:** `users.status` (active|deactivated|**removed** = weiches Entfernen, kein Hard-Delete) ·
+  `assert_member_action` (Cross-Org · `team.invite` · **Selbst-Lockout** · Admin≠Owner) ·
+  `assert_not_last_owner` (Rollenwechsel + Deaktivieren + Entfernen) · **zwei Protokollier-Lücken
+  geschlossen**: `set_user_role` schrieb kein audit_log, `grant/revoke_permission` nur die Zeile statt der
+  Person. `TeamSettings` (abgelöst) entfernt. 18/18 Live-Checks, 9 neue [AUTO]-Tests.
+
 - **fix:** Mitteilungen — Beschreibungstext wurde abgeschnitten. `ScreenNotifications` klammerte den
   Body per `truncate` (einzeilig, „…") → der wichtige Teil (Vermutung + Bedeutung) war unlesbar. Jetzt
   `break-words whitespace-pre-line` → vollständiger, mehrzeiliger Umbruch (Watchdog liefert `\n`-getrennte

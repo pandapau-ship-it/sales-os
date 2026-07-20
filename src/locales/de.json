@@ -73,6 +73,110 @@
       "roleViewer": "Betrachter",
       "onlyOwnerAdmin": "Nur Owner/Admin können einladen.",
       "emailHint": "Der Mailversand folgt (Edge Function). Die Einladung ist bereits gespeichert."
+    },
+    "title": "Einstellungen",
+    "personalLink": "Persönliche Einstellungen",
+    "groups": {
+      "organisation": "Organisation",
+      "arbeitsweise": "Arbeitsweise",
+      "ai": "AI",
+      "verbindungen": "Verbindungen",
+      "system": "System"
+    },
+    "nav": {
+      "allgemein": "Allgemein",
+      "unternehmensprofil": "Unternehmensprofil",
+      "team": "Team & Rechte",
+      "abo-credits": "Abo & Credits",
+      "papierkorb": "Papierkorb",
+      "regeln": "Regeln",
+      "automation": "Automation",
+      "pipeline": "Pipeline",
+      "mein-tag": "Mein Tag",
+      "modelle": "Modelle & Provider",
+      "ai-sdr": "AI SDR",
+      "datennutzung": "Datennutzung",
+      "chat": "Chat",
+      "integrationen": "Integrationen",
+      "mitteilungen": "Mitteilungen",
+      "status": "Status",
+      "audit-log": "Audit-Log",
+      "comingSoon": "Folgt"
+    },
+    "members": {
+      "title": "Mitglieder",
+      "desc": "Wer gehört zum Team, welche Rolle und welche Rechte.",
+      "inviteCta": "Mitglied einladen",
+      "inviteTitle": "Neues Mitglied einladen",
+      "you": "Du",
+      "actions": "Aktionen",
+      "openDetail": "Details & Rechte",
+      "deactivate": "Deaktivieren",
+      "reactivate": "Reaktivieren",
+      "remove": "Entfernen",
+      "neverActive": "noch nie aktiv",
+      "status": {
+        "active": "Aktiv",
+        "deactivated": "Deaktiviert"
+      },
+      "invitesTitle": "Offene Einladungen",
+      "invitesDesc": "Noch nicht angenommen.",
+      "expires": "gültig bis {{date}}",
+      "invite": {
+        "created": "Einladung angelegt",
+        "renewed": "Bestehende Einladung erneuert",
+        "already_member": "Diese Person ist bereits Mitglied",
+        "revoked": "Einladung zurückgezogen",
+        "copyLink": "Link kopieren",
+        "linkCopied": "Einladungslink kopiert",
+        "revoke": "Zurückziehen",
+        "noMailHint": "Der automatische Mailversand folgt — bis dahin den Einladungslink kopieren und selbst verschicken."
+      },
+      "requestsTitle": "Offene Anfragen",
+      "requestsDesc": "Rechte- und Freigabe-Anfragen aus dem Team.",
+      "requestsSoon": "Anfragen erscheinen hier, sobald der AI-Chat sie stellen kann.",
+      "rightsTitle": "Einzelrechte",
+      "rightsDesc": "Zusätzlich zur Rolle. Rechte aus der Rolle sind fest.",
+      "rightsHint": "Rechte aus der Rolle können hier nicht einzeln entzogen werden — dafür die Rolle ändern.",
+      "rightsSaved": "Rechte aktualisiert",
+      "fromRole": "aus Rolle {{role}}",
+      "individual": "Einzelrecht",
+      "historyTitle": "Verlauf",
+      "historyDesc": "Rollen- und Rechteänderungen dieser Person.",
+      "historyEmpty": "Noch keine Änderungen protokolliert.",
+      "audit": {
+        "set_user_role": "Rolle geändert",
+        "grant_permission": "Recht vergeben",
+        "revoke_permission": "Recht entzogen",
+        "deactivate_member": "Deaktiviert",
+        "reactivate_member": "Reaktiviert",
+        "remove_member": "Entfernt",
+        "update_my_profile": "Profil geändert"
+      },
+      "done": {
+        "role": "Rolle geändert",
+        "deactivate": "Mitglied deaktiviert",
+        "reactivate": "Mitglied reaktiviert",
+        "remove": "Mitglied entfernt"
+      },
+      "confirm": {
+        "role": {
+          "title": "Rolle ändern?",
+          "body": "{{name}} erhält die Rolle {{role}}. Das ändert sofort, was diese Person darf."
+        },
+        "deactivate": {
+          "title": "Mitglied deaktivieren?",
+          "body": "{{name}} kann sich danach nicht mehr anmelden. Zuordnungen und Verlauf bleiben erhalten."
+        },
+        "reactivate": {
+          "title": "Mitglied reaktivieren?",
+          "body": "{{name}} kann sich danach wieder anmelden."
+        },
+        "remove": {
+          "title": "Mitglied entfernen?",
+          "body": "{{name}} verschwindet aus dem Team. Zugewiesene Kontakte und Deals bleiben erhalten."
+        }
+      }
     }
   },
   "mfa": {
@@ -1157,5 +1261,11 @@
       "connected": "Verbunden",
       "notConnected": "Nicht verknüpft"
     }
+  },
+  "permissions": {
+    "team.invite": "Team einladen/deaktivieren",
+    "records.delete": "Kontakte/Companies/Deals löschen",
+    "records.merge": "Duplikate zusammenführen",
+    "settings.manage": "Workspace-Einstellungen ändern"
   }
 }

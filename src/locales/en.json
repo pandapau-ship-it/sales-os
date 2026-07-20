@@ -73,6 +73,110 @@
       "roleViewer": "Viewer",
       "onlyOwnerAdmin": "Only owners/admins can invite.",
       "emailHint": "Email delivery follows (Edge Function). The invitation is already saved."
+    },
+    "title": "Settings",
+    "personalLink": "Personal settings",
+    "groups": {
+      "organisation": "Organization",
+      "arbeitsweise": "Workflow",
+      "ai": "AI",
+      "verbindungen": "Connections",
+      "system": "System"
+    },
+    "nav": {
+      "allgemein": "General",
+      "unternehmensprofil": "Company profile",
+      "team": "Team & permissions",
+      "abo-credits": "Plan & credits",
+      "papierkorb": "Trash",
+      "regeln": "Rules",
+      "automation": "Automation",
+      "pipeline": "Pipeline",
+      "mein-tag": "My Day",
+      "modelle": "Models & providers",
+      "ai-sdr": "AI SDR",
+      "datennutzung": "Data usage",
+      "chat": "Chat",
+      "integrationen": "Integrations",
+      "mitteilungen": "Notifications",
+      "status": "Status",
+      "audit-log": "Audit log",
+      "comingSoon": "Soon"
+    },
+    "members": {
+      "title": "Members",
+      "desc": "Who is on the team, their role and permissions.",
+      "inviteCta": "Invite member",
+      "inviteTitle": "Invite a new member",
+      "you": "You",
+      "actions": "Actions",
+      "openDetail": "Details & permissions",
+      "deactivate": "Deactivate",
+      "reactivate": "Reactivate",
+      "remove": "Remove",
+      "neverActive": "never active",
+      "status": {
+        "active": "Active",
+        "deactivated": "Deactivated"
+      },
+      "invitesTitle": "Pending invitations",
+      "invitesDesc": "Not accepted yet.",
+      "expires": "valid until {{date}}",
+      "invite": {
+        "created": "Invitation created",
+        "renewed": "Existing invitation renewed",
+        "already_member": "This person is already a member",
+        "revoked": "Invitation revoked",
+        "copyLink": "Copy link",
+        "linkCopied": "Invitation link copied",
+        "revoke": "Revoke",
+        "noMailHint": "Automatic email sending is coming — until then copy the invitation link and send it yourself."
+      },
+      "requestsTitle": "Open requests",
+      "requestsDesc": "Permission and approval requests from the team.",
+      "requestsSoon": "Requests will appear here once the AI chat can raise them.",
+      "rightsTitle": "Individual permissions",
+      "rightsDesc": "In addition to the role. Role permissions are fixed.",
+      "rightsHint": "Role permissions cannot be removed individually — change the role instead.",
+      "rightsSaved": "Permissions updated",
+      "fromRole": "from role {{role}}",
+      "individual": "Individual permission",
+      "historyTitle": "History",
+      "historyDesc": "Role and permission changes for this person.",
+      "historyEmpty": "No changes recorded yet.",
+      "audit": {
+        "set_user_role": "Role changed",
+        "grant_permission": "Permission granted",
+        "revoke_permission": "Permission revoked",
+        "deactivate_member": "Deactivated",
+        "reactivate_member": "Reactivated",
+        "remove_member": "Removed",
+        "update_my_profile": "Profile changed"
+      },
+      "done": {
+        "role": "Role changed",
+        "deactivate": "Member deactivated",
+        "reactivate": "Member reactivated",
+        "remove": "Member removed"
+      },
+      "confirm": {
+        "role": {
+          "title": "Change role?",
+          "body": "{{name}} will get the role {{role}}. This immediately changes what they can do."
+        },
+        "deactivate": {
+          "title": "Deactivate member?",
+          "body": "{{name}} will no longer be able to sign in. Assignments and history are kept."
+        },
+        "reactivate": {
+          "title": "Reactivate member?",
+          "body": "{{name}} will be able to sign in again."
+        },
+        "remove": {
+          "title": "Remove member?",
+          "body": "{{name}} disappears from the team. Assigned contacts and deals are kept."
+        }
+      }
     }
   },
   "mfa": {
@@ -1151,5 +1255,11 @@
       "connected": "Connected",
       "notConnected": "Not linked"
     }
+  },
+  "permissions": {
+    "team.invite": "Invite/deactivate team members",
+    "records.delete": "Delete contacts/companies/deals",
+    "records.merge": "Merge duplicates",
+    "settings.manage": "Change workspace settings"
   }
 }
