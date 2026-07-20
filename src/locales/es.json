@@ -78,6 +78,7 @@
     "personalLink": "Ajustes personales",
     "groups": {
       "organisation": "Organización",
+      "unternehmen": "Mi empresa",
       "arbeitsweise": "Forma de trabajo",
       "ai": "IA",
       "verbindungen": "Conexiones",
@@ -93,15 +94,18 @@
       "automation": "Automatización",
       "pipeline": "Pipeline",
       "mein-tag": "Mi día",
-      "modelle": "Modelos y proveedores",
+      "modelle": "Modelos de IA",
       "ai-sdr": "AI SDR",
       "datennutzung": "Uso de datos",
       "chat": "Chat",
       "integrationen": "Integraciones",
       "mitteilungen": "Notificaciones",
-      "status": "Estado",
-      "audit-log": "Registro",
-      "comingSoon": "Próximamente"
+      "status": "Estado del sistema",
+      "audit-log": "Registro de cambios",
+      "comingSoon": "Próximamente",
+      "branding": "Marca",
+      "personal-voice": "Voz personal",
+      "product-pricing": "Productos y precios"
     },
     "members": {
       "title": "Miembros",

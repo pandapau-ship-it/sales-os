@@ -14,6 +14,11 @@
  * `built: false` → die Nav zeigt den Eintrag AUSGEGRAUT mit „Folgt"-Hinweis (nicht klickbar), damit die
  * Struktur vollständig sichtbar ist, ohne leere Seiten vorzutäuschen (Honesty).
  *
+ * „Mein Unternehmen" (Bauplan 8.B [SET-KB-1] + 8.E) ist eine EIGENE Gruppe — der Inhalt ist AI-Kontext
+ * (Positionierung · Tonalität · Produktwissen), nicht Org-Verwaltung. „Unternehmensprofil" lebt dort,
+ * NICHT unter ORGANISATION (dort stünde es doppelt). „Branding" ist ein eigener Punkt statt in
+ * „Allgemein" versteckt (löst den Bauplan-Widerspruch Abschnitt 1 ↔ 8.A zugunsten von 8.A).
+ *
  * PERSÖNLICH ist bewusst KEINE Nav-Gruppe (Struktur-Korrektur 19.07.2026): Zugang läuft über das
  * Avatar-Dropdown; die Settings-Nav zeigt unten nur EINEN dezenten Verweis auf /app/profil.
  * Die drei Seiten bleiben hier als Registry-Einträge (Gruppe 'personal') geführt — die Shell
@@ -24,7 +29,7 @@ import type { Permission } from "./permissions";
 export type SettingsVisibility = "self" | "elevated" | Permission;
 
 export type SettingsGroup =
-  | "organisation" | "arbeitsweise" | "ai" | "verbindungen" | "system"
+  | "organisation" | "unternehmen" | "arbeitsweise" | "ai" | "verbindungen" | "system"
   | "personal"; // Registry-only — NICHT in der Haupt-Nav (Zugang via Avatar)
 
 export interface SettingsPage {
@@ -37,17 +42,21 @@ export interface SettingsPage {
 
 /** Gruppen-Reihenfolge der Haupt-Navigation (ohne 'personal'). */
 export const SETTINGS_GROUP_ORDER: readonly Exclude<SettingsGroup, "personal">[] = [
-  "organisation", "arbeitsweise", "ai", "verbindungen", "system",
+  "organisation", "unternehmen", "arbeitsweise", "ai", "verbindungen", "system",
 ] as const;
 
 /** Kanonische Settings-Seiten (Reihenfolge = Anzeige-Reihenfolge je Gruppe). */
 export const SETTINGS_PAGES: readonly SettingsPage[] = [
   // ORGANISATION
   { key: "allgemein",         group: "organisation", visibility: "settings.manage", built: false }, // Backend SET-2, UI folgt
-  { key: "unternehmensprofil", group: "organisation", visibility: "settings.manage", built: false }, // SET-KB-2
+  { key: "branding",          group: "organisation", visibility: "settings.manage", built: false }, // SET-2 (Logo/Farben — eigener Punkt, Bauplan 8.A)
   { key: "team",              group: "organisation", visibility: "team.invite",     built: true  }, // SET-3 (dieser Slice)
   { key: "abo-credits",       group: "organisation", visibility: "elevated",        built: false }, // Abo-Serie
   { key: "papierkorb",        group: "organisation", visibility: "elevated",        built: false }, // C5 / SET-3-Folge
+  // MEIN UNTERNEHMEN — „Was die AI über euch weiß" (Bauplan 8.B [SET-KB-1] + 8.E)
+  { key: "unternehmensprofil", group: "unternehmen", visibility: "settings.manage", built: false }, // SET-KB-2, org-weit
+  { key: "personal-voice",    group: "unternehmen",  visibility: "self",            built: false }, // Voice Card ist PRO USER
+  { key: "product-pricing",   group: "unternehmen",  visibility: "settings.manage", built: false }, // SET-KB-2, org-weit
   // ARBEITSWEISE
   { key: "regeln",            group: "arbeitsweise", visibility: "settings.manage", built: false }, // SET-4
   { key: "automation",        group: "arbeitsweise", visibility: "settings.manage", built: false }, // SET-4

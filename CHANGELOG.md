@@ -4,6 +4,15 @@
 > Format: `add:` neu · `update:` geändert · `fix:` behoben · `refactor:` · `docs:`
 > Neueste oben.
 
+## 2026-07-20 — Settings-Nav vervollständigt + Platzhalter ohne Sackgasse
+- Gruppe **Mein Unternehmen** ergänzt (Unternehmensprofil · Personal Voice · Produkte & Preise) —
+  war in `settings_bauplan_v1.md` 8.B/8.E entschieden, in Abschnitt 1 aber nicht geführt und darum
+  beim SET-3-Bau übersehen. „Unternehmensprofil" steht jetzt NUR dort (vorher doppelt).
+- **Branding** als eigener Punkt in ORGANISATION (löst Bauplan-Widerspruch 1 ↔ 8.A zugunsten 8.A);
+  Bauplan Abschnitt 1 entsprechend angeglichen, damit der Widerspruch nicht zurückkommt.
+- Wording: Audit-Log → **Änderungsprotokoll**, Modelle & Provider → **AI-Modelle**, Status → **Systemstatus**.
+- `/invite/:token` + `/unsubscribe`: Platzhalter führt jetzt **„Zur Anmeldung"** zurück statt in eine Sackgasse.
+
 ## Unreleased
 
 - **feat:** Settings SET-3 — Team & Rechte (Backend + UI, Migr. 076). **Settings-Shell** (`/app/settings`):

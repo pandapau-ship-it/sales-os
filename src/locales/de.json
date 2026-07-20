@@ -78,6 +78,7 @@
     "personalLink": "Persönliche Einstellungen",
     "groups": {
       "organisation": "Organisation",
+      "unternehmen": "Mein Unternehmen",
       "arbeitsweise": "Arbeitsweise",
       "ai": "AI",
       "verbindungen": "Verbindungen",
@@ -93,15 +94,18 @@
       "automation": "Automation",
       "pipeline": "Pipeline",
       "mein-tag": "Mein Tag",
-      "modelle": "Modelle & Provider",
+      "modelle": "AI-Modelle",
       "ai-sdr": "AI SDR",
       "datennutzung": "Datennutzung",
       "chat": "Chat",
       "integrationen": "Integrationen",
       "mitteilungen": "Mitteilungen",
-      "status": "Status",
-      "audit-log": "Audit-Log",
-      "comingSoon": "Folgt"
+      "status": "Systemstatus",
+      "audit-log": "Änderungsprotokoll",
+      "comingSoon": "Folgt",
+      "branding": "Branding",
+      "personal-voice": "Personal Voice",
+      "product-pricing": "Produkte & Preise"
     },
     "members": {
       "title": "Mitglieder",

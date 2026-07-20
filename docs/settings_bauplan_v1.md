@@ -16,12 +16,17 @@ nicht (Sektion ausgeblendet) oder nur lesend (mit dezentem Schloss-Hinweis).
 
 ```
 ORGANISATION
-├─ Allgemein            Org-Name, Sprache, Zeitzone, Logo
-├─ Unternehmensprofil   Org-Profil aus Crawl (O3): URL, Re-Crawl, editierbare Karten
+├─ Allgemein            Org-Name, Sprache & Region (Zeitzone/Datumsformat/Währung)
+├─ Branding             Logo, Farben — EIGENER Punkt (angeglichen an 8.A, 20.07.2026)
 ├─ Team & Rechte        S3 — Herzstück dieser Session
 ├─ Abo & Credits        intern: Plan "Internal" + Verbrauchsanzeige (echte Zahlen aus
 │                       credit_transactions); Kauf-/Plan-UI erst mit Launch (A-Serie)
 └─ Papierkorb           C5 — Wiederherstellen / endgültig löschen (Owner/Admin)
+
+MEIN UNTERNEHMEN  („Was die AI über euch weiß" — 8.B [SET-KB-1] + 8.E)
+├─ Unternehmensprofil   Positionierung/Zielmarkt/Kontext (Crawl O3 später, erst manuell)
+├─ Personal Voice       Tonalität/Stil PRO USER für AI-Nachrichten (visibility: self)
+└─ Produkte & Preise    Produkt-/Nutzen-/Wettbewerber-/Preis-Kontext als AI-Futter
 
 ARBEITSWEISE
 ├─ Regeln               S4 — ALLE Action-Parameter in Klartext an einem Ort
@@ -76,6 +81,12 @@ SYSTEM (nur Owner/Admin)
 └─ Audit-Log            Wer hat was wann geändert — read-only Tabelle mit Filtern
                         (Daten existieren komplett; nur Sichtbarmachung)
 ```
+
+> **ANGLEICHUNG (20.07.2026, Live-Test-Befund):** Abschnitt 1 widersprach 8.A/8.B — „Branding" fehlte
+> als eigener Punkt (Logo steckte in „Allgemein") und die 8.E-Gruppe **„Mein Unternehmen"** fehlte hier
+> ganz, wodurch sie beim SET-3-Bau übersehen wurde. Beides ist oben nachgezogen; **„Unternehmensprofil"
+> steht NUR noch unter „Mein Unternehmen"** (vorher doppelt unter ORGANISATION). Damit ist Abschnitt 1
+> die vollständige Struktur — `settingsNav.ts` spiegelt sie 1:1.
 
 **Andock-Prinzip:** Modulgebundene Sektionen (Mailbox, Templates, Status, Gedächtnis …)
 werden in IHREN Bauplänen gebaut und docken in diese Shell an — dieser Plan baut Shell,

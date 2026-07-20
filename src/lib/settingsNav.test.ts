@@ -35,16 +35,25 @@ describe("canSeeSettingsPage — Rollen-Sichtbarkeit baut auf SET-1-Katalog", ()
 describe("Vollständige Settings-Navigation (SET-3, Bauplan Abschnitt 1)", () => {
   const owner = { isElevated: true, has: () => true };
 
-  it("fünf Nav-Gruppen in Bauplan-Reihenfolge — 'personal' ist KEINE Nav-Gruppe", () => {
+  it("sechs Nav-Gruppen in Bauplan-Reihenfolge — 'personal' ist KEINE Nav-Gruppe", () => {
     expect([...SETTINGS_GROUP_ORDER]).toEqual([
-      "organisation", "arbeitsweise", "ai", "verbindungen", "system",
+      "organisation", "unternehmen", "arbeitsweise", "ai", "verbindungen", "system",
     ]);
     expect(SETTINGS_GROUP_ORDER).not.toContain("personal");
   });
 
   it("ORGANISATION enthält Team & Rechte (nicht als eigene Top-Gruppe)", () => {
     const keys = visibleSettingsPages("organisation", owner).map((p) => p.key);
-    expect(keys).toEqual(["allgemein", "unternehmensprofil", "team", "abo-credits", "papierkorb"]);
+    expect(keys).toEqual(["allgemein", "branding", "team", "abo-credits", "papierkorb"]);
+  });
+
+  it("MEIN UNTERNEHMEN hat die drei dauerhaften AI-Kontext-Seiten (Bauplan 8.B/8.E)", () => {
+    const pages = visibleSettingsPages("unternehmen", owner);
+    expect(pages.map((p) => p.key)).toEqual(["unternehmensprofil", "personal-voice", "product-pricing"]);
+    // Voice Card ist pro USER, nicht org-weit → jede eingeloggte Person sieht sie.
+    expect(pages.find((p) => p.key === "personal-voice")!.visibility).toBe("self");
+    // …und „Unternehmensprofil" steht NUR hier, nicht doppelt unter ORGANISATION.
+    expect(visibleSettingsPages("organisation", owner).map((p) => p.key)).not.toContain("unternehmensprofil");
   });
 
   it("alle Gruppen sind befüllt (Hülle vollständig)", () => {
