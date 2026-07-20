@@ -6,6 +6,14 @@
 
 ## Unreleased
 
+- **fix:** Mitteilungen — relative Zeit basiert jetzt auf `updated_at` statt `created_at`. Eine erneut
+  ausgelöste Mitteilung (`notify()` ON CONFLICT) wirkte fälschlich uralt („vor 13 Std.", obwohl der
+  Alarm-Stand Minuten alt war), weil das Erstellungsdatum beim Update unverändert bleibt. `updated_at`
+  ändert sich **ausschließlich** bei Wiederauslösung — „als gelesen markieren" fasst es nicht an (kein
+  Trigger auf `notifications`), die Anzeige bleibt also korrekt. `getNotifications` selektiert `updated_at`
+  und **sortiert danach**, damit Position und angezeigte Zeit dieselbe Quelle haben (frisch Ausgelöstes
+  steht oben). [AUTO]-Regressionstest (13 h alt erstellt + 2 Min aktualisiert → zeigt Minuten, nicht Stunden).
+
 - **fix:** Mitteilungen — Beschreibungstext wurde abgeschnitten. `ScreenNotifications` klammerte den
   Body per `truncate` (einzeilig, „…") → der wichtige Teil (Vermutung + Bedeutung) war unlesbar. Jetzt
   `break-words whitespace-pre-line` → vollständiger, mehrzeiliger Umbruch (Watchdog liefert `\n`-getrennte

@@ -199,7 +199,9 @@ function NotificationRowItem({
         {/* Beschreibung (WAS/Vermutung/Bedeutung) NIE kürzen — vollständig umbrechen, Karte wächst mit. */}
         {n.body && <span className="typo-subline text-text-muted block break-words whitespace-pre-line">{n.body}</span>}
       </span>
-      <span className="typo-subline text-text-muted shrink-0 whitespace-nowrap">{relTime(n.created_at, t)}</span>
+      {/* Zeit aus updated_at: eine erneut ausgelöste Mitteilung ist frisch, nicht so alt wie ihre
+          Erst-Erstellung. `updated_at` ändert sich nur bei notify()-Wiederauslösung (nicht beim Lesen). */}
+      <span className="typo-subline text-text-muted shrink-0 whitespace-nowrap">{relTime(n.updated_at ?? n.created_at, t)}</span>
       {n.link && <ChevronRight className="w-4 h-4 text-text-muted shrink-0 mt-0.5" />}
     </button>
   );
