@@ -620,6 +620,10 @@
     zwei Audit-Lücken geschlossen (`set_user_role`, personen-gescoptes `grant/revoke_permission`), `set_last_seen`.
     **NICHT jetzt (Haken):** echtes Realtime für `user_permissions` · volle Audit-Log-Seite (SET-6) · `approval_requests` (C6)
     · Einladungs-Mailversand ([D29]) · Inhalt der ausgegrauten Gruppen (je eigener Slice).
+    · **Mitglieder-Zeile-Feinschliff (20.07.2026, gemergt+gepusht):** Zeilen-Hover (`hover:bg-app-bg`, bestehendes Muster) ·
+    expliziter „Rechte anzeigen"-Knopf je Zeile · Rollen-Badge vor den Status, als `StatusBadge` — **nur Owner** dezent
+    farbig (`tone="info"`), andere neutral/grau; keine Rolle-/Status-Überschriften; Inline-Rollen-Select bleibt. Render-Test (3),
+    i18n `viewPermissions` de/en/es. (Live-Screenshot der Zeile im Dev-Bypass nicht möglich — RLS ohne Session = 0 Zeilen; per Test verifiziert.)
 
   - **SET-2 „PERSÖNLICH"-UI FERTIG + GEMERGT 19.07.2026** (Mein Profil/Ansicht/Sicherheit, Merge `0f16896`).**
     Zugang gebündelt hinter dem Avatar-Dropdown (Route `/app/profil`, 3 Reiter via `PanelTabs`) — NICHT in der
@@ -741,7 +745,9 @@
       `reactivate_member` · `remove_member` · `create_invitation` · `effective_permissions` (Auskunft)
     - Einstellungen & Profil: `update_general_settings` · `update_my_profile` · `get_profile_stats` (Auskunft)
     - Mein Unternehmen: `update_product` · `create_product` · `delete_product` · `update_org_profile`
-      *(einziger Bereich, der die Einstufung bereits HAT — `src/lib/fieldImportance.ts`)*
+      *(einziger Bereich, der die Einstufung bereits HAT — `src/lib/fieldImportance.ts`)* ·
+      **`update_voice_profile`** (NEU 20.07., Personal Voice — Self-Service, Feldpfade `voice.<channel>.<feld>`
+      in `fieldImportance.ts` Scope `voice` vorhanden, Chat-Vertrag aber wie die anderen erst beim Chat-Bau)
     - Datensätze: `soft_delete_contacts` · `soft_delete_companies` · `soft_delete_deals`
     - Mitteilungen & Aktivität: `notify` · `log_activity`
     - Credits & Entitlement: `consume_credits` · `check_entitlement` · `check_credit_balance` ·
@@ -762,6 +768,8 @@
       prüfen, ob sie dann real sind)*: `createLead` · `updateLeadStage` · `assignLeadOwner` ·
       `setTaskCompleted` · `upgradeSubscription` · `publishMarketingPost`
     - Mitteilungen: `markNotificationRead` · `markAllNotificationsRead`
+    - Personal Voice (NEU 20.07.): `updateVoiceProfile` (dünner Passthrough auf RPC `update_voice_profile`) ·
+      `getMyVoiceProfile` (nur lesend/Auskunft)
     - Import: `runImport` · `undoImport` *(rückgängig machen = destruktiv, klar chat-relevant)*
     - Sonstiges: `mergeContacts` · `mergeCompanies` · `deleteInvitation` · `setUserPreference` ·
       `setNavPreferences`

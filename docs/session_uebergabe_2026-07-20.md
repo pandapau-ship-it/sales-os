@@ -138,3 +138,48 @@ i18n `voice.*` in de/en/es. Render-Tests (15) + Voice-Scope-Tests; Gates grün, 
 | AI-Voice-Trainer-Optik | **Bewusste Einzelfall-Ausnahme** von „keine Original-Farben": genau diese eine Kachel bekommt die dunkle Referenz-Optik (türkis), token-basiert in `index.css`. Überall sonst neutrale Tokens. |
 | Do's & Don'ts | Zwei benannte UI-Teile („immer"/„nie") im **selben** DB-Feld `dos_donts` — keine neue Migration. |
 | Trainer-Buttons | Echte `ui/button` (size sm), bleiben **disabled/„Folgt"** bis `lib/ai.ts` (Honesty). |
+
+---
+
+## Session-Ende-Nachtrag (20.07.2026, Ende) — Team & Rechte + Housekeeping
+
+Nach Personal Voice folgte in derselben Session eine kleine SET-3-Verbesserung, dann Merge + Push.
+
+### Team & Rechte — Mitglieder-Zeile Feinschliff (gemergt + gepusht)
+Drei Verbesserungen an der Mitglieder-Zeile (`TeamMembersPage`), alle mit **Wiederverwendung** statt Neubau:
+1. **Zeilen-Hover** `hover:bg-app-bg transition-colors` (bestehendes Hover-Muster).
+2. **Expliziter „Rechte anzeigen"-Knopf** je Zeile (ShieldCheck + kompaktes Sekundär-Muster) — öffnet
+   dasselbe Rechte-Panel wie der Name-Klick, macht die Klickbarkeit sichtbar.
+3. **Rollen-Badge vor den Aktiv-Status** verschoben, als bestehendes `StatusBadge`: **nur „Owner"**
+   dezent farbig (`tone="info"` — bewusst distinkt von grün-Aktiv und teal-KI), andere neutral/grau
+   (`muted`); keine „Rolle"/„Status"-Überschriften. Inline-Rollen-Select bleibt erhalten.
+- Render-Test (3) neu (die Seite hatte keinen). i18n `settings.members.viewPermissions` de/en/es.
+- **Visuelle Grenze (ehrlich):** im Dev-Bypass ohne Session liefert die RLS 0 Mitglieder-Zeilen →
+  kein Live-Screenshot der Zeile möglich; die drei Änderungen sind per Render-Test verifiziert.
+
+### Git / Deploy
+`main` == `origin/main` (gepusht `ed22b1f..96dec0e`): Personal Voice (feat+merge) UND Team&Rechte
+(fix+merge) zusammen. `--no-ff`-Merges, Branches gelöscht. Vercel-Deploy triggert automatisch.
+Migr. 078/079 waren bereits live (früher gepusht), kein weiterer db push.
+
+### Modul-Abschluss-Gate — Personal Voice: BESTANDEN ✅
+(1) Single Source · (2) Performance · (3) Konfigurierbarkeit (für Inhalt/Schreibpfad) · (4) Honesty —
+volle Tabelle in `CHECKLIST.md` (Gate-Läufe). **Deferred:** [KONFIG-AUDIT] die Feld-Wichtigkeits-Rangfolge
+der 20 Voice-Felder in `fieldImportance.ts` ist Code-Literal (B, treibt nur den Vollständigkeits-Hinweis) —
+gleicher Deferred wie Slice 1; **[D-voice-admin-help]** (Owner/Admin hilft neuem Mitglied bei leerer Voice).
+
+### Knowledge Base — bewusst seed-only (keine Migration)
+Der Personal-Voice-Eintrag wurde als **Seed** in `docs/knowledge_base.md` ergänzt. Eine KB-**Migration**
+wird **NICHT** angelegt: [KB-DEFERRED] (Oliver, 18.07.) hält die KB bis zum AI-Chat/RAG-Slice seed-only,
+dann gebündelt als EINE idempotente Migration. Konflikt mit dem Session-Ende-Standard-Schritt bewusst
+zugunsten der neueren, spezifischen Entscheidung aufgelöst.
+
+### Chat-Merkliste nachgetragen
+`update_voice_profile` (RPC, Liste A) + `updateVoiceProfile`/`getMyVoiceProfile` (db.ts, Liste B) in die
+PROGRESS-Bestandsliste „Chat-Aktions-Verträge — nachzuholende Bestands-Funktionen" aufgenommen (noch NICHT
+klassifiziert — kommt beim AI-Chat-Bau).
+
+### Offen / nächste Schritte
+1. **Mein Unternehmen Slice 3** — Unternehmensprofil + `org_icps`/`org_personas` + Umzug USPs/Wettbewerber.
+2. Settings SET-4/5/6 (Regeln · Automation · Pipeline · Mein Tag · AI · Verbindungen · Papierkorb · Audit-Log · Status B-4).
+3. Deferred: [D-voice-admin-help] · [KONFIG-AUDIT] Feld-Ranking · [D29] Invite-Mail · MFA-Zwang B-3.
