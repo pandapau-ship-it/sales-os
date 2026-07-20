@@ -7,8 +7,12 @@
  *   - /unsubscribe      → DSGVO-Abmeldung (mit dem Sending-Layer)
  * Bis dahin steht hier ein neutraler Platzhalter — Zweck: das Routen-MUSTER von Anfang an korrekt
  * (explizit + öffentlich + VOR dem Catch-all). Text über i18n, kein Account-Kontext.
+ *
+ * Ausweg PFLICHT: Der Platzhalter ist ehrlich, darf aber keine Sackgasse sein — er führt immer
+ * zurück zur Anmeldung, auch bevor der eigentliche Flow existiert (Live-Test 20.07.2026).
  */
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 
 export default function PublicPlaceholder({ titleKey, bodyKey }: { titleKey: string; bodyKey: string }) {
   const { t } = useTranslation();
@@ -23,6 +27,7 @@ export default function PublicPlaceholder({ titleKey, bodyKey }: { titleKey: str
         </div>
         <h1 className="text-[16px] font-semibold text-text-primary">{t(titleKey)}</h1>
         <p className="text-[12px] text-text-muted">{t(bodyKey)}</p>
+        <Link to="/" className="sherloq-btn-secondary mt-1 text-[13px]">{t("auth.toLogin")}</Link>
       </div>
     </div>
   );

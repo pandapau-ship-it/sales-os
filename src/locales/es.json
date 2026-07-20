@@ -1191,6 +1191,7 @@
     "myProfile": "Mi perfil",
     "inviteOnlyTitle": "Acceso solo por invitación",
     "inviteOnlyBody": "Tu cuenta aún no está vinculada a una organización. Pide una invitación a tu administrador.",
+    "toLogin": "Ir al inicio de sesión",
     "invitePlaceholderTitle": "Invitación",
     "invitePlaceholderBody": "Esta página se habilitará con el flujo de invitaciones.",
     "unsubPlaceholderTitle": "Darse de baja",

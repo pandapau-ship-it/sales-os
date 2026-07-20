@@ -1191,6 +1191,7 @@
     "myProfile": "My profile",
     "inviteOnlyTitle": "Access by invitation only",
     "inviteOnlyBody": "Your account is not linked to an organization yet. Please ask your administrator for an invitation.",
+    "toLogin": "Go to sign-in",
     "invitePlaceholderTitle": "Invitation",
     "invitePlaceholderBody": "This page will be provided with the invitation flow.",
     "unsubPlaceholderTitle": "Unsubscribe",
