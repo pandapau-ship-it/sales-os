@@ -450,7 +450,7 @@
 
 ▶ **2.** [~] **[BAU] Vorab-Migration Entitlement & Credits**
   (`docs/for_ai_sdr_vorab_entitlement_credits.md` — PFLICHT vor AI-SDR-Slice-5)
-  - **GEBAUT 19.07.2026 (Option A), wartet auf db push + Freigabe** (▶ bleibt bis Merge stehen).
+  - **GEBAUT + GEMERGT 19.07.2026 (Option A)** — db push erfolgt, in `main`.
     Branch `feature/entitlement-credit-layer`. Additive Migr. **061** (metadata-Spalte ·
     `settings.billing` als [D51]-Config-Heimat statt nicht-existenter `system_config` · Seeds
     internal-Plan `-1`/Subscription/credit_balance/Config; **RLS bereits vollständig in 011**, nicht
@@ -463,7 +463,7 @@
   - **Haken (bewusst NICHT gebaut, dokumentiert §9):** (a) `aiCall()`-Verdrahtung — `lib/ai.ts`
     existiert noch nicht, `consume_credits` wird am ersten echten AI-Call-Slice angeklemmt · (b)
     Promo/Voucher-`redemption_codes` (Bonus-Topf additiv andockbar, kein Umbau) — Launch-Phase.
-  - **Fundament-Härtung Migr. 064 (19.07.2026), wartet auf db push:** Punkt 0 (angewandte Parameter
+  - **Fundament-Härtung Migr. 064 (19.07.2026), gepusht + gemergt:** Punkt 0 (angewandte Parameter
     in `credit_transactions.metadata` eingefroren → Rückwirkungsfreiheit) + Punkt 5 (globale
     `billing_config` + `_billing_config` global→per-Key-Override; bestehende Orgs behalten Override,
     neue erben global). TS-Spiegel `resolveBillingConfig`/`buildFrozenChargeMeta` + Tests. Onboarding-
@@ -493,7 +493,7 @@
   > der Credentials in Nango, kein Code-Umbau).
 
 **4.** [~] **[BAU] Mitteilungs-Fundament N-S1 + N-S2-Minimal** (`docs/mitteilungssystem_bauplan_v1.md`)
-  - **N-S2-MINIMAL GEBAUT 19.07.2026 (Option A/Route), wartet auf Freigabe.** Branch
+  - **N-S2-MINIMAL GEBAUT + GEMERGT 19.07.2026 (Option A/Route).** Branch
     `feature/notifications-bell-ns2`. TopBar-Glocke + Ungelesen-Badge (RLS-Query, Realtime live) ·
     Route `/app/notifications` (4 Gruppen nur Ungelesenes · Verlauf-Tab 90T · Klick=gelesen+navigate N13 ·
     Alle-als-gelesen · EmptyState) · db.ts 4 RLS-Queries (kein `notify()`) · `realtime.ts`
@@ -502,7 +502,7 @@
     Demo-Modus = leer, korrekt). **Bewusst Folge-Slices:** Inline-Source-Buttons (Chat C6/Betrieb B3) ·
     Settings-Matrix (N-S4) · Aktions-Popup+E-Mail (N-S4) · Aktivitätsfenster (N-S3) · Client-Realtime für
     andere Listen (Stub bleibt).
-  - **N-S1 GEBAUT 19.07.2026, wartet auf db push + Freigabe.** Branch `feature/notifications-foundation-ns1`.
+  - **N-S1 GEBAUT + GEMERGT 19.07.2026** (db push erfolgt). Branch `feature/notifications-foundation-ns1` (gelöscht).
     Migr. **065** (`notifications` + `activity_events` + `settings.notifications` additiv · Idempotenz-Key
     **MIT `user_id`** · Pflicht-Indizes inkl. partiell `read_at IS NULL` · RLS · Realtime `supabase_realtime`
     + `notifications`) · **066** (`notify()` Idempotenz-Upsert N12 + Rollen-Fanout + „Zeile schreiben →
@@ -522,7 +522,7 @@
     Konfigurierbarkeits-Prinzip [D51]. Umsetzung mit dem AI-Chat-Slice, kein Mehraufwand jetzt.
 
 **5.** [~] **[BAU] Betrieb Slice B-1 MINIMAL** (`docs/betrieb_ueberwachung_bauplan_v1.md`)
-  - **GEBAUT 19.07.2026, wartet auf db push + Edge-Deploy + Freigabe.** Branch `feature/ops-monitoring-b1`.
+  - **GEBAUT + GEMERGT 19.07.2026** (db push + Edge-Deploy erfolgt). Branch `feature/ops-monitoring-b1` (gelöscht).
     Migr. **068** (`cron_runs`/`system_alerts`/`cron_expectations` global + RLS + Indizes + Klartext-Seeds) ·
     **069** (`cron_run_start`/`cron_run_finish`-Wrapper · Retention-Cron · 063/067 umgestellt · `run_watchdog`
     gebündelt + Watchdog-Cron 15 Min). 4 Edge-Crons (035/037/049/051) schreiben cron_runs in ihren Functions.
@@ -536,7 +536,7 @@
 
 **6.** [~] **[BAU+DESIGN] Settings SET-1 bis SET-4** (`docs/settings_bauplan_v1.md`;
   **SET-2 wartet auf Olivers vorhandenes Design** — Abgleich nach dessen Abschnitt 6)
-  - **SET-1 Rechte-Fundament GEBAUT + DB-GEPUSHT + LIVE-VERIFIZIERT 19.07.2026 (Migr. 070/071), wartet auf Merge-Freigabe.**
+  - **SET-1 Rechte-Fundament FERTIG + GEMERGT 19.07.2026** (Migr. 070/071 gepusht, 11/11 live-verifiziert, Merge `b79b11c`).**
     Live-Akzeptanz gegen Remote (11/11 PASS, self-abortierender DO-Block, kein Testdaten-Rest): member ohne Recht→false /
     grant→sofort true / member-Löschen ohne Recht verweigert / mit Recht ok / Cross-Org-grant verweigert / Letzter-Owner
     geschützt / audit_log-Eintrag / **ohne Session löschen+merge → „nicht authentifiziert"** / Katalog=3 / member-Matrix=0.
@@ -551,7 +551,7 @@
     `records.merge`. **NICHT jetzt:** Einzelrechte-/Papierkorb-UI (SET-3), Nav-Rollen-Ausblendung (SET-2),
     AI-Chat-Tool-Bindung, Viewer-Read-only-Enforcement.
 
-  - **SET-2 „PERSÖNLICH"-UI FIXES 19.07.2026 (nach Live-Test), wartet auf db push (Migr. 074) + Merge.**
+  - **SET-2 „PERSÖNLICH"-UI FIXES 19.07.2026 (nach Live-Test) — GEMERGT** (Migr. 074 gepusht, Merge `0f16896`).**
     (1) **Bug behoben:** Sidebar las die Ansicht-Prefs nicht (hardcodierte Listen) → liest jetzt `getNavPreferences`
     mit gleichem Query-Key wie AppearanceTab → Ausblenden/Reihenfolge wirkt **sofort ohne Reload** (Regressionstest).
     (2) **booking_provider auf E3-Kanon** (`calcom`|`external`, Migr. 074 `update_my_profile`) — UI: „Cal.com" /
@@ -570,7 +570,24 @@
       Verwandt: `last_seen_at` aus SET-3-Diagnose — sobald dort befüllt, könnte „Zuletzt aktiv" auch hier dezent
       erscheinen. Nur vermerkt.
 
-  - **SET-3 TEAM & RECHTE GEBAUT 19.07.2026 (Backend + UI, Migr. 076 gepusht + 18/18 live-verifiziert), wartet auf Merge-Freigabe.**
+  - **MEIN UNTERNEHMEN 1/3 „PRODUKTE & PREISE" FERTIG + GEMERGT 20.07.2026** (Migr. 077 gepusht,
+    11/11 live-verifiziert, Merge `963b3a2`). Erste Seite der Gruppe **„Mein Unternehmen"** (SET-KB-2).
+    `org_profile` als schlankes Gerüst (usps/competitors/`field_meta` **mit `locked`** als Schutz vor dem
+    späteren Website-Scan) · `products` (028) **additiv** erweitert statt zweiter `product_info`-Tabelle
+    (sonst fände der Nutzer sein Produkt nicht im Deal-Dropdown wieder) · **`ai_may_reference_price`**
+    pro Produkt, Default false, als **harte Bedingung** im AI-SDR-Bauplan verankert · EIN Schreibweg
+    (`update_org_profile`/`create_product`/`update_product`/`delete_product` weich) mit Key-Whitelist +
+    `settings.manage` + `audit_log` · Texte als `jsonb` (Mehrsprach-Andockhaken `i18nText`).
+    **UI:** durchgehend sichtbare graue Felder (Muster-Korrektur nach Live-Test), einklappbare Produkte
+    mit „X offen"-Hinweis, KI-Knöpfe im Teal-Pill-Kanon (Funktion „Folgt" bis `lib/ai.ts`),
+    regelbasierte Vollständigkeit mit Wirkungshinweis. **Projektweit entstanden:** Wichtigkeits-Registry
+    `fieldImportance.ts` (einzige Quelle der Feld-Wichtigkeit) · Dauerregel **„Chat-Aktions-Vertrag-Pflicht"**
+    (CLAUDE.md) · **„Progressive Ausführung"** (ai_chat_bauplan 5a) · `FIELD`/`AI_PILL`-Kanon in
+    `componentBehavior.ts`. **Offen:** Slice 2 (Personal Voice, 5 Kanäle inkl. `email`) · Slice 3
+    (Unternehmensprofil + `org_icps`/`org_personas` + Umzug von USPs/Wettbewerbern, die bis dahin bewusst
+    über keine Oberfläche erreichbar sind).
+
+  - **SET-3 TEAM & RECHTE FERTIG + GEMERGT 19./20.07.2026** (Backend + UI, Migr. 076 gepusht, 18/18 live-verifiziert, Merge `ad34c94`).**
     Settings-Shell `/app/settings` mit Zurück-Button + VOLLSTÄNDIGER Gruppen-Nav (Bauplan Abschnitt 1) — nur „Team & Rechte"
     gebaut, Rest ausgegraut/„Folgt" (künftige Slices setzen nur `built:true` in `settingsNav.ts`, keine Struktur-Änderung mehr).
     Persönlich = dezenter Verweis auf /app/profil (keine Gruppe). Mitglieder (Rolle/Status/zuletzt aktiv/Aktionen), Einladen
@@ -580,7 +597,7 @@
     **NICHT jetzt (Haken):** echtes Realtime für `user_permissions` · volle Audit-Log-Seite (SET-6) · `approval_requests` (C6)
     · Einladungs-Mailversand ([D29]) · Inhalt der ausgegrauten Gruppen (je eigener Slice).
 
-  - **SET-2 „PERSÖNLICH"-UI GEBAUT 19.07.2026 (Mein Profil/Ansicht/Sicherheit), wartet auf Merge-Freigabe.**
+  - **SET-2 „PERSÖNLICH"-UI FERTIG + GEMERGT 19.07.2026** (Mein Profil/Ansicht/Sicherheit, Merge `0f16896`).**
     Zugang gebündelt hinter dem Avatar-Dropdown (Route `/app/profil`, 3 Reiter via `PanelTabs`) — NICHT in der
     Haupt-Settings-Nav (Bauplan-Struktur-Korrektur eingetragen, `6a2ed07`). Echte Daten: `updateMyProfile`
     (Name/Booking/Signatur, Auto-Save) · Sprache via `setLanguage`+`user_preferences('ui.language')` ·
@@ -589,7 +606,7 @@
     shadcn `switch`/`textarea`, `typo-page-title`. **Keine Personal-Voice-Karte** (→ Mein Unternehmen). 11 Render-Tests.
     Entscheidungen A–F wie vorgeschlagen. **Kein db push nötig** (reine UI auf vorhandenem Backend).
 
-  - **SET-2 BACKEND/DATENGRUNDLAGE GEBAUT 19.07.2026 (keine UI), wartet auf db push (Migr. 073) + Merge-Freigabe.**
+  - **SET-2 BACKEND/DATENGRUNDLAGE FERTIG + GEMERGT 19.07.2026** (keine UI; Migr. 073 gepusht, Merge `53e4123`).**
     Allgemein: `settings.general` (Sprache/Zeitzone/Datumsformat/Währung); Mein Profil: `users.booking_provider/
     booking_link/signature`; neues Recht `settings.manage` (owner+admin). Validierte Update-RPCs `update_general_settings`
     / `update_my_profile` (audit_log, Falle 2). Merge-Lesen mit Defaults zentral: `settingsDefaults.ts` +
@@ -598,7 +615,7 @@
     (baut auf SET-1). **NICHT gebaut (Auftrag):** jede UI/Screen · Voice-Inhalt (SET-KB-2). **Welche Bereiche
     brauchten neue Backend-Arbeit:** Allgemein + Mein Profil (neu) · Ansicht/Sicherheit/Shell = bereits vorbereitet.
 
-  - **LOGIN-PFLICHT [D21] GEBAUT 19.07.2026 (vorgezogen), wartet auf db push (Migr. 072) + Merge-Freigabe.**
+  - **LOGIN-PFLICHT [D21] FERTIG + GEMERGT 19.07.2026 (vorgezogen)** — Migr. 072 gepusht, Merge `42381be`.**
     Auth war bereits voll gebaut (Korrektur der „Phase 5"-Altnotiz). Geschlossen: Catch-all `NotFoundRedirect`
     (unbekannt+nicht-eingeloggt → Login), öffentliche Routen explizit vor Catch-all (`/reset` neu, `/invite/:token`
     + `/unsubscribe` reserviert), **CLAUDE-Dauerregel „Öffentliche Routen"** · Passwort-Reset-Abschluss `/reset` ·
