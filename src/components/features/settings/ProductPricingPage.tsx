@@ -28,7 +28,7 @@ import {
 } from "@/lib/db";
 import { textOf } from "@/lib/i18nText";
 import { computeCompleteness } from "@/lib/companyKnowledge";
-import { SettingsCard, KnowledgeField } from "@/components";
+import { SettingsCard, KnowledgeField, StatusBadge } from "@/components";
 import { useToast } from "@/components/shared/toastContext";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -207,6 +207,15 @@ export default function ProductPricingPage() {
                   )}
                 </button>
 
+                {/* Preismodell-Badge — im Kopf, immer sichtbar (auf+zu), analog zum Passungs-Badge
+                    bei den Zielgruppen. Kategorie ohne Gut/Schlecht → ein konsistenter farbiger Ton
+                    (info). Kein Modell gesetzt → kein Badge (Honesty). */}
+                {p.price_model && (
+                  <span className="shrink-0">
+                    <StatusBadge tone="info" label={t(`company.priceModel.${p.price_model}`)} />
+                  </span>
+                )}
+
                 {/* Teil 3: KI füllt SPÄTER das ganze Produkt auf einmal — heute ehrlich „Folgt". */}
                 <button
                   type="button"
@@ -250,21 +259,23 @@ export default function ProductPricingPage() {
                   multiline
                   onSave={(v) => patchProduct(p.id, { description: v })}
                 />
-                <KnowledgeField
-                  canEdit={canEdit}
-                  label={t("company.field.benefit")}
-                  value={textOf(p.benefit)}
-                  placeholder={t("company.placeholder.benefit")}
-                  multiline
-                  onSave={(v) => patchProduct(p.id, { benefit: v })}
-                />
-                <KnowledgeField
-                  canEdit={canEdit}
-                  label={t("company.field.audience")}
-                  value={textOf(p.audience)}
-                  placeholder={t("company.placeholder.audience")}
-                  onSave={(v) => patchProduct(p.id, { audience: v })}
-                />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <KnowledgeField
+                    canEdit={canEdit}
+                    label={t("company.field.benefit")}
+                    value={textOf(p.benefit)}
+                    placeholder={t("company.placeholder.benefit")}
+                    multiline
+                    onSave={(v) => patchProduct(p.id, { benefit: v })}
+                  />
+                  <KnowledgeField
+                    canEdit={canEdit}
+                    label={t("company.field.audience")}
+                    value={textOf(p.audience)}
+                    placeholder={t("company.placeholder.audience")}
+                    onSave={(v) => patchProduct(p.id, { audience: v })}
+                  />
+                </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <KnowledgeField

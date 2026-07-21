@@ -352,26 +352,28 @@ function ChannelFields({
         placeholder={t("voice.field.hooks.ph")}
         onSave={(v) => onSave("hooks", v)}
       />
-      {/* „Das machst du immer" — Bestätigungs-Symbol (grün). */}
-      <KnowledgeField
-        canEdit={canEdit}
-        multiline
-        icon={<Check className="w-3.5 h-3.5 text-signal-success" />}
-        label={t("voice.field.dosAlways.label")}
-        value={textOf(dd.always)}
-        placeholder={t("voice.field.dosAlways.ph")}
-        onSave={(v) => onSave("dos_donts", { ...dd, always: v })}
-      />
-      {/* „Das machst du nie" — Warn-Symbol. Beide Teile leben im selben Feld dos_donts. */}
-      <KnowledgeField
-        canEdit={canEdit}
-        multiline
-        icon={<AlertTriangle className="w-3.5 h-3.5 text-signal-warn" />}
-        label={t("voice.field.dosNever.label")}
-        value={textOf(dd.never)}
-        placeholder={t("voice.field.dosNever.ph")}
-        onSave={(v) => onSave("dos_donts", { ...dd, never: v })}
-      />
+      {/* „Das machst du immer" / „…nie" — zwei benannte Teile DESSELBEN Feldes dos_donts,
+          nebeneinander (mobil gestapelt). Beide Saves schicken das ganze {always,never}-Objekt. */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <KnowledgeField
+          canEdit={canEdit}
+          multiline
+          icon={<Check className="w-3.5 h-3.5 text-signal-success" />}
+          label={t("voice.field.dosAlways.label")}
+          value={textOf(dd.always)}
+          placeholder={t("voice.field.dosAlways.ph")}
+          onSave={(v) => onSave("dos_donts", { ...dd, always: v })}
+        />
+        <KnowledgeField
+          canEdit={canEdit}
+          multiline
+          icon={<AlertTriangle className="w-3.5 h-3.5 text-signal-warn" />}
+          label={t("voice.field.dosNever.label")}
+          value={textOf(dd.never)}
+          placeholder={t("voice.field.dosNever.ph")}
+          onSave={(v) => onSave("dos_donts", { ...dd, never: v })}
+        />
+      </div>
       {/* „Beispiele" bewusst GANZ UNTEN (nach „Das machst du nie") — echte Proben sind der
           natürliche Abschluss des Kanals, nicht der Einstieg. */}
       <KnowledgeField
