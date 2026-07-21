@@ -73,6 +73,28 @@ describe("CompanyProfilePage", () => {
     );
   });
 
+  it("Einzelfeld-Liste zeigt leer EINE leere Zeile (kein Hint-Text); Tippen legt den ersten Eintrag an", async () => {
+    renderPage();
+    // Leere USPS-Liste → direkt ein beschreibbares Feld, KEIN "Noch kein USP"-Hinweis
+    const field = await screen.findByPlaceholderText("company.profile.usps.ph");
+    expect(field).toBeTruthy();
+    expect(screen.queryByText("company.profile.usps.empty")).toBeNull();
+    // Tippen + Blur in der Draft-Zeile erzeugt den ersten echten Eintrag
+    fireEvent.change(field, { target: { value: "Live in Minuten" } });
+    fireEvent.blur(field);
+    await waitFor(() =>
+      expect(updateOrgProfile).toHaveBeenCalledWith({ usps: [expect.objectContaining({ text: "Live in Minuten" })] }),
+    );
+  });
+
+  it("Mehrfeld-Liste (Wettbewerber) zeigt leer KEINE Draft-Zeile, sondern den Hint", async () => {
+    renderPage();
+    fireEvent.click(await screen.findByText("company.profile.tab.offerings"));
+    // Direkte Wettbewerber leer → Hint sichtbar, kein leeres name-Feld
+    expect(await screen.findAllByText("company.profile.competitors.empty")).toBeTruthy();
+    expect(screen.queryByPlaceholderText("company.profile.competitors.namePh")).toBeNull();
+  });
+
   it("Offerings-Reiter: Wettbewerber direkt hinzufuegen setzt kind='direct'", async () => {
     renderPage();
     fireEvent.click(await screen.findByText("company.profile.tab.offerings"));

@@ -30,8 +30,11 @@ export interface ListSubField {
   multiline?: boolean;
 }
 
+/** Draft-Zeile im Leerzustand: stabile ID, damit KnowledgeField nicht bei jedem Render neu mountet. */
+const DRAFT_ID = "__draft__";
+
 export default function KnowledgeListField({
-  label, items, fields, canEdit = true, addLabel, removeLabel, emptyHint, onChange,
+  label, items, fields, canEdit = true, addLabel, removeLabel, emptyHint, emptyRow, onChange,
 }: {
   label: string;
   items: ListItem[];
@@ -40,12 +43,30 @@ export default function KnowledgeListField({
   addLabel: string;
   removeLabel: string;
   emptyHint?: string;
+  /**
+   * Leerzustand zeigt EINE leere, direkt beschreibbare Zeile statt `emptyHint`-Text
+   * (Tippen legt den ersten Eintrag an, leer bleibt verworfen). Default: nur bei Einzelfeld-Listen
+   * (USPs/Probleme/Ergebnisse) — Mehrfeld-Listen (Wettbewerber/Angebote) blieben sonst mit einer
+   * leeren Karte zu laut und behalten den Hint. Explizit überschreibbar.
+   */
+  emptyRow?: boolean;
   onChange: (next: ListItem[]) => void;
 }) {
   const multi = fields.length > 1;
+  const showEmptyRow = (emptyRow ?? !multi) && canEdit;
 
-  const setField = (id: string, key: string, v: string) =>
+  const isReal = (id: string) => items.some((it) => it.id === id);
+  const setField = (id: string, key: string, v: string) => {
+    // Draft-Zeile (nicht in `items`): erst bei echtem Wert als Eintrag anlegen — leer wird verworfen.
+    if (!isReal(id)) {
+      if (v.trim() === "") return;
+      const created: ListItem = { id: crypto.randomUUID() };
+      for (const f of fields) created[f.key] = f.key === key ? v : "";
+      onChange([...items, created]);
+      return;
+    }
     onChange(items.map((it) => (it.id === id ? { ...it, [key]: v } : it)));
+  };
   const removeItem = (id: string) => onChange(items.filter((it) => it.id !== id));
   const addItem = () => {
     const blank: ListItem = { id: crypto.randomUUID() };
@@ -53,8 +74,13 @@ export default function KnowledgeListField({
     onChange([...items, blank]);
   };
 
+  // Leer + Einzelfeld → eine leere Draft-Zeile rendern (kein „Noch nichts eingetragen."-Text).
+  const draft: ListItem = { id: DRAFT_ID };
+  for (const f of fields) draft[f.key] = "";
+  const rows = items.length === 0 && showEmptyRow ? [draft] : items;
+
   const removeBtn = (id: string, extra: string) =>
-    canEdit ? (
+    canEdit && isReal(id) ? (
       <button
         type="button"
         onClick={() => removeItem(id)}
@@ -69,12 +95,12 @@ export default function KnowledgeListField({
   return (
     <div>
       <div className="typo-field-label text-text-muted mb-1.5">{label}</div>
-      {items.length === 0 && emptyHint && (
+      {items.length === 0 && !showEmptyRow && emptyHint && (
         <p className="typo-subline text-text-muted mb-2">{emptyHint}</p>
       )}
 
       <div className="space-y-2.5">
-        {items.map((it) =>
+        {rows.map((it) =>
           multi ? (
             // Mehrere Sub-Felder → dezent umrandeter Block gruppiert den Eintrag; graue Felder
             // heben sich gegen die weiße Karte ab (Container selbst transparent, kein zweites Grau).
@@ -118,9 +144,9 @@ export default function KnowledgeListField({
         <button
           type="button"
           onClick={addItem}
-          className="mt-2.5 inline-flex items-center gap-1.5 text-[12px] font-bold text-[var(--sherloq-primary)] hover:opacity-80 transition-opacity cursor-pointer"
+          className="mt-2 inline-flex items-center gap-1 text-[12px] font-medium text-text-muted hover:text-[var(--sherloq-primary)] transition-colors cursor-pointer"
         >
-          <Plus className="w-3.5 h-3.5" /> {addLabel}
+          <Plus className="w-3 h-3" /> {addLabel}
         </button>
       )}
     </div>
