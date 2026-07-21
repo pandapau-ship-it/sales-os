@@ -1802,6 +1802,91 @@ export async function updateOrgProfile(patch: Record<string, unknown>): Promise<
   if (error) throw error;
 }
 
+// ── Zielgruppen & Personen (Mein Unternehmen 3b, Migr. 081/082) ──────────────
+// Eigenständige, verschachtelte Datensätze (1:N) nach dem products-Muster: eigene Tabellen +
+// create/update/delete-RPCs (settings.manage · Cross-Org-Guard · field_meta-lock · audit_log,
+// weiches Löschen via is_active). Text-Listen [{id,text}] (KnowledgeListField-kompatibel).
+// fit_level/buying_role sind feste System-Enums (CHECK in 081) — leer erlaubt (null).
+// Der verschachtelte Lese-Query (getIcpsWithPersonas) folgt mit der UI (Slice 3b-3).
+type ListText = { id: string; text: I18nText };
+
+/** Zielgruppe (org_icps). fit_level = feste System-Kategorie (81) oder null (noch nicht bewertet). */
+export interface IcpRow {
+  id: string;
+  name: string;
+  fit_level: "high" | "medium" | "low" | null;
+  company_profile: ListText[];
+  fit_rationale: ListText[];
+  desired_outcomes: ListText[];
+  problems_solved: ListText[];
+}
+
+/** Person je Zielgruppe (org_personas). job_titles speist match_persona (AI SDR). */
+export interface PersonaRow {
+  id: string;
+  icp_id: string;
+  name: string;
+  buying_role: "decision_maker" | "influencer" | "champion" | "end_user" | "blocker" | null;
+  job_titles: ListText[];
+  responsibilities: ListText[];
+  goals: ListText[];
+  priorities: ListText[];
+  core_problems: ListText[];
+  objections: ListText[];
+  exact_wording: ListText[];
+  inferred_wording: ListText[];
+}
+
+/** Neue (leere) Zielgruppe anlegen — alle Inhalte optional. Gibt die neue id zurück. */
+export async function createIcp(): Promise<string | null> {
+  const client = getSupabaseClient();
+  if (!client) return null;
+  const { data, error } = await client.rpc("create_icp");
+  if (error) throw error;
+  return (data as string) ?? null;
+}
+
+/** ICP-Feld(er) ändern (EIN Schreibweg). patch ⊆ {name,fit_level,company_profile,fit_rationale,desired_outcomes,problems_solved,is_active} — Listen als VOLLE Liste. */
+export async function updateIcp(id: string, patch: Record<string, unknown>): Promise<void> {
+  const client = getSupabaseClient();
+  if (!client) return;
+  const { error } = await client.rpc("update_icp", { p_id: id, p_patch: patch });
+  if (error) throw error;
+}
+
+/** Zielgruppe entfernen — weich (is_active=false). */
+export async function deleteIcp(id: string): Promise<void> {
+  const client = getSupabaseClient();
+  if (!client) return;
+  const { error } = await client.rpc("delete_icp", { p_id: id });
+  if (error) throw error;
+}
+
+/** Neue (leere) Person unter einer Zielgruppe anlegen. Gibt die neue id zurück. */
+export async function createPersona(icpId: string): Promise<string | null> {
+  const client = getSupabaseClient();
+  if (!client) return null;
+  const { data, error } = await client.rpc("create_persona", { p_icp_id: icpId });
+  if (error) throw error;
+  return (data as string) ?? null;
+}
+
+/** Persona-Feld(er) ändern (EIN Schreibweg). patch ⊆ {name,buying_role,job_titles,…,is_active} — Listen als VOLLE Liste; icp_id ist nicht änderbar. */
+export async function updatePersona(id: string, patch: Record<string, unknown>): Promise<void> {
+  const client = getSupabaseClient();
+  if (!client) return;
+  const { error } = await client.rpc("update_persona", { p_id: id, p_patch: patch });
+  if (error) throw error;
+}
+
+/** Person entfernen — weich (is_active=false). */
+export async function deletePersona(id: string): Promise<void> {
+  const client = getSupabaseClient();
+  if (!client) return;
+  const { error } = await client.rpc("delete_persona", { p_id: id });
+  if (error) throw error;
+}
+
 // ── Personal Voice (Mein Unternehmen 2/3, Migr. 078/079) ─────────────────────
 // Die eigene Schreibstimme des Users (pro User, visibility:'self'). Texte sind mehrsprach-fähig
 // (I18nText — heute reiner String). Getrennt von contacts.personality_profile (Empfänger).
