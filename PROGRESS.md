@@ -1633,6 +1633,31 @@ kam es, wie groß ist es** — und einen **klaren nächsten Schritt** anstoßen 
 - **Realtime Subscriptions statt Polling:** `realtime.ts` ist aktuell ein No-op-Stub → echte Subscriptions in Phase 5.
 - **Kommt wenn:** alle Screens fertig + Auth/Org [D21] steht.
 
+### [D-perf-aufraeumen] Pre-Push-Audit WARN-Punkte sammeln + abarbeiten (deferred)
+> **Erfasst 21.07.2026** aus dem Pre-Push-Audit beim `main`-Push `3c5b19c` (6 WARN · 0 FAIL — alle
+> vorbestehend, keiner aus dem 3b-Slice). Nur dokumentiert, **nicht jetzt umsetzen** (Oliver-Entscheidung).
+> WARN = Empfehlung, kein Blocker. Gute Kandidaten für einen späteren Perf-/Aufräum-Slice bzw. den AI-Layer.
+>
+> **A) Perf-Empfehlungen (Bestandscode):**
+> 1. **`staleTime` fehlt** (`useQuery` Default 0 → aggressiv; Empf. 30s statisch / 5s live):
+>    `FarmerSidepanel.tsx` · `HunterSidepanel.tsx` · `ExpandedCardContent.tsx` · `FarmerExpandedCardContent.tsx` · `useModules.ts`.
+> 2. **`SELECT *` statt expliziter Felder** in `src/lib/db.ts`: `getContacts` · `getCompanies` · `getCompanyDetail` ·
+>    `getDealsByCompany` · `getNotesByCompany` · `getSignals` · `getTasksByContact` · `getNotesByContact` ·
+>    `getDealsByContact` · `getSettings` · `getDuplicatePairs` · `getCompanyDuplicatePairs` · `mergeContacts` ·
+>    `mergeCompanies` · `getListMembers` (Ausnahme `getContactDetail` bleibt bewusst `*`).
+> 3. **Edge-Function ohne explizites Timeout** (Empf. max 30s Cron / 10s User): `supabase/functions/`
+>    `health` · `score-churn-risk` · `score-deal-health` · `score-heat-status` · `score-upsell`.
+>
+> **B) AI-Layer-Migration:** `src/lib/aiChat.ts` ruft (künftig) nicht über `aiCall()` — `lib/ai.ts` fehlt noch;
+>    **bei Bau des AI-Layers migrieren** (deckt sich mit der Choke-Point-Regel; verwandt mit [D5]).
+>
+> **C) Kein Handlungsbedarf (Fehlalarm der Heuristik, nur zur Vollständigkeit):** „Component Registry" +
+>    „Single-Source Kontaktwerte" treffen ausschließlich **Test-Dateien** (`*.render.test.tsx`,
+>    `ScreenDuplicates.render.test.tsx:97/115/143`) — kein Produktivcode.
+>
+> **Verwandt:** [D28] (Perf-Politur Phase 5) · [D5] (AI-Pipeline). **Kommt wenn:** eigener Perf-/Aufräum-Slice
+> bzw. mit dem jeweiligen Modul (AI-Layer, Realtime).
+
 ### [D29] Einladungs-Email via Edge Function (deferred)
 - Einladung wird bereits in `invitations` gespeichert (Migration 042) ✓
 - Provisioning-Trigger ordnet Org + Rolle zu, wenn der User sich registriert (Migration 043) ✓
