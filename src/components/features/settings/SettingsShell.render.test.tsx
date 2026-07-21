@@ -39,7 +39,7 @@ describe("SettingsShell", () => {
 
   it("nicht gebaute Einträge sind ausgegraut: disabled UND nicht fokussierbar", () => {
     render(<SettingsShell />);
-    for (const key of ["allgemein", "branding", "unternehmensprofil", "regeln", "modelle", "integrationen", "status"]) {
+    for (const key of ["allgemein", "branding", "regeln", "modelle", "integrationen", "status"]) {
       const btn = screen.getByText(`settings.nav.${key}`).closest("button") as HTMLButtonElement;
       expect(btn.disabled, key).toBe(true);
       expect(btn.getAttribute("tabindex"), key).toBe("-1");

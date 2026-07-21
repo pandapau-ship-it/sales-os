@@ -464,6 +464,8 @@ function checkTypographyTokens(): void {
     'ProductPricingPage', 'KnowledgeField',
     // „Mein Unternehmen" Slice 2/3 — Personal Voice
     'PersonalVoicePage',
+    // „Mein Unternehmen" Slice 3a — Unternehmensprofil + generisches Listen-Feld
+    'CompanyProfilePage', 'KnowledgeListField',
   ])
   // panel-blocks/ + features/ + farming/ (Farmer-Hilfskomponenten).
   const files = [

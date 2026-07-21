@@ -1289,7 +1289,13 @@
       "voiceSamples": "Biggest win right now: real examples — the strongest signal for your style.",
       "voiceSentenceStyle": "Biggest win right now: your sentence structure/rhythm.",
       "voiceHooks": "Biggest win right now: your typical hooks.",
-      "voiceDosDonts": "Biggest win right now: your do's & don'ts."
+      "voiceDosDonts": "Biggest win right now: your do's & don'ts.",
+      "summary": "Biggest win right now: a short description — who are you, what do you do?",
+      "productModel": "Biggest win right now: your product/service model.",
+      "valueOutcome": "Biggest win right now: your value/outcome — the core promise.",
+      "problemsSolved": "Biggest win right now: which problems you solve — the strongest language.",
+      "businessOutcomes": "Biggest win right now: the business outcomes you enable.",
+      "offerings": "Biggest win right now: your offering categories."
     },
     "products": "Products",
     "productsHelp": "What you sell. Multiple products possible, all fields optional.",
@@ -1340,7 +1346,27 @@
     "aiFill": "AI fill",
     "aiFillProduct": "Let AI fill in all fields of this product",
     "statusMissing": "{{n}} open",
-    "statusMissingTip": "The AI is still missing these details"
+    "statusMissingTip": "The AI is still missing these details",
+    "profile": {
+      "intro": "What the AI knows about your company — positioning, offering and market. Nothing is required.",
+      "tab": { "overview": "Overview", "offerings": "Offerings & market" },
+      "summary": { "label": "Summary", "help": "In one or two sentences: who you are, what you do.", "ph": "e.g. We help B2B sales teams prospect personally at scale." },
+      "productModel": { "label": "Product / service model", "ph": "How do you deliver? Platform, consulting, subscription …" },
+      "valueOutcome": { "label": "Value & outcome", "ph": "What measurably improves for your customers?" },
+      "usps": { "label": "USPs", "add": "Add USP", "remove": "Remove USP", "empty": "No USP yet.", "ph": "What makes you special?" },
+      "problems": { "label": "Problems you solve", "add": "Add problem", "remove": "Remove problem", "empty": "Nothing added yet.", "ph": "e.g. generic outreach that gets ignored" },
+      "outcomes": { "label": "Business outcomes", "add": "Add outcome", "remove": "Remove outcome", "empty": "Nothing added yet.", "ph": "e.g. higher reply rates, shorter sales cycles" },
+      "offerings": { "label": "Offerings", "add": "Add offering", "remove": "Remove offering", "empty": "No offering yet.", "titleLabel": "Title", "titlePh": "e.g. Company Intelligence Research", "textLabel": "Description", "textPh": "What does this offering include?" },
+      "competitors": { "directLabel": "Direct competitors", "adjacentLabel": "Adjacent competitors", "add": "Add competitor", "remove": "Remove competitor", "empty": "No competitors yet.", "nameLabel": "Name", "namePh": "e.g. HubSpot", "whyLabel": "Why us?", "whyPh": "Why are you the better choice?" },
+      "contextTitle": "AI Context Builder",
+      "contextHelp": "Don't type everything manually. The AI can analyze your website to pre-fill the profile.",
+      "scanCta": "Scan website",
+      "chatCta": "Chat setup",
+      "detailsTitle": "Profile",
+      "detailsHelp": "Your company details per tab. All optional.",
+      "completenessHelp": "The more you add here, the more specific the AI can be.",
+      "aiHint": "The \"Scan website\" button will later pre-fill the profile automatically. Coming soon."
+    }
   },
   "voice": {
     "intro": "Your personal writing voice. The AI SDR will use it to write in YOUR voice. Nothing is required — fill in what fits.",

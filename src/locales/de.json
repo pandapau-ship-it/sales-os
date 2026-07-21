@@ -1295,7 +1295,13 @@
       "voiceSamples": "Am meisten bringt jetzt: echte Beispiele — das stärkste Signal für deinen Stil.",
       "voiceSentenceStyle": "Am meisten bringt jetzt: dein Satzbau/Rhythmus.",
       "voiceHooks": "Am meisten bringt jetzt: deine typischen Aufhänger.",
-      "voiceDosDonts": "Am meisten bringt jetzt: deine Do's & Don'ts."
+      "voiceDosDonts": "Am meisten bringt jetzt: deine Do's & Don'ts.",
+      "summary": "Am meisten bringt jetzt: eine Kurzbeschreibung — wer seid ihr, was tut ihr?",
+      "productModel": "Am meisten bringt jetzt: euer Produkt-/Service-Modell.",
+      "valueOutcome": "Am meisten bringt jetzt: euer Nutzen/Ergebnis — das Kernversprechen.",
+      "problemsSolved": "Am meisten bringt jetzt: welche Probleme ihr löst — die stärkste Sprache.",
+      "businessOutcomes": "Am meisten bringt jetzt: die Geschäftsergebnisse, die ihr ermöglicht.",
+      "offerings": "Am meisten bringt jetzt: eure Angebots-Kategorien."
     },
     "products": "Produkte",
     "productsHelp": "Was ihr verkauft. Mehrere Produkte möglich, alle Felder optional.",
@@ -1346,7 +1352,27 @@
     "aiFill": "KI ausfüllen",
     "aiFillProduct": "Alle Felder dieses Produkts von der KI ausfüllen lassen",
     "statusMissing": "{{n}} offen",
-    "statusMissingTip": "Diese Angaben fehlen der AI noch"
+    "statusMissingTip": "Diese Angaben fehlen der AI noch",
+    "profile": {
+      "intro": "Was die AI über euer Unternehmen weiß — Positionierung, Angebot und Markt. Nichts ist Pflicht.",
+      "tab": { "overview": "Überblick", "offerings": "Angebot & Markt" },
+      "summary": { "label": "Zusammenfassung", "help": "In ein bis zwei Sätzen: wer seid ihr, was tut ihr.", "ph": "z. B. Wir helfen B2B-Sales-Teams, personalisiert und skalierbar zu prospektieren." },
+      "productModel": { "label": "Produkt-/Service-Modell", "ph": "Wie liefert ihr? Plattform, Beratung, Abo …" },
+      "valueOutcome": { "label": "Nutzen & Ergebnis", "ph": "Was verbessert sich messbar für eure Kunden?" },
+      "usps": { "label": "USPs", "add": "USP hinzufügen", "remove": "USP entfernen", "empty": "Noch kein USP.", "ph": "Was macht euch besonders?" },
+      "problems": { "label": "Probleme, die ihr löst", "add": "Problem hinzufügen", "remove": "Problem entfernen", "empty": "Noch nichts eingetragen.", "ph": "z. B. generische Ansprache, die ignoriert wird" },
+      "outcomes": { "label": "Geschäftsergebnisse", "add": "Ergebnis hinzufügen", "remove": "Ergebnis entfernen", "empty": "Noch nichts eingetragen.", "ph": "z. B. höhere Antwortquote, kürzere Sales-Zyklen" },
+      "offerings": { "label": "Angebote", "add": "Angebot hinzufügen", "remove": "Angebot entfernen", "empty": "Noch kein Angebot.", "titleLabel": "Titel", "titlePh": "z. B. Company-Intelligence-Research", "textLabel": "Beschreibung", "textPh": "Was umfasst dieses Angebot?" },
+      "competitors": { "directLabel": "Direkte Wettbewerber", "adjacentLabel": "Angrenzende Wettbewerber", "add": "Wettbewerber hinzufügen", "remove": "Wettbewerber entfernen", "empty": "Noch keine Wettbewerber.", "nameLabel": "Name", "namePh": "z. B. HubSpot", "whyLabel": "Warum wir?", "whyPh": "Warum seid ihr die bessere Wahl?" },
+      "contextTitle": "AI Context Builder",
+      "contextHelp": "Nicht alles manuell tippen. Die KI kann eure Website analysieren und das Profil vorbefüllen.",
+      "scanCta": "Website scannen",
+      "chatCta": "Chat-Einrichtung",
+      "detailsTitle": "Profil",
+      "detailsHelp": "Pro Reiter die Details eures Unternehmens. Alles optional.",
+      "completenessHelp": "Je mehr hier steht, desto konkreter schreibt die AI später.",
+      "aiHint": "Der „Website scannen“-Knopf füllt das Profil später automatisch aus. Folgt."
+    }
   },
   "voice": {
     "intro": "Deine persönliche Schreibstimme. Der AI SDR nutzt sie später, um in DEINER Stimme zu texten. Nichts ist Pflicht — füll aus, was passt.",

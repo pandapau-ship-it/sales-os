@@ -145,9 +145,12 @@
      GENAU diese eine Kachel übernimmt die Original-Referenz-Optik (dunkel + türkis), immer dunkel
      in beiden Modi (wie ein Toast). KEINE generelle Regeländerung — überall sonst neutrale Tokens.
      Hex lebt hier in index.css (erlaubt), NICHT als roher Wert im JSX. */
-  --voice-trainer-surface: #171C26;  /* fast-schwarze Kachelfläche */
-  --voice-trainer-accent:  #2DD4BF;  /* türkise Überschrift/Icon */
-  --voice-trainer-muted:   #9CA3AF;  /* heller Fließtext auf dunkel */
+  /* AI-Dark-Panel — gemeinsame Quelle für die bewussten Dark-Ausnahme-Kacheln (AI Voice Trainer in
+     Personal Voice · AI Context Builder in Unternehmensprofil). Original-Referenz-Optik (dunkel+türkis),
+     immer dunkel in beiden Modi. Hex lebt hier (erlaubt), NICHT als roher Wert im JSX. */
+  --ai-panel-surface: #171C26;  /* fast-schwarze Kachelfläche */
+  --ai-panel-accent:  #2DD4BF;  /* türkise Überschrift/Icon */
+  --ai-panel-muted:   #9CA3AF;  /* heller Fließtext auf dunkel */
 }
 
 /* ─── Dark Mode — überschreibt NUR die Tokens, @theme inline folgt automatisch ──

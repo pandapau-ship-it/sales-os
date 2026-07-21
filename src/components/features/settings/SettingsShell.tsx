@@ -21,6 +21,7 @@ import { cn } from "@/lib/utils";
 import TeamMembersPage from "./TeamMembersPage";
 import ProductPricingPage from "./ProductPricingPage";
 import PersonalVoicePage from "./PersonalVoicePage";
+import CompanyProfilePage from "./CompanyProfilePage";
 
 export default function SettingsShell() {
   const navigate = useNavigate();
@@ -107,6 +108,7 @@ export default function SettingsShell() {
         {active === "team" && <TeamMembersPage />}
         {active === "product-pricing" && <ProductPricingPage />}
         {active === "personal-voice" && <PersonalVoicePage />}
+        {active === "unternehmensprofil" && <CompanyProfilePage />}
       </div>
     </div>
   );
