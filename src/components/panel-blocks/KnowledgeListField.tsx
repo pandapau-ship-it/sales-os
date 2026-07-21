@@ -14,6 +14,7 @@
  * zurück (der Aufrufer schreibt sie als ein Feld über den zentralen RPC — `update_org_profile`).
  * Entfernen ist DIREKT (kein Bestätigungsdialog): es ist nur ein Formularfeld, noch nicht gespeichert.
  */
+import type { ReactNode } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { textOf, type I18nText } from "@/lib/i18nText";
 import KnowledgeField from "./KnowledgeField";
@@ -34,9 +35,11 @@ export interface ListSubField {
 const DRAFT_ID = "__draft__";
 
 export default function KnowledgeListField({
-  label, items, fields, canEdit = true, addLabel, removeLabel, emptyHint, emptyRow, onChange,
+  label, icon, items, fields, canEdit = true, addLabel, removeLabel, emptyHint, emptyRow, onChange,
 }: {
   label: string;
+  /** Dezentes graues Icon links vom Label (schlichtes Lucide-Icon, kein farbiger Kreis). */
+  icon?: ReactNode;
   items: ListItem[];
   fields: ListSubField[];
   canEdit?: boolean;
@@ -94,12 +97,15 @@ export default function KnowledgeListField({
 
   return (
     <div>
-      <div className="typo-field-label text-text-muted mb-1.5">{label}</div>
+      <div className="typo-field-label text-text-muted mb-1.5 flex items-center gap-1.5">
+        {icon}
+        {label}
+      </div>
       {items.length === 0 && !showEmptyRow && emptyHint && (
         <p className="typo-subline text-text-muted mb-2">{emptyHint}</p>
       )}
 
-      <div className="space-y-2.5">
+      <div className="space-y-1.5">
         {rows.map((it) =>
           multi ? (
             // Mehrere Sub-Felder → dezent umrandeter Block gruppiert den Eintrag; graue Felder

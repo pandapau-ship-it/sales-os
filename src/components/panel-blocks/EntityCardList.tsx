@@ -32,7 +32,7 @@ export default function EntityCardList<T extends EntityItem>({
   items, canEdit = true, variant = "primary",
   addLabel, unnamedLabel, namePlaceholder,
   removeTitle, removeDescription, removeCancel, removeConfirm,
-  emptyHint, headerMeta, onAdd, onRename, onRemove, renderBody,
+  emptyHint, headerMeta, headerBadge, onAdd, onRename, onRemove, renderBody,
 }: {
   items: T[];
   canEdit?: boolean;
@@ -48,6 +48,8 @@ export default function EntityCardList<T extends EntityItem>({
   emptyHint?: string;
   /** Optionaler dezenter Hinweis in der zugeklappten Kopfzeile (z.B. Personen-Anzahl). */
   headerMeta?: (item: T) => ReactNode;
+  /** Badge im Kachel-Kopf, IMMER sichtbar (auf- und zugeklappt) — z.B. Passung/Kaufrolle. */
+  headerBadge?: (item: T) => ReactNode;
   onAdd: () => void;
   onRename: (id: string, name: string) => void;
   onRemove: (id: string) => void;
@@ -89,6 +91,7 @@ export default function EntityCardList<T extends EntityItem>({
                 </span>
                 {!isOpen && headerMeta && <span className="shrink-0">{headerMeta(it)}</span>}
               </button>
+              {headerBadge && <span className="shrink-0">{headerBadge(it)}</span>}
               {canEdit && (
                 <button
                   type="button"
