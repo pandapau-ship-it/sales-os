@@ -1508,6 +1508,19 @@ export async function getSettings(
   return data;
 }
 
+/**
+ * settings ändern (EIN Schreibweg, SET-4, RPC update_settings). patch-Top-Level ⊆
+ * {thresholds, automation_defaults, pipeline_stages}. Serverseitig: bereichs-spezifisches Recht
+ * (rules.edit / automation.manage / pipeline.manage) · Key-Whitelist · Min/Max pro Feld ·
+ * Won/Lost-Schutz · audit_log. thresholds/automation_defaults als VOLLE Zweitebene-Objekte (shallow-merge).
+ */
+export async function updateSettings(patch: Record<string, unknown>): Promise<void> {
+  const client = getSupabaseClient();
+  if (!client) return;
+  const { error } = await client.rpc("update_settings", { p_patch: patch });
+  if (error) throw error;
+}
+
 /** Aktive Module der Org (aus settings.modules) — Grundlage für useModules. */
 export async function getModules(
   organizationId: string,
