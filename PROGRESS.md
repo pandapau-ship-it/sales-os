@@ -570,6 +570,21 @@
       Verwandt: `last_seen_at` aus SET-3-Diagnose — sobald dort befüllt, könnte „Zuletzt aktiv" auch hier dezent
       erscheinen. Nur vermerkt.
 
+  - **SET-4 FUNDAMENT (1/2 + 2/2) FERTIG 21.07.2026** (Migr. **083** gepusht + remote per DO-Block verifiziert;
+    Gates grün, test-runner + auditor PASS je Teilschritt). **Der Schreib-Unterbau für den Regeln/Automation/
+    Pipeline-Bereich — die Seiten (4a–4d) folgen.** (1/2) **3 neue Rechte** `rules.edit`/`pipeline.manage`/
+    `automation.manage` (Katalog + role_permissions owner+admin + `permissions.ts`-Spiegel + Test) und **EIN
+    validierter Schreibweg** `update_settings(p_patch)`: Top-Level-Whitelist {thresholds, automation_defaults,
+    pipeline_stages} · **bereichs-spezifisches** Rechte-Gate (nicht ein pauschales settings.manage) ·
+    Zweitebene-Key-Whitelist je Bereich · **Min/Max PRO FELD** im RPC (Helfer `settings_chk_num`/`_group`;
+    kein system_config) · **Won/Lost-Schreibschutz** (gewonnen/verloren müssen bleiben; RPC = dokumentierter
+    3. Spiegel von hunterMappers/terminalStages) · shallow-merge + `audit_log`. (2/2) **`RuleRow`** (panel-block):
+    wiederverwendbare Klartext-Regel-Zeile (Satz + anklickbarer Wert, shadcn-Popover mit Min/Max, `portal={false}`,
+    Doppelvalidierung Client+Server) + `updateSettings`-db.ts-Wrapper. **Diagnose bestätigt:** Gruppen 1–3 (Heat/
+    Pipeline/Churn+Upsell) liegen schon in `settings.thresholds` (konfigurierbar, edge-frisch gelesen) → 4a nur
+    Editor-UI. **Offen dokumentiert:** [D-set4-group4-signalcap] (Gruppe 4: signal_windows schreibbar + Kappung,
+    mit 4a) · **[D-lifecycle-trigger]** (Gruppe 5: eigener Slice, conditions[] über `src/lib/filter`).
+
   - **MEIN UNTERNEHMEN 3b/3 „UNTERNEHMENSPROFIL — ICP & PERSONAS" FERTIG + GEMERGT 21.07.2026**
     (Migr. **081/082** gepusht + remote per DO-Block verifiziert; Gates durchgehend grün, test-runner +
     auditor PASS über alle Teilschritte). **Damit ist der volle „Unternehmensprofil"-Screen (3 Reiter) fertig.**
@@ -842,9 +857,9 @@
     nicht im Katalog und werden **MIT ihrem Modul** hinzugefügt (`permission_catalog` 070 + `role_permissions`
     + TS-Spiegel + `<RequiresPermission>` + Server-Guard — die 3 Fragen der Dauerregel). **Beim jeweiligen
     Modul-Bau abhaken:**
-    - [ ] `rules.edit` — Automation-Rules / Schwellen / Duplicate-Detection-Regeln (Settings/AI-SDR)
+    - [x] `rules.edit` · `pipeline.manage` · `automation.manage` — **GEBAUT SET-4 Fundament (21.07.2026, Migr. 083)**:
+      Katalog + role_permissions (owner+admin) + TS-Spiegel + Server-Guard je Bereich in `update_settings`.
     - [ ] `campaigns.manage` · `templates.manage` — AI SDR
-    - [ ] `pipeline.manage` — Pipeline-Stages-Config-UI (Settings SET-2+)
     - [ ] `integrations.manage` — Integrationen + Webhook-Config (Endphase)
     - [ ] `billing.manage` · `billing.approve_credits` — Billing-UI (Launch; `billing.`-Filter in Matrix schon vorbereitet)
     - [ ] `trash.purge` — Papierkorb (SET-3)
@@ -1657,6 +1672,32 @@ kam es, wie groß ist es** — und einen **klaren nächsten Schritt** anstoßen 
 >
 > **Verwandt:** [D28] (Perf-Politur Phase 5) · [D5] (AI-Pipeline). **Kommt wenn:** eigener Perf-/Aufräum-Slice
 > bzw. mit dem jeweiligen Modul (AI-Layer, Realtime).
+
+### [D-lifecycle-trigger] SET-4 Gruppe 5 — Lifecycle-Trigger mit UND-Kombination (deferred, eigener Slice)
+> **Erfasst 21.07.2026** (SET-4-Zuschnitt bestätigt). **Noch NICHT gebaut.** Die 5. Regel-Gruppe des
+> SET-4-Bauplans (Lifecycle-Trigger) ist bewusst KEIN Teil von 4a — sie braucht mehr als eine RuleRow.
+>
+> **Heutiger Stand:** nur `sequence_rules.trigger_signal text` = EIN Einzel-Event, **keine** UND-Kombination.
+> Kein `conditions[]`-Schema, keine `lifecycle_triggers`-Tabelle. **Nicht** in der `update_settings`-Whitelist (083).
+>
+> **Neubau (eigener Slice):** eigene Tabelle/Schema `lifecycle_triggers` (org-scoped, RLS/CASCADE) mit
+> **`conditions` als UND/ODER-Baum** — **zwingend über die bestehende Filter-Lib `src/lib/filter/`**
+> (`FilterRule` Feld·Operator·Wert · `FilterGroup` logic AND|OR · `FilterNode` · compile/evaluate/validate;
+> CLAUDE Architektur-Weiche d „EINE Bedingungs-/Filter-Sprache — nie eine zweite, nie freies SQL").
+> UI braucht einen **Condition-Builder** (RuleRow allein reicht nicht). Validierter Schreibweg + Recht
+> (`rules.edit` oder eigenes). Auslöse-Ausführung (Trigger prüft conditions → Aktion) ist Teil des Slices.
+>
+> **Kommt wenn:** nach SET-4a (Regeln 1–4). **Verwandt:** [D51] (Werte-in-DB) · K-2 (Filter-Sprache-Quelle) ·
+> [D38] (Lifecycle-Trigger contact_status, dort als Auslöser-Fall genannt).
+
+### [D-set4-group4-signalcap] SET-4 Gruppe 4 — signal_windows schreibbar + Kappungs-Key (mit 4a)
+> **Erfasst 21.07.2026.** Für Gruppe 4 (Signale & ICP) fehlt im Schreibweg: (a) `settings.signal_windows`
+> (Top-Level-Spalte, Migr. 018) ist **nicht** in der `update_settings`-Whitelist (083, nur
+> thresholds/automation_defaults/pipeline_stages) → **kleine Migration** in 4a: `signal_windows` in die
+> Top-Level-Whitelist + Item-Validierung (`window_hours` z.B. 1–8760) + Recht `rules.edit`. (b) **„Kappung"**
+> hat heute keine DB-Heimat → neuer Key (in `thresholds.*` oder auf `signal_windows`) + Whitelist-Eintrag.
+> ICP-Schwellen (`automation_defaults.icp_score_threshold` + `thresholds.hunter_priority_weights.icp_*`)
+> sind bereits da/whitelisted. **Kommt mit:** 4a-Bau.
 
 ### [D29] Einladungs-Email via Edge Function (deferred)
 - Einladung wird bereits in `invitations` gespeichert (Migration 042) ✓
