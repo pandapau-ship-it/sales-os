@@ -34,6 +34,7 @@
 - [x] Reusable: `SettingsCard` (`headerAction`/`className`) · `KnowledgeField` (Label-`icon`); i18n `voice.*` in de/en/es; Render-Tests (15) + Voice-Scope-Tests
 - [x] Honesty: leere Voice → ehrlicher Leerzustand; Jobtitel/Firma nur bedingt (users-Spalten fehlen → korrekt unsichtbar, Logik vorbereitet, `// single-source-ok`)
 - [ ] **[D-voice-admin-help]** Owner/Admin hilft neuem Mitglied bei leerer Voice — bewusst deferred
+- [~] **Referenz-Feld-Angleichung (Migration 1/n, 21.07.2026):** Sammel-Feld `sentence_style`→4 getrennte Felder je Kanal (Tonfall/Satzbau/Wortwahl/Emoji&Format) + `hooks`→kanal-spezifisch (Post Hook-Strategien / Comment Engagement-Muster / DM+E-Mail CTA-Stil) · overview `themes`→`core_topics` (Liste). **Migr. 084 gepusht + 6/6 verifiziert** (per-Kanal-Whitelist, Listen-mit-id, alte Keys transition-safe, kein Datenverlust). **Offen:** db.ts-Typen · UI · i18n · fieldImportance · Tests · Daten-Neueingabe (Chat-Claude). `sales_approach` bleibt EIN Textfeld (`style`).
 - [~] Slice 3 Unternehmensprofil — **3a (Überblick & Angebote) GEMERGT 21.07.2026**, 3b (ICP & Personas) offen
 
 ### Mein Unternehmen (SET-KB-2) — Slice 3a/3 „Unternehmensprofil — Überblick & Angebote" (21.07.2026, GEMERGT)
