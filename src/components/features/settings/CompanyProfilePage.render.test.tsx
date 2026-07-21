@@ -23,11 +23,21 @@ vi.mock("@/hooks/usePermissions", () => ({
 vi.mock("@/components/shared/toastContext", () => ({ useToast: () => ({ toast: vi.fn() }) }));
 
 const updateOrgProfile = vi.fn((_p: unknown) => Promise.resolve());
+const createIcp = vi.fn(() => Promise.resolve("new-icp"));
+const createPersona = vi.fn((_icp: string) => Promise.resolve("new-persona"));
 let ORG: Record<string, unknown> = {};
+let ICPS: unknown[] = [];
 
 vi.mock("@/lib/db", () => ({
   getOrgProfile: () => Promise.resolve(ORG),
   updateOrgProfile: (p: unknown) => updateOrgProfile(p),
+  getIcpsWithPersonas: () => Promise.resolve(ICPS),
+  createIcp: () => createIcp(),
+  updateIcp: () => Promise.resolve(),
+  deleteIcp: () => Promise.resolve(),
+  createPersona: (icp: string) => createPersona(icp),
+  updatePersona: () => Promise.resolve(),
+  deletePersona: () => Promise.resolve(),
 }));
 
 import CompanyProfilePage from "./CompanyProfilePage";
@@ -46,8 +56,16 @@ function renderPage() {
   );
 }
 
-beforeEach(() => { ORG = { ...EMPTY }; });
-afterEach(() => { cleanup(); updateOrgProfile.mockClear(); });
+const emptyLists = {
+  company_profile: [], fit_rationale: [], desired_outcomes: [], problems_solved: [],
+};
+const emptyPersonaLists = {
+  job_titles: [], responsibilities: [], goals: [], priorities: [],
+  core_problems: [], objections: [], exact_wording: [], inferred_wording: [],
+};
+
+beforeEach(() => { ORG = { ...EMPTY }; ICPS = []; });
+afterEach(() => { cleanup(); updateOrgProfile.mockClear(); createIcp.mockClear(); createPersona.mockClear(); });
 
 describe("CompanyProfilePage", () => {
   it("zeigt zwei Reiter (Overview + Offerings)", async () => {
@@ -129,5 +147,37 @@ describe("CompanyProfilePage", () => {
     const box = await screen.findByDisplayValue("Schnell");
     expect(box.className).toContain("bg-app-bg");
     expect(box.className).not.toContain("bg-app-surface");
+  });
+
+  it("Reiter ICP & Personas: leer -> Zielgruppe hinzufuegen ruft createIcp", async () => {
+    renderPage();
+    fireEvent.click(await screen.findByText("company.profile.tab.personas"));
+    fireEvent.click(await screen.findByText("company.profile.icp.add"));
+    await waitFor(() => expect(createIcp).toHaveBeenCalled());
+  });
+
+  it("Verschachtelt: Zielgruppe aufklappen zeigt Personen-Bereich + Person; Person aufklappen zeigt ihre Felder", async () => {
+    ICPS = [{
+      id: "icp1", name: "Enterprise", fit_level: "high", ...emptyLists,
+      personas: [{ id: "p1", icp_id: "icp1", name: "Head of Sales", buying_role: "champion", ...emptyPersonaLists }],
+    }];
+    renderPage();
+    fireEvent.click(await screen.findByText("company.profile.tab.personas"));
+    // ICP-Karte (zugeklappt) sichtbar -> aufklappen
+    fireEvent.click(await screen.findByText("Enterprise"));
+    // Verschachtelter Personen-Bereich + Person-Karte erscheinen
+    expect(await screen.findByText("company.profile.persona.title")).toBeTruthy();
+    fireEvent.click(await screen.findByText("Head of Sales"));
+    // Persona-Felder da: Job-Titel-Liste (match_persona) mit Add-Link
+    expect(await screen.findByText("company.profile.persona.jobTitles.add")).toBeTruthy();
+  });
+
+  it("Zielgruppe: Persona hinzufuegen ruft createPersona mit der icp_id", async () => {
+    ICPS = [{ id: "icp1", name: "Enterprise", fit_level: null, ...emptyLists, personas: [] }];
+    renderPage();
+    fireEvent.click(await screen.findByText("company.profile.tab.personas"));
+    fireEvent.click(await screen.findByText("Enterprise"));
+    fireEvent.click(await screen.findByText("company.profile.persona.add"));
+    await waitFor(() => expect(createPersona).toHaveBeenCalledWith("icp1"));
   });
 });

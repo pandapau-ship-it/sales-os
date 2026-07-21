@@ -1349,15 +1349,66 @@
     "statusMissingTip": "The AI is still missing these details",
     "profile": {
       "intro": "What the AI knows about your company — positioning, offering and market. Nothing is required.",
-      "tab": { "overview": "Overview", "offerings": "Offerings & market" },
-      "summary": { "label": "Summary", "help": "In one or two sentences: who you are, what you do.", "ph": "e.g. We help B2B sales teams prospect personally at scale." },
-      "productModel": { "label": "Product / service model", "ph": "How do you deliver? Platform, consulting, subscription …" },
-      "valueOutcome": { "label": "Value & outcome", "ph": "What measurably improves for your customers?" },
-      "usps": { "label": "USPs", "add": "Add USP", "remove": "Remove USP", "empty": "No USP yet.", "ph": "What makes you special?" },
-      "problems": { "label": "Problems you solve", "add": "Add problem", "remove": "Remove problem", "empty": "Nothing added yet.", "ph": "e.g. generic outreach that gets ignored" },
-      "outcomes": { "label": "Business outcomes", "add": "Add outcome", "remove": "Remove outcome", "empty": "Nothing added yet.", "ph": "e.g. higher reply rates, shorter sales cycles" },
-      "offerings": { "label": "Offerings", "add": "Add offering", "remove": "Remove offering", "empty": "No offering yet.", "titleLabel": "Title", "titlePh": "e.g. Company Intelligence Research", "textLabel": "Description", "textPh": "What does this offering include?" },
-      "competitors": { "directLabel": "Direct competitors", "adjacentLabel": "Adjacent competitors", "add": "Add competitor", "remove": "Remove competitor", "empty": "No competitors yet.", "nameLabel": "Name", "namePh": "e.g. HubSpot", "whyLabel": "Why us?", "whyPh": "Why are you the better choice?" },
+      "tab": {
+        "overview": "Overview",
+        "offerings": "Offerings & market",
+        "personas": "ICP & Personas"
+      },
+      "summary": {
+        "label": "Summary",
+        "help": "In one or two sentences: who you are, what you do.",
+        "ph": "e.g. We help B2B sales teams prospect personally at scale."
+      },
+      "productModel": {
+        "label": "Product / service model",
+        "ph": "How do you deliver? Platform, consulting, subscription …"
+      },
+      "valueOutcome": {
+        "label": "Value & outcome",
+        "ph": "What measurably improves for your customers?"
+      },
+      "usps": {
+        "label": "USPs",
+        "add": "Add USP",
+        "remove": "Remove USP",
+        "empty": "No USP yet.",
+        "ph": "What makes you special?"
+      },
+      "problems": {
+        "label": "Problems you solve",
+        "add": "Add problem",
+        "remove": "Remove problem",
+        "empty": "Nothing added yet.",
+        "ph": "e.g. generic outreach that gets ignored"
+      },
+      "outcomes": {
+        "label": "Business outcomes",
+        "add": "Add outcome",
+        "remove": "Remove outcome",
+        "empty": "Nothing added yet.",
+        "ph": "e.g. higher reply rates, shorter sales cycles"
+      },
+      "offerings": {
+        "label": "Offerings",
+        "add": "Add offering",
+        "remove": "Remove offering",
+        "empty": "No offering yet.",
+        "titleLabel": "Title",
+        "titlePh": "e.g. Company Intelligence Research",
+        "textLabel": "Description",
+        "textPh": "What does this offering include?"
+      },
+      "competitors": {
+        "directLabel": "Direct competitors",
+        "adjacentLabel": "Adjacent competitors",
+        "add": "Add competitor",
+        "remove": "Remove competitor",
+        "empty": "No competitors yet.",
+        "nameLabel": "Name",
+        "namePh": "e.g. HubSpot",
+        "whyLabel": "Why us?",
+        "whyPh": "Why are you the better choice?"
+      },
       "contextTitle": "AI Context Builder",
       "contextHelp": "Don't type everything manually. The AI can analyze your website to pre-fill the profile.",
       "scanCta": "Scan website",
@@ -1365,7 +1416,112 @@
       "detailsTitle": "Profile",
       "detailsHelp": "Your company details per tab. All optional.",
       "completenessHelp": "The more you add here, the more specific the AI can be.",
-      "aiHint": "The \"Scan website\" button will later pre-fill the profile automatically. Coming soon."
+      "aiHint": "The \"Scan website\" button will later pre-fill the profile automatically. Coming soon.",
+      "icp": {
+        "add": "Add audience",
+        "unnamed": "Unnamed audience",
+        "namePh": "e.g. Mid-Market SaaS DACH",
+        "removeTitle": "Remove audience",
+        "removeDesc": "The audience and all its people will be removed. This can't be undone.",
+        "empty": "No audience yet.",
+        "fit": {
+          "label": "Fit",
+          "ph": "How well does it fit?",
+          "high": "High",
+          "medium": "Medium",
+          "low": "Low"
+        },
+        "companyProfile": {
+          "label": "Company profile",
+          "ph": "Which companies fit? (industry, size …)",
+          "add": "Add trait",
+          "remove": "Remove trait"
+        },
+        "fitRationale": {
+          "label": "Fit rationale",
+          "ph": "Why is it a strong fit?",
+          "add": "Add reason",
+          "remove": "Remove reason"
+        },
+        "desiredOutcomes": {
+          "label": "Desired outcomes",
+          "ph": "What does this audience want to achieve?",
+          "add": "Add outcome",
+          "remove": "Remove outcome"
+        },
+        "problems": {
+          "label": "Problems solved",
+          "ph": "Which problem do you solve for them?",
+          "add": "Add problem",
+          "remove": "Remove problem"
+        }
+      },
+      "persona": {
+        "title": "People",
+        "add": "Add person",
+        "unnamed": "Unnamed person",
+        "namePh": "e.g. Head of Sales / VP Sales",
+        "removeTitle": "Remove person",
+        "removeDesc": "This person will be removed from the audience. This can't be undone.",
+        "empty": "No person yet.",
+        "role": {
+          "label": "Buying role",
+          "ph": "Role in the buying process",
+          "decision_maker": "Decision maker",
+          "influencer": "Influencer",
+          "champion": "Champion",
+          "end_user": "End user",
+          "blocker": "Blocker"
+        },
+        "jobTitles": {
+          "label": "Job titles",
+          "ph": "e.g. Head of Sales, VP Sales, Sales Director",
+          "add": "Add job title",
+          "remove": "Remove job title"
+        },
+        "responsibilities": {
+          "label": "Responsibilities",
+          "ph": "What is the person responsible for?",
+          "add": "Add responsibility",
+          "remove": "Remove responsibility"
+        },
+        "goals": {
+          "label": "Goals",
+          "ph": "What does the person want to achieve?",
+          "add": "Add goal",
+          "remove": "Remove goal"
+        },
+        "priorities": {
+          "label": "Priorities",
+          "ph": "What takes priority right now?",
+          "add": "Add priority",
+          "remove": "Remove priority"
+        },
+        "coreProblems": {
+          "label": "Core problems",
+          "ph": "What keeps the person up at night?",
+          "add": "Add core problem",
+          "remove": "Remove core problem"
+        },
+        "objections": {
+          "label": "Objections",
+          "ph": "Typical objections in conversation",
+          "add": "Add objection",
+          "remove": "Remove objection"
+        },
+        "exactWording": {
+          "label": "Exact quotes",
+          "ph": "The person's own words (verbatim)",
+          "add": "Add quote",
+          "remove": "Remove quote"
+        },
+        "inferredWording": {
+          "label": "Inferred wording",
+          "ph": "Paraphrased, inferred from signals",
+          "add": "Add wording",
+          "remove": "Remove wording"
+        }
+      }
     }
   },
   "voice": {
@@ -1388,17 +1544,44 @@
       "email": "Email"
     },
     "overview": {
-      "bio": { "label": "Short profile", "ph": "Who are you, what do you do?" },
-      "style": { "label": "Selling / reasoning style", "ph": "How do you convince? Problem-first, story, numbers …" },
-      "tone": { "label": "Baseline tone", "ph": "e.g. direct, analytical, warm" },
-      "themes": { "label": "Core topics", "ph": "What do you write/talk about most?" }
+      "bio": {
+        "label": "Short profile",
+        "ph": "Who are you, what do you do?"
+      },
+      "style": {
+        "label": "Selling / reasoning style",
+        "ph": "How do you convince? Problem-first, story, numbers …"
+      },
+      "tone": {
+        "label": "Baseline tone",
+        "ph": "e.g. direct, analytical, warm"
+      },
+      "themes": {
+        "label": "Core topics",
+        "ph": "What do you write/talk about most?"
+      }
     },
     "field": {
-      "samples": { "label": "Examples", "ph": "Paste a few real examples that are typical of you." },
-      "writingStyle": { "label": "Writing style", "ph": "e.g. short, punchy sentences; clear line breaks" },
-      "hooks": { "label": "Opener", "ph": "How do you open?" },
-      "dosAlways": { "label": "What you always do", "ph": "What always appears in your messages" },
-      "dosNever": { "label": "What you never do", "ph": "What never appears in your messages" }
+      "samples": {
+        "label": "Examples",
+        "ph": "Paste a few real examples that are typical of you."
+      },
+      "writingStyle": {
+        "label": "Writing style",
+        "ph": "e.g. short, punchy sentences; clear line breaks"
+      },
+      "hooks": {
+        "label": "Opener",
+        "ph": "How do you open?"
+      },
+      "dosAlways": {
+        "label": "What you always do",
+        "ph": "What always appears in your messages"
+      },
+      "dosNever": {
+        "label": "What you never do",
+        "ph": "What never appears in your messages"
+      }
     },
     "soundsLike": "How it sounds",
     "aiFill": "AI fill",

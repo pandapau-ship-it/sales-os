@@ -1887,6 +1887,61 @@ export async function deletePersona(id: string): Promise<void> {
   if (error) throw error;
 }
 
+/** Eine Zielgruppe samt ihrer aktiven Personen (verschachtelt, für die 3b-3-UI). */
+export interface IcpWithPersonas extends IcpRow {
+  personas: PersonaRow[];
+}
+
+/**
+ * Alle aktiven Zielgruppen der Org MIT eingebetteten aktiven Personen — EIN Query (kein N+1).
+ * Supabase-Embed über die FK org_personas.icp_id. is_active wird eingebettet mitgelesen und in JS
+ * gefiltert (robust über supabase-js-Versionen); Sortierung nach created_at (stabile Reihenfolge).
+ */
+export async function getIcpsWithPersonas(organizationId: string): Promise<IcpWithPersonas[]> {
+  const client = getSupabaseClient();
+  if (!client) return [];
+  const { data, error } = await client
+    .from("org_icps")
+    .select(
+      "id, name, fit_level, company_profile, fit_rationale, desired_outcomes, problems_solved, created_at, " +
+        "org_personas ( id, icp_id, name, buying_role, job_titles, responsibilities, goals, priorities, " +
+        "core_problems, objections, exact_wording, inferred_wording, is_active, created_at )",
+    )
+    .eq("organization_id", organizationId)
+    .eq("is_active", true)
+    .order("created_at", { ascending: true });
+  if (error) throw error;
+
+  type RawPersona = PersonaRow & { is_active: boolean; created_at: string };
+  type RawIcp = IcpRow & { created_at: string; org_personas: RawPersona[] | null };
+  return ((data ?? []) as unknown as RawIcp[]).map((row) => ({
+    id: row.id,
+    name: row.name,
+    fit_level: row.fit_level,
+    company_profile: row.company_profile ?? [],
+    fit_rationale: row.fit_rationale ?? [],
+    desired_outcomes: row.desired_outcomes ?? [],
+    problems_solved: row.problems_solved ?? [],
+    personas: (row.org_personas ?? [])
+      .filter((p) => p.is_active)
+      .sort((a, b) => (a.created_at ?? "").localeCompare(b.created_at ?? ""))
+      .map((p) => ({
+        id: p.id,
+        icp_id: p.icp_id,
+        name: p.name,
+        buying_role: p.buying_role,
+        job_titles: p.job_titles ?? [],
+        responsibilities: p.responsibilities ?? [],
+        goals: p.goals ?? [],
+        priorities: p.priorities ?? [],
+        core_problems: p.core_problems ?? [],
+        objections: p.objections ?? [],
+        exact_wording: p.exact_wording ?? [],
+        inferred_wording: p.inferred_wording ?? [],
+      })),
+  }));
+}
+
 // ── Personal Voice (Mein Unternehmen 2/3, Migr. 078/079) ─────────────────────
 // Die eigene Schreibstimme des Users (pro User, visibility:'self'). Texte sind mehrsprach-fähig
 // (I18nText — heute reiner String). Getrennt von contacts.personality_profile (Empfänger).

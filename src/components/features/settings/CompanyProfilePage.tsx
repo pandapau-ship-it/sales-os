@@ -14,18 +14,80 @@
  */
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Sparkles, Globe, MessageSquare, Layers, Briefcase } from "lucide-react";
+import { Sparkles, Globe, MessageSquare, Layers, Briefcase, Users } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCurrentOrg } from "@/hooks/useCurrentOrg";
 import { useEffectivePermissions } from "@/hooks/usePermissions";
 import { useSaveState } from "@/hooks/useSaveState";
-import { getOrgProfile, updateOrgProfile, type OrgProfile } from "@/lib/db";
+import {
+  getOrgProfile, updateOrgProfile, type OrgProfile,
+  getIcpsWithPersonas, createIcp, updateIcp, deleteIcp,
+  createPersona, updatePersona, deletePersona,
+} from "@/lib/db";
 import { textOf } from "@/lib/i18nText";
 import { computeCompleteness } from "@/lib/companyKnowledge";
-import { SettingsCard, KnowledgeField, KnowledgeListField, PanelTabs } from "@/components";
+import { SettingsCard, KnowledgeField, KnowledgeListField, EntityCardList, PanelTabs } from "@/components";
 import type { ListItem } from "@/components/panel-blocks/KnowledgeListField";
 import { Button } from "@/components/ui/button";
+import {
+  Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
+} from "@/components/ui/select";
 import { useToast } from "@/components/shared/toastContext";
+
+// Feste System-Kategorien (CHECK in Migr. 081 = Single Source der zulässigen Werte).
+const FIT_LEVELS = ["high", "medium", "low"] as const;
+const BUYING_ROLES = ["decision_maker", "influencer", "champion", "end_user", "blocker"] as const;
+
+// Text-Listen je Entität (Feldschlüssel → i18n-Teilschlüssel). Reduziert Wiederholung im JSX.
+type IcpListKey = "company_profile" | "fit_rationale" | "desired_outcomes" | "problems_solved";
+const ICP_LISTS: { key: IcpListKey; tk: string }[] = [
+  { key: "company_profile", tk: "companyProfile" },
+  { key: "fit_rationale", tk: "fitRationale" },
+  { key: "desired_outcomes", tk: "desiredOutcomes" },
+  { key: "problems_solved", tk: "problems" },
+];
+type PersonaListKey =
+  | "job_titles" | "responsibilities" | "goals" | "priorities"
+  | "core_problems" | "objections" | "exact_wording" | "inferred_wording";
+const PERSONA_LISTS: { key: PersonaListKey; tk: string }[] = [
+  { key: "job_titles", tk: "jobTitles" },
+  { key: "responsibilities", tk: "responsibilities" },
+  { key: "goals", tk: "goals" },
+  { key: "priorities", tk: "priorities" },
+  { key: "core_problems", tk: "coreProblems" },
+  { key: "objections", tk: "objections" },
+  { key: "exact_wording", tk: "exactWording" },
+  { key: "inferred_wording", tk: "inferredWording" },
+];
+
+/** Feld mit Auswahl fester System-Kategorien (fit_level/buying_role) — shadcn Select, wie price_model. */
+function EnumField({
+  label, value, placeholder, options, optionLabel, canEdit, onChange,
+}: {
+  label: string;
+  value: string | null;
+  placeholder: string;
+  options: readonly string[];
+  optionLabel: (o: string) => string;
+  canEdit: boolean;
+  onChange: (v: string) => void;
+}) {
+  return (
+    <div>
+      <div className="typo-field-label text-text-muted mb-1.5">{label}</div>
+      <Select value={value ?? ""} onValueChange={onChange} disabled={!canEdit}>
+        <SelectTrigger className="h-9 text-[13px]" aria-label={label}>
+          <SelectValue placeholder={placeholder} />
+        </SelectTrigger>
+        <SelectContent>
+          {options.map((o) => (
+            <SelectItem key={o} value={o} className="text-[13px]">{optionLabel(o)}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+}
 
 export default function CompanyProfilePage() {
   const { t } = useTranslation();
@@ -36,7 +98,7 @@ export default function CompanyProfilePage() {
   const save = useSaveState();
   const canEdit = has("settings.manage");
 
-  const [tab, setTab] = useState<"overview" | "offerings">("overview");
+  const [tab, setTab] = useState<"overview" | "offerings" | "personas">("overview");
 
   const query = useQuery({
     queryKey: ["orgProfile", organizationId],
@@ -60,6 +122,27 @@ export default function CompanyProfilePage() {
   };
   const setText = (key: string, v: string) => patchOrg({ [key]: v });
   const setList = (key: string, items: ListItem[]) => patchOrg({ [key]: items });
+
+  // ── Zielgruppen & Personen (Slice 3b) — eigene verschachtelte Query + RPC-Schreibwege ──
+  const icpsQuery = useQuery({
+    queryKey: ["icps", organizationId],
+    queryFn: () => getIcpsWithPersonas(organizationId),
+    enabled: !!organizationId,
+    staleTime: 60_000,
+  });
+  const icps = icpsQuery.data ?? [];
+  const invalidateIcps = () => void qc.invalidateQueries({ queryKey: ["icps", organizationId] });
+  // Create/Delete direkt (kein Speicher-Indikator nötig); Feld-Änderungen über save.run (wie patchOrg).
+  const addIcp = async () => { try { await createIcp(); invalidateIcps(); } catch { toast(t("company.saveFailed")); } };
+  const removeIcp = async (id: string) => { try { await deleteIcp(id); invalidateIcps(); } catch { toast(t("company.saveFailed")); } };
+  const patchIcp = async (id: string, patch: Record<string, unknown>) => {
+    try { await save.run(updateIcp(id, patch)); invalidateIcps(); } catch { toast(t("company.saveFailed")); }
+  };
+  const addPersona = async (icpId: string) => { try { await createPersona(icpId); invalidateIcps(); } catch { toast(t("company.saveFailed")); } };
+  const removePersona = async (id: string) => { try { await deletePersona(id); invalidateIcps(); } catch { toast(t("company.saveFailed")); } };
+  const patchPersona = async (id: string, patch: Record<string, unknown>) => {
+    try { await save.run(updatePersona(id, patch)); invalidateIcps(); } catch { toast(t("company.saveFailed")); }
+  };
 
   // Wettbewerber: EINE Spalte `competitors`, im UI nach `kind` in zwei Listen geteilt.
   const isAdjacent = (c: { kind?: string }) => c.kind === "adjacent";
@@ -90,6 +173,7 @@ export default function CompanyProfilePage() {
   const tabs = [
     { id: "overview", label: t("company.profile.tab.overview"), icon: <Layers className="w-3.5 h-3.5" /> },
     { id: "offerings", label: t("company.profile.tab.offerings"), icon: <Briefcase className="w-3.5 h-3.5" /> },
+    { id: "personas", label: t("company.profile.tab.personas"), icon: <Users className="w-3.5 h-3.5" /> },
   ];
 
   return (
@@ -172,7 +256,7 @@ export default function CompanyProfilePage() {
           <PanelTabs tabs={tabs} active={tab} onChange={(id) => setTab(id as typeof tab)} />
         </div>
 
-        {tab === "overview" ? (
+        {tab === "overview" && (
           <div className="space-y-6">
             <KnowledgeListField
               canEdit={canEdit}
@@ -221,7 +305,9 @@ export default function CompanyProfilePage() {
               onChange={(items) => setList("business_outcomes", items)}
             />
           </div>
-        ) : (
+        )}
+
+        {tab === "offerings" && (
           <div className="space-y-6">
             <KnowledgeListField
               canEdit={canEdit}
@@ -265,6 +351,96 @@ export default function CompanyProfilePage() {
               />
             </div>
           </div>
+        )}
+
+        {tab === "personas" && (
+          <EntityCardList
+            items={icps}
+            canEdit={canEdit}
+            variant="primary"
+            addLabel={t("company.profile.icp.add")}
+            unnamedLabel={t("company.profile.icp.unnamed")}
+            namePlaceholder={t("company.profile.icp.namePh")}
+            removeTitle={t("company.profile.icp.removeTitle")}
+            removeDescription={t("company.profile.icp.removeDesc")}
+            removeCancel={t("common.cancel")}
+            removeConfirm={t("common.delete")}
+            emptyHint={t("company.profile.icp.empty")}
+            onAdd={addIcp}
+            onRename={(id, name) => patchIcp(id, { name })}
+            onRemove={removeIcp}
+            renderBody={(icp) => (
+              <div className="space-y-4">
+                <EnumField
+                  label={t("company.profile.icp.fit.label")}
+                  value={icp.fit_level}
+                  placeholder={t("company.profile.icp.fit.ph")}
+                  options={FIT_LEVELS}
+                  optionLabel={(o) => t(`company.profile.icp.fit.${o}`)}
+                  canEdit={canEdit}
+                  onChange={(v) => patchIcp(icp.id, { fit_level: v })}
+                />
+                {ICP_LISTS.map((l) => (
+                  <KnowledgeListField
+                    key={l.key}
+                    canEdit={canEdit}
+                    label={t(`company.profile.icp.${l.tk}.label`)}
+                    items={icp[l.key] as unknown as ListItem[]}
+                    fields={[{ key: "text", placeholder: t(`company.profile.icp.${l.tk}.ph`) }]}
+                    addLabel={t(`company.profile.icp.${l.tk}.add`)}
+                    removeLabel={t(`company.profile.icp.${l.tk}.remove`)}
+                    onChange={(items) => patchIcp(icp.id, { [l.key]: items })}
+                  />
+                ))}
+
+                {/* Personen der Zielgruppe — verschachtelt, dezenter (eigener openId-Scope) */}
+                <div>
+                  <div className="typo-section-label text-text-muted mb-2">{t("company.profile.persona.title")}</div>
+                  <EntityCardList
+                    items={icp.personas}
+                    canEdit={canEdit}
+                    variant="nested"
+                    addLabel={t("company.profile.persona.add")}
+                    unnamedLabel={t("company.profile.persona.unnamed")}
+                    namePlaceholder={t("company.profile.persona.namePh")}
+                    removeTitle={t("company.profile.persona.removeTitle")}
+                    removeDescription={t("company.profile.persona.removeDesc")}
+                    removeCancel={t("common.cancel")}
+                    removeConfirm={t("common.delete")}
+                    emptyHint={t("company.profile.persona.empty")}
+                    onAdd={() => addPersona(icp.id)}
+                    onRename={(id, name) => patchPersona(id, { name })}
+                    onRemove={removePersona}
+                    renderBody={(p) => (
+                      <div className="space-y-4">
+                        <EnumField
+                          label={t("company.profile.persona.role.label")}
+                          value={p.buying_role}
+                          placeholder={t("company.profile.persona.role.ph")}
+                          options={BUYING_ROLES}
+                          optionLabel={(o) => t(`company.profile.persona.role.${o}`)}
+                          canEdit={canEdit}
+                          onChange={(v) => patchPersona(p.id, { buying_role: v })}
+                        />
+                        {PERSONA_LISTS.map((l) => (
+                          <KnowledgeListField
+                            key={l.key}
+                            canEdit={canEdit}
+                            label={t(`company.profile.persona.${l.tk}.label`)}
+                            items={p[l.key] as unknown as ListItem[]}
+                            fields={[{ key: "text", placeholder: t(`company.profile.persona.${l.tk}.ph`) }]}
+                            addLabel={t(`company.profile.persona.${l.tk}.add`)}
+                            removeLabel={t(`company.profile.persona.${l.tk}.remove`)}
+                            onChange={(items) => patchPersona(p.id, { [l.key]: items })}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  />
+                </div>
+              </div>
+            )}
+          />
         )}
       </SettingsCard>
 
