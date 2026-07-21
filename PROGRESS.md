@@ -1680,15 +1680,39 @@ kam es, wie groß ist es** — und einen **klaren nächsten Schritt** anstoßen 
 > **Heutiger Stand:** nur `sequence_rules.trigger_signal text` = EIN Einzel-Event, **keine** UND-Kombination.
 > Kein `conditions[]`-Schema, keine `lifecycle_triggers`-Tabelle. **Nicht** in der `update_settings`-Whitelist (083).
 >
+> **Ziel-Anwendungsfall:** User definiert Wenn-Dann-Regeln mit UND-Kombination, z.B.
+> **„WENN Deal > X UND älter als Y Tage UND Z Tage kein Kontakt → DANN Aktion (Glocken-Mitteilung /
+> später E-Mail)".**
+>
 > **Neubau (eigener Slice):** eigene Tabelle/Schema `lifecycle_triggers` (org-scoped, RLS/CASCADE) mit
 > **`conditions` als UND/ODER-Baum** — **zwingend über die bestehende Filter-Lib `src/lib/filter/`**
 > (`FilterRule` Feld·Operator·Wert · `FilterGroup` logic AND|OR · `FilterNode` · compile/evaluate/validate;
 > CLAUDE Architektur-Weiche d „EINE Bedingungs-/Filter-Sprache — nie eine zweite, nie freies SQL").
-> UI braucht einen **Condition-Builder** (RuleRow allein reicht nicht). Validierter Schreibweg + Recht
-> (`rules.edit` oder eigenes). Auslöse-Ausführung (Trigger prüft conditions → Aktion) ist Teil des Slices.
+> UI braucht einen **Condition-Builder** (RuleRow allein reicht nicht). Auslöse-Ausführung (Trigger prüft
+> conditions → Aktion) ist Teil des Slices.
+>
+> **VERBINDLICHE BAU-VORGABEN für diesen Slice (beim Bau nicht vergessen):**
+> 1. **CHAT-VERTRAG — EIN Schreibweg für Mensch UND KI.** Regel-Erstellung/-Änderung läuft über GENAU EINE
+>    sauber definierte Schreib-Funktion (RPC), sodass der spätere KI-Chat sie per Function-Call auf **exakt
+>    demselben Weg** erzeugt wie der Bedingungs-Baukasten/das Formular. **NIEMALS zwei getrennte Wege.**
+>    (Deckt sich mit der Dauerregel „Chat-Aktions-Vertrag-Pflicht" — Einstufung required/recommended/optional
+>    beim Bau festlegen, direkt beim RPC-Aufrufer in `db.ts`.)
+> 2. **AKTIONEN andockbar (offener Andockpunkt).** Die „DANN"-Aktion ist ein offenes Registry/Andock-Muster:
+>    verfügbare Aktionen docken an, sobald ihre Bausteine existieren — **Glocken-Mitteilung zuerst**
+>    (`notify()`/`log_activity` Migr. 066 existiert bereits), **E-Mail später** (Sending-Layer). **Kein Fake**
+>    für noch nicht existierende Aktionen — nicht-verfügbare erscheinen nicht bzw. ehrlich „Folgt".
+> 3. **PLAN-LIMIT von Anfang an.** Plan-abhängige Mengen-Begrenzung (wie viele Regeln/Actions ein User anlegen
+>    darf). **Die Obergrenze ist KEIN hartcodierter Wert**, sondern konfigurierbar pro Plan über
+>    `plan_limits`/Entitlement (Zahlen definiert Oliver später je Paket). System braucht einen **Blocker**,
+>    der bei Erreichen der Grenze sauber stoppt (freundliche Meldung, kein Silent-Fail — Muster wie `api_usage`/
+>    Entitlement-Serie). Zähl-/Limit-Prüfung serverseitig im Schreibweg.
+> 4. **RECHT festlegen.** Erstellen/Ändern gaten — voraussichtlich **`rules.edit`** (existiert seit SET-4/083)
+>    ODER ein eigenes `automation.manage` (existiert ebenfalls) — beim Bau final entscheiden + `<RequiresPermission>`
+>    + Server-Guard im RPC (Rechte-Check-Pflicht: UI + Server, nie nur UI).
 >
 > **Kommt wenn:** nach SET-4a (Regeln 1–4). **Verwandt:** [D51] (Werte-in-DB) · K-2 (Filter-Sprache-Quelle) ·
-> [D38] (Lifecycle-Trigger contact_status, dort als Auslöser-Fall genannt).
+> [D38] (Lifecycle-Trigger contact_status, dort als Auslöser-Fall genannt) · Chat-Aktions-Vertrag-Pflicht
+> (CLAUDE) · Entitlement/`plan_limits`-Serie (`for_ai_sdr_vorab_entitlement_credits`).
 
 ### [D-set4-group4-signalcap] SET-4 Gruppe 4 — signal_windows schreibbar + Kappungs-Key (mit 4a)
 > **Erfasst 21.07.2026.** Für Gruppe 4 (Signale & ICP) fehlt im Schreibweg: (a) `settings.signal_windows`
