@@ -570,6 +570,36 @@
       Verwandt: `last_seen_at` aus SET-3-Diagnose — sobald dort befüllt, könnte „Zuletzt aktiv" auch hier dezent
       erscheinen. Nur vermerkt.
 
+  - **MEIN UNTERNEHMEN 3b/3 „UNTERNEHMENSPROFIL — ICP & PERSONAS" FERTIG + GEMERGT 21.07.2026**
+    (Migr. **081/082** gepusht + remote per DO-Block verifiziert; Gates durchgehend grün, test-runner +
+    auditor PASS über alle Teilschritte). **Damit ist der volle „Unternehmensprofil"-Screen (3 Reiter) fertig.**
+    Zielgruppen (ICPs) + Personen (Personas) als **eigenständige, verschachtelte Datensätze (1:N)** nach dem
+    **products-Muster** — bewusst NICHT als jsonb-Liste (KnowledgeListField kann keine Kindbeziehung).
+    **DB (081):** `org_icps` (name, fit_level CHECK{high,medium,low} nullable, Text-Listen company_profile/
+    fit_rationale/desired_outcomes/problems_solved, is_active weich, field_meta) + `org_personas`
+    (FK icp_id CASCADE, buying_role CHECK{decision_maker,influencer,champion,end_user,blocker} nullable,
+    job_titles [PFLICHT match_persona] + responsibilities/goals/priorities/core_problems/objections/
+    exact_wording/inferred_wording, is_active, field_meta); RLS tenant_isolation, Index org(+icp_id),
+    audit-/updated_at-Trigger. **fit_level/buying_role = feste System-Enums** (CHECK, kein [D51]-Config;
+    CLAUDE.md-Vermerk). **RPCs (082):** create/update/delete_icp + create_persona(icp_id)/update/delete_persona
+    — je settings.manage · Cross-Org-Guard · Key-Whitelist · Listen-Item-id-Pflicht · field_meta-lock ·
+    audit_log · weiches Löschen (wie delete_product). Enum-Werte NICHT dupliziert (CHECK = Quelle), '' → null.
+    **UI (3b-3):** 3. Reiter `PanelTabs`; **neuer Baustein `EntityCardList`** (verallgemeinertes Produkte-
+    Karten-Muster: einklappbare Karten, Anlegen + AlertDialog-Löschen, Name-Feld, renderBody-Slot,
+    variant primary/nested, eigener openId-Scope je Instanz → Verschachteln sicher — Single Source, einmal
+    gebaut, zweimal genutzt); `getIcpsWithPersonas` (EIN verschachteltes Embed, kein N+1). **Layout-Korrektur
+    (97cbef5):** Zwei-Spalten-Layout (mobil einspaltig), dezente graue Lucide-Icons je Sektions-Label,
+    Abstands-Rhythmus, kompaktere Listen, **Passungs-/Kaufrollen-Badge** im Karten-Kopf (StatusBadge,
+    fit high=success/medium=warn/low=muted, role=muted; live über dasselbe Select; null→kein Badge).
+    **3 Konsistenz-Fixes (3184eb6, auf gemeldete Geschwister-Stellen angewandt):** ProductPricingPage
+    Nutzen|Zielgruppe zweispaltig + **Preismodell-Badge** im Karten-Kopf (StatusBadge tone=info); PersonalVoicePage
+    Do's|Don'ts nebeneinander. `KnowledgeListField`/`EnumField`/`EntityCardList` um icon-/headerBadge-Prop erweitert.
+    i18n `company.profile.icp.*`/`persona.*` in de/en/es (131 Keys verifiziert, kein Hardcode). +6 Render-Tests
+    (CompanyProfilePage 12). **Echte Daten live** (Sherloq Company Profile + 4 ICPs/Personas · Olivers Personal
+    Voice) über die validierten RPCs eingetragen. **Offen (Mini):** AE-Kaufrolle steht auf `influencer` (Annahme,
+    per RPC auf `end_user` änderbar). **[KB]** knowledge_base-Eintrag als Seed in `docs/knowledge_base.md`
+    (KB-DB-Migration weiter deferred bis AI-Chat/RAG).
+
   - **MEIN UNTERNEHMEN 3a/3 „UNTERNEHMENSPROFIL — ÜBERBLICK & ANGEBOTE" FERTIG + GEMERGT 21.07.2026**
     (Migr. **080** gepusht + remote verifiziert; Gates grün, test-runner + auditor PASS ×2; Überblick- +
     Angebot-&-Markt-Reiter + AI Context Builder je Screenshot QA'd). Erster von zwei Sub-Slices der
