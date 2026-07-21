@@ -570,6 +570,30 @@
       Verwandt: `last_seen_at` aus SET-3-Diagnose — sobald dort befüllt, könnte „Zuletzt aktiv" auch hier dezent
       erscheinen. Nur vermerkt.
 
+  - **MEIN UNTERNEHMEN 3a/3 „UNTERNEHMENSPROFIL — ÜBERBLICK & ANGEBOTE" FERTIG + GEMERGT 21.07.2026**
+    (Migr. **080** gepusht + remote verifiziert; Gates grün, test-runner + auditor PASS ×2; Überblick- +
+    Angebot-&-Markt-Reiter + AI Context Builder je Screenshot QA'd). Erster von zwei Sub-Slices der
+    „Unternehmensprofil"-Seite — **Reiter 3b „ICP & Personas" (`org_icps`/`org_personas`) bleibt offen**.
+    **DB (080, rein additiv):** `org_profile` +jsonb `summary`/`product_service_model`/`value_outcome` +
+    Listen `problems_solved`/`business_outcomes`/`offerings`; `competitors` neu als `[{id,name,why_us,kind}]`
+    (Daten-Migration setzt Bestand auf `kind:'direct'`). **Einziger Schreibweg** `update_org_profile` erweitert
+    (Skalar- + Listen-Whitelist, pro-Item `id`-Validierung, `competitors` name+kind∈{direct,adjacent},
+    `field_meta`-lock, `audit_log`). **RPC live per self-abortierendem DO-Block getestet** (gültiger Patch ·
+    unbekannter Key wirft · invalider kind wirft · fehlende id wirft; Rollback, 0 Rückstände). **UI**
+    `CompanyProfilePage` (features/settings): 2 Reiter (Überblick/Angebot & Markt) via `PanelTabs`; oben
+    Zusammenfassung + **AI Context Builder** (dunkles `--ai-panel-*`-Panel, 2 disabled „Folgt"-Buttons) ;
+    Vollständigkeits-Ring (`fieldImportance.ts` +6 org-Felder, Scope `"org"`). **Neuer Baustein**
+    `KnowledgeListField` (panel-block): generische wachsende Liste für jsonb-`{id,…}`-Arrays, `fields`-Config
+    (Einzel=Zeile, Mehr=Karte), Regel-A-Diagnose (`DetailPhoneList` geprüft, Read-Mode passt nicht → Eigenbau).
+    **Leerzustand-Fix (Korrektur nach Live-Test):** Einzelfeld-Listen (USPs/Probleme/Ergebnisse) zeigen leer
+    EINE leere, direkt beschreibbare Zeile (kein „Noch nichts eingetragen."-Text) + dezenten „+ hinzufügen"-Link;
+    leerer Draft wird nicht persistiert (Honesty). **Reusable/geändert:** `KnowledgeField` label optional +
+    `showAi`; **Token-Rename** `--voice-trainer-*` → `--ai-panel-*` (shared AI Voice Trainer + AI Context Builder),
+    PersonalVoicePage migriert. i18n `company.*` in de/en/es. **Doku:** ai_sdr_bauplan Personas-Korrektur;
+    CLAUDE.md panel-block-Tabelle. **Offen (mit 3b):** ICP-/Persona-Reiter · **knowledge_base-Eintrag +
+    session_uebergabe** (bei vollem Screen-Abschluss, nicht pro Sub-Slice) · Umzug USPs/Wettbewerber aus
+    „Produkte & Preise" ist mit 3a **erledigt** (leben jetzt hier im Unternehmensprofil).
+
   - **MEIN UNTERNEHMEN 2/3 „PERSONAL VOICE" FERTIG + GEMERGT 20.07.2026** (Migr. **078/079** gepusht +
     remote verifiziert; Gates grün, test-runner + auditor PASS; 5 Tabs live-verifiziert je Screenshot).
     Die eigene Schreibstimme **pro User** (`visibility:'self'`) — was der AI SDR später zum Texten in

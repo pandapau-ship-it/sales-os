@@ -34,7 +34,19 @@
 - [x] Reusable: `SettingsCard` (`headerAction`/`className`) · `KnowledgeField` (Label-`icon`); i18n `voice.*` in de/en/es; Render-Tests (15) + Voice-Scope-Tests
 - [x] Honesty: leere Voice → ehrlicher Leerzustand; Jobtitel/Firma nur bedingt (users-Spalten fehlen → korrekt unsichtbar, Logik vorbereitet, `// single-source-ok`)
 - [ ] **[D-voice-admin-help]** Owner/Admin hilft neuem Mitglied bei leerer Voice — bewusst deferred
-- [ ] Slice 3 Unternehmensprofil + `org_icps`/`org_personas` + Umzug USPs/Wettbewerber
+- [~] Slice 3 Unternehmensprofil — **3a (Überblick & Angebote) GEMERGT 21.07.2026**, 3b (ICP & Personas) offen
+
+### Mein Unternehmen (SET-KB-2) — Slice 3a/3 „Unternehmensprofil — Überblick & Angebote" (21.07.2026, GEMERGT)
+- [x] `org_profile` **rein additiv** erweitert (Migr. **080**): jsonb `summary`/`product_service_model`/`value_outcome` + Listen `problems_solved`/`business_outcomes`/`offerings`; `competitors` neu `[{id,name,why_us,kind}]` (Bestand → `kind:'direct'`)
+- [x] **Einziger Schreibweg** `update_org_profile` erweitert: Skalar- + Listen-Whitelist, pro-Item `id`-Validierung, `competitors` name+kind∈{direct,adjacent}, `field_meta`-lock, `audit_log`
+- [x] RPC **live per self-abortierendem DO-Block getestet** (gültiger Patch · unbekannter Key wirft · invalider kind wirft · fehlende id wirft · Rollback ohne Rückstand)
+- [x] `CompanyProfilePage` (features/settings): 2 Reiter (Überblick/Angebot & Markt) via `PanelTabs`; Zusammenfassung + **AI Context Builder** (dunkles `--ai-panel-*`-Panel, 2 disabled „Folgt"-Buttons); Vollständigkeits-Ring (Scope `"org"`, `fieldImportance.ts` +6 org-Felder)
+- [x] **Neuer panel-block `KnowledgeListField`** (generische wachsende jsonb-`{id,…}`-Liste, `fields`-Config Einzel=Zeile/Mehr=Karte); Regel-A-Diagnose dokumentiert (`DetailPhoneList` geprüft → Eigenbau); im Barrel + CLAUDE.md-Tabelle + `audit.ts` IN_SCOPE
+- [x] **Leerzustand-Konsistenz (Live-Test-Korrektur):** Einzelfeld-Listen (USPs/Probleme/Ergebnisse) zeigen leer EINE direkt beschreibbare Zeile (kein „Noch nichts eingetragen."-Text) + dezenter „+ hinzufügen"-Link; leerer Draft nicht persistiert (Honesty)
+- [x] Reusable/geändert: `KnowledgeField` label optional + `showAi`; **Token-Rename** `--voice-trainer-*` → `--ai-panel-*` (shared, PersonalVoicePage migriert); i18n `company.*` in de/en/es; Render-Tests (9)
+- [x] Umzug USPs/Wettbewerber aus „Produkte & Preise" → leben jetzt im Unternehmensprofil (waren bis 3a über keine Oberfläche erreichbar)
+- [ ] Slice 3b: `org_icps`/`org_personas`-Tabellen + ICP-/Persona-Reiter
+- [ ] **knowledge_base-Eintrag + `session_uebergabe`** — bei vollem Screen-Abschluss (mit 3b), nicht pro Sub-Slice
 
 ## 🚦 Modul-Abschluss-Gate (PFLICHT — bei JEDEM abgeschlossenen Modul durchgehen)
 
