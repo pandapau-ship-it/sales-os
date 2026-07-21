@@ -60,6 +60,16 @@
 - [x] Echte Daten live über validierte RPCs (Sherloq Company Profile + 4 ICPs/Personas · Personal Voice Oliver)
 - [ ] **[Mini-offen]** AE-Kaufrolle `influencer` (Annahme) — auf Wunsch per `update_persona` → `end_user`
 
+### Arbeitsweise — SET-4 Fundament (Settings-Schreibweg) (21.07.2026)
+- [x] 3 Rechte `rules.edit`/`pipeline.manage`/`automation.manage` (Migr. **083**: permission_catalog + role_permissions owner+admin + `permissions.ts`-Spiegel + Test) — Zukunfts-Registry abgehakt
+- [x] **EIN Schreibweg** `update_settings(p_patch)`: Top-Level-Whitelist {thresholds,automation_defaults,pipeline_stages} · **bereichs-spezifisches** Rechte-Gate · Zweitebene-Key-Whitelist · **Min/Max pro Feld** (kein system_config) · **Won/Lost-Schreibschutz** · shallow-merge · `audit_log`
+- [x] Migr. 083 **remote per DO-Block verifiziert** (Rechte gesetzt · member ohne Recht · Whitelist wirft · Min/Max wirft · Won/Lost-Löschen wirft · gültiger Patch schreibt + audit_log)
+- [x] `RuleRow` (panel-block): Klartext-Regel-Zeile (Satz + anklickbarer Wert, shadcn-Popover Min/Max, `portal={false}`, Doppelvalidierung) — Barrel + IN_SCOPE + 4 Render-Tests
+- [x] `updateSettings`-db.ts-Wrapper (rpc-Passthrough)
+- [ ] **4a Regeln** (Gruppen 1–3 Editor-UI) + **[D-set4-group4-signalcap]** (Gruppe 4: signal_windows schreibbar + Kappung)
+- [ ] **[D-lifecycle-trigger]** Gruppe 5 — Lifecycle-Trigger mit conditions[] (eigener Slice, `src/lib/filter`)
+- [ ] 4b Automation · 4c Pipeline · 4d Mein-Tag-Gewichte (an Mein-Tag-Modul gekoppelt)
+
 ## 🚦 Modul-Abschluss-Gate (PFLICHT — bei JEDEM abgeschlossenen Modul durchgehen)
 
 > Wiederkehrendes Gate, analog zum Code-Review. **Bevor ein Modul als „fertig" gilt**, die vier Prinzipien

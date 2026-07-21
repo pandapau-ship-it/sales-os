@@ -11,15 +11,19 @@
  */
 
 // KATALOG-UMFANG: NUR heute-existierende Features (wächst mit den Modulen). Noch offene Rechte
-// (rules.edit · campaigns.manage · templates.manage · pipeline.manage · integrations.manage ·
-//  billing.* · trash.purge · export.all · audit.view · branding.manage · lists.share) kommen MIT
-// ihrem Modul → Registry in PROGRESS.md. Spiegel des DB-Seeds (Migr. 070/073) — gemeinsam pflegen.
-// `settings.manage` kam mit SET-2 (Workspace/Allgemein-Einstellungen, Migr. 073).
+// (campaigns.manage · templates.manage · integrations.manage · billing.* · trash.purge · export.all ·
+//  audit.view · branding.manage · lists.share) kommen MIT ihrem Modul → Registry in PROGRESS.md.
+// Spiegel des DB-Seeds (Migr. 070/073/083) — gemeinsam pflegen.
+// `settings.manage` kam mit SET-2 (Migr. 073); rules.edit/pipeline.manage/automation.manage mit SET-4 (Migr. 083).
 export const PERMISSIONS = [
   "team.invite",
   "records.delete",
   "records.merge",
   "settings.manage",
+  // SET-4 (Migr. 083): eigene Rechte je Bereich statt eines pauschalen settings.manage.
+  "rules.edit",
+  "pipeline.manage",
+  "automation.manage",
 ] as const;
 export type Permission = (typeof PERMISSIONS)[number];
 
@@ -28,6 +32,9 @@ export const PERMISSION_LABELS: Record<Permission, string> = {
   "records.delete": "Kontakte/Companies/Deals löschen",
   "records.merge": "Duplikate zusammenführen",
   "settings.manage": "Workspace-Einstellungen ändern",
+  "rules.edit": "Regeln & Schwellenwerte ändern",
+  "pipeline.manage": "Pipeline-Stufen verwalten",
+  "automation.manage": "Automation-Standards ändern",
 };
 
 export type Role = "owner" | "admin" | "member" | "viewer";

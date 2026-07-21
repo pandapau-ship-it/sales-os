@@ -8,10 +8,19 @@ import {
 } from "./permissions";
 
 describe("Rollen-Matrix (Spiegel role_permissions-Seed, 070/073) — heute-existierende Rechte", () => {
-  it("Katalog = genau team.invite, records.delete, records.merge, settings.manage", () => {
+  it("Katalog = die 4 Basis-Rechte + SET-4 (rules.edit, pipeline.manage, automation.manage)", () => {
     expect([...PERMISSIONS].sort()).toEqual(
-      ["records.delete", "records.merge", "settings.manage", "team.invite"],
+      ["automation.manage", "pipeline.manage", "records.delete", "records.merge",
+       "rules.edit", "settings.manage", "team.invite"],
     );
+  });
+  it("SET-4-Rechte nur owner/admin (member/viewer NICHT) — Migr. 083", () => {
+    for (const p of ["rules.edit", "pipeline.manage", "automation.manage"]) {
+      expect(hasPermission("owner", p)).toBe(true);
+      expect(hasPermission("admin", p)).toBe(true);
+      expect(hasPermission("member", p)).toBe(false);
+      expect(hasPermission("viewer", p)).toBe(false);
+    }
   });
   it("owner hat ALLE Rechte", () => {
     expect([...ROLE_PERMISSIONS.owner].sort()).toEqual([...PERMISSIONS].sort());
