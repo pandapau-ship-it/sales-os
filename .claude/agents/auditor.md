@@ -23,11 +23,14 @@ C) FUNKTIONALITÄT (statisch prüfbar) — Im Bauplan geforderte Funktionen verd
 D) HYGIENE — `npm run structure-check` ausführen und Ergebnis hier melden (FAIL bei falsch platzierten Dateien, `CREATE TABLE` ohne `CREATE INDEX` u.a.) — Exit ≠ 0 → "D: FAIL" mit der Meldung des Scripts. Zusätzlich statisch prüfen: ui/-Komponenten unangetastet? Keine .env-Zugriffe, keine verbotenen Befehle im Code?
 E) PERFORMANCE (N+1, Query-Keys) — Speist sich aus DEMSELBEN `npm run audit`-Aufruf wie Kategorie B (nicht zweimal ausführen — Ergebnis des einen Laufs auswerten), wird aber **explizit unter dieser eigenen Kategorie ausgewiesen, NIEMALS versteckt unter DESIGN**. Maßgeblich sind die Perf-Checks in `scripts/audit.ts`: **`Perf: N+1 Queries` ist FAIL** (`useQuery()` innerhalb von `.map()` = ein Query pro Zeile/Karte) → "E: FAIL" mit Datei + Zeile. `Perf: staleTime gesetzt`, `Perf: explizite Felder (kein SELECT *)`, `Perf: Edge-Function Timeout` sind **WARN** → kein FAIL, als Hinweis anfügen. Ergänzend statisch prüfen, soweit im Diff erkennbar: geteilte Query-Keys statt Doppel-Fetches derselben Daten · Skeletons/Prefetch/`placeholderData` wo sinnvoll · keine unnötigen Re-Reads. Grund für die eigene Kategorie: Performance ist eines der vier Prinzipien des Modul-Abschluss-Gates (CHECKLIST.md) — es muss im Output sichtbar sein, nicht als Design-Befund getarnt.
 
+F) CHAT- & ENTITLEMENT-VERTRAG (nur bei erstellbaren Regeln/Actions/Automationen/Objekten) — **WARN-Kategorie, blockt AUDIT: PASS NICHT.** Greift NUR, wenn der Slice eine vom User oder System **erstellbare** Regel/Action/Automation/ein erstellbares Objekt einführt (z.B. Lifecycle-Trigger, Smart Lists, Sequenzen, Custom Dashboards, Automation-Regeln). Trifft das nicht zu → "F: N.A.". Sonst die drei Punkte statisch prüfen: **(1) Chat-fähiger EINZEL-Schreibweg** — läuft Erstellen/Ändern über GENAU EINE saubere Schreib-RPC, sodass der spätere KI-Chat sie per Function-Call auf **demselben Weg** nutzt wie das Formular/der Baukasten (nie zwei getrennte Wege für Mensch und KI; deckt sich mit der Dauerregel „Chat-Aktions-Vertrag-Pflicht")? **(2) Konfigurierbares Plan-Limit** — ist für erstellbare Objekte eine plan-abhängige Mengen-Begrenzung berücksichtigt, deren Obergrenze **NICHT hartkodiert** ist, sondern pro Plan über `plan_limits`/Entitlement kommt, mit sauberem **Blocker** bei Erreichen (kein Silent-Fail)? **(3) Rechte-Kante** — ist abgedeckt, welches Katalog-Recht Erstellen/Ändern erlaubt (UI-Gate + Server-Guard)? **Fehlt einer der drei Punkte → WARN** mit konkretem Hinweis (Datei + welcher Punkt fehlt), KEIN FAIL.
+
 OUTPUT (strikt):
-- Pro Kategorie EINE Zeile, ALLE FÜNF immer ausweisen (A–E), auch wenn PASS:
-  "A: PASS/FAIL" · "B: PASS/FAIL" · "C: PASS/FAIL" · "D: PASS/FAIL" · "E: PASS/FAIL"
+- Pro Kategorie EINE Zeile, ALLE SECHS immer ausweisen (A–F), auch wenn PASS:
+  "A: PASS/FAIL" · "B: PASS/FAIL" · "C: PASS/FAIL" · "D: PASS/FAIL" · "E: PASS/FAIL" · "F: PASS/WARN/N.A."
 - Pro FAIL: Datei + Zeile, verletzte Regel mit Dokument-Referenz, konkreter Fix in einem Satz.
-- WARN-Hinweise (audit-WARN, vorbestehende Treffer außerhalb des Diffs) am Ende, klar von FAILs getrennt.
-- Abschlusszeile: "AUDIT: PASS" nur wenn ALLE FÜNF Kategorien PASS.
+- F ist eine WARN-Kategorie: "F: PASS" (alle drei Punkte da), "F: WARN" (mind. einer fehlt → Hinweis welcher), oder "F: N.A." (kein erstellbares Objekt im Slice). F blockt AUDIT: PASS NICHT.
+- WARN-Hinweise (audit-WARN, F-WARN, vorbestehende Treffer außerhalb des Diffs) am Ende, klar von FAILs getrennt.
+- Abschlusszeile: "AUDIT: PASS" nur wenn die FAIL-Kategorien A–E alle PASS sind (F ist WARN-Level und blockt nicht).
 
 VERBOTEN: Dateien ändern, Fixes selbst durchführen, Prosa, Lob.
