@@ -570,6 +570,24 @@
       Verwandt: `last_seen_at` aus SET-3-Diagnose — sobald dort befüllt, könnte „Zuletzt aktiv" auch hier dezent
       erscheinen. Nur vermerkt.
 
+  - **PERSONAL VOICE — REFERENZ-FELDER (Migration 1/n) FERTIG 21.07.2026** (Migr. **084** gepusht + remote
+    per DO-Block verifiziert 6/6; Gates grün, test-runner + auditor PASS, F: N.A.). **Nur der Schreibweg** —
+    Backend-Typen/UI/i18n + Daten-Neueingabe folgen als nächste Slices. **Grund:** Referenz-Abgleich
+    (`00_Designs/…/PersonalVoiceCard`) ergab, dass unser Sammel-Feld `sentence_style` **4 getrennte
+    Referenz-Felder** bündelt (Tonfall/Satzbau/Wortwahl/Emoji&Format) und `hooks` **3 kanal-spezifische**
+    (Post: Hook-Strategien · Comment: Engagement-Muster · DM: CTA-Stil). **Migr. 084 = `update_voice_profile`
+    neu** (KEIN ALTER TABLE, KEINE Daten-Änderung): per-Kanal-Whitelist (overview {bio,tone,style,themes,
+    core_topics}; post +hook_strategies; comment +engagement_patterns; dm+email +cta_style; E-Mail DM-analog,
+    Referenz kennt kein E-Mail), Listen-Felder (core_topics/tone_attributes/vocabulary/hook_strategies) als
+    Array-mit-id validiert. **Alte Keys (`sentence_style`/`hooks`/`themes`) bewusst BEHALTEN** → transition-safe
+    (heutige UI schreibt sie noch); shallow-merge überschreibt nie Nachbar-Keys → **kein Datenverlust**.
+    **`sales_approach` bleibt EIN Textfeld** (= bestehendes `style`, Oliver-Entscheidung: KI braucht Zusammenhang).
+    **Offen (nächste Slices):** db.ts-Typen (`VoiceOverview`/`VoiceChannel` splitten) · UI `PersonalVoicePage`/
+    `ChannelFields` (kanal-abhängig: Listen via KnowledgeListField, Texte via KnowledgeField) · i18n de/en/es ·
+    `fieldImportance` voice-Scope · Render-Tests · **Daten-Neueingabe** der getrennten Inhalte (Chat-Claude).
+    **Company Profile** (Diagnose gleiche Runde): nahezu deckungsgleich, nur 2 kleine fehlende Felder
+    (`org_icps.description` · `org_personas.archetype`) — eigener kleiner Slice, dokumentiert.
+
   - **SET-4 FUNDAMENT (1/2 + 2/2) FERTIG 21.07.2026** (Migr. **083** gepusht + remote per DO-Block verifiziert;
     Gates grün, test-runner + auditor PASS je Teilschritt). **Der Schreib-Unterbau für den Regeln/Automation/
     Pipeline-Bereich — die Seiten (4a–4d) folgen.** (1/2) **3 neue Rechte** `rules.edit`/`pipeline.manage`/
