@@ -412,13 +412,27 @@ QA-Nachweisen → nach Olivers Freigabe ▶ weiterrücken.
 → **NICHT coden.** Vollständige Schritt-für-Schritt-Anleitung bzw. das benötigte Material
 liefern, dann **STOP**.
 
-**c) UI-SLICE** → **IMMER ZUERST Design-Abgleich**, nie sofort bauen:
-1. Vorhandene Designs gegen den Bauplan-Slice prüfen.
-2. Oliver eine **ehrliche GAP-LISTE** geben („abgedeckt: … / fehlt: …").
-3. Für **alle Lücken** einen vollständigen **AI-Studio-Design-Prompt** schreiben:
-   Slice-Anforderungen + Designrichtlinien/Tokens aus `docs/design-system.md` und
-   `docs/ui_interaktionen_v14_komplett.md` + **alle Zustände** (inkl. leer / Fehler / read-only).
-4. **STOP**, bis Olivers Design vorliegt. Erst dann bauen.
+**c) UI-SLICE — VORPRÜFUNG PFLICHT, nie sofort bauen (verbindlich, JEDER UI-Slice).**
+> **Reihenfolge im Modul: erst Migration/Backend, dann UI — und dieser Prüfschritt kommt IMMER
+> dazwischen, VOR jedem UI-Bau.** Die fünf Schritte sind Pflicht; kein UI-Bau ohne sie:
+1. **Regel-A-Analyse (Code zuerst):** explizit analysieren, was im Code **bereits existiert** —
+   Bausteine/Felder/Komponenten (`grep`/Glob in `panel-blocks/` · `features/` · `shared/` · `panels/`,
+   plus die relevanten DB-Felder/Typen). Ergebnis-Satz Pflicht (siehe **REGEL A**).
+2. **Referenz-Design öffnen** aus `00_Designs` (außerhalb des Repos, i.d.R.
+   `…/00_A_OS-System/00_Designs`). **Ist der Ordner/die Datei NICHT auffindbar oder nicht öffenbar
+   → STOPPEN und bei Oliver nachfragen. NIEMALS ohne Vorlage frei bauen.**
+3. **Gap-Liste in DREI Richtungen** zeigen, BEVOR gebaut wird:
+   **(a)** im Design vorhanden, bei uns **fehlend** → ergänzen.
+   **(b)** bei uns vorhanden, aber **NICHT im Design** → prüfen: sinnvoll? wo muss es berücksichtigt
+   werden? oder überflüssig? (nicht stillschweigend behalten oder löschen).
+   **(c)** vorhanden, aber **abweichend** (Name/Typ/Anordnung) → anpassen.
+   Für jeden Fund die KI-Leitfrage mitbeantworten, wo relevant (einzeln vs. Block für AI SDR/Chat/Scan).
+4. **Erst nach Freigabe der Gap-Liste bauen.** Bis dahin **STOP**.
+5. **Fehlt für etwas GAR KEINE Design-Vorlage** → zuerst einen vollständigen **AI-Studio-Design-Prompt**
+   liefern (Slice-Anforderungen + Tokens/Regeln aus `docs/design-system.md` +
+   `docs/ui_interaktionen_v14_komplett.md` + **alle Zustände**: leer/Fehler/read-only), damit das Design
+   extern erstellt wird — **erst danach bauen**.
+
 **Design-Übernahme heißt IMMER:** Mocks raus, echt verdrahten, in **bestehende
 Library-Komponenten** übersetzen — **nie 1:1-Copy** des AI-Studio-Markups.
 
