@@ -181,15 +181,15 @@ export default function PersonalVoicePage() {
             beiden Modi. Farben leben als Tokens in index.css (audit-konform), keine rohen Hex im JSX.
             Zwei ECHTE Buttons (gefüllter Haupt- + heller Zweit-Button, rounded-full) — bleiben aber
             „Folgt"/disabled bis `lib/ai.ts` existiert (Honesty: kein Knopf, der Funktion nur vortäuscht). */}
-        <section className="md:col-span-6 h-full bg-[var(--voice-trainer-surface)] rounded-[12px] p-6 flex flex-col">
+        <section className="md:col-span-6 h-full bg-[var(--ai-panel-surface)] rounded-[12px] p-6 flex flex-col">
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <Sparkles className="w-4 h-4 text-[var(--voice-trainer-accent)]" />
-              <span className="typo-section-label text-[var(--voice-trainer-accent)]">
+              <Sparkles className="w-4 h-4 text-[var(--ai-panel-accent)]" />
+              <span className="typo-section-label text-[var(--ai-panel-accent)]">
                 {t("voice.trainerTitle")}
               </span>
             </div>
-            <p className="typo-subline text-[var(--voice-trainer-muted)]">
+            <p className="typo-subline text-[var(--ai-panel-muted)]">
               {t("voice.trainerHelp")}
             </p>
           </div>
@@ -211,7 +211,7 @@ export default function PersonalVoicePage() {
               disabled
               aria-label={t("voice.trainerChatCta")}
               data-tip={t("settings.nav.comingSoon")}
-              className="rounded-full bg-[var(--on-accent)] text-[var(--voice-trainer-surface)] hover:bg-[var(--on-accent)] disabled:opacity-70 disabled:cursor-not-allowed"
+              className="rounded-full bg-[var(--on-accent)] text-[var(--ai-panel-surface)] hover:bg-[var(--on-accent)] disabled:opacity-70 disabled:cursor-not-allowed"
             >
               <MessageSquare className="w-4 h-4" />
               {t("voice.trainerChatCta")}

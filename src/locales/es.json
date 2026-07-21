@@ -1289,7 +1289,13 @@
       "voiceSamples": "Lo que más aporta ahora: ejemplos reales — la señal más fuerte de tu estilo.",
       "voiceSentenceStyle": "Lo que más aporta ahora: tu estructura de frases/ritmo.",
       "voiceHooks": "Lo que más aporta ahora: tus ganchos habituales.",
-      "voiceDosDonts": "Lo que más aporta ahora: tus normas (qué sí / qué no)."
+      "voiceDosDonts": "Lo que más aporta ahora: tus normas (qué sí / qué no).",
+      "summary": "Lo que más aporta ahora: una descripción breve — ¿quiénes sois y qué hacéis?",
+      "productModel": "Lo que más aporta ahora: vuestro modelo de producto/servicio.",
+      "valueOutcome": "Lo que más aporta ahora: vuestro valor/resultado — la promesa central.",
+      "problemsSolved": "Lo que más aporta ahora: qué problemas resolvéis — el lenguaje más fuerte.",
+      "businessOutcomes": "Lo que más aporta ahora: los resultados de negocio que hacéis posibles.",
+      "offerings": "Lo que más aporta ahora: vuestras categorías de oferta."
     },
     "products": "Productos",
     "productsHelp": "Lo que vendéis. Varios productos posibles, todos los campos opcionales.",
@@ -1340,7 +1346,27 @@
     "aiFill": "Rellenar con IA",
     "aiFillProduct": "Que la IA rellene todos los campos de este producto",
     "statusMissing": "{{n}} pendientes",
-    "statusMissingTip": "A la IA aún le faltan estos datos"
+    "statusMissingTip": "A la IA aún le faltan estos datos",
+    "profile": {
+      "intro": "Lo que la IA sabe de vuestra empresa — posicionamiento, oferta y mercado. Nada es obligatorio.",
+      "tab": { "overview": "Resumen", "offerings": "Oferta y mercado" },
+      "summary": { "label": "Resumen", "help": "En una o dos frases: quiénes sois y qué hacéis.", "ph": "p. ej. Ayudamos a equipos de ventas B2B a prospectar de forma personalizada y a escala." },
+      "productModel": { "label": "Modelo de producto/servicio", "ph": "¿Cómo entregáis? Plataforma, consultoría, suscripción …" },
+      "valueOutcome": { "label": "Valor y resultado", "ph": "¿Qué mejora de forma medible para vuestros clientes?" },
+      "usps": { "label": "USP", "add": "Añadir USP", "remove": "Eliminar USP", "empty": "Aún no hay USP.", "ph": "¿Qué os hace especiales?" },
+      "problems": { "label": "Problemas que resolvéis", "add": "Añadir problema", "remove": "Eliminar problema", "empty": "Aún no hay nada.", "ph": "p. ej. mensajes genéricos que se ignoran" },
+      "outcomes": { "label": "Resultados de negocio", "add": "Añadir resultado", "remove": "Eliminar resultado", "empty": "Aún no hay nada.", "ph": "p. ej. mayor tasa de respuesta, ciclos más cortos" },
+      "offerings": { "label": "Ofertas", "add": "Añadir oferta", "remove": "Eliminar oferta", "empty": "Aún no hay oferta.", "titleLabel": "Título", "titlePh": "p. ej. Company Intelligence Research", "textLabel": "Descripción", "textPh": "¿Qué incluye esta oferta?" },
+      "competitors": { "directLabel": "Competidores directos", "adjacentLabel": "Competidores adyacentes", "add": "Añadir competidor", "remove": "Eliminar competidor", "empty": "Aún no hay competidores.", "nameLabel": "Nombre", "namePh": "p. ej. HubSpot", "whyLabel": "¿Por qué nosotros?", "whyPh": "¿Por qué sois la mejor opción?" },
+      "contextTitle": "AI Context Builder",
+      "contextHelp": "No lo escribas todo a mano. La IA puede analizar vuestra web y rellenar el perfil.",
+      "scanCta": "Escanear web",
+      "chatCta": "Configuración del chat",
+      "detailsTitle": "Perfil",
+      "detailsHelp": "Los detalles de vuestra empresa por pestaña. Todo opcional.",
+      "completenessHelp": "Cuanto más rellenéis aquí, más concreta será la IA.",
+      "aiHint": "El botón «Escanear web» rellenará el perfil automáticamente más adelante. Próximamente."
+    }
   },
   "voice": {
     "intro": "Tu voz de escritura personal. El AI SDR la usará para escribir con TU voz. Nada es obligatorio: rellena lo que encaje.",

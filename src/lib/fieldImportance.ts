@@ -32,7 +32,10 @@ export type HintKey =
   // Personal Voice (Slice 2/3). Overview-Felder je eigener Key, Kanal-Felder teilen sich
   // einen Key über alle Kanäle (post/comment/dm/email) — der Hinweis benennt die Feld-ART.
   | "voiceBio" | "voiceThemes" | "voiceStyle" | "voiceTone"
-  | "voiceSamples" | "voiceSentenceStyle" | "voiceHooks" | "voiceDosDonts";
+  | "voiceSamples" | "voiceSentenceStyle" | "voiceHooks" | "voiceDosDonts"
+  // Unternehmensprofil — Überblick & Angebote (Slice 3a)
+  | "summary" | "productModel" | "valueOutcome" | "problemsSolved"
+  | "businessOutcomes" | "offerings";
 
 export interface FieldImportanceEntry {
   /** Pfad-Vorlage mit `<id>`-Platzhalter, z.B. "product.<id>.benefit". STABIL — nie umbenennen. */
@@ -158,6 +161,20 @@ export const FIELD_IMPORTANCE: readonly FieldImportanceEntry[] = [
     reason: "Betreff-/Einstiegsmuster verfeinern nur, sind nicht zwingend." },
   { path: "voice.email.dos_donts", importance: "optional", order: 28, hintKey: "voiceDosDonts",
     reason: "Do's & Don'ts verfeinern nur — die AI schreibt auch ohne sie." },
+
+  // ── Unternehmensprofil — Überblick & Angebote (Slice 3a, Migr. 080) — Scope "org" ──────────────
+  { path: "org.summary", importance: "recommended", order: 29, hintKey: "summary",
+    reason: "Ohne Kurzbeschreibung fehlt der AI der Rahmen, WER ihr seid und WAS ihr tut." },
+  { path: "org.value_outcome", importance: "recommended", order: 30, hintKey: "valueOutcome",
+    reason: "Der Nutzen/Ergebnis ist das Kernversprechen jeder Nachricht." },
+  { path: "org.product_service_model", importance: "recommended", order: 31, hintKey: "productModel",
+    reason: "Das Produkt-/Service-Modell erklärt, WIE ihr liefert." },
+  { path: "org.offerings", importance: "recommended", order: 32, hintKey: "offerings",
+    reason: "Angebots-Kategorien geben der AI konkrete Anknüpfungspunkte." },
+  { path: "org.problems_solved", importance: "recommended", order: 33, hintKey: "problemsSolved",
+    reason: "Gelöste Probleme sind die stärkste Sprache in der Ansprache." },
+  { path: "org.business_outcomes", importance: "optional", order: 34, hintKey: "businessOutcomes",
+    reason: "Geschäftsergebnisse untermauern, sind aber nicht zwingend." },
 ] as const;
 
 const byPath = new Map(FIELD_IMPORTANCE.map((e) => [e.path, e]));

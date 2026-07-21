@@ -372,11 +372,15 @@ Realtime-Channel `org:{organization_id}`, AI nur via aiCall() + Langfuse-Prompt-
 > **PFLICHT-KONTEXT vor jeder Generierung (an erster Stelle, vor der `generation_mode`-Logik):**
 >
 > 1. **ORG-PROFIL & PERSONA-MATCHING:** Vor jeder Generierung lädt `generate_message` das
->    `org_profile` (Firma, Angebot, Problemlösung, ICP-Definition, `personas[]` mit Pain
->    Points + Original-Wording — entsteht in Onboarding **O3** / Settings „Unternehmensprofil").
->    Matching-Schritt `match_persona(contact)`: Rolle/`job_title` des Empfängers wird gegen
->    `org_profile.personas[].role_pattern` abgeglichen (Synonyme normalisieren: „Head of
->    Sales"/„VP Sales"/„Sales Director" → dieselbe Persona).
+>    `org_profile` (Firma, Angebot, Problemlösung) und die **ICPs/Personas** (Pain Points +
+>    Original-Wording — entstehen in Settings „Unternehmensprofil", **Mein Unternehmen Slice 3**).
+>    Matching-Schritt `match_persona(contact)`: Rolle/`job_title` des Empfängers wird gegen die
+>    Job-Titel-Synonyme der Persona abgeglichen (Synonyme normalisieren: „Head of Sales"/„VP Sales"/
+>    „Sales Director" → dieselbe Persona).
+>    - **KORREKTUR (Slice 3, Mein Unternehmen):** Die Synonyme werden künftig aus
+>      **`org_personas.job_titles`** gelesen (eigene Tabellen `org_icps` → `org_personas`,
+>      Migration aus Slice 3b), **nicht mehr aus `org_profile.personas[].role_pattern`** eingebettet.
+>      Das alte eingebettete Modell (`personas[]`-Array auf `org_profile`) ist verworfen.
 >    - **TREFFER** → Pain Points + Original-Wording dieser Persona prominent in den Prompt
 >      („Sprich die Pain Points dieser Persona in ihrer eigenen Sprache an").
 >    - **KEIN TREFFER** → generischer ICP-Block aus `org_profile`, KEINE erfundene

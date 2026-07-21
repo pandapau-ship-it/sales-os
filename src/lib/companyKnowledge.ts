@@ -46,6 +46,13 @@ export interface KnowledgeInput {
   usps?: { text: I18nText }[];
   competitors?: { name: string; why_us: I18nText }[];
   voice?: KnowledgeVoice;
+  // Unternehmensprofil — Überblick & Angebote (Slice 3a)
+  summary?: I18nText;
+  product_service_model?: I18nText;
+  value_outcome?: I18nText;
+  problems_solved?: { text: I18nText }[];
+  business_outcomes?: { text: I18nText }[];
+  offerings?: { title: I18nText; text: I18nText }[];
 }
 
 /**
@@ -89,6 +96,13 @@ function valueOf(input: KnowledgeInput, template: string, product?: KnowledgePro
     case "product.<id>.price_model": return product?.price_model ?? "";
     case "org.usps": return (input.usps ?? []).some((u) => !isEmptyText(u.text));
     case "org.competitors": return (input.competitors ?? []).some((c) => !isEmptyText(c.why_us));
+    case "org.summary": return input.summary;
+    case "org.product_service_model": return input.product_service_model;
+    case "org.value_outcome": return input.value_outcome;
+    case "org.problems_solved": return (input.problems_solved ?? []).some((x) => !isEmptyText(x.text));
+    case "org.business_outcomes": return (input.business_outcomes ?? []).some((x) => !isEmptyText(x.text));
+    case "org.offerings":
+      return (input.offerings ?? []).some((o) => !isEmptyText(o.title) || !isEmptyText(o.text));
     default:
       // Voice-Pfade sind LITERAL ("voice.<gruppe>.<feld>") — generisch aus input.voice lesen.
       if (template.startsWith("voice.")) {

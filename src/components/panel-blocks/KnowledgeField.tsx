@@ -29,9 +29,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { FIELD, FIELD_MULTILINE, AI_PILL_PENDING } from "@/lib/componentBehavior";
 
 export default function KnowledgeField({
-  label, value, placeholder, multiline = false, rows = 3, canEdit = true, icon, onSave,
+  label, value, placeholder, multiline = false, rows = 3, canEdit = true, icon, showAi = true, onSave,
 }: {
-  label: string;
+  /** Optional — leer/undefined = kein Label-Kopf (z.B. Einzel-Feld-Einträge in `KnowledgeListField`). */
+  label?: string;
   value: string;
   placeholder?: string;
   multiline?: boolean;
@@ -40,6 +41,8 @@ export default function KnowledgeField({
   canEdit?: boolean;
   /** Optionales Icon links vom Label (z.B. Bestätigungs-/Warn-Symbol bei „immer"/„nie"). */
   icon?: ReactNode;
+  /** false → kein KI-Vorschlags-Knopf (z.B. je Listen-Eintrag wäre ein Pill pro Item zu laut). */
+  showAi?: boolean;
   onSave: (next: string) => void | Promise<void>;
 }) {
   const { t } = useTranslation();
@@ -74,22 +77,30 @@ export default function KnowledgeField({
 
   return (
     <div>
-      <div className="flex items-center justify-between gap-2 mb-1.5">
-        <label htmlFor={id} className="typo-field-label text-text-muted inline-flex items-center gap-1.5">
-          {icon}
-          {label}
-        </label>
-        <button
-          type="button"
-          disabled
-          aria-disabled="true"
-          aria-label={t("company.aiSuggest", { field: label })}
-          data-tip={t("settings.nav.comingSoon")}
-          className={`${AI_PILL_PENDING} px-2 py-0.5 shrink-0`}
-        >
-          <Sparkles className="w-3 h-3" />
-        </button>
-      </div>
+      {(label || showAi) && (
+        <div className="flex items-center justify-between gap-2 mb-1.5">
+          {label ? (
+            <label htmlFor={id} className="typo-field-label text-text-muted inline-flex items-center gap-1.5">
+              {icon}
+              {label}
+            </label>
+          ) : (
+            <span />
+          )}
+          {showAi && (
+            <button
+              type="button"
+              disabled
+              aria-disabled="true"
+              aria-label={t("company.aiSuggest", { field: label ?? "" })}
+              data-tip={t("settings.nav.comingSoon")}
+              className={`${AI_PILL_PENDING} px-2 py-0.5 shrink-0`}
+            >
+              <Sparkles className="w-3 h-3" />
+            </button>
+          )}
+        </div>
+      )}
 
       {multiline ? (
         <Textarea {...shared} rows={rows} className={FIELD_MULTILINE} />

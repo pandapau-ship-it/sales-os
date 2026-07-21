@@ -1710,10 +1710,21 @@ export interface ProductRow {
   ai_may_reference_price: boolean;
 }
 
-export interface OrgProfileLite {
+/** Vollständiges Firmen-Profil (Settings → Mein Unternehmen → Unternehmensprofil, Slice 3a). */
+export interface OrgProfile {
+  summary: I18nText;
+  product_service_model: I18nText;
+  value_outcome: I18nText;
   usps: { id: string; text: I18nText }[];
-  competitors: { id: string; name: string; why_us: I18nText }[];
+  problems_solved: { id: string; text: I18nText }[];
+  business_outcomes: { id: string; text: I18nText }[];
+  offerings: { id: string; title: I18nText; text: I18nText }[];
+  competitors: { id: string; name: string; why_us: I18nText; kind: "direct" | "adjacent" }[];
 }
+const EMPTY_ORG_PROFILE: OrgProfile = {
+  summary: "", product_service_model: "", value_outcome: "",
+  usps: [], problems_solved: [], business_outcomes: [], offerings: [], competitors: [],
+};
 
 /** Produkte der Org für die Settings-Seite (aktive, volle Felder — nicht das Deal-Dropdown). */
 export async function getProductsFull(organizationId: string): Promise<ProductRow[]> {
@@ -1729,19 +1740,27 @@ export async function getProductsFull(organizationId: string): Promise<ProductRo
   return (data ?? []) as unknown as ProductRow[];
 }
 
-/** Firmen-Ebene: USPs + Wettbewerber (Single Source — die Produktseite zeigt sie nur). */
-export async function getOrgProfileLite(organizationId: string): Promise<OrgProfileLite> {
+/** Volles Firmen-Profil (Überblick + Angebote). Leere Zeile → normalisierte Leer-Struktur (kein null). */
+export async function getOrgProfile(organizationId: string): Promise<OrgProfile> {
   const client = getSupabaseClient();
-  if (!client) return { usps: [], competitors: [] };
+  if (!client) return { ...EMPTY_ORG_PROFILE };
   const { data, error } = await client
     .from("org_profile")
-    .select("usps, competitors")
+    .select("summary, product_service_model, value_outcome, usps, problems_solved, business_outcomes, offerings, competitors")
     .eq("organization_id", organizationId)
     .maybeSingle();
   if (error) throw error;
+  if (!data) return { ...EMPTY_ORG_PROFILE };
+  const row = data as Partial<OrgProfile>;
   return {
-    usps: ((data?.usps as OrgProfileLite["usps"] | null) ?? []),
-    competitors: ((data?.competitors as OrgProfileLite["competitors"] | null) ?? []),
+    summary: (row.summary as I18nText) ?? "",
+    product_service_model: (row.product_service_model as I18nText) ?? "",
+    value_outcome: (row.value_outcome as I18nText) ?? "",
+    usps: (row.usps as OrgProfile["usps"] | null) ?? [],
+    problems_solved: (row.problems_solved as OrgProfile["problems_solved"] | null) ?? [],
+    business_outcomes: (row.business_outcomes as OrgProfile["business_outcomes"] | null) ?? [],
+    offerings: (row.offerings as OrgProfile["offerings"] | null) ?? [],
+    competitors: (row.competitors as OrgProfile["competitors"] | null) ?? [],
   };
 }
 
@@ -1770,7 +1789,12 @@ export async function deleteProduct(id: string): Promise<void> {
   if (error) throw error;
 }
 
-/** USPs/Wettbewerber ändern. patch ⊆ {usps, competitors} — jeweils die VOLLE Liste. */
+/**
+ * org_profile-Felder ändern (EIN Schreibweg). patch ⊆ Whitelist der RPC:
+ * Skalare {summary, product_service_model, value_outcome} +
+ * Listen {usps, competitors, problems_solved, business_outcomes, offerings} —
+ * Listen jeweils als VOLLE Liste (kein Merge). Serverseitig: settings.manage + field_meta-lock + audit_log.
+ */
 export async function updateOrgProfile(patch: Record<string, unknown>): Promise<void> {
   const client = getSupabaseClient();
   if (!client) return;
