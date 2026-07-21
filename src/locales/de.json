@@ -1355,15 +1355,66 @@
     "statusMissingTip": "Diese Angaben fehlen der AI noch",
     "profile": {
       "intro": "Was die AI über euer Unternehmen weiß — Positionierung, Angebot und Markt. Nichts ist Pflicht.",
-      "tab": { "overview": "Überblick", "offerings": "Angebot & Markt" },
-      "summary": { "label": "Zusammenfassung", "help": "In ein bis zwei Sätzen: wer seid ihr, was tut ihr.", "ph": "z. B. Wir helfen B2B-Sales-Teams, personalisiert und skalierbar zu prospektieren." },
-      "productModel": { "label": "Produkt-/Service-Modell", "ph": "Wie liefert ihr? Plattform, Beratung, Abo …" },
-      "valueOutcome": { "label": "Nutzen & Ergebnis", "ph": "Was verbessert sich messbar für eure Kunden?" },
-      "usps": { "label": "USPs", "add": "USP hinzufügen", "remove": "USP entfernen", "empty": "Noch kein USP.", "ph": "Was macht euch besonders?" },
-      "problems": { "label": "Probleme, die ihr löst", "add": "Problem hinzufügen", "remove": "Problem entfernen", "empty": "Noch nichts eingetragen.", "ph": "z. B. generische Ansprache, die ignoriert wird" },
-      "outcomes": { "label": "Geschäftsergebnisse", "add": "Ergebnis hinzufügen", "remove": "Ergebnis entfernen", "empty": "Noch nichts eingetragen.", "ph": "z. B. höhere Antwortquote, kürzere Sales-Zyklen" },
-      "offerings": { "label": "Angebote", "add": "Angebot hinzufügen", "remove": "Angebot entfernen", "empty": "Noch kein Angebot.", "titleLabel": "Titel", "titlePh": "z. B. Company-Intelligence-Research", "textLabel": "Beschreibung", "textPh": "Was umfasst dieses Angebot?" },
-      "competitors": { "directLabel": "Direkte Wettbewerber", "adjacentLabel": "Angrenzende Wettbewerber", "add": "Wettbewerber hinzufügen", "remove": "Wettbewerber entfernen", "empty": "Noch keine Wettbewerber.", "nameLabel": "Name", "namePh": "z. B. HubSpot", "whyLabel": "Warum wir?", "whyPh": "Warum seid ihr die bessere Wahl?" },
+      "tab": {
+        "overview": "Überblick",
+        "offerings": "Angebot & Markt",
+        "personas": "ICP & Personas"
+      },
+      "summary": {
+        "label": "Zusammenfassung",
+        "help": "In ein bis zwei Sätzen: wer seid ihr, was tut ihr.",
+        "ph": "z. B. Wir helfen B2B-Sales-Teams, personalisiert und skalierbar zu prospektieren."
+      },
+      "productModel": {
+        "label": "Produkt-/Service-Modell",
+        "ph": "Wie liefert ihr? Plattform, Beratung, Abo …"
+      },
+      "valueOutcome": {
+        "label": "Nutzen & Ergebnis",
+        "ph": "Was verbessert sich messbar für eure Kunden?"
+      },
+      "usps": {
+        "label": "USPs",
+        "add": "USP hinzufügen",
+        "remove": "USP entfernen",
+        "empty": "Noch kein USP.",
+        "ph": "Was macht euch besonders?"
+      },
+      "problems": {
+        "label": "Probleme, die ihr löst",
+        "add": "Problem hinzufügen",
+        "remove": "Problem entfernen",
+        "empty": "Noch nichts eingetragen.",
+        "ph": "z. B. generische Ansprache, die ignoriert wird"
+      },
+      "outcomes": {
+        "label": "Geschäftsergebnisse",
+        "add": "Ergebnis hinzufügen",
+        "remove": "Ergebnis entfernen",
+        "empty": "Noch nichts eingetragen.",
+        "ph": "z. B. höhere Antwortquote, kürzere Sales-Zyklen"
+      },
+      "offerings": {
+        "label": "Angebote",
+        "add": "Angebot hinzufügen",
+        "remove": "Angebot entfernen",
+        "empty": "Noch kein Angebot.",
+        "titleLabel": "Titel",
+        "titlePh": "z. B. Company-Intelligence-Research",
+        "textLabel": "Beschreibung",
+        "textPh": "Was umfasst dieses Angebot?"
+      },
+      "competitors": {
+        "directLabel": "Direkte Wettbewerber",
+        "adjacentLabel": "Angrenzende Wettbewerber",
+        "add": "Wettbewerber hinzufügen",
+        "remove": "Wettbewerber entfernen",
+        "empty": "Noch keine Wettbewerber.",
+        "nameLabel": "Name",
+        "namePh": "z. B. HubSpot",
+        "whyLabel": "Warum wir?",
+        "whyPh": "Warum seid ihr die bessere Wahl?"
+      },
       "contextTitle": "AI Context Builder",
       "contextHelp": "Nicht alles manuell tippen. Die KI kann eure Website analysieren und das Profil vorbefüllen.",
       "scanCta": "Website scannen",
@@ -1371,7 +1422,112 @@
       "detailsTitle": "Profil",
       "detailsHelp": "Pro Reiter die Details eures Unternehmens. Alles optional.",
       "completenessHelp": "Je mehr hier steht, desto konkreter schreibt die AI später.",
-      "aiHint": "Der „Website scannen“-Knopf füllt das Profil später automatisch aus. Folgt."
+      "aiHint": "Der „Website scannen“-Knopf füllt das Profil später automatisch aus. Folgt.",
+      "icp": {
+        "add": "Zielgruppe hinzufügen",
+        "unnamed": "Unbenannte Zielgruppe",
+        "namePh": "z. B. Mid-Market SaaS DACH",
+        "removeTitle": "Zielgruppe entfernen",
+        "removeDesc": "Die Zielgruppe und alle zugeordneten Personen werden entfernt. Das lässt sich nicht rückgängig machen.",
+        "empty": "Noch keine Zielgruppe.",
+        "fit": {
+          "label": "Passung",
+          "ph": "Wie gut passt sie?",
+          "high": "Hoch",
+          "medium": "Mittel",
+          "low": "Niedrig"
+        },
+        "companyProfile": {
+          "label": "Firmenprofil",
+          "ph": "Auf welche Firmen passt sie? (Branche, Größe …)",
+          "add": "Merkmal hinzufügen",
+          "remove": "Merkmal entfernen"
+        },
+        "fitRationale": {
+          "label": "Fit-Begründung",
+          "ph": "Warum passt sie besonders gut?",
+          "add": "Grund hinzufügen",
+          "remove": "Grund entfernen"
+        },
+        "desiredOutcomes": {
+          "label": "Wunsch-Ergebnisse",
+          "ph": "Was will diese Zielgruppe erreichen?",
+          "add": "Ergebnis hinzufügen",
+          "remove": "Ergebnis entfernen"
+        },
+        "problems": {
+          "label": "Gelöste Probleme",
+          "ph": "Welches Problem löst ihr für sie?",
+          "add": "Problem hinzufügen",
+          "remove": "Problem entfernen"
+        }
+      },
+      "persona": {
+        "title": "Personen",
+        "add": "Person hinzufügen",
+        "unnamed": "Unbenannte Person",
+        "namePh": "z. B. Head of Sales / VP Sales",
+        "removeTitle": "Person entfernen",
+        "removeDesc": "Diese Person wird aus der Zielgruppe entfernt. Das lässt sich nicht rückgängig machen.",
+        "empty": "Noch keine Person.",
+        "role": {
+          "label": "Kaufrolle",
+          "ph": "Rolle im Kaufprozess",
+          "decision_maker": "Entscheider",
+          "influencer": "Beeinflusser",
+          "champion": "Fürsprecher",
+          "end_user": "Endnutzer",
+          "blocker": "Blockierer"
+        },
+        "jobTitles": {
+          "label": "Job-Titel",
+          "ph": "z. B. Head of Sales, VP Sales, Sales Director",
+          "add": "Job-Titel hinzufügen",
+          "remove": "Job-Titel entfernen"
+        },
+        "responsibilities": {
+          "label": "Aufgaben",
+          "ph": "Wofür ist die Person verantwortlich?",
+          "add": "Aufgabe hinzufügen",
+          "remove": "Aufgabe entfernen"
+        },
+        "goals": {
+          "label": "Ziele",
+          "ph": "Was will die Person erreichen?",
+          "add": "Ziel hinzufügen",
+          "remove": "Ziel entfernen"
+        },
+        "priorities": {
+          "label": "Prioritäten",
+          "ph": "Was hat gerade Vorrang?",
+          "add": "Priorität hinzufügen",
+          "remove": "Priorität entfernen"
+        },
+        "coreProblems": {
+          "label": "Kernprobleme",
+          "ph": "Was hält die Person nachts wach?",
+          "add": "Kernproblem hinzufügen",
+          "remove": "Kernproblem entfernen"
+        },
+        "objections": {
+          "label": "Einwände",
+          "ph": "Typische Einwände im Gespräch",
+          "add": "Einwand hinzufügen",
+          "remove": "Einwand entfernen"
+        },
+        "exactWording": {
+          "label": "Wörtliche Zitate",
+          "ph": "O-Ton der Person (genau so gesagt)",
+          "add": "Zitat hinzufügen",
+          "remove": "Zitat entfernen"
+        },
+        "inferredWording": {
+          "label": "Abgeleitete Formulierungen",
+          "ph": "Sinngemäß, aus Signalen abgeleitet",
+          "add": "Formulierung hinzufügen",
+          "remove": "Formulierung entfernen"
+        }
+      }
     }
   },
   "voice": {
@@ -1394,17 +1550,44 @@
       "email": "E-Mail"
     },
     "overview": {
-      "bio": { "label": "Kurzprofil", "ph": "Wer bist du, was machst du?" },
-      "style": { "label": "Verkaufs-/Argumentationsstil", "ph": "Wie überzeugst du? Problem-first, Story, Zahlen …" },
-      "tone": { "label": "Grundton", "ph": "z. B. direkt, analytisch, warm" },
-      "themes": { "label": "Kernthemen", "ph": "Worüber schreibst/sprichst du am liebsten?" }
+      "bio": {
+        "label": "Kurzprofil",
+        "ph": "Wer bist du, was machst du?"
+      },
+      "style": {
+        "label": "Verkaufs-/Argumentationsstil",
+        "ph": "Wie überzeugst du? Problem-first, Story, Zahlen …"
+      },
+      "tone": {
+        "label": "Grundton",
+        "ph": "z. B. direkt, analytisch, warm"
+      },
+      "themes": {
+        "label": "Kernthemen",
+        "ph": "Worüber schreibst/sprichst du am liebsten?"
+      }
     },
     "field": {
-      "samples": { "label": "Beispiele", "ph": "Füge ein paar echte Beispiele ein, die typisch für dich sind." },
-      "writingStyle": { "label": "Schreibstil", "ph": "z. B. kurze, prägnante Sätze; klare Zeilenumbrüche" },
-      "hooks": { "label": "Aufmacher", "ph": "Womit steigst du ein?" },
-      "dosAlways": { "label": "Das machst du immer", "ph": "Was in deinen Nachrichten immer vorkommt" },
-      "dosNever": { "label": "Das machst du nie", "ph": "Was in deinen Nachrichten nie vorkommt" }
+      "samples": {
+        "label": "Beispiele",
+        "ph": "Füge ein paar echte Beispiele ein, die typisch für dich sind."
+      },
+      "writingStyle": {
+        "label": "Schreibstil",
+        "ph": "z. B. kurze, prägnante Sätze; klare Zeilenumbrüche"
+      },
+      "hooks": {
+        "label": "Aufmacher",
+        "ph": "Womit steigst du ein?"
+      },
+      "dosAlways": {
+        "label": "Das machst du immer",
+        "ph": "Was in deinen Nachrichten immer vorkommt"
+      },
+      "dosNever": {
+        "label": "Das machst du nie",
+        "ph": "Was in deinen Nachrichten nie vorkommt"
+      }
     },
     "soundsLike": "So klingt das",
     "aiFill": "KI ausfüllen",

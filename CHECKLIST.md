@@ -45,8 +45,20 @@
 - [x] **Leerzustand-Konsistenz (Live-Test-Korrektur):** Einzelfeld-Listen (USPs/Probleme/Ergebnisse) zeigen leer EINE direkt beschreibbare Zeile (kein „Noch nichts eingetragen."-Text) + dezenter „+ hinzufügen"-Link; leerer Draft nicht persistiert (Honesty)
 - [x] Reusable/geändert: `KnowledgeField` label optional + `showAi`; **Token-Rename** `--voice-trainer-*` → `--ai-panel-*` (shared, PersonalVoicePage migriert); i18n `company.*` in de/en/es; Render-Tests (9)
 - [x] Umzug USPs/Wettbewerber aus „Produkte & Preise" → leben jetzt im Unternehmensprofil (waren bis 3a über keine Oberfläche erreichbar)
-- [ ] Slice 3b: `org_icps`/`org_personas`-Tabellen + ICP-/Persona-Reiter
-- [ ] **knowledge_base-Eintrag + `session_uebergabe`** — bei vollem Screen-Abschluss (mit 3b), nicht pro Sub-Slice
+- [x] Slice 3b: `org_icps`/`org_personas`-Tabellen + ICP-/Persona-Reiter — **GEMERGT 21.07.2026**
+- [x] **knowledge_base-Eintrag (Seed `docs/knowledge_base.md`) + `session_uebergabe_2026-07-21.md`** — voller Screen fertig
+
+### Mein Unternehmen (SET-KB-2) — Slice 3b/3 „Unternehmensprofil — ICP & Personas" (21.07.2026, GEMERGT)
+- [x] `org_icps` + `org_personas` (Migr. **081**, rein additiv): 1:N (icp_id CASCADE), RLS tenant_isolation, Index org(+icp_id), audit-/updated_at-Trigger; fit_level/buying_role als feste System-Enums via CHECK (nullable, kein [D51]-Config, CLAUDE.md-Vermerk); nur benannte Spalten (kein `attributes`), Text-Listen jsonb `[{id,text}]`
+- [x] **6 RPCs** (Migr. **082**, products-Muster): create/update/delete_icp + create_persona(icp_id)/update/delete_persona — settings.manage · Cross-Org-Guard · Key-Whitelist · Listen-Item-id-Pflicht · field_meta-lock · audit_log · weiches Löschen; Enum-Werte NICHT dupliziert ('' → null)
+- [x] Migr. 081/082 **remote per self-abortierendem DO-Block verifiziert** (RLS/Trigger/CHECK/FK-CASCADE + RPC-Verhalten: gültig/unbekannter Key/ungültiger Enum/fehlende id/icp_id-nicht-änderbar/weiches Löschen/audit_log)
+- [x] **`EntityCardList`** (neuer panel-block): verallgemeinertes Produkte-Karten-Muster, einmal gebaut/zweimal genutzt (ICPs primary + verschachtelt Personas nested, eigener openId-Scope); Anlegen + AlertDialog-Löschen; im Barrel + audit.ts IN_SCOPE
+- [x] 3. Reiter „ICP & Personas": fit_level/buying_role via shadcn Select (EnumField), Text-Listen via KnowledgeListField; `getIcpsWithPersonas` (EIN Embed-Query, kein N+1); eigene icps-Query + RPC-Schreibhelfer
+- [x] **Layout-Korrektur:** Zwei-Spalten (mobil einspaltig) · dezente graue Lucide-Icons je Sektions-Label · Abstands-Rhythmus · kompaktere Listen · **Passungs-/Kaufrollen-Badge** im Kopf (StatusBadge, live über Select, null→kein Badge)
+- [x] **3 Konsistenz-Fixes** (gemeldete Geschwister-Stellen): ProductPricingPage Nutzen|Zielgruppe zweispaltig + Preismodell-Badge (StatusBadge info); PersonalVoicePage Do's|Don'ts nebeneinander
+- [x] i18n `company.profile.icp.*`/`persona.*` in de/en/es (131 Keys verifiziert, kein Hardcode); +6 Render-Tests (CompanyProfilePage 12)
+- [x] Echte Daten live über validierte RPCs (Sherloq Company Profile + 4 ICPs/Personas · Personal Voice Oliver)
+- [ ] **[Mini-offen]** AE-Kaufrolle `influencer` (Annahme) — auf Wunsch per `update_persona` → `end_user`
 
 ## 🚦 Modul-Abschluss-Gate (PFLICHT — bei JEDEM abgeschlossenen Modul durchgehen)
 

@@ -567,3 +567,12 @@
 - **value:** Ausfälle fallen dem Team auf, bevor sie beim Kunden ankommen — ein stiller Job, der wochenlang nicht läuft, kann sich nicht mehr verstecken. Das schützt genau die Automatiken, auf die sich der Vertrieb täglich verlässt.
 - **module:** core
 - *(Betrieb B-1, 19.07.2026 + Alarm-Wording 20.07.2026. Eine Status-Seite in den Einstellungen folgt mit B-4.)*
+
+---
+
+- **feature:** Unternehmensprofil (Überblick, Angebot & Markt, Zielgruppen & Personen)
+- **what:** Der zentrale Ort, an dem ihr eurem System erklärt, wer ihr seid und wen ihr gewinnen wollt. Drei Reiter: **Überblick** (Kurz-Zusammenfassung, USPs, Produkt-/Service-Modell, Nutzen, gelöste Probleme, Geschäftsergebnisse) · **Angebot & Markt** (eure Angebote sowie direkte und angrenzende Wettbewerber) · **ICP & Personas** — mehrere Zielgruppen, und je Zielgruppe mehrere Personen. Jede Zielgruppe hat eine Passung (Hoch/Mittel/Niedrig, als farbiges Kopf-Abzeichen sichtbar), Firmenprofil, Fit-Begründung, Wunsch-Ergebnisse und gelöste Probleme; jede Person hat eine Kaufrolle, Job-Titel, Aufgaben, Ziele, Prioritäten, Kernprobleme, Einwände und typische Zitate. Nichts ist Pflicht — ein Fortschritts-Ring zeigt dezent, was am meisten bringt. Zielgruppen und Personen legt ihr per Klick an, klappt sie auf und wieder zu; Löschen fragt vorher nach.
+- **how:** Einstellungen → Mein Unternehmen → Unternehmensprofil. Reiter wählen, Felder ausfüllen (wird beim Verlassen automatisch gespeichert); unter „ICP & Personas" mit „Zielgruppe hinzufügen" bzw. „Person hinzufügen" neue Einträge anlegen und die Karten zum Bearbeiten aufklappen.
+- **value:** Je genauer hier steht, für wen ihr was löst und in welcher Sprache eure Käufer denken, desto treffsicherer schreibt die KI später — sie spricht die echten Schmerzpunkte einer Persona in deren eigenen Worten an, statt generischer Ansprache. Einmal gepflegt, profitieren AI SDR, AI-Chat und die Bewertung neuer Leads gemeinsam davon.
+- **module:** ai_sdr
+- *(Mein Unternehmen Slice 3/3, 2026-07-21. Zielgruppen/Personen speisen später das Persona-Matching des AI SDR (job_titles). Der „Website scannen"-Knopf, der das Profil automatisch vorbefüllt, und der KI-Vorschlags-Knopf je Feld sind vorbereitet und kommen mit der AI-Anbindung.)*

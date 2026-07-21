@@ -28,6 +28,8 @@ export { default as KommunikationVerlauf } from './KommunikationVerlauf';
 export { default as KnowledgeField } from './KnowledgeField';
 export { default as KnowledgeListField } from './KnowledgeListField';
 export type { ListItem, ListSubField } from './KnowledgeListField';
+export { default as EntityCardList } from './EntityCardList';
+export type { EntityItem } from './EntityCardList';
 export { default as KpiCard } from './KpiCard';
 export { default as LeadListRow } from './LeadListRow';
 export { default as MfaBanner } from './MfaBanner';

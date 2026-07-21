@@ -1349,15 +1349,66 @@
     "statusMissingTip": "A la IA aún le faltan estos datos",
     "profile": {
       "intro": "Lo que la IA sabe de vuestra empresa — posicionamiento, oferta y mercado. Nada es obligatorio.",
-      "tab": { "overview": "Resumen", "offerings": "Oferta y mercado" },
-      "summary": { "label": "Resumen", "help": "En una o dos frases: quiénes sois y qué hacéis.", "ph": "p. ej. Ayudamos a equipos de ventas B2B a prospectar de forma personalizada y a escala." },
-      "productModel": { "label": "Modelo de producto/servicio", "ph": "¿Cómo entregáis? Plataforma, consultoría, suscripción …" },
-      "valueOutcome": { "label": "Valor y resultado", "ph": "¿Qué mejora de forma medible para vuestros clientes?" },
-      "usps": { "label": "USP", "add": "Añadir USP", "remove": "Eliminar USP", "empty": "Aún no hay USP.", "ph": "¿Qué os hace especiales?" },
-      "problems": { "label": "Problemas que resolvéis", "add": "Añadir problema", "remove": "Eliminar problema", "empty": "Aún no hay nada.", "ph": "p. ej. mensajes genéricos que se ignoran" },
-      "outcomes": { "label": "Resultados de negocio", "add": "Añadir resultado", "remove": "Eliminar resultado", "empty": "Aún no hay nada.", "ph": "p. ej. mayor tasa de respuesta, ciclos más cortos" },
-      "offerings": { "label": "Ofertas", "add": "Añadir oferta", "remove": "Eliminar oferta", "empty": "Aún no hay oferta.", "titleLabel": "Título", "titlePh": "p. ej. Company Intelligence Research", "textLabel": "Descripción", "textPh": "¿Qué incluye esta oferta?" },
-      "competitors": { "directLabel": "Competidores directos", "adjacentLabel": "Competidores adyacentes", "add": "Añadir competidor", "remove": "Eliminar competidor", "empty": "Aún no hay competidores.", "nameLabel": "Nombre", "namePh": "p. ej. HubSpot", "whyLabel": "¿Por qué nosotros?", "whyPh": "¿Por qué sois la mejor opción?" },
+      "tab": {
+        "overview": "Resumen",
+        "offerings": "Oferta y mercado",
+        "personas": "ICP y Personas"
+      },
+      "summary": {
+        "label": "Resumen",
+        "help": "En una o dos frases: quiénes sois y qué hacéis.",
+        "ph": "p. ej. Ayudamos a equipos de ventas B2B a prospectar de forma personalizada y a escala."
+      },
+      "productModel": {
+        "label": "Modelo de producto/servicio",
+        "ph": "¿Cómo entregáis? Plataforma, consultoría, suscripción …"
+      },
+      "valueOutcome": {
+        "label": "Valor y resultado",
+        "ph": "¿Qué mejora de forma medible para vuestros clientes?"
+      },
+      "usps": {
+        "label": "USP",
+        "add": "Añadir USP",
+        "remove": "Eliminar USP",
+        "empty": "Aún no hay USP.",
+        "ph": "¿Qué os hace especiales?"
+      },
+      "problems": {
+        "label": "Problemas que resolvéis",
+        "add": "Añadir problema",
+        "remove": "Eliminar problema",
+        "empty": "Aún no hay nada.",
+        "ph": "p. ej. mensajes genéricos que se ignoran"
+      },
+      "outcomes": {
+        "label": "Resultados de negocio",
+        "add": "Añadir resultado",
+        "remove": "Eliminar resultado",
+        "empty": "Aún no hay nada.",
+        "ph": "p. ej. mayor tasa de respuesta, ciclos más cortos"
+      },
+      "offerings": {
+        "label": "Ofertas",
+        "add": "Añadir oferta",
+        "remove": "Eliminar oferta",
+        "empty": "Aún no hay oferta.",
+        "titleLabel": "Título",
+        "titlePh": "p. ej. Company Intelligence Research",
+        "textLabel": "Descripción",
+        "textPh": "¿Qué incluye esta oferta?"
+      },
+      "competitors": {
+        "directLabel": "Competidores directos",
+        "adjacentLabel": "Competidores adyacentes",
+        "add": "Añadir competidor",
+        "remove": "Eliminar competidor",
+        "empty": "Aún no hay competidores.",
+        "nameLabel": "Nombre",
+        "namePh": "p. ej. HubSpot",
+        "whyLabel": "¿Por qué nosotros?",
+        "whyPh": "¿Por qué sois la mejor opción?"
+      },
       "contextTitle": "AI Context Builder",
       "contextHelp": "No lo escribas todo a mano. La IA puede analizar vuestra web y rellenar el perfil.",
       "scanCta": "Escanear web",
@@ -1365,7 +1416,112 @@
       "detailsTitle": "Perfil",
       "detailsHelp": "Los detalles de vuestra empresa por pestaña. Todo opcional.",
       "completenessHelp": "Cuanto más rellenéis aquí, más concreta será la IA.",
-      "aiHint": "El botón «Escanear web» rellenará el perfil automáticamente más adelante. Próximamente."
+      "aiHint": "El botón «Escanear web» rellenará el perfil automáticamente más adelante. Próximamente.",
+      "icp": {
+        "add": "Añadir público",
+        "unnamed": "Público sin nombre",
+        "namePh": "p. ej. SaaS Mid-Market DACH",
+        "removeTitle": "Eliminar público",
+        "removeDesc": "Se eliminarán el público y todas sus personas. Esto no se puede deshacer.",
+        "empty": "Aún no hay público.",
+        "fit": {
+          "label": "Encaje",
+          "ph": "¿Qué tan bien encaja?",
+          "high": "Alto",
+          "medium": "Medio",
+          "low": "Bajo"
+        },
+        "companyProfile": {
+          "label": "Perfil de empresa",
+          "ph": "¿A qué empresas encaja? (sector, tamaño …)",
+          "add": "Añadir rasgo",
+          "remove": "Eliminar rasgo"
+        },
+        "fitRationale": {
+          "label": "Motivo del encaje",
+          "ph": "¿Por qué encaja especialmente bien?",
+          "add": "Añadir motivo",
+          "remove": "Eliminar motivo"
+        },
+        "desiredOutcomes": {
+          "label": "Resultados deseados",
+          "ph": "¿Qué quiere lograr este público?",
+          "add": "Añadir resultado",
+          "remove": "Eliminar resultado"
+        },
+        "problems": {
+          "label": "Problemas resueltos",
+          "ph": "¿Qué problema le resuelves?",
+          "add": "Añadir problema",
+          "remove": "Eliminar problema"
+        }
+      },
+      "persona": {
+        "title": "Personas",
+        "add": "Añadir persona",
+        "unnamed": "Persona sin nombre",
+        "namePh": "p. ej. Head of Sales / VP Sales",
+        "removeTitle": "Eliminar persona",
+        "removeDesc": "Esta persona se eliminará del público. Esto no se puede deshacer.",
+        "empty": "Aún no hay persona.",
+        "role": {
+          "label": "Rol de compra",
+          "ph": "Rol en el proceso de compra",
+          "decision_maker": "Responsable de decisión",
+          "influencer": "Influenciador",
+          "champion": "Promotor",
+          "end_user": "Usuario final",
+          "blocker": "Bloqueador"
+        },
+        "jobTitles": {
+          "label": "Cargos",
+          "ph": "p. ej. Head of Sales, VP Sales, Sales Director",
+          "add": "Añadir cargo",
+          "remove": "Eliminar cargo"
+        },
+        "responsibilities": {
+          "label": "Responsabilidades",
+          "ph": "¿De qué es responsable la persona?",
+          "add": "Añadir responsabilidad",
+          "remove": "Eliminar responsabilidad"
+        },
+        "goals": {
+          "label": "Objetivos",
+          "ph": "¿Qué quiere lograr la persona?",
+          "add": "Añadir objetivo",
+          "remove": "Eliminar objetivo"
+        },
+        "priorities": {
+          "label": "Prioridades",
+          "ph": "¿Qué tiene prioridad ahora?",
+          "add": "Añadir prioridad",
+          "remove": "Eliminar prioridad"
+        },
+        "coreProblems": {
+          "label": "Problemas clave",
+          "ph": "¿Qué le quita el sueño?",
+          "add": "Añadir problema clave",
+          "remove": "Eliminar problema clave"
+        },
+        "objections": {
+          "label": "Objeciones",
+          "ph": "Objeciones típicas en la conversación",
+          "add": "Añadir objeción",
+          "remove": "Eliminar objeción"
+        },
+        "exactWording": {
+          "label": "Citas literales",
+          "ph": "Las palabras de la persona (textual)",
+          "add": "Añadir cita",
+          "remove": "Eliminar cita"
+        },
+        "inferredWording": {
+          "label": "Formulación inferida",
+          "ph": "Parafraseado, inferido de señales",
+          "add": "Añadir formulación",
+          "remove": "Eliminar formulación"
+        }
+      }
     }
   },
   "voice": {
@@ -1388,17 +1544,44 @@
       "email": "Correo"
     },
     "overview": {
-      "bio": { "label": "Perfil breve", "ph": "¿Quién eres y a qué te dedicas?" },
-      "style": { "label": "Estilo de venta / argumentación", "ph": "¿Cómo convences? Problema primero, historia, números …" },
-      "tone": { "label": "Tono de base", "ph": "p. ej. directo, analítico, cercano" },
-      "themes": { "label": "Temas clave", "ph": "¿Sobre qué escribes/hablas más?" }
+      "bio": {
+        "label": "Perfil breve",
+        "ph": "¿Quién eres y a qué te dedicas?"
+      },
+      "style": {
+        "label": "Estilo de venta / argumentación",
+        "ph": "¿Cómo convences? Problema primero, historia, números …"
+      },
+      "tone": {
+        "label": "Tono de base",
+        "ph": "p. ej. directo, analítico, cercano"
+      },
+      "themes": {
+        "label": "Temas clave",
+        "ph": "¿Sobre qué escribes/hablas más?"
+      }
     },
     "field": {
-      "samples": { "label": "Ejemplos", "ph": "Pega algunos ejemplos reales que sean típicos de ti." },
-      "writingStyle": { "label": "Estilo de escritura", "ph": "p. ej. frases cortas y directas; saltos de línea claros" },
-      "hooks": { "label": "Gancho", "ph": "¿Cómo empiezas?" },
-      "dosAlways": { "label": "Lo que siempre haces", "ph": "Lo que siempre aparece en tus mensajes" },
-      "dosNever": { "label": "Lo que nunca haces", "ph": "Lo que nunca aparece en tus mensajes" }
+      "samples": {
+        "label": "Ejemplos",
+        "ph": "Pega algunos ejemplos reales que sean típicos de ti."
+      },
+      "writingStyle": {
+        "label": "Estilo de escritura",
+        "ph": "p. ej. frases cortas y directas; saltos de línea claros"
+      },
+      "hooks": {
+        "label": "Gancho",
+        "ph": "¿Cómo empiezas?"
+      },
+      "dosAlways": {
+        "label": "Lo que siempre haces",
+        "ph": "Lo que siempre aparece en tus mensajes"
+      },
+      "dosNever": {
+        "label": "Lo que nunca haces",
+        "ph": "Lo que nunca aparece en tus mensajes"
+      }
     },
     "soundsLike": "Así suena",
     "aiFill": "Rellenar con IA",

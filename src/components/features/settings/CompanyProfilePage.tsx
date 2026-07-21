@@ -12,20 +12,94 @@
  * Der „AI Context Builder" ist die bewusste Dark-Ausnahme (wie der AI Voice Trainer) — dunkle
  * Fläche + türkis über die geteilten Tokens `--ai-panel-*`, zwei echte Buttons, „Folgt" bis `lib/ai.ts`.
  */
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { Sparkles, Globe, MessageSquare, Layers, Briefcase } from "lucide-react";
+import {
+  Sparkles, Globe, MessageSquare, Layers, Briefcase, Users,
+  Gauge, Building2, ThumbsUp, Target, Wrench, Star, TrendingUp, BarChart3,
+  Package, Swords, GitCompareArrows, UserRound, ClipboardList, Flag, ListChecks,
+  Flame, ShieldAlert, Quote, type LucideIcon,
+} from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCurrentOrg } from "@/hooks/useCurrentOrg";
 import { useEffectivePermissions } from "@/hooks/usePermissions";
 import { useSaveState } from "@/hooks/useSaveState";
-import { getOrgProfile, updateOrgProfile, type OrgProfile } from "@/lib/db";
+import {
+  getOrgProfile, updateOrgProfile, type OrgProfile,
+  getIcpsWithPersonas, createIcp, updateIcp, deleteIcp,
+  createPersona, updatePersona, deletePersona,
+  type IcpRow, type PersonaRow,
+} from "@/lib/db";
 import { textOf } from "@/lib/i18nText";
 import { computeCompleteness } from "@/lib/companyKnowledge";
-import { SettingsCard, KnowledgeField, KnowledgeListField, PanelTabs } from "@/components";
+import { SettingsCard, KnowledgeField, KnowledgeListField, EntityCardList, PanelTabs, StatusBadge } from "@/components";
 import type { ListItem } from "@/components/panel-blocks/KnowledgeListField";
 import { Button } from "@/components/ui/button";
+import {
+  Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
+} from "@/components/ui/select";
 import { useToast } from "@/components/shared/toastContext";
+
+// Feste System-Kategorien (CHECK in Migr. 081 = Single Source der zulässigen Werte).
+const FIT_LEVELS = ["high", "medium", "low"] as const;
+const BUYING_ROLES = ["decision_maker", "influencer", "champion", "end_user", "blocker"] as const;
+
+// Text-Listen je Entität (Feldschlüssel → i18n-Teilschlüssel + thematisches Icon).
+// Grid-Listen liegen zweispaltig (mobil einspaltig); job_titles/inferred_wording sind vollbreit.
+type IcpListKey = "company_profile" | "fit_rationale" | "desired_outcomes" | "problems_solved";
+const ICP_GRID: { key: IcpListKey; tk: string; Icon: LucideIcon }[] = [
+  { key: "company_profile", tk: "companyProfile", Icon: Building2 },
+  { key: "fit_rationale", tk: "fitRationale", Icon: ThumbsUp },
+  { key: "desired_outcomes", tk: "desiredOutcomes", Icon: Target },
+  { key: "problems_solved", tk: "problems", Icon: Wrench },
+];
+type PersonaListKey =
+  | "responsibilities" | "goals" | "priorities"
+  | "core_problems" | "objections" | "exact_wording";
+const PERSONA_GRID: { key: PersonaListKey; tk: string; Icon: LucideIcon }[] = [
+  { key: "responsibilities", tk: "responsibilities", Icon: ClipboardList },
+  { key: "goals", tk: "goals", Icon: Flag },
+  { key: "priorities", tk: "priorities", Icon: ListChecks },
+  { key: "core_problems", tk: "coreProblems", Icon: Flame },
+  { key: "objections", tk: "objections", Icon: ShieldAlert },
+  { key: "exact_wording", tk: "exactWording", Icon: Quote },
+];
+
+// Passung → StatusBadge-Ton: Hoch positiv (grün) · Mittel gedeckt (gelb) · Niedrig neutral (grau, nie rot).
+const FIT_TONE = { high: "success", medium: "warn", low: "muted" } as const;
+
+const iconEl = (Icon: LucideIcon): ReactNode => <Icon className="w-3.5 h-3.5" />;
+const gap = "grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6"; // zweispaltig, mobil gestapelt
+
+/** Feld mit Auswahl fester System-Kategorien (fit_level/buying_role) — shadcn Select, wie price_model. */
+function EnumField({
+  label, icon, value, placeholder, options, optionLabel, canEdit, onChange,
+}: {
+  label: string;
+  icon?: ReactNode;
+  value: string | null;
+  placeholder: string;
+  options: readonly string[];
+  optionLabel: (o: string) => string;
+  canEdit: boolean;
+  onChange: (v: string) => void;
+}) {
+  return (
+    <div>
+      <div className="typo-field-label text-text-muted mb-1.5 flex items-center gap-1.5">{icon}{label}</div>
+      <Select value={value ?? ""} onValueChange={onChange} disabled={!canEdit}>
+        <SelectTrigger className="h-9 text-[13px]" aria-label={label}>
+          <SelectValue placeholder={placeholder} />
+        </SelectTrigger>
+        <SelectContent>
+          {options.map((o) => (
+            <SelectItem key={o} value={o} className="text-[13px]">{optionLabel(o)}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+}
 
 export default function CompanyProfilePage() {
   const { t } = useTranslation();
@@ -36,7 +110,7 @@ export default function CompanyProfilePage() {
   const save = useSaveState();
   const canEdit = has("settings.manage");
 
-  const [tab, setTab] = useState<"overview" | "offerings">("overview");
+  const [tab, setTab] = useState<"overview" | "offerings" | "personas">("overview");
 
   const query = useQuery({
     queryKey: ["orgProfile", organizationId],
@@ -60,6 +134,34 @@ export default function CompanyProfilePage() {
   };
   const setText = (key: string, v: string) => patchOrg({ [key]: v });
   const setList = (key: string, items: ListItem[]) => patchOrg({ [key]: items });
+
+  // ── Zielgruppen & Personen (Slice 3b) — eigene verschachtelte Query + RPC-Schreibwege ──
+  const icpsQuery = useQuery({
+    queryKey: ["icps", organizationId],
+    queryFn: () => getIcpsWithPersonas(organizationId),
+    enabled: !!organizationId,
+    staleTime: 60_000,
+  });
+  const icps = icpsQuery.data ?? [];
+  const invalidateIcps = () => void qc.invalidateQueries({ queryKey: ["icps", organizationId] });
+  // Create/Delete direkt (kein Speicher-Indikator nötig); Feld-Änderungen über save.run (wie patchOrg).
+  const addIcp = async () => { try { await createIcp(); invalidateIcps(); } catch { toast(t("company.saveFailed")); } };
+  const removeIcp = async (id: string) => { try { await deleteIcp(id); invalidateIcps(); } catch { toast(t("company.saveFailed")); } };
+  const patchIcp = async (id: string, patch: Record<string, unknown>) => {
+    try { await save.run(updateIcp(id, patch)); invalidateIcps(); } catch { toast(t("company.saveFailed")); }
+  };
+  const addPersona = async (icpId: string) => { try { await createPersona(icpId); invalidateIcps(); } catch { toast(t("company.saveFailed")); } };
+  const removePersona = async (id: string) => { try { await deletePersona(id); invalidateIcps(); } catch { toast(t("company.saveFailed")); } };
+  const patchPersona = async (id: string, patch: Record<string, unknown>) => {
+    try { await save.run(updatePersona(id, patch)); invalidateIcps(); } catch { toast(t("company.saveFailed")); }
+  };
+
+  // Kopf-Badges (immer sichtbar, auch eingeklappt) — Passung (ICP) bzw. Kaufrolle (Persona).
+  // Live über dasselbe Auswahlfeld; null → kein Badge (Honesty).
+  const fitBadge = (fit: IcpRow["fit_level"]): ReactNode =>
+    fit ? <StatusBadge tone={FIT_TONE[fit]} label={t(`company.profile.icp.fit.${fit}`)} /> : null;
+  const roleBadge = (role: PersonaRow["buying_role"]): ReactNode =>
+    role ? <StatusBadge tone="muted" label={t(`company.profile.persona.role.${role}`)} /> : null;
 
   // Wettbewerber: EINE Spalte `competitors`, im UI nach `kind` in zwei Listen geteilt.
   const isAdjacent = (c: { kind?: string }) => c.kind === "adjacent";
@@ -90,6 +192,7 @@ export default function CompanyProfilePage() {
   const tabs = [
     { id: "overview", label: t("company.profile.tab.overview"), icon: <Layers className="w-3.5 h-3.5" /> },
     { id: "offerings", label: t("company.profile.tab.offerings"), icon: <Briefcase className="w-3.5 h-3.5" /> },
+    { id: "personas", label: t("company.profile.tab.personas"), icon: <Users className="w-3.5 h-3.5" /> },
   ];
 
   return (
@@ -172,10 +275,11 @@ export default function CompanyProfilePage() {
           <PanelTabs tabs={tabs} active={tab} onChange={(id) => setTab(id as typeof tab)} />
         </div>
 
-        {tab === "overview" ? (
+        {tab === "overview" && (
           <div className="space-y-6">
             <KnowledgeListField
               canEdit={canEdit}
+              icon={iconEl(Star)}
               label={t("company.profile.usps.label")}
               items={org.usps as unknown as ListItem[]}
               fields={[{ key: "text", placeholder: t("company.profile.usps.ph"), multiline: true }]}
@@ -186,6 +290,7 @@ export default function CompanyProfilePage() {
             />
             <KnowledgeField
               canEdit={canEdit}
+              icon={iconEl(Layers)}
               label={t("company.profile.productModel.label")}
               value={textOf(org.product_service_model)}
               placeholder={t("company.profile.productModel.ph")}
@@ -194,6 +299,7 @@ export default function CompanyProfilePage() {
             />
             <KnowledgeField
               canEdit={canEdit}
+              icon={iconEl(TrendingUp)}
               label={t("company.profile.valueOutcome.label")}
               value={textOf(org.value_outcome)}
               placeholder={t("company.profile.valueOutcome.ph")}
@@ -202,6 +308,7 @@ export default function CompanyProfilePage() {
             />
             <KnowledgeListField
               canEdit={canEdit}
+              icon={iconEl(Wrench)}
               label={t("company.profile.problems.label")}
               items={org.problems_solved as unknown as ListItem[]}
               fields={[{ key: "text", placeholder: t("company.profile.problems.ph") }]}
@@ -212,6 +319,7 @@ export default function CompanyProfilePage() {
             />
             <KnowledgeListField
               canEdit={canEdit}
+              icon={iconEl(BarChart3)}
               label={t("company.profile.outcomes.label")}
               items={org.business_outcomes as unknown as ListItem[]}
               fields={[{ key: "text", placeholder: t("company.profile.outcomes.ph") }]}
@@ -221,10 +329,13 @@ export default function CompanyProfilePage() {
               onChange={(items) => setList("business_outcomes", items)}
             />
           </div>
-        ) : (
-          <div className="space-y-6">
+        )}
+
+        {tab === "offerings" && (
+          <div className="space-y-7">
             <KnowledgeListField
               canEdit={canEdit}
+              icon={iconEl(Package)}
               label={t("company.profile.offerings.label")}
               items={org.offerings as unknown as ListItem[]}
               fields={[
@@ -236,9 +347,10 @@ export default function CompanyProfilePage() {
               emptyHint={t("company.profile.offerings.empty")}
               onChange={(items) => setList("offerings", items)}
             />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className={gap}>
               <KnowledgeListField
                 canEdit={canEdit}
+                icon={iconEl(Swords)}
                 label={t("company.profile.competitors.directLabel")}
                 items={directItems}
                 fields={[
@@ -252,6 +364,7 @@ export default function CompanyProfilePage() {
               />
               <KnowledgeListField
                 canEdit={canEdit}
+                icon={iconEl(GitCompareArrows)}
                 label={t("company.profile.competitors.adjacentLabel")}
                 items={adjacentItems}
                 fields={[
@@ -265,6 +378,133 @@ export default function CompanyProfilePage() {
               />
             </div>
           </div>
+        )}
+
+        {tab === "personas" && (
+          <EntityCardList
+            items={icps}
+            canEdit={canEdit}
+            variant="primary"
+            addLabel={t("company.profile.icp.add")}
+            unnamedLabel={t("company.profile.icp.unnamed")}
+            namePlaceholder={t("company.profile.icp.namePh")}
+            removeTitle={t("company.profile.icp.removeTitle")}
+            removeDescription={t("company.profile.icp.removeDesc")}
+            removeCancel={t("common.cancel")}
+            removeConfirm={t("common.delete")}
+            emptyHint={t("company.profile.icp.empty")}
+            headerBadge={(icp) => fitBadge(icp.fit_level)}
+            onAdd={addIcp}
+            onRename={(id, name) => patchIcp(id, { name })}
+            onRemove={removeIcp}
+            renderBody={(icp) => (
+              <div className="space-y-7">
+                <EnumField
+                  label={t("company.profile.icp.fit.label")}
+                  icon={iconEl(Gauge)}
+                  value={icp.fit_level}
+                  placeholder={t("company.profile.icp.fit.ph")}
+                  options={FIT_LEVELS}
+                  optionLabel={(o) => t(`company.profile.icp.fit.${o}`)}
+                  canEdit={canEdit}
+                  onChange={(v) => patchIcp(icp.id, { fit_level: v })}
+                />
+                {/* Firmenprofil | Fit-Begründung · Wunsch-Ergebnisse | Gelöste Probleme (2 Spalten) */}
+                <div className={gap}>
+                  {ICP_GRID.map((l) => (
+                    <KnowledgeListField
+                      key={l.key}
+                      canEdit={canEdit}
+                      icon={iconEl(l.Icon)}
+                      label={t(`company.profile.icp.${l.tk}.label`)}
+                      items={icp[l.key] as unknown as ListItem[]}
+                      fields={[{ key: "text", placeholder: t(`company.profile.icp.${l.tk}.ph`) }]}
+                      addLabel={t(`company.profile.icp.${l.tk}.add`)}
+                      removeLabel={t(`company.profile.icp.${l.tk}.remove`)}
+                      onChange={(items) => patchIcp(icp.id, { [l.key]: items })}
+                    />
+                  ))}
+                </div>
+
+                {/* Personen der Zielgruppe — verschachtelt, dezenter (eigener openId-Scope) */}
+                <div className="pt-2">
+                  <div className="typo-section-label text-text-muted mb-3 flex items-center gap-1.5">
+                    <Users className="w-3.5 h-3.5" />
+                    {t("company.profile.persona.title")}
+                  </div>
+                  <EntityCardList
+                    items={icp.personas}
+                    canEdit={canEdit}
+                    variant="nested"
+                    addLabel={t("company.profile.persona.add")}
+                    unnamedLabel={t("company.profile.persona.unnamed")}
+                    namePlaceholder={t("company.profile.persona.namePh")}
+                    removeTitle={t("company.profile.persona.removeTitle")}
+                    removeDescription={t("company.profile.persona.removeDesc")}
+                    removeCancel={t("common.cancel")}
+                    removeConfirm={t("common.delete")}
+                    emptyHint={t("company.profile.persona.empty")}
+                    headerBadge={(p) => roleBadge(p.buying_role)}
+                    onAdd={() => addPersona(icp.id)}
+                    onRename={(id, name) => patchPersona(id, { name })}
+                    onRemove={removePersona}
+                    renderBody={(p) => (
+                      <div className="space-y-7">
+                        <EnumField
+                          label={t("company.profile.persona.role.label")}
+                          icon={iconEl(UserRound)}
+                          value={p.buying_role}
+                          placeholder={t("company.profile.persona.role.ph")}
+                          options={BUYING_ROLES}
+                          optionLabel={(o) => t(`company.profile.persona.role.${o}`)}
+                          canEdit={canEdit}
+                          onChange={(v) => patchPersona(p.id, { buying_role: v })}
+                        />
+                        {/* Job-Titel: vollbreit (speist match_persona) */}
+                        <KnowledgeListField
+                          canEdit={canEdit}
+                          icon={iconEl(Briefcase)}
+                          label={t("company.profile.persona.jobTitles.label")}
+                          items={p.job_titles as unknown as ListItem[]}
+                          fields={[{ key: "text", placeholder: t("company.profile.persona.jobTitles.ph") }]}
+                          addLabel={t("company.profile.persona.jobTitles.add")}
+                          removeLabel={t("company.profile.persona.jobTitles.remove")}
+                          onChange={(items) => patchPersona(p.id, { job_titles: items })}
+                        />
+                        {/* Aufgaben|Ziele · Prioritäten|Kernprobleme · Einwände|Zitate (2 Spalten) */}
+                        <div className={gap}>
+                          {PERSONA_GRID.map((l) => (
+                            <KnowledgeListField
+                              key={l.key}
+                              canEdit={canEdit}
+                              icon={iconEl(l.Icon)}
+                              label={t(`company.profile.persona.${l.tk}.label`)}
+                              items={p[l.key] as unknown as ListItem[]}
+                              fields={[{ key: "text", placeholder: t(`company.profile.persona.${l.tk}.ph`) }]}
+                              addLabel={t(`company.profile.persona.${l.tk}.add`)}
+                              removeLabel={t(`company.profile.persona.${l.tk}.remove`)}
+                              onChange={(items) => patchPersona(p.id, { [l.key]: items })}
+                            />
+                          ))}
+                        </div>
+                        {/* Abgeleitete Formulierungen: vollbreit */}
+                        <KnowledgeListField
+                          canEdit={canEdit}
+                          icon={iconEl(Sparkles)}
+                          label={t("company.profile.persona.inferredWording.label")}
+                          items={p.inferred_wording as unknown as ListItem[]}
+                          fields={[{ key: "text", placeholder: t("company.profile.persona.inferredWording.ph") }]}
+                          addLabel={t("company.profile.persona.inferredWording.add")}
+                          removeLabel={t("company.profile.persona.inferredWording.remove")}
+                          onChange={(items) => patchPersona(p.id, { inferred_wording: items })}
+                        />
+                      </div>
+                    )}
+                  />
+                </div>
+              </div>
+            )}
+          />
         )}
       </SettingsCard>
 
