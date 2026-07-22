@@ -101,11 +101,12 @@ describe("missingRequired — dieselbe Registry für den künftigen AI Chat", ()
   });
 });
 
-describe("Personal Voice — scope 'voice' (Slice 2/3)", () => {
-  const ch = (o: Partial<{ samples: string; sentence_style: string; hooks: string; dos_donts: string }> = {}) =>
-    ({ samples: "", sentence_style: "", hooks: "", dos_donts: "", ...o });
-  const voice = (over: Partial<{ bio: string; themes: string; style: string; tone: string }> = {}) => ({
-    overview: { bio: "", themes: "", style: "", tone: "", ...over },
+describe("Personal Voice — scope 'voice' (Slice 2/3, Felder je Kanal an Referenz-084 angeglichen)", () => {
+  // Recommended je Kanal = Beispiele + Satzbau; Overview recommended = Kurzprofil/Verkaufsansatz/Grundton.
+  const ch = (o: Partial<{ samples: string; sentence_structure: string }> = {}) =>
+    ({ samples: "", sentence_structure: "", ...o });
+  const voice = (over: Partial<{ bio: string; style: string; tone: string }> = {}) => ({
+    overview: { bio: "", style: "", tone: "", ...over },
     post: ch(), comment: ch(), dm: ch(), email: ch(),
   });
   const input = (v = voice()) => ({ products: [], voice: v });
@@ -122,23 +123,38 @@ describe("Personal Voice — scope 'voice' (Slice 2/3)", () => {
     expect(r.nextHint).toBe("voiceBio"); // der noProducts-Zweig darf bei scope voice NIE greifen
   });
 
-  it("gefüllte recommended Felder erhöhen die Quote; optional (themes) bleibt außen vor", () => {
-    const v = voice({ bio: "x", style: "y", tone: "z", themes: "egal" });
-    v.post = ch({ samples: "s", sentence_style: "ss", hooks: "h", dos_donts: "d" });
+  it("gefüllte recommended Felder erhöhen die Quote; optional (Listen/dos_donts) bleibt außen vor", () => {
+    const v = voice({ bio: "x", style: "y", tone: "z" });
+    // optionale Felder mitgeben (Liste + dos_donts) — dürfen die recommended-Quote NICHT erhöhen.
+    // Cast: der Kanal ist im Test eng inferiert; die Berechnung liest generisch (Record<string,unknown>).
+    v.post = { ...ch({ samples: "s", sentence_structure: "ss" }),
+      tone_attributes: [{ id: "1", text: "direkt" }], dos_donts: { always: "a" } } as typeof v.post;
     const r = computeCompleteness(input(v), "voice");
-    // 3 Overview-recommended + 2 Post-recommended = 5 gefüllt; themes/hooks/dos_donts zählen nicht.
+    // 3 Overview-recommended + 2 Post-recommended = 5 gefüllt; tone_attributes/dos_donts zählen nicht.
     expect(r.filled).toBe(5);
     expect(r.total).toBe(11);
   });
 
   it("alles recommended gefüllt → 100 %, kein nächster Hinweis (done)", () => {
-    const filledCh = ch({ samples: "s", sentence_style: "ss" });
-    const v = { overview: { bio: "b", themes: "", style: "s", tone: "t" },
+    const filledCh = ch({ samples: "s", sentence_structure: "ss" });
+    const v = { overview: { bio: "b", style: "s", tone: "t" },
       post: filledCh, comment: filledCh, dm: filledCh, email: filledCh };
     const r = computeCompleteness(input(v), "voice");
     expect(r.filled).toBe(11);
     expect(r.percent).toBe(100);
     expect(r.nextHint).toBeNull();
+  });
+
+  it("Listen-Feld (core_topics) wird korrekt normalisiert: leer = fehlend, mit Text = gefüllt", () => {
+    const empty = computeCompleteness(input(voice({ bio: "b" })), "voice");
+    expect(empty.missing.some((m) => m.path === "voice.overview.core_topics")).toBe(true);
+    const withList = computeCompleteness(
+      { products: [], voice: { ...voice({ bio: "b" }),
+        overview: { bio: "b", style: "", tone: "", core_topics: [{ id: "1", text: "AI" }] } } },
+      "voice",
+    );
+    // Gefüllte Liste → nicht mehr in missing (Array mit non-empty text zählt als gefüllt).
+    expect(withList.missing.some((m) => m.path === "voice.overview.core_topics")).toBe(false);
   });
 
   it("scope 'voice' ignoriert Produkt-/Firmen-Felder vollständig", () => {

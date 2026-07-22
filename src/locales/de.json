@@ -1301,7 +1301,15 @@
       "valueOutcome": "Am meisten bringt jetzt: euer Nutzen/Ergebnis — das Kernversprechen.",
       "problemsSolved": "Am meisten bringt jetzt: welche Probleme ihr löst — die stärkste Sprache.",
       "businessOutcomes": "Am meisten bringt jetzt: die Geschäftsergebnisse, die ihr ermöglicht.",
-      "offerings": "Am meisten bringt jetzt: eure Angebots-Kategorien."
+      "offerings": "Am meisten bringt jetzt: eure Angebots-Kategorien.",
+      "voiceCoreTopics": "Am meisten bringt jetzt: deine Kernthemen — gute Aufhänger für die AI.",
+      "voiceSentenceStructure": "Am meisten bringt jetzt: dein Satzbau/Rhythmus.",
+      "voiceToneAttributes": "Am meisten bringt jetzt: deine Tonfall-Attribute.",
+      "voiceVocabulary": "Am meisten bringt jetzt: deine typische Wortwahl.",
+      "voiceEmojiFormatting": "Am meisten bringt jetzt: deine Emoji-/Format-Gewohnheiten.",
+      "voiceHookStrategies": "Am meisten bringt jetzt: deine Hook-Strategien.",
+      "voiceEngagement": "Am meisten bringt jetzt: deine Engagement-Muster.",
+      "voiceCtaStyle": "Am meisten bringt jetzt: dein CTA-Stil."
     },
     "products": "Produkte",
     "productsHelp": "Was ihr verkauft. Mehrere Produkte möglich, alle Felder optional.",
@@ -1565,6 +1573,10 @@
       "themes": {
         "label": "Kernthemen",
         "ph": "Worüber schreibst/sprichst du am liebsten?"
+      },
+      "coreTopics": {
+        "label": "Kernthemen",
+        "ph": "Worüber schreibst/sprichst du am liebsten? Ein Thema pro Zeile."
       }
     },
     "field": {
@@ -1587,11 +1599,41 @@
       "dosNever": {
         "label": "Das machst du nie",
         "ph": "Was in deinen Nachrichten nie vorkommt"
+      },
+      "toneAttributes": {
+        "label": "Tonfall",
+        "ph": "Ein Attribut pro Zeile (z. B. direkt, analytisch)"
+      },
+      "sentenceStructure": {
+        "label": "Satzbau",
+        "ph": "Wie baust du Sätze? Kurz/lang, Rhythmus, Zeilenumbrüche …"
+      },
+      "vocabulary": {
+        "label": "Wortwahl",
+        "ph": "Typische Wörter/Phrasen — eines pro Zeile"
+      },
+      "emojiFormatting": {
+        "label": "Emoji & Formatierung",
+        "ph": "Wie nutzt du Emojis, Symbole, Absätze?"
+      },
+      "hookStrategies": {
+        "label": "Hook-Strategien",
+        "ph": "Womit steigst du ein? Eine Strategie pro Zeile"
+      },
+      "engagementPatterns": {
+        "label": "Engagement-Muster",
+        "ph": "Wie reagierst du auf Beiträge anderer?"
+      },
+      "ctaStyle": {
+        "label": "CTA-Stil",
+        "ph": "Wie führst du zur nächsten Handlung? (z. B. lockere Frage)"
       }
     },
     "soundsLike": "So klingt das",
     "aiFill": "KI ausfüllen",
     "aiFillAll": "Alle Voice-Felder von der KI ausfüllen lassen",
-    "aiHint": "Der KI-Knopf erzeugt später einen Vorschlag für genau dieses Feld. Folgt."
+    "aiHint": "Der KI-Knopf erzeugt später einen Vorschlag für genau dieses Feld. Folgt.",
+    "addItem": "Eintrag hinzufügen",
+    "removeItem": "Eintrag entfernen"
   }
 }

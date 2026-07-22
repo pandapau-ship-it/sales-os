@@ -67,7 +67,8 @@ describe("PersonalVoicePage", () => {
     expect(bio.tagName.toLowerCase()).toBe("textarea");
     expect(screen.getByLabelText("voice.overview.tone.label")).toBeTruthy();
     expect(screen.getByLabelText("voice.overview.style.label")).toBeTruthy();
-    expect(screen.getByLabelText("voice.overview.themes.label")).toBeTruthy();
+    // Kernthemen ist jetzt ein Listen-Feld (Label als Div, kein <label htmlFor>) — Referenz-084.
+    expect(screen.getByText("voice.overview.coreTopics.label")).toBeTruthy();
   });
 
   it("Feld speichern läuft über EINEN Schreibweg — shallow patch { overview: { bio } }", async () => {
@@ -80,21 +81,56 @@ describe("PersonalVoicePage", () => {
     );
   });
 
-  it("Kanal-Tab (post) zeigt die Kanalfelder inkl. Aufmacher + Do's/Don'ts; Save patcht nur diesen Kanal", async () => {
+  it("Kanal-Tab (post) zeigt die Referenz-Felder (Text + Listen) inkl. Do's/Don'ts; Save patcht nur diesen Kanal", async () => {
     renderPage();
     fireEvent.click(await screen.findByText("voice.tab.post"));
     const samples = await screen.findByLabelText("voice.field.samples.label");
     expect(samples.tagName.toLowerCase()).toBe("textarea");
-    // Geteilte Feld-Labels (Schreibstil/Aufmacher) + zwei Do's/Don'ts-Teile
-    expect(screen.getByLabelText("voice.field.writingStyle.label")).toBeTruthy();
-    expect(screen.getByLabelText("voice.field.hooks.label")).toBeTruthy();
+    // Text-Felder (mit <label htmlFor>): Satzbau · Emoji/Format · Do's/Don'ts
+    expect(screen.getByLabelText("voice.field.sentenceStructure.label")).toBeTruthy();
+    expect(screen.getByLabelText("voice.field.emojiFormatting.label")).toBeTruthy();
     expect(screen.getByLabelText("voice.field.dosAlways.label")).toBeTruthy();
     expect(screen.getByLabelText("voice.field.dosNever.label")).toBeTruthy();
+    // Listen-Felder (Label als Div): Tonfall · Wortwahl · Hook-Strategien (post-spezifisch)
+    expect(screen.getByText("voice.field.toneAttributes.label")).toBeTruthy();
+    expect(screen.getByText("voice.field.vocabulary.label")).toBeTruthy();
+    expect(screen.getByText("voice.field.hookStrategies.label")).toBeTruthy();
     fireEvent.change(samples, { target: { value: "Beispiel-Post" } });
     fireEvent.blur(samples);
     await waitFor(() =>
       expect(updateVoiceProfile).toHaveBeenCalledWith({ post: { samples: "Beispiel-Post" } }),
     );
+  });
+
+  it("Kanal-spezifische Felder: post→Hook-Strategien, comment→Engagement-Muster, dm/email→CTA-Stil", async () => {
+    renderPage();
+    fireEvent.click(await screen.findByText("voice.tab.comment"));
+    // Kommentar zeigt Engagement-Muster (Text), NICHT Hook-Strategien.
+    expect(await screen.findByLabelText("voice.field.engagementPatterns.label")).toBeTruthy();
+    expect(screen.queryByText("voice.field.hookStrategies.label")).toBeNull();
+    fireEvent.click(screen.getByText("voice.tab.dm"));
+    expect(await screen.findByLabelText("voice.field.ctaStyle.label")).toBeTruthy();
+    fireEvent.click(screen.getByText("voice.tab.email"));
+    expect(await screen.findByLabelText("voice.field.ctaStyle.label")).toBeTruthy();
+  });
+
+  it("Listen-Feld (Tonfall) speichert die volle [{id,text}]-Liste über EINEN Schreibweg", async () => {
+    renderPage();
+    fireEvent.click(await screen.findByText("voice.tab.post"));
+    // Leerzustand einer Mehrfeld-freien Liste zeigt EINE Draft-Zeile → tippen legt den Eintrag an.
+    const toneInput = await screen.findByPlaceholderText("voice.field.toneAttributes.ph");
+    fireEvent.change(toneInput, { target: { value: "direkt" } });
+    fireEvent.blur(toneInput);
+    await waitFor(() => {
+      const call = updateVoiceProfile.mock.calls.find(
+        ([p]) => (p as { post?: { tone_attributes?: unknown } }).post?.tone_attributes,
+      );
+      expect(call).toBeTruthy();
+      const list = (call![0] as { post: { tone_attributes: { id: string; text: string }[] } }).post.tone_attributes;
+      expect(list).toHaveLength(1);
+      expect(list[0].text).toBe("direkt");
+      expect(typeof list[0].id).toBe("string");
+    });
   });
 
   it("Do's & Don'ts = zwei benannte Teile DESSELBEN Feldes — Save schickt das ganze {always,never}-Objekt", async () => {

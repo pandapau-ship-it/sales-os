@@ -25,16 +25,16 @@ export interface KnowledgeProduct {
   price_model?: string | null;
 }
 
-/** Ein Kanal der Personal Voice (post/comment/dm/email) — die vier eingefrorenen Felder (078/079). */
-export interface KnowledgeVoiceChannel {
-  samples: I18nText;
-  sentence_style: I18nText;
-  hooks: I18nText;
-  dos_donts: I18nText;
-}
+/**
+ * Ein Kanal/Overview der Personal Voice für die Vollständigkeits-Zählung. Bewusst LOSE
+ * (`Record<string, unknown>`): die Felder unterscheiden sich je Kanal (post/comment/dm/email) und
+ * je Typ (Text vs. Listen `[{id,text}]` vs. dos_donts `{always,never}`). `valueOf` liest generisch
+ * über den Feldpfad `voice.*` und normalisiert alle drei Formen — kein starres Feld-Schema nötig.
+ */
+export type KnowledgeVoiceChannel = Record<string, unknown>;
 /** Voice-Eingabe für die Vollständigkeits-Zählung. Struktur spiegelt die Feldpfade `voice.*`. */
 export interface KnowledgeVoice {
-  overview: { bio: I18nText; themes: I18nText; style: I18nText; tone: I18nText };
+  overview: KnowledgeVoiceChannel;
   post: KnowledgeVoiceChannel;
   comment: KnowledgeVoiceChannel;
   dm: KnowledgeVoiceChannel;
@@ -105,12 +105,22 @@ function valueOf(input: KnowledgeInput, template: string, product?: KnowledgePro
       return (input.offerings ?? []).some((o) => !isEmptyText(o.title) || !isEmptyText(o.text));
     default:
       // Voice-Pfade sind LITERAL ("voice.<gruppe>.<feld>") — generisch aus input.voice lesen.
+      // Drei Formen normalisieren: Liste [{id,text}] → gefüllt wenn irgendein text steht;
+      // dos_donts {always,never} → gefüllt wenn eines steht; sonst Text (I18nText).
       if (template.startsWith("voice.")) {
         const v = input.voice;
         if (!v) return "";
         const [, group, field] = template.split(".");
-        const obj = (v as unknown as Record<string, Record<string, I18nText>>)[group];
-        return obj?.[field] ?? "";
+        const raw = (v as unknown as Record<string, Record<string, unknown>>)[group]?.[field];
+        if (raw == null) return "";
+        if (Array.isArray(raw)) {
+          return raw.some((it) => !isEmptyText((it as { text?: I18nText }).text));
+        }
+        if (field === "dos_donts") {
+          const dd = raw as { always?: I18nText; never?: I18nText };
+          return !isEmptyText(dd.always) || !isEmptyText(dd.never);
+        }
+        return raw as I18nText;
       }
       return "";
   }

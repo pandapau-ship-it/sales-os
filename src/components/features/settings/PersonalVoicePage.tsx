@@ -13,25 +13,34 @@
  * Fünf Kanäle: overview + post/comment/dm + email (das Referenz-Design kennt email nicht; der
  * AI SDR mailt aber primär). Alle Felder optional — nichts ist Pflicht (bereichsweite Regel).
  */
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { Sparkles, Layers, FileText, MessageSquare, Send, Mail, Check, AlertTriangle } from "lucide-react";
+import {
+  Sparkles, Layers, FileText, MessageSquare, Send, Mail, Check, AlertTriangle,
+  Star, TrendingUp, Quote, Target, type LucideIcon,
+} from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCurrentOrg } from "@/hooks/useCurrentOrg";
 import { useAuth } from "@/hooks/useAuth";
 import { useSaveState } from "@/hooks/useSaveState";
 import {
   getMyVoiceProfile, updateVoiceProfile, getMyProfile,
-  type VoiceProfile, type VoiceChannel, type VoiceChannelKey,
+  type VoiceProfile, type VoiceChannel, type VoiceChannelKey, type VoiceListItem,
 } from "@/lib/db";
-import { textOf } from "@/lib/i18nText";
+import { textOf, type I18nText } from "@/lib/i18nText";
 import { AI_PILL_PENDING } from "@/lib/componentBehavior";
-import { computeCompleteness, type KnowledgeVoiceChannel } from "@/lib/companyKnowledge";
-import { SettingsCard, KnowledgeField, PanelTabs, Avatar } from "@/components";
+import { computeCompleteness } from "@/lib/companyKnowledge";
+import { SettingsCard, KnowledgeField, KnowledgeListField, PanelTabs, Avatar } from "@/components";
+import type { ListItem } from "@/components/panel-blocks/KnowledgeListField";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/shared/toastContext";
 
 const CHANNELS: VoiceChannelKey[] = ["post", "comment", "dm", "email"];
+
+/** Dezentes graues Icon links vom Label — identisches Muster wie Company Profile (`iconEl`). */
+const iconEl = (Icon: LucideIcon): ReactNode => <Icon className="w-3.5 h-3.5" />;
+/** Zweispaltig ab md, mobil gestapelt — wie im Referenz-Design + Company Profile. */
+const GRID2 = "grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4";
 
 export default function PersonalVoicePage() {
   const { t } = useTranslation();
@@ -85,21 +94,16 @@ export default function PersonalVoicePage() {
     write(updateVoiceProfile({ [group]: { [field]: v } }));
 
   // Vollständigkeit: DIESELBE Registry wie Slice 1, scope "voice" (products bewusst leer —
-  // dieser Bereich urteilt nur über Voice-Felder). dos_donts ist optional → zählt nicht, daher "".
-  const toChannel = (c: VoiceChannel): KnowledgeVoiceChannel => ({
-    samples: c.samples ?? "", sentence_style: c.sentence_style ?? "",
-    hooks: c.hooks ?? "", dos_donts: "",
-  });
+  // dieser Bereich urteilt nur über Voice-Felder). Die Roh-Objekte werden direkt gereicht;
+  // `valueOf` (companyKnowledge) normalisiert Text/Listen/dos_donts generisch über den Feldpfad.
+  const asRec = (o: object) => o as Record<string, unknown>;
   const completeness = computeCompleteness(
     {
       products: [],
       voice: {
-        overview: {
-          bio: voice.overview.bio ?? "", themes: voice.overview.themes ?? "",
-          style: voice.overview.style ?? "", tone: voice.overview.tone ?? "",
-        },
-        post: toChannel(voice.post), comment: toChannel(voice.comment),
-        dm: toChannel(voice.dm), email: toChannel(voice.email),
+        overview: asRec(voice.overview),
+        post: asRec(voice.post), comment: asRec(voice.comment),
+        dm: asRec(voice.dm), email: asRec(voice.email),
       },
     },
     "voice",
@@ -264,9 +268,11 @@ export default function PersonalVoicePage() {
         </div>
 
         {activeTab === "overview" ? (
+          // Reihenfolge wie Referenz-084: Kurzprofil · Grundton · Kernthemen (Liste) · Verkaufsansatz.
           <div className="space-y-4">
             <KnowledgeField
               canEdit={canEdit}
+              icon={iconEl(FileText)}
               label={t("voice.overview.bio.label")}
               value={textOf(voice.overview.bio)}
               placeholder={t("voice.overview.bio.ph")}
@@ -275,26 +281,30 @@ export default function PersonalVoicePage() {
             />
             <KnowledgeField
               canEdit={canEdit}
-              label={t("voice.overview.style.label")}
-              value={textOf(voice.overview.style)}
-              placeholder={t("voice.overview.style.ph")}
-              multiline
-              onSave={(v) => patchVoice("overview", "style", v)}
-            />
-            <KnowledgeField
-              canEdit={canEdit}
+              icon={iconEl(TrendingUp)}
               label={t("voice.overview.tone.label")}
               value={textOf(voice.overview.tone)}
               placeholder={t("voice.overview.tone.ph")}
               onSave={(v) => patchVoice("overview", "tone", v)}
             />
+            <KnowledgeListField
+              canEdit={canEdit}
+              icon={iconEl(Layers)}
+              label={t("voice.overview.coreTopics.label")}
+              items={(voice.overview.core_topics ?? []) as unknown as ListItem[]}
+              fields={[{ key: "text", placeholder: t("voice.overview.coreTopics.ph") }]}
+              addLabel={t("voice.addItem")}
+              removeLabel={t("voice.removeItem")}
+              onChange={(items) => patchVoice("overview", "core_topics", items)}
+            />
             <KnowledgeField
               canEdit={canEdit}
-              label={t("voice.overview.themes.label")}
-              value={textOf(voice.overview.themes)}
-              placeholder={t("voice.overview.themes.ph")}
+              icon={iconEl(Target)}
+              label={t("voice.overview.style.label")}
+              value={textOf(voice.overview.style)}
+              placeholder={t("voice.overview.style.ph")}
               multiline
-              onSave={(v) => patchVoice("overview", "themes", v)}
+              onSave={(v) => patchVoice("overview", "style", v)}
             />
           </div>
         ) : (
@@ -318,12 +328,18 @@ export default function PersonalVoicePage() {
 }
 
 /**
- * Die Felder eines Kanals: Beispiele · Schreibstil · Aufmacher, dann „Do's & Don'ts" als ZWEI
- * benannte Teile (immer/nie) DESSELBEN Feldes `dos_donts` — kein neues DB-Feld. Der Save schickt
- * das ganze {always,never}-Objekt, damit der Server-Shallow-Merge den Nachbar-Teil nie verliert.
+ * Die Felder eines Kanals — an das Referenz-Design (084) angeglichen. Gemeinsames Attribut-Grid
+ * (Tonfall · Satzbau · Wortwahl · Emoji & Format), dann das KANAL-SPEZIFISCHE Feld
+ * (post → Hook-Strategien · comment → Engagement-Muster · dm/email → CTA-Stil), dann „Do's & Don'ts"
+ * (bewusster Zusatz je Kanal, ZWEI Teile DESSELBEN Feldes `dos_donts`), zuletzt „Beispiele".
+ *
+ * Feld-TYPEN folgen der Referenz: Tonfall/Wortwahl/Hook-Strategien = LISTE (`KnowledgeListField`),
+ * Satzbau/Emoji/Engagement/CTA/Beispiele = TEXT (`KnowledgeField`). Jeder Save patcht nur diesen
+ * Kanal; Listen schicken die volle `[{id,text}]`-Liste, dos_donts das ganze {always,never}-Objekt
+ * (Server-Shallow-Merge verliert nie den Nachbar-Key).
  */
 function ChannelFields({
-  channel: _channel, values, canEdit, onSave, aiPending,
+  channel, values, canEdit, onSave, aiPending,
 }: {
   channel: VoiceChannelKey;
   values: VoiceChannel;
@@ -334,24 +350,50 @@ function ChannelFields({
   const { t } = useTranslation();
   const dd = values.dos_donts ?? {};
 
+  const listField = (
+    field: string, items: VoiceListItem[] | undefined, labelKey: string, Icon: LucideIcon,
+  ) => (
+    <KnowledgeListField
+      canEdit={canEdit}
+      icon={iconEl(Icon)}
+      label={t(`voice.field.${labelKey}.label`)}
+      items={(items ?? []) as unknown as ListItem[]}
+      fields={[{ key: "text", placeholder: t(`voice.field.${labelKey}.ph`) }]}
+      addLabel={t("voice.addItem")}
+      removeLabel={t("voice.removeItem")}
+      onChange={(next) => onSave(field, next)}
+    />
+  );
+  const textField = (field: string, value: I18nText, labelKey: string, Icon: LucideIcon) => (
+    <KnowledgeField
+      canEdit={canEdit}
+      multiline
+      icon={iconEl(Icon)}
+      label={t(`voice.field.${labelKey}.label`)}
+      value={textOf(value)}
+      placeholder={t(`voice.field.${labelKey}.ph`)}
+      onSave={(v) => onSave(field, v)}
+    />
+  );
+
   return (
     <div className="space-y-4">
-      <KnowledgeField
-        canEdit={canEdit}
-        multiline
-        label={t("voice.field.writingStyle.label")}
-        value={textOf(values.sentence_style)}
-        placeholder={t("voice.field.writingStyle.ph")}
-        onSave={(v) => onSave("sentence_style", v)}
-      />
-      <KnowledgeField
-        canEdit={canEdit}
-        multiline
-        label={t("voice.field.hooks.label")}
-        value={textOf(values.hooks)}
-        placeholder={t("voice.field.hooks.ph")}
-        onSave={(v) => onSave("hooks", v)}
-      />
+      {/* Attribut-Grid (2 Spalten wie Referenz), mobil gestapelt. */}
+      <div className={`${GRID2} items-start`}>
+        {listField("tone_attributes", values.tone_attributes, "toneAttributes", Star)}
+        {textField("sentence_structure", values.sentence_structure, "sentenceStructure", TrendingUp)}
+        {listField("vocabulary", values.vocabulary, "vocabulary", Layers)}
+        {textField("emoji_formatting", values.emoji_formatting, "emojiFormatting", Quote)}
+      </div>
+
+      {/* Kanal-spezifisches Feld — volle Breite. */}
+      {channel === "post" &&
+        listField("hook_strategies", values.hook_strategies, "hookStrategies", Target)}
+      {channel === "comment" &&
+        textField("engagement_patterns", values.engagement_patterns, "engagementPatterns", Target)}
+      {(channel === "dm" || channel === "email") &&
+        textField("cta_style", values.cta_style, "ctaStyle", Target)}
+
       {/* „Das machst du immer" / „…nie" — zwei benannte Teile DESSELBEN Feldes dos_donts,
           nebeneinander (mobil gestapelt). Beide Saves schicken das ganze {always,never}-Objekt. */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -374,11 +416,12 @@ function ChannelFields({
           onSave={(v) => onSave("dos_donts", { ...dd, never: v })}
         />
       </div>
-      {/* „Beispiele" bewusst GANZ UNTEN (nach „Das machst du nie") — echte Proben sind der
-          natürliche Abschluss des Kanals, nicht der Einstieg. */}
+
+      {/* „Beispiele" bewusst GANZ UNTEN — echte Proben sind der natürliche Abschluss des Kanals. */}
       <KnowledgeField
         canEdit={canEdit}
         multiline
+        icon={iconEl(Quote)}
         label={t("voice.field.samples.label")}
         value={textOf(values.samples)}
         placeholder={t("voice.field.samples.ph")}

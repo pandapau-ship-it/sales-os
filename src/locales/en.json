@@ -1295,7 +1295,15 @@
       "valueOutcome": "Biggest win right now: your value/outcome — the core promise.",
       "problemsSolved": "Biggest win right now: which problems you solve — the strongest language.",
       "businessOutcomes": "Biggest win right now: the business outcomes you enable.",
-      "offerings": "Biggest win right now: your offering categories."
+      "offerings": "Biggest win right now: your offering categories.",
+      "voiceCoreTopics": "Biggest win right now: your core topics — good hooks for the AI.",
+      "voiceSentenceStructure": "Biggest win right now: your sentence structure/rhythm.",
+      "voiceToneAttributes": "Biggest win right now: your tone attributes.",
+      "voiceVocabulary": "Biggest win right now: your typical vocabulary.",
+      "voiceEmojiFormatting": "Biggest win right now: your emoji/formatting habits.",
+      "voiceHookStrategies": "Biggest win right now: your hook strategies.",
+      "voiceEngagement": "Biggest win right now: your engagement patterns.",
+      "voiceCtaStyle": "Biggest win right now: your CTA style."
     },
     "products": "Products",
     "productsHelp": "What you sell. Multiple products possible, all fields optional.",
@@ -1559,6 +1567,10 @@
       "themes": {
         "label": "Core topics",
         "ph": "What do you write/talk about most?"
+      },
+      "coreTopics": {
+        "label": "Core topics",
+        "ph": "What do you write/talk about most? One topic per line."
       }
     },
     "field": {
@@ -1581,11 +1593,41 @@
       "dosNever": {
         "label": "What you never do",
         "ph": "What never appears in your messages"
+      },
+      "toneAttributes": {
+        "label": "Tone attributes",
+        "ph": "One attribute per line (e.g. direct, analytical)"
+      },
+      "sentenceStructure": {
+        "label": "Sentence structure",
+        "ph": "How do you build sentences? Short/long, rhythm, line breaks …"
+      },
+      "vocabulary": {
+        "label": "Vocabulary",
+        "ph": "Typical words/phrases — one per line"
+      },
+      "emojiFormatting": {
+        "label": "Emoji & formatting",
+        "ph": "How do you use emojis, symbols, spacing?"
+      },
+      "hookStrategies": {
+        "label": "Hook strategies",
+        "ph": "How do you open? One strategy per line"
+      },
+      "engagementPatterns": {
+        "label": "Engagement patterns",
+        "ph": "How do you respond to others' posts?"
+      },
+      "ctaStyle": {
+        "label": "CTA style",
+        "ph": "How do you lead to the next step? (e.g. a low-friction question)"
       }
     },
     "soundsLike": "How it sounds",
     "aiFill": "AI fill",
     "aiFillAll": "Let AI fill in all voice fields",
-    "aiHint": "The AI button will later generate a suggestion for exactly this field. Coming soon."
+    "aiHint": "The AI button will later generate a suggestion for exactly this field. Coming soon.",
+    "addItem": "Add item",
+    "removeItem": "Remove item"
   }
 }

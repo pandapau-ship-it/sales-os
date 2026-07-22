@@ -1959,12 +1959,25 @@ export async function getIcpsWithPersonas(organizationId: string): Promise<IcpWi
 // Die eigene Schreibstimme des Users (pro User, visibility:'self'). Texte sind mehrsprach-fähig
 // (I18nText — heute reiner String). Getrennt von contacts.personality_profile (Empfänger).
 
-/** Kanal „Overview" — abgeleitete/gepflegte Kurzcharakteristik der Stimme. */
+/**
+ * Listen-Eintrag der Voice-Listenfelder (Kernthemen, Tonfall, Wortwahl, Hook-Strategien).
+ * Stabile `id` (vom RPC 084 erzwungen) + `text` (mehrsprach-fähig). Format wie die org_profile-Listen.
+ */
+export interface VoiceListItem {
+  id: string;
+  text?: I18nText;
+}
+/**
+ * Kanal „Overview" — Referenz-Design (084): Kurzprofil · Grundton · Kernthemen (Liste) · Verkaufsansatz.
+ * `themes` ist der ALTE Sammel-Key — in der UI ausgeblendet, in der DB (vorerst) erhalten, bis die
+ * Daten in `core_topics` übertragen sind (Aufräum-Slice folgt separat).
+ */
 export interface VoiceOverview {
-  bio?: I18nText;
-  themes?: I18nText;
-  style?: I18nText;
-  tone?: I18nText;
+  bio?: I18nText;                 // Kurzprofil (Summary)
+  tone?: I18nText;                // Grundton (General tone)
+  core_topics?: VoiceListItem[];  // Kernthemen (Core topics) — Liste
+  style?: I18nText;               // Verkaufsansatz (Sales Approach) — EIN Textfeld (Oliver-Entscheidung)
+  themes?: I18nText;              // ALT — ausgeblendet, DB-Sicherheitsnetz bis Datenübertragung
 }
 /**
  * Do's & Don'ts EINES Kanals — zwei benannte Teile DESSELBEN Feldes `dos_donts` (kein neues
@@ -1974,12 +1987,27 @@ export interface VoiceDosDonts {
   always?: I18nText; // „Das machst du immer"
   never?: I18nText;  // „Das machst du nie"
 }
-/** Schreib-Kanal (Post/Comment/DM/Email) — gleiche Struktur. */
+/**
+ * Schreib-Kanal (Post/Comment/DM/Email) — an das Referenz-Design (084) angeglichen. Gemeinsame
+ * Felder (Tonfall/Satzbau/Wortwahl/Emoji) plus KANAL-SPEZIFISCHES:
+ *   post → hook_strategies · comment → engagement_patterns · dm/email → cta_style.
+ * Die ALTEN Sammel-Keys `sentence_style`/`hooks` bleiben (UI-ausgeblendet, DB-Sicherheitsnetz).
+ */
 export interface VoiceChannel {
-  samples?: I18nText;
+  // gemeinsame Felder aller Kanäle
+  tone_attributes?: VoiceListItem[];  // Tonfall — Liste
+  sentence_structure?: I18nText;      // Satzbau — Text
+  vocabulary?: VoiceListItem[];       // Wortwahl — Liste
+  emoji_formatting?: I18nText;        // Emoji & Formatierung — Text
+  dos_donts?: VoiceDosDonts;          // Do's & Don'ts (bewusster Zusatz je Kanal)
+  samples?: I18nText;                 // Beispiele — Text
+  // kanal-spezifisch (je nach Kanal genau eines gerendert)
+  hook_strategies?: VoiceListItem[];  // nur post — Liste
+  engagement_patterns?: I18nText;     // nur comment — Text
+  cta_style?: I18nText;               // nur dm + email — Text
+  // ALT (ausgeblendet, DB-Sicherheitsnetz bis Datenübertragung)
   sentence_style?: I18nText;
   hooks?: I18nText;
-  dos_donts?: VoiceDosDonts;
 }
 export type VoiceChannelKey = "post" | "comment" | "dm" | "email";
 
