@@ -30,6 +30,7 @@ import {
 import { textOf, type I18nText } from "@/lib/i18nText";
 import { AI_PILL_PENDING } from "@/lib/componentBehavior";
 import { computeCompleteness } from "@/lib/companyKnowledge";
+import { useCoupleGroup } from "@/hooks/useAutoGrowTextarea";
 import { SettingsCard, KnowledgeField, KnowledgeListField, PanelTabs, Avatar } from "@/components";
 import type { ListItem } from "@/components/panel-blocks/KnowledgeListField";
 import { Button } from "@/components/ui/button";
@@ -349,6 +350,8 @@ function ChannelFields({
 }) {
   const { t } = useTranslation();
   const dd = values.dos_donts ?? {};
+  // Höhen-Kopplung NUR für das „immer"/„nie"-Paar: beide wachsen bündig auf das längere Feld.
+  const dosGroup = useCoupleGroup();
 
   const listField = (
     field: string, items: VoiceListItem[] | undefined, labelKey: string, Icon: LucideIcon,
@@ -400,6 +403,7 @@ function ChannelFields({
         <KnowledgeField
           canEdit={canEdit}
           multiline
+          coupleGroup={dosGroup}
           icon={<Check className="w-3.5 h-3.5 text-signal-success" />}
           label={t("voice.field.dosAlways.label")}
           value={textOf(dd.always)}
@@ -409,6 +413,7 @@ function ChannelFields({
         <KnowledgeField
           canEdit={canEdit}
           multiline
+          coupleGroup={dosGroup}
           icon={<AlertTriangle className="w-3.5 h-3.5 text-signal-warn" />}
           label={t("voice.field.dosNever.label")}
           value={textOf(dd.never)}

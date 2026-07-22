@@ -151,6 +151,15 @@
   --ai-panel-surface: #171C26;  /* fast-schwarze Kachelfläche */
   --ai-panel-accent:  #2DD4BF;  /* türkise Überschrift/Icon */
   --ai-panel-muted:   #9CA3AF;  /* heller Fließtext auf dunkel */
+
+  /* Mehrzeilige „Mein Unternehmen"-Felder (FIELD_MULTILINE / .field-autogrow): sie wachsen
+     zeilenweise mit dem Inhalt (JS-Hook useAutoGrowTextarea) — Start-/Mindesthöhe und Deckel
+     als BENANNTE Tokens, nicht als lose Zahlen im JSX. --field-line-height MUSS = leading-relaxed
+     (1.625), sonst rechnet die Höhe falsch. --field-pad-y = py-2.5 oben+unten (Border-Box). */
+  --field-line-height: 1.625;
+  --field-min-lines:   3;
+  --field-max-lines:   8;
+  --field-pad-y:       1.25rem;
 }
 
 /* ─── Dark Mode — überschreibt NUR die Tokens, @theme inline folgt automatisch ──
@@ -500,6 +509,21 @@ body {
 }
 .deeplink-flash { animation: deeplink-flash 1.5s ease-out forwards; }
 @media (prefers-reduced-motion: reduce) { .deeplink-flash { animation: none; } }
+
+/* .field-autogrow — mehrzeilige „Mein Unternehmen"-Felder wachsen mit dem Inhalt.
+   Plain-Class (NICHT @layer) → schlägt die Tailwind-Utility `min-h-[80px]` des shadcn-Textarea.
+   min-/max-height aus den benannten Tokens (3 / 8 Zeilen). Die eigentliche Höhe setzt der JS-Hook
+   `useAutoGrowTextarea` inline (zeilenweises Mitwachsen); min-/max-height sind Boden und Deckel,
+   danach Scrollen. Border-Box: +2px für den 1px-Rahmen oben/unten. resize:none — das Feld wächst
+   selbst, ein manueller Ziehgriff würde mit dem Auto-Wachsen kollidieren. */
+.field-autogrow {
+  resize: none;
+  overflow-y: auto;
+  min-height: calc(var(--field-min-lines) * var(--field-line-height) * 1em + var(--field-pad-y) + 2px);
+  max-height: calc(var(--field-max-lines) * var(--field-line-height) * 1em + var(--field-pad-y) + 2px);
+}
+/* Fallback ohne JS-Hook: min-height gibt die 3-Zeilen-Starthöhe, overflow-y scrollt darüber —
+   kein Auto-Wachsen, aber ruhig und ohne Sprung (kein separates .no-js-Setup nötig). */
 
 /* Glocken-Badge: einmaliger, dezenter Ring-Puls bei NEUER Mitteilung (Zuwachs des Ungelesen-Counts).
    Kein Dauer-Blinken, kein Ton — passt zum Ruhe-Prinzip (N-S2 Polish 1). */

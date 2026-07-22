@@ -21,15 +21,17 @@
  *
  * Leer ist ein gültiger Zustand: in diesem Bereich gibt es KEINE Pflichtfelder — nie eine Warnung.
  */
-import { useState, useId, type ReactNode } from "react";
+import { useState, useId, useRef, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Sparkles } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { FIELD, FIELD_MULTILINE, AI_PILL_PENDING } from "@/lib/componentBehavior";
+import { useAutoGrowTextarea, type AutoGrowGroup } from "@/hooks/useAutoGrowTextarea";
 
 export default function KnowledgeField({
-  label, value, placeholder, multiline = false, rows = 3, canEdit = true, icon, showAi = true, onSave,
+  label, value, placeholder, multiline = false, rows = 3, canEdit = true, icon, showAi = true,
+  coupleGroup, onSave,
 }: {
   /** Optional — leer/undefined = kein Label-Kopf (z.B. Einzel-Feld-Einträge in `KnowledgeListField`). */
   label?: string;
@@ -43,10 +45,17 @@ export default function KnowledgeField({
   icon?: ReactNode;
   /** false → kein KI-Vorschlags-Knopf (z.B. je Listen-Eintrag wäre ein Pill pro Item zu laut). */
   showAi?: boolean;
+  /**
+   * Opt-in: koppelt dieses mehrzeilige Feld mit den anderen Feldern derselben Gruppe auf die Höhe
+   * des längsten (bündiges Nebeneinander-Paar, z. B. dos_donts „immer"/„nie"). STRIKT opt-in —
+   * ohne diese Prop verhält sich das Feld exakt wie bisher (eigene Höhe, kein Kopplungs-Code).
+   */
+  coupleGroup?: AutoGrowGroup;
   onSave: (next: string) => void | Promise<void>;
 }) {
   const { t } = useTranslation();
   const id = useId();
+  const taRef = useRef<HTMLTextAreaElement>(null);
   const [draft, setDraft] = useState(value);
   const [lastValue, setLastValue] = useState(value);
   // Solange das Feld den Fokus hat, gewinnt das Getippte — sonst könnte ein Refetch, der direkt
@@ -64,6 +73,10 @@ export default function KnowledgeField({
   }
 
   const commit = () => { if (draft !== value) void onSave(draft); };
+
+  // Mehrzeilige Felder wachsen zeilenweise mit dem Inhalt (zentrale Single Source). Bei Einzeiligen
+  // ist `taRef` nie am DOM → der Hook ist ein No-op. `draft` treibt das Neu-Messen bei jeder Eingabe.
+  useAutoGrowTextarea(taRef, draft, multiline ? coupleGroup : undefined);
 
   const shared = {
     id,
@@ -103,7 +116,7 @@ export default function KnowledgeField({
       )}
 
       {multiline ? (
-        <Textarea {...shared} rows={rows} className={FIELD_MULTILINE} />
+        <Textarea {...shared} ref={taRef} rows={rows} className={FIELD_MULTILINE} />
       ) : (
         <Input
           {...shared}

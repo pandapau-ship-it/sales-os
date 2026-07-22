@@ -143,7 +143,10 @@ export const FIELD =
 /** Mehrzeilige Variante — gleiche Optik, nur Höhe/Umbruch abweichend. */
 // `md:text-[13px]` überschreibt das `md:text-sm` aus dem shadcn-Textarea-Primitiv —
 // sonst wären mehrzeilige Felder ab Tablet 14px, einzeilige 13px.
-export const FIELD_MULTILINE = `${FIELD} md:text-[13px] leading-relaxed resize-y`;
+// `field-autogrow` (index.css): einheitliche 3-Zeilen-Starthöhe, wächst zeilenweise mit dem Inhalt
+// (JS-Hook `useAutoGrowTextarea`) bis 8 Zeilen, danach Scroll. `leading-relaxed` MUSS zum Token
+// `--field-line-height` (1.625) passen — sonst rechnet die Höhe daneben. Ersetzt `resize-y`.
+export const FIELD_MULTILINE = `${FIELD} md:text-[13px] leading-relaxed field-autogrow`;
 
 /**
  * AI_PILL — Optik JEDES KI-Knopfes (Feld-Ebene und ganze Karte/Abschnitt).
