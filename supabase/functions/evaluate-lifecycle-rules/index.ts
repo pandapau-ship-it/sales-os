@@ -95,7 +95,7 @@ async function resolveOwner(sb: SupabaseClient, org: string, anchor: AnchorEntit
 }
 
 /** Aktions-Handler (L-2a: nur notify/notify_urgent). Strukturiertes Ergebnis für action_result ([D54]). */
-async function runAction(sb: SupabaseClient, org: string, rule: RuleRow, entityId: string): Promise<Record<string, unknown>> {
+async function runAction(sb: SupabaseClient, org: string, rule: RuleRow, entityId: string, firedCount: number): Promise<Record<string, unknown>> {
   const at = new Date().toISOString();
   const type = rule.action.type;
   const message = (rule.action.params?.message as string) ?? rule.name;
@@ -103,10 +103,14 @@ async function runAction(sb: SupabaseClient, org: string, rule: RuleRow, entityI
   const recipient = (await resolveOwner(sb, org, rule.anchor_entity, entityId)) ?? rule.created_by;
   if (!recipient) return { ok: false, handler: type, error_code: "no_recipient", message: "Kein Empfänger auflösbar", at };
   const link = rule.anchor_entity === "contacts" ? `/app/kontakte/${entityId}` : null;
+  // source_id = Feuer-INSTANZ (rule:entity:fired_count+1): legitime Re-Fires bleiben distinkt (fired_count
+  // wächst), ein Crash-Retry DERSELBEN Instanz (mark_fired schlug fehl → fired_count unverändert) erzeugt
+  // dieselbe source_id → notify-eigene on-conflict-Dedup greift (2. Idempotenz-Ebene, strikt auch bei Fehl-Lauf).
+  const fireInstance = `${rule.id}:${entityId}:${firedCount + 1}`;
   try {
     const { error } = await sb.rpc("notify", {
       p_org: org, p_category: "rule", p_severity: severity, p_title: rule.name, p_body: message,
-      p_link: link, p_source_type: "lifecycle_rule", p_source_id: `${rule.id}:${entityId}:${at}`,
+      p_link: link, p_source_type: "lifecycle_rule", p_source_id: fireInstance,
       p_user_ids: [recipient],
     });
     if (error) throw error;
@@ -126,12 +130,15 @@ async function evaluateOrg(sb: SupabaseClient, org: string) {
 
   const matchByRule: Record<string, string[]> = {};
   const prevMatchedByRule: Record<string, string[]> = {};
+  const firedCount = new Map<string, number>(); // `${ruleId}:${entityId}` → bisherige Feuer (für source_id-Instanz)
   for (const rule of rules) {
     const sets: string[][] = [];
     for (const g of rule.conditions.groups) sets.push(await groupAnchorIds(sb, org, rule.anchor_entity, g));
     matchByRule[rule.id] = combineAnchorSets(rule.conditions.logic, sets);
-    const { data: prev } = await sb.from("lifecycle_rule_runs").select("entity_id").eq("rule_id", rule.id).eq("matched", true);
-    prevMatchedByRule[rule.id] = (prev ?? []).map((r) => r.entity_id as string);
+    // ALLE Run-Zeilen der Regel: matched=true → prevMatched (Einmal-Feuer); fired_count → source_id-Instanz.
+    const { data: runs } = await sb.from("lifecycle_rule_runs").select("entity_id, matched, fired_count").eq("rule_id", rule.id);
+    prevMatchedByRule[rule.id] = (runs ?? []).filter((r) => r.matched).map((r) => r.entity_id as string);
+    for (const r of runs ?? []) firedCount.set(`${rule.id}:${r.entity_id}`, (r.fired_count as number) ?? 0);
   }
 
   const plan = computePlan({ rules, matchByRule, prevMatchedByRule, maxFired: MAX_FIRED_PER_RUN });
@@ -145,7 +152,8 @@ async function evaluateOrg(sb: SupabaseClient, org: string) {
   // fire: Aktion ausführen → matched=true (atomar, fired_count++). Fehler stoppt die Auswertung NICHT.
   for (const f of plan.fires) {
     const rule = byId.get(f.ruleId)!;
-    const result = await runAction(sb, org, rule, f.entityId);
+    const fc = firedCount.get(`${f.ruleId}:${f.entityId}`) ?? 0;
+    const result = await runAction(sb, org, rule, f.entityId, fc);
     await sb.rpc("lifecycle_mark_fired", { p_rule: f.ruleId, p_entity: f.entityId, p_org: org, p_result: result });
   }
   return { fired: plan.fires.length, rearmed: plan.rearms.length, suppressed: plan.suppressed, carried: plan.carried };
