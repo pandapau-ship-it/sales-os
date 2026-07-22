@@ -1747,6 +1747,29 @@ kam es, wie groß ist es** — und einen **klaren nächsten Schritt** anstoßen 
 > **Kommt wenn:** die Daten-Neueingabe der getrennten Voice-Inhalte steht (direkt danach). **Reihenfolge strikt:**
 > erst Neueingabe, dann Aufräumen — nie umgekehrt (sonst Datenverlust).
 
+### [D-voice-listen-ki-pill] KI-Ausfüllen-Symbol auch an Listen-Felder (deferred, gekoppelt an [D5] KI-Pipeline)
+> **Erfasst 22.07.2026** (Konsistenz-Diagnose Personal Voice). **Jetzt NICHT bauen — bewusst bis zur KI-Anbindung verschoben.**
+>
+> **Was:** Das KI-Ausfüllen-Symbol (Sparkle) einheitlich auch an `KnowledgeListField` ergänzen — **EIN Pill auf
+> Listen-Header-Ebene** (neben dem Label), **nicht** pro Item (ein Pill je Eintrag wäre zu laut; bestehende
+> Entscheidung `showAi={false}` je Item bleibt). Heute haben nur die Fließtext-Felder (`KnowledgeField`, `showAi`
+> default) das Symbol; die Listen-Felder (Tonfall/Wortwahl/Kernthemen/Hook-Strategien) haben keins.
+>
+> **Warum erst mit der KI:** Das Symbol ist heute überall nur **Platzhalter** (`AI_PILL_PENDING`, disabled, kein
+> `onClick`) — `lib/ai.ts`/`aiCall` fehlt. Ein Listen-Pill jetzt wäre reine Optik ohne Funktion. Darum **einheitlich
+> UND funktional zusammen** bauen, sobald die KI-Pipeline steht: dann mit **korrekter Listen-Rückgabe** (mehrere
+> Einträge `[{id,text}]`, nicht ein Text).
+>
+> **Nebenwirkung (bewusst):** `KnowledgeListField` ist zentral → ein Listen-Pill erscheint dann **automatisch an
+> ALLEN** Nutzungsstellen: Personal Voice (Kernthemen/Tonfall/Wortwahl/Hook-Strategien) **und** Company Profile
+> (USPs · Probleme · Geschäftsergebnisse · Angebote · Wettbewerber) **plus** die Listen in den ICP-/Persona-Karten.
+> Gewollt (Konsistenz), aber bewusst gemeinsam.
+>
+> **Bau-Vorgabe:** Fließtext-Fill und Listen-Fill laufen über **EINEN gemeinsamen Weg** (`lib/ai.ts`/`aiCall`), den
+> auch der AI Chat per Function-Call nutzt; gespeichert wird über **denselben einen Schreibweg** wie die Tastatur
+> (`update_voice_profile` / `update_org_profile`); `fieldImportance.ts` ist der gemeinsame Vertrag. **i18n de/en/es**
+> für neue Labels/Tooltips. **Kommt wenn:** [D5] (KI-Pipeline / `lib/ai.ts`) gebaut wird.
+
 ### [D-lifecycle-trigger] SET-4 Gruppe 5 — Lifecycle-Trigger mit UND-Kombination (deferred, eigener Slice)
 > **Erfasst 21.07.2026** (SET-4-Zuschnitt bestätigt). **Noch NICHT gebaut.** Die 5. Regel-Gruppe des
 > SET-4-Bauplans (Lifecycle-Trigger) ist bewusst KEIN Teil von 4a — sie braucht mehr als eine RuleRow.

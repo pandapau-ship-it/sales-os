@@ -146,7 +146,15 @@ export const FIELD =
 // `field-autogrow` (index.css): einheitliche 3-Zeilen-Starthöhe, wächst zeilenweise mit dem Inhalt
 // (JS-Hook `useAutoGrowTextarea`) bis 8 Zeilen, danach Scroll. `leading-relaxed` MUSS zum Token
 // `--field-line-height` (1.625) passen — sonst rechnet die Höhe daneben. Ersetzt `resize-y`.
-export const FIELD_MULTILINE = `${FIELD} md:text-[13px] leading-relaxed field-autogrow`;
+//
+// FOKUS-KONSISTENZ: Das shadcn-Textarea-Primitiv bringt `focus-visible:ring-offset-2` + `ring-ring`
+// mit → abgesetzter Doppel-Ring (Border + Lücke + Ring). Wir neutralisieren den Offset und weichen
+// den Ring auf `sherloq-primary/30` ab — GENAU wie `ui/input` (Border + bündiger /30-Ring, EINE
+// Kante). Greift zuverlässig, weil `cn()` (tailwind-merge) im Primitiv `className` ZULETZT mergt →
+// diese Klassen gewinnen über die Primitiv-Klassen. `ui/textarea.tsx` bleibt unangetastet.
+export const FIELD_MULTILINE =
+  `${FIELD} md:text-[13px] leading-relaxed field-autogrow ` +
+  `focus-visible:ring-offset-0 focus-visible:ring-sherloq-primary/30`;
 
 /**
  * AI_PILL — Optik JEDES KI-Knopfes (Feld-Ebene und ganze Karte/Abschnitt).
