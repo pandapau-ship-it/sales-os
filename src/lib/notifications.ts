@@ -45,6 +45,7 @@ export const NOTIFICATION_SOURCE_TYPES = [
   "invitations",       // Team-Einladungen
   "mailboxes",         // Onboarding-/Mailbox-Nudges, Warmup
   "chat_sessions",     // spätere Chat-/Billing-Ereignisse
+  "lifecycle_rule",    // Lifecycle-Trigger-Regel (L-2a Auswerter) — Wert = der von evaluate-lifecycle-rules emittierte source_type
 ] as const;
 export type NotificationSourceType = (typeof NOTIFICATION_SOURCE_TYPES)[number];
 
