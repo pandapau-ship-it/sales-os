@@ -135,9 +135,16 @@ export const TABLE = {
  *
  * Anwendung: `<Input className={FIELD} />` bzw. `<Textarea className={FIELD_MULTILINE} />`.
  */
+// FOKUS-ZIELBILD = Kontakte-Anlage-Feld (`EditableInline`/`DetailField`): EINE saubere Border-Linie
+// im Fokus (border-border → focus:border-sherloq-primary, rounded-[10px], outline-none), KEIN Ring/Glow.
+// FIELD selbst hat schon exakt diesen Look — den Ring bringt NUR das shadcn-`Input`-Primitiv mit
+// (`focus:ring-2 focus:ring-sherloq-primary/30`). `focus:ring-0` neutralisiert ihn (greift über
+// cn()/tailwind-merge, da FIELD im Primitiv als className ZULETZT gemergt wird). `ui/input.tsx` bleibt
+// unangetastet. FIELD wird NUR von KnowledgeField genutzt (die übrigen Panels haben eigene lokale
+// FIELD-Strings auf rohen <input> ohne Ring) → die Angleichung bleibt auf „Mein Unternehmen" beschränkt.
 export const FIELD =
   "w-full text-[13px] font-sans px-3.5 py-2.5 bg-app-bg border border-border " +
-  "focus:border-[var(--sherloq-primary)] rounded-[10px] focus:outline-none transition-colors " +
+  "focus:border-[var(--sherloq-primary)] rounded-[10px] focus:outline-none focus:ring-0 transition-colors " +
   "placeholder-[var(--text-muted)]";
 
 /** Mehrzeilige Variante — gleiche Optik, nur Höhe/Umbruch abweichend. */
@@ -147,14 +154,15 @@ export const FIELD =
 // (JS-Hook `useAutoGrowTextarea`) bis 8 Zeilen, danach Scroll. `leading-relaxed` MUSS zum Token
 // `--field-line-height` (1.625) passen — sonst rechnet die Höhe daneben. Ersetzt `resize-y`.
 //
-// FOKUS-KONSISTENZ: Das shadcn-Textarea-Primitiv bringt `focus-visible:ring-offset-2` + `ring-ring`
-// mit → abgesetzter Doppel-Ring (Border + Lücke + Ring). Wir neutralisieren den Offset und weichen
-// den Ring auf `sherloq-primary/30` ab — GENAU wie `ui/input` (Border + bündiger /30-Ring, EINE
-// Kante). Greift zuverlässig, weil `cn()` (tailwind-merge) im Primitiv `className` ZULETZT mergt →
-// diese Klassen gewinnen über die Primitiv-Klassen. `ui/textarea.tsx` bleibt unangetastet.
+// FOKUS-KONSISTENZ = Kontakte-Zielbild (nur Border, KEIN Ring): Das shadcn-Textarea-Primitiv bringt
+// `focus-visible:ring-2 ring-ring ring-offset-2` mit (abgesetzter Ring/Glow). Wir setzen die Ring-Breite
+// UND den Offset auf 0 → der Ring verschwindet vollständig; es bleibt nur die Border-Linie im Fokus,
+// exakt wie `EditableInline`/`DetailField`. `focus-visible:` deckt die Textarea-Variante ab (das
+// `focus:ring-0` aus FIELD greift bei der Textarea nicht, da anderer Variant). Greift über
+// cn()/tailwind-merge (className zuletzt gemergt); `ui/textarea.tsx` bleibt unangetastet.
 export const FIELD_MULTILINE =
   `${FIELD} md:text-[13px] leading-relaxed field-autogrow ` +
-  `focus-visible:ring-offset-0 focus-visible:ring-sherloq-primary/30`;
+  `focus-visible:ring-0 focus-visible:ring-offset-0`;
 
 /**
  * AI_PILL — Optik JEDES KI-Knopfes (Feld-Ebene und ganze Karte/Abschnitt).
