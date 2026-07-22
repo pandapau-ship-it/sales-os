@@ -2352,6 +2352,13 @@ Der Abschluss-Audit (Screen + Panel + Vollansicht) fand 3 Lücken — alle gefix
 - `src/types/hunter.ts` `Deal` hat **kein `product`** (Migration 014 fügte nur die DB-Spalte).
   Beim späteren Produkt-Anzeigen (Pipeline/Deal-Detail) `product?: string` im Typ ergänzen + mappen.
 
+### [D52] Kunden-eigene externe Signale — „Bring Your Own Signal" (v2, deferred)
+- Kunden speisen später eigene externe Signale aus IHREN Systemen ein: (1) dynamischer Quell-Name
+  (kein hardcodiertes „Sherloq") + (2) Webhook-Ingestion + **kundendefiniertes Mapping-Layer**
+  (Feld X → Signal S ab Wert Y) + custom rules. Buildbar, aber eigenes Feature — gehört in den
+  Baukasten-/Integrations-Slice, **NICHT SET-4a**. Grundsatz schon jetzt: externe-Signal-Definitionen
+  als Datenliste halten. **Single Source (Volltext): `docs/integrations_masterplan.md` §5.** Verwandt: [[D23]].
+
 > Anker-Tags `[D1]`–`[D47]` sind im Code referenzierbar (z.B. `hunterMappers.ts` → `[[leads-tab-read]]`).
 > Vor Umsetzung eines Punkts: passende Referenz-Doku (`docs/sales_os_edge_functions_v2.md` etc.) lesen.
 

@@ -178,6 +178,27 @@ generische Kachel/Panel rendern aus der Typ-Definition.
 3. Settings-Bereich "Regeln" so designen, dass die Sektion "Eigene Actions" später
    nur dazukommt (Layout-Reserve, keine Logik).
 
+**[D52] Kunden-eigene externe Signale — „Bring Your Own Signal" (v2, eigenes Feature):**
+Kunden sollen später eigene externe Signale aus IHREN eigenen Systemen einspeisen — nicht
+nur die fest geplanten Quellen (Sherloq/Stripe/Zendesk). **Zwei Ebenen:**
+1. **Quell-NAME dynamisch** — die Signal-Quelle ist ein Datenfeld, nicht hardcodiert
+   „Sherloq". `churn_rules`/`upsell_rules.source` (internal/sherloq/stripe) ist bereits eine
+   Datenliste; sie darf nie als „das sind für immer die einzigen Quellen" festbetoniert werden.
+2. **Echte Fremddaten als Signal** — das System kann beliebige Webhook-Daten empfangen, aber
+   der Kunde MUSS per **Mapping/Adapter** definieren, was ein eingehendes Feld bedeutet
+   (Feld X → Signal S, Bedingung ab Wert Y). Ohne dieses kundendefinierte Mapping versteht
+   das System fremde Daten nicht.
+**Umfang:** buildbar, aber ein echtes eigenes Feature (Webhook-Ingestion + Mapping-Layer +
+custom rules) — KEIN kleiner Schalter. Gehört in diesen Baukasten-/Integrations-Slice, **NICHT
+in SET-4a** (dort werden nur die fest geplanten Basis-/Externen-Signale ausgegraut gelistet).
+**Fundament teils vorhanden:** `churn_rules`/`upsell_rules` (source-Feld internal/sherloq/stripe,
+v2-Tabellen) · die EINE Bedingungs-/Filter-Lib (kontakte_companies_bauplan K-2) · geplante
+Webhook-Ingestion-Infra (CLAUDE.md §11 Kommunikations-Webhooks + Usage-Ingestion I-B10).
+Verwandt: Custom Webhook Actions + Rule Builder ([D23]), Action-Typ-Registry (oben), I-B10.
+**Grundsatz schon jetzt (billig, teuer nachgerüstet):** externe-Signal-Definitionen als
+**Datenliste** halten; keine Annahme festbetonieren, dass die aktuellen Quellen für immer die
+einzigen sind. (Reiht sich in die „Drei verbindlichen Weichen AB SOFORT" oben ein.)
+
 ## 6. PFLEGE
 Neue externe Anbindung irgendwo im Projekt? → Zeile in Tabelle 1 + Klasse zuweisen,
 im selben PR wie der Anschlusspunkt. Dieses Dokument in CLAUDE.md-Referenzliste eintragen.

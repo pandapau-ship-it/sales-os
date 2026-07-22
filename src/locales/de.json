@@ -182,6 +182,180 @@
           "body": "{{name}} verschwindet aus dem Team. Zugewiesene Kontakte und Deals bleiben erhalten."
         }
       }
+    },
+    "rules": {
+      "why": {
+        "heat": {
+          "title": "Heat-Schwellen",
+          "desc": "Ab wie vielen Tagen ohne echten Kontakt ein Lead abkühlt. Höher = Kontakte gelten länger als warm."
+        },
+        "pipeline": {
+          "title": "Stagnations-Schwelle",
+          "desc": "Liegt ein Deal länger als diese Tage in der Stufe, wird er als stagnierend markiert."
+        },
+        "churn": {
+          "title": "Churn-Warnschwelle",
+          "desc": "Ab diesem (auf 0–100 normalisierten) Score gilt ein Kunde als Risiko."
+        },
+        "upsell": {
+          "title": "Upsell-Chancenschwelle",
+          "desc": "Ab diesem (auf 0–100 normalisierten) Score wird ein Kunde als Upsell-Chance markiert."
+        },
+        "signalFresh": {
+          "title": "Signal-Frische",
+          "desc": "Wie viele Stunden ein neues Signal als frisch in die Dringlichkeit einfließt."
+        }
+      },
+      "usedBy": "Genutzt von:",
+      "weightHint": "Gewichte bestimmen die relative Wichtigkeit jedes Signals. Der Score wird auf 0–100 normalisiert; die Warn-Schwelle wird separat gesetzt.",
+      "weightFor": "Gewicht für {{signal}}",
+      "notMeasured": "Noch nicht gemessen",
+      "integrationNeeded": "Integration nötig",
+      "reset": "Auf Empfehlung zurücksetzen ({{value}})",
+      "title": "Regeln",
+      "subtitle": "Hier stellst du die Spielregeln ein, nach denen Sherloq Kontakte bewertet und priorisiert. Änderungen wirken sofort.",
+      "unit": {
+        "days": "Tage",
+        "hours": "Stunden",
+        "points": "Punkte",
+        "workdays": "Werktage",
+        "followups": "Follow-ups"
+      },
+      "g": {
+        "heat": {
+          "title": "Heat & Kontakt",
+          "desc": "Ab wie vielen Tagen ohne Kontakt ein Lead in den nächsten Wärmegrad rutscht."
+        },
+        "pipeline": {
+          "title": "Pipeline & Follow-ups",
+          "desc": "Stagnations-Schwellen je Pipeline-Stufe und der automatische Follow-up-Rhythmus."
+        },
+        "churn": {
+          "title": "Churn & Upsell",
+          "desc": "Gewichtung der Risiko- und Chancen-Signale. Der Score wird auf 0–100 normalisiert."
+        },
+        "signals": {
+          "title": "Signale & ICP",
+          "desc": "Gültigkeitsdauer von Signalen und Grenzen für KI-Anpassungen."
+        },
+        "meinTag": {
+          "title": "Mein-Tag-Gewichte",
+          "desc": "Die Priorisierung deines Tages hat eigene Gewichte."
+        },
+        "custom": {
+          "note": "Bald: eigene Wenn-Dann-Regeln aus Bausteinen komponieren — folgt später."
+        }
+      },
+      "heat": {
+        "tile": {
+          "engaged": {
+            "label": "ENGAGED",
+            "caption": "Gilt als engaged bis"
+          },
+          "warm": {
+            "label": "WARM",
+            "caption": "Gilt als warm bis"
+          },
+          "cooling": {
+            "label": "COOLING",
+            "caption": "Gilt als cooling bis"
+          },
+          "cold": {
+            "label": "COLD",
+            "caption": "Gilt als cold bis"
+          },
+          "gone": {
+            "label": "GONE",
+            "caption": "Automatisch nach",
+            "value": "> {{value}} Tagen"
+          }
+        },
+        "synthTitle": "Regel-Synthese:",
+        "synthesis": "Ein Kontakt ist bis {{a}} Tage engaged, bis {{b}} Tage warm, kühlt bis {{c}} Tage ab und gilt ab {{d}} Tagen als kalt (danach Gone)."
+      },
+      "pipeline": {
+        "stagnatesAfter": "gilt als stagniert nach",
+        "wonNoTimer": "kein Timer",
+        "stagnationTitle": "Stagnation nach Inaktivität je Stufe",
+        "stageCol": "Max. verbleibende Tage",
+        "followupTitle": "Automatischer Follow-up-Rhythmus",
+        "workdayNote": "Werktage berücksichtigen Wochenenden und bundesweite Feiertage deines Primärmarktes.",
+        "wonLabel": "Gewonnen"
+      },
+      "followup": {
+        "first": "Erstes Follow-up nach",
+        "second": "Zweites Follow-up nach",
+        "max": "Maximale automatische Follow-ups"
+      },
+      "churn": {
+        "title": "Churn-Risiko",
+        "threshold": "Warnung ab Score",
+        "suppress": "Bei Churn-Risiko wird Upsell unterdrückt",
+        "bands": "Level-Bänder",
+        "band": {
+          "low": "Niedrig · 0–30",
+          "mid": "Mittel · 31–60",
+          "high": "Hoch · 61–85",
+          "critical": "Kritisch · 86+"
+        },
+        "subtitle": "Frühwarnsystem für Kundenabwanderung",
+        "how": "Jedes aktive Signal trägt anteilig zu einem Risiko-Score von 0–100 bei — je höher sein Gewicht, desto stärker. Ausgeschaltete Signale zählen nicht. Ab dem Schwellenwert gilt der Kontakt als Risiko."
+      },
+      "upsell": {
+        "title": "Upsell-Potenzial",
+        "threshold": "Chance ab Score",
+        "subtitle": "Erkennung von Expansionschancen",
+        "how": "Jedes aktive Signal trägt anteilig zu einem Chancen-Score von 0–100 bei — je höher sein Gewicht, desto stärker. Ausgeschaltete Signale zählen nicht. Ab dem Schwellenwert gilt der Kontakt als Chance."
+      },
+      "signals": {
+        "fresh": "Stunden gilt ein Signal als frisch.",
+        "maxAi": "automatische KI-Anpassungen pro Lead.",
+        "icp": "Punkte ICP-/Match-Score genügen für automatische Lead-Zuordnung."
+      },
+      "sig": {
+        "churn": {
+          "last_contact": "Lange kein Kontakt",
+          "no_reply": "Keine Antwort auf letzte Mail",
+          "inactive_days": "Lange inaktiv",
+          "heat_cold": "Heat kalt/tot",
+          "overdue_tasks": "Überfällige offene Tasks"
+        },
+        "churnExt": {
+          "last_login": "Letzter Login lange her (Sherloq)",
+          "usage_down": "Nutzung stark gesunken (Sherloq)",
+          "support_tickets": "Offene Support-Tickets (Zendesk/Intercom)",
+          "contract_ends": "Vertrag läuft bald ab (Stripe)",
+          "cancellation": "Kündigung angedeutet (KI)"
+        },
+        "upsell": {
+          "reply_rate": "Hohe Antwortrate",
+          "recent_contact": "Kürzlich kontaktiert",
+          "heat_hot": "Heat heiß",
+          "active_deal": "Aktiver Deal vorhanden"
+        },
+        "upsellNM": {
+          "positive_sentiment": "Positives Sentiment (letzte Antwort)",
+          "no_upsell_attempt": "Länger kein Upsell-Versuch"
+        },
+        "upsellExt": {
+          "enrichment": "Enrichment-Limit fast erreicht (Sherloq)",
+          "feature_usage": "Feature-Nutzung stark gestiegen (Sherloq)",
+          "seats": "Mehr Mitarbeiter als Seats (Sherloq)",
+          "nps": "Hoher NPS",
+          "logins": "Häufige Logins (Sherloq)"
+        }
+      },
+      "meinTag": {
+        "note": "Steuere separat, wie Dringlichkeit, Deal-Größe und Aktivität deine Tages-Fokusliste beeinflussen. Eigene Seite folgt."
+      },
+      "loadError": "Konnte gerade nicht geladen werden",
+      "loadErrorDesc": "Bitte erneut versuchen.",
+      "howTitle": "So funktioniert’s:",
+      "weightBase": "Messbare Basis-Signale",
+      "weightCol": "Gewicht (0–{{max}})",
+      "externalSignals": "Externe Signale",
+      "inactiveSignals": "Noch nicht aktiv",
+      "integrationNote": "Wird aktiv, sobald die Integration verbunden ist."
     }
   },
   "mfa": {
