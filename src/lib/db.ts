@@ -1969,15 +1969,13 @@ export interface VoiceListItem {
 }
 /**
  * Kanal „Overview" — Referenz-Design (084): Kurzprofil · Grundton · Kernthemen (Liste) · Verkaufsansatz.
- * `themes` ist der ALTE Sammel-Key — in der UI ausgeblendet, in der DB (vorerst) erhalten, bis die
- * Daten in `core_topics` übertragen sind (Aufräum-Slice folgt separat).
+ * (Der alte Sammel-Key `themes` wurde in Migr. 085 entfernt, nachdem `core_topics` befüllt war.)
  */
 export interface VoiceOverview {
   bio?: I18nText;                 // Kurzprofil (Summary)
   tone?: I18nText;                // Grundton (General tone)
   core_topics?: VoiceListItem[];  // Kernthemen (Core topics) — Liste
   style?: I18nText;               // Verkaufsansatz (Sales Approach) — EIN Textfeld (Oliver-Entscheidung)
-  themes?: I18nText;              // ALT — ausgeblendet, DB-Sicherheitsnetz bis Datenübertragung
 }
 /**
  * Do's & Don'ts EINES Kanals — zwei benannte Teile DESSELBEN Feldes `dos_donts` (kein neues
@@ -1991,7 +1989,7 @@ export interface VoiceDosDonts {
  * Schreib-Kanal (Post/Comment/DM/Email) — an das Referenz-Design (084) angeglichen. Gemeinsame
  * Felder (Tonfall/Satzbau/Wortwahl/Emoji) plus KANAL-SPEZIFISCHES:
  *   post → hook_strategies · comment → engagement_patterns · dm/email → cta_style.
- * Die ALTEN Sammel-Keys `sentence_style`/`hooks` bleiben (UI-ausgeblendet, DB-Sicherheitsnetz).
+ * (Die alten Sammel-Keys `sentence_style`/`hooks` wurden in Migr. 085 entfernt.)
  */
 export interface VoiceChannel {
   // gemeinsame Felder aller Kanäle
@@ -2005,9 +2003,6 @@ export interface VoiceChannel {
   hook_strategies?: VoiceListItem[];  // nur post — Liste
   engagement_patterns?: I18nText;     // nur comment — Text
   cta_style?: I18nText;               // nur dm + email — Text
-  // ALT (ausgeblendet, DB-Sicherheitsnetz bis Datenübertragung)
-  sentence_style?: I18nText;
-  hooks?: I18nText;
 }
 export type VoiceChannelKey = "post" | "comment" | "dm" | "email";
 

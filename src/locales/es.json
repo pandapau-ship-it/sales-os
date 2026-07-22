@@ -1283,12 +1283,9 @@
       "done": "Todo lo esencial está rellenado.",
       "name": "Lo que más aporta ahora: un nombre de producto.",
       "voiceBio": "Lo que más aporta ahora: un perfil breve — ¿quién escribe aquí?",
-      "voiceThemes": "Lo que más aporta ahora: tus temas clave — buenos ganchos para la IA.",
       "voiceStyle": "Lo que más aporta ahora: tu estilo de venta/argumentación.",
       "voiceTone": "Lo que más aporta ahora: tu tono de base — para que la IA suene como tú.",
       "voiceSamples": "Lo que más aporta ahora: ejemplos reales — la señal más fuerte de tu estilo.",
-      "voiceSentenceStyle": "Lo que más aporta ahora: tu estructura de frases/ritmo.",
-      "voiceHooks": "Lo que más aporta ahora: tus ganchos habituales.",
       "voiceDosDonts": "Lo que más aporta ahora: tus normas (qué sí / qué no).",
       "summary": "Lo que más aporta ahora: una descripción breve — ¿quiénes sois y qué hacéis?",
       "productModel": "Lo que más aporta ahora: vuestro modelo de producto/servicio.",
@@ -1564,10 +1561,6 @@
         "label": "Tono de base",
         "ph": "p. ej. directo, analítico, cercano"
       },
-      "themes": {
-        "label": "Temas clave",
-        "ph": "¿Sobre qué escribes/hablas más?"
-      },
       "coreTopics": {
         "label": "Temas centrales",
         "ph": "¿Sobre qué escribes/hablas más? Un tema por línea."
@@ -1577,14 +1570,6 @@
       "samples": {
         "label": "Ejemplos",
         "ph": "Pega algunos ejemplos reales que sean típicos de ti."
-      },
-      "writingStyle": {
-        "label": "Estilo de escritura",
-        "ph": "p. ej. frases cortas y directas; saltos de línea claros"
-      },
-      "hooks": {
-        "label": "Gancho",
-        "ph": "¿Cómo empiezas?"
       },
       "dosAlways": {
         "label": "Lo que siempre haces",

@@ -1283,12 +1283,9 @@
       "done": "Everything essential is filled in.",
       "name": "Biggest win right now: a product name — without it no message can name the offering.",
       "voiceBio": "Biggest win right now: a short profile — who is writing here?",
-      "voiceThemes": "Biggest win right now: your core topics — good hooks for the AI.",
       "voiceStyle": "Biggest win right now: your selling/reasoning style.",
       "voiceTone": "Biggest win right now: your baseline tone — so the AI sounds like you.",
       "voiceSamples": "Biggest win right now: real examples — the strongest signal for your style.",
-      "voiceSentenceStyle": "Biggest win right now: your sentence structure/rhythm.",
-      "voiceHooks": "Biggest win right now: your typical hooks.",
       "voiceDosDonts": "Biggest win right now: your do's & don'ts.",
       "summary": "Biggest win right now: a short description — who are you, what do you do?",
       "productModel": "Biggest win right now: your product/service model.",
@@ -1564,10 +1561,6 @@
         "label": "Baseline tone",
         "ph": "e.g. direct, analytical, warm"
       },
-      "themes": {
-        "label": "Core topics",
-        "ph": "What do you write/talk about most?"
-      },
       "coreTopics": {
         "label": "Core topics",
         "ph": "What do you write/talk about most? One topic per line."
@@ -1577,14 +1570,6 @@
       "samples": {
         "label": "Examples",
         "ph": "Paste a few real examples that are typical of you."
-      },
-      "writingStyle": {
-        "label": "Writing style",
-        "ph": "e.g. short, punchy sentences; clear line breaks"
-      },
-      "hooks": {
-        "label": "Opener",
-        "ph": "How do you open?"
       },
       "dosAlways": {
         "label": "What you always do",
