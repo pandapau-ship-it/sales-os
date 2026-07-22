@@ -1847,6 +1847,32 @@ kam es, wie groß ist es** — und einen **klaren nächsten Schritt** anstoßen 
 > **Kommt wenn:** nach SET-4a (Regeln 1–4). **Verwandt:** [D51] (Werte-in-DB) · K-2 (Filter-Sprache-Quelle) ·
 > [D38] (Lifecycle-Trigger contact_status, dort als Auslöser-Fall genannt) · Chat-Aktions-Vertrag-Pflicht
 > (CLAUDE) · Entitlement/`plan_limits`-Serie (`for_ai_sdr_vorab_entitlement_credits`).
+>
+> **L-1 STATUS (Backend-Fundament FERTIG, 22.07.2026 — Branch `feature/lifecycle-trigger-l1`, noch nicht gemergt):**
+> Migr. **088** = `lifecycle_rules` (conditions Option-B: Spalte `anchor_entity` + `conditions` {logic, groups[]}) ·
+> `lifecycle_rule_runs` (Match-Zustand je Regel/Datensatz, Einmal-Feuer-Semantik) · `action_types` (Registry ALS
+> DATEN, global; Gruppe-1 aktiv `notify`/`notify_urgent`/`create_task`/`add_tag`/`add_to_list`, Gruppe-2
+> `coming_soon` inkl. `set_contact_status`/`send_email_*`/`start_sequence`/`slack_message`) · plan_limits-Feature
+> `lifecycle_rules` (intern -1) · RLS (Read je Org, Write nur RPC) · Indizes · audit-Trigger · RPCs
+> `upsert_lifecycle_rule`/`delete_lifecycle_rule` (automation.manage-Gate, Option-B-Grammatik-Validierung,
+> action.type ∈ aktive Registry, plan_limit-Blocker) + `db.ts`-Wrapper mit Chat-Aktions-Vertrag. **L2-Sofortgewinn:**
+> `churn_score`/`upsell_score`/`health_score` (contacts) + `stagnation_days` (deals) in `filter/schema` filterbar.
+> **Offen: L-2 Auswerter** (Cron/Edge, nutzt evaluateFilter + Anker-ID-Mengen-Algebra + Cooldown/Einmal-Feuer) ·
+> **L-3 UI Condition-Builder** (in „Eigene Actions"-Reserve). **Cross-Entity-Grenze:** gemischtes Blatt-OR bewusst
+> nicht (Option C später, ohne Datenmigration).
+
+### [D53] set_contact_status als Lifecycle-Aktion scharfschalten (deferred, folgenschwer)
+> **Erfasst 22.07.2026** (Lifecycle-Baukasten L-1). In der Aktions-Registry (`action_types`, Migr. 088) als
+> **`status:'coming_soon'`** (`requires='governance'`) angelegt — im Builder ehrlich ausgegraut, NICHT scharf.
+> **Warum deferred:** `set_contact_status` ändert **echte Kundendaten automatisch** (verschiebt Kontakte zwischen
+> `ohne_campaign`/`in_campaign`/`pipeline`/`kunde`/`archiviert` → zwischen Modulen). Braucht **Governance** vor dem
+> Scharfschalten:
+> - **Welche Übergänge automatisch erlaubt?** (z.B. `trial→kunde` [D38] ja; beliebige Sprünge nein).
+> - **`opt_out`/`archiviert` NIE automatisch** (rechtlich/irreversibel — nur Mensch).
+> - **Verhältnis zum Automation-Risk-Level** (contact_status-Wechsel als Medium/High einstufen?).
+> **Scharfschalten =** Registry-Zeile auf `active` + Handler im L-2-Auswerter (mit Guardrail-Prüfung) + Governance-
+> Regeln — **ohne** Regel-Schema/RPC/UI zu ändern (Registry-als-Daten-Muster). **Verwandt:** [D38] · [D39] ·
+> [D-lifecycle-trigger] · docs/integrations_masterplan.md §5 (Aktions-Registry).
 
 ### [D-set4-group4-signalcap] SET-4 Gruppe 4 — signal_windows schreibbar + Kappungs-Key (mit 4a)
 > **Erfasst 21.07.2026.** Für Gruppe 4 (Signale & ICP) fehlt im Schreibweg: (a) `settings.signal_windows`

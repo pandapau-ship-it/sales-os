@@ -40,6 +40,11 @@ const CONTACT_FIELDS: Record<string, FieldSpec> = {
   city: { type: "text" },
   country: { type: "text" },
   icp_score: { type: "number" },
+  // Berechnete Scores (täglich per Cron befüllt, Migr. 048) — filterbar für Lifecycle-Trigger,
+  // z.B. „WENN churn_score >= 61". Echte contacts-Spalten, kein neuer Wert.
+  churn_score: { type: "number" },
+  upsell_score: { type: "number" },
+  health_score: { type: "number" },
   heat_status: { type: "enum", enumValues: ["heiss", "warm", "lauwarm", "kalt", "tot"] },
   contact_status: {
     type: "enum",
@@ -79,6 +84,7 @@ const DEAL_FIELDS: Record<string, FieldSpec> = {
   stage: { type: "text" },
   value: { type: "number" },
   probability: { type: "number" },
+  stagnation_days: { type: "number" }, // täglich per Cron befüllt (score-deal-health, Migr. 004) — filterbar
   created_at: { type: "date" },
   closed_at: { type: "date" },
 };

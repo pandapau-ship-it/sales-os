@@ -62,7 +62,10 @@ import type { Deal, Signal, PipelineStage, SignalWindow } from "@/types/hunter";
 import type { ContactRow, CompanyRow, DealRow, CommunicationRow, TaskRow, DueTaskRow, NoteRow } from "@/types/rows";
 import type { CompanyListRaw } from "@/lib/companiesMappers";
 import type { CompanyActivityRow } from "@/lib/hunterMappers";
-import { compileToPostgrest, type FilterDefinition } from "@/lib/filter";
+import {
+  compileToPostgrest, validateFilter,
+  type FilterDefinition, type FilterEntity, type FilterNode,
+} from "@/lib/filter";
 import {
   mergeGeneral, type GeneralSettings,
   mergeNav, type NavPreferences, NAV_PREF_KEY,
@@ -1518,6 +1521,66 @@ export async function updateSettings(patch: Record<string, unknown>): Promise<vo
   const client = getSupabaseClient();
   if (!client) return;
   const { error } = await client.rpc("update_settings", { p_patch: patch });
+  if (error) throw error;
+}
+
+// ── Lifecycle-Trigger-Regeln (Baukasten L-1) ─────────────────────────────────
+/** Bedingungen einer Regel (Option-B-Form): UND/ODER-Verknüpfung von Entitäts-Gruppen. */
+export interface LifecycleRuleConditions {
+  logic: "AND" | "OR";
+  groups: Array<{ entity: FilterEntity; where: FilterNode }>;
+}
+/** Patch für upsertLifecycleRule (Mensch + KI-Chat). Siehe Chat-Aktions-Vertrag unten. */
+export interface LifecycleRulePatch {
+  name?: string;
+  anchor_entity?: FilterEntity;
+  conditions?: LifecycleRuleConditions;
+  action?: { type: string; params?: Record<string, unknown> };
+  priority?: number;
+  is_active?: boolean;
+  is_terminal?: boolean;
+  trigger_event?: string;
+}
+
+/**
+ * Lifecycle-Trigger-Regel anlegen/ändern — EIN Schreibweg für Mensch UND späteren KI-Chat.
+ * Läuft über den security-definer-RPC `upsert_lifecycle_rule` (automation.manage-Gate,
+ * Validierung der Option-B-Form, serverseitiger plan_limit-Blocker, audit via Trigger).
+ *
+ * CHAT-AKTIONS-VERTRAG (Chat-Aktions-Vertrag-Pflicht — Einstufung beim Bau festgelegt):
+ *   required:    name · anchor_entity · conditions · action
+ *   recommended: priority
+ *   optional:    is_active · is_terminal · trigger_event
+ * Fehlt ein `required`-Feld beim Anlegen → der RPC wirft (der Chat stellt EINE konkrete Rückfrage,
+ * erfindet NIE einen Wert — Honesty). Fehlen nur recommended/optional → normal ausführen.
+ *
+ * `conditions` = Option-B: { logic, groups:[{ entity, where:<FilterNode> }] }; `where` ist ein Baum
+ * der bestehenden Filter-Lib (Single Source). Feld-Whitelist wird hier via `validateFilter` je Gruppe
+ * geprüft (gute Fehlermeldung) UND serverseitig grob im RPC + endgültig beim L-2-Auswerter (Compiler).
+ *
+ * @returns die Regel-ID (bei Anlegen neu, bei Update dieselbe) · null wenn kein Client.
+ */
+export async function upsertLifecycleRule(
+  id: string | null,
+  patch: LifecycleRulePatch,
+): Promise<string | null> {
+  const client = getSupabaseClient();
+  if (!client) return null;
+  // Client-seitige Validierung gegen die echte Filter-Lib: jede Gruppe muss eine gültige
+  // FilterDefinition sein (Feld/Operator/Wert gegen filter/schema). Wirft bei Ungültigkeit.
+  for (const g of patch.conditions?.groups ?? []) {
+    validateFilter({ entity: g.entity, where: g.where });
+  }
+  const { data, error } = await client.rpc("upsert_lifecycle_rule", { p_id: id, p_patch: patch });
+  if (error) throw error;
+  return (data as string) ?? null;
+}
+
+/** Lifecycle-Regel löschen — RPC `delete_lifecycle_rule` (automation.manage, org-scoped, audit via Trigger). */
+export async function deleteLifecycleRule(id: string): Promise<void> {
+  const client = getSupabaseClient();
+  if (!client) return;
+  const { error } = await client.rpc("delete_lifecycle_rule", { p_id: id });
   if (error) throw error;
 }
 
