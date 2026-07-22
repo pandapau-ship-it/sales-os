@@ -21,6 +21,8 @@ export type NotificationSeverity = (typeof NOTIFICATION_SEVERITIES)[number];
 export const NOTIFICATION_CATEGORIES = {
   approval:     { group: "braucht_dich", emailDefault: "instant" },
   credit:       { group: "braucht_dich", emailDefault: "instant" },
+  rule:         { group: "braucht_dich", emailDefault: "instant" }, // Lifecycle-Trigger („Regel", L-2a) — handelbar
+
   system_alert: { group: "system",       emailDefault: "instant" },
   job_result:   { group: "system",       emailDefault: "digest" },
   mailbox:      { group: "system",       emailDefault: "digest" },

@@ -1915,6 +1915,19 @@ kam es, wie groß ist es** — und einen **klaren nächsten Schritt** anstoßen 
 > **Kommt mit:** dem AI-Chat-Tool-Layer (dort wird die strukturierte Form tatsächlich konsumiert). **Verwandt:**
 > Chat-Aktions-Vertrag-Pflicht · Fehlerbehandlung-aus-User-Sicht (CLAUDE) · [D5] (KI-Pipeline).
 
+### [D55] Kanal-Präferenz-Wähler pro Benachrichtigungs-Art/Regel (deferred → L-3 / Mitteilungssystem-Ausbau)
+> **Erfasst 22.07.2026** (Lifecycle-Baukasten L-2a). Heute wählt der Nutzer den **Ausgabe-Kanal** einer
+> Benachrichtigung **nicht** pro Art/Regel — die Kanal-/Präferenz-Logik existiert im Mitteilungssystem nur
+> als Kategorie-Default (`NOTIFICATION_CATEGORIES[].emailDefault`, `settings.notifications`-Matrix, N-S2).
+> **Fehlt:** ein UI-Wähler „für DIESE Regel/Benachrichtigungs-Art Kanal = In-App / E-Mail / Slack / Pop-up".
+> **In L-2a bewusst nicht:** der einzige aktive Kanal ist In-App (`notify`/`notify_urgent`, Kategorie „Regel",
+> in `NOTIFICATION_CATEGORIES` registriert). Der notify-Handler hängt **am bestehenden** System (gleiche
+> Kanal-/Präferenz-Fan-out-Logik) → weitere Kanäle werden später nur „angesteckt", ohne Handler-Umbau.
+> **Kommt mit:** L-3 (UI Condition-Builder + Aktions-Kanal-Wahl) bzw. dem Mitteilungssystem-Ausbau
+> (`docs/mitteilungssystem_bauplan_v1.md`); Voraussetzungen je Kanal: E-Mail → System-Mail-Kanal ·
+> Slack → Slack-Integration (beide existieren noch nicht). **Verwandt:** [D-lifecycle-trigger] · Aktions-
+> Registry `action_types` (Migr. 088, `send_email_internal`/`slack_message` als `coming_soon`) · N-S2.
+
 ### [D-set4-group4-signalcap] SET-4 Gruppe 4 — signal_windows schreibbar + Kappungs-Key (mit 4a)
 > **Erfasst 21.07.2026.** Für Gruppe 4 (Signale & ICP) fehlt im Schreibweg: (a) `settings.signal_windows`
 > (Top-Level-Spalte, Migr. 018) ist **nicht** in der `update_settings`-Whitelist (083, nur
