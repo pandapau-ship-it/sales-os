@@ -1459,6 +1459,9 @@
           "ph": "Which problem do you solve for them?",
           "add": "Add problem",
           "remove": "Remove problem"
+        },
+        "description": {
+          "ph": "Short description (e.g. software companies in the scaling phase …)"
         }
       },
       "persona": {
@@ -1525,6 +1528,9 @@
           "ph": "Paraphrased, inferred from signals",
           "add": "Add wording",
           "remove": "Remove wording"
+        },
+        "archetype": {
+          "ph": "Archetype (e.g. “The Revenue Driver”)"
         }
       }
     }

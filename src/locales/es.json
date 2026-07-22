@@ -1459,6 +1459,9 @@
           "ph": "¿Qué problema le resuelves?",
           "add": "Añadir problema",
           "remove": "Eliminar problema"
+        },
+        "description": {
+          "ph": "Descripción breve (p. ej. empresas de software en fase de escalado …)"
         }
       },
       "persona": {
@@ -1525,6 +1528,9 @@
           "ph": "Parafraseado, inferido de señales",
           "add": "Añadir formulación",
           "remove": "Eliminar formulación"
+        },
+        "archetype": {
+          "ph": "Arquetipo (p. ej. «The Revenue Driver»)"
         }
       }
     }

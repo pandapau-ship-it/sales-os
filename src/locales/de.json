@@ -1465,6 +1465,9 @@
           "ph": "Welches Problem löst ihr für sie?",
           "add": "Problem hinzufügen",
           "remove": "Problem entfernen"
+        },
+        "description": {
+          "ph": "Kurzbeschreibung (z. B. Software-Firmen in der Skalierungsphase …)"
         }
       },
       "persona": {
@@ -1531,6 +1534,9 @@
           "ph": "Sinngemäß, aus Signalen abgeleitet",
           "add": "Formulierung hinzufügen",
           "remove": "Formulierung entfernen"
+        },
+        "archetype": {
+          "ph": "Archetyp (z. B. „The Revenue Driver“)"
         }
       }
     }

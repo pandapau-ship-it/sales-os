@@ -25,6 +25,8 @@ vi.mock("@/components/shared/toastContext", () => ({ useToast: () => ({ toast: v
 const updateOrgProfile = vi.fn((_p: unknown) => Promise.resolve());
 const createIcp = vi.fn(() => Promise.resolve("new-icp"));
 const createPersona = vi.fn((_icp: string) => Promise.resolve("new-persona"));
+const updateIcp = vi.fn((_id: string, _p: unknown) => Promise.resolve());
+const updatePersona = vi.fn((_id: string, _p: unknown) => Promise.resolve());
 let ORG: Record<string, unknown> = {};
 let ICPS: unknown[] = [];
 
@@ -33,10 +35,10 @@ vi.mock("@/lib/db", () => ({
   updateOrgProfile: (p: unknown) => updateOrgProfile(p),
   getIcpsWithPersonas: () => Promise.resolve(ICPS),
   createIcp: () => createIcp(),
-  updateIcp: () => Promise.resolve(),
+  updateIcp: (id: string, p: unknown) => updateIcp(id, p),
   deleteIcp: () => Promise.resolve(),
   createPersona: (icp: string) => createPersona(icp),
-  updatePersona: () => Promise.resolve(),
+  updatePersona: (id: string, p: unknown) => updatePersona(id, p),
   deletePersona: () => Promise.resolve(),
 }));
 
@@ -57,15 +59,19 @@ function renderPage() {
 }
 
 const emptyLists = {
-  company_profile: [], fit_rationale: [], desired_outcomes: [], problems_solved: [],
+  description: "", company_profile: [], fit_rationale: [], desired_outcomes: [], problems_solved: [],
 };
 const emptyPersonaLists = {
-  job_titles: [], responsibilities: [], goals: [], priorities: [],
+  archetype: "", job_titles: [], responsibilities: [], goals: [], priorities: [],
   core_problems: [], objections: [], exact_wording: [], inferred_wording: [],
 };
 
 beforeEach(() => { ORG = { ...EMPTY }; ICPS = []; });
-afterEach(() => { cleanup(); updateOrgProfile.mockClear(); createIcp.mockClear(); createPersona.mockClear(); });
+afterEach(() => {
+  cleanup();
+  updateOrgProfile.mockClear(); createIcp.mockClear(); createPersona.mockClear();
+  updateIcp.mockClear(); updatePersona.mockClear();
+});
 
 describe("CompanyProfilePage", () => {
   it("zeigt zwei Reiter (Overview + Offerings)", async () => {
@@ -179,5 +185,37 @@ describe("CompanyProfilePage", () => {
     fireEvent.click(await screen.findByText("Enterprise"));
     fireEvent.click(await screen.findByText("company.profile.persona.add"));
     await waitFor(() => expect(createPersona).toHaveBeenCalledWith("icp1"));
+  });
+
+  it("ICP: Kurzbeschreibung ist ein EINZEILIGES Feld (wie name); Speichern ueber updateIcp({description})", async () => {
+    ICPS = [{ id: "icp1", name: "Enterprise", fit_level: null, ...emptyLists, personas: [] }];
+    renderPage();
+    fireEvent.click(await screen.findByText("company.profile.tab.personas"));
+    fireEvent.click(await screen.findByText("Enterprise")); // ICP-Karte aufklappen
+    const box = await screen.findByPlaceholderText("company.profile.icp.description.ph");
+    expect(box.tagName.toLowerCase()).toBe("input"); // einzeilig, wie das name-Feld
+    fireEvent.change(box, { target: { value: "Software-Firmen in der Skalierungsphase" } });
+    fireEvent.blur(box);
+    await waitFor(() =>
+      expect(updateIcp).toHaveBeenCalledWith("icp1", { description: "Software-Firmen in der Skalierungsphase" }),
+    );
+  });
+
+  it("Persona: Archetyp ist ein EINZEILIGES Feld (wie name); Speichern ueber updatePersona({archetype})", async () => {
+    ICPS = [{
+      id: "icp1", name: "Enterprise", fit_level: null, ...emptyLists,
+      personas: [{ id: "p1", icp_id: "icp1", name: "Head of Sales", buying_role: null, ...emptyPersonaLists }],
+    }];
+    renderPage();
+    fireEvent.click(await screen.findByText("company.profile.tab.personas"));
+    fireEvent.click(await screen.findByText("Enterprise"));    // ICP-Karte auf
+    fireEvent.click(await screen.findByText("Head of Sales")); // Persona-Karte auf
+    const box = await screen.findByPlaceholderText("company.profile.persona.archetype.ph");
+    expect(box.tagName.toLowerCase()).toBe("input");
+    fireEvent.change(box, { target: { value: "The Revenue Driver" } });
+    fireEvent.blur(box);
+    await waitFor(() =>
+      expect(updatePersona).toHaveBeenCalledWith("p1", { archetype: "The Revenue Driver" }),
+    );
   });
 });
