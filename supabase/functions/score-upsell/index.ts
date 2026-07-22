@@ -65,6 +65,10 @@ Deno.serve(async (req) => {
     if (sErr) throw sErr;
     const w: UpsellWeights = { ...DEFAULT_UPSELL_WEIGHTS, ...(settings?.thresholds?.upsell_weights ?? {}) };
     const tw: TimingWindows = { ...DEFAULT_TIMING, ...(settings?.thresholds?.timing_windows ?? {}) };
+    // Per-Signal An/Aus (SET-4a): thresholds.upsell_weights_active[key] === false → Signal deaktiviert
+    // (weder available noch earned). Default (Key fehlt / true) = aktiv → Bestandsdaten unverändert.
+    const active = (settings?.thresholds?.upsell_weights_active ?? {}) as Record<string, boolean>;
+    const on = (key: string) => active[key] !== false;
 
     // 3. Bestandskunden (contact_status='kunde'; contacts hat kein Soft-Delete).
     let cq = supabase
@@ -109,27 +113,32 @@ Deno.serve(async (req) => {
       const drivers: Driver[] = [];
 
       // ── Kommunikations-Signale (verfügbar wenn last_contacted_at vorhanden) ──
+      // Deaktivierte Signale (on(...)=false) werden komplett übersprungen (kein available/earned).
       if (c.last_contacted_at) {
         const days = Math.max(0, Math.floor((now - new Date(c.last_contacted_at).getTime()) / DAY_MS));
 
-        available += w.reply_rate;
-        const replied = !!c.last_reply_at && new Date(c.last_reply_at).getTime() > new Date(c.last_contacted_at).getTime();
-        if (replied) { earned += w.reply_rate; if (w.reply_rate > 0) drivers.push({ signal: "reply_rate", points: w.reply_rate, source: "messages" }); }
+        if (on("reply_rate")) {
+          available += w.reply_rate;
+          const replied = !!c.last_reply_at && new Date(c.last_reply_at).getTime() > new Date(c.last_contacted_at).getTime();
+          if (replied) { earned += w.reply_rate; if (w.reply_rate > 0) drivers.push({ signal: "reply_rate", points: w.reply_rate, source: "messages" }); }
+        }
 
-        available += w.recent_contact;
-        if (days < tw.recent_contact_days) { earned += w.recent_contact; if (w.recent_contact > 0) drivers.push({ signal: "recent_contact", points: w.recent_contact, source: "messages" }); }
+        if (on("recent_contact")) {
+          available += w.recent_contact;
+          if (days < tw.recent_contact_days) { earned += w.recent_contact; if (w.recent_contact > 0) drivers.push({ signal: "recent_contact", points: w.recent_contact, source: "messages" }); }
+        }
       }
 
       // ── Heat-Signal (verfügbar wenn heat_status gesetzt) ──
       // SCORE-FIX (A): heat_hot zählt NUR bei echtem Hot ("heiss"), nicht bei "warm" — sonst werden
       // Upsell-Scores fälschlich hochgetrieben (Demo: Sarah Klein bekam +20 trotz heat='warm').
-      if (c.heat_status) {
+      if (c.heat_status && on("heat_hot")) {
         available += w.heat_hot;
         if (c.heat_status === "heiss") { earned += w.heat_hot; if (w.heat_hot > 0) drivers.push({ signal: "heat_hot", points: w.heat_hot, source: "activity" }); }
       }
 
       // ── Aktiver Deal (verfügbar wenn ≥1 Deal existiert) ──
-      if (hasAnyDeal.has(c.id)) {
+      if (hasAnyDeal.has(c.id) && on("active_deal")) {
         available += w.active_deal;
         if (hasActiveDeal.has(c.id)) { earned += w.active_deal; if (w.active_deal > 0) drivers.push({ signal: "active_deal", points: w.active_deal, source: "activity" }); }
       }
