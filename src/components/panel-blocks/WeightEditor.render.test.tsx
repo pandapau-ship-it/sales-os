@@ -55,6 +55,26 @@ describe("WeightEditor", () => {
     expect(screen.getByText("settings.rules.weightHint")).toBeTruthy();
   });
 
+  it("Slider bedienbar: Taste ändert Anzeige (onValueChange, lokal) UND persistiert (onValueCommit)", () => {
+    const onWeight = vi.fn();
+    render(<WeightEditor signals={[{ key: "last_contact", label: "L", weight: 25, active: true }]} onWeightChange={onWeight} onActiveToggle={vi.fn()} />);
+    const slider = screen.getByRole("slider");
+    slider.focus();
+    fireEvent.keyDown(slider, { key: "ArrowRight" });
+    // onValueChange → lokaler State → Anzeige folgt sofort (der Fix: kein Reset auf Server-Wert)
+    expect(screen.getByText("26")).toBeTruthy();
+    // onValueCommit → persistiert einmal über den Aufrufer
+    expect(onWeight).toHaveBeenCalledWith("last_contact", 26);
+  });
+
+  it("Slider disabled bei !canEdit ODER inaktivem Signal", () => {
+    render(<WeightEditor
+      signals={[{ key: "a", label: "A", weight: 10, active: true }, { key: "b", label: "B", weight: 10, active: false }]}
+      onWeightChange={vi.fn()} onActiveToggle={vi.fn()} />);
+    const sliders = screen.getAllByRole("slider");
+    expect(sliders[1].getAttribute("data-disabled")).not.toBeNull(); // inaktives Signal → Slider disabled
+  });
+
   it("canEdit=false → Switches disabled (UI-Ausblendung, Server erzwingt zusätzlich)", () => {
     render(<WeightEditor signals={SIGNALS} canEdit={false} onWeightChange={vi.fn()} onActiveToggle={vi.fn()} />);
     for (const sw of screen.getAllByRole("switch")) expect((sw as HTMLButtonElement).disabled).toBe(true);

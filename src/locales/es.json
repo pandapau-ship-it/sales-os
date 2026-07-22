@@ -247,20 +247,51 @@
         }
       },
       "heat": {
-        "engaged": "Engaged hasta",
-        "warm": "Warm hasta",
-        "cooling": "Cooling hasta",
-        "cold": "Cold hasta",
-        "gone": "Después Gone — automáticamente desde {{value}} días."
+        "tile": {
+          "engaged": {
+            "label": "ENGAGED",
+            "word": "Muy activo",
+            "caption": "Cuenta como engaged hasta"
+          },
+          "warm": {
+            "label": "WARM",
+            "word": "En marcha",
+            "caption": "Cuenta como warm hasta"
+          },
+          "cooling": {
+            "label": "COOLING",
+            "word": "Enfriándose",
+            "caption": "Cuenta como cooling hasta"
+          },
+          "cold": {
+            "label": "COLD",
+            "word": "Inactivo",
+            "caption": "Cuenta como cold hasta"
+          },
+          "gone": {
+            "label": "GONE",
+            "word": "Perdido",
+            "caption": "Automáticamente tras",
+            "value": "> {{value}} días"
+          }
+        },
+        "synthTitle": "Resumen de reglas:",
+        "synthesis": "Un contacto está engaged hasta {{a}} días, warm hasta {{b}} días, se enfría hasta {{c}} días y cuenta como frío a partir de {{d}} días (luego Gone)."
       },
       "pipeline": {
         "stagnatesAfter": "se considera estancado tras",
-        "wonNoTimer": "Ganado — sin temporizador."
+        "wonNoTimer": "sin temporizador",
+        "stagnationTitle": "Estancamiento por inactividad por etapa",
+        "stageCol": "Máx. días restantes",
+        "followupTitle": "Ritmo automático de seguimiento",
+        "followupIntro": "Reglas en lenguaje claro para el ritmo de recordatorios y secuencias automáticos:",
+        "workdayNote": "Los días hábiles tienen en cuenta fines de semana y festivos de tu mercado principal.",
+        "wonLabel": "Ganado"
       },
       "followup": {
         "first": "Primer seguimiento tras",
         "second": "Segundo seguimiento tras",
-        "max": "Como máximo"
+        "max": "Máximo de seguimientos automáticos"
       },
       "churn": {
         "title": "Riesgo de churn",
@@ -268,21 +299,24 @@
         "suppress": "Suprimir upsell si hay riesgo de churn",
         "bands": "Bandas de nivel",
         "band": {
-          "low": "Bajo 0–30",
-          "mid": "Medio 31–60",
-          "high": "Alto 61–85",
-          "critical": "Crítico 86+"
-        }
+          "low": "Bajo · 0–30",
+          "mid": "Medio · 31–60",
+          "high": "Alto · 61–85",
+          "critical": "Crítico · 86+"
+        },
+        "subtitle": "Sistema de alerta temprana de abandono",
+        "how": "Cada señal activa contribuye proporcionalmente a una puntuación de riesgo de 0–100: cuanto mayor su peso, más fuerte. Las señales desactivadas no cuentan. A partir del umbral el contacto cuenta como riesgo."
       },
       "upsell": {
         "title": "Potencial de upsell",
-        "threshold": "Oportunidad a partir de la puntuación"
+        "threshold": "Oportunidad a partir de la puntuación",
+        "subtitle": "Detección de oportunidades de expansión",
+        "how": "Cada señal activa contribuye proporcionalmente a una puntuación de oportunidad de 0–100: cuanto mayor su peso, más fuerte. Las señales desactivadas no cuentan. A partir del umbral el contacto cuenta como oportunidad."
       },
       "signals": {
-        "fresh": "Una señal es fresca durante",
-        "maxAi": "Como máximo",
-        "maxAiSuffix": "ajustes automáticos de IA por lead.",
-        "icp": "Asignación automática de leads a partir de la puntuación ICP/match"
+        "fresh": "horas se considera fresca una señal.",
+        "maxAi": "ajustes automáticos de IA por lead.",
+        "icp": "puntos de ICP/match bastan para la asignación automática de leads."
       },
       "sig": {
         "churn": {
@@ -321,7 +355,13 @@
         "note": "Controla por separado cómo la urgencia, el tamaño del deal y la actividad configuran tu lista de foco diaria. Habrá una página propia."
       },
       "loadError": "No se pudo cargar ahora mismo",
-      "loadErrorDesc": "Inténtalo de nuevo."
+      "loadErrorDesc": "Inténtalo de nuevo.",
+      "howTitle": "Cómo funciona:",
+      "weightBase": "Señales base medibles",
+      "weightCol": "Peso (0–{{max}})",
+      "externalSignals": "Señales externas",
+      "inactiveSignals": "Aún no activas",
+      "integrationNote": "Se activa en cuanto se conecte la integración."
     }
   },
   "mfa": {

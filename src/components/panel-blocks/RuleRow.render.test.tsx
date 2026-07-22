@@ -21,13 +21,23 @@ describe("RuleRow", () => {
     render(<RuleRow before="Kontakt gilt als inaktiv nach" after="Tagen" value={14} unit="Tage" min={1} max={365} onSave={vi.fn()} />);
     expect(screen.getByText("Kontakt gilt als inaktiv nach")).toBeTruthy();
     expect(screen.getByText("Tagen")).toBeTruthy();
-    expect(screen.getByRole("button", { name: /14 Tage/ })).toBeTruthy();
+    // Chip = ValueChip-Button, per Kontext-aria-label (before+after) auffindbar; Wert sichtbar.
+    expect(screen.getByRole("button", { name: "Kontakt gilt als inaktiv nach Tagen" })).toBeTruthy();
+    expect(screen.getByText("14")).toBeTruthy();
+  });
+
+  it("valueFirst → Chip vor dem Satz-Teil", () => {
+    render(<RuleRow valueFirst before="Stunden gilt ein Signal als frisch." value={24} min={1} max={168} onSave={vi.fn()} />);
+    expect(screen.getByText("Stunden gilt ein Signal als frisch.")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Stunden gilt ein Signal als frisch." })).toBeTruthy();
+    expect(screen.getByText("24")).toBeTruthy();
   });
 
   it("canEdit=false → statischer Wert, kein Button", () => {
     render(<RuleRow before="X" value={5} unit="%" min={0} max={100} canEdit={false} onSave={vi.fn()} />);
     expect(screen.queryByRole("button")).toBeNull();
-    expect(screen.getByText("5 %")).toBeTruthy();
+    expect(screen.getByText("5")).toBeTruthy();
+    expect(screen.getByText("%")).toBeTruthy();
   });
 
   it("leerer Wert → Platzhalter", () => {
@@ -38,7 +48,7 @@ describe("RuleRow", () => {
   it("Klick öffnet Editor; ungültig (außer Bereich) speichert NICHT, gültig ruft onSave", async () => {
     const onSave = vi.fn();
     render(<RuleRow before="Inaktiv nach" after="Tagen" value={14} unit="Tage" min={1} max={365} onSave={onSave} />);
-    fireEvent.click(screen.getByRole("button", { name: /14 Tage/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Inaktiv nach Tagen" }));
     const input = await screen.findByRole("spinbutton");
     // 999 > max → kein Save
     fireEvent.change(input, { target: { value: "999" } });

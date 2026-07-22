@@ -9,11 +9,19 @@
  * (Anteils-Balken je aktivem Signal), NICHT als „Fortschritt bis Schwelle" und ohne „über 100".
  * Die Warn-Schwelle + (read-only) Level-Bänder rendert der Aufrufer SEPARAT (RuleRow + StatusBadge).
  *
+ * FARB-BEDEUTUNG: `tone` setzt den Akzent (Risiko rot / Chance grün) — über einen Token-Override
+ * (`--color-primary` = Ton-Token), sodass `Switch`/`Slider` (nutzen `bg-primary`) automatisch mitfärben.
+ * Kein Hex; die Farben kommen aus `--signal-urgent-text`/`--signal-success-text` (dark-mode-fähig).
+ *
+ * SLIDER-FIX: Ziehen ändert nur lokalen State (`onValueChange`, flüssig); persistiert wird EINMAL bei
+ * `onValueCommit` (Drag-Ende / Tastatur) → kein Write-/Refetch-Sturm, der den Thumb zurücksetzt.
+ *
  * Nicht messbare / externe Signale werden ausgegraut mit ehrlichem Grund gelistet
  * („noch nicht gemessen" bzw. „Integration nötig") — nicht editierbar, zählen nicht mit.
  *
  * Prop-driven, tokens-only. Schreiben über `onWeightChange`/`onActiveToggle` (→ `updateSettings`).
  */
+import { useState, type CSSProperties } from "react";
 import { useTranslation } from "react-i18next";
 import { Lock } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
@@ -35,23 +43,55 @@ export interface InactiveSignal {
 /** Slider-Obergrenze (UI-Wahl; der RPC erlaubt bis 1000 als Guardrail). */
 export const WEIGHT_MAX = 50;
 
+/** Akzent-Ton (echte Bedeutung: neutral / Risiko / Chance) → Token, kein Hex. */
+export type WeightTone = "primary" | "urgent" | "success";
+const ACCENT: Record<WeightTone, string> = {
+  primary: "var(--sherloq-primary)",
+  urgent: "var(--signal-urgent-text)",
+  success: "var(--signal-success-text)",
+};
+
 export default function WeightEditor({
-  signals, inactiveSignals = [], canEdit = true, max = WEIGHT_MAX,
-  onWeightChange, onActiveToggle,
+  signals, inactiveSignals = [], canEdit = true, max = WEIGHT_MAX, tone = "primary",
+  baseLabel, weightLabel, inactiveLabel, inactiveNote, onWeightChange, onActiveToggle,
 }: {
   signals: EditableSignal[];
   inactiveSignals?: InactiveSignal[];
   canEdit?: boolean;
   max?: number;
+  tone?: WeightTone;
+  /** Kopf-Label der Basis-Signale (z.B. „Messbare Basis-Signale"). */
+  baseLabel?: string;
+  /** Kopf-Label der Gewicht-Spalte (z.B. „Gewicht (0–50)"). */
+  weightLabel?: string;
+  /** Kopf-Label der inaktiven Signale (z.B. „Noch nicht aktiv"). */
+  inactiveLabel?: string;
+  /** Fußnote unter den inaktiven Signalen. */
+  inactiveNote?: string;
   onWeightChange: (key: string, weight: number) => void;
   onActiveToggle: (key: string, active: boolean) => void;
 }) {
   const { t } = useTranslation();
+  // Lokaler Drag-State: hält den gezogenen Wert flüssig; persistiert wird erst bei onValueCommit.
+  const [local, setLocal] = useState<Record<string, number>>({});
+  const shownWeight = (s: EditableSignal) => local[s.key] ?? s.weight;
+
+  const accent = ACCENT[tone];
   const activeSignals = signals.filter((s) => s.active);
-  const total = activeSignals.reduce((a, s) => a + s.weight, 0);
+  const total = activeSignals.reduce((a, s) => a + shownWeight(s), 0);
+
+  // Token-Override: bg-primary (Switch/Slider) folgt dem Ton, ohne Hex.
+  const toneStyle = { "--color-primary": accent } as CSSProperties;
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3" style={toneStyle}>
+      {(baseLabel || weightLabel) && (
+        <div className="flex items-center justify-between px-1">
+          {baseLabel && <span className="typo-field-label text-text-muted">{baseLabel}</span>}
+          {weightLabel && <span className="typo-field-label text-text-muted">{weightLabel}</span>}
+        </div>
+      )}
+
       {/* Signal-Zeilen: Switch + Label + Slider + Gewicht-Zahl */}
       <div className="space-y-1.5">
         {signals.map((s) => (
@@ -79,17 +119,17 @@ export default function WeightEditor({
               min={0}
               max={max}
               step={1}
-              value={[s.weight]}
+              value={[shownWeight(s)]}
               disabled={!canEdit || !s.active}
-              onValueChange={(v) => onWeightChange(s.key, v[0])}
+              onValueChange={(v) => setLocal((m) => ({ ...m, [s.key]: v[0] }))}
+              onValueCommit={(v) => onWeightChange(s.key, v[0])}
               aria-label={t("settings.rules.weightFor", { signal: s.label })}
             />
             <span
-              className={`w-8 text-right typo-chip tabular-nums shrink-0 ${
-                s.active ? "text-[var(--sherloq-primary)]" : "text-text-muted"
-              }`}
+              className="w-8 text-right typo-chip tabular-nums shrink-0"
+              style={{ color: s.active ? accent : "var(--text-muted)" }}
             >
-              {s.weight}
+              {shownWeight(s)}
             </span>
           </div>
         ))}
@@ -104,11 +144,11 @@ export default function WeightEditor({
                   key={s.key}
                   className="h-full"
                   style={{
-                    width: `${(s.weight / total) * 100}%`,
-                    background: "var(--sherloq-primary)",
-                    opacity: i % 2 === 0 ? 1 : 0.6,
+                    width: `${(shownWeight(s) / total) * 100}%`,
+                    background: accent,
+                    opacity: i % 2 === 0 ? 1 : 0.55,
                   }}
-                  title={`${s.label}: ${Math.round((s.weight / total) * 100)}%`}
+                  title={`${s.label}: ${Math.round((shownWeight(s) / total) * 100)}%`}
                 />
               ))
             : null}
@@ -119,6 +159,7 @@ export default function WeightEditor({
       {/* Nicht editierbare Signale — ausgegraut, ehrlicher Grund, nicht in der Wertung. */}
       {inactiveSignals.length > 0 && (
         <div className="space-y-1.5">
+          {inactiveLabel && <div className="typo-field-label text-text-muted px-1">{inactiveLabel}</div>}
           {inactiveSignals.map((s, i) => (
             <div
               key={i}
@@ -135,6 +176,7 @@ export default function WeightEditor({
               </span>
             </div>
           ))}
+          {inactiveNote && <p className="typo-subline text-text-muted italic px-1">{inactiveNote}</p>}
         </div>
       )}
     </div>

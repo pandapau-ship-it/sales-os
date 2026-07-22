@@ -247,20 +247,51 @@
         }
       },
       "heat": {
-        "engaged": "Engaged bis",
-        "warm": "Warm bis",
-        "cooling": "Cooling bis",
-        "cold": "Cold bis",
-        "gone": "Danach Gone — automatisch ab {{value}} Tagen."
+        "tile": {
+          "engaged": {
+            "label": "ENGAGED",
+            "word": "Hochaktiv",
+            "caption": "Gilt als engaged bis"
+          },
+          "warm": {
+            "label": "WARM",
+            "word": "Im Fluss",
+            "caption": "Gilt als warm bis"
+          },
+          "cooling": {
+            "label": "COOLING",
+            "word": "Kühlt ab",
+            "caption": "Gilt als cooling bis"
+          },
+          "cold": {
+            "label": "COLD",
+            "word": "Inaktiv",
+            "caption": "Gilt als cold bis"
+          },
+          "gone": {
+            "label": "GONE",
+            "word": "Verloren",
+            "caption": "Automatisch nach",
+            "value": "> {{value}} Tagen"
+          }
+        },
+        "synthTitle": "Regel-Synthese:",
+        "synthesis": "Ein Kontakt ist bis {{a}} Tage engaged, bis {{b}} Tage warm, kühlt bis {{c}} Tage ab und gilt ab {{d}} Tagen als kalt (danach Gone)."
       },
       "pipeline": {
         "stagnatesAfter": "gilt als stagniert nach",
-        "wonNoTimer": "Gewonnen — kein Timer."
+        "wonNoTimer": "kein Timer",
+        "stagnationTitle": "Stagnation nach Inaktivität je Stufe",
+        "stageCol": "Max. verbleibende Tage",
+        "followupTitle": "Automatischer Follow-up-Rhythmus",
+        "followupIntro": "Klartext-Regeln für die zeitliche Taktung automatischer Erinnerungen und Sequenzen:",
+        "workdayNote": "Werktage berücksichtigen Wochenenden und bundesweite Feiertage deines Primärmarktes.",
+        "wonLabel": "Gewonnen"
       },
       "followup": {
         "first": "Erstes Follow-up nach",
         "second": "Zweites Follow-up nach",
-        "max": "Maximal"
+        "max": "Maximale automatische Follow-ups"
       },
       "churn": {
         "title": "Churn-Risiko",
@@ -268,21 +299,24 @@
         "suppress": "Bei Churn-Risiko wird Upsell unterdrückt",
         "bands": "Level-Bänder",
         "band": {
-          "low": "Niedrig 0–30",
-          "mid": "Mittel 31–60",
-          "high": "Hoch 61–85",
-          "critical": "Kritisch 86+"
-        }
+          "low": "Niedrig · 0–30",
+          "mid": "Mittel · 31–60",
+          "high": "Hoch · 61–85",
+          "critical": "Kritisch · 86+"
+        },
+        "subtitle": "Frühwarnsystem für Kundenabwanderung",
+        "how": "Jedes aktive Signal trägt anteilig zu einem Risiko-Score von 0–100 bei — je höher sein Gewicht, desto stärker. Ausgeschaltete Signale zählen nicht. Ab dem Schwellenwert gilt der Kontakt als Risiko."
       },
       "upsell": {
         "title": "Upsell-Potenzial",
-        "threshold": "Chance ab Score"
+        "threshold": "Chance ab Score",
+        "subtitle": "Erkennung von Expansionschancen",
+        "how": "Jedes aktive Signal trägt anteilig zu einem Chancen-Score von 0–100 bei — je höher sein Gewicht, desto stärker. Ausgeschaltete Signale zählen nicht. Ab dem Schwellenwert gilt der Kontakt als Chance."
       },
       "signals": {
-        "fresh": "Ein Signal gilt als frisch für",
-        "maxAi": "Maximal",
-        "maxAiSuffix": "automatische KI-Anpassungen pro Lead.",
-        "icp": "Automatische Lead-Zuordnung ab ICP-/Match-Score"
+        "fresh": "Stunden gilt ein Signal als frisch.",
+        "maxAi": "automatische KI-Anpassungen pro Lead.",
+        "icp": "Punkte ICP-/Match-Score genügen für automatische Lead-Zuordnung."
       },
       "sig": {
         "churn": {
@@ -321,7 +355,13 @@
         "note": "Steuere separat, wie Dringlichkeit, Deal-Größe und Aktivität deine Tages-Fokusliste beeinflussen. Eigene Seite folgt."
       },
       "loadError": "Konnte gerade nicht geladen werden",
-      "loadErrorDesc": "Bitte erneut versuchen."
+      "loadErrorDesc": "Bitte erneut versuchen.",
+      "howTitle": "So funktioniert’s:",
+      "weightBase": "Messbare Basis-Signale",
+      "weightCol": "Gewicht (0–{{max}})",
+      "externalSignals": "Externe Signale",
+      "inactiveSignals": "Noch nicht aktiv",
+      "integrationNote": "Wird aktiv, sobald die Integration verbunden ist."
     }
   },
   "mfa": {

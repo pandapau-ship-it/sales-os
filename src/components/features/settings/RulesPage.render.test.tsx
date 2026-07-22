@@ -60,11 +60,24 @@ describe("RulesPage", () => {
 
   it("Churn-Schwelle speichern läuft über EINEN Schreibweg updateSettings({thresholds:{churn_risk_threshold}})", async () => {
     renderPage();
-    fireEvent.click(await screen.findByRole("button", { name: /^61 / }));
+    fireEvent.click(await screen.findByRole("button", { name: "settings.rules.churn.threshold" }));
     const input = await screen.findByRole("spinbutton");
     fireEvent.change(input, { target: { value: "55" } });
     fireEvent.click(screen.getByText("common.save"));
     await waitFor(() => expect(updateSettings).toHaveBeenCalledWith({ thresholds: { churn_risk_threshold: 55 } }));
+  });
+
+  it("Heat-Kachel (Gruppe 1) speichert die gekettete Tages-Schwelle über updateSettings", async () => {
+    renderPage();
+    // Cold-Kachel (Caption als aria-label), Wert 30 → 40
+    fireEvent.click(await screen.findByRole("button", { name: "settings.rules.heat.tile.cold.caption" }));
+    const input = await screen.findByRole("spinbutton");
+    fireEvent.change(input, { target: { value: "40" } });
+    fireEvent.click(screen.getByText("common.save"));
+    await waitFor(() => {
+      const call = updateSettings.mock.calls.find(([p]) => (p as { thresholds?: { heat_status?: unknown } }).thresholds?.heat_status); // single-source-ok: settings.thresholds.heat_status = Config
+      expect((call![0] as { thresholds: { heat_status: Record<string, number> } }).thresholds.heat_status.kalt_max_days).toBe(40); // single-source-ok: settings-Config, kein Kontakt-Heat
+    });
   });
 
   it("Upsell-Unterdrückung-Schalter → updateSettings({thresholds:{churn_suppresses_upsell:false}})", async () => {
@@ -88,23 +101,24 @@ describe("RulesPage", () => {
   it("terminale Stufen (gewonnen/verloren) haben KEINEN Stagnations-Timer", async () => {
     renderPage();
     await screen.findByText("settings.rules.g.pipeline.title");
-    // Backlog-Stagnation als Regel-Chip da (7), Gewonnen/Verloren NICHT als editierbare Zeile.
+    // Backlog (nicht-terminal) als Zeile da; Gewonnen = read-only „kein Timer"; Verloren NICHT gelistet.
+    expect(screen.getByText("Backlog")).toBeTruthy();
     expect(screen.getByText("settings.rules.pipeline.wonNoTimer")).toBeTruthy();
-    expect(screen.queryByText("Verloren settings.rules.pipeline.stagnatesAfter")).toBeNull();
+    expect(screen.queryByText("Verloren")).toBeNull();
   });
 
   it("Lese-Fehler wird SICHTBAR (kein stummer Degrade auf Empfehlungswerte, [D51])", async () => {
     getSettingsImpl = () => Promise.reject(new Error("boom"));
     renderPage();
     expect(await screen.findByText("settings.rules.loadError")).toBeTruthy();
-    // Empfehlungswert 61 darf NICHT als echter Wert erscheinen.
-    expect(screen.queryByText(/^61 /)).toBeNull();
+    // Kein Editor-Inhalt (Empfehlungswerte werden NICHT als echte Werte gezeigt).
+    expect(screen.queryByText("settings.rules.g.churn.title")).toBeNull();
   });
 
   it("ohne Recht → Werte read-only (kein Bearbeiten-Button); Server erzwingt zusätzlich", async () => {
     PERMS = () => false;
     renderPage();
     await screen.findByText("settings.rules.g.churn.title");
-    expect(screen.queryByRole("button", { name: /^61 / })).toBeNull(); // Churn-Schwelle nur statisch
+    expect(screen.queryByRole("button", { name: "settings.rules.churn.threshold" })).toBeNull(); // Churn-Schwelle nur statisch
   });
 });

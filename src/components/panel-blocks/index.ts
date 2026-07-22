@@ -89,4 +89,7 @@ export { default as CompactContactRow } from './CompactContactRow';
 export type { CompactContactRowProps } from './CompactContactRow';
 export { default as WhyPopover } from './WhyPopover';
 export { default as WeightEditor, WEIGHT_MAX } from './WeightEditor';
-export type { EditableSignal, InactiveSignal } from './WeightEditor';
+export type { EditableSignal, InactiveSignal, WeightTone } from './WeightEditor';
+export { default as ValueChip } from './ValueChip';
+export type { ChipTone } from './ValueChip';
+export { default as HeatThresholdTile } from './HeatThresholdTile';
