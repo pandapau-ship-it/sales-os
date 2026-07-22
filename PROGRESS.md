@@ -448,7 +448,7 @@
           Live-DOM: echtes Paar/kein Fake · Merge-Dialog A/B + Bestätigung-vor-Ausführung + Override-Wert · Löschen ruft
           softDelete, nicht Merge). Gates alle grün (build/lint/168 Tests/structure/audit 0 FAIL), test-runner + auditor PASS.
 
-▶ **2.** [~] **[BAU] Vorab-Migration Entitlement & Credits**
+**2.** [~] **[BAU] Vorab-Migration Entitlement & Credits** — *Kern gebaut + gemergt (19.07.); nur dokumentierte Haken offen.*
   (`docs/for_ai_sdr_vorab_entitlement_credits.md` — PFLICHT vor AI-SDR-Slice-5)
   - **GEBAUT + GEMERGT 19.07.2026 (Option A)** — db push erfolgt, in `main`.
     Branch `feature/entitlement-credit-layer`. Additive Migr. **061** (metadata-Spalte ·
@@ -536,6 +536,26 @@
 
 **6.** [~] **[BAU+DESIGN] Settings SET-1 bis SET-4** (`docs/settings_bauplan_v1.md`;
   **SET-2 wartet auf Olivers vorhandenes Design** — Abgleich nach dessen Abschnitt 6)
+
+  - ✅ **SET-4a „REGELN"-SEITE FERTIG + GEMERGT 22.07.2026** (Merge `a212588`, `--no-ff`, gepusht;
+    Branch `feature/set4a-regeln-bausteine` gelöscht; local main == origin/main). **Slices 2a**
+    (Bausteine `WhyPopover`/`WeightEditor`/**`ValueChip`**/`HeatThresholdTile` + `RuleRow`-Erweiterung)
+    **+ 2b** (Seite: 5 Regel-Gruppen — Heat · Pipeline+Follow-up · Churn+Upsell · Signale&ICP ·
+    Mein-Tag-Verweis — + leere Layout-Reserve „Eigene Actions") **+ Referenz-Überarbeitung** (farbige
+    Heat-Kacheln über `HEAT_STATUS`-Tokens, ehrliche 0–100-Score-Darstellung statt „Summe bis Schwelle",
+    value-first Gruppe 4, **Slider-Bug gefixt** via lokalem Drag-State + `onValueCommit`) **+ Feinschliff**
+    (Heat-Badge Icon-im-Badge, Spalten-Ausrichtung) **+ Doku [D52]**. EIN Schreibweg `updateSettings`
+    (chat-fähig), Rechte-Gates `rules.edit`/`pipeline.manage`/`automation.manage` (Server erzwingt).
+    Gates grün (vitest 419, audit 0 FAIL, build ✓); test-runner **ALLE GATES GRÜN** + auditor **AUDIT: PASS**.
+    **Mit 4a offen geblieben (dokumentiert):** [D-set4-group4-signalcap] (Gruppe 4 — `signal_windows`
+    schreibbar + Kappungs-Key; 4a editiert bereits `signal_fresh_hours`/`max_ai_adjustments_per_lead`/
+    `icp_score_threshold`) · [D-lifecycle-trigger] (Gruppe 5 — eigener Slice, `conditions[]` über `src/lib/filter`).
+  - ▶ **NÄCHSTE SLICE: SET-4b „AUTOMATION"-SEITE** — *[BAU], nächste Seite im 4a–4d-Arc.* Settings →
+    Arbeitsweise → **Automation** (`settingsNav` key `automation`, heute `built:false`): Editor für
+    Automation-Level/Risk-Rules (`automation_defaults` + `automation_rules`) über denselben validierten
+    `update_settings`-Schreibweg + `automation.manage`-Gate. Danach **4c** Pipeline-Stages-UI · **4d**
+    Mein-Tag-Gewichte. **Reihenfolge-Hinweis (nie stillschweigend):** der Settings-Thread (Item 6) läuft
+    bewusst vorgezogen vor den Rest-Haken von Item 2 (Entitlement-Kern ist bereits gemergt) und Items 3–5.
   - **SET-1 Rechte-Fundament FERTIG + GEMERGT 19.07.2026** (Migr. 070/071 gepusht, 11/11 live-verifiziert, Merge `b79b11c`).**
     Live-Akzeptanz gegen Remote (11/11 PASS, self-abortierender DO-Block, kein Testdaten-Rest): member ohne Recht→false /
     grant→sofort true / member-Löschen ohne Recht verweigert / mit Recht ok / Cross-Org-grant verweigert / Letzter-Owner

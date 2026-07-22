@@ -71,9 +71,10 @@
 - [x] Migr. 083 **remote per DO-Block verifiziert** (Rechte gesetzt · member ohne Recht · Whitelist wirft · Min/Max wirft · Won/Lost-Löschen wirft · gültiger Patch schreibt + audit_log)
 - [x] `RuleRow` (panel-block): Klartext-Regel-Zeile (Satz + anklickbarer Wert, shadcn-Popover Min/Max, `portal={false}`, Doppelvalidierung) — Barrel + IN_SCOPE + 4 Render-Tests
 - [x] `updateSettings`-db.ts-Wrapper (rpc-Passthrough)
-- [ ] **4a Regeln** (Gruppen 1–3 Editor-UI) + **[D-set4-group4-signalcap]** (Gruppe 4: signal_windows schreibbar + Kappung)
+- [x] **4a Regeln** (Gruppen 1–4 Editor-UI: Heat · Pipeline+Follow-up · Churn+Upsell · Signale&ICP + leere Layout-Reserve „Eigene Actions") — **FERTIG + GEMERGT 22.07.2026** (Merge `a212588`; Bausteine ValueChip/HeatThresholdTile/WhyPopover/WeightEditor + RuleRow-Erweiterung; farbige Heat-Kacheln über Tokens · ehrliche 0–100-Score-Darstellung · value-first Gruppe 4 · Slider-Fix onValueCommit; test-runner + auditor PASS)
+- [ ] **[D-set4-group4-signalcap]** (Gruppe 4 Rest: `signal_windows` schreibbar + Kappungs-Key — 4a editiert bereits `signal_fresh_hours`/`max_ai_adjustments_per_lead`/`icp_score_threshold`)
 - [ ] **[D-lifecycle-trigger]** Gruppe 5 — Lifecycle-Trigger mit conditions[] (eigener Slice, `src/lib/filter`)
-- [ ] 4b Automation · 4c Pipeline · 4d Mein-Tag-Gewichte (an Mein-Tag-Modul gekoppelt)
+- [ ] ▶ **4b Automation** (nächste Slice) · 4c Pipeline · 4d Mein-Tag-Gewichte (an Mein-Tag-Modul gekoppelt)
 
 ## 🚦 Modul-Abschluss-Gate (PFLICHT — bei JEDEM abgeschlossenen Modul durchgehen)
 
