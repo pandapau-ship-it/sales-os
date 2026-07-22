@@ -254,7 +254,15 @@ export function HunterReference() {
   const dealsData = dealsQuery.data?.map((deal) => dealToPipelineRow(deal as unknown as DealRow, stageNameBySlug));
   const settingsThresholds = settingsQuery.data.thresholds as Record<string, unknown> | undefined;
   // Hunter-Priority-Gewichte (045) — Org-Werte; Code-Default (PRIORITY_WEIGHTS_DEFAULT) nur als Per-Key-Fallback im Mapper.
-  const priorityWeights = (settingsThresholds?.hunter_priority_weights as Record<string, number> | undefined) ?? undefined;
+  // SET-4a: die Signal-Frische (eigener Key settings.thresholds.signal_fresh_hours, 1–168) wird hier in das
+  // priorityWeights-Objekt gefaltet (calculatePriorityScore liest sie als w.signal_fresh_hours). Fehlt der Key
+  // → Mapper-Default 24h. Reines Zusammenführen zweier settings-Werte am Lese-Rand, kein Rückschreib-Pfad.
+  const hpw = settingsThresholds?.hunter_priority_weights as Record<string, number> | undefined;
+  const signalFreshHours = settingsThresholds?.signal_fresh_hours as number | undefined;
+  const priorityWeights =
+    hpw || signalFreshHours != null
+      ? { ...(hpw ?? {}), ...(signalFreshHours != null ? { signal_fresh_hours: signalFreshHours } : {}) }
+      : undefined;
   // [D51] „Neu in Pipeline"-Fenster aus settings.thresholds.timing_windows (Single Source mit Farmer/054/055).
   const timingWindows = (settingsThresholds?.timing_windows as Record<string, number> | undefined) ?? undefined;
 

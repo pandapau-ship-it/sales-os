@@ -65,6 +65,11 @@ Deno.serve(async (req) => {
     if (sErr) throw sErr;
     const w: ChurnWeights = { ...DEFAULT_CHURN_WEIGHTS, ...(settings?.thresholds?.churn_weights ?? {}) };
     const tw: TimingWindows = { ...DEFAULT_TIMING, ...(settings?.thresholds?.timing_windows ?? {}) };
+    // Per-Signal An/Aus (SET-4a): thresholds.churn_weights_active[key] === false → Signal deaktiviert
+    // (zählt weder zu `available` noch zu `earned` → fließt gar nicht in den normalisierten Score ein).
+    // Default (Key fehlt / true) = aktiv → Bestandsdaten ohne diesen Key verhalten sich unverändert.
+    const active = (settings?.thresholds?.churn_weights_active ?? {}) as Record<string, boolean>;
+    const on = (key: string) => active[key] !== false;
 
     // 3. Bestandskunden laden (contact_status='kunde'). contacts hat KEIN Soft-Delete (deleted_at) —
     //    Inaktive laufen über contact_status='archiviert', also reicht der kunde-Filter.
@@ -114,23 +119,30 @@ Deno.serve(async (req) => {
       const sources = new Set<string>();
 
       // ── Kommunikations-Signale (Basis: last_contacted_at vorhanden) ──
+      // Deaktivierte Signale (on(...)=false) werden komplett übersprungen (kein available/earned).
       if (c.last_contacted_at) {
         sources.add("messages");
         const days = Math.max(0, Math.floor((now - new Date(c.last_contacted_at).getTime()) / DAY_MS));
 
-        available += w.last_contact;
-        if (days > tw.last_contact_days) { earned += w.last_contact; if (w.last_contact > 0) drivers.push({ signal: "last_contact", points: w.last_contact, source: "messages" }); }
+        if (on("last_contact")) {
+          available += w.last_contact;
+          if (days > tw.last_contact_days) { earned += w.last_contact; if (w.last_contact > 0) drivers.push({ signal: "last_contact", points: w.last_contact, source: "messages" }); }
+        }
 
-        available += w.inactive_days;
-        if (days > tw.inactive_days) { earned += w.inactive_days; if (w.inactive_days > 0) drivers.push({ signal: "inactive_days", points: w.inactive_days, source: "activity" }); }
+        if (on("inactive_days")) {
+          available += w.inactive_days;
+          if (days > tw.inactive_days) { earned += w.inactive_days; if (w.inactive_days > 0) drivers.push({ signal: "inactive_days", points: w.inactive_days, source: "activity" }); }
+        }
 
-        available += w.no_reply;
-        const noReply = !c.last_reply_at || new Date(c.last_reply_at).getTime() < new Date(c.last_contacted_at).getTime();
-        if (noReply) { earned += w.no_reply; if (w.no_reply > 0) drivers.push({ signal: "no_reply", points: w.no_reply, source: "messages" }); }
+        if (on("no_reply")) {
+          available += w.no_reply;
+          const noReply = !c.last_reply_at || new Date(c.last_reply_at).getTime() < new Date(c.last_contacted_at).getTime();
+          if (noReply) { earned += w.no_reply; if (w.no_reply > 0) drivers.push({ signal: "no_reply", points: w.no_reply, source: "messages" }); }
+        }
       }
 
       // ── Aktivitäts-Signal: überfällige offene Tasks (nur verfügbar wenn ≥1 offene Task) ──
-      if (hasOpenTask.has(c.id)) {
+      if (hasOpenTask.has(c.id) && on("overdue_tasks")) {
         sources.add("activity");
         available += w.overdue_tasks;
         // 0-Punkte-Treiber NICHT listen (Gewicht aktuell 0, [052]/[D49]) — sonst "Überfällige Tasks +0" im Tooltip.
@@ -138,7 +150,7 @@ Deno.serve(async (req) => {
       }
 
       // ── Heat-Signal (verfügbar wenn heat_status berechnet) ──
-      if (c.heat_status) {
+      if (c.heat_status && on("heat_cold")) {
         sources.add("activity");
         available += w.heat_cold;
         if (c.heat_status === "kalt" || c.heat_status === "tot") { earned += w.heat_cold; if (w.heat_cold > 0) drivers.push({ signal: "heat_cold", points: w.heat_cold, source: "activity" }); }

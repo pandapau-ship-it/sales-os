@@ -789,6 +789,10 @@ export type PriorityWeights = {
   icp_high_threshold: number; icp_mid_threshold: number; icp_high_mult: number; icp_mid_mult: number;
   overdue_bonus_days: number; overdue_bonus_points: number; stagnated_double_bonus: number;
   signal_age_penalty_per_day: number;
+  // Signal-Frische-Fenster in Stunden (SET-4a): frischestes Signal < X h → Hot-Punkte, sonst Alters-Malus.
+  // Storage: settings.thresholds.signal_fresh_hours (eigener Key, 1–168) — am ReferenceScreens-Rand
+  // in dieses Gewichts-Objekt gefaltet. Ersetzt den früheren 24h-Literal.
+  signal_fresh_hours: number;
 };
 
 export const PRIORITY_WEIGHTS_DEFAULT: PriorityWeights = {
@@ -797,6 +801,7 @@ export const PRIORITY_WEIGHTS_DEFAULT: PriorityWeights = {
   icp_high_threshold: 80, icp_mid_threshold: 60, icp_high_mult: 1.3, icp_mid_mult: 1.1,
   overdue_bonus_days: 3, overdue_bonus_points: 10, stagnated_double_bonus: 15,
   signal_age_penalty_per_day: 5,
+  signal_fresh_hours: 24,
 };
 
 /** Aktive Signal-Schlüssel (für Tooltip + Sortier-Nachweis). */
@@ -825,13 +830,14 @@ export function calculatePriorityScore(
   let base = 0;
   let bonus = 0;
 
-  // Signal-Alter: frischestes Signal. < 24h → Hot-Punkte; sonst Alters-Malus pro Tag.
+  // Signal-Alter: frischestes Signal. < signal_fresh_hours → Hot-Punkte; sonst Alters-Malus pro Tag.
+  // (Das `/24` bleibt reine Stunden→Tage-Umrechnung des Malus, unabhängig vom Frische-Fenster.)
   const sigTimes = signals
     .map((s) => new Date(s.created_at ?? 0).getTime())
     .filter((tms) => !Number.isNaN(tms) && tms > 0);
   if (sigTimes.length) {
     const ageH = (now - Math.max(...sigTimes)) / 3_600_000;
-    if (ageH < 24) { base += w.linkedin_signal; active.push("linkedin_signal"); }
+    if (ageH < w.signal_fresh_hours) { base += w.linkedin_signal; active.push("linkedin_signal"); }
     else { bonus -= Math.floor(ageH / 24) * w.signal_age_penalty_per_day; }
   }
 
