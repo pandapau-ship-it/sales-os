@@ -88,6 +88,9 @@ function checkDatabase(): void {
     'plans', 'plan_limits', 'billing_config',
     'cron_runs', 'system_alerts', 'cron_expectations',
     'permission_catalog', 'role_permissions',
+    // action_types = produktweite Aktions-Registry des Lifecycle-Baukastens (Migr. 088),
+    // identisch für alle Orgs (wie permission_catalog) → öffentlich lesbar, Write nur via Migration.
+    'action_types',
   ])
   const missingOrg: string[] = []
   for (const t of tables) {

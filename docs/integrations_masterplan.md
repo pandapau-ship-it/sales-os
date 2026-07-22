@@ -199,6 +199,14 @@ Verwandt: Custom Webhook Actions + Rule Builder ([D23]), Action-Typ-Registry (ob
 **Datenliste** halten; keine Annahme festbetonieren, dass die aktuellen Quellen für immer die
 einzigen sind. (Reiht sich in die „Drei verbindlichen Weichen AB SOFORT" oben ein.)
 
+**Aktions-Registry des Lifecycle-Baukastens ([D-lifecycle-trigger], Migr. 088 `action_types`):** Die
+„DANN"-Aktionen liegen als DATEN (global, laufzeit-gelesen von Builder + Auswerter) — Scharfschalten
+einer Aktion = eine Registry-Zeile `status:'active'` + ein Handler, ohne Regel-Schema/RPC/UI zu ändern.
+Reservierte (heute `coming_soon`) Aktionen mit Vorbedingung: `send_email_internal` (System-Mail-Kanal) ·
+`send_email_contact`/`start_sequence` (AI-SDR-Sending) · `slack_message` (Slack-Integration) ·
+**`set_contact_status` → [D53]** (folgenschwer: ändert Kundendaten automatisch, braucht Governance —
+welche Übergänge erlaubt, `opt_out`/`archiviert` nie automatisch, Verhältnis zum Automation-Risk-Level).
+
 ## 6. PFLEGE
 Neue externe Anbindung irgendwo im Projekt? → Zeile in Tabelle 1 + Klasse zuweisen,
 im selben PR wie der Anschlusspunkt. Dieses Dokument in CLAUDE.md-Referenzliste eintragen.
