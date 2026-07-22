@@ -550,12 +550,24 @@
     **Mit 4a offen geblieben (dokumentiert):** [D-set4-group4-signalcap] (Gruppe 4 — `signal_windows`
     schreibbar + Kappungs-Key; 4a editiert bereits `signal_fresh_hours`/`max_ai_adjustments_per_lead`/
     `icp_score_threshold`) · [D-lifecycle-trigger] (Gruppe 5 — eigener Slice, `conditions[]` über `src/lib/filter`).
-  - ▶ **NÄCHSTE SLICE: SET-4b „AUTOMATION"-SEITE** — *[BAU], nächste Seite im 4a–4d-Arc.* Settings →
-    Arbeitsweise → **Automation** (`settingsNav` key `automation`, heute `built:false`): Editor für
-    Automation-Level/Risk-Rules (`automation_defaults` + `automation_rules`) über denselben validierten
-    `update_settings`-Schreibweg + `automation.manage`-Gate. Danach **4c** Pipeline-Stages-UI · **4d**
-    Mein-Tag-Gewichte. **Reihenfolge-Hinweis (nie stillschweigend):** der Settings-Thread (Item 6) läuft
-    bewusst vorgezogen vor den Rest-Haken von Item 2 (Entitlement-Kern ist bereits gemergt) und Items 3–5.
+  - ✅ **LIFECYCLE-TRIGGER-BAUKASTEN L-1 (Backend-Fundament) FERTIG + GEMERGT 22.07.2026** (Merge `e250118`,
+    Migr. **088** gepusht + remote per DO-Block 12/12 verifiziert; test-runner + auditor PASS). Aus [D-lifecycle-
+    trigger] (SET-4a Gruppe 5) vorgezogen. `lifecycle_rules` (Cross-Entity Option B: `anchor_entity` + `conditions`
+    {logic, groups[]}) · `lifecycle_rule_runs` (Einmal-Feuer-Zustand) · `action_types` (Registry als Daten) ·
+    plan_limits · RLS/Index/audit-Trigger · RPCs `upsert/delete_lifecycle_rule` (automation.manage, Grammatik-
+    Validierung, plan_limit-Blocker) + `db.ts`-Chat-Vertrag. L2-Sofortgewinn: churn/upsell/health_score +
+    stagnation_days filterbar. Doku [D53] (`set_contact_status` Governance) + [D54] (Chat-Fehler-Rückmeldung).
+  - ▶ **NÄCHSTE SLICE: L-2 LIFECYCLE-AUSWERTER** — *[BAU].* Edge Function (cron-gewrappt + `cron_expectations`):
+    je Regel-Gruppe `compileToPostgrest` → **Anker-ID-Mengen-Algebra** (AND=Schnitt/OR=Vereinigung über
+    `deals.contact_id`/`primary_company_id`) → **Einmal-Feuer-Semantik** über `lifecycle_rule_runs` (Match-Zustand
+    nicht-match→match) → **Aktions-Handler** für Gruppe-1 (`notify`/`notify_urgent`/`create_task`/`add_tag`/
+    `add_to_list`). Nutzt `evaluateFilter`/`compileToPostgrest` (Single Source, kein Sprach-Neubau). Danach **L-3**
+    UI Condition-Builder (in „Eigene Actions"-Reserve). **[D54] beachten:** strukturierte Fehler-Rückmeldung.
+  - **QUEUED (nach dem Lifecycle-Thread): SET-4b „Automation"-Seite** — *[BAU], nächste Settings-Seite im 4a–4d-Arc.*
+    Settings → Arbeitsweise → **Automation** (`settingsNav` key `automation`, `built:false`): Editor für Automation-
+    Level/Risk-Rules über `update_settings` + `automation.manage`-Gate. Danach **4c** Pipeline-Stages-UI · **4d**
+    Mein-Tag-Gewichte. **Reihenfolge-Hinweis (nie stillschweigend):** der ▶ ist bewusst auf den **Lifecycle-Thread
+    (L-2/L-3)** vorgezogen — SET-4b/4c/4d folgen danach; Item 2 Rest-Haken + Items 3–5 weiterhin dahinter.
   - **SET-1 Rechte-Fundament FERTIG + GEMERGT 19.07.2026** (Migr. 070/071 gepusht, 11/11 live-verifiziert, Merge `b79b11c`).**
     Live-Akzeptanz gegen Remote (11/11 PASS, self-abortierender DO-Block, kein Testdaten-Rest): member ohne Recht→false /
     grant→sofort true / member-Löschen ohne Recht verweigert / mit Recht ok / Cross-Org-grant verweigert / Letzter-Owner
