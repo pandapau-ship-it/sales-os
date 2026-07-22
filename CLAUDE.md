@@ -146,6 +146,34 @@ ALTER TABLE knowledge_base ENABLE ROW LEVEL SECURITY;
 > **Bestands-Funktionen von VOR dieser Regel** werden gebündelt nachgezogen, sobald der AI-Chat-Baustein
 > ansteht → Liste in PROGRESS.md „▶ CHAT-AKTIONS-VERTRÄGE — NACHZUHOLENDE BESTANDS-FUNKTIONEN".
 
+### GLOBALE REGEL — [D54] Chat-Fehler-Rückmeldung-Pflicht (dauerhaft, künftig UND rückwirkend)
+
+> **Zusätzlich zum Chat-Aktions-Vertrag** (oben). Jeder RPC/Schreibweg, den der spätere AI Chat per
+> Function-Call nutzt, MUSS bei **nicht ausführbaren** Anfragen eine **KLARE, strukturierte, maschinell
+> weiterreichbare Begründung** zurückgeben — **niemals stumm scheitern, niemals etwas Falsches/Halbes anlegen.**
+>
+> **Auslöse-Fälle (mindestens):** ungültige/unsinnige Bedingung · fehlende Pflicht-Angabe · unbekannte oder
+> noch nicht verfügbare Aktion · Plan-Limit erreicht · fehlendes Recht.
+>
+> **Die Rückmeldung muss dem Chat ermöglichen, dem User in Alltagssprache zu erklären:**
+> 1. **WAS** nicht geht,
+> 2. **WARUM**,
+> 3. **WAS konkret** benötigt/zu korrigieren ist — **progressive Nachfrage statt reiner Blockade**
+>    (fehlt nur eine Pflichtangabe → EINE konkrete Rückfrage, dann ausführen; nie raten/erfinden — Honesty).
+>
+> **Strukturiert heißt:** die Begründung ist maschinell kategorisierbar (Fehler-**Code**/-**Typ** + betroffenes
+> **Feld/Objekt** + optional erlaubte Werte/Grenzen), nicht nur ein freitextiger Roh-Fehler, den der Chat
+> string-parsen müsste. Ein nacktes `raise exception 'text'` (Postgres-Code P0001, ohne `errcode`/`detail`/
+> `hint`/`column`) genügt der Regel **nicht** allein — die Kategorisierung muss ohne Text-Parsing möglich sein.
+>
+> **Gilt künftig UND rückwirkend:** Bestehende chat-fähige Schreibwege (z.B. `update_settings`,
+> `update_voice_profile`, `update_icp`/`update_persona`, `update_org_profile`, `update_product`,
+> `upsert_lifecycle_rule`) werden in einem **eigenen Nachrüst-Slice** angeglichen (Bestandsaufnahme: PROGRESS.md).
+>
+> **Prüfpunkt bei JEDEM Bau erstellbarer Regeln/Actions/Objekte:** Anforderung UND **Auditor-/Test-Punkt** —
+> analog zur Rechte-Check-Pflicht und zum Chat-Aktions-Vertrag. Ausformuliert im AI-Chat-Bauplan
+> (`docs/ai_chat_bauplan_v1.md` Abschnitt **5a „Progressive Ausführung"**).
+
 ### GLOBALE REGEL — Öffentliche Routen (dauerhaft, [D21] Login-Pflicht)
 
 > Die App erzwingt Login (`Protected` unter `/app/*`; Catch-all `NotFoundRedirect`: unbekannt +

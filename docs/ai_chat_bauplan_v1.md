@@ -268,6 +268,20 @@ nicht gebaut; die Regel und ihre Datenquelle stehen aber ab jetzt.
 **aktions-bezogene Ebene** (Aktion → Pflichtfelder) ergänzt wird, entscheidet Oliver beim Bau
 des Tool-Layers — die Feldpfade selbst bleiben davon unberührt.
 
+### 5a-1 [D54] Fehler-Rückmeldung-Pflicht — die Kehrseite der progressiven Ausführung
+
+Progressive Ausführung (oben) sagt: **fehlt eine Pflichtangabe → nachfragen statt blockieren.** Die
+**Kehrseite** ist verbindlich mitzudenken: Wenn ein Schreibweg eine Anfrage **wirklich nicht** ausführen
+kann (ungültige/unsinnige Bedingung · unbekannte oder noch nicht verfügbare Aktion · Plan-Limit erreicht ·
+fehlendes Recht · Struktur-/Wert-Verstoß), MUSS er eine **KLARE, strukturierte, maschinell weiterreichbare
+Begründung** zurückgeben — **nie stumm scheitern, nie etwas Falsches/Halbes anlegen** (verankert als
+**GLOBALE REGEL [D54]** in CLAUDE.md). Der Chat leitet daraus die Alltagssprache ab: **WAS** nicht geht ·
+**WARUM** · **WAS konkret** zu korrigieren ist. „Strukturiert" = ohne Text-Parsing kategorisierbar
+(Fehler-Code/-Typ + betroffenes Feld/Objekt + optional erlaubte Werte/Grenzen); ein nacktes
+`raise exception 'text'` genügt allein nicht. **Bestehende Schreibwege** (`update_settings`,
+`update_voice_profile`, `update_icp`/`update_persona`, `update_org_profile`, `update_product`,
+`upsert_lifecycle_rule`) werden in einem **eigenen Nachrüst-Slice** angeglichen (Bestandsaufnahme → PROGRESS.md).
+
 ---
 
 ## 5b. RAG-PIPELINE — SPEZIFIKATION (C11, gebaut in Slice 2R)

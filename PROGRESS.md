@@ -1874,6 +1874,35 @@ kam es, wie groß ist es** — und einen **klaren nächsten Schritt** anstoßen 
 > Regeln — **ohne** Regel-Schema/RPC/UI zu ändern (Registry-als-Daten-Muster). **Verwandt:** [D38] · [D39] ·
 > [D-lifecycle-trigger] · docs/integrations_masterplan.md §5 (Aktions-Registry).
 
+### [D54] Chat-Fehler-Rückmeldung-Pflicht — Nachrüst-Slice (Bestandsaufnahme 22.07.2026)
+> **Regel verankert** als GLOBALE REGEL [D54] in CLAUDE.md + AI-Chat-Bauplan §5a-1. **Kern:** jeder chat-fähige
+> Schreibweg muss bei nicht ausführbaren Anfragen eine **KLARE, STRUKTURIERTE, maschinell weiterreichbare**
+> Begründung liefern (WAS/WARUM/WAS-zu-tun) — ein nacktes `raise exception 'text'` (P0001, ohne
+> `errcode`/`detail`/`hint`/`column`) genügt allein NICHT. Der `db.ts`-Wrapper wirft den Rohfehler heute 1:1 weiter.
+>
+> **Bestandsaufnahme (nichts umgebaut — Basis für den Nachrüst-Slice):** ALLE heutigen chat-fähigen RPCs nutzen
+> reines `raise exception 'text'` → **keiner erfüllt [D54] vollständig** (Text-Qualität unterschiedlich, aber
+> durchweg **unstrukturiert**). Reihenfolge nach Nachrüst-Aufwand (kleinster zuerst):
+> - **`upsert_lifecycle_rule`/`delete_lifecycle_rule` (088):** Text **stark** (Limit „X von Y … upgraden/löschen",
+>   „Aktion nicht verfuegbar (unbekannt oder noch nicht freigeschaltet)", „Pflichtfelder fehlen: …", Operator/anchor)
+>   → **muss nachgerüstet** (nur Struktur/Code fehlen). *Selbst der neueste RPC erfüllt [D54] noch nicht — bewusst notiert.*
+> - **`update_settings` (083):** Text **stark** (Min/Max „muss zwischen X und Y liegen (war Z)", unbekannter Key,
+>   Won/Lost unantastbar) → **muss nachgerüstet** (Struktur/Code).
+> - **`update_voice_profile` (084):** Text ok (Feldpfad „%.%"), aber `Ungueltiger primary_channel` **ohne erlaubte
+>   Werte** → **muss nachgerüstet** (Struktur + erlaubte Werte ergänzen).
+> - **`update_icp`/`update_persona` (086) · `update_org_profile`/`update_product` (077):** Text ok (unbekannter Key,
+>   „muss eine Liste sein", „braucht eine id", „nicht gefunden"), teils ohne erlaubte Werte (`Ungueltiges Preis-Modell`)
+>   → **muss nachgerüstet** (Struktur).
+> - **Querschnitt alle:** `Kein Recht (X)` nennt das Recht, aber kein „was tun" (z.B. Admin anfragen); `nicht
+>   authentifiziert`/`unbekannter User`/`… gehoert zu anderer Organisation` terse. **db.ts-Wrapper** normalisieren
+>   den Fehler nicht → roher Postgres-Fehler erreicht Chat/UI.
+>
+> **Nachrüst-Slice (später, eigener Branch):** einheitliches Fehler-Schema (Code/Typ + Feld/Objekt + optional
+> erlaubte Werte/Grenzen) via `raise ... using errcode/detail/hint/column`, ODER strukturiertes Rückgabe-Objekt;
+> `db.ts`-Wrapper mappt auf ein gemeinsames `AppError`; Auditor-/Test-Punkt „Chat-Fehler-Rückmeldung" ergänzen.
+> **Kommt mit:** dem AI-Chat-Tool-Layer (dort wird die strukturierte Form tatsächlich konsumiert). **Verwandt:**
+> Chat-Aktions-Vertrag-Pflicht · Fehlerbehandlung-aus-User-Sicht (CLAUDE) · [D5] (KI-Pipeline).
+
 ### [D-set4-group4-signalcap] SET-4 Gruppe 4 — signal_windows schreibbar + Kappungs-Key (mit 4a)
 > **Erfasst 21.07.2026.** Für Gruppe 4 (Signale & ICP) fehlt im Schreibweg: (a) `settings.signal_windows`
 > (Top-Level-Spalte, Migr. 018) ist **nicht** in der `update_settings`-Whitelist (083, nur
