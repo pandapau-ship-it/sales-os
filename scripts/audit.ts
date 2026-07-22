@@ -466,8 +466,8 @@ function checkTypographyTokens(): void {
     'PersonalVoicePage',
     // „Mein Unternehmen" Slice 3a — Unternehmensprofil + generisches Listen-Feld
     'CompanyProfilePage', 'KnowledgeListField', 'EntityCardList', 'RuleRow',
-    // SET-4a Regeln-Seite — Bausteine (Slice 2a)
-    'WhyPopover', 'WeightEditor',
+    // SET-4a Regeln-Seite — Bausteine (Slice 2a) + Seite (Slice 2b)
+    'WhyPopover', 'WeightEditor', 'RulesPage',
   ])
   // panel-blocks/ + features/ + farming/ (Farmer-Hilfskomponenten).
   const files = [

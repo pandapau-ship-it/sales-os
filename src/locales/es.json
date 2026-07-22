@@ -184,13 +184,144 @@
       }
     },
     "rules": {
-      "why": "¿Por qué?",
+      "why": {
+        "heat": {
+          "title": "Umbrales de Heat",
+          "desc": "Tras cuántos días sin contacto real se enfría un lead. Mayor = los contactos siguen cálidos más tiempo."
+        },
+        "pipeline": {
+          "title": "Umbral de estancamiento",
+          "desc": "Si un deal permanece en una etapa más días que estos, se marca como estancado."
+        },
+        "churn": {
+          "title": "Umbral de aviso de churn",
+          "desc": "A partir de esta puntuación (normalizada 0–100) un cliente cuenta como riesgo."
+        },
+        "upsell": {
+          "title": "Umbral de oportunidad de upsell",
+          "desc": "A partir de esta puntuación (normalizada 0–100) un cliente se marca como oportunidad de upsell."
+        },
+        "signalFresh": {
+          "title": "Frescura de señal",
+          "desc": "Cuántas horas cuenta una señal nueva como fresca en la puntuación de urgencia."
+        }
+      },
       "usedBy": "Usado por:",
       "weightHint": "Los pesos definen la importancia relativa de cada señal. La puntuación se normaliza a 0–100; el umbral de alerta se define por separado.",
       "weightFor": "Peso de {{signal}}",
       "notMeasured": "Aún no medido",
       "integrationNeeded": "Requiere integración",
-      "reset": "Restablecer al recomendado ({{value}})"
+      "reset": "Restablecer al recomendado ({{value}})",
+      "title": "Reglas",
+      "subtitle": "Define las reglas con las que Sherloq puntúa y prioriza los contactos. Los cambios se aplican de inmediato.",
+      "unit": {
+        "days": "días",
+        "hours": "horas",
+        "points": "puntos",
+        "workdays": "días laborables",
+        "followups": "seguimientos"
+      },
+      "g": {
+        "heat": {
+          "title": "Heat y contacto",
+          "desc": "Tras cuántos días sin contacto un lead pasa al siguiente nivel de calidez."
+        },
+        "pipeline": {
+          "title": "Pipeline y seguimientos",
+          "desc": "Umbrales de estancamiento por etapa y el ritmo automático de seguimiento."
+        },
+        "churn": {
+          "title": "Churn y upsell",
+          "desc": "Ponderación de señales de riesgo y oportunidad. La puntuación se normaliza a 0–100."
+        },
+        "signals": {
+          "title": "Señales e ICP",
+          "desc": "Cuánto tiempo son válidas las señales y límites para ajustes de IA."
+        },
+        "meinTag": {
+          "title": "Pesos de Mi Día",
+          "desc": "La priorización de tu día tiene sus propios pesos."
+        },
+        "custom": {
+          "note": "Próximamente: componer tus propias reglas si-entonces a partir de bloques — pendiente."
+        }
+      },
+      "heat": {
+        "engaged": "Engaged hasta",
+        "warm": "Warm hasta",
+        "cooling": "Cooling hasta",
+        "cold": "Cold hasta",
+        "gone": "Después Gone — automáticamente desde {{value}} días."
+      },
+      "pipeline": {
+        "stagnatesAfter": "se considera estancado tras",
+        "wonNoTimer": "Ganado — sin temporizador."
+      },
+      "followup": {
+        "first": "Primer seguimiento tras",
+        "second": "Segundo seguimiento tras",
+        "max": "Como máximo"
+      },
+      "churn": {
+        "title": "Riesgo de churn",
+        "threshold": "Aviso a partir de la puntuación",
+        "suppress": "Suprimir upsell si hay riesgo de churn",
+        "bands": "Bandas de nivel",
+        "band": {
+          "low": "Bajo 0–30",
+          "mid": "Medio 31–60",
+          "high": "Alto 61–85",
+          "critical": "Crítico 86+"
+        }
+      },
+      "upsell": {
+        "title": "Potencial de upsell",
+        "threshold": "Oportunidad a partir de la puntuación"
+      },
+      "signals": {
+        "fresh": "Una señal es fresca durante",
+        "maxAi": "Como máximo",
+        "maxAiSuffix": "ajustes automáticos de IA por lead.",
+        "icp": "Asignación automática de leads a partir de la puntuación ICP/match"
+      },
+      "sig": {
+        "churn": {
+          "last_contact": "Sin contacto desde hace mucho",
+          "no_reply": "Sin respuesta al último correo",
+          "inactive_days": "Inactivo desde hace mucho",
+          "heat_cold": "Heat frío/muerto",
+          "overdue_tasks": "Tareas abiertas vencidas"
+        },
+        "churnExt": {
+          "last_login": "Último acceso hace mucho (Sherloq)",
+          "usage_down": "Uso muy reducido (Sherloq)",
+          "support_tickets": "Tickets de soporte abiertos (Zendesk/Intercom)",
+          "contract_ends": "El contrato termina pronto (Stripe)",
+          "cancellation": "Cancelación insinuada (IA)"
+        },
+        "upsell": {
+          "reply_rate": "Alta tasa de respuesta",
+          "recent_contact": "Contactado recientemente",
+          "heat_hot": "Heat caliente",
+          "active_deal": "Deal activo presente"
+        },
+        "upsellNM": {
+          "positive_sentiment": "Sentimiento positivo (última respuesta)",
+          "no_upsell_attempt": "Sin intento de upsell desde hace tiempo"
+        },
+        "upsellExt": {
+          "enrichment": "Límite de enrichment casi alcanzado (Sherloq)",
+          "feature_usage": "Uso de funciones muy al alza (Sherloq)",
+          "seats": "Más empleados que asientos (Sherloq)",
+          "nps": "NPS alto",
+          "logins": "Accesos frecuentes (Sherloq)"
+        }
+      },
+      "meinTag": {
+        "note": "Controla por separado cómo la urgencia, el tamaño del deal y la actividad configuran tu lista de foco diaria. Habrá una página propia."
+      },
+      "loadError": "No se pudo cargar ahora mismo",
+      "loadErrorDesc": "Inténtalo de nuevo."
     }
   },
   "mfa": {

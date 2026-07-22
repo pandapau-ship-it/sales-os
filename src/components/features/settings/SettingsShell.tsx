@@ -22,6 +22,7 @@ import TeamMembersPage from "./TeamMembersPage";
 import ProductPricingPage from "./ProductPricingPage";
 import PersonalVoicePage from "./PersonalVoicePage";
 import CompanyProfilePage from "./CompanyProfilePage";
+import RulesPage from "./RulesPage";
 
 export default function SettingsShell() {
   const navigate = useNavigate();
@@ -109,6 +110,7 @@ export default function SettingsShell() {
         {active === "product-pricing" && <ProductPricingPage />}
         {active === "personal-voice" && <PersonalVoicePage />}
         {active === "unternehmensprofil" && <CompanyProfilePage />}
+        {active === "regeln" && <RulesPage />}
       </div>
     </div>
   );

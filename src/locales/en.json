@@ -184,13 +184,144 @@
       }
     },
     "rules": {
-      "why": "Why?",
+      "why": {
+        "heat": {
+          "title": "Heat thresholds",
+          "desc": "After how many days without real contact a lead cools down. Higher = contacts stay warm longer."
+        },
+        "pipeline": {
+          "title": "Stagnation threshold",
+          "desc": "If a deal sits in a stage longer than these days, it is marked as stagnant."
+        },
+        "churn": {
+          "title": "Churn warning threshold",
+          "desc": "From this (0–100 normalised) score a customer counts as a risk."
+        },
+        "upsell": {
+          "title": "Upsell opportunity threshold",
+          "desc": "From this (0–100 normalised) score a customer is marked as an upsell opportunity."
+        },
+        "signalFresh": {
+          "title": "Signal freshness",
+          "desc": "How many hours a new signal counts as fresh in the urgency score."
+        }
+      },
       "usedBy": "Used by:",
       "weightHint": "Weights set each signal's relative importance. The score is normalised to 0–100; the alert threshold is set separately.",
       "weightFor": "Weight for {{signal}}",
       "notMeasured": "Not measured yet",
       "integrationNeeded": "Integration required",
-      "reset": "Reset to recommended ({{value}})"
+      "reset": "Reset to recommended ({{value}})",
+      "title": "Rules",
+      "subtitle": "Set the rules Sherloq uses to score and prioritise contacts. Changes take effect immediately.",
+      "unit": {
+        "days": "days",
+        "hours": "hours",
+        "points": "points",
+        "workdays": "working days",
+        "followups": "follow-ups"
+      },
+      "g": {
+        "heat": {
+          "title": "Heat & contact",
+          "desc": "After how many days without contact a lead moves to the next warmth level."
+        },
+        "pipeline": {
+          "title": "Pipeline & follow-ups",
+          "desc": "Stagnation thresholds per pipeline stage and the automatic follow-up rhythm."
+        },
+        "churn": {
+          "title": "Churn & upsell",
+          "desc": "Weighting of risk and opportunity signals. The score is normalised to 0–100."
+        },
+        "signals": {
+          "title": "Signals & ICP",
+          "desc": "How long signals stay valid and limits for AI adjustments."
+        },
+        "meinTag": {
+          "title": "My-Day weights",
+          "desc": "Your daily prioritisation has its own weights."
+        },
+        "custom": {
+          "note": "Coming soon: compose your own if-then rules from building blocks — to follow."
+        }
+      },
+      "heat": {
+        "engaged": "Engaged up to",
+        "warm": "Warm up to",
+        "cooling": "Cooling up to",
+        "cold": "Cold up to",
+        "gone": "Then Gone — automatically from {{value}} days."
+      },
+      "pipeline": {
+        "stagnatesAfter": "is considered stagnant after",
+        "wonNoTimer": "Won — no timer."
+      },
+      "followup": {
+        "first": "First follow-up after",
+        "second": "Second follow-up after",
+        "max": "At most"
+      },
+      "churn": {
+        "title": "Churn risk",
+        "threshold": "Warn from score",
+        "suppress": "Suppress upsell when at churn risk",
+        "bands": "Level bands",
+        "band": {
+          "low": "Low 0–30",
+          "mid": "Medium 31–60",
+          "high": "High 61–85",
+          "critical": "Critical 86+"
+        }
+      },
+      "upsell": {
+        "title": "Upsell potential",
+        "threshold": "Opportunity from score"
+      },
+      "signals": {
+        "fresh": "A signal stays fresh for",
+        "maxAi": "At most",
+        "maxAiSuffix": "automatic AI adjustments per lead.",
+        "icp": "Automatic lead assignment from ICP/match score"
+      },
+      "sig": {
+        "churn": {
+          "last_contact": "No contact for a long time",
+          "no_reply": "No reply to last email",
+          "inactive_days": "Inactive for a long time",
+          "heat_cold": "Heat cold/dead",
+          "overdue_tasks": "Overdue open tasks"
+        },
+        "churnExt": {
+          "last_login": "Last login long ago (Sherloq)",
+          "usage_down": "Usage dropped sharply (Sherloq)",
+          "support_tickets": "Open support tickets (Zendesk/Intercom)",
+          "contract_ends": "Contract ending soon (Stripe)",
+          "cancellation": "Cancellation hinted (AI)"
+        },
+        "upsell": {
+          "reply_rate": "High reply rate",
+          "recent_contact": "Recently contacted",
+          "heat_hot": "Heat hot",
+          "active_deal": "Active deal present"
+        },
+        "upsellNM": {
+          "positive_sentiment": "Positive sentiment (last reply)",
+          "no_upsell_attempt": "No upsell attempt for a while"
+        },
+        "upsellExt": {
+          "enrichment": "Enrichment limit almost reached (Sherloq)",
+          "feature_usage": "Feature usage sharply up (Sherloq)",
+          "seats": "More staff than seats (Sherloq)",
+          "nps": "High NPS",
+          "logins": "Frequent logins (Sherloq)"
+        }
+      },
+      "meinTag": {
+        "note": "Control separately how urgency, deal size and activity shape your daily focus list. A dedicated page will follow."
+      },
+      "loadError": "Couldn't load this right now",
+      "loadErrorDesc": "Please try again."
     }
   },
   "mfa": {
