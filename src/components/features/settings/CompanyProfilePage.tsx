@@ -398,6 +398,14 @@ export default function CompanyProfilePage() {
             onRemove={removeIcp}
             renderBody={(icp) => (
               <div className="space-y-7">
+                {/* Kurzbeschreibung — einzeiliger Subtext unter dem Namen (identisch zum name-Feld). */}
+                <KnowledgeField
+                  canEdit={canEdit}
+                  showAi={false}
+                  value={icp.description}
+                  placeholder={t("company.profile.icp.description.ph")}
+                  onSave={(v) => patchIcp(icp.id, { description: v })}
+                />
                 <EnumField
                   label={t("company.profile.icp.fit.label")}
                   icon={iconEl(Gauge)}
@@ -449,6 +457,14 @@ export default function CompanyProfilePage() {
                     onRemove={removePersona}
                     renderBody={(p) => (
                       <div className="space-y-7">
+                        {/* Archetyp — kurzes einzeiliges Label unter dem Namen (identisch zum name-Feld). */}
+                        <KnowledgeField
+                          canEdit={canEdit}
+                          showAi={false}
+                          value={p.archetype}
+                          placeholder={t("company.profile.persona.archetype.ph")}
+                          onSave={(v) => patchPersona(p.id, { archetype: v })}
+                        />
                         <EnumField
                           label={t("company.profile.persona.role.label")}
                           icon={iconEl(UserRound)}

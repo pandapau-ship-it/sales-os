@@ -623,7 +623,23 @@
     `ChannelFields` (kanal-abhängig: Listen via KnowledgeListField, Texte via KnowledgeField) · i18n de/en/es ·
     `fieldImportance` voice-Scope · Render-Tests · **Daten-Neueingabe** der getrennten Inhalte (Chat-Claude).
     **Company Profile** (Diagnose gleiche Runde): nahezu deckungsgleich, nur 2 kleine fehlende Felder
-    (`org_icps.description` · `org_personas.archetype`) — eigener kleiner Slice, dokumentiert.
+    (`org_icps.description` · `org_personas.archetype`) — **✅ ERLEDIGT 22.07.2026 (Migr. 086, siehe unten).**
+
+  - **COMPANY PROFILE ABGESCHLOSSEN — ICP-`description` + Persona-`archetype` (22.07.2026)** — Gates grün,
+    test-runner + auditor PASS; **noch nicht gepusht/gemergt (Freigaben separat).** Die zwei letzten
+    Referenz-Felder (Diagnose bestätigt, Referenz `00_Designs/CompanyProfile.tsx`) ergänzt:
+    - **`org_icps.description`** = ICP-Kurzbeschreibung (einzeiliger Subtext unter dem Namen) ·
+      **`org_personas.archetype`** = Personen-Archetyp (kurzes Label). Beide **nullable text, kein Default**
+      (bestehende Einträge bleiben ehrlich leer). Analog zur bestehenden `name`-Spalte.
+    - **Migr. 086:** 2× `alter table add column` + `update_icp`/`update_persona` um den jeweiligen Key
+      **EINZELN** erweitert (Whitelist + field_meta-Lock + audit_log, `''`→NULL) — **kein zweiter Schreibweg**.
+    - **db.ts:** `IcpRow.description` / `PersonaRow.archetype` (+ Select/Mapper, null→""). **UI:** je ein
+      einzeiliges `KnowledgeField` (`showAi={false}`) als erstes Element im ICP-/Persona-Body — **identisch
+      zum `name`-Feld** (save-on-blur, ring-loser Fokus, kein Sonderweg). **i18n de/en/es** (echte Übersetzungen).
+    - **Field-Contract:** ICP/Persona sind bewusst NICHT in `fieldImportance` (nur Voice/Product/org dort) —
+      ihr Vertrag lebt in der RPC-Whitelist; description/archetype exakt konsistent dort registriert, nicht mehr/weniger.
+    - **Tests:** CompanyProfilePage-Render-Test um 2 Fälle erweitert (einzeiliges Feld + Save über
+      `updateIcp({description})` / `updatePersona({archetype})`). 389/389.
 
   - **SET-4 FUNDAMENT (1/2 + 2/2) FERTIG 21.07.2026** (Migr. **083** gepusht + remote per DO-Block verifiziert;
     Gates grün, test-runner + auditor PASS je Teilschritt). **Der Schreib-Unterbau für den Regeln/Automation/

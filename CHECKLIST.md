@@ -62,6 +62,7 @@
 - [x] **3 Konsistenz-Fixes** (gemeldete Geschwister-Stellen): ProductPricingPage Nutzen|Zielgruppe zweispaltig + Preismodell-Badge (StatusBadge info); PersonalVoicePage Do's|Don'ts nebeneinander
 - [x] i18n `company.profile.icp.*`/`persona.*` in de/en/es (131 Keys verifiziert, kein Hardcode); +6 Render-Tests (CompanyProfilePage 12)
 - [x] Echte Daten live über validierte RPCs (Sherloq Company Profile + 4 ICPs/Personas · Personal Voice Oliver)
+- [x] **Company Profile abgeschlossen — 2 Referenz-Felder ergänzt (22.07.2026, Migr. 086):** `org_icps.description` (ICP-Kurzbeschreibung, Subtext unter dem Namen) + `org_personas.archetype` (Personen-Archetyp), beide nullable text (kein Default, ehrlich leer). RPC-Whitelist `update_icp`/`update_persona` EINZELN erweitert (field_meta-Lock + audit_log, kein zweiter Schreibweg); db.ts-Typen/Select/Mapper; UI je ein einzeiliges `KnowledgeField` (identisch zum `name`-Feld); i18n de/en/es; +2 Render-Tests (CompanyProfilePage 14). Field-Contract in der RPC-Whitelist (konsistent zu company_profile/fit_rationale, NICHT in fieldImportance — dort keine ICP/Persona-Felder). Gates grün, test-runner + auditor PASS. **Noch nicht gepusht/gemergt.**
 - [ ] **[Mini-offen]** AE-Kaufrolle `influencer` (Annahme) — auf Wunsch per `update_persona` → `end_user`
 
 ### Arbeitsweise — SET-4 Fundament (Settings-Schreibweg) (21.07.2026)

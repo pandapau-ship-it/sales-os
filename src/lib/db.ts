@@ -1827,6 +1827,7 @@ type ListText = { id: string; text: I18nText };
 export interface IcpRow {
   id: string;
   name: string;
+  description: string;              // Kurzbeschreibung (Subtext unter dem Namen, 086) — leer = ""
   fit_level: "high" | "medium" | "low" | null;
   company_profile: ListText[];
   fit_rationale: ListText[];
@@ -1839,6 +1840,7 @@ export interface PersonaRow {
   id: string;
   icp_id: string;
   name: string;
+  archetype: string;               // Archetyp (kurzes Label unter dem Namen, 086) — leer = ""
   buying_role: "decision_maker" | "influencer" | "champion" | "end_user" | "blocker" | null;
   job_titles: ListText[];
   responsibilities: ListText[];
@@ -1859,7 +1861,7 @@ export async function createIcp(): Promise<string | null> {
   return (data as string) ?? null;
 }
 
-/** ICP-Feld(er) ändern (EIN Schreibweg). patch ⊆ {name,fit_level,company_profile,fit_rationale,desired_outcomes,problems_solved,is_active} — Listen als VOLLE Liste. */
+/** ICP-Feld(er) ändern (EIN Schreibweg). patch ⊆ {name,description,fit_level,company_profile,fit_rationale,desired_outcomes,problems_solved,is_active} — Listen als VOLLE Liste. */
 export async function updateIcp(id: string, patch: Record<string, unknown>): Promise<void> {
   const client = getSupabaseClient();
   if (!client) return;
@@ -1884,7 +1886,7 @@ export async function createPersona(icpId: string): Promise<string | null> {
   return (data as string) ?? null;
 }
 
-/** Persona-Feld(er) ändern (EIN Schreibweg). patch ⊆ {name,buying_role,job_titles,…,is_active} — Listen als VOLLE Liste; icp_id ist nicht änderbar. */
+/** Persona-Feld(er) ändern (EIN Schreibweg). patch ⊆ {name,archetype,buying_role,job_titles,…,is_active} — Listen als VOLLE Liste; icp_id ist nicht änderbar. */
 export async function updatePersona(id: string, patch: Record<string, unknown>): Promise<void> {
   const client = getSupabaseClient();
   if (!client) return;
@@ -1916,8 +1918,8 @@ export async function getIcpsWithPersonas(organizationId: string): Promise<IcpWi
   const { data, error } = await client
     .from("org_icps")
     .select(
-      "id, name, fit_level, company_profile, fit_rationale, desired_outcomes, problems_solved, created_at, " +
-        "org_personas ( id, icp_id, name, buying_role, job_titles, responsibilities, goals, priorities, " +
+      "id, name, description, fit_level, company_profile, fit_rationale, desired_outcomes, problems_solved, created_at, " +
+        "org_personas ( id, icp_id, name, archetype, buying_role, job_titles, responsibilities, goals, priorities, " +
         "core_problems, objections, exact_wording, inferred_wording, is_active, created_at )",
     )
     .eq("organization_id", organizationId)
@@ -1925,11 +1927,13 @@ export async function getIcpsWithPersonas(organizationId: string): Promise<IcpWi
     .order("created_at", { ascending: true });
   if (error) throw error;
 
-  type RawPersona = PersonaRow & { is_active: boolean; created_at: string };
-  type RawIcp = IcpRow & { created_at: string; org_personas: RawPersona[] | null };
+  // description/archetype sind nullable text in der DB → im UI-Typ als "" (KnowledgeField erwartet string).
+  type RawPersona = Omit<PersonaRow, "archetype"> & { archetype: string | null; is_active: boolean; created_at: string };
+  type RawIcp = Omit<IcpRow, "description"> & { description: string | null; created_at: string; org_personas: RawPersona[] | null };
   return ((data ?? []) as unknown as RawIcp[]).map((row) => ({
     id: row.id,
     name: row.name,
+    description: row.description ?? "",
     fit_level: row.fit_level,
     company_profile: row.company_profile ?? [],
     fit_rationale: row.fit_rationale ?? [],
@@ -1942,6 +1946,7 @@ export async function getIcpsWithPersonas(organizationId: string): Promise<IcpWi
         id: p.id,
         icp_id: p.icp_id,
         name: p.name,
+        archetype: p.archetype ?? "",
         buying_role: p.buying_role,
         job_titles: p.job_titles ?? [],
         responsibilities: p.responsibilities ?? [],
