@@ -19,7 +19,12 @@ export default defineConfig({
     // Filter-Sprache, Idempotenz) — reine Logik, kein DOM. Für Komponenten-Tests
     // später jsdom + @testing-library/react ergänzen (eigener Slice, nicht hier).
     environment: 'node',
-    include: ['src/**/*.{test,spec}.{ts,tsx}', 'scripts/**/*.{test,spec}.ts'],
+    include: [
+      'src/**/*.{test,spec}.{ts,tsx}',
+      'scripts/**/*.{test,spec}.ts',
+      // Reine Edge-Logik (Lifecycle-Auswerter etc.) — plain TS, hier mitgetestet.
+      'supabase/functions/**/*.{test,spec}.ts',
+    ],
     // Testdateien dürfen den Produktions-Build nie beeinflussen.
     exclude: ['node_modules/**', 'dist/**'],
   },

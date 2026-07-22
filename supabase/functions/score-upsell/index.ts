@@ -163,6 +163,24 @@ Deno.serve(async (req) => {
     }
 
     if (runId) await supabase.rpc("cron_run_finish", { p_run_id: runId, p_status: "success", p_items: updated });
+
+    // VERKETTUNG (Lifecycle-Baukasten L-2a): als LETZTER Score-Lauf stößt score-upsell den
+    // Lifecycle-Auswerter an → er läuft IMMER direkt nach frischen Scores (unabhängig von der Uhrzeit).
+    // Nur bei Voll-Läufen (runId). Fehler hier ändern NIE das score-upsell-Ergebnis (try/catch);
+    // eine gerissene Kette fängt der Watchdog über cron_expectations 'evaluate-lifecycle-rules' (089) ab.
+    if (runId) {
+      try {
+        await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/evaluate-lifecycle-rules`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ organizationId }),
+        });
+      } catch (_chainErr) { /* Kette gerissen → Watchdog alarmiert; Scoring bleibt korrekt. */ }
+    }
+
     return json({ updated, skipped, org_id: organizationId });
   } catch (e) {
     if (runId) await supabase.rpc("cron_run_finish", { p_run_id: runId, p_status: "failed", p_error: String(e) });

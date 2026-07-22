@@ -1869,9 +1869,15 @@ kam es, wie groß ist es** — und einen **klaren nächsten Schritt** anstoßen 
 > `upsert_lifecycle_rule`/`delete_lifecycle_rule` (automation.manage-Gate, Option-B-Grammatik-Validierung,
 > action.type ∈ aktive Registry, plan_limit-Blocker) + `db.ts`-Wrapper mit Chat-Aktions-Vertrag. **L2-Sofortgewinn:**
 > `churn_score`/`upsell_score`/`health_score` (contacts) + `stagnation_days` (deals) in `filter/schema` filterbar.
-> **Offen: L-2 Auswerter** (Cron/Edge, nutzt evaluateFilter + Anker-ID-Mengen-Algebra + Cooldown/Einmal-Feuer) ·
-> **L-3 UI Condition-Builder** (in „Eigene Actions"-Reserve). **Cross-Entity-Grenze:** gemischtes Blatt-OR bewusst
-> nicht (Option C später, ohne Datenmigration).
+> **L-2a STATUS (Auswerter-Kern FERTIG, 22.07.2026 — Branch `feature/lifecycle-l2a`):** Edge `evaluate-lifecycle-
+> rules` (Guard: heutige Score-Läufe durch? sonst Alarm+Skip · Cross-Entity Option B via `compileToPostgrest`+
+> FK-Mapping für ALLE drei Anker · `computePlan`: Rangfolge/terminal/Gleichstand + Einmal-Feuer + Batch-Vertagung) ·
+> **Verkettung C** (score-upsell stößt Auswerter an, nicht-regressiv) · Migr. **089** (cron_expectations + atomare
+> `lifecycle_mark_fired`/`_rearmed`) · notify/notify_urgent (Kategorie „Regel") · reine Logik testbar (`_shared/
+> lifecycle/eval.ts` 15 Tests) + Deno-Filter-Mirror mit Parity-Test. **[D56]:** deals/companies-Anker sind
+> implementiert, aber Deeplink fehlt + noch nicht live-verifiziert → in L-2b abschließen (vor L-3-UI).
+> **Offen: L-2b** (Aktionen create_task/add_tag/add_to_list + [D56] Deeplinks) · **L-3 UI Condition-Builder**
+> (in „Eigene Actions"-Reserve). **Cross-Entity-Grenze:** gemischtes Blatt-OR bewusst nicht (Option C später, ohne Datenmigration).
 
 ### [D53] set_contact_status als Lifecycle-Aktion scharfschalten (deferred, folgenschwer)
 > **Erfasst 22.07.2026** (Lifecycle-Baukasten L-1). In der Aktions-Registry (`action_types`, Migr. 088) als
@@ -1914,6 +1920,32 @@ kam es, wie groß ist es** — und einen **klaren nächsten Schritt** anstoßen 
 > `db.ts`-Wrapper mappt auf ein gemeinsames `AppError`; Auditor-/Test-Punkt „Chat-Fehler-Rückmeldung" ergänzen.
 > **Kommt mit:** dem AI-Chat-Tool-Layer (dort wird die strukturierte Form tatsächlich konsumiert). **Verwandt:**
 > Chat-Aktions-Vertrag-Pflicht · Fehlerbehandlung-aus-User-Sicht (CLAUDE) · [D5] (KI-Pipeline).
+
+### [D55] Kanal-Präferenz-Wähler pro Benachrichtigungs-Art/Regel (deferred → L-3 / Mitteilungssystem-Ausbau)
+> **Erfasst 22.07.2026** (Lifecycle-Baukasten L-2a). Heute wählt der Nutzer den **Ausgabe-Kanal** einer
+> Benachrichtigung **nicht** pro Art/Regel — die Kanal-/Präferenz-Logik existiert im Mitteilungssystem nur
+> als Kategorie-Default (`NOTIFICATION_CATEGORIES[].emailDefault`, `settings.notifications`-Matrix, N-S2).
+> **Fehlt:** ein UI-Wähler „für DIESE Regel/Benachrichtigungs-Art Kanal = In-App / E-Mail / Slack / Pop-up".
+> **In L-2a bewusst nicht:** der einzige aktive Kanal ist In-App (`notify`/`notify_urgent`, Kategorie „Regel",
+> in `NOTIFICATION_CATEGORIES` registriert). Der notify-Handler hängt **am bestehenden** System (gleiche
+> Kanal-/Präferenz-Fan-out-Logik) → weitere Kanäle werden später nur „angesteckt", ohne Handler-Umbau.
+> **Kommt mit:** L-3 (UI Condition-Builder + Aktions-Kanal-Wahl) bzw. dem Mitteilungssystem-Ausbau
+> (`docs/mitteilungssystem_bauplan_v1.md`); Voraussetzungen je Kanal: E-Mail → System-Mail-Kanal ·
+> Slack → Slack-Integration (beide existieren noch nicht). **Verwandt:** [D-lifecycle-trigger] · Aktions-
+> Registry `action_types` (Migr. 088, `send_email_internal`/`slack_message` als `coming_soon`) · N-S2.
+
+### [D56] Lifecycle-Auswerter — deals/companies-Anker abschließen (deferred → L-2b, vor L-3-UI)
+> **Erfasst 22.07.2026** (nach Faktencheck). **Korrektur einer Annahme:** die deals/companies-Anker sind in
+> **L-2a bereits IMPLEMENTIERT** (nicht nur contacts) — `groupAnchorIds`/`resolveOwner`/`computePlan` behandeln
+> alle drei Anker inkl. FK-Mapping (`deals.contact_id` · `contacts.primary_company_id` · `deals.company_id`)
+> und Owner (`contacts.assigned_to` · `deals.owner_id` · companies → Fallback `created_by`). Deal-/Firmen-
+> verankerte Regeln **würden feuern**. **Echte offene Lücken:**
+> 1. **Deeplink `p_link` fehlt** für deals/companies — nur `anchor==='contacts'` erhält ein Sprungziel
+>    (`/app/kontakte/{id}`); deals/companies-Benachrichtigungen kommen ohne Link.
+> 2. **Noch nicht live-verifiziert** (falls die L-2a-Live-Prüfung nur contacts abdeckte) — die deals/companies-
+>    Anker-Pfade live gegen echte Daten prüfen.
+> **MUSS in L-2b umgesetzt werden, BEVOR die L-3-UI alle drei Anker anbietet** (sonst UI-Anker ohne Sprungziel
+> bzw. unverifiziert). **Verwandt:** [D-lifecycle-trigger] · L-2b (create_task/add_tag/add_to_list).
 
 ### [D-set4-group4-signalcap] SET-4 Gruppe 4 — signal_windows schreibbar + Kappungs-Key (mit 4a)
 > **Erfasst 21.07.2026.** Für Gruppe 4 (Signale & ICP) fehlt im Schreibweg: (a) `settings.signal_windows`

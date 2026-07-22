@@ -21,6 +21,8 @@ export type NotificationSeverity = (typeof NOTIFICATION_SEVERITIES)[number];
 export const NOTIFICATION_CATEGORIES = {
   approval:     { group: "braucht_dich", emailDefault: "instant" },
   credit:       { group: "braucht_dich", emailDefault: "instant" },
+  rule:         { group: "braucht_dich", emailDefault: "instant" }, // Lifecycle-Trigger („Regel", L-2a) — handelbar
+
   system_alert: { group: "system",       emailDefault: "instant" },
   job_result:   { group: "system",       emailDefault: "digest" },
   mailbox:      { group: "system",       emailDefault: "digest" },
@@ -43,6 +45,7 @@ export const NOTIFICATION_SOURCE_TYPES = [
   "invitations",       // Team-Einladungen
   "mailboxes",         // Onboarding-/Mailbox-Nudges, Warmup
   "chat_sessions",     // spätere Chat-/Billing-Ereignisse
+  "lifecycle_rule",    // Lifecycle-Trigger-Regel (L-2a Auswerter) — Wert = der von evaluate-lifecycle-rules emittierte source_type
 ] as const;
 export type NotificationSourceType = (typeof NOTIFICATION_SOURCE_TYPES)[number];
 
