@@ -1289,12 +1289,9 @@
       "done": "Alles Wesentliche ist gefüllt.",
       "name": "Am meisten bringt jetzt: ein Produktname — ohne ihn kann keine Nachricht das Angebot benennen.",
       "voiceBio": "Am meisten bringt jetzt: ein Kurzprofil — wer schreibt hier eigentlich?",
-      "voiceThemes": "Am meisten bringt jetzt: deine Kernthemen — gute Aufhänger für die AI.",
       "voiceStyle": "Am meisten bringt jetzt: dein Verkaufs-/Argumentationsstil.",
       "voiceTone": "Am meisten bringt jetzt: dein Grundton — damit klingt die AI nach dir.",
       "voiceSamples": "Am meisten bringt jetzt: echte Beispiele — das stärkste Signal für deinen Stil.",
-      "voiceSentenceStyle": "Am meisten bringt jetzt: dein Satzbau/Rhythmus.",
-      "voiceHooks": "Am meisten bringt jetzt: deine typischen Aufhänger.",
       "voiceDosDonts": "Am meisten bringt jetzt: deine Do's & Don'ts.",
       "summary": "Am meisten bringt jetzt: eine Kurzbeschreibung — wer seid ihr, was tut ihr?",
       "productModel": "Am meisten bringt jetzt: euer Produkt-/Service-Modell.",
@@ -1570,10 +1567,6 @@
         "label": "Grundton",
         "ph": "z. B. direkt, analytisch, warm"
       },
-      "themes": {
-        "label": "Kernthemen",
-        "ph": "Worüber schreibst/sprichst du am liebsten?"
-      },
       "coreTopics": {
         "label": "Kernthemen",
         "ph": "Worüber schreibst/sprichst du am liebsten? Ein Thema pro Zeile."
@@ -1583,14 +1576,6 @@
       "samples": {
         "label": "Beispiele",
         "ph": "Füge ein paar echte Beispiele ein, die typisch für dich sind."
-      },
-      "writingStyle": {
-        "label": "Schreibstil",
-        "ph": "z. B. kurze, prägnante Sätze; klare Zeilenumbrüche"
-      },
-      "hooks": {
-        "label": "Aufmacher",
-        "ph": "Womit steigst du ein?"
       },
       "dosAlways": {
         "label": "Das machst du immer",
