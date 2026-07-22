@@ -592,6 +592,21 @@
     - **Offen (nächster Schritt):** Daten-Neueingabe der getrennten Voice-Inhalte (Chat-Claude liefert Inhalt,
       Schreibweg `update_voice_profile`) — nach Olivers Screenshot-QA + Merge.
 
+  - **MEIN-UNTERNEHMEN-TEXTFELDER WACHSEN MIT (UI-Feinschliff, 22.07.2026, gleicher Branch)** — Gates grün,
+    test-runner + auditor PASS. Mehrzeilige Felder aller drei Bereiche (Personal Voice · Company Profile ·
+    Product) wachsen zeilenweise mit dem Inhalt (einheitliche 3-Zeilen-Starthöhe, Deckel 8 Zeilen, danach
+    Scroll). **EINE zentrale Stelle:** neuer Hook `src/hooks/useAutoGrowTextarea.ts`, konsumiert nur über
+    `KnowledgeField` (FIELD-Kanon) → alle mehrzeiligen Felder automatisch; kein zweiter Wachstums-Weg.
+    Messung immer aus `height:auto` (idempotent, kein Zittern); `ResizeObserver` misst NUR bei Breiten-
+    Änderung (Rückkopplungs-Schutz) + jsdom/SSR-Guard. **Paar-Kopplung** (`createCoupleGroup`/`useCoupleGroup`):
+    dos_donts „immer"/„nie" wachsen bündig auf das längere, feedback-frei, **strikt opt-in** (`coupleGroup`-
+    Prop) → nicht gekoppelte Felder unberührt. Min/Max als benannte Tokens `--field-min-lines`/`--field-max-lines`/
+    `--field-line-height`/`--field-pad-y` (index.css) + Plain-Class `.field-autogrow` (schlägt shadcn
+    `min-h-[80px]`). Unit-Tests der Kopplungs-Logik (Konvergenz/keine Rückkopplung/Opt-in/Abmelden).
+    **MyProfileTab** (Persönlich, rohes Textarea) bewusst out of scope. **Betrifft ausschließlich die drei
+    Bereiche** — alle `KnowledgeField`-Konsumenten liegen in settings/Mein Unternehmen (Hunter/Farmer/CRM nutzen
+    `DetailField`, nicht betroffen). Teil desselben STOP wie oben (noch nicht gemergt).
+
   - **PERSONAL VOICE — REFERENZ-FELDER (Migration 1/n) FERTIG 21.07.2026** (Migr. **084** gepusht + remote
     per DO-Block verifiziert 6/6; Gates grün, test-runner + auditor PASS, F: N.A.). **Nur der Schreibweg** —
     Backend-Typen/UI/i18n + Daten-Neueingabe folgen als nächste Slices. **Grund:** Referenz-Abgleich
