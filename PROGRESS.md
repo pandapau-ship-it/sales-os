@@ -1728,24 +1728,25 @@ kam es, wie groß ist es** — und einen **klaren nächsten Schritt** anstoßen 
 > **Verwandt:** [D28] (Perf-Politur Phase 5) · [D5] (AI-Pipeline). **Kommt wenn:** eigener Perf-/Aufräum-Slice
 > bzw. mit dem jeweiligen Modul (AI-Layer, Realtime).
 
-### [D-voice-altfelder-cleanup] Personal Voice — alte Sammel-Keys entfernen (deferred, NACH Daten-Neueingabe)
-> **Erfasst 22.07.2026** (Voice Backend/UI-Slice). **Bewusstes Sicherheitsnetz, jetzt NICHT anfassen.**
+### [D-voice-altfelder-cleanup] Personal Voice — alte Sammel-Keys entfernen — ✅ ERLEDIGT 22.07.2026
+> **Erfasst 22.07.2026, umgesetzt 22.07.2026** (nach der Daten-Neueingabe). Reihenfolge eingehalten:
+> erst Neueingabe (neue Split-Keys befüllt + live bestätigt), dann Cleanup.
 >
-> **Was:** Die alten Voice-Keys `sentence_style` + `hooks` (je Kanal post/comment/dm/email) und `themes`
-> (overview) sind seit dem Backend/UI-Slice **in der UI ausgeblendet**, aber **absichtlich in DB + RPC-Whitelist
-> (084) + TS-Typen erhalten** — als Sicherheitsnetz, bis die getrennten Inhalte (Tonfall/Satzbau/Wortwahl/
-> Emoji · Hook-Strategien/Engagement/CTA · core_topics) tatsächlich neu eingegeben sind.
+> **Umgesetzt (Migr. 085 gepusht + remote per self-abortierendem DO-Block verifiziert; Gates grün,
+> test-runner + auditor PASS):**
+> 1. **`update_voice_profile` neu (085):** Whitelist OHNE `sentence_style`/`hooks` (Kanäle) + `themes` (overview).
+>    Verifiziert: ein `themes`- bzw. `sentence_style`-Patch wird jetzt abgelehnt (`Unbekanntes Voice-Feld`).
+> 2. **Daten-Cleanup (085):** die alten Keys aus `overview`/`post`/`comment`/`dm`/`email` **und** `field_meta`
+>    entfernt (idempotent, `-`-Operator + WHERE-Guard). Verifiziert: `old_gone=t` in allen Kanälen + field_meta;
+>    **neue Keys unverändert** (core_topics 6 · post tone 4/vocab 5/hooks 3 · comment/dm tone 4/vocab 5 +
+>    engagement_patterns/cta_style/samples · email leer). Kein Datenverlust an den neuen Feldern.
+> 3. **TS-Typen (`db.ts`):** `VoiceOverview.themes` + `VoiceChannel.sentence_style`/`hooks` entfernt.
+> 4. **i18n de/en/es:** tote Keys `voice.field.writingStyle`/`hooks`, `voice.overview.themes`,
+>    `company.hint.voiceThemes`/`voiceHooks`/`voiceSentenceStyle` entfernt.
+> 5. **Guard-Test** `src/lib/voiceCleanup.test.ts`: Registry + Locale-Parität gegen Wieder-Einführung.
 >
-> **Aufräum-Schritt (eigener kleiner Slice, ERST wenn Daten-Neueingabe abgeschlossen):**
-> 1. Migration `update_voice_profile`: alte Keys aus der per-Kanal-Whitelist entfernen (`sentence_style`,
->    `hooks`, overview.`themes`).
-> 2. Optional Daten-Migration: verbliebene Alt-Werte in die neuen Felder überführen ODER verwerfen (Entscheidung
->    bei der Neueingabe — meist reine Neueingabe, dann Alt-Werte verwerfen).
-> 3. TS-Typen (`VoiceOverview.themes`, `VoiceChannel.sentence_style`/`hooks`) entfernen · unbenutzte i18n-Keys
->    (`voice.overview.themes`, `voice.field.writingStyle`, `voice.field.hooks`) aus de/en/es löschen.
->
-> **Kommt wenn:** die Daten-Neueingabe der getrennten Voice-Inhalte steht (direkt danach). **Reihenfolge strikt:**
-> erst Neueingabe, dann Aufräumen — nie umgekehrt (sonst Datenverlust).
+> Sicherheits-Check vorab bestätigt: kein aktiver Code las/schrieb die alten Keys (nur Whitelist + Typen +
+> tote i18n, alle mitentfernt). History-Migrationen 078/079 (Kommentare) bewusst unberührt.
 
 ### [D-voice-listen-ki-pill] KI-Ausfüllen-Symbol auch an Listen-Felder (deferred, gekoppelt an [D5] KI-Pipeline)
 > **Erfasst 22.07.2026** (Konsistenz-Diagnose Personal Voice). **Jetzt NICHT bauen — bewusst bis zur KI-Anbindung verschoben.**
