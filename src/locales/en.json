@@ -250,27 +250,22 @@
         "tile": {
           "engaged": {
             "label": "ENGAGED",
-            "word": "Highly active",
             "caption": "Counts as engaged up to"
           },
           "warm": {
             "label": "WARM",
-            "word": "In flow",
             "caption": "Counts as warm up to"
           },
           "cooling": {
             "label": "COOLING",
-            "word": "Cooling off",
             "caption": "Counts as cooling up to"
           },
           "cold": {
             "label": "COLD",
-            "word": "Inactive",
             "caption": "Counts as cold up to"
           },
           "gone": {
             "label": "GONE",
-            "word": "Lost",
             "caption": "Automatically after",
             "value": "> {{value}} days"
           }
@@ -284,7 +279,6 @@
         "stagnationTitle": "Stagnation by inactivity per stage",
         "stageCol": "Max. days remaining",
         "followupTitle": "Automatic follow-up rhythm",
-        "followupIntro": "Plain-language rules for the timing of automatic reminders and sequences:",
         "workdayNote": "Business days account for weekends and public holidays of your primary market.",
         "wonLabel": "Won"
       },

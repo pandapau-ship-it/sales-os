@@ -250,27 +250,22 @@
         "tile": {
           "engaged": {
             "label": "ENGAGED",
-            "word": "Muy activo",
             "caption": "Cuenta como engaged hasta"
           },
           "warm": {
             "label": "WARM",
-            "word": "En marcha",
             "caption": "Cuenta como warm hasta"
           },
           "cooling": {
             "label": "COOLING",
-            "word": "Enfriándose",
             "caption": "Cuenta como cooling hasta"
           },
           "cold": {
             "label": "COLD",
-            "word": "Inactivo",
             "caption": "Cuenta como cold hasta"
           },
           "gone": {
             "label": "GONE",
-            "word": "Perdido",
             "caption": "Automáticamente tras",
             "value": "> {{value}} días"
           }
@@ -284,7 +279,6 @@
         "stagnationTitle": "Estancamiento por inactividad por etapa",
         "stageCol": "Máx. días restantes",
         "followupTitle": "Ritmo automático de seguimiento",
-        "followupIntro": "Reglas en lenguaje claro para el ritmo de recordatorios y secuencias automáticos:",
         "workdayNote": "Los días hábiles tienen en cuenta fines de semana y festivos de tu mercado principal.",
         "wonLabel": "Ganado"
       },

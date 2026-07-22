@@ -250,27 +250,22 @@
         "tile": {
           "engaged": {
             "label": "ENGAGED",
-            "word": "Hochaktiv",
             "caption": "Gilt als engaged bis"
           },
           "warm": {
             "label": "WARM",
-            "word": "Im Fluss",
             "caption": "Gilt als warm bis"
           },
           "cooling": {
             "label": "COOLING",
-            "word": "Kühlt ab",
             "caption": "Gilt als cooling bis"
           },
           "cold": {
             "label": "COLD",
-            "word": "Inaktiv",
             "caption": "Gilt als cold bis"
           },
           "gone": {
             "label": "GONE",
-            "word": "Verloren",
             "caption": "Automatisch nach",
             "value": "> {{value}} Tagen"
           }
@@ -284,7 +279,6 @@
         "stagnationTitle": "Stagnation nach Inaktivität je Stufe",
         "stageCol": "Max. verbleibende Tage",
         "followupTitle": "Automatischer Follow-up-Rhythmus",
-        "followupIntro": "Klartext-Regeln für die zeitliche Taktung automatischer Erinnerungen und Sequenzen:",
         "workdayNote": "Werktage berücksichtigen Wochenenden und bundesweite Feiertage deines Primärmarktes.",
         "wonLabel": "Gewonnen"
       },

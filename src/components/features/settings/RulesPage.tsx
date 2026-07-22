@@ -252,7 +252,6 @@ export default function RulesPage() {
                     key={tile.key}
                     color={HEAT_COLOR[tile.key]}
                     label={t(`settings.rules.heat.tile.${tile.key}.label`)}
-                    statusWord={t(`settings.rules.heat.tile.${tile.key}.word`)}
                     icon={iconEl(tile.Icon)}
                     caption={t(`settings.rules.heat.tile.${tile.key}.caption`)}
                     value={val} unit={days} min={prevVal + 1} max={nextVal - 1}
@@ -265,7 +264,6 @@ export default function RulesPage() {
               <HeatThresholdTile
                 color={HEAT_COLOR.gone}
                 label={t("settings.rules.heat.tile.gone.label")}
-                statusWord={t("settings.rules.heat.tile.gone.word")}
                 icon={iconEl(Ghost)}
                 caption={t("settings.rules.heat.tile.gone.caption")}
                 readOnlyText={t("settings.rules.heat.tile.gone.value", { value: (heat.kalt_max_days ?? REC.heat.kalt_max_days) + 1 })}
@@ -309,10 +307,11 @@ export default function RulesPage() {
                   {t("settings.rules.pipeline.wonNoTimer")}
                 </span>)}
             </div>
-            {/* Follow-up-Rhythmus */}
+            {/* Follow-up-Rhythmus — Header einzeilig (auf gleicher Höhe wie „Stagnation je Stufe" links) */}
             <div className="rounded-[12px] border border-border p-4">
-              <span className="typo-field-label text-text-muted">{t("settings.rules.pipeline.followupTitle")}</span>
-              <p className="typo-subline text-text-muted mt-1 mb-2">{t("settings.rules.pipeline.followupIntro")}</p>
+              <div className="flex items-center justify-between mb-2">
+                <span className="typo-field-label text-text-muted">{t("settings.rules.pipeline.followupTitle")}</span>
+              </div>
               {editRow("f1", t("settings.rules.followup.first"),
                 <ValueChip value={ad.followup_first_days ?? REC.followup_first_days} unit={workdays} min={1} max={14}
                   canEdit={canAuto} ariaLabel={t("settings.rules.followup.first")} align="end" onSave={(v) => setAuto("followup_first_days", v)} />,
