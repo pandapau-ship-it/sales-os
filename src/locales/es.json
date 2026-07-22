@@ -1295,7 +1295,15 @@
       "valueOutcome": "Lo que más aporta ahora: vuestro valor/resultado — la promesa central.",
       "problemsSolved": "Lo que más aporta ahora: qué problemas resolvéis — el lenguaje más fuerte.",
       "businessOutcomes": "Lo que más aporta ahora: los resultados de negocio que hacéis posibles.",
-      "offerings": "Lo que más aporta ahora: vuestras categorías de oferta."
+      "offerings": "Lo que más aporta ahora: vuestras categorías de oferta.",
+      "voiceCoreTopics": "Lo que más aporta ahora: tus temas centrales — buenos ganchos para la IA.",
+      "voiceSentenceStructure": "Lo que más aporta ahora: tu estructura de frases/ritmo.",
+      "voiceToneAttributes": "Lo que más aporta ahora: tus atributos de tono.",
+      "voiceVocabulary": "Lo que más aporta ahora: tu vocabulario típico.",
+      "voiceEmojiFormatting": "Lo que más aporta ahora: tus hábitos de emoji/formato.",
+      "voiceHookStrategies": "Lo que más aporta ahora: tus estrategias de gancho.",
+      "voiceEngagement": "Lo que más aporta ahora: tus patrones de interacción.",
+      "voiceCtaStyle": "Lo que más aporta ahora: tu estilo de CTA."
     },
     "products": "Productos",
     "productsHelp": "Lo que vendéis. Varios productos posibles, todos los campos opcionales.",
@@ -1559,6 +1567,10 @@
       "themes": {
         "label": "Temas clave",
         "ph": "¿Sobre qué escribes/hablas más?"
+      },
+      "coreTopics": {
+        "label": "Temas centrales",
+        "ph": "¿Sobre qué escribes/hablas más? Un tema por línea."
       }
     },
     "field": {
@@ -1581,11 +1593,41 @@
       "dosNever": {
         "label": "Lo que nunca haces",
         "ph": "Lo que nunca aparece en tus mensajes"
+      },
+      "toneAttributes": {
+        "label": "Atributos de tono",
+        "ph": "Un atributo por línea (p. ej. directo, analítico)"
+      },
+      "sentenceStructure": {
+        "label": "Estructura de frases",
+        "ph": "¿Cómo construyes las frases? Cortas/largas, ritmo, saltos de línea …"
+      },
+      "vocabulary": {
+        "label": "Vocabulario",
+        "ph": "Palabras/frases típicas — una por línea"
+      },
+      "emojiFormatting": {
+        "label": "Emoji y formato",
+        "ph": "¿Cómo usas emojis, símbolos, espaciado?"
+      },
+      "hookStrategies": {
+        "label": "Estrategias de gancho",
+        "ph": "¿Cómo empiezas? Una estrategia por línea"
+      },
+      "engagementPatterns": {
+        "label": "Patrones de interacción",
+        "ph": "¿Cómo respondes a las publicaciones de otros?"
+      },
+      "ctaStyle": {
+        "label": "Estilo de CTA",
+        "ph": "¿Cómo llevas al siguiente paso? (p. ej. una pregunta sencilla)"
       }
     },
     "soundsLike": "Así suena",
     "aiFill": "Rellenar con IA",
     "aiFillAll": "Que la IA rellene todos los campos de voz",
-    "aiHint": "El botón de IA generará más adelante una sugerencia para exactamente este campo. Próximamente."
+    "aiHint": "El botón de IA generará más adelante una sugerencia para exactamente este campo. Próximamente.",
+    "addItem": "Añadir elemento",
+    "removeItem": "Eliminar elemento"
   }
 }

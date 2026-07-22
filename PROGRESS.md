@@ -570,6 +570,43 @@
       Verwandt: `last_seen_at` aus SET-3-Diagnose — sobald dort befüllt, könnte „Zuletzt aktiv" auch hier dezent
       erscheinen. Nur vermerkt.
 
+  - **PERSONAL VOICE — REFERENZ-FELDER (Backend/UI 2/n) FERTIG 22.07.2026** (Gates grün: build/tsc/lint/
+    structure-check/audit + test-runner + auditor PASS; **noch nicht gemergt** — STOP mit Screenshot-QA
+    aller 5 Reiter offen). **Baut auf Migr. 084 auf** (Schreibweg lag schon vor). Umgesetzt nach neuem
+    UI-Slice-Ablauf (Regel-A-Analyse + 00_Designs-Referenz geöffnet + 3-Richtungs-Gap-Liste + Freigabe):
+    - **db.ts-Typen gesplittet:** `VoiceOverview` {bio·tone·**core_topics (Liste)**·style·~~themes (alt, versteckt)~~} ·
+      `VoiceChannel` gemeinsam {tone_attributes(L)·sentence_structure·vocabulary(L)·emoji_formatting·dos_donts·samples}
+      + kanal-spezifisch {post→hook_strategies(L) · comment→engagement_patterns · dm/email→cta_style} ·
+      `VoiceListItem` {id,text}. Alte Keys `sentence_style`/`hooks`/`themes` bleiben im Typ (DB-Sicherheitsnetz), UI-versteckt.
+    - **UI `PersonalVoicePage`/`ChannelFields` kanal-abhängig:** Listen via `KnowledgeListField`, Texte via
+      `KnowledgeField`, dezente graue Icons (`iconEl`), 2-Spalten-Attribut-Grid wie Referenz + Company Profile.
+      E-Mail-Reiter bleibt (bewusst, DM-analog). Do's&Don'ts (immer/nie) bleiben je Kanal (bewusster Zusatz).
+    - **`fieldImportance` voice-Scope neu** (recommended = je Kanal Beispiele+Satzbau, Overview bio/style/tone →
+      weiterhin 11 gezählte Felder; Listen/Emoji/Kanal-Spezifika/dos_donts = optional) · **`companyKnowledge`**
+      `valueOf` normalisiert jetzt 3 Formen (Text · Liste [{id,text}] · dos_donts {always,never}).
+    - **i18n de/en/es** (echte Übersetzungen) · **Render-/Completeness-Tests** angepasst + erweitert (kanal-
+      spezifische Felder, Listen-Save schickt volle [{id,text}]-Liste). 36/36 grün.
+    - **VORGEMERKT [D-voice-altfelder-cleanup]:** Alte DB-Keys `sentence_style`/`hooks` (Kanäle) + `themes`
+      (Overview) erst NACH der Daten-Neueingabe entfernen (Migration + Whitelist-Bereinigung) — jetzt bewusst
+      als Sicherheitsnetz behalten. Siehe deferred-Abschnitt.
+    - **Offen (nächster Schritt):** Daten-Neueingabe der getrennten Voice-Inhalte (Chat-Claude liefert Inhalt,
+      Schreibweg `update_voice_profile`) — nach Olivers Screenshot-QA + Merge.
+
+  - **MEIN-UNTERNEHMEN-TEXTFELDER WACHSEN MIT (UI-Feinschliff, 22.07.2026, gleicher Branch)** — Gates grün,
+    test-runner + auditor PASS. Mehrzeilige Felder aller drei Bereiche (Personal Voice · Company Profile ·
+    Product) wachsen zeilenweise mit dem Inhalt (einheitliche 3-Zeilen-Starthöhe, Deckel 8 Zeilen, danach
+    Scroll). **EINE zentrale Stelle:** neuer Hook `src/hooks/useAutoGrowTextarea.ts`, konsumiert nur über
+    `KnowledgeField` (FIELD-Kanon) → alle mehrzeiligen Felder automatisch; kein zweiter Wachstums-Weg.
+    Messung immer aus `height:auto` (idempotent, kein Zittern); `ResizeObserver` misst NUR bei Breiten-
+    Änderung (Rückkopplungs-Schutz) + jsdom/SSR-Guard. **Paar-Kopplung** (`createCoupleGroup`/`useCoupleGroup`):
+    dos_donts „immer"/„nie" wachsen bündig auf das längere, feedback-frei, **strikt opt-in** (`coupleGroup`-
+    Prop) → nicht gekoppelte Felder unberührt. Min/Max als benannte Tokens `--field-min-lines`/`--field-max-lines`/
+    `--field-line-height`/`--field-pad-y` (index.css) + Plain-Class `.field-autogrow` (schlägt shadcn
+    `min-h-[80px]`). Unit-Tests der Kopplungs-Logik (Konvergenz/keine Rückkopplung/Opt-in/Abmelden).
+    **MyProfileTab** (Persönlich, rohes Textarea) bewusst out of scope. **Betrifft ausschließlich die drei
+    Bereiche** — alle `KnowledgeField`-Konsumenten liegen in settings/Mein Unternehmen (Hunter/Farmer/CRM nutzen
+    `DetailField`, nicht betroffen). Teil desselben STOP wie oben (noch nicht gemergt).
+
   - **PERSONAL VOICE — REFERENZ-FELDER (Migration 1/n) FERTIG 21.07.2026** (Migr. **084** gepusht + remote
     per DO-Block verifiziert 6/6; Gates grün, test-runner + auditor PASS, F: N.A.). **Nur der Schreibweg** —
     Backend-Typen/UI/i18n + Daten-Neueingabe folgen als nächste Slices. **Grund:** Referenz-Abgleich
@@ -1690,6 +1727,48 @@ kam es, wie groß ist es** — und einen **klaren nächsten Schritt** anstoßen 
 >
 > **Verwandt:** [D28] (Perf-Politur Phase 5) · [D5] (AI-Pipeline). **Kommt wenn:** eigener Perf-/Aufräum-Slice
 > bzw. mit dem jeweiligen Modul (AI-Layer, Realtime).
+
+### [D-voice-altfelder-cleanup] Personal Voice — alte Sammel-Keys entfernen (deferred, NACH Daten-Neueingabe)
+> **Erfasst 22.07.2026** (Voice Backend/UI-Slice). **Bewusstes Sicherheitsnetz, jetzt NICHT anfassen.**
+>
+> **Was:** Die alten Voice-Keys `sentence_style` + `hooks` (je Kanal post/comment/dm/email) und `themes`
+> (overview) sind seit dem Backend/UI-Slice **in der UI ausgeblendet**, aber **absichtlich in DB + RPC-Whitelist
+> (084) + TS-Typen erhalten** — als Sicherheitsnetz, bis die getrennten Inhalte (Tonfall/Satzbau/Wortwahl/
+> Emoji · Hook-Strategien/Engagement/CTA · core_topics) tatsächlich neu eingegeben sind.
+>
+> **Aufräum-Schritt (eigener kleiner Slice, ERST wenn Daten-Neueingabe abgeschlossen):**
+> 1. Migration `update_voice_profile`: alte Keys aus der per-Kanal-Whitelist entfernen (`sentence_style`,
+>    `hooks`, overview.`themes`).
+> 2. Optional Daten-Migration: verbliebene Alt-Werte in die neuen Felder überführen ODER verwerfen (Entscheidung
+>    bei der Neueingabe — meist reine Neueingabe, dann Alt-Werte verwerfen).
+> 3. TS-Typen (`VoiceOverview.themes`, `VoiceChannel.sentence_style`/`hooks`) entfernen · unbenutzte i18n-Keys
+>    (`voice.overview.themes`, `voice.field.writingStyle`, `voice.field.hooks`) aus de/en/es löschen.
+>
+> **Kommt wenn:** die Daten-Neueingabe der getrennten Voice-Inhalte steht (direkt danach). **Reihenfolge strikt:**
+> erst Neueingabe, dann Aufräumen — nie umgekehrt (sonst Datenverlust).
+
+### [D-voice-listen-ki-pill] KI-Ausfüllen-Symbol auch an Listen-Felder (deferred, gekoppelt an [D5] KI-Pipeline)
+> **Erfasst 22.07.2026** (Konsistenz-Diagnose Personal Voice). **Jetzt NICHT bauen — bewusst bis zur KI-Anbindung verschoben.**
+>
+> **Was:** Das KI-Ausfüllen-Symbol (Sparkle) einheitlich auch an `KnowledgeListField` ergänzen — **EIN Pill auf
+> Listen-Header-Ebene** (neben dem Label), **nicht** pro Item (ein Pill je Eintrag wäre zu laut; bestehende
+> Entscheidung `showAi={false}` je Item bleibt). Heute haben nur die Fließtext-Felder (`KnowledgeField`, `showAi`
+> default) das Symbol; die Listen-Felder (Tonfall/Wortwahl/Kernthemen/Hook-Strategien) haben keins.
+>
+> **Warum erst mit der KI:** Das Symbol ist heute überall nur **Platzhalter** (`AI_PILL_PENDING`, disabled, kein
+> `onClick`) — `lib/ai.ts`/`aiCall` fehlt. Ein Listen-Pill jetzt wäre reine Optik ohne Funktion. Darum **einheitlich
+> UND funktional zusammen** bauen, sobald die KI-Pipeline steht: dann mit **korrekter Listen-Rückgabe** (mehrere
+> Einträge `[{id,text}]`, nicht ein Text).
+>
+> **Nebenwirkung (bewusst):** `KnowledgeListField` ist zentral → ein Listen-Pill erscheint dann **automatisch an
+> ALLEN** Nutzungsstellen: Personal Voice (Kernthemen/Tonfall/Wortwahl/Hook-Strategien) **und** Company Profile
+> (USPs · Probleme · Geschäftsergebnisse · Angebote · Wettbewerber) **plus** die Listen in den ICP-/Persona-Karten.
+> Gewollt (Konsistenz), aber bewusst gemeinsam.
+>
+> **Bau-Vorgabe:** Fließtext-Fill und Listen-Fill laufen über **EINEN gemeinsamen Weg** (`lib/ai.ts`/`aiCall`), den
+> auch der AI Chat per Function-Call nutzt; gespeichert wird über **denselben einen Schreibweg** wie die Tastatur
+> (`update_voice_profile` / `update_org_profile`); `fieldImportance.ts` ist der gemeinsame Vertrag. **i18n de/en/es**
+> für neue Labels/Tooltips. **Kommt wenn:** [D5] (KI-Pipeline / `lib/ai.ts`) gebaut wird.
 
 ### [D-lifecycle-trigger] SET-4 Gruppe 5 — Lifecycle-Trigger mit UND-Kombination (deferred, eigener Slice)
 > **Erfasst 21.07.2026** (SET-4-Zuschnitt bestätigt). **Noch NICHT gebaut.** Die 5. Regel-Gruppe des

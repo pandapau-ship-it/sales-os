@@ -215,7 +215,6 @@ export default function CompanyProfilePage() {
             value={textOf(org.summary)}
             placeholder={t("company.profile.summary.ph")}
             multiline
-            rows={4}
             onSave={(v) => setText("summary", v)}
           />
         </SettingsCard>
