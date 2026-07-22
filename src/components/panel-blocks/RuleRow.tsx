@@ -11,12 +11,13 @@
  */
 import { useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
+import { RotateCcw } from "lucide-react";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 
 export default function RuleRow({
   icon, before, after, value, unit, min, max, step = 1,
-  canEdit = true, valueLabel, placeholder = "—", onSave,
+  canEdit = true, valueLabel, placeholder = "—", recommended, why, onSave,
 }: {
   /** Dezentes graues Icon links (schlichtes Lucide-Icon, kein farbiger Kreis). */
   icon?: ReactNode;
@@ -35,6 +36,13 @@ export default function RuleRow({
   valueLabel?: (v: number) => string;
   /** Anzeige, wenn kein Wert gesetzt ist. */
   placeholder?: string;
+  /**
+   * Empfohlener Default. Weicht `value` davon ab, erscheint (nur bei Hover/Fokus + Recht) ein
+   * „Auf Empfehlung zurücksetzen"-Knopf, der `onSave(recommended)` aufruft.
+   */
+  recommended?: number;
+  /** Optionaler „Warum?"-Slot (z.B. `<WhyPopover .../>`), hover-gated rechts. */
+  why?: ReactNode;
   onSave: (v: number) => void | Promise<void>;
 }) {
   const { t } = useTranslation();
@@ -57,8 +65,10 @@ export default function RuleRow({
     await onSave(n);
   };
 
+  const canReset = canEdit && recommended != null && value !== recommended;
+
   return (
-    <div className="flex items-baseline gap-1.5 flex-wrap py-2 text-[13px] text-text-body">
+    <div className="group/rule flex items-baseline gap-1.5 flex-wrap py-2 text-[13px] text-text-body">
       {icon && <span className="text-text-muted self-center shrink-0">{icon}</span>}
       <span>{before}</span>
       {canEdit ? (
@@ -102,6 +112,24 @@ export default function RuleRow({
         </span>
       )}
       {after && <span>{after}</span>}
+
+      {/* Reset-pro-Regel + „Warum?" — dezent, erst bei Hover/Fokus sichtbar. */}
+      {(canReset || why) && (
+        <span className="self-center inline-flex items-center gap-0.5 opacity-0 group-hover/rule:opacity-100 focus-within:opacity-100 transition-opacity">
+          {canReset && (
+            <button
+              type="button"
+              onClick={() => void onSave(recommended as number)}
+              aria-label={t("settings.rules.reset", { value: recommended })}
+              data-tip={t("settings.rules.reset", { value: recommended })}
+              className="w-6 h-6 rounded-[6px] inline-flex items-center justify-center text-text-muted hover:text-[var(--sherloq-primary)] hover:bg-app-surface transition-colors cursor-pointer"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+            </button>
+          )}
+          {why}
+        </span>
+      )}
     </div>
   );
 }

@@ -87,3 +87,6 @@ export { default as LeadSourceBadge } from './LeadSourceBadge';
 export { default as RoutingChip } from './RoutingChip';
 export { default as CompactContactRow } from './CompactContactRow';
 export type { CompactContactRowProps } from './CompactContactRow';
+export { default as WhyPopover } from './WhyPopover';
+export { default as WeightEditor, WEIGHT_MAX } from './WeightEditor';
+export type { EditableSignal, InactiveSignal } from './WeightEditor';

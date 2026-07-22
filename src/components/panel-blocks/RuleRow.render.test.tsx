@@ -49,4 +49,27 @@ describe("RuleRow", () => {
     fireEvent.click(screen.getByText("common.save"));
     await waitFor(() => expect(onSave).toHaveBeenCalledWith(20));
   });
+
+  // ── SET-4a-Erweiterung: Reset-pro-Regel + Why-Slot ──
+  it("recommended != value → Reset-Knopf da; Klick ruft onSave(recommended)", () => {
+    const onSave = vi.fn();
+    render(<RuleRow before="Warnung ab Score" value={70} min={10} max={100} recommended={61} onSave={onSave} />);
+    fireEvent.click(screen.getByLabelText("settings.rules.reset"));
+    expect(onSave).toHaveBeenCalledWith(61);
+  });
+
+  it("recommended == value → KEIN Reset-Knopf", () => {
+    render(<RuleRow before="Warnung ab Score" value={61} min={10} max={100} recommended={61} onSave={vi.fn()} />);
+    expect(screen.queryByLabelText("settings.rules.reset")).toBeNull();
+  });
+
+  it("canEdit=false → kein Reset (UI blendet aus; Server erzwingt)", () => {
+    render(<RuleRow before="X" value={70} min={0} max={100} recommended={61} canEdit={false} onSave={vi.fn()} />);
+    expect(screen.queryByLabelText("settings.rules.reset")).toBeNull();
+  });
+
+  it("why-Slot wird gerendert (z.B. WhyPopover)", () => {
+    render(<RuleRow before="X" value={1} min={0} max={10} why={<span data-testid="why-slot">?</span>} onSave={vi.fn()} />);
+    expect(screen.getByTestId("why-slot")).toBeTruthy();
+  });
 });

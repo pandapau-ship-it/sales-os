@@ -182,6 +182,15 @@
           "body": "{{name}} verschwindet aus dem Team. Zugewiesene Kontakte und Deals bleiben erhalten."
         }
       }
+    },
+    "rules": {
+      "why": "Warum?",
+      "usedBy": "Genutzt von:",
+      "weightHint": "Gewichte bestimmen die relative Wichtigkeit jedes Signals. Der Score wird auf 0–100 normalisiert; die Warn-Schwelle wird separat gesetzt.",
+      "weightFor": "Gewicht für {{signal}}",
+      "notMeasured": "Noch nicht gemessen",
+      "integrationNeeded": "Integration nötig",
+      "reset": "Auf Empfehlung zurücksetzen ({{value}})"
     }
   },
   "mfa": {

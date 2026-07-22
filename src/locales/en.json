@@ -182,6 +182,15 @@
           "body": "{{name}} disappears from the team. Assigned contacts and deals are kept."
         }
       }
+    },
+    "rules": {
+      "why": "Why?",
+      "usedBy": "Used by:",
+      "weightHint": "Weights set each signal's relative importance. The score is normalised to 0–100; the alert threshold is set separately.",
+      "weightFor": "Weight for {{signal}}",
+      "notMeasured": "Not measured yet",
+      "integrationNeeded": "Integration required",
+      "reset": "Reset to recommended ({{value}})"
     }
   },
   "mfa": {
