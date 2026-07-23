@@ -681,6 +681,15 @@
     Cookies/Credentials → Token nicht origin-fremd nutzbar; Preview-Deploys haben dynamische Origins → daher „*").
     **Sobald die Prod-Domain(s) final sind:** Origin gegen eine Allowlist (Prod + localhost + ggf. Preview-Pattern)
     spiegeln statt „*". Betrifft künftig ALLE browser-aufgerufenen Edge-Functions → gemeinsamer `_shared/cors.ts`.
+  - **DEPLOY + LIVE-VERIFIKATION FUND 1/4/4b + Security-Härtung (23.07.2026, `--no-verify-jwt`):** deployt +
+    live grün — Ketten-Beweis (Vault-Service-Key → 200 + neuer cron_run, **empirisch** gemessen, nicht gelesen) ·
+    Guard ohne Token → 403 · **gefälschter `service_role`-JWT → 403** (schärfster Beleg: das entfernte `decodeJwtRole`-
+    Loch, pre-fix 200) · CORS im Browser erreicht die Function (401 statt „Failed to fetch") · Gegenprobe churn≥61=3 ·
+    Ausschluss heat in(kalt,tot)=6 · Cross-Entity-Wegwerf-Beweis (gelöschter Anker aus, lebender in). **OFFENER
+    HAKEN (nicht kritisch, dokumentiert):** der Anon-Key-Negativtest (gültiger Anon-Key → muss 403) konnte NICHT
+    gefahren werden — die Dev-App hat kein Supabase-Env, der öffentliche Anon-Key war nicht abgreifbar. Ersatz: der
+    **gefälschte Service-Token** ist das schärfere Szenario und wird abgewiesen; der Guard akzeptiert ohnehin NUR den
+    exakten Service-Key, jedes Nicht-Service-Token → 403. Diese eine Variante blieb empirisch ungeprüft.
   - **▶ QUEUED — Custom-Fields aus der DB in `FILTER_SCHEMA` speisen (Grundsatzfrage 23.07.2026):** Feld-/Operator-/
     Enum-Vokabular des Regel-/Filter-Builders ist heute **build-time-Code** (`src/lib/filter/schema.ts` + i18n) —
     kundenspezifische Felder erscheinen NICHT automatisch. Aktionen sind bereits DB-getrieben (`action_types`). Für
