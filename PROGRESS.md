@@ -557,12 +557,24 @@
     plan_limits · RLS/Index/audit-Trigger · RPCs `upsert/delete_lifecycle_rule` (automation.manage, Grammatik-
     Validierung, plan_limit-Blocker) + `db.ts`-Chat-Vertrag. L2-Sofortgewinn: churn/upsell/health_score +
     stagnation_days filterbar. Doku [D53] (`set_contact_status` Governance) + [D54] (Chat-Fehler-Rückmeldung).
-  - ▶ **NÄCHSTE SLICE: L-2 LIFECYCLE-AUSWERTER** — *[BAU].* Edge Function (cron-gewrappt + `cron_expectations`):
-    je Regel-Gruppe `compileToPostgrest` → **Anker-ID-Mengen-Algebra** (AND=Schnitt/OR=Vereinigung über
-    `deals.contact_id`/`primary_company_id`) → **Einmal-Feuer-Semantik** über `lifecycle_rule_runs` (Match-Zustand
-    nicht-match→match) → **Aktions-Handler** für Gruppe-1 (`notify`/`notify_urgent`/`create_task`/`add_tag`/
-    `add_to_list`). Nutzt `evaluateFilter`/`compileToPostgrest` (Single Source, kein Sprach-Neubau). Danach **L-3**
-    UI Condition-Builder (in „Eigene Actions"-Reserve). **[D54] beachten:** strukturierte Fehler-Rückmeldung.
+  - ✅ **LIFECYCLE-AUSWERTER L-2 (L-2a + L-2b) FERTIG + GEMERGT & LIVE** — Edge `evaluate-lifecycle-rules`:
+    je Regel-Gruppe `compileToPostgrest` → **Anker-ID-Mengen-Algebra** (AND=Schnitt/OR=Vereinigung, alle drei Anker)
+    → **Einmal-Feuer** über `lifecycle_rule_runs` → **Rangfolge/terminal** → **Batching**. Verkettung C (nach
+    `score-upsell`) + Guard B (Prereq-Check). **L-2a** (Auswerter-Kern) Merge **`397ab71`**; **L-2b** (Aktions-Handler
+    `notify`/`notify_urgent`/`create_task`/`add_tag`/`add_to_list` via Dispatch-Switch, `applies_to` beidseitig,
+    `source_ref`-Idempotenz, `add_to_list`→`list_members`) Merge **`7f5555c`** (Migr. 090/091 live, Aktionen `active`,
+    Part A + Part B live-verifiziert). Nutzt `src/lib/filter` (Single Source, Deno-Spiegel). **[D56]** Deeplinks bewusst
+    `p_link=null` (nie tote Links) → echte Sprungziele in L-3.
+  - ▶ **NÄCHSTE SLICE: L-3 UI CONDITION-BUILDER / „EIGENE ACTIONS"** — *[BAU], UI (UI-SLICE-Vorprüfung Pflicht).*
+    Oberfläche zum Zusammenklicken eigener WENN-DANN-Regeln (in der leeren Layout-Reserve „Eigene Actions" der
+    Regeln-Seite): **generischer Bedingungs-Builder** über `src/lib/filter` (AND/OR-Baum + Option-B-Gruppen je
+    Datenart) · Anker-Auswahl · Aktions-Auswahl aus der `action_types`-Registry (verfügbar aktiv, `coming_soon`
+    ehrlich ausgegraut) · **Klartext-Zusammenfassung** + **Live-Trefferzahl** (`compileToPostgrest`) · Regel-Übersicht
+    mit Aktiv-Schalter + „zuletzt gefeuert für X". EIN Schreibweg `upsert/delete_lifecycle_rule` (chat-identisch).
+    **Verbindlich:** **[D57]** (Bündelung + Deeplink-UX inkl. Punkt 6) · **[D56]** (Sprungziel-Routing bauen) ·
+    **[D54]** (RPC-Fehler in Alltagssprache) · **[D51]** (Registry/Schema als Daten → keine regel-spezifische Sonder-UI) ·
+    Chat-Aktions-Vertrag. **Vorschalt-Frage (Empfehlung im L-3-Plan):** Bündelung (pro-Datensatz → eine Meldung/Lauf)
+    ggf. als eigener Mini-Slice **L-2c** vor der UI.
   - **QUEUED (nach dem Lifecycle-Thread): SET-4b „Automation"-Seite** — *[BAU], nächste Settings-Seite im 4a–4d-Arc.*
     Settings → Arbeitsweise → **Automation** (`settingsNav` key `automation`, `built:false`): Editor für Automation-
     Level/Risk-Rules über `update_settings` + `automation.manage`-Gate. Danach **4c** Pipeline-Stages-UI · **4d**
