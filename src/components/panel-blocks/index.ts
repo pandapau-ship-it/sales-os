@@ -93,3 +93,9 @@ export type { EditableSignal, InactiveSignal, WeightTone } from './WeightEditor'
 export { default as ValueChip } from './ValueChip';
 export type { ChipTone } from './ValueChip';
 export { default as HeatThresholdTile } from './HeatThresholdTile';
+export { default as ConditionRow } from './ConditionRow';
+export type { ConditionRowProps } from './ConditionRow';
+export { default as ConditionBuilder } from './ConditionBuilder';
+export type { ConditionBuilderProps } from './ConditionBuilder';
+export { default as LiveMatchCount } from './LiveMatchCount';
+export type { LiveMatchCountProps } from './LiveMatchCount';

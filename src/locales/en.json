@@ -13,7 +13,8 @@
     "loading": "Lädt …",
     "empty": "—",
     "comingSoon": "wird gebaut",
-    "retry": "Try again"
+    "retry": "Try again",
+    "remove": "Löschen"
   },
   "nav": {
     "meintag": "Mein Tag",
@@ -1968,14 +1969,25 @@
         "loading": "Wird geprüft …",
         "error": "Trefferzahl konnte nicht geladen werden",
         "zero": "Trifft aktuell auf nichts zu",
-        "some": "Trifft aktuell auf {{count}} Datensätze zu"
+        "some_one": "Trifft aktuell auf 1 Datensatz zu",
+        "some_other": "Trifft aktuell auf {{count}} Datensätze zu"
       },
       "lastFired": {
         "never": "Noch nicht gefeuert",
         "some": "Zuletzt gefeuert: {{when}} · {{count}} Datensätze"
       },
       "limit": "{{used}} / {{limit}} Regeln",
-      "staleWrite": "Diese Regel wurde zwischenzeitlich geändert. Bitte neu laden."
+      "staleWrite": "Diese Regel wurde zwischenzeitlich geändert. Bitte neu laden.",
+      "fieldPlaceholder": "Feld wählen …",
+      "operatorPlaceholder": "Operator …",
+      "valuePlaceholder": "Wert eingeben …",
+      "listPlaceholder": "Werte, mit Komma getrennt",
+      "invalidOperator": "Operator passt nicht zum Feldtyp.",
+      "noConditions": "Noch keine Bedingungen definiert.",
+      "addFirstCondition": "Erste Bedingung hinzufügen",
+      "addCondition": "Bedingung hinzufügen",
+      "linkEntity": "Zusätzliche Datenart verknüpfen:",
+      "matchLabel": "Treffer, wenn"
     }
   }
 }
