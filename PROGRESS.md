@@ -1960,6 +1960,13 @@ kam es, wie groß ist es** — und einen **klaren nächsten Schritt** anstoßen 
 > 4. **Regel-Heimat in der UI:** die Regel selbst zeigt „zuletzt gefeuert für X Datensätze" mit **demselben Link** —
 >    Treffer auch Wochen später wiederfindbar, unabhängig von der Glocke.
 > 5. **Nie tote Links:** lieber gar kein Link als einer, der ins Leere führt.
+> 6. **WIEDERHOLTE TREFFER:** Feuert eine Regel in einem späteren Lauf **erneut** (neue Datensätze treffen zu), entsteht
+>    eine **NEUE** Benachrichtigung mit der Zahl der **NEUEN** Treffer (z.B. „2 neue Kontakte erfüllen Regel X"). Die
+>    ältere Meldung wird **NICHT** wieder auf ungelesen gesetzt und **nicht überschrieben** — sie bleibt gelesen im
+>    **Verlauf** stehen, damit die Historie nachvollziehbar bleibt („am 3.7. waren es 2, am 5.7. kamen 2 dazu"). Grund:
+>    Würde man dieselbe Meldung nur wieder fett markieren und die Zahl hochzählen, sieht der User nicht mehr, **WAS** neu
+>    ist. Das **Klick-Ziel zeigt immer die AKTUELL zutreffenden** Datensätze (frisch über die Filter-Lib berechnet), nie
+>    einen eingefrorenen alten Stand.
 > **⚠ Verhaltens-ÄNDERUNG gegenüber L-2a:** dort feuert die Maschine **pro Datensatz** (jeder Match → eigene notify).
 > Die Umstellung auf **Bündelung** (Punkt 1) gehört mit den Deeplinks in **L-3** (bzw. einen dafür vorgesehenen Slice)
 > — **in L-2b NICHT umbauen.** **Verwandt:** [D56] (Routing) · Mitteilungssystem N2/N12/N13 · [D-lifecycle-trigger].
