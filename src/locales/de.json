@@ -13,7 +13,8 @@
     "retry": "Erneut versuchen",
     "loading": "Lädt …",
     "empty": "—",
-    "comingSoon": "wird gebaut"
+    "comingSoon": "wird gebaut",
+    "remove": "Löschen"
   },
   "nav": {
     "meintag": "Mein Tag",
@@ -1981,7 +1982,17 @@
         "some": "Zuletzt gefeuert: {{when}} · {{count}} Datensätze"
       },
       "limit": "{{used}} / {{limit}} Regeln",
-      "staleWrite": "Diese Regel wurde zwischenzeitlich geändert. Bitte neu laden."
+      "staleWrite": "Diese Regel wurde zwischenzeitlich geändert. Bitte neu laden.",
+      "fieldPlaceholder": "Feld wählen …",
+      "operatorPlaceholder": "Operator …",
+      "valuePlaceholder": "Wert eingeben …",
+      "listPlaceholder": "Werte, mit Komma getrennt",
+      "invalidOperator": "Operator passt nicht zum Feldtyp.",
+      "noConditions": "Noch keine Bedingungen definiert.",
+      "addFirstCondition": "Erste Bedingung hinzufügen",
+      "addCondition": "Bedingung hinzufügen",
+      "linkEntity": "Zusätzliche Datenart verknüpfen:",
+      "matchLabel": "Treffer, wenn"
     }
   }
 }

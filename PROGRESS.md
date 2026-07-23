@@ -619,6 +619,15 @@
     `assigned_to` ausgeblendet) · **i18n `lifecycle.*`** (de + en/es als DE-Kopie: entity/field/op/enum/bool/action/
     actionParam/ui) · Tests (`config.test.ts`). **▶ Slice-Zuschnitt Rest:** L-3b `ConditionBuilder` (Library) · L-3c
     Overview · L-3d Editor (inkl. Listen-Picker, [D57]-Hinweis, Zustände, alert-dialog) · L-3e Deeplinks ([D56]/[D57]).
+  - ✅ **L-3b (ConditionBuilder — generische Library-Komponenten) FERTIG** *(Branch `feature/lifecycle-l3b`)*: erster
+    sichtbarer UI-Slice. `panel-blocks/ConditionRow` (Feld·Operator·Wert, typ-adaptiver Wert) · `ConditionBuilder`
+    (Gruppen je Datenart, Innerhalb-Gruppe UND/ODER schaltbar, **EIN** Zwischen-Gruppen-Schalter + sichtbarer
+    Option-B-Hinweis, Leerzustand, Datenart-Hinzufügen) · `LiveMatchCount` (debounced Dry-Run, Idle/Loading/Error/Count).
+    Alles prop-driven (value/onChange) → **auch für dynamische Listen wiederverwendbar**, nicht regelbuilder-gebunden.
+    Reiner Bedingungs-Baum-Helfer `lib/lifecycle/conditions.ts` (immutable, getestet). **Entity-Farb-Tokens**
+    (`--entity-contact/-deal/-company`, Light+Dark) in `index.css` — Kontakt=Blau/Deal=Violett/Firma=Orange. i18n
+    `lifecycle.ui.*` ergänzt. Screenshot-QA (leer/eine Bedingung/mehrere Gruppen/Fehlerfall/Live-Count-Ladezustand)
+    an Oliver. Gates grün. Live-Count zeigt im Dev ohne Auth-Session den Error-Zustand (funktioniert mit echter Session).
   - ▶ **QUEUED — ACL-AUDIT ALLER FUNKTIONEN (systemischer Nachtrag, 23.07.2026 · NICHT vor L-3-Ende):** In L-2b
     (`add_to_list`→`list_members`) und L-3a (`upsert_lifecycle_rule` 2-arg→3-arg) trat zweimal derselbe Fehler auf:
     **`drop function` nimmt GRANTs + Attribute mit.** Ist „drop+create" ein übliches Migrations-Muster hier und

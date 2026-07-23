@@ -471,6 +471,8 @@ function checkTypographyTokens(): void {
     'CompanyProfilePage', 'KnowledgeListField', 'EntityCardList', 'RuleRow',
     // SET-4a Regeln-Seite — Bausteine (Slice 2a) + Seite (Slice 2b) + Überarbeitung
     'WhyPopover', 'WeightEditor', 'RulesPage', 'ValueChip', 'HeatThresholdTile',
+    // L-3b Lifecycle-Regel-Builder — generische Bedingungs-Bausteine
+    'ConditionBuilder', 'ConditionRow', 'LiveMatchCount',
   ])
   // panel-blocks/ + features/ + farming/ (Farmer-Hilfskomponenten).
   const files = [

@@ -63,6 +63,12 @@
   --signal-cold-text:   #0369A1;
   --signal-teal-bg:     #F0FAFA;
   --signal-teal-text:   #155E5C;
+  /* Entity-Farben (Lifecycle-Regel-Builder L-3b) — dezente Tint-Chips zur Datenart-Kennung.
+     Kontakt=Blau · Deal=Violett · Firma=Orange (Referenz-Zuordnung, auf unsere Skala). Nur hier,
+     nie Hex im Komponenten-Code. Getrennt vom AI-Akzent (kommt später als Magenta/intelligence). */
+  --entity-contact-bg:  #EFF6FF; --entity-contact-text: #1D4ED8;
+  --entity-deal-bg:     #F5F3FF; --entity-deal-text:    #6D28D9;
+  --entity-company-bg:  #FFF7ED; --entity-company-text: #C2610C;
   /* Avatar-Palette (Initialen-Fallback) — deterministisch aus dem Namen (Avatar.tsx).
      Bewusst EINE Palette für Light + Dark: gesättigte Mid-Tones poppen auf hellem UND
      dunklem Grund und halten weiße Initialen (große Schrift) ≥ 3:1. Eine hellere Dark-
@@ -203,6 +209,10 @@
   --signal-info-bg:     #17263A; --signal-info-text:   #60A5FA;
   --signal-cold-bg:     #16283A; --signal-cold-text:   #38BDF8;
   --signal-teal-bg:     #12302F; --signal-teal-text:   #2DD4BF;
+  /* Entity-Farben (Dark) — dunklere Tint-Flächen, hellere Textfarben (Kontrast auf dunklem Grund) */
+  --entity-contact-bg:  #17263A; --entity-contact-text: #60A5FA;
+  --entity-deal-bg:     #241B3A; --entity-deal-text:    #A78BFA;
+  --entity-company-bg:  #3A2A17; --entity-company-text: #FDBA74;
   /* Heat-Status Farben (Dark) */
   --color-success:      #4ADE80; --color-warning-soft: #FACC15;
   --color-warning:      #FB923C; --color-info:         #60A5FA;
