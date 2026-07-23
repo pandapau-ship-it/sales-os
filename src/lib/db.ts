@@ -1563,6 +1563,7 @@ export interface LifecycleRulePatch {
 export async function upsertLifecycleRule(
   id: string | null,
   patch: LifecycleRulePatch,
+  expectedUpdatedAt?: string | null,
 ): Promise<string | null> {
   const client = getSupabaseClient();
   if (!client) return null;
@@ -1571,7 +1572,13 @@ export async function upsertLifecycleRule(
   for (const g of patch.conditions?.groups ?? []) {
     validateFilter({ entity: g.entity, where: g.where });
   }
-  const { data, error } = await client.rpc("upsert_lifecycle_rule", { p_id: id, p_patch: patch });
+  // expectedUpdatedAt = optimistischer Sperr-Guard (L-3a, OPT-IN): NUR der interaktive Editor, der die Regel
+  // geladen hat, übergibt das bekannte `updated_at` → der RPC wirft `stale_write`, wenn sie zwischenzeitlich
+  // geändert wurde (kein stilles Überschreiben). Null/undefined = bewusst KEIN Check (CREATE, KI-Chat ohne
+  // Basislinie, programmatische Aufrufer) — Zugriffsschutz (automation.manage + Org) läuft davon unabhängig immer.
+  const { data, error } = await client.rpc("upsert_lifecycle_rule", {
+    p_id: id, p_patch: patch, p_expected_updated_at: expectedUpdatedAt ?? null,
+  });
   if (error) throw error;
   return (data as string) ?? null;
 }
@@ -1582,6 +1589,147 @@ export async function deleteLifecycleRule(id: string): Promise<void> {
   if (!client) return;
   const { error } = await client.rpc("delete_lifecycle_rule", { p_id: id });
   if (error) throw error;
+}
+
+// ── Lifecycle-Read-Layer (L-3a — Fundament für den Regel-Builder-UI) ─────────
+/** Eine Lifecycle-Regel für die UI (inkl. Run-Summary „zuletzt gefeuert für X"). */
+export interface LifecycleRuleView {
+  id: string;
+  name: string;
+  anchorEntity: FilterEntity;
+  conditions: LifecycleRuleConditions;
+  action: { type: string; params?: Record<string, unknown> };
+  priority: number;
+  isActive: boolean;
+  isTerminal: boolean;
+  triggerEvent: string;
+  updatedAt: string | null;      // optimistischer Sperr-Guard beim Speichern (expectedUpdatedAt)
+  lastFiredAt: string | null;    // null = noch nie gefeuert
+  firedForCount: number;         // Datensätze aktuell im Feuer-Zustand ([D57] P4 „für X Datensätze")
+}
+
+/** Aktions-Registry-Eintrag (action_types) — steuert die Aktions-Auswahl im Builder. */
+export interface ActionTypeMeta {
+  key: string;
+  labelKey: string;
+  status: "active" | "coming_soon";
+  paramsSchema: Record<string, string>;   // param → 'required' | 'optional'
+  appliesTo: FilterEntity[];               // erlaubte Anker
+  requires: string | null;                 // z.B. 'governance' (set_contact_status)
+}
+
+/**
+ * Alle Lifecycle-Regeln der Org für die Übersicht — inkl. Run-Summary je Regel
+ * (max. `last_fired_at` + Zahl der aktuell gefeuerten Datensätze). Zwei Queries, kein N+1:
+ * einmal die Regeln, einmal alle `lifecycle_rule_runs` der Org, dann in JS aggregiert.
+ */
+export async function getLifecycleRules(organizationId: string): Promise<LifecycleRuleView[]> {
+  const client = getSupabaseClient();
+  if (!client) return [];
+  const { data, error } = await client
+    .from("lifecycle_rules")
+    .select("id, name, anchor_entity, conditions, action, priority, is_active, is_terminal, trigger_event, updated_at, created_at")
+    .eq("organization_id", organizationId)
+    .order("created_at", { ascending: true });
+  if (error) throw error;
+  const rules = (data ?? []) as Array<{
+    id: string; name: string; anchor_entity: FilterEntity;
+    conditions: LifecycleRuleConditions; action: { type: string; params?: Record<string, unknown> };
+    priority: number; is_active: boolean; is_terminal: boolean; trigger_event: string; updated_at: string | null;
+  }>;
+
+  const { data: runsData, error: e2 } = await client
+    .from("lifecycle_rule_runs")
+    .select("rule_id, matched, last_fired_at")
+    .eq("organization_id", organizationId);
+  if (e2) throw e2;
+  const summary = new Map<string, { last: string | null; count: number }>();
+  for (const r of (runsData ?? []) as Array<{ rule_id: string; matched: boolean; last_fired_at: string | null }>) {
+    const s = summary.get(r.rule_id) ?? { last: null, count: 0 };
+    if (r.matched) s.count += 1;
+    if (r.last_fired_at && (!s.last || r.last_fired_at > s.last)) s.last = r.last_fired_at;
+    summary.set(r.rule_id, s);
+  }
+
+  return rules.map((r) => ({
+    id: r.id,
+    name: r.name,
+    anchorEntity: r.anchor_entity,
+    conditions: r.conditions,
+    action: r.action,
+    priority: r.priority,
+    isActive: r.is_active,
+    isTerminal: r.is_terminal,
+    triggerEvent: r.trigger_event,
+    updatedAt: r.updated_at,
+    lastFiredAt: summary.get(r.id)?.last ?? null,
+    firedForCount: summary.get(r.id)?.count ?? 0,
+  }));
+}
+
+/** Aktions-Registry (global) — welche Aktionen es gibt, ob aktiv/`coming_soon`, für welche Anker. */
+export async function getActionTypes(): Promise<ActionTypeMeta[]> {
+  const client = getSupabaseClient();
+  if (!client) return [];
+  const { data, error } = await client
+    .from("action_types")
+    .select("key, label_key, status, params_schema, applies_to, requires")
+    .order("key", { ascending: true });
+  if (error) throw error;
+  const rows = (data ?? []) as Array<{
+    key: string; label_key: string; status: string;
+    params_schema: Record<string, string> | null; applies_to: string[] | null; requires: string | null;
+  }>;
+  return rows.map((r) => ({
+    key: r.key,
+    labelKey: r.label_key,
+    status: r.status === "coming_soon" ? "coming_soon" : "active",
+    paramsSchema: r.params_schema ?? {},
+    appliesTo: (r.applies_to ?? []) as FilterEntity[],
+    requires: r.requires,
+  }));
+}
+
+/**
+ * Regel-Limit des Plans + aktuelle Nutzung (für die „X / Y Regeln"-Anzeige + proaktive Sperre).
+ * `limit === -1` = unbegrenzt. Serverseitig erzwingt der Write-RPC dasselbe Limit ([D54] `rule_limit_reached`).
+ */
+export async function getLifecycleRuleLimit(organizationId: string): Promise<{ limit: number; used: number }> {
+  const client = getSupabaseClient();
+  if (!client) return { limit: -1, used: 0 };
+  const { count } = await client
+    .from("lifecycle_rules").select("id", { count: "exact", head: true }).eq("organization_id", organizationId);
+  let limit = -1;
+  const { data: sub } = await client
+    .from("organization_subscription").select("plan_id").eq("organization_id", organizationId)
+    .order("created_at", { ascending: false }).limit(1).maybeSingle();
+  const planId = (sub as { plan_id?: string } | null)?.plan_id;
+  if (planId) {
+    const { data: pl } = await client
+      .from("plan_limits").select("limit_value").eq("plan_id", planId).eq("feature", "lifecycle_rules").maybeSingle();
+    limit = (pl as { limit_value?: number } | null)?.limit_value ?? -1;
+  }
+  return { limit, used: count ?? 0 };
+}
+
+/**
+ * Dry-Run einer (auch ungespeicherten) Regel-Definition → Trefferzahl + IDs, OHNE zu feuern
+ * (Live-Trefferzahl im Builder · „jetzt einmal prüfen"). Ruft den `dryRun`-Modus der Edge-Function
+ * `evaluate-lifecycle-rules` mit dem User-Session-Token (org aus Session + `automation.manage`).
+ */
+export async function dryRunLifecycleRule(
+  anchor: FilterEntity,
+  conditions: LifecycleRuleConditions,
+): Promise<{ matchCount: number; matchIds: string[] }> {
+  const client = getSupabaseClient();
+  if (!client) return { matchCount: 0, matchIds: [] };
+  const { data, error } = await client.functions.invoke("evaluate-lifecycle-rules", {
+    body: { dryRun: true, rule: { anchor_entity: anchor, conditions } },
+  });
+  if (error) throw error;
+  const d = (data ?? {}) as { matchCount?: number; matchIds?: string[]; error?: string };
+  if (d.error) throw new Error(d.error);
+  return { matchCount: d.matchCount ?? 0, matchIds: d.matchIds ?? [] };
 }
 
 /** Aktive Module der Org (aus settings.modules) — Grundlage für useModules. */

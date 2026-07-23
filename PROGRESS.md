@@ -598,6 +598,36 @@
     baut gegen das finale Meldungsverhalten, nutzt den Dry-Run für die Live-Trefferzahl und übersetzt die
     strukturierten RPC-Fehler in Alltagssprache. **Deals-Deeplink** springt auf den zugehörigen Kontakt; **Vorlagen-
     Galerie** (4–6 Seeds) in L-3; **Kanal-Wahl** bleibt draußen ([D55] später).
+  - **L-3 PHASE-1-ANALYSE ABGENOMMEN + ENTSCHEIDUNGEN (23.07.2026, Design-Referenz `regelbuilder.tsx`):**
+    (1) **AI-Scope Variante (b):** manueller Builder zuerst, KI-Einstieg von Anfang an in der IA sichtbar (3
+    gleichrangige Pfade Neu/KI/Vorlagen), KI-Pfad bis zum `aiCall()`-Bau als „folgt". `AiChatPanel` generisch in
+    `shared/`. **L-3f (KI-Generierung) entfällt aus L-3** → eigener Slice NACH dem produktweiten AI-Layer (`lib/ai.ts`,
+    eigene Analyse). (2) **Eigene Settings-Seite** (`settingsNav`), „Eigene Actions"-Kachel = Türöffner. (3) notify
+    `message` → **optional** (Migr. 093). (4) Innerhalb-Gruppe AND/OR schaltbar, Zwischen-Gruppen **ein** globaler
+    Schalter; die **Option-B-Grenze (kein gemischtes je Paar) muss in der UI erkennbar sein** (`lifecycle.ui.crossEntityHint`).
+    (5) **`updated_at`-Guard** (Migr. 093, strukturierter `stale_write`) — kein stilles Überschreiben. (6)
+    priority/is_terminal/trigger_event in v1 **ausgeblendet** (Defaults). ▶ **Folge-Notiz „Erweitert":** eine spätere
+    „Erweitert"-Sektion macht priority (Rangfolge) · is_terminal (schneidet rangniedrigere Regeln ab) · trigger_event
+    editierbar. **Bewusste Weglassungen (kein Versehen):** `contacts.assigned_to` nicht im Feldkatalog (uuid, nicht
+    sinnvoll frei filterbar — bei Bedarf „Regel für meine zugewiesenen Kontakte" = eigenes Feature); **dynamische
+    Listen** bei `add_to_list` werden **ausgegraut MIT sichtbarer Begründung** am Element (`lifecycle.ui.dynamicListReason`),
+    nicht nur disabled.
+  - ✅ **L-3a (Backend-Fundament) FERTIG** *(Branch `feature/lifecycle-l3a`)*: Migr. 093 (notify-`message` optional +
+    `upsert_lifecycle_rule` 3-arg mit `stale_write`-Guard) · Read-Layer `db.ts` (`getLifecycleRules` inkl. Run-Summary ·
+    `getActionTypes` · `getLifecycleRuleLimit` · `dryRunLifecycleRule`; `upsertLifecycleRule` um `expectedUpdatedAt`
+    erweitert) · `src/lib/lifecycle/config.ts` (Entity-Meta + Feld/Operator-Config aus `FILTER_SCHEMA`, Single Source,
+    `assigned_to` ausgeblendet) · **i18n `lifecycle.*`** (de + en/es als DE-Kopie: entity/field/op/enum/bool/action/
+    actionParam/ui) · Tests (`config.test.ts`). **▶ Slice-Zuschnitt Rest:** L-3b `ConditionBuilder` (Library) · L-3c
+    Overview · L-3d Editor (inkl. Listen-Picker, [D57]-Hinweis, Zustände, alert-dialog) · L-3e Deeplinks ([D56]/[D57]).
+  - ▶ **QUEUED — ACL-AUDIT ALLER FUNKTIONEN (systemischer Nachtrag, 23.07.2026 · NICHT vor L-3-Ende):** In L-2b
+    (`add_to_list`→`list_members`) und L-3a (`upsert_lifecycle_rule` 2-arg→3-arg) trat zweimal derselbe Fehler auf:
+    **`drop function` nimmt GRANTs + Attribute mit.** Ist „drop+create" ein übliches Migrations-Muster hier und
+    niemand hat die GRANTs nachgezogen, gibt es womöglich längst eine **produktive RPC, die für `authenticated`
+    nicht mehr ausführbar** ist und deren Aufrufer nur selten getroffen wird. **Aufgabe:** (1) alle Migrationen auf
+    das **drop+create-Muster** durchsuchen; (2) Live-`proacl` **aller** public-Funktionen gegen die Supabase-Norm
+    `{anon, authenticated, service_role}` (+PUBLIC) abgleichen, Abweichungen listen; (3) Abweichungen per expliziten
+    `grant execute` beheben. **Plus Regel für künftige Migrationen:** nach **jedem** `drop+create` einer Funktion die
+    GRANTs **explizit** setzen (kein Verlass auf Default-Privileges) — Kandidat für einen Audit-/structure-check-Check.
   - **QUEUED (nach dem Lifecycle-Thread): SET-4b „Automation"-Seite** — *[BAU], nächste Settings-Seite im 4a–4d-Arc.*
     Settings → Arbeitsweise → **Automation** (`settingsNav` key `automation`, `built:false`): Editor für Automation-
     Level/Risk-Rules über `update_settings` + `automation.manage`-Gate. Danach **4c** Pipeline-Stages-UI · **4d**
