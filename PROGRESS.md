@@ -648,6 +648,56 @@
     `{anon, authenticated, service_role}` (+PUBLIC) abgleichen, Abweichungen listen; (3) Abweichungen per expliziten
     `grant execute` beheben. **Plus Regel für künftige Migrationen:** nach **jedem** `drop+create` einer Funktion die
     GRANTs **explizit** setzen (kein Verlass auf Default-Privileges) — Kandidat für einen Audit-/structure-check-Check.
+  - **LIFECYCLE L-3d E2E-FUNDE (23.07.2026, echter Backend-Walkthrough) — 4 Bugs, alle GEBAUT + gegatet:**
+    - **FUND 4 (GEBAUT, gegatet · `fix/lifecycle-deleted-at` · Deploy ausstehend): Evaluator ignorierte `deleted_at`.**
+      `groupAnchorIds` (rows + FK-`via`) + `resolveOwner` + Deal-Resolve lasen soft-gelöschte Anker → Regeln feuerten
+      Tasks/Tags/Meldungen auf gelöschte Kontakte (live belegt: `heat in (kalt,tot)` Dry-Run 8 statt 6). **Wurzel-Erkenntnis:**
+      Change 058 hat den `deleted_at`-Filter systemweit eingezogen (`getContacts`, dyn. Listen) — der Evaluator (089)
+      war der **einzige Nachzügler**. Fix = 058-Muster nachziehen (Anker-Reads nach `_shared/lifecycle/anchors.ts`
+      extrahiert + `.is("deleted_at", null)`; vitest-Regressionstest `anchors.test.ts`, 12 Fälle). **KEIN** Vergangenheits-
+      Cleanup (destruktiv) — Bestandsaufnahme über ALLE Orgs ergab **0 Schaden** (noch keine produktive Regel existiert).
+    - **FUND 4b (GEBAUT, gegatet · selber Branch): direkte FK-Mappings filterten nur die QUELLE, nicht den ANKER.**
+      contacts←deals / companies←contacts / companies←deals gaben Anker-IDs zurück, ohne den Anker gegen `deleted_at`
+      zu prüfen → gelöschter Anker mit lebendem verknüpftem Datensatz wäre durchgeschlüpft (Demo-Daten hatten 0 solcher
+      Fälle → nur durchs Durchdenken gefunden). Fix: diese 3 Fälle mappen über `via(anchor,"id",…)`. auditor: kein Durchschlupf mehr.
+    - **FUND 1 (GEBAUT, gegatet · selber Branch · Deploy ausstehend): Live-Trefferzahl im Browser = CORS.** Der Browser
+      ruft den Dry-Run per `functions.invoke` **cross-origin** auf; die Function hatte **kein CORS/OPTIONS-Handling** (die
+      Crons laufen server-zu-server, brauchten es nie → erster Browser-Aufruf scheiterte). Empirisch: identischer Request
+      server-seitig HTTP 200, im Browser „Failed to fetch". **Nicht** der Auth-Pfad (`has_permission`-Signatur passt). Fix:
+      `corsHeaders` auf ALLE Antworten (`json()`) + OPTIONS-Preflight-Handler; **Deploy-PFLICHT `--no-verify-jwt`** (die
+      Function macht Auth selbst: isServiceRole / getUser+`automation.manage`) — sonst weist die Plattform den Preflight ab.
+    - **FUND 2+3 (GEBAUT, gegatet, beide Agents PASS · `fix/lifecycle-enum-multiselect` · UI, kein Deploy · Merge ausstehend):**
+      enum + `in`/`not_in` erzeugte Skalar statt Array (Einzel-Select), freie Listen Komma-Freitext. Fix: **EnumMultiSelect**
+      (enum-Liste → Mehrfachauswahl → `string[]`) + **ChipInput** (text/number `in`/`not_in`, tags `has_any` → Chip-Tokens).
+      Speichern bleibt bei ungültiger Bedingung blockiert, betroffene Zeile rot markiert, Fehler-Banner „Nicht gespeichert" +
+      Grund in Alltagssprache. End-to-End-Walkthrough bestanden (anlegen→speichern→wiederfinden→toggle→bearbeiten→verwerfen→löschen).
+  - **▶ QUEUED — `score-*`-Crons lesen Anker ohne `deleted_at` (23.07.2026, angrenzend zu FUND 4):** `score-upsell`,
+    `score-heat-status`, `score-deal-health`, `score-churn-risk` lesen `contacts`/`deals` **ohne** `deleted_at`-Filter.
+    **Kein aktiver Schaden** (schreiben nur Scores, lösen keine user-sichtbaren Aktionen aus) — aber Scores auf
+    gelöschten Datensätzen sind Verschwendung und können später verwirren. Eigener kleiner Slice: `deleted_at`-Filter
+    nachziehen (058-Muster). Kandidat für den unten genannten Regressionsschutz.
+  - **▶ QUEUED — CORS-Origin des Lifecycle-Evaluators von `*` auf Allowlist umstellen (23.07.2026, mit FUND 1):**
+    `evaluate-lifecycle-rules` sendet heute `Access-Control-Allow-Origin: *` (auth-gegatet: Bearer-Token, keine
+    Cookies/Credentials → Token nicht origin-fremd nutzbar; Preview-Deploys haben dynamische Origins → daher „*").
+    **Sobald die Prod-Domain(s) final sind:** Origin gegen eine Allowlist (Prod + localhost + ggf. Preview-Pattern)
+    spiegeln statt „*". Betrifft künftig ALLE browser-aufgerufenen Edge-Functions → gemeinsamer `_shared/cors.ts`.
+  - **DEPLOY + LIVE-VERIFIKATION FUND 1/4/4b + Security-Härtung (23.07.2026, `--no-verify-jwt`):** deployt +
+    live grün — Ketten-Beweis (Vault-Service-Key → 200 + neuer cron_run, **empirisch** gemessen, nicht gelesen) ·
+    Guard ohne Token → 403 · **gefälschter `service_role`-JWT → 403** (schärfster Beleg: das entfernte `decodeJwtRole`-
+    Loch, pre-fix 200) · CORS im Browser erreicht die Function (401 statt „Failed to fetch") · Gegenprobe churn≥61=3 ·
+    Ausschluss heat in(kalt,tot)=6 · Cross-Entity-Wegwerf-Beweis (gelöschter Anker aus, lebender in). **OFFENER
+    HAKEN (nicht kritisch, dokumentiert):** der Anon-Key-Negativtest (gültiger Anon-Key → muss 403) konnte NICHT
+    gefahren werden — die Dev-App hat kein Supabase-Env, der öffentliche Anon-Key war nicht abgreifbar. Ersatz: der
+    **gefälschte Service-Token** ist das schärfere Szenario und wird abgewiesen; der Guard akzeptiert ohnehin NUR den
+    exakten Service-Key, jedes Nicht-Service-Token → 403. Diese eine Variante blieb empirisch ungeprüft.
+  - **▶ QUEUED — Custom-Fields aus der DB in `FILTER_SCHEMA` speisen (Grundsatzfrage 23.07.2026):** Feld-/Operator-/
+    Enum-Vokabular des Regel-/Filter-Builders ist heute **build-time-Code** (`src/lib/filter/schema.ts` + i18n) —
+    kundenspezifische Felder erscheinen NICHT automatisch. Aktionen sind bereits DB-getrieben (`action_types`). Für
+    echte Custom-Fields müsste `FILTER_SCHEMA` (+ Labels) zur Laufzeit aus der DB kommen. Eigenes Thema, nicht jetzt.
+  - **▶ VORSCHLAG (nicht gebaut) — Regressionsschutz „058-Muster": ** ein Audit-/structure-check-Check, der
+    Anker-Reads (`contacts`/`deals`/`companies`) mit `.or(`/`.in(` **ohne** vorangehendes `.is("deleted_at", null)`
+    in Edge-Functions statisch flaggt → verhindert, dass die nächste neue Function den Filter wieder vergisst.
+    Erst mit Oliver besprechen, dann ggf. bauen.
   - **QUEUED (nach dem Lifecycle-Thread): SET-4b „Automation"-Seite** — *[BAU], nächste Settings-Seite im 4a–4d-Arc.*
     Settings → Arbeitsweise → **Automation** (`settingsNav` key `automation`, `built:false`): Editor für Automation-
     Level/Risk-Rules über `update_settings` + `automation.manage`-Gate. Danach **4c** Pipeline-Stages-UI · **4d**

@@ -26,9 +26,8 @@
 //
 // deploy: supabase functions deploy evaluate-lifecycle-rules
 import { createClient, type SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { compileToPostgrest } from "../_shared/filter/compile.ts";
-import type { FilterNode } from "../_shared/filter/types.ts";
 import { actionApplies, bundleSourceId, combineAnchorSets, computePlan, type AnchorEntity, type RuleInput } from "../_shared/lifecycle/eval.ts";
+import { groupAnchorIds, resolveOwner, type Group } from "../_shared/lifecycle/anchors.ts";
 
 // Infra-Konstanten (Betriebs-Sicherheitsnetze, kein User-Verhalten → [D51] n.a.).
 const PREREQUISITE_JOBS = [
@@ -37,11 +36,21 @@ const PREREQUISITE_JOBS = [
 const MAX_FIRED_PER_RUN = 500; // Batch-Sicherheitsnetz je Lauf (Rest wird vertagt, nicht verworfen)
 const TIME_BUDGET_MS = 25_000; // user-triggered Edge-Timeout-Puffer
 
+// CORS (FUND 1): der Browser ruft den Dry-Run per functions.invoke direkt auf (Cross-Origin). Ohne diese
+// Header wird die Antwort/der Preflight geblockt → im Builder „Trefferzahl konnte nicht geladen werden".
+// Der Cron-Pfad (net.http_post, server-zu-server) brauchte das nie — daher fiel es erst im Browser auf.
+// WICHTIG: Diese Function MUSS mit `--no-verify-jwt` deployt werden (sie macht ihre Auth selbst:
+// isServiceRole für den echten Lauf · getUser+automation.manage für den User-Dry-Run). Sonst weist die
+// Plattform den Preflight-OPTIONS (ohne Auth-Header) ab, bevor der OPTIONS-Handler unten greift.
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
 const json = (body: unknown, status = 200) =>
-  new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
+  new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 const errMsg = (e: unknown) => (e instanceof Error ? e.message : (e && typeof e === "object" ? JSON.stringify(e) : String(e)));
 
-interface Group { entity: AnchorEntity; where: FilterNode }
 interface RuleRow extends RuleInput { name: string; created_by: string | null; conditions: { logic: "AND" | "OR"; groups: Group[] } }
 
 async function raiseAlert(sb: SupabaseClient, severity: string, type: string, message: string, context: unknown) {
@@ -63,48 +72,6 @@ async function prerequisitesReady(sb: SupabaseClient): Promise<{ ok: boolean; mi
 async function activeOrgs(sb: SupabaseClient): Promise<string[]> {
   const { data } = await sb.from("lifecycle_rules").select("organization_id").eq("is_active", true);
   return [...new Set((data ?? []).map((r) => r.organization_id as string))];
-}
-
-/** Anker-ID-Menge EINER Gruppe: compileToPostgrest (Single Source) + FK-Mapping auf den anchor. */
-async function groupAnchorIds(sb: SupabaseClient, org: string, anchor: AnchorEntity, group: Group): Promise<string[]> {
-  const expr = compileToPostgrest({ entity: group.entity, where: group.where }); // dieselbe Lib wie dyn. Listen
-  const rows = async (table: string, col: string) => {
-    const { data, error } = await sb.from(table).select(col).eq("organization_id", org).or(expr);
-    if (error) throw error;
-    return (data ?? []).map((r) => (r as Record<string, string | null>)[col]).filter((v): v is string => !!v);
-  };
-  const uniq = (a: string[]) => [...new Set(a)];
-  const via = async (table: string, col: string, ids: string[]) => {
-    if (ids.length === 0) return [];
-    const { data, error } = await sb.from(table).select("id").eq("organization_id", org).in(col, ids);
-    if (error) throw error;
-    return (data ?? []).map((r) => (r as { id: string }).id);
-  };
-
-  if (group.entity === anchor) return uniq(await rows(anchor, "id"));
-  if (anchor === "contacts") {
-    if (group.entity === "deals") return uniq(await rows("deals", "contact_id"));
-    return await via("contacts", "primary_company_id", uniq(await rows("companies", "id"))); // companies → contacts
-  }
-  if (anchor === "deals") {
-    if (group.entity === "contacts") return await via("deals", "contact_id", uniq(await rows("contacts", "id")));
-    return await via("deals", "company_id", uniq(await rows("companies", "id")));
-  }
-  // anchor === "companies"
-  if (group.entity === "contacts") return uniq(await rows("contacts", "primary_company_id"));
-  return uniq(await rows("deals", "company_id"));
-}
-
-async function resolveOwner(sb: SupabaseClient, org: string, anchor: AnchorEntity, entityId: string): Promise<string | null> {
-  if (anchor === "contacts") {
-    const { data } = await sb.from("contacts").select("assigned_to").eq("organization_id", org).eq("id", entityId).maybeSingle();
-    return (data?.assigned_to as string | null) ?? null;
-  }
-  if (anchor === "deals") {
-    const { data } = await sb.from("deals").select("owner_id").eq("organization_id", org).eq("id", entityId).maybeSingle();
-    return (data?.owner_id as string | null) ?? null;
-  }
-  return null; // companies: kein Owner → Fallback Regel-Ersteller
 }
 
 /** action_types-Registry (key → applies_to), einmal je Lauf geladen — Auswerter-defensiver applies_to-Check (D2). */
@@ -157,7 +124,7 @@ async function createTaskHandler(sb: SupabaseClient, org: string, rule: RuleRow,
     assigned_to = await resolveOwner(sb, org, "contacts", entityId);
   } else if (rule.anchor_entity === "deals") {
     deal_id = entityId;
-    const { data } = await sb.from("deals").select("contact_id, owner_id").eq("organization_id", org).eq("id", entityId).maybeSingle();
+    const { data } = await sb.from("deals").select("contact_id, owner_id").eq("organization_id", org).is("deleted_at", null).eq("id", entityId).maybeSingle();
     contact_id = (data?.contact_id as string | null) ?? null;
     assigned_to = (data?.owner_id as string | null) ?? null;
   }
@@ -317,29 +284,21 @@ async function evaluateOrg(sb: SupabaseClient, org: string, appliesTo: Map<strin
   return { fired: plan.fires.length, rearmed: plan.rearms.length, suppressed: plan.suppressed, carried: plan.carried };
 }
 
-/** Rolle aus einem Legacy-JWT-Service-Token (nur Fallback; neue `sb_secret_`-Keys sind KEINE JWTs). */
-function decodeJwtRole(authHeader: string | null): string | null {
-  try {
-    const tok = (authHeader ?? "").replace(/^Bearer\s+/i, "");
-    const payload = tok.split(".")[1];
-    if (!payload) return null;
-    const j = JSON.parse(atob(payload.replace(/-/g, "+").replace(/_/g, "/")));
-    return (j.role as string) ?? null;
-  } catch {
-    return null;
-  }
-}
-
 /**
- * Ist der Aufrufer die Service-Rolle? FORMAT-AGNOSTISCH: primär exakter Vergleich gegen den Env-Service-Key
- * (dieses Projekt nutzt den NEUEN opaken `sb_secret_…`-Key — KEIN JWT; die Verkettung score-upsell sendet
- * genau `Bearer ${SUPABASE_SERVICE_ROLE_KEY}` → identischer Env-Wert im selben Projekt → match). JWT-Rollen-
- * Check nur als Fallback für Legacy-JWT-Service-Tokens. Ein User-/Anon-Token besitzt das Secret NICHT → 403.
+ * Ist der Aufrufer die Service-Rolle? AUSSCHLIESSLICH exakter Vergleich gegen den Env-Service-Key
+ * (dieses Projekt nutzt den opaken `sb_secret_…`-Key — KEIN JWT; die Verkettung score-upsell sendet
+ * genau `Bearer ${SUPABASE_SERVICE_ROLE_KEY}` aus derselben Env → match). Ein User-/Anon-Token besitzt das
+ * Secret NICHT → 403.
+ *
+ * SICHERHEIT (kein JWT-Rollen-Fallback!): Ein früherer `decodeJwtRole`-Fallback las die JWT-`role` OHNE
+ * Signaturprüfung. Solange die Plattform `verify_jwt` erzwang, war das gedeckt — aber diese Function wird
+ * mit `--no-verify-jwt` deployt (nötig für den CORS-Preflight, FUND 1). Dann könnte ein gefälschter JWT
+ * `{"role":"service_role"}` (beliebige Signatur) den Service-Pfad übernehmen. Deshalb NUR der Secret-Vergleich:
+ * unfälschbar, weil er den echten Key-Wert verlangt (den nur Backend/Vault kennen).
  */
 const isServiceRole = (authHeader: string | null): boolean => {
   const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-  if (key && authHeader === `Bearer ${key}`) return true;
-  return decodeJwtRole(authHeader) === "service_role";
+  return !!key && authHeader === `Bearer ${key}`;
 };
 
 /**
@@ -389,6 +348,8 @@ async function handleDryRun(req: Request, body: Record<string, unknown>): Promis
 
 Deno.serve(async (req) => {
   const started = Date.now();
+  // CORS-Preflight (FUND 1): vor jeder Auth/Body-Verarbeitung beantworten.
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   const body = await req.json().catch(() => ({}));
   // Dry-Run: eigener, read-only Auth-Pfad — VOR jeder Zustandsänderung.
   if (body.dryRun === true) return await handleDryRun(req, body);
