@@ -141,3 +141,9 @@ begin
   return v_id;
 end;
 $$;
+
+-- GRANTs nach DROP+CREATE explizit reproduzieren: `drop function` hat die ACL der alten 2-arg-Version
+-- mitgenommen (Baseline = {anon, authenticated, service_role} + PUBLIC, identisch zu allen Geschwister-RPCs).
+-- NICHT auf Default-Privileges verlassen (Supabase-Setup kann sie ändern) — ohne dies bekäme das Frontend
+-- (PostgREST-Rolle `authenticated`) in Produktion `permission denied` (Owner-Tests würden es nicht fangen).
+grant execute on function upsert_lifecycle_rule(uuid, jsonb, timestamptz) to anon, authenticated, service_role;
