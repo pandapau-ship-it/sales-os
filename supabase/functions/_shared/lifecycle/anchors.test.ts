@@ -39,14 +39,14 @@ const group = (entity: AnchorEntity): Group => ({ entity, where: whereFor(entity
 
 const COMBOS: Array<{ anchor: AnchorEntity; g: AnchorEntity; tables: string[] }> = [
   { anchor: "contacts",  g: "contacts",  tables: ["contacts"] },
-  { anchor: "contacts",  g: "deals",     tables: ["deals"] },
+  { anchor: "contacts",  g: "deals",     tables: ["deals", "contacts"] },     // rows(deals) + via(contacts) — Anker nachfiltern (FUND 4b)
   { anchor: "contacts",  g: "companies", tables: ["companies", "contacts"] }, // rows(companies) + via(contacts)
   { anchor: "deals",     g: "deals",     tables: ["deals"] },
   { anchor: "deals",     g: "contacts",  tables: ["contacts", "deals"] },     // rows(contacts) + via(deals)
   { anchor: "deals",     g: "companies", tables: ["companies", "deals"] },
   { anchor: "companies", g: "companies", tables: ["companies"] },
-  { anchor: "companies", g: "contacts",  tables: ["contacts"] },
-  { anchor: "companies", g: "deals",     tables: ["deals"] },
+  { anchor: "companies", g: "contacts",  tables: ["contacts", "companies"] }, // rows(contacts) + via(companies) — Anker nachfiltern (FUND 4b)
+  { anchor: "companies", g: "deals",     tables: ["deals", "companies"] },    // rows(deals) + via(companies) — Anker nachfiltern (FUND 4b)
 ];
 
 describe("groupAnchorIds — jede Lesestelle filtert deleted_at (Fix FUND 4)", () => {

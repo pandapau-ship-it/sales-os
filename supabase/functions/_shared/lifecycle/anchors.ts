@@ -33,18 +33,21 @@ export async function groupAnchorIds(sb: SupabaseClient, org: string, anchor: An
     return (data ?? []).map((r) => (r as unknown as { id: string }).id);
   };
 
+  // WICHTIG (FUND 4b): Bei direkten FK-Mappings (contact_id/company_id) filtert `rows` nur die QUELLE
+  // auf deleted_at — der ANKER (auf den die Regel wirkt) muss NOCHMAL über `via(anchor,"id",…)` gegen
+  // deleted_at, sonst schlüpft ein gelöschter Anker mit lebendem verknüpftem Datensatz durch.
   if (group.entity === anchor) return uniq(await rows(anchor, "id"));
   if (anchor === "contacts") {
-    if (group.entity === "deals") return uniq(await rows("deals", "contact_id"));
+    if (group.entity === "deals") return await via("contacts", "id", uniq(await rows("deals", "contact_id")));
     return await via("contacts", "primary_company_id", uniq(await rows("companies", "id"))); // companies → contacts
   }
   if (anchor === "deals") {
     if (group.entity === "contacts") return await via("deals", "contact_id", uniq(await rows("contacts", "id")));
     return await via("deals", "company_id", uniq(await rows("companies", "id")));
   }
-  // anchor === "companies"
-  if (group.entity === "contacts") return uniq(await rows("contacts", "primary_company_id"));
-  return uniq(await rows("deals", "company_id"));
+  // anchor === "companies" — Firmen-Anker via id nachfiltern (nicht-gelöschte Firma)
+  if (group.entity === "contacts") return await via("companies", "id", uniq(await rows("contacts", "primary_company_id")));
+  return await via("companies", "id", uniq(await rows("deals", "company_id")));
 }
 
 /** Owner des Ankers (contacts.assigned_to / deals.owner_id). Defensiv ebenfalls deleted_at-gefiltert. */
