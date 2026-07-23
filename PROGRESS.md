@@ -565,6 +565,27 @@
     `source_ref`-Idempotenz, `add_to_list`→`list_members`) Merge **`7f5555c`** (Migr. 090/091 live, Aktionen `active`,
     Part A + Part B live-verifiziert). Nutzt `src/lib/filter` (Single Source, Deno-Spiegel). **[D56]** Deeplinks bewusst
     `p_link=null` (nie tote Links) → echte Sprungziele in L-3.
+  - ✅ **L-2c (Bündelung + Dry-Run + [D54]) FERTIG** *(Branch `feature/lifecycle-l2c`)* — Backend-Vorschalt vor der UI:
+    (1) **Bündelung [D57]:** `notify`/`notify_urgent` erzeugen EINE Meldung je Regel/Lauf mit der Zahl der NEUEN Treffer
+    (statt einer je Datensatz; per-record-Aktionen bleiben je Datensatz), Empfänger = Regel-Ersteller, `source_id`
+    inhaltsbasiert (`bundleSourceId`) → Crash-Retry dedup, Re-Fire = neue Meldung ([D57] P6). (2) **Dry-Run:** read-only
+    Auswertung ohne Feuern/Zustandsänderung (Cross-Entity Option B) → Trefferzahl + IDs, eigener Auth-Pfad (Service =
+    org aus Body · User-Token = org aus Session + `automation.manage`); echter Lauf nur Service-Rolle. Powert
+    Live-Trefferzahl + „jetzt prüfen". (3) **[D54]** `upsert/delete_lifecycle_rule` → strukturierte Fehler
+    (`_structured_error`: `detail`-JSON `{code, field, …grenzen}` + `hint`) — **Vorlage** für die übrigen RPCs (Migr. 092).
+    **Guard-Fund (behoben):** der Projekt-Service-Key ist der NEUE opake `sb_secret_…`-Key (kein JWT) → der
+    Service-Role-Guard vergleicht format-agnostisch exakt gegen den Env-Service-Key (+ JWT-Rolle nur Legacy-Fallback),
+    sonst wäre der `score-upsell`-Verkettungs-Aufruf still mit 403 gebrochen.
+    **⚠ KEY-ROTATION (merken):** Der Guard hängt am EXAKTEN Wert von `SUPABASE_SERVICE_ROLE_KEY`. Aufrufer
+    (`score-upsell`) UND Guard ziehen dieselbe Env-Variable → bei einer Key-Rotation bleiben beide automatisch
+    konsistent. Ein SQL/Vault-basierter Aufruf (Vault-Secret `app_service_role_key`) MUSS denselben Service-Key
+    tragen; weicht Vault vom Env-Key ab, bricht NUR der Vault-Aufruf mit 403 ab (Produktion via Env==Env unberührt).
+    **▶ FOLGE-SLICE (akzeptiert, NICHT jetzt) — L-2c-Nachtrag „Bulk-`mark_fired` für Bündel":** Beim gebündelten
+    `notify` markiert der Auswerter die Treffer in einer per-Datensatz-Schleife. Stürzt der Lauf NACH dem `notify`,
+    aber MITTEN in der Schleife ab, sieht der Retry eine kleinere Treffer-Menge → anderer `bundleSourceId` → **eine
+    zusätzliche** Meldung für die Rest-Teilmenge (at-least-once, akzeptiert für den L-2c-Deploy). Härtung: ein
+    **Bulk-`lifecycle_mark_fired`** (ein Statement je Bündel, gemeinsames `action_result`) schließt das Fenster →
+    eigener kleiner Slice mit Gates. (Voll-Crash = Dedup, Re-Fire = neue Meldung sind bereits korrekt.)
   - ▶ **NÄCHSTE SLICE: L-3 UI CONDITION-BUILDER / „EIGENE ACTIONS"** — *[BAU], UI (UI-SLICE-Vorprüfung Pflicht).*
     Oberfläche zum Zusammenklicken eigener WENN-DANN-Regeln (in der leeren Layout-Reserve „Eigene Actions" der
     Regeln-Seite): **generischer Bedingungs-Builder** über `src/lib/filter` (AND/OR-Baum + Option-B-Gruppen je
@@ -573,8 +594,10 @@
     mit Aktiv-Schalter + „zuletzt gefeuert für X". EIN Schreibweg `upsert/delete_lifecycle_rule` (chat-identisch).
     **Verbindlich:** **[D57]** (Bündelung + Deeplink-UX inkl. Punkt 6) · **[D56]** (Sprungziel-Routing bauen) ·
     **[D54]** (RPC-Fehler in Alltagssprache) · **[D51]** (Registry/Schema als Daten → keine regel-spezifische Sonder-UI) ·
-    Chat-Aktions-Vertrag. **Vorschalt-Frage (Empfehlung im L-3-Plan):** Bündelung (pro-Datensatz → eine Meldung/Lauf)
-    ggf. als eigener Mini-Slice **L-2c** vor der UI.
+    Chat-Aktions-Vertrag. **Backend-Vorschalt L-2c erledigt** (Bündelung + Dry-Run + [D54]-Strukturfehler) → die UI
+    baut gegen das finale Meldungsverhalten, nutzt den Dry-Run für die Live-Trefferzahl und übersetzt die
+    strukturierten RPC-Fehler in Alltagssprache. **Deals-Deeplink** springt auf den zugehörigen Kontakt; **Vorlagen-
+    Galerie** (4–6 Seeds) in L-3; **Kanal-Wahl** bleibt draußen ([D55] später).
   - **QUEUED (nach dem Lifecycle-Thread): SET-4b „Automation"-Seite** — *[BAU], nächste Settings-Seite im 4a–4d-Arc.*
     Settings → Arbeitsweise → **Automation** (`settingsNav` key `automation`, `built:false`): Editor für Automation-
     Level/Risk-Rules über `update_settings` + `automation.manage`-Gate. Danach **4c** Pipeline-Stages-UI · **4d**

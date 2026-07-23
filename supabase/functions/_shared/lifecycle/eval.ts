@@ -22,6 +22,24 @@ export function actionApplies(anchor: AnchorEntity, appliesTo: readonly string[]
   return !!appliesTo && appliesTo.includes(anchor);
 }
 
+/**
+ * Idempotenz-Schlüssel EINER gebündelten Benachrichtigung (L-2c, [D57] Bündelung).
+ * Inhaltsbasiert über die Menge der JETZT feuernden `(entityId, nextFiredCount)`-Paare:
+ *  - Crash-Retry DESSELBEN Laufs (mark_fired lief nicht → nextFiredCount unverändert) → gleicher Key → notify-Dedup greift.
+ *  - Re-Fire nach Rearm (dieselben Datensätze feuern erneut → nextFiredCount höher) → anderer Key → NEUE Meldung ([D57] P6).
+ * Reihenfolge-unabhängig (sortiert). Reiner FNV-1a-Hash (kein IO, testbar).
+ */
+export function bundleSourceId(ruleId: string, fires: Array<{ entityId: string; nextCount: number }>): string {
+  const items = fires.map((f) => `${f.entityId}:${f.nextCount}`).sort();
+  let h = 0x811c9dc5;
+  const s = items.join(",");
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  return `${ruleId}:bundle:${(h >>> 0).toString(16).padStart(8, "0")}`;
+}
+
 // ── Mengen-Algebra: Gruppen-Anker-IDs → Anker-Match-Menge (Option B) ─────────
 /** AND = Schnittmenge · OR = Vereinigung über die je-Gruppe gemappten Anker-ID-Mengen. */
 export function combineAnchorSets(logic: "AND" | "OR", groupSets: string[][]): string[] {

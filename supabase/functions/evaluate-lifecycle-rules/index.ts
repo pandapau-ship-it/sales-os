@@ -1,4 +1,17 @@
-// evaluate-lifecycle-rules — Lifecycle-Trigger-Auswerter (L-2a).
+// evaluate-lifecycle-rules — Lifecycle-Trigger-Auswerter (L-2a/L-2b/L-2c).
+//
+// L-2c: (1) BÜNDELUNG — notify/notify_urgent erzeugen EINE Meldung je Regel/Lauf mit der Zahl der NEUEN
+// Treffer (nicht eine je Datensatz); per-record-Aktionen (create_task/add_tag/add_to_list) bleiben je Datensatz.
+// (2) DRY-RUN — read-only Auswertung ohne Feuern/Zustandsänderung (Live-Trefferzahl + „jetzt prüfen"),
+// eigener Auth-Pfad; echter Lauf nur mit Service-Rolle. ([D57]/[D54])
+//
+// ⚠ KEY-ROTATION: Der Service-Role-Guard (isServiceRole) hängt am EXAKTEN Wert von SUPABASE_SERVICE_ROLE_KEY.
+// Der einzige echte Aufrufer (Verkettung score-upsell → hier) sendet `Bearer ${SUPABASE_SERVICE_ROLE_KEY}` aus
+// DERSELBEN Env-Variable. Wird der Service-Key rotiert, ziehen beide Seiten automatisch denselben neuen Env-Wert
+// → weiter konsistent. Der Guard prüft KEIN JWT-Claim (der Projekt-Key ist der neue opake `sb_secret_…`-Key, kein
+// JWT) — er vergleicht das Secret direkt. Wer die Funktion von SQL/Vault aus aufruft, MUSS denselben Env-Wert als
+// Bearer nutzen (Vault-Secret `app_service_role_key` = derselbe Service-Key). Weichen Vault und Env voneinander ab,
+// bricht ein Vault-basierter Aufruf mit 403 ab (Produktion via Env==Env bleibt unberührt).
 //
 // Verkettung (C): wird am ENDE der letzten Score-Function (score-upsell) per net.http_post angestoßen
 // → läuft IMMER direkt nach frischen churn/heat/upsell/stagnation-Werten, unabhängig von der Uhrzeit.
@@ -15,7 +28,7 @@
 import { createClient, type SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { compileToPostgrest } from "../_shared/filter/compile.ts";
 import type { FilterNode } from "../_shared/filter/types.ts";
-import { actionApplies, combineAnchorSets, computePlan, type AnchorEntity, type RuleInput } from "../_shared/lifecycle/eval.ts";
+import { actionApplies, bundleSourceId, combineAnchorSets, computePlan, type AnchorEntity, type RuleInput } from "../_shared/lifecycle/eval.ts";
 
 // Infra-Konstanten (Betriebs-Sicherheitsnetze, kein User-Verhalten → [D51] n.a.).
 const PREREQUISITE_JOBS = [
@@ -214,6 +227,43 @@ async function runAction(sb: SupabaseClient, org: string, rule: RuleRow, entityI
   }
 }
 
+const isNotifyType = (t: string) => t === "notify" || t === "notify_urgent";
+
+/**
+ * Gebündelte Benachrichtigung (L-2c, [D57]): EINE Meldung je Regel/Lauf mit der Zahl der NEUEN Treffer —
+ * NICHT eine je Datensatz. Die per-Datensatz-Buchführung (mark_fired) bleibt beim Aufrufer. Empfänger =
+ * Regel-Ersteller (die Regel ist „seine"; per-Datensatz-Owner-Routing entfällt mit der Bündelung bewusst).
+ * source_id inhaltsbasiert (bundleSourceId): Crash-Retry desselben Laufs → Dedup; Re-Fire nach Rearm → neue Meldung.
+ */
+async function runBundledNotify(
+  sb: SupabaseClient, org: string, rule: RuleRow, fires: Array<{ entityId: string; nextCount: number }>,
+  appliesTo: Map<string, string[]>,
+): Promise<Record<string, unknown>> {
+  const at = new Date().toISOString();
+  const type = rule.action.type;
+  const count = fires.length;
+  if (!actionApplies(rule.anchor_entity, appliesTo.get(type))) {
+    return { ok: false, handler: type, bundled: true, count, error_code: "anchor_not_applicable",
+      message: `Aktion ${type} ist fuer Anker ${rule.anchor_entity} nicht anwendbar`, at };
+  }
+  const recipient = rule.created_by;
+  if (!recipient) return { ok: false, handler: type, bundled: true, count, error_code: "no_recipient", message: "Regel ohne Ersteller", at };
+  const base = (rule.action.params?.message as string) ?? rule.name;
+  const body = count === 1 ? `1 Datensatz erfuellt die Regel: ${base}` : `${count} Datensaetze erfuellen die Regel: ${base}`;
+  const severity = type === "notify_urgent" ? "high" : "normal";
+  const sourceId = bundleSourceId(rule.id, fires);
+  try {
+    const { error } = await sb.rpc("notify", {
+      p_org: org, p_category: "rule", p_severity: severity, p_title: rule.name, p_body: body,
+      p_link: null, p_source_type: "lifecycle_rule", p_source_id: sourceId, p_user_ids: [recipient],
+    });
+    if (error) throw error;
+    return { ok: true, handler: type, bundled: true, count, notification_source_id: sourceId, recipient, at };
+  } catch (e) {
+    return { ok: false, handler: type, bundled: true, count, error_code: "notify_failed", message: errMsg(e), at };
+  }
+}
+
 async function evaluateOrg(sb: SupabaseClient, org: string, appliesTo: Map<string, string[]>) {
   const { data: rulesRaw, error } = await sb.from("lifecycle_rules")
     .select("id, anchor_entity, conditions, action, priority, is_terminal, created_at, created_by, name")
@@ -243,22 +293,110 @@ async function evaluateOrg(sb: SupabaseClient, org: string, appliesTo: Map<strin
   for (const r of plan.rearms) (rearmByRule.get(r.ruleId) ?? rearmByRule.set(r.ruleId, []).get(r.ruleId)!).push(r.entityId);
   for (const [ruleId, ents] of rearmByRule) await sb.rpc("lifecycle_mark_rearmed", { p_rule: ruleId, p_entities: ents, p_org: org });
 
-  // fire: Aktion ausführen → matched=true (atomar, fired_count++). Fehler stoppt die Auswertung NICHT.
-  for (const f of plan.fires) {
-    const rule = byId.get(f.ruleId)!;
-    const fc = firedCount.get(`${f.ruleId}:${f.entityId}`) ?? 0;
-    const result = await runAction(sb, org, rule, f.entityId, fc, appliesTo);
-    await sb.rpc("lifecycle_mark_fired", { p_rule: f.ruleId, p_entity: f.entityId, p_org: org, p_result: result });
+  // fire: gruppiert je Regel. notify/notify_urgent → EINE gebündelte Meldung je Regel/Lauf ([D57] Bündelung);
+  // create_task/add_tag/add_to_list → PER Datensatz (jede Aktion wirkt auf genau einen Datensatz).
+  // Buchführung (matched=true, fired_count++) bleibt IMMER per Datensatz (Einmal-Feuer + Ziel-Liste).
+  const firesByRule = new Map<string, string[]>();
+  for (const f of plan.fires) (firesByRule.get(f.ruleId) ?? firesByRule.set(f.ruleId, []).get(f.ruleId)!).push(f.entityId);
+  for (const [ruleId, entityIds] of firesByRule) {
+    const rule = byId.get(ruleId)!;
+    if (isNotifyType(rule.action.type)) {
+      const fires = entityIds.map((eid) => ({ entityId: eid, nextCount: (firedCount.get(`${ruleId}:${eid}`) ?? 0) + 1 }));
+      const result = await runBundledNotify(sb, org, rule, fires, appliesTo);
+      for (const eid of entityIds) {
+        await sb.rpc("lifecycle_mark_fired", { p_rule: ruleId, p_entity: eid, p_org: org, p_result: result });
+      }
+    } else {
+      for (const eid of entityIds) {
+        const fc = firedCount.get(`${ruleId}:${eid}`) ?? 0;
+        const result = await runAction(sb, org, rule, eid, fc, appliesTo);
+        await sb.rpc("lifecycle_mark_fired", { p_rule: ruleId, p_entity: eid, p_org: org, p_result: result });
+      }
+    }
   }
   return { fired: plan.fires.length, rearmed: plan.rearms.length, suppressed: plan.suppressed, carried: plan.carried };
 }
 
+/** Rolle aus einem Legacy-JWT-Service-Token (nur Fallback; neue `sb_secret_`-Keys sind KEINE JWTs). */
+function decodeJwtRole(authHeader: string | null): string | null {
+  try {
+    const tok = (authHeader ?? "").replace(/^Bearer\s+/i, "");
+    const payload = tok.split(".")[1];
+    if (!payload) return null;
+    const j = JSON.parse(atob(payload.replace(/-/g, "+").replace(/_/g, "/")));
+    return (j.role as string) ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Ist der Aufrufer die Service-Rolle? FORMAT-AGNOSTISCH: primär exakter Vergleich gegen den Env-Service-Key
+ * (dieses Projekt nutzt den NEUEN opaken `sb_secret_…`-Key — KEIN JWT; die Verkettung score-upsell sendet
+ * genau `Bearer ${SUPABASE_SERVICE_ROLE_KEY}` → identischer Env-Wert im selben Projekt → match). JWT-Rollen-
+ * Check nur als Fallback für Legacy-JWT-Service-Tokens. Ein User-/Anon-Token besitzt das Secret NICHT → 403.
+ */
+const isServiceRole = (authHeader: string | null): boolean => {
+  const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+  if (key && authHeader === `Bearer ${key}`) return true;
+  return decodeJwtRole(authHeader) === "service_role";
+};
+
+/**
+ * Dry-Run (L-2c): wertet eine (auch ungespeicherte) Regel-Definition aus, OHNE zu feuern und OHNE Zustand
+ * zu ändern → liefert Trefferzahl + Treffer-IDs (Live-Trefferzahl im Builder · „jetzt einmal prüfen").
+ * Zwei Auth-Pfade: Service-Rolle (Chat/Backend/Test) → org aus dem Body (vertrauenswürdig) · sonst
+ * Nutzer-Token → org aus dem eingeloggten User (RLS-gescoped) + Recht `automation.manage`. Cross-Entity
+ * (Option B) über dieselbe Mengen-Algebra wie der echte Lauf (groupAnchorIds + combineAnchorSets) — Single Source.
+ */
+async function handleDryRun(req: Request, body: Record<string, unknown>): Promise<Response> {
+  const authHeader = req.headers.get("Authorization");
+  const rule = (body.rule ?? {}) as { anchor_entity?: AnchorEntity; conditions?: { logic: "AND" | "OR"; groups: Group[] } };
+  const anchor = rule.anchor_entity;
+  const conditions = rule.conditions;
+  if (anchor !== "contacts" && anchor !== "companies" && anchor !== "deals") return json({ error: "invalid_anchor" }, 400);
+  if (!conditions || !Array.isArray(conditions.groups)) return json({ error: "invalid_conditions" }, 400);
+
+  let sb: SupabaseClient;
+  let org: string | null;
+  if (isServiceRole(authHeader)) {
+    sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+    org = (body.organizationId as string | null) ?? null;
+    if (!org) return json({ error: "organizationId_required_for_service_dryrun" }, 400);
+  } else {
+    sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, {
+      global: { headers: { Authorization: authHeader ?? "" } },
+    });
+    const { data: u } = await sb.auth.getUser();
+    if (!u?.user) return json({ error: "unauthenticated" }, 401);
+    const { data: perm } = await sb.rpc("has_permission", { p_user: u.user.id, p_permission: "automation.manage" });
+    if (perm !== true) return json({ error: "permission_denied" }, 403);
+    const { data: urow } = await sb.from("users").select("organization_id").eq("id", u.user.id).maybeSingle();
+    org = (urow?.organization_id as string | null) ?? null;
+    if (!org) return json({ error: "unknown_org" }, 403);
+  }
+
+  if (!org) return json({ error: "unknown_org" }, 403); // Narrowing + Sicherheitsnetz
+  try {
+    const sets: string[][] = [];
+    for (const g of conditions.groups) sets.push(await groupAnchorIds(sb, org, anchor, g));
+    const ids = combineAnchorSets(conditions.logic, sets);
+    return json({ dryRun: true, matchCount: ids.length, matchIds: ids.slice(0, 500) });
+  } catch (e) {
+    return json({ dryRun: true, error: errMsg(e) }, 400);
+  }
+}
+
 Deno.serve(async (req) => {
   const started = Date.now();
+  const body = await req.json().catch(() => ({}));
+  // Dry-Run: eigener, read-only Auth-Pfad — VOR jeder Zustandsänderung.
+  if (body.dryRun === true) return await handleDryRun(req, body);
+  // Echter Lauf nur mit Service-Rolle (Cron/Verkettung/Chat-Backend) — kein user-getriggertes echtes Feuern.
+  if (!isServiceRole(req.headers.get("Authorization"))) return json({ error: "forbidden: service role required" }, 403);
   const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
   let runId: string | null = null;
   try {
-    const body = await req.json().catch(() => ({}));
     const force = body.force === true;              // Test/Manuell: Guard überspringen
     const onlyOrg: string | null = body.organizationId ?? null;
 
