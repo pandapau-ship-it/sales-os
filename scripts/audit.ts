@@ -475,6 +475,8 @@ function checkTypographyTokens(): void {
     'ConditionBuilder', 'ConditionRow', 'LiveMatchCount',
     // L-3c Regel-Overview
     'RuleCard', 'RuleOverview',
+    // L-3d Regel-Editor (3 Schritte)
+    'RuleEditor',
   ])
   // panel-blocks/ + features/ + farming/ (Farmer-Hilfskomponenten).
   const files = [

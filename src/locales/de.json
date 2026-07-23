@@ -2025,6 +2025,34 @@
       "noPermission": {
         "title": "Keine Berechtigung",
         "body": "Zum Verwalten von Automatik-Regeln fehlt dir das Recht „automation.manage“. Bitte wende dich an einen Administrator."
+      },
+      "editor": {
+        "titleNew": "Neue Regel",
+        "titleEdit": "Regel bearbeiten",
+        "stepAnchor": "Datenart & Name",
+        "stepConditions": "Bedingungen",
+        "stepAction": "Aktion",
+        "anchorHeading": "Worauf reagiert die Regel?",
+        "nameLabel": "Regelname",
+        "namePlaceholder": "z.B. Churn-Frühwarnung",
+        "nameRequired": "Bitte gib der Regel einen Namen.",
+        "conditionsHeading": "Wann soll sie feuern?",
+        "conditionsIncomplete": "Vervollständige alle Bedingungen, um fortzufahren.",
+        "actionHeading": "Was soll dann passieren?",
+        "chooseAction": "eine Aktion",
+        "actionRequired": "Wähle eine Aktion und fülle die Pflichtfelder.",
+        "listEmpty": "Noch keine statischen Listen vorhanden. Lege zuerst unter „Listen“ eine an.",
+        "listLoadError": "Listen konnten nicht geladen werden.",
+        "back": "Zurück",
+        "next": "Weiter",
+        "save": "Regel speichern",
+        "saving": "Speichern …",
+        "cancel": "Abbrechen",
+        "saveError": "Konnte nicht gespeichert werden.",
+        "discardTitle": "Änderungen verwerfen?",
+        "discardBody": "Deine Eingaben in dieser Regel gehen verloren.",
+        "discardConfirm": "Verwerfen",
+        "discardCancel": "Weiter bearbeiten"
       }
     },
     "templates": {
