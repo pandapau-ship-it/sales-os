@@ -106,7 +106,8 @@
       "comingSoon": "Próximamente",
       "branding": "Marca",
       "personal-voice": "Voz personal",
-      "product-pricing": "Productos y precios"
+      "product-pricing": "Productos y precios",
+      "automatik-regeln": "Automatik-Regeln"
     },
     "members": {
       "title": "Miembros",
@@ -244,7 +245,8 @@
           "desc": "La priorización de tu día tiene sus propios pesos."
         },
         "custom": {
-          "note": "Próximamente: componer tus propias reglas si-entonces a partir de bloques — pendiente."
+          "note": "Próximamente: componer tus propias reglas si-entonces a partir de bloques — pendiente.",
+          "open": "Eigene Wenn-Dann-Regeln öffnen →"
         }
       },
       "heat": {
@@ -2017,6 +2019,34 @@
       "noPermission": {
         "title": "Keine Berechtigung",
         "body": "Zum Verwalten von Automatik-Regeln fehlt dir das Recht „automation.manage“. Bitte wende dich an einen Administrator."
+      },
+      "editor": {
+        "titleNew": "Nueva regla",
+        "titleEdit": "Editar regla",
+        "stepAnchor": "Tipo de dato y nombre",
+        "stepConditions": "Condiciones",
+        "stepAction": "Acción",
+        "anchorHeading": "¿A qué reacciona la regla?",
+        "nameLabel": "Nombre de la regla",
+        "namePlaceholder": "p. ej. Alerta temprana de churn",
+        "nameRequired": "Ponle un nombre a la regla.",
+        "conditionsHeading": "¿Cuándo debe activarse?",
+        "conditionsIncomplete": "Completa todas las condiciones para continuar.",
+        "actionHeading": "¿Qué debe pasar entonces?",
+        "chooseAction": "una acción",
+        "actionRequired": "Elige una acción y completa los campos obligatorios.",
+        "listEmpty": "Aún no hay listas estáticas. Crea una en «Listas» primero.",
+        "listLoadError": "No se pudieron cargar las listas.",
+        "back": "Atrás",
+        "next": "Siguiente",
+        "save": "Guardar regla",
+        "saving": "Guardando …",
+        "cancel": "Cancelar",
+        "saveError": "No se pudo guardar.",
+        "discardTitle": "¿Descartar cambios?",
+        "discardBody": "Se perderán tus datos de esta regla.",
+        "discardConfirm": "Descartar",
+        "discardCancel": "Seguir editando"
       }
     },
     "templates": {

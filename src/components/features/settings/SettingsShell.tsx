@@ -7,8 +7,7 @@
  * die Hülle steht damit EINMAL vollständig, künftige Slices setzen nur `built: true`.
  * „Persönlich" ist bewusst KEINE Gruppe: unten steht EIN dezenter Verweis auf /app/profil.
  */
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 import { useCurrentOrg } from "@/hooks/useCurrentOrg";
@@ -23,6 +22,7 @@ import ProductPricingPage from "./ProductPricingPage";
 import PersonalVoicePage from "./PersonalVoicePage";
 import CompanyProfilePage from "./CompanyProfilePage";
 import RulesPage from "./RulesPage";
+import RuleOverview from "./lifecycle/RuleOverview";
 
 export default function SettingsShell() {
   const navigate = useNavigate();
@@ -31,8 +31,10 @@ export default function SettingsShell() {
   const { has } = useEffectivePermissions();
   const ctx = { isElevated: isElevatedRole(role), has };
 
-  // Startseite = erste gebaute, sichtbare Seite (aktuell „Team & Rechte").
-  const [active, setActive] = useState("team");
+  // Aktive Seite über die URL (?page=…) → deeplink- und teilbar. Default = erste gebaute Seite („Team & Rechte").
+  const [searchParams, setSearchParams] = useSearchParams();
+  const active = searchParams.get("page") ?? "team";
+  const setActive = (key: string) => setSearchParams({ page: key });
 
   const renderItem = (p: SettingsPage) => {
     const disabled = !p.built;
@@ -111,6 +113,7 @@ export default function SettingsShell() {
         {active === "personal-voice" && <PersonalVoicePage />}
         {active === "unternehmensprofil" && <CompanyProfilePage />}
         {active === "regeln" && <RulesPage />}
+        {active === "automatik-regeln" && <RuleOverview />}
       </div>
     </div>
   );

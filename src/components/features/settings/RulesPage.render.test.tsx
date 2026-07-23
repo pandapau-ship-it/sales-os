@@ -2,6 +2,7 @@
 import { describe, it, expect, vi, beforeAll, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent, waitFor, cleanup } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { MemoryRouter } from "react-router-dom";
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({ t: (k: string, o?: Record<string, unknown>) => (o ? `${k}:${JSON.stringify(o)}` : k) }),
@@ -45,7 +46,7 @@ afterEach(() => { cleanup(); updateSettings.mockClear(); });
 
 function renderPage() {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  return render(<QueryClientProvider client={qc}><RulesPage /></QueryClientProvider>);
+  return render(<MemoryRouter><QueryClientProvider client={qc}><RulesPage /></QueryClientProvider></MemoryRouter>);
 }
 
 describe("RulesPage", () => {
@@ -55,7 +56,7 @@ describe("RulesPage", () => {
     for (const g of ["pipeline", "churn", "signals", "meinTag"]) {
       expect(screen.getByText(`settings.rules.g.${g}.title`)).toBeTruthy();
     }
-    expect(screen.getByText("settings.rules.g.custom.note")).toBeTruthy(); // Eigene Actions (leer)
+    expect(screen.getByText("settings.rules.g.custom.open")).toBeTruthy(); // Eigene Actions — Türöffner (L-3d)
   });
 
   it("Churn-Schwelle speichern läuft über EINEN Schreibweg updateSettings({thresholds:{churn_risk_threshold}})", async () => {

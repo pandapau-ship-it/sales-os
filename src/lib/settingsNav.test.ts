@@ -62,9 +62,9 @@ describe("Vollständige Settings-Navigation (SET-3, Bauplan Abschnitt 1)", () =>
     }
   });
 
-  it("gebaut sind 'team' + 'unternehmensprofil' + 'personal-voice' + 'product-pricing' + 'regeln' — Rest ausgegraut ('Folgt')", () => {
+  it("gebaut sind 'team' + 'unternehmensprofil' + 'personal-voice' + 'product-pricing' + 'regeln' + 'automatik-regeln' — Rest ausgegraut ('Folgt')", () => {
     const builtInNav = SETTINGS_PAGES.filter((p) => p.group !== "personal" && p.built).map((p) => p.key);
-    expect(builtInNav).toEqual(["team", "unternehmensprofil", "personal-voice", "product-pricing", "regeln"]);
+    expect(builtInNav).toEqual(["team", "unternehmensprofil", "personal-voice", "product-pricing", "regeln", "automatik-regeln"]);
   });
 
   it("Persönlich-Seiten bleiben Registry-Einträge mit Route auf /app/profil", () => {

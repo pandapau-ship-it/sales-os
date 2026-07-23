@@ -20,6 +20,7 @@ import {
   upsertLifecycleRule, deleteLifecycleRule, type LifecycleRuleView,
 } from "@/lib/db";
 import { TEMPLATES, type RuleTemplate } from "@/lib/lifecycle/templates";
+import RuleEditor, { type EditorInit } from "./RuleEditor";
 
 export interface RuleOverviewProps {
   /** Org-Scope der Regeln. Default = Demo-Org (bis Auth die Session-Org liefert, TODO [D21]). */
@@ -37,6 +38,7 @@ export default function RuleOverview({ org = DEMO_ORGANIZATION_ID, onNew, onEdit
   const { has, loading: permLoading } = useEffectivePermissions();
   const canManage = has("automation.manage");
   const [delTarget, setDelTarget] = useState<LifecycleRuleView | null>(null);
+  const [editing, setEditing] = useState<EditorInit | null>(null);
 
   const rulesQ = useQuery({ queryKey: ["lifecycle-rules", org], queryFn: () => getLifecycleRules(org), staleTime: 30_000, retry: false, enabled: canManage });
   const limitQ = useQuery({ queryKey: ["lifecycle-rule-limit", org], queryFn: () => getLifecycleRuleLimit(org), staleTime: 60_000, retry: false, enabled: canManage });
@@ -60,6 +62,11 @@ export default function RuleOverview({ org = DEMO_ORGANIZATION_ID, onNew, onEdit
     return a ? t(a.labelKey) : type;
   };
 
+  // Editor öffnen: interner Standard (In-Place-Seite) — Props sind optionale Overrides (Testbarkeit/Einbettung).
+  const handleNew = () => (onNew ? onNew() : setEditing({ mode: "new" }));
+  const handleEdit = (r: LifecycleRuleView) => (onEdit ? onEdit(r) : setEditing({ mode: "edit", rule: r }));
+  const handleTemplate = (tpl: RuleTemplate) => (onTemplate ? onTemplate(tpl) : setEditing({ mode: "template", tpl }));
+
   // ── Permission-Gate (Seiten-Ebene) ─────────────────────────────────────────
   if (!permLoading && !canManage) {
     return (
@@ -68,6 +75,18 @@ export default function RuleOverview({ org = DEMO_ORGANIZATION_ID, onNew, onEdit
         <h3 className="typo-card-title text-text-primary">{t("lifecycle.ui.noPermission.title")}</h3>
         <p className="typo-subline mt-2 text-text-muted">{t("lifecycle.ui.noPermission.body")}</p>
       </div>
+    );
+  }
+
+  // Editor als In-Place-Seite (kein Sheet) — ersetzt die Liste, bis geschlossen/gespeichert wird.
+  if (editing) {
+    return (
+      <RuleEditor
+        orgId={org}
+        init={editing}
+        onClose={() => setEditing(null)}
+        onSaved={() => { setEditing(null); invalidate(); }}
+      />
     );
   }
 
@@ -84,7 +103,7 @@ export default function RuleOverview({ org = DEMO_ORGANIZATION_ID, onNew, onEdit
     </button>
   );
   const NewButton = (
-    <button type="button" onClick={onNew} disabled={atLimit}
+    <button type="button" onClick={handleNew} disabled={atLimit}
       className="inline-flex items-center gap-2 rounded-[10px] bg-sherloq-primary px-4 py-2 text-[13px] font-semibold text-on-accent shadow-[var(--shadow-card)] transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50">
       <Plus className="h-4 w-4" /> {t("lifecycle.ui.newRule")}
     </button>
@@ -94,7 +113,7 @@ export default function RuleOverview({ org = DEMO_ORGANIZATION_ID, onNew, onEdit
       <h3 className="typo-section-label mb-3 flex items-center gap-1.5 text-text-muted"><Sparkles className="h-3.5 w-3.5" /> {t("lifecycle.ui.templatesHeading")}</h3>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {TEMPLATES.map((tpl) => (
-          <button key={tpl.id} type="button" onClick={() => onTemplate?.(tpl)}
+          <button key={tpl.id} type="button" onClick={() => handleTemplate(tpl)}
             className={cn(BOX, "group p-4 text-left shadow-[var(--shadow-card)] transition-colors hover:border-sherloq-primary")}>
             <div className="typo-card-title text-text-primary group-hover:text-sherloq-primary">{t(tpl.titleKey)}</div>
             <div className="typo-subline mt-1 text-text-muted">{t(tpl.descKey)}</div>
@@ -152,7 +171,7 @@ export default function RuleOverview({ org = DEMO_ORGANIZATION_ID, onNew, onEdit
         <div className="space-y-3">
           {rules.map((r) => (
             <RuleCard key={r.id} rule={r} actionLabel={actionLabel(r.action.type)}
-              onToggle={() => toggleM.mutate(r)} onEdit={() => onEdit?.(r)} onDelete={() => setDelTarget(r)} />
+              onToggle={() => toggleM.mutate(r)} onEdit={() => handleEdit(r)} onDelete={() => setDelTarget(r)} />
           ))}
         </div>
       )}
