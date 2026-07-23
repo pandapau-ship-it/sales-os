@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
-  actionApplies, combineAnchorSets, diffFire, orderRules, activePrefix, computePlan,
+  actionApplies, bundleSourceId, combineAnchorSets, diffFire, orderRules, activePrefix, computePlan,
   type RuleInput,
 } from "./eval.ts";
 
@@ -21,6 +21,27 @@ describe("actionApplies (L-2b applies_to-Gate)", () => {
   it("fehlende/leere Registry-Angabe → false (defensiv)", () => {
     expect(actionApplies("contacts", undefined)).toBe(false);
     expect(actionApplies("contacts", [])).toBe(false);
+  });
+});
+
+describe("bundleSourceId (L-2c Bündelungs-Idempotenz, [D57])", () => {
+  it("reihenfolge-unabhängig: gleiche Menge → gleicher Key", () => {
+    const a = bundleSourceId("r1", [{ entityId: "c1", nextCount: 1 }, { entityId: "c2", nextCount: 1 }]);
+    const b = bundleSourceId("r1", [{ entityId: "c2", nextCount: 1 }, { entityId: "c1", nextCount: 1 }]);
+    expect(a).toBe(b);
+  });
+  it("Re-Fire nach Rearm (höherer nextCount) → anderer Key (neue Meldung)", () => {
+    const first = bundleSourceId("r1", [{ entityId: "c1", nextCount: 1 }]);
+    const refire = bundleSourceId("r1", [{ entityId: "c1", nextCount: 2 }]);
+    expect(first).not.toBe(refire);
+  });
+  it("andere Treffer-Menge → anderer Key; andere Regel → anderer Key", () => {
+    const base = bundleSourceId("r1", [{ entityId: "c1", nextCount: 1 }]);
+    expect(bundleSourceId("r1", [{ entityId: "c2", nextCount: 1 }])).not.toBe(base);
+    expect(bundleSourceId("r2", [{ entityId: "c1", nextCount: 1 }])).not.toBe(base);
+  });
+  it("Key trägt Regel-Präfix + bundle-Marker", () => {
+    expect(bundleSourceId("r1", [{ entityId: "c1", nextCount: 1 }])).toMatch(/^r1:bundle:[0-9a-f]{8}$/);
   });
 });
 
