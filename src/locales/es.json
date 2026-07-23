@@ -1914,7 +1914,11 @@
       "create_task": "Task anlegen",
       "add_tag": "Tag hinzufügen",
       "add_to_list": "Zu Liste hinzufügen",
-      "set_contact_status": "Kontakt-Status ändern"
+      "set_contact_status": "Kontakt-Status ändern",
+      "send_email_internal": "Interne E-Mail senden",
+      "send_email_contact": "E-Mail an Kontakt senden",
+      "slack_message": "Slack-Nachricht senden",
+      "start_sequence": "Sequenz starten"
     },
     "actionParam": {
       "title": {
