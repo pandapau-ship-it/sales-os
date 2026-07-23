@@ -20,6 +20,8 @@ export interface ConditionBuilderProps {
   anchor: FilterEntity;
   value: BuilderConditions;
   onChange: (c: BuilderConditions) => void;
+  /** Speicherversuch mit unvollständigen Bedingungen → betroffene Zeilen markieren (FUND 3). */
+  markInvalid?: boolean;
 }
 
 /** Segmentierter UND/ODER-Umschalter (klein, tokens-only). */
@@ -47,7 +49,7 @@ function LogicToggle({ value, onChange, label }: { value: Logic; onChange: (l: L
   );
 }
 
-export default function ConditionBuilder({ anchor, value, onChange }: ConditionBuilderProps) {
+export default function ConditionBuilder({ anchor, value, onChange, markInvalid }: ConditionBuilderProps) {
   const { t } = useTranslation();
 
   if (value.groups.length === 0) {
@@ -115,6 +117,7 @@ export default function ConditionBuilder({ anchor, value, onChange }: ConditionB
                     rule={rule}
                     isFirst={rIdx === 0}
                     groupLogic={gLogic}
+                    markInvalid={markInvalid}
                     onChange={(patch) => onChange(updateRule(value, gIdx, rIdx, patch))}
                     onRemove={() => onChange(removeRule(value, gIdx, rIdx))}
                   />

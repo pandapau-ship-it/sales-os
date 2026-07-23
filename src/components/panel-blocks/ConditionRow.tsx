@@ -6,6 +6,8 @@
 import { useTranslation } from "react-i18next";
 import { Trash2 } from "lucide-react";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import EnumMultiSelect from "./EnumMultiSelect";
+import ChipInput from "./ChipInput";
 import { HOVER_ACTIONS } from "@/lib/componentBehavior";
 import { cn } from "@/lib/utils";
 import type { FilterEntity, FilterRule, FilterOperator, FilterValue } from "@/lib/filter/types";
@@ -25,6 +27,8 @@ export interface ConditionRowProps {
   groupLogic: "AND" | "OR";
   onChange: (patch: Partial<FilterRule>) => void;
   onRemove: () => void;
+  /** true = Speicherversuch mit unvollständiger Zeile → betroffene Felder rot markieren (FUND 3). */
+  markInvalid?: boolean;
 }
 
 const FIELD_TRIGGER = "h-9 w-44 text-[13px]";
@@ -44,13 +48,21 @@ function coerce(type: FieldType, op: FilterOperator, raw: string): FilterValue {
   return raw;
 }
 
-export default function ConditionRow({ entity, rule, isFirst, groupLogic, onChange, onRemove }: ConditionRowProps) {
+export default function ConditionRow({ entity, rule, isFirst, groupLogic, onChange, onRemove, markInvalid }: ConditionRowProps) {
   const { t } = useTranslation();
   const fields = getFields(entity);
   const fieldDef = fields.find((f) => f.name === rule.field) ?? null;
   const ops = fieldDef ? getOperators(fieldDef.type) : [];
   const invalidOp = !!rule.field && !!rule.operator && (!fieldDef || !operatorAllowed(fieldDef.type, rule.operator));
   const showValue = !!rule.operator && operatorNeedsValue(rule.operator);
+  const isList = operatorTakesList(rule.operator);
+
+  // Vollständigkeit je Teil (für Rot-Markierung beim Speicherversuch, FUND 3).
+  const valueMissing = showValue && (rule.value === undefined || rule.value === null || rule.value === ""
+    || (Array.isArray(rule.value) && rule.value.length === 0));
+  const markField = !!markInvalid && !rule.field;
+  const markOp = !!markInvalid && !!rule.field && !rule.operator;
+  const markValue = !!markInvalid && !!fieldDef && valueMissing;
 
   // Feldwechsel: passt der aktuelle Operator nicht zum neuen Typ → Operator + Wert zurücksetzen.
   const onFieldChange = (name: string) => {
@@ -60,6 +72,7 @@ export default function ConditionRow({ entity, rule, isFirst, groupLogic, onChan
   };
 
   const valueStr = rule.value === undefined || rule.value === null ? "" : Array.isArray(rule.value) ? rule.value.join(", ") : String(rule.value);
+  const asArray = (v: FilterValue | undefined): Array<string | number> => (Array.isArray(v) ? (v as Array<string | number>) : []);
 
   return (
     <div className="group/row flex flex-wrap items-center gap-2">
@@ -69,7 +82,7 @@ export default function ConditionRow({ entity, rule, isFirst, groupLogic, onChan
 
       {/* Feld */}
       <Select value={rule.field || undefined} onValueChange={onFieldChange}>
-        <SelectTrigger className={FIELD_TRIGGER}><SelectValue placeholder={t("lifecycle.ui.fieldPlaceholder")} /></SelectTrigger>
+        <SelectTrigger className={cn(FIELD_TRIGGER, markField && "border-signal-urgent")}><SelectValue placeholder={t("lifecycle.ui.fieldPlaceholder")} /></SelectTrigger>
         <SelectContent>
           {fields.map((f) => <SelectItem key={f.name} value={f.name}>{t(fieldLabelKey(f.name))}</SelectItem>)}
         </SelectContent>
@@ -77,7 +90,7 @@ export default function ConditionRow({ entity, rule, isFirst, groupLogic, onChan
 
       {/* Operator */}
       <Select value={rule.operator || undefined} onValueChange={(op) => onChange({ operator: op as FilterOperator, value: undefined })} disabled={!fieldDef}>
-        <SelectTrigger className={cn(OP_TRIGGER, invalidOp && "border-signal-urgent text-signal-urgent")}>
+        <SelectTrigger className={cn(OP_TRIGGER, (invalidOp || markOp) && "border-signal-urgent text-signal-urgent")}>
           <SelectValue placeholder={t("lifecycle.ui.operatorPlaceholder")} />
         </SelectTrigger>
         <SelectContent>
@@ -87,28 +100,47 @@ export default function ConditionRow({ entity, rule, isFirst, groupLogic, onChan
 
       {/* Wert (typ-adaptiv) */}
       {showValue && fieldDef && (
-        fieldDef.type === "enum" ? (
+        fieldDef.type === "enum" && isList ? (
+          // enum + in/not_in → Mehrfachauswahl bekannter Werte (FUND 2), speichert string[]
+          <EnumMultiSelect
+            options={fieldDef.enumValues ?? []}
+            selected={asArray(rule.value) as string[]}
+            onChange={(v) => onChange({ value: v })}
+            labelFor={(x) => t(enumValueLabelKey(fieldDef.name, x))}
+            placeholder={t("lifecycle.ui.multiSelectPlaceholder")}
+            invalid={markValue}
+          />
+        ) : fieldDef.type === "enum" ? (
           <Select value={valueStr || undefined} onValueChange={(v) => onChange({ value: v })}>
-            <SelectTrigger className="h-9 min-w-[140px] flex-1 text-[13px]"><SelectValue placeholder={t("lifecycle.ui.valuePlaceholder")} /></SelectTrigger>
+            <SelectTrigger className={cn("h-9 min-w-[140px] flex-1 text-[13px]", markValue && "border-signal-urgent")}><SelectValue placeholder={t("lifecycle.ui.valuePlaceholder")} /></SelectTrigger>
             <SelectContent>
               {(fieldDef.enumValues ?? []).map((v) => <SelectItem key={v} value={v}>{t(enumValueLabelKey(fieldDef.name, v))}</SelectItem>)}
             </SelectContent>
           </Select>
         ) : fieldDef.type === "boolean" ? (
           <Select value={valueStr || undefined} onValueChange={(v) => onChange({ value: v === "true" })}>
-            <SelectTrigger className="h-9 min-w-[120px] text-[13px]"><SelectValue placeholder={t("lifecycle.ui.valuePlaceholder")} /></SelectTrigger>
+            <SelectTrigger className={cn("h-9 min-w-[120px] text-[13px]", markValue && "border-signal-urgent")}><SelectValue placeholder={t("lifecycle.ui.valuePlaceholder")} /></SelectTrigger>
             <SelectContent>
               <SelectItem value="true">{t(boolValueLabelKey(true))}</SelectItem>
               <SelectItem value="false">{t(boolValueLabelKey(false))}</SelectItem>
             </SelectContent>
           </Select>
+        ) : isList ? (
+          // text/number in/not_in · tags has_any → Chip-Eingabe statt Komma-Freitext (FUND 2)
+          <ChipInput
+            value={asArray(rule.value)}
+            onChange={(v) => onChange({ value: v as FilterValue })}
+            numeric={fieldDef.type === "number"}
+            placeholder={t("lifecycle.ui.chipPlaceholder")}
+            invalid={markValue}
+          />
         ) : (
           <input
-            type={fieldDef.type === "number" && !operatorTakesList(rule.operator) ? "number" : fieldDef.type === "date" ? "date" : "text"}
+            type={fieldDef.type === "number" ? "number" : fieldDef.type === "date" ? "date" : "text"}
             value={valueStr}
             onChange={(e) => onChange({ value: coerce(fieldDef.type, rule.operator, e.target.value) })}
-            placeholder={operatorTakesList(rule.operator) ? t("lifecycle.ui.listPlaceholder") : t("lifecycle.ui.valuePlaceholder")}
-            className={VALUE_INPUT}
+            placeholder={t("lifecycle.ui.valuePlaceholder")}
+            className={cn(VALUE_INPUT, markValue && "border-signal-urgent")}
           />
         )
       )}

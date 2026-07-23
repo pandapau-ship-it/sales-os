@@ -99,3 +99,7 @@ export { default as ConditionBuilder } from './ConditionBuilder';
 export type { ConditionBuilderProps } from './ConditionBuilder';
 export { default as LiveMatchCount } from './LiveMatchCount';
 export type { LiveMatchCountProps } from './LiveMatchCount';
+export { default as EnumMultiSelect } from './EnumMultiSelect';
+export type { EnumMultiSelectProps } from './EnumMultiSelect';
+export { default as ChipInput } from './ChipInput';
+export type { ChipInputProps } from './ChipInput';

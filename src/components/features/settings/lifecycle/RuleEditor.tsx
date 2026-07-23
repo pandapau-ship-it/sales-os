@@ -150,10 +150,11 @@ export default function RuleEditor({ orgId, init, onClose, onSaved }: RuleEditor
     onSuccess: () => onSaved(),
   });
   const saveErr = saveM.error ? parseStructured(saveM.error) : null;
-  const saveErrText = saveErr
+  // Alltagssprache: strukturierte Codes übersetzen; sonst hint (Handlungsanweisung) vor der Rohmeldung.
+  const saveErrReason = saveErr
     ? saveErr.code === "stale_write"
       ? t("lifecycle.ui.staleWrite")
-      : `${t("lifecycle.ui.editor.saveError")} ${saveErr.hint ?? saveErr.message}`
+      : (saveErr.hint ?? saveErr.message)
     : null;
 
   const goNext = () => {
@@ -165,7 +166,7 @@ export default function RuleEditor({ orgId, init, onClose, onSaved }: RuleEditor
   };
   const goBack = () => { setShowErrors(false); setStep((s) => Math.max(1, s - 1)); };
   const attemptClose = () => { if (dirty) setConfirmClose(true); else onClose(); };
-  const doSave = () => { setShowErrors(true); if (actionOk) saveM.mutate(); };
+  const doSave = () => { setShowErrors(true); if (actionOk && conditionsOk) saveM.mutate(); };
 
   const steps = [
     { label: t("lifecycle.ui.editor.stepAnchor") },
@@ -256,7 +257,7 @@ export default function RuleEditor({ orgId, init, onClose, onSaved }: RuleEditor
         {step === 2 && (
           <div className="flex flex-col gap-4">
             <div className="typo-field-label text-text-muted">{t("lifecycle.ui.editor.conditionsHeading")}</div>
-            <ConditionBuilder anchor={draft.anchor} value={draft.conditions} onChange={(c) => setDraft((d) => ({ ...d, conditions: c }))} />
+            <ConditionBuilder anchor={draft.anchor} value={draft.conditions} onChange={(c) => setDraft((d) => ({ ...d, conditions: c }))} markInvalid={showErrors} />
             <LiveMatchCount anchor={draft.anchor} conditions={draft.conditions} enabled={conditionsOk} />
             {showErrors && !conditionsOk && (
               <p className="text-[11px] text-signal-urgent">{t("lifecycle.ui.editor.conditionsIncomplete")}</p>
@@ -337,11 +338,14 @@ export default function RuleEditor({ orgId, init, onClose, onSaved }: RuleEditor
         )}
       </div>
 
-      {/* Speicher-Fehler ([D54] strukturiert) */}
-      {saveErrText && (
-        <div className="flex items-center gap-2 max-w-[720px] rounded-[10px] border border-signal-urgent/30 bg-signal-urgent/5 px-3.5 py-2.5 text-[12px] text-signal-urgent">
-          <AlertCircle className="h-4 w-4 shrink-0" />
-          <span>{saveErrText}</span>
+      {/* Speicher-Fehler ([D54] strukturiert) — klar „nicht gespeichert" + Grund in Alltagssprache */}
+      {saveErrReason && (
+        <div className="flex items-start gap-2.5 max-w-[720px] rounded-[10px] border border-signal-urgent/40 bg-signal-urgent/10 px-3.5 py-3 text-signal-urgent">
+          <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+          <div className="text-[13px]">
+            <div className="font-semibold">{t("lifecycle.ui.editor.notSaved")}</div>
+            <div className="mt-0.5 text-[12px] opacity-90">{saveErrReason}</div>
+          </div>
         </div>
       )}
 
