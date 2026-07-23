@@ -676,6 +676,11 @@
     **Kein aktiver Schaden** (schreiben nur Scores, lösen keine user-sichtbaren Aktionen aus) — aber Scores auf
     gelöschten Datensätzen sind Verschwendung und können später verwirren. Eigener kleiner Slice: `deleted_at`-Filter
     nachziehen (058-Muster). Kandidat für den unten genannten Regressionsschutz.
+  - **▶ QUEUED — CORS-Origin des Lifecycle-Evaluators von `*` auf Allowlist umstellen (23.07.2026, mit FUND 1):**
+    `evaluate-lifecycle-rules` sendet heute `Access-Control-Allow-Origin: *` (auth-gegatet: Bearer-Token, keine
+    Cookies/Credentials → Token nicht origin-fremd nutzbar; Preview-Deploys haben dynamische Origins → daher „*").
+    **Sobald die Prod-Domain(s) final sind:** Origin gegen eine Allowlist (Prod + localhost + ggf. Preview-Pattern)
+    spiegeln statt „*". Betrifft künftig ALLE browser-aufgerufenen Edge-Functions → gemeinsamer `_shared/cors.ts`.
   - **▶ QUEUED — Custom-Fields aus der DB in `FILTER_SCHEMA` speisen (Grundsatzfrage 23.07.2026):** Feld-/Operator-/
     Enum-Vokabular des Regel-/Filter-Builders ist heute **build-time-Code** (`src/lib/filter/schema.ts` + i18n) —
     kundenspezifische Felder erscheinen NICHT automatisch. Aktionen sind bereits DB-getrieben (`action_types`). Für
