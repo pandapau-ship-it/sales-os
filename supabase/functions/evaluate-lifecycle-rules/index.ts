@@ -86,6 +86,13 @@ async function loadAppliesTo(sb: SupabaseClient): Promise<Map<string, string[]>>
 // tasks.source_ref Unique. Genau daher tragen create_task/notify dieselbe fireInstance.
 const fireInstanceId = (ruleId: string, entityId: string, firedCount: number) => `${ruleId}:${entityId}:${firedCount + 1}`;
 
+// Deeplink zur Treffer-Liste der Regel (L-3e, [D56]/[D57]). Ledger-basiert: der Ziel-Screen liest die
+// Treffer aus lifecycle_rule_runs (rule_id) — NICHT die IDs in der URL (die wären ein eingefrorener Stand).
+// Anker-Mapping: contacts/deals → Kontakte-Screen (deals werden dort auf ihren Kontakt aufgelöst),
+// companies → Companies-Screen. Der Ziel-Screen kennt den Anker (liest ihn aus der Regel).
+const deeplinkFor = (anchor: AnchorEntity, ruleId: string): string =>
+  `/app/${anchor === "companies" ? "companies" : "kontakte"}?firedBy=${ruleId}`;
+
 /** notify / notify_urgent — Benachrichtigung an Owner (Fallback: Regel-Ersteller). */
 async function notifyHandler(sb: SupabaseClient, org: string, rule: RuleRow, entityId: string, firedCount: number, at: string): Promise<Record<string, unknown>> {
   const type = rule.action.type;
@@ -93,9 +100,7 @@ async function notifyHandler(sb: SupabaseClient, org: string, rule: RuleRow, ent
   const severity = type === "notify_urgent" ? "high" : "normal";
   const recipient = (await resolveOwner(sb, org, rule.anchor_entity, entityId)) ?? rule.created_by;
   if (!recipient) return { ok: false, handler: type, error_code: "no_recipient", message: "Kein Empfänger auflösbar", at };
-  // [D56]/D5: Deeplink-Routing existiert noch nicht (keine /kontakte/:id- bzw. Deal-Route) → bewusst null,
-  // NIE ein toter Link. Echte Sprungziele (+ Bündeln/Highlight) baut L-3 ([D57]).
-  const link = null;
+  const link = deeplinkFor(rule.anchor_entity, rule.id); // L-3e: Sprung zur Treffer-Liste (Ledger-basiert)
   try {
     const { error } = await sb.rpc("notify", {
       p_org: org, p_category: "rule", p_severity: severity, p_title: rule.name, p_body: message,
@@ -222,7 +227,7 @@ async function runBundledNotify(
   try {
     const { error } = await sb.rpc("notify", {
       p_org: org, p_category: "rule", p_severity: severity, p_title: rule.name, p_body: body,
-      p_link: null, p_source_type: "lifecycle_rule", p_source_id: sourceId, p_user_ids: [recipient],
+      p_link: deeplinkFor(rule.anchor_entity, rule.id), p_source_type: "lifecycle_rule", p_source_id: sourceId, p_user_ids: [recipient],
     });
     if (error) throw error;
     return { ok: true, handler: type, bundled: true, count, notification_source_id: sourceId, recipient, at };

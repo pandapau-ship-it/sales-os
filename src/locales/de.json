@@ -2079,6 +2079,20 @@
         "title": "Kunde wird kalt",
         "desc": "Warnt, wenn ein Kunde nicht mehr aktiv ist."
       }
+    },
+    "deeplink": {
+      "loading": "Treffer der Automatik-Regel werden geladen …",
+      "error": "Die Treffer dieser Regel konnten gerade nicht geladen werden.",
+      "goneTitle": "Diese Automatik-Regel gibt es nicht mehr",
+      "goneBody": "Sie wurde gelöscht oder ist für dich nicht verfügbar. Unten siehst du alle {{entity}}.",
+      "noMatchTitle": "Diese Regel hat aktuell keine Treffer",
+      "noMatchBody": "Die betroffenen Datensätze erfüllen die Bedingung nicht mehr. Unten siehst du alle {{entity}}.",
+      "matchTitle": "Treffer der Regel «{{name}}»",
+      "matchBody_one": "{{count}} Datensatz, der die Regel gerade erfüllt.",
+      "matchBody_other": "{{count}} Datensätze, die die Regel gerade erfüllen.",
+      "unavailable_one": "{{count}} Treffer ist inzwischen gelöscht.",
+      "unavailable_other": "{{count}} Treffer sind inzwischen gelöscht.",
+      "clear": "Filter aufheben"
     }
   }
 }

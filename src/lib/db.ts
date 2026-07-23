@@ -1668,6 +1668,62 @@ export async function getLifecycleRules(organizationId: string): Promise<Lifecyc
 }
 
 /** Aktions-Registry (global) — welche Aktionen es gibt, ob aktiv/`coming_soon`, für welche Anker. */
+/**
+ * L-3e Deeplink: die Treffer einer gefeuerten Lifecycle-Regel für die Sprung-Liste. Ledger-basiert —
+ * liest `lifecycle_rule_runs` (was gefeuert hat), NICHT IDs aus der URL (die wären eingefroren).
+ * ORG-ISOLATION: `firedBy` ist Nutzereingabe → RLS auf lifecycle_rules/-runs (org-gescoped, empirisch belegt)
+ * PLUS expliziter `organization_id`-Filter hier (Defense-in-Depth). Löst den Anker auf (contacts direkt ·
+ * deals → zugehöriger Kontakt · companies) und filtert inzwischen gelöschte Ziele heraus.
+ */
+export interface RuleMatchTargets {
+  exists: boolean;                              // Regel existiert noch (in DIESER Org)
+  name: string | null;
+  targetEntity: "contact" | "company" | null;   // welcher Screen filtert (kontakte vs companies)
+  ids: string[];                                 // sichtbare, nicht-gelöschte Ziel-IDs
+  matchedTotal: number;                          // alle matched=true rule_runs (vor Deleted-Filter)
+  unavailable: number;                           // davon inzwischen gelöscht / nicht mehr auflösbar
+}
+export async function getRuleMatchTargets(ruleId: string, organizationId: string): Promise<RuleMatchTargets> {
+  const empty: RuleMatchTargets = { exists: false, name: null, targetEntity: null, ids: [], matchedTotal: 0, unavailable: 0 };
+  const client = getSupabaseClient();
+  if (!client) return empty;
+  // 1) Regel (org-gescoped). Nicht gefunden → Regel existiert nicht (mehr) ODER fremde Org (RLS) → Edge-Fall.
+  const { data: rule } = await client
+    .from("lifecycle_rules").select("name, anchor_entity")
+    .eq("organization_id", organizationId).eq("id", ruleId).maybeSingle();
+  if (!rule) return empty;
+  const anchor = (rule as { anchor_entity: FilterEntity }).anchor_entity;
+  const name = (rule as { name: string }).name;
+  const targetEntity: "contact" | "company" = anchor === "companies" ? "company" : "contact";
+  // 2) Treffer-Entities (matched=true), org-gescoped.
+  const { data: runs } = await client
+    .from("lifecycle_rule_runs").select("entity_id")
+    .eq("organization_id", organizationId).eq("rule_id", ruleId).eq("matched", true);
+  const entityIds = [...new Set((runs ?? []).map((r) => (r as { entity_id: string }).entity_id))];
+  if (entityIds.length === 0) return { exists: true, name, targetEntity, ids: [], matchedTotal: 0, unavailable: 0 };
+  // 3) Anker → Ziel-IDs auflösen + Gelöschte herausfiltern.
+  if (anchor === "companies") {
+    const { data } = await client.from("companies").select("id")
+      .eq("organization_id", organizationId).is("deleted_at", null).in("id", entityIds);
+    const ids = (data ?? []).map((r) => (r as { id: string }).id);
+    return { exists: true, name, targetEntity, ids, matchedTotal: entityIds.length, unavailable: entityIds.length - ids.length };
+  }
+  let contactIds = entityIds;
+  if (anchor === "deals") { // Deal → zugehöriger (lebender) Kontakt
+    const { data } = await client.from("deals").select("contact_id")
+      .eq("organization_id", organizationId).is("deleted_at", null).in("id", entityIds);
+    contactIds = [...new Set((data ?? []).map((r) => (r as { contact_id: string | null }).contact_id).filter((v): v is string => !!v))];
+  }
+  const { data: cs } = contactIds.length
+    ? await client.from("contacts").select("id").eq("organization_id", organizationId).is("deleted_at", null).in("id", contactIds)
+    : { data: [] as { id: string }[] };
+  const ids = (cs ?? []).map((r) => (r as { id: string }).id);
+  // Zähle in KONTAKT-Granularität (= Ziel-Screen-Einheit): bei anchor `deals` sind `entityIds` Deal-IDs,
+  // `contactIds` die distinkt aufgelösten Kontakte. `unavailable` = aufgelöste, aber gelöschte Kontakte —
+  // NIE die Deal→Kontakt-Verdichtung als „gelöscht" fehldeuten (Honesty). Bei `contacts` gilt contactIds===entityIds.
+  return { exists: true, name, targetEntity, ids, matchedTotal: contactIds.length, unavailable: contactIds.length - ids.length };
+}
+
 export async function getActionTypes(): Promise<ActionTypeMeta[]> {
   const client = getSupabaseClient();
   if (!client) return [];
