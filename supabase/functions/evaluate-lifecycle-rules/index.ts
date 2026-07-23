@@ -36,8 +36,19 @@ const PREREQUISITE_JOBS = [
 const MAX_FIRED_PER_RUN = 500; // Batch-Sicherheitsnetz je Lauf (Rest wird vertagt, nicht verworfen)
 const TIME_BUDGET_MS = 25_000; // user-triggered Edge-Timeout-Puffer
 
+// CORS (FUND 1): der Browser ruft den Dry-Run per functions.invoke direkt auf (Cross-Origin). Ohne diese
+// Header wird die Antwort/der Preflight geblockt → im Builder „Trefferzahl konnte nicht geladen werden".
+// Der Cron-Pfad (net.http_post, server-zu-server) brauchte das nie — daher fiel es erst im Browser auf.
+// WICHTIG: Diese Function MUSS mit `--no-verify-jwt` deployt werden (sie macht ihre Auth selbst:
+// isServiceRole für den echten Lauf · getUser+automation.manage für den User-Dry-Run). Sonst weist die
+// Plattform den Preflight-OPTIONS (ohne Auth-Header) ab, bevor der OPTIONS-Handler unten greift.
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
 const json = (body: unknown, status = 200) =>
-  new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
+  new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 const errMsg = (e: unknown) => (e instanceof Error ? e.message : (e && typeof e === "object" ? JSON.stringify(e) : String(e)));
 
 interface RuleRow extends RuleInput { name: string; created_by: string | null; conditions: { logic: "AND" | "OR"; groups: Group[] } }
@@ -345,6 +356,8 @@ async function handleDryRun(req: Request, body: Record<string, unknown>): Promis
 
 Deno.serve(async (req) => {
   const started = Date.now();
+  // CORS-Preflight (FUND 1): vor jeder Auth/Body-Verarbeitung beantworten.
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   const body = await req.json().catch(() => ({}));
   // Dry-Run: eigener, read-only Auth-Pfad — VOR jeder Zustandsänderung.
   if (body.dryRun === true) return await handleDryRun(req, body);
