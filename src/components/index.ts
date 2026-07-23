@@ -55,6 +55,7 @@ export { default as PersonalVoicePage } from './features/settings/PersonalVoiceP
 export { default as CompanyProfilePage } from './features/settings/CompanyProfilePage';
 export { default as TeamMembersPage } from './features/settings/TeamMembersPage';
 export { default as MemberDetailPanel } from './features/settings/MemberDetailPanel';
+export { default as RuleOverview } from './features/settings/lifecycle/RuleOverview';
 
 // ── farming/ (Farmer-Screen-Hilfskomponenten, analog shared/) ────────────────
 export { default as FarmerKpiCards } from './farming/FarmerKpiCards';
