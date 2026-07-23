@@ -573,6 +573,15 @@
     org aus Body · User-Token = org aus Session + `automation.manage`); echter Lauf nur Service-Rolle. Powert
     Live-Trefferzahl + „jetzt prüfen". (3) **[D54]** `upsert/delete_lifecycle_rule` → strukturierte Fehler
     (`_structured_error`: `detail`-JSON `{code, field, …grenzen}` + `hint`) — **Vorlage** für die übrigen RPCs (Migr. 092).
+    **Guard-Fund (behoben):** der Projekt-Service-Key ist der NEUE opake `sb_secret_…`-Key (kein JWT) → der
+    Service-Role-Guard vergleicht format-agnostisch exakt gegen den Env-Service-Key (+ JWT-Rolle nur Legacy-Fallback),
+    sonst wäre der `score-upsell`-Verkettungs-Aufruf still mit 403 gebrochen.
+    **▶ FOLGE-SLICE (akzeptiert, NICHT jetzt) — L-2c-Nachtrag „Bulk-`mark_fired` für Bündel":** Beim gebündelten
+    `notify` markiert der Auswerter die Treffer in einer per-Datensatz-Schleife. Stürzt der Lauf NACH dem `notify`,
+    aber MITTEN in der Schleife ab, sieht der Retry eine kleinere Treffer-Menge → anderer `bundleSourceId` → **eine
+    zusätzliche** Meldung für die Rest-Teilmenge (at-least-once, akzeptiert für den L-2c-Deploy). Härtung: ein
+    **Bulk-`lifecycle_mark_fired`** (ein Statement je Bündel, gemeinsames `action_result`) schließt das Fenster →
+    eigener kleiner Slice mit Gates. (Voll-Crash = Dedup, Re-Fire = neue Meldung sind bereits korrekt.)
   - ▶ **NÄCHSTE SLICE: L-3 UI CONDITION-BUILDER / „EIGENE ACTIONS"** — *[BAU], UI (UI-SLICE-Vorprüfung Pflicht).*
     Oberfläche zum Zusammenklicken eigener WENN-DANN-Regeln (in der leeren Layout-Reserve „Eigene Actions" der
     Regeln-Seite): **generischer Bedingungs-Builder** über `src/lib/filter` (AND/OR-Baum + Option-B-Gruppen je
