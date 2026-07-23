@@ -619,6 +619,15 @@
     `assigned_to` ausgeblendet) · **i18n `lifecycle.*`** (de + en/es als DE-Kopie: entity/field/op/enum/bool/action/
     actionParam/ui) · Tests (`config.test.ts`). **▶ Slice-Zuschnitt Rest:** L-3b `ConditionBuilder` (Library) · L-3c
     Overview · L-3d Editor (inkl. Listen-Picker, [D57]-Hinweis, Zustände, alert-dialog) · L-3e Deeplinks ([D56]/[D57]).
+  - ▶ **QUEUED — ACL-AUDIT ALLER FUNKTIONEN (systemischer Nachtrag, 23.07.2026 · NICHT vor L-3-Ende):** In L-2b
+    (`add_to_list`→`list_members`) und L-3a (`upsert_lifecycle_rule` 2-arg→3-arg) trat zweimal derselbe Fehler auf:
+    **`drop function` nimmt GRANTs + Attribute mit.** Ist „drop+create" ein übliches Migrations-Muster hier und
+    niemand hat die GRANTs nachgezogen, gibt es womöglich längst eine **produktive RPC, die für `authenticated`
+    nicht mehr ausführbar** ist und deren Aufrufer nur selten getroffen wird. **Aufgabe:** (1) alle Migrationen auf
+    das **drop+create-Muster** durchsuchen; (2) Live-`proacl` **aller** public-Funktionen gegen die Supabase-Norm
+    `{anon, authenticated, service_role}` (+PUBLIC) abgleichen, Abweichungen listen; (3) Abweichungen per expliziten
+    `grant execute` beheben. **Plus Regel für künftige Migrationen:** nach **jedem** `drop+create` einer Funktion die
+    GRANTs **explizit** setzen (kein Verlass auf Default-Privileges) — Kandidat für einen Audit-/structure-check-Check.
   - **QUEUED (nach dem Lifecycle-Thread): SET-4b „Automation"-Seite** — *[BAU], nächste Settings-Seite im 4a–4d-Arc.*
     Settings → Arbeitsweise → **Automation** (`settingsNav` key `automation`, `built:false`): Editor für Automation-
     Level/Risk-Rules über `update_settings` + `automation.manage`-Gate. Danach **4c** Pipeline-Stages-UI · **4d**
