@@ -284,29 +284,21 @@ async function evaluateOrg(sb: SupabaseClient, org: string, appliesTo: Map<strin
   return { fired: plan.fires.length, rearmed: plan.rearms.length, suppressed: plan.suppressed, carried: plan.carried };
 }
 
-/** Rolle aus einem Legacy-JWT-Service-Token (nur Fallback; neue `sb_secret_`-Keys sind KEINE JWTs). */
-function decodeJwtRole(authHeader: string | null): string | null {
-  try {
-    const tok = (authHeader ?? "").replace(/^Bearer\s+/i, "");
-    const payload = tok.split(".")[1];
-    if (!payload) return null;
-    const j = JSON.parse(atob(payload.replace(/-/g, "+").replace(/_/g, "/")));
-    return (j.role as string) ?? null;
-  } catch {
-    return null;
-  }
-}
-
 /**
- * Ist der Aufrufer die Service-Rolle? FORMAT-AGNOSTISCH: primär exakter Vergleich gegen den Env-Service-Key
- * (dieses Projekt nutzt den NEUEN opaken `sb_secret_…`-Key — KEIN JWT; die Verkettung score-upsell sendet
- * genau `Bearer ${SUPABASE_SERVICE_ROLE_KEY}` → identischer Env-Wert im selben Projekt → match). JWT-Rollen-
- * Check nur als Fallback für Legacy-JWT-Service-Tokens. Ein User-/Anon-Token besitzt das Secret NICHT → 403.
+ * Ist der Aufrufer die Service-Rolle? AUSSCHLIESSLICH exakter Vergleich gegen den Env-Service-Key
+ * (dieses Projekt nutzt den opaken `sb_secret_…`-Key — KEIN JWT; die Verkettung score-upsell sendet
+ * genau `Bearer ${SUPABASE_SERVICE_ROLE_KEY}` aus derselben Env → match). Ein User-/Anon-Token besitzt das
+ * Secret NICHT → 403.
+ *
+ * SICHERHEIT (kein JWT-Rollen-Fallback!): Ein früherer `decodeJwtRole`-Fallback las die JWT-`role` OHNE
+ * Signaturprüfung. Solange die Plattform `verify_jwt` erzwang, war das gedeckt — aber diese Function wird
+ * mit `--no-verify-jwt` deployt (nötig für den CORS-Preflight, FUND 1). Dann könnte ein gefälschter JWT
+ * `{"role":"service_role"}` (beliebige Signatur) den Service-Pfad übernehmen. Deshalb NUR der Secret-Vergleich:
+ * unfälschbar, weil er den echten Key-Wert verlangt (den nur Backend/Vault kennen).
  */
 const isServiceRole = (authHeader: string | null): boolean => {
   const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-  if (key && authHeader === `Bearer ${key}`) return true;
-  return decodeJwtRole(authHeader) === "service_role";
+  return !!key && authHeader === `Bearer ${key}`;
 };
 
 /**
