@@ -1,12 +1,27 @@
 import { describe, it, expect } from "vitest";
 import {
-  combineAnchorSets, diffFire, orderRules, activePrefix, computePlan,
+  actionApplies, combineAnchorSets, diffFire, orderRules, activePrefix, computePlan,
   type RuleInput,
 } from "./eval.ts";
 
 const rule = (o: Partial<RuleInput> & { id: string }): RuleInput => ({
   anchor_entity: "contacts", priority: 100, is_terminal: false, created_at: "2026-01-01",
   organization_id: "org", action: { type: "notify" }, ...o,
+});
+
+describe("actionApplies (L-2b applies_to-Gate)", () => {
+  it("Anker in applies_to → true", () => {
+    expect(actionApplies("contacts", ["contacts", "deals"])).toBe(true);
+    expect(actionApplies("deals", ["contacts", "deals"])).toBe(true);
+  });
+  it("Anker NICHT in applies_to → false (z.B. add_tag auf deals)", () => {
+    expect(actionApplies("deals", ["contacts", "companies"])).toBe(false);
+    expect(actionApplies("companies", ["contacts"])).toBe(false);
+  });
+  it("fehlende/leere Registry-Angabe → false (defensiv)", () => {
+    expect(actionApplies("contacts", undefined)).toBe(false);
+    expect(actionApplies("contacts", [])).toBe(false);
+  });
 });
 
 describe("combineAnchorSets (Mengen-Algebra, Option B)", () => {

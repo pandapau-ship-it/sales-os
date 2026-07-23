@@ -17,6 +17,11 @@ export interface RuleCore {
   created_at: string;     // ISO — stabiler Tiebreaker
 }
 
+/** Ist die Aktion für diesen Anker anwendbar? (applies_to aus der action_types-Registry, L-2b). */
+export function actionApplies(anchor: AnchorEntity, appliesTo: readonly string[] | undefined): boolean {
+  return !!appliesTo && appliesTo.includes(anchor);
+}
+
 // ── Mengen-Algebra: Gruppen-Anker-IDs → Anker-Match-Menge (Option B) ─────────
 /** AND = Schnittmenge · OR = Vereinigung über die je-Gruppe gemappten Anker-ID-Mengen. */
 export function combineAnchorSets(logic: "AND" | "OR", groupSets: string[][]): string[] {

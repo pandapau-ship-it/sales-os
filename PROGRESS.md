@@ -1934,18 +1934,35 @@ kam es, wie groß ist es** — und einen **klaren nächsten Schritt** anstoßen 
 > Slack → Slack-Integration (beide existieren noch nicht). **Verwandt:** [D-lifecycle-trigger] · Aktions-
 > Registry `action_types` (Migr. 088, `send_email_internal`/`slack_message` als `coming_soon`) · N-S2.
 
-### [D56] Lifecycle-Auswerter — deals/companies-Anker abschließen (deferred → L-2b, vor L-3-UI)
-> **Erfasst 22.07.2026** (nach Faktencheck). **Korrektur einer Annahme:** die deals/companies-Anker sind in
-> **L-2a bereits IMPLEMENTIERT** (nicht nur contacts) — `groupAnchorIds`/`resolveOwner`/`computePlan` behandeln
-> alle drei Anker inkl. FK-Mapping (`deals.contact_id` · `contacts.primary_company_id` · `deals.company_id`)
-> und Owner (`contacts.assigned_to` · `deals.owner_id` · companies → Fallback `created_by`). Deal-/Firmen-
-> verankerte Regeln **würden feuern**. **Echte offene Lücken:**
-> 1. **Deeplink `p_link` fehlt** für deals/companies — nur `anchor==='contacts'` erhält ein Sprungziel
->    (`/app/kontakte/{id}`); deals/companies-Benachrichtigungen kommen ohne Link.
-> 2. **Noch nicht live-verifiziert** (falls die L-2a-Live-Prüfung nur contacts abdeckte) — die deals/companies-
->    Anker-Pfade live gegen echte Daten prüfen.
-> **MUSS in L-2b umgesetzt werden, BEVOR die L-3-UI alle drei Anker anbietet** (sonst UI-Anker ohne Sprungziel
-> bzw. unverifiziert). **Verwandt:** [D-lifecycle-trigger] · L-2b (create_task/add_tag/add_to_list).
+### [D56] Lifecycle-Deeplinks — Routing-Infra fehlt (deferred → L-3, nicht L-2b)
+> **Erfasst 22.07., präzisiert 23.07.2026.** Alle drei Anker sind in L-2a implementiert **und live-verifiziert**
+> (contacts/deals/companies feuern, Owner-Auflösung je Pfad bewiesen). **Der offene Punkt ist NUR das Deeplink-
+> Sprungziel — und der ist größer als „URL ergänzen":** es fehlt die **Routing-Infrastruktur**. Route-Bestand:
+> **nur `companies/:id`** (`ScreenCompanyDetail`) existiert — **keine `kontakte/:id`-Route, keine Deal-Route**
+> (Deals leben in der Hunter-Pipeline). Folge: **sogar der L-2a-contacts-Link `/app/kontakte/{id}` löst NICHT auf**
+> (Catch-all/NotFoundRedirect) — ein bereits ausgelieferter toter Link.
+> - **L-2b (Sofortfix):** kaputter contacts-`p_link` → **`null`** (kein Link ist besser als ein toter — [D57] Punkt 5).
+> - **L-3:** echte Sprungziele bauen (Route `kontakte/:id` **oder** Fokus-Param `?focus=` mit `highlightId`/
+>   deeplink-flash; Deal → Hunter-Fokus oder Kontakt des Deals; companies → bestehendes `/app/companies/:id`) —
+>   gemäß **[D57]** (Ein-Treffer → Objekt · Mehr-Treffer → gefilterte Liste über die Filter-Lib).
+> **Verwandt:** [D57] (Benachrichtigungs-/Deeplink-UX) · [D-lifecycle-trigger] · L-3 (Condition-Builder + Routing).
+
+### [D57] Benachrichtigungs- & Deeplink-UX für Lifecycle-Regeln (verbindlich für L-3, Best-Practice)
+> **Erfasst 23.07.2026.** Verbindliche UX-Vorgabe für die L-3-UI + den zugehörigen Notification-Ausbau:
+> 1. **BÜNDELN statt fluten:** Eine Regel erzeugt **pro Auswerte-Lauf EINE** Benachrichtigung, auch wenn N Datensätze
+>    matchen — **nicht** N Einzelmeldungen. Genau 1 Treffer → Name/Objekt direkt in der Meldung. Mehrere → „X Datensätze
+>    erfüllen Regel Y".
+> 2. **KLICK-ZIEL:** 1 Treffer → direkt zum Objekt (bestehendes Panel/Detail öffnen + hervorheben, `highlightId`/
+>    deeplink-flash). Mehrere → **gefilterte Listenansicht nach den Regel-Bedingungen**, reproduzierbar über die
+>    **bestehende Filter-Lib** (wie dynamische Listen). **Keine** generierten Wegwerf-Seiten.
+> 3. **Klick ≠ verschwinden:** Anklicken markiert nur als gelesen, die Meldung bleibt im **Verlauf** auffindbar
+>    (Linear/GitHub-Muster, deckt sich mit N13 des Mitteilungssystems).
+> 4. **Regel-Heimat in der UI:** die Regel selbst zeigt „zuletzt gefeuert für X Datensätze" mit **demselben Link** —
+>    Treffer auch Wochen später wiederfindbar, unabhängig von der Glocke.
+> 5. **Nie tote Links:** lieber gar kein Link als einer, der ins Leere führt.
+> **⚠ Verhaltens-ÄNDERUNG gegenüber L-2a:** dort feuert die Maschine **pro Datensatz** (jeder Match → eigene notify).
+> Die Umstellung auf **Bündelung** (Punkt 1) gehört mit den Deeplinks in **L-3** (bzw. einen dafür vorgesehenen Slice)
+> — **in L-2b NICHT umbauen.** **Verwandt:** [D56] (Routing) · Mitteilungssystem N2/N12/N13 · [D-lifecycle-trigger].
 
 ### [D-set4-group4-signalcap] SET-4 Gruppe 4 — signal_windows schreibbar + Kappungs-Key (mit 4a)
 > **Erfasst 21.07.2026.** Für Gruppe 4 (Signale & ICP) fehlt im Schreibweg: (a) `settings.signal_windows`
