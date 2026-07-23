@@ -1572,9 +1572,10 @@ export async function upsertLifecycleRule(
   for (const g of patch.conditions?.groups ?? []) {
     validateFilter({ entity: g.entity, where: g.where });
   }
-  // expectedUpdatedAt = optimistischer Sperr-Guard (L-3a): beim Update den beim Laden bekannten
-  // `updated_at` mitgeben → der RPC wirft `stale_write`, wenn die Regel zwischenzeitlich geändert
-  // wurde (kein stilles Überschreiben). Null/undefined = kein Check (Chat/Altpfade unberührt).
+  // expectedUpdatedAt = optimistischer Sperr-Guard (L-3a, OPT-IN): NUR der interaktive Editor, der die Regel
+  // geladen hat, übergibt das bekannte `updated_at` → der RPC wirft `stale_write`, wenn sie zwischenzeitlich
+  // geändert wurde (kein stilles Überschreiben). Null/undefined = bewusst KEIN Check (CREATE, KI-Chat ohne
+  // Basislinie, programmatische Aufrufer) — Zugriffsschutz (automation.manage + Org) läuft davon unabhängig immer.
   const { data, error } = await client.rpc("upsert_lifecycle_rule", {
     p_id: id, p_patch: patch, p_expected_updated_at: expectedUpdatedAt ?? null,
   });

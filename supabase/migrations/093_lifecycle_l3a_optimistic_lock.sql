@@ -3,8 +3,18 @@
 --   (1) notify/notify_urgent: params_schema `message` → optional (Auswerter fällt auf rule.name zurück;
 --       Katalog vs. Verhalten war widersprüchlich — UI bietet ein OPTIONALES Nachrichtenfeld).
 --   (2) upsert_lifecycle_rule: optimistischer Sperr-Guard (p_expected_updated_at) → bei parallelem Bearbeiten
---       KEIN stilles Überschreiben, sondern strukturierter `stale_write`-Fehler ([D54]-Muster). Abwärtskompatibel:
---       ohne den Parameter (Default null) verhält sich der RPC wie zuvor (Chat/Altpfade unberührt).
+--       KEIN stilles Überschreiben, sondern strukturierter `stale_write`-Fehler ([D54]-Muster).
+--
+-- SIGNATUR: Die 2-arg-Version wird ERSETZT (drop + neu als 3-arg), NICHT als Overload danebengestellt →
+--   es gibt danach GENAU EINE Funktion, keinen stillen Pfad am Guard vorbei. Einziger Code-Aufrufer:
+--   src/lib/db.ts `upsertLifecycleRule` (übergibt 3 benannte Params). Kein Edge/Seed/Migrations-Aufruf.
+--
+-- NULL-VERHALTEN (bewusst, opt-in): `p_expected_updated_at = null` (Default) → Guard greift NICHT (durchwinken).
+--   Optimistisches Sperren ist opt-in — nur wer eine geladene Basislinie hat, kann prüfen. Der INTERAKTIVE Editor
+--   (L-3d) übergibt das beim Laden bekannte `updated_at` → geschützt (dort passiert Parallel-Edit zweier Menschen).
+--   Alle anderen (CREATE — Guard greift ohnehin nur bei UPDATE; späterer KI-Chat ohne Basislinie; programmatisch)
+--   übergeben nichts → durchwinken. KEIN Sicherheits-Bypass: `automation.manage` + Org-Scoping laufen IMMER,
+--   unabhängig vom Parameter — der Guard ist reine Datenintegrität/UX, kein Zugriffsschutz.
 
 -- ── (1) notify-Payload angleichen ────────────────────────────────────────────
 update action_types set params_schema = '{"message":"optional"}'::jsonb where key in ('notify', 'notify_urgent');
