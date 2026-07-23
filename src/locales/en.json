@@ -106,7 +106,8 @@
       "comingSoon": "Soon",
       "branding": "Branding",
       "personal-voice": "Personal voice",
-      "product-pricing": "Products & pricing"
+      "product-pricing": "Products & pricing",
+      "automatik-regeln": "Automatik-Regeln"
     },
     "members": {
       "title": "Members",
@@ -244,7 +245,8 @@
           "desc": "Your daily prioritisation has its own weights."
         },
         "custom": {
-          "note": "Coming soon: compose your own if-then rules from building blocks — to follow."
+          "note": "Coming soon: compose your own if-then rules from building blocks — to follow.",
+          "open": "Eigene Wenn-Dann-Regeln öffnen →"
         }
       },
       "heat": {

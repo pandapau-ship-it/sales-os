@@ -106,7 +106,8 @@
       "comingSoon": "Próximamente",
       "branding": "Marca",
       "personal-voice": "Voz personal",
-      "product-pricing": "Productos y precios"
+      "product-pricing": "Productos y precios",
+      "automatik-regeln": "Automatik-Regeln"
     },
     "members": {
       "title": "Miembros",
@@ -244,7 +245,8 @@
           "desc": "La priorización de tu día tiene sus propios pesos."
         },
         "custom": {
-          "note": "Próximamente: componer tus propias reglas si-entonces a partir de bloques — pendiente."
+          "note": "Próximamente: componer tus propias reglas si-entonces a partir de bloques — pendiente.",
+          "open": "Eigene Wenn-Dann-Regeln öffnen →"
         }
       },
       "heat": {

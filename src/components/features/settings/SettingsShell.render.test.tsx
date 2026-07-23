@@ -8,7 +8,7 @@ import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 
 vi.mock("react-i18next", () => { const t = (k: string) => k; return { useTranslation: () => ({ t }) }; });
 const navigateMock = vi.fn();
-vi.mock("react-router-dom", () => ({ useNavigate: () => navigateMock }));
+vi.mock("react-router-dom", () => ({ useNavigate: () => navigateMock, useSearchParams: () => [new URLSearchParams(), () => {}] }));
 vi.mock("@/hooks/useCurrentOrg", () => ({ useCurrentOrg: () => ({ organizationId: "org1", role: "owner", loading: false, provisioningError: false }) }));
 vi.mock("@/hooks/usePermissions", () => ({ useEffectivePermissions: () => ({ has: () => true, permissions: new Set(), loading: false }) }));
 vi.mock("./TeamMembersPage", () => ({ default: () => <div>TEAM_PAGE</div> }));

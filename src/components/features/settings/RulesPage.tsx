@@ -19,6 +19,7 @@
  * Reset-Empfehlungen spiegeln die Seeds (012/048/052/054) — zentral in `REC` (kein zweites System).
  */
 import { type ReactNode } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
   Flame, Sun, Snowflake, CloudSnow, Ghost, GitBranch, TrendingDown, TrendingUp,
@@ -73,6 +74,7 @@ export default function RulesPage() {
   const { organizationId } = useCurrentOrg();
   const { has } = useEffectivePermissions();
   const { toast } = useToast();
+  const [, setSearchParams] = useSearchParams();
   const qc = useQueryClient();
   const save = useSaveState();
 
@@ -404,11 +406,15 @@ export default function RulesPage() {
           <p className="typo-subline text-text-muted">{t("settings.rules.meinTag.note")}</p>
         ))}
 
-        {/* LAYOUT-RESERVE — Eigene Actions (bewusst leer, ehrlich „folgt später") */}
-        <div className="rounded-[12px] border border-dashed border-border bg-app-bg p-8 text-center">
-          <span className="inline-flex text-text-muted mb-2">{iconEl(Puzzle)}</span>
-          <p className="typo-subline text-text-muted">{t("settings.rules.g.custom.note")}</p>
-        </div>
+        {/* Eigene Actions — Türöffner zum Lifecycle-Regel-Builder (eigene Settings-Seite) */}
+        <button
+          type="button"
+          onClick={() => setSearchParams({ page: "automatik-regeln" })}
+          className="w-full rounded-[12px] border border-dashed border-border bg-app-bg p-8 text-center transition-colors hover:border-sherloq-primary hover:bg-sherloq-primary/5"
+        >
+          <span className="inline-flex text-sherloq-primary mb-2">{iconEl(Puzzle)}</span>
+          <p className="typo-subline text-text-body">{t("settings.rules.g.custom.open")}</p>
+        </button>
       </div>
     </div>
   );

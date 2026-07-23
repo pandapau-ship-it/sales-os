@@ -106,7 +106,8 @@
       "comingSoon": "Folgt",
       "branding": "Branding",
       "personal-voice": "Personal Voice",
-      "product-pricing": "Produkte & Preise"
+      "product-pricing": "Produkte & Preise",
+      "automatik-regeln": "Automatik-Regeln"
     },
     "members": {
       "title": "Mitglieder",
@@ -244,7 +245,8 @@
           "desc": "Die Priorisierung deines Tages hat eigene Gewichte."
         },
         "custom": {
-          "note": "Bald: eigene Wenn-Dann-Regeln aus Bausteinen komponieren — folgt später."
+          "note": "Bald: eigene Wenn-Dann-Regeln aus Bausteinen komponieren — folgt später.",
+          "open": "Eigene Wenn-Dann-Regeln öffnen →"
         }
       },
       "heat": {

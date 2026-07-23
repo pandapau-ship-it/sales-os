@@ -59,6 +59,7 @@ export const SETTINGS_PAGES: readonly SettingsPage[] = [
   { key: "product-pricing",   group: "unternehmen",  visibility: "settings.manage", built: true  }, // Slice 1/3 GEBAUT (Migr. 077)
   // ARBEITSWEISE
   { key: "regeln",            group: "arbeitsweise", visibility: "settings.manage", built: true  }, // SET-4a (GEBAUT)
+  { key: "automatik-regeln",  group: "arbeitsweise", visibility: "automation.manage", built: true }, // L-3 Lifecycle-Regel-Builder (GEBAUT)
   { key: "automation",        group: "arbeitsweise", visibility: "settings.manage", built: false }, // SET-4
   { key: "pipeline",          group: "arbeitsweise", visibility: "settings.manage", built: false }, // SET-4
   { key: "mein-tag",          group: "arbeitsweise", visibility: "settings.manage", built: false }, // SET-4
