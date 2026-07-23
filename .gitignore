@@ -33,3 +33,6 @@ dist-ssr
 
 # Supabase CLI local cache (per-clone, vom CLI bei db push/link verändert) — nicht versioniert
 supabase/.temp/
+
+# Deno-Lockfile (lokales Edge-Tooling, kein Projekt-Deno-Config-Anker)
+deno.lock

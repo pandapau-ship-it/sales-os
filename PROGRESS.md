@@ -648,6 +648,37 @@
     `{anon, authenticated, service_role}` (+PUBLIC) abgleichen, Abweichungen listen; (3) Abweichungen per expliziten
     `grant execute` beheben. **Plus Regel für künftige Migrationen:** nach **jedem** `drop+create` einer Funktion die
     GRANTs **explizit** setzen (kein Verlass auf Default-Privileges) — Kandidat für einen Audit-/structure-check-Check.
+  - **LIFECYCLE L-3d E2E-FUNDE (23.07.2026, echter Backend-Walkthrough) — 4 Bugs, priorisiert:**
+    - **FUND 4 (IN ARBEIT, `fix/lifecycle-deleted-at`): Evaluator ignorierte `deleted_at`.** `groupAnchorIds`
+      (rows + FK-`via`) + `resolveOwner` + Deal-Resolve lasen soft-gelöschte Anker → Regeln feuerten Tasks/Tags/
+      Meldungen auf gelöschte Kontakte (live belegt: `heat in (kalt,tot)` Dry-Run 8 statt 6). **Wurzel-Erkenntnis:**
+      Change 058 hat den `deleted_at`-Filter systemweit eingezogen (`getContacts`, dyn. Listen) — der Evaluator (089)
+      war der **einzige Nachzügler**. Fix = 058-Muster nachziehen (Anker-Reads nach `_shared/lifecycle/anchors.ts`
+      extrahiert + `.is("deleted_at", null)`; vitest-Regressionstest `anchors.test.ts`). **KEIN** Vergangenheits-
+      Cleanup (destruktiv) — stattdessen READ-ONLY-Bestandsaufnahme über alle Orgs in der Live-Verifikation.
+    - **▶ FUND 1 (nächste eigene Diagnose): User-Token-Pfad des Dry-Runs trägt nicht.** Live-Count „Trefferzahl
+      konnte nicht geladen werden" **auch** bei simpler gültiger Bedingung (churn≥61, die im Service-Pfad HTTP 200/
+      matchCount=3 liefert) → **unabhängig** vom enum-Bug. Zu prüfen: Session-Token angehängt? org-Auflösung im
+      User-Pfad? `automation.manage`-Check? CORS? (Weg: `signInWithPassword`-Testuser-Token münzen + invoken, oder
+      Dashboard-Logs, oder Network-Tab-Abgriff von Oliver.)
+    - **▶ FUND 2+3 (UI-Slice danach): enum + `in`/`not_in` erzeugt Skalar statt Array.** `ConditionRow` rendert für
+      enum immer ein Einzel-Select → `validateFilter` wirft „erwartet nicht-leere Liste" (client-seitig, **plain Error,
+      kein [D54]-Code** → roher Backend-Text im Banner). Fix: **Mehrfachauswahl** über `enumValues` (`string[]`);
+      text[]-`has_any` + text/number-`in`/`not_in` → **Chip-Eingabe** statt Komma-Freitext; **Speichern blockieren**
+      solange ungültig; Fehler in Alltagssprache + Zeile markiert + deutliches „nicht gespeichert".
+  - **▶ QUEUED — `score-*`-Crons lesen Anker ohne `deleted_at` (23.07.2026, angrenzend zu FUND 4):** `score-upsell`,
+    `score-heat-status`, `score-deal-health`, `score-churn-risk` lesen `contacts`/`deals` **ohne** `deleted_at`-Filter.
+    **Kein aktiver Schaden** (schreiben nur Scores, lösen keine user-sichtbaren Aktionen aus) — aber Scores auf
+    gelöschten Datensätzen sind Verschwendung und können später verwirren. Eigener kleiner Slice: `deleted_at`-Filter
+    nachziehen (058-Muster). Kandidat für den unten genannten Regressionsschutz.
+  - **▶ QUEUED — Custom-Fields aus der DB in `FILTER_SCHEMA` speisen (Grundsatzfrage 23.07.2026):** Feld-/Operator-/
+    Enum-Vokabular des Regel-/Filter-Builders ist heute **build-time-Code** (`src/lib/filter/schema.ts` + i18n) —
+    kundenspezifische Felder erscheinen NICHT automatisch. Aktionen sind bereits DB-getrieben (`action_types`). Für
+    echte Custom-Fields müsste `FILTER_SCHEMA` (+ Labels) zur Laufzeit aus der DB kommen. Eigenes Thema, nicht jetzt.
+  - **▶ VORSCHLAG (nicht gebaut) — Regressionsschutz „058-Muster": ** ein Audit-/structure-check-Check, der
+    Anker-Reads (`contacts`/`deals`/`companies`) mit `.or(`/`.in(` **ohne** vorangehendes `.is("deleted_at", null)`
+    in Edge-Functions statisch flaggt → verhindert, dass die nächste neue Function den Filter wieder vergisst.
+    Erst mit Oliver besprechen, dann ggf. bauen.
   - **QUEUED (nach dem Lifecycle-Thread): SET-4b „Automation"-Seite** — *[BAU], nächste Settings-Seite im 4a–4d-Arc.*
     Settings → Arbeitsweise → **Automation** (`settingsNav` key `automation`, `built:false`): Editor für Automation-
     Level/Risk-Rules über `update_settings` + `automation.manage`-Gate. Danach **4c** Pipeline-Stages-UI · **4d**
