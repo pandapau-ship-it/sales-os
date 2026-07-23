@@ -477,6 +477,8 @@ function checkTypographyTokens(): void {
     'RuleCard', 'RuleOverview',
     // L-3d Regel-Editor (3 Schritte)
     'RuleEditor',
+    // L-3e Deeplink-Banner (Kontakte/Companies aus gefeuerter Regel)
+    'RuleMatchBanner',
   ])
   // panel-blocks/ + features/ + farming/ (Farmer-Hilfskomponenten).
   const files = [

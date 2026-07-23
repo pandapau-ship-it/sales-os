@@ -103,3 +103,4 @@ export { default as EnumMultiSelect } from './EnumMultiSelect';
 export type { EnumMultiSelectProps } from './EnumMultiSelect';
 export { default as ChipInput } from './ChipInput';
 export type { ChipInputProps } from './ChipInput';
+export { RuleMatchBanner } from './RuleMatchBanner';

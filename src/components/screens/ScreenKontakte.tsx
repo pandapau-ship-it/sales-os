@@ -10,7 +10,7 @@
  * Honesty: fehlender Wert → Zelle rendert nichts.
  */
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { createColumnHelper, type RowSelectionState } from "@tanstack/react-table";
@@ -23,7 +23,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useNowMs } from "@/hooks/useNowMs";
 import { useDataTable } from "@/hooks/useDataTable";
 import { prefetchContactPanel } from "@/lib/prefetch";
-import { getContacts, getLists, getListMembers, renameList, removeFromList, deleteList, softDeleteContacts, type ListView } from "@/lib/db";
+import { getContacts, getLists, getListMembers, renameList, removeFromList, deleteList, softDeleteContacts, getRuleMatchTargets, type ListView } from "@/lib/db";
 import { contactToKontakteRow, type KontakteRow } from "@/lib/kontakteMappers";
 import { daysSinceIso } from "@/lib/hunterMappers";
 import { evaluateFilter, type FilterDefinition, type FilterNode } from "@/lib/filter";
@@ -31,7 +31,7 @@ import type { ContactRow } from "@/types/rows";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogFooter, AlertDialogTitle, AlertDialogDescription, AlertDialogAction, AlertDialogCancel } from "@/components/ui/alert-dialog";
-import { Avatar, ICPDonut, StatusBadge, HeatBadge, LeadSourceBadge, RoutingChip, EmptyState, DataTableCard, ColumnConfigPopover, TableSearch } from "@/components";
+import { Avatar, ICPDonut, StatusBadge, HeatBadge, LeadSourceBadge, RoutingChip, EmptyState, DataTableCard, ColumnConfigPopover, TableSearch, RuleMatchBanner } from "@/components";
 import { buildSearchText } from "@/lib/tableSearch";
 import LinkedinIcon from "@/components/shared/LinkedinIcon";
 import { useToast } from "@/components/shared/toastContext";
@@ -156,13 +156,30 @@ export default function ScreenKontakte() {
     enabled: !!selectedList, staleTime: 30_000,
   });
 
+  // ── L-3e Deeplink: Sprung aus gefeuerter Lifecycle-Regel (?firedBy=<ruleId>) ────────
+  const [searchParams, setSearchParams] = useSearchParams();
+  const firedBy = searchParams.get("firedBy");
+  const ruleMatchQuery = useQuery({
+    queryKey: ["ruleMatch", organizationId, firedBy],
+    queryFn: () => getRuleMatchTargets(firedBy as string, organizationId),
+    enabled: !!firedBy, staleTime: 30_000,
+  });
+  const ruleMatch = ruleMatchQuery.data ?? null;
+  // Filter greift NUR bei existierender Regel MIT Kontakt-Treffern; sonst volle Liste + Banner-Hinweis.
+  const firedIds = useMemo(() => {
+    if (!firedBy || !ruleMatch || !ruleMatch.exists || ruleMatch.targetEntity !== "contact" || ruleMatch.ids.length === 0) return null;
+    return new Set(ruleMatch.ids);
+  }, [firedBy, ruleMatch]);
+  const clearFiredBy = () => { const next = new URLSearchParams(searchParams); next.delete("firedBy"); setSearchParams(next, { replace: true }); };
+
   const raw: ContactRow[] = useMemo(() => contactsQuery.data ?? [], [contactsQuery.data]);
   const rows: KontakteRow[] = useMemo(() => {
+    if (firedIds) return raw.filter((r) => firedIds.has(r.id)).map(contactToKontakteRow); // Deeplink dominiert
     if (selectedList) return (listMembersQuery.data ?? []).map(contactToKontakteRow);
     const def = buildFilterDef(statusFilter, sourceFilter, icpFilter, noContactWay);
     const filtered = def ? raw.filter((r) => evaluateFilter(def, r as unknown as Record<string, unknown>)) : raw;
     return filtered.map(contactToKontakteRow);
-  }, [raw, selectedList, listMembersQuery.data, statusFilter, sourceFilter, icpFilter, noContactWay]);
+  }, [raw, firedIds, selectedList, listMembersQuery.data, statusFilter, sourceFilter, icpFilter, noContactWay]);
 
   const counts = useMemo(() => {
     const byStatus: Record<string, number> = {};
@@ -366,8 +383,14 @@ export default function ScreenKontakte() {
         </div>
       </div>
 
-      {/* Lagebild — nur ohne aktive Liste */}
-      {!listActive && lagebild.length > 0 && (
+      {/* L-3e Deeplink-Banner — Sprung aus gefeuerter Lifecycle-Regel */}
+      {firedBy && (
+        <RuleMatchBanner loading={ruleMatchQuery.isLoading} error={ruleMatchQuery.isError}
+          state={ruleMatch} entityLabelPlural={t("kontakte.title")} onClear={clearFiredBy} />
+      )}
+
+      {/* Lagebild — nur ohne aktive Liste / ohne aktiven Deeplink-Filter */}
+      {!listActive && !firedIds && lagebild.length > 0 && (
         <div className="flex items-center gap-2 flex-wrap mb-3">
           {lagebild.map((c) => {
             const Icon = c.icon;
@@ -384,7 +407,13 @@ export default function ScreenKontakte() {
         </div>
       )}
 
-      {/* Listen-Dropdown + (aktive Liste ODER Status-Pills/Filter) */}
+      {/* Deeplink-Filter aktiv → schlanke Toolbar (nur Suche innerhalb der Treffer) */}
+      {firedIds ? (
+        <div className="flex items-center mb-4">
+          <div className="ml-auto"><TableSearch value={search} onChange={setSearch} placeholder={t("table.search")} /></div>
+        </div>
+      ) : (
+      /* Listen-Dropdown + (aktive Liste ODER Status-Pills/Filter) */
       <div className="flex items-center gap-2 flex-wrap mb-4">
         <Popover open={listMenuOpen} onOpenChange={setListMenuOpen}>
           <PopoverTrigger asChild>
@@ -450,6 +479,7 @@ export default function ScreenKontakte() {
         )}
         <div className="ml-auto"><TableSearch value={search} onChange={setSearch} placeholder={t("table.search")} /></div>
       </div>
+      )}
 
       {/* Bulk-Bar (Gmail-Muster) */}
       {selectedCount > 0 && (

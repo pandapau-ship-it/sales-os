@@ -9,7 +9,7 @@
  * Honesty: fehlender Wert → Zelle rendert nichts. Abgeleiteter Status/Routing: Single Source `companyStatus`.
  */
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { createColumnHelper, type RowSelectionState } from "@tanstack/react-table";
@@ -20,13 +20,13 @@ import { useAuth } from "@/hooks/useAuth";
 import { useNowMs } from "@/hooks/useNowMs";
 import { useDataTable } from "@/hooks/useDataTable";
 import { prefetchCompanyPanel } from "@/lib/prefetch";
-import { getCompanies, softDeleteCompanies } from "@/lib/db";
+import { getCompanies, softDeleteCompanies, getRuleMatchTargets } from "@/lib/db";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogFooter, AlertDialogTitle, AlertDialogDescription, AlertDialogAction, AlertDialogCancel } from "@/components/ui/alert-dialog";
 import { companyToCompaniesRow, formatEuroCents, type CompaniesRow } from "@/lib/companiesMappers";
 import { daysSinceIso } from "@/lib/hunterMappers";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
-import { Avatar, StatusBadge, RoutingChip, EmptyState, DataTableCard, ColumnConfigPopover, CompanyAnlegenPanel, TableSearch } from "@/components";
+import { Avatar, StatusBadge, RoutingChip, EmptyState, DataTableCard, ColumnConfigPopover, CompanyAnlegenPanel, TableSearch, RuleMatchBanner } from "@/components";
 import { buildSearchText } from "@/lib/tableSearch";
 import LinkedinIcon from "@/components/shared/LinkedinIcon";
 import { useToast } from "@/components/shared/toastContext";
@@ -109,13 +109,31 @@ export default function ScreenCompanies() {
   const sizes = useMemo(() => distinct(allRows.map((r) => r.sizeRange)), [allRows]);
   const countries = useMemo(() => distinct(allRows.map((r) => r.country)), [allRows]);
 
-  const rows: CompaniesRow[] = useMemo(() => allRows.filter((r) => {
-    if (sel.industry.length && !(r.industry && sel.industry.includes(r.industry))) return false;
-    if (sel.size.length && !(r.sizeRange && sel.size.includes(r.sizeRange))) return false;
-    if (sel.country.length && !(r.country && sel.country.includes(r.country))) return false;
-    if (noContact && r.contactCount !== 0) return false;
-    return true;
-  }), [allRows, sel, noContact]);
+  // ── L-3e Deeplink: Sprung aus gefeuerter Lifecycle-Regel (?firedBy=<ruleId>) ────────
+  const [searchParams, setSearchParams] = useSearchParams();
+  const firedBy = searchParams.get("firedBy");
+  const ruleMatchQuery = useQuery({
+    queryKey: ["ruleMatch", organizationId, firedBy],
+    queryFn: () => getRuleMatchTargets(firedBy as string, organizationId),
+    enabled: !!firedBy, staleTime: 30_000,
+  });
+  const ruleMatch = ruleMatchQuery.data ?? null;
+  const firedIds = useMemo(() => {
+    if (!firedBy || !ruleMatch || !ruleMatch.exists || ruleMatch.targetEntity !== "company" || ruleMatch.ids.length === 0) return null;
+    return new Set(ruleMatch.ids);
+  }, [firedBy, ruleMatch]);
+  const clearFiredBy = () => { const next = new URLSearchParams(searchParams); next.delete("firedBy"); setSearchParams(next, { replace: true }); };
+
+  const rows: CompaniesRow[] = useMemo(() => {
+    if (firedIds) return allRows.filter((r) => firedIds.has(r.id)); // Deeplink dominiert
+    return allRows.filter((r) => {
+      if (sel.industry.length && !(r.industry && sel.industry.includes(r.industry))) return false;
+      if (sel.size.length && !(r.sizeRange && sel.size.includes(r.sizeRange))) return false;
+      if (sel.country.length && !(r.country && sel.country.includes(r.country))) return false;
+      if (noContact && r.contactCount !== 0) return false;
+      return true;
+    });
+  }, [allRows, firedIds, sel, noContact]);
 
   const noContactCount = useMemo(() => allRows.filter((r) => r.contactCount === 0).length, [allRows]);
 
@@ -250,8 +268,14 @@ export default function ScreenCompanies() {
         </div>
       </div>
 
+      {/* L-3e Deeplink-Banner — Sprung aus gefeuerter Lifecycle-Regel */}
+      {firedBy && (
+        <RuleMatchBanner loading={ruleMatchQuery.isLoading} error={ruleMatchQuery.isError}
+          state={ruleMatch} entityLabelPlural={t("companies.title")} onClear={clearFiredBy} />
+      )}
+
       {/* Lagebild — nur echte Aggregate (Honesty) */}
-      {noContactCount > 0 && (
+      {!firedIds && noContactCount > 0 && (
         <div className="flex items-center gap-2 flex-wrap mb-3">
           <button type="button" onClick={() => setNoContact((v) => !v)}
             className={cn("inline-flex items-center gap-2 pl-2.5 pr-3 py-1.5 rounded-[10px] border text-[12px] transition-colors cursor-pointer",
@@ -263,7 +287,12 @@ export default function ScreenCompanies() {
         </div>
       )}
 
-      {/* Filter — 3 separate Dropdowns (Branche/Größe/Land) */}
+      {/* Filter — 3 separate Dropdowns (Branche/Größe/Land); bei Deeplink-Filter nur Suche */}
+      {firedIds ? (
+        <div className="flex items-center mb-4">
+          <div className="ml-auto"><TableSearch value={search} onChange={setSearch} placeholder={t("table.search")} /></div>
+        </div>
+      ) : (
       <div className="flex items-center gap-2 flex-wrap mb-4">
         <FilterDropdown label={t("companies.filterIndustry")} options={industries} selected={sel.industry} onToggle={(id) => toggleFilter("industry", id)} />
         <FilterDropdown label={t("companies.filterSize")} options={sizes} selected={sel.size} onToggle={(id) => toggleFilter("size", id)} />
@@ -273,6 +302,7 @@ export default function ScreenCompanies() {
         )}
         <div className="ml-auto"><TableSearch value={search} onChange={setSearch} placeholder={t("table.search")} /></div>
       </div>
+      )}
 
       {/* Bulk-Bar */}
       {selectedCount > 0 && (

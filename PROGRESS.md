@@ -639,6 +639,32 @@
     dark · mobil). **Zwei Funde gefixt:** `retry:false` (Fehlerzustand sprang zuvor durch den Leerzustand) + Mobile-
     Reflow der RuleCard (Name/Toggle-Überlappung < 640px). Gates grün. `onNew`/`onEdit`/`onTemplate` sind Callbacks →
     Editor-Verdrahtung + eigene Settings-Seite/„Eigene Actions"-Türöffner in **L-3d**.
+  - ✅ **L-3e (Deeplinks [D56]/[D57]) GEBAUT + GEGATET · `feature/lifecycle-l3e` · Merge ausstehend (STOP vor Merge):**
+    Sprung aus einer gefeuerten Regel-Benachrichtigung in die Ziel-Liste. **Ledger-basiert (Option A)** — Ziel-Menge
+    kommt aus `lifecycle_rule_runs` (matched=true), NICHT aus der URL. **Edge:** `deeplinkFor(anchor, ruleId)` →
+    `/app/kontakte?firedBy=<id>` (contacts/deals) bzw. `/app/companies?firedBy=<id>` (companies); in `notifyHandler`
+    + `runBundledNotify` als `link`/`p_link` gesetzt (war null). Kette im Code lückenlos: edge-link → `notify(p_link)`
+    → `notifications.link` → `ScreenNotifications.openItem` `navigate(n.link)` → Ziel-Screen liest `?firedBy`.
+    **Frontend:** `db.getRuleMatchTargets(ruleId, org)` — liest Regel + matched-Runs **org-gescoped (RLS empirisch
+    belegt: `as_foreign_org=0`, PLUS expliziter `.eq(organization_id)` Defense-in-Depth, da `firedBy` Nutzereingabe)**,
+    löst Anker auf (contacts direkt · **deals→zugehöriger Kontakt** via `deals.contact_id` · companies), filtert
+    `deleted_at` heraus (058-Muster). Geteilter `panel-blocks/RuleMatchBanner` (Kontakte+Companies, Single Source);
+    beide Screens lesen `?firedBy`, filtern die Liste auf die Treffer (firedIds dominiert), blenden normale
+    Filter/Lagebild bei aktivem Deeplink-Filter aus (nur Suche bleibt), Clear via Banner-X (entfernt `?firedBy`).
+    **4 Edge-Fälle ehrlich (unit-getestet, `RuleMatchBanner.render.test.tsx`, 7 Fälle):** (a) Treffer inzwischen
+    gelöscht → „N Treffer sind inzwischen gelöscht" + zeigt die lebenden · (b) keine Berechtigung/Regel fremder Org →
+    fällt (RLS) mit (c) zusammen · (c) Regel gibt es nicht mehr → „Diese Automatik-Regel gibt es nicht mehr" + VOLLE
+    Liste · (d) Regel existiert, aber aktuell KEINE Treffer → „Diese Regel hat aktuell keine Treffer" + volle Liste
+    (nie leeres Nichts). i18n `lifecycle.deeplink.*` (de + en/es DE-Kopie). Gates: test-runner ALLE GRÜN (495/495),
+    auditor PASS. **Hinweis:** (b)≙(c) client-seitig nicht unterscheidbar (RLS liefert für beide „nicht gefunden") →
+    EINE ehrliche Formulierung, im Bericht benannt. `getRuleMatchTargets` live im QA verifiziert (db-Layer-Konvention),
+    Org-Scoping empirisch belegt. **Auditor-Fund C (behoben vor STOP):** im deals-Anker zählten `matchedTotal`/
+    `unavailable` gegen die Deal-Anzahl, `ids` sind aber distinkte Kontakte → ein Kontakt mit mehreren gematchten
+    Deals wäre fälschlich als „gelöscht" gemeldet worden. Fix: Zählung in **Kontakt-Granularität**
+    (`matchedTotal=contactIds.length`, `unavailable=contactIds.length−ids.length`; contacts-Anker unverändert, da
+    contactIds===entityIds). **Live belegt (reversibler Seed, 0 Residuen):** contacts 3 matched/1 gelöscht →
+    matchedTotal=3/angezeigt=2/unavailable=1 (rearmed ausgeschlossen); deals 1 Kontakt hinter 2 Deals →
+    matchedTotal=1/angezeigt=1/**unavailable=0** (pre-Fix wäre 2/1 gewesen).
   - ▶ **QUEUED — ACL-AUDIT ALLER FUNKTIONEN (systemischer Nachtrag, 23.07.2026 · NICHT vor L-3-Ende):** In L-2b
     (`add_to_list`→`list_members`) und L-3a (`upsert_lifecycle_rule` 2-arg→3-arg) trat zweimal derselbe Fehler auf:
     **`drop function` nimmt GRANTs + Attribute mit.** Ist „drop+create" ein übliches Migrations-Muster hier und
