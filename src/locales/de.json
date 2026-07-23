@@ -1978,10 +1978,6 @@
         "some_one": "Trifft aktuell auf 1 Datensatz zu",
         "some_other": "Trifft aktuell auf {{count}} Datensätze zu"
       },
-      "lastFired": {
-        "never": "Noch nicht gefeuert",
-        "some": "Zuletzt gefeuert: {{when}} · {{count}} Datensätze"
-      },
       "limit": "{{used}} / {{limit}} Regeln",
       "staleWrite": "Diese Regel wurde zwischenzeitlich geändert. Bitte neu laden.",
       "fieldPlaceholder": "Feld wählen …",
@@ -1993,7 +1989,63 @@
       "addFirstCondition": "Erste Bedingung hinzufügen",
       "addCondition": "Bedingung hinzufügen",
       "linkEntity": "Zusätzliche Datenart verknüpfen:",
-      "matchLabel": "Treffer, wenn"
+      "matchLabel": "Treffer, wenn",
+      "newRule": "Neue Regel",
+      "withAi": "Mit KI erstellen",
+      "aiComingSoon": "Folgt",
+      "templatesHeading": "Oder mit einer Vorlage starten",
+      "emptyTitle": "Regeln & Automatisierung",
+      "emptyBody": "Lass Sherloq Routinearbeit übernehmen: Wenn-Dann-Regeln erstellen Tasks, warnen dein Team oder ordnen Daten.",
+      "active": "Aktiv",
+      "inactive": "Inaktiv",
+      "edit": "Bearbeiten",
+      "limitReached": "Regel-Limit erreicht ({{used}}/{{limit}}) — lösche eine Regel oder upgrade deinen Plan.",
+      "loadError": "Regeln konnten nicht geladen werden.",
+      "lastFired": {
+        "never": "Noch nicht gefeuert",
+        "today": "heute",
+        "daysAgo_one": "vor 1 Tag",
+        "daysAgo_other": "vor {{count}} Tagen",
+        "some_one": "Zuletzt gefeuert {{when}} · 1 Datensatz",
+        "some_other": "Zuletzt gefeuert {{when}} · {{count}} Datensätze"
+      },
+      "summary": {
+        "sentence": "Wenn {{anchor}} {{cond}}, dann {{action}}.",
+        "more_one": "(+1 weitere)",
+        "more_other": "(+{{count}} weitere)"
+      },
+      "deleteConfirm": {
+        "title": "Regel löschen?",
+        "body": "„{{name}}“ wird dauerhaft gelöscht. Das kann nicht rückgängig gemacht werden.",
+        "confirm": "Löschen",
+        "cancel": "Abbrechen"
+      },
+      "noPermission": {
+        "title": "Keine Berechtigung",
+        "body": "Zum Verwalten von Automatik-Regeln fehlt dir das Recht „automation.manage“. Bitte wende dich an einen Administrator."
+      }
+    },
+    "templates": {
+      "churn": {
+        "title": "Churn-Frühwarnung",
+        "desc": "Task, wenn der Churn-Score über 60 steigt."
+      },
+      "stagnating": {
+        "title": "Stagnierender Deal",
+        "desc": "Warnt, wenn ein großer Deal zu lange liegt."
+      },
+      "hotIcp": {
+        "title": "Heißes Signal (ICP)",
+        "desc": "Markiert perfekte Kontakte, die aktiv werden."
+      },
+      "trial": {
+        "title": "Trial läuft aus",
+        "desc": "Benachrichtigt, wenn ein Trial endet."
+      },
+      "cooling": {
+        "title": "Kunde wird kalt",
+        "desc": "Warnt, wenn ein Kunde nicht mehr aktiv ist."
+      }
     }
   }
 }

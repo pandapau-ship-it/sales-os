@@ -473,6 +473,8 @@ function checkTypographyTokens(): void {
     'WhyPopover', 'WeightEditor', 'RulesPage', 'ValueChip', 'HeatThresholdTile',
     // L-3b Lifecycle-Regel-Builder — generische Bedingungs-Bausteine
     'ConditionBuilder', 'ConditionRow', 'LiveMatchCount',
+    // L-3c Regel-Overview
+    'RuleCard', 'RuleOverview',
   ])
   // panel-blocks/ + features/ + farming/ (Farmer-Hilfskomponenten).
   const files = [

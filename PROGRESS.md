@@ -628,6 +628,17 @@
     (`--entity-contact/-deal/-company`, Light+Dark) in `index.css` — Kontakt=Blau/Deal=Violett/Firma=Orange. i18n
     `lifecycle.ui.*` ergänzt. Screenshot-QA (leer/eine Bedingung/mehrere Gruppen/Fehlerfall/Live-Count-Ladezustand)
     an Oliver. Gates grün. Live-Count zeigt im Dev ohne Auth-Session den Error-Zustand (funktioniert mit echter Session).
+  - ✅ **L-3c (Overview) FERTIG** *(Branch `feature/lifecycle-l3c`)*: `features/settings/lifecycle/RuleOverview` (Liste,
+    Limit-Anzeige „X/Y Regeln" + `atLimit`-Banner, Vorlagen-Galerie, `automation.manage`-Gate auf Seiten-Ebene,
+    Löschen-`alert-dialog`, Toggle/Delete via `upsert/deleteLifecycleRule`-Mutations, Zustände Laden/Fehler/Leer/Liste)
+    + `RuleCard` (Datenart-Chip, Klartext-Satz, „zuletzt gefeuert für X", Aktiv-Schalter, Edit/Delete hover, mobil
+    stapelnd). Pure Helfer `lib/lifecycle/summary.ts` (Klartext + „zuletzt gefeuert", getestet) + `templates.ts`
+    (5 Vorlagen, echte Felder/Aktionen). i18n `lifecycle.*` (summary/lastFired-Plural/templates/overview). `RuleOverview`
+    bekam optionalen `org`-Prop (Default Demo-Org, später Session). **UI-Verifikation UI-1..UI-5:** 9 Zustände
+    (leer+Vorlagen · aktiv/inaktiv/nie-gefeuert · am Limit · Laden · Fehler · Löschen-Dialog · keine Berechtigung ·
+    dark · mobil). **Zwei Funde gefixt:** `retry:false` (Fehlerzustand sprang zuvor durch den Leerzustand) + Mobile-
+    Reflow der RuleCard (Name/Toggle-Überlappung < 640px). Gates grün. `onNew`/`onEdit`/`onTemplate` sind Callbacks →
+    Editor-Verdrahtung + eigene Settings-Seite/„Eigene Actions"-Türöffner in **L-3d**.
   - ▶ **QUEUED — ACL-AUDIT ALLER FUNKTIONEN (systemischer Nachtrag, 23.07.2026 · NICHT vor L-3-Ende):** In L-2b
     (`add_to_list`→`list_members`) und L-3a (`upsert_lifecycle_rule` 2-arg→3-arg) trat zweimal derselbe Fehler auf:
     **`drop function` nimmt GRANTs + Attribute mit.** Ist „drop+create" ein übliches Migrations-Muster hier und
