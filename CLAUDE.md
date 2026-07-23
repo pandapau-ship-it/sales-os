@@ -400,6 +400,25 @@ nie entfernt werden. **„AUTO-Tests"** sind in den Testplänen des BAUPHASEN-WE
 
 </details>
 
+### security-audit — MANUELLER Sicherheits-Agent (NICHT Teil der Gates)
+
+> **Kein Gate-Punkt.** Läuft AUSSCHLIESSLICH auf ausdrückliche Nennung durch Oliver — nie automatisch
+> nach Slices, nie im Merge-/Deploy-Ablauf, nie in der „weiter"-Dauerregel. Ergänzt test-runner/auditor,
+> ersetzt sie nicht.
+>
+> **Zweck:** tiefe Sicherheitsprüfung gegen die **laufende** Umgebung, fokussiert auf **Invarianten-Drift**
+> (eine projektweit etablierte Schutzmaßnahme, die eine später gebaute Stelle nicht übernahm — das Muster
+> hinter FUND 4/4b `deleted_at`, dem GRANT-Verlust bei `drop+create`, dem ungeprüften `decodeJwtRole` und
+> dem opaken Service-Key-Guard). **Sieben Prüfbereiche:** Invarianten-Drift · Auth-/Zugriffspfade (inkl.
+> `verify_jwt` je Function) · Org-Isolation (Org-ID aus Body statt validiertem Nutzer) · GRANTs &
+> `SECURITY DEFINER`/`search_path` (drop+create + Live-`proacl`) · Vertrauensgrenzen · **Frontend-seitige
+> Annahmen** (UI-Schutz ohne serverseitige Entsprechung — `<RequiresPermission>`/disabled-Button ohne
+> RPC-`has_permission`-Check = von außen umgehbar) · stille Fehler.
+> **Arbeitsweise:** belegt statt behauptet (BELEGT/WAHRSCHEINLICH/VERMUTUNG), live gegen die Umgebung,
+> sucht aktiv den von Testdaten nicht abgedeckten Fall (Testdaten zum Beleg erlaubt — reversibel, hart
+> aufräumen, Residuen benennen), priorisiert nach realem Schaden, **fixt nichts**.
+> Aufruf: „security-audit" o.ä. — Definition in `.claude/agents/security-audit.md`.
+
 ### DAUERREGEL „weiter"
 
 Schreibt Oliver **„weiter"** oder **„nächster Schritt"**: PROGRESS.md öffnen, den
