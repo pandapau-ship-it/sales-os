@@ -586,7 +586,17 @@
     zusätzliche** Meldung für die Rest-Teilmenge (at-least-once, akzeptiert für den L-2c-Deploy). Härtung: ein
     **Bulk-`lifecycle_mark_fired`** (ein Statement je Bündel, gemeinsames `action_result`) schließt das Fenster →
     eigener kleiner Slice mit Gates. (Voll-Crash = Dedup, Re-Fire = neue Meldung sind bereits korrekt.)
-  - ▶ **NÄCHSTE SLICE: L-3 UI CONDITION-BUILDER / „EIGENE ACTIONS"** — *[BAU], UI (UI-SLICE-Vorprüfung Pflicht).*
+  - ✅ **L-3 UI CONDITION-BUILDER / „EIGENE ACTIONS" — KOMPLETT (a–e, 23.07.2026).** L-3a Backend-Fundament ·
+    L-3b ConditionBuilder-Library · L-3c Overview · L-3d 3-Schritt-Editor (+ FUND 1/2/3/4/4b live gefixt & deployt) ·
+    L-3e Deeplinks. Der manuelle Regel-Baukasten steht Ende-zu-Ende (anlegen→speichern→feuern→gebündelte Meldung→
+    Sprung in Trefferliste). **Aus L-3 bewusst ausgelagert (kein Versäumnis):** **L-3f (KI-Generierung** „Regel in
+    Alltagssprache beschreiben") → eigener Slice NACH dem produktweiten AI-Layer (`lib/ai.ts`). **▶ Zwei offene
+    Deploys (OLIVER-Entscheidung, nicht [BAU]):** (1) `git push` main → Vercel (Frontend hängt bei L-3c) · (2)
+    `supabase functions deploy evaluate-lifecycle-rules --no-verify-jwt` (deployte v4 hat FUND-Fixes, aber noch NICHT
+    die L-3e-Deeplink-Zeilen → live schreibt der Evaluator `link=null`). **▶ NÄCHSTE [BAU]-Kandidaten (klein, gereiht):**
+    `score-*`-Crons `deleted_at` nachziehen (058-Muster) · ACL-Audit aller Funktionen (drop+create-GRANTs) ·
+    CORS-Allowlist statt `*` (sobald Prod-Domain final) · Custom-Fields in `FILTER_SCHEMA`. Alle unten als ▶ QUEUED gelistet.
+  - ▶ **(historisch) L-3-Slice-Zuschnitt — jetzt vollständig abgehakt:** *[BAU], UI (UI-SLICE-Vorprüfung war Pflicht).*
     Oberfläche zum Zusammenklicken eigener WENN-DANN-Regeln (in der leeren Layout-Reserve „Eigene Actions" der
     Regeln-Seite): **generischer Bedingungs-Builder** über `src/lib/filter` (AND/OR-Baum + Option-B-Gruppen je
     Datenart) · Anker-Auswahl · Aktions-Auswahl aus der `action_types`-Registry (verfügbar aktiv, `coming_soon`
@@ -1103,6 +1113,11 @@
     - Mitteilungen: `markNotificationRead` · `markAllNotificationsRead`
     - Personal Voice (NEU 20.07.): `updateVoiceProfile` (dünner Passthrough auf RPC `update_voice_profile`) ·
       `getMyVoiceProfile` (nur lesend/Auskunft)
+    - Automatik-Regeln (NEU 23.07., Lifecycle L-3): Schreibwege `upsertLifecycleRule`/`deleteLifecycleRule`
+      (Passthrough auf RPCs `upsert_lifecycle_rule`/`delete_lifecycle_rule`, Liste A) · **lesend/Auskunft**
+      `getLifecycleRules` · `getActionTypes` · `getLifecycleRuleLimit` · `dryRunLifecycleRule` (Live-Trefferzahl) ·
+      **`getRuleMatchTargets`** (NEU L-3e — Treffer einer gefeuerten Regel, org-gescoped; chat könnte „wer hat Regel X
+      getroffen?" darüber beantworten). Alle read-only; keine Chat-Aktions-Vertrag-Pflicht, nur die zwei RPCs.
     - Import: `runImport` · `undoImport` *(rückgängig machen = destruktiv, klar chat-relevant)*
     - Sonstiges: `mergeContacts` · `mergeCompanies` · `deleteInvitation` · `setUserPreference` ·
       `setNavPreferences`

@@ -576,3 +576,21 @@
 - **value:** Je genauer hier steht, für wen ihr was löst und in welcher Sprache eure Käufer denken, desto treffsicherer schreibt die KI später — sie spricht die echten Schmerzpunkte einer Persona in deren eigenen Worten an, statt generischer Ansprache. Einmal gepflegt, profitieren AI SDR, AI-Chat und die Bewertung neuer Leads gemeinsam davon.
 - **module:** ai_sdr
 - *(Mein Unternehmen Slice 3/3, 2026-07-21. Zielgruppen/Personen speisen später das Persona-Matching des AI SDR (job_titles). Der „Website scannen"-Knopf, der das Profil automatisch vorbefüllt, und der KI-Vorschlags-Knopf je Feld sind vorbereitet und kommen mit der AI-Anbindung.)*
+
+---
+
+- **feature:** Automatik-Regeln (WENN-DANN)
+- **what:** Du baust dir eigene WENN-DANN-Regeln zusammen: eine Bedingung über deine Kontakte, Firmen oder Deals (z.B. „Churn-Score über 60" oder „Deal seit 14 Tagen in derselben Stufe") und eine Aktion, die dann automatisch passiert — benachrichtigen, eine Aufgabe anlegen, ein Tag setzen oder zu einer Liste hinzufügen. Die Regel feuert genau einmal, wenn ein Datensatz die Bedingung neu erfüllt, und wird erst wieder scharf, wenn er sie zwischendurch nicht mehr erfüllt (kein Dauer-Spam). Mehrere Treffer aus demselben Lauf kommen als EINE gebündelte Benachrichtigung.
+- **how:** Einstellungen → Automatik-Regeln: neue Regel anlegen (Anker wählen, Bedingungen zusammenklicken, Aktion wählen) oder eine Vorlage nehmen. Eine Live-Trefferzahl zeigt beim Bauen sofort, wie viele Datensätze die Regel gerade treffen würde. Regeln lassen sich aktiv/inaktiv schalten, bearbeiten und löschen.
+- **value:** Wiederkehrende Handgriffe passieren von selbst: gefährdete Kunden, stagnierende Deals oder heiße Signale lösen automatisch die richtige Reaktion aus, statt dass jemand Listen manuell durchgeht — ohne dass ein Entwickler etwas programmieren muss.
+- **module:** core
+- *(Lifecycle-Baukasten L-2/L-3, 2026-07-23. Der KI-Weg „Regel in Alltagssprache beschreiben" folgt mit der AI-Anbindung; Kanal-Aktionen wie E-Mail/Sequenz sind als „folgt" angelegt.)*
+
+---
+
+- **feature:** Sprung aus Regel-Benachrichtigung in die Trefferliste
+- **what:** Eine Benachrichtigung aus einer Automatik-Regel ist anklickbar: der Klick öffnet direkt die Kontakte- bzw. Firmen-Liste, bereits gefiltert auf genau die Datensätze, die die Regel getroffen haben. Ist ein Treffer inzwischen gelöscht, wird das ehrlich ausgewiesen; gibt es die Regel nicht mehr oder trifft sie gerade niemanden, erklärt ein klarer Hinweis, was los ist, statt einer leeren Seite.
+- **how:** In der Glocke auf eine Regel-Benachrichtigung klicken — die passende Liste öffnet sich gefiltert. Das X im Hinweis-Banner hebt den Filter wieder auf.
+- **value:** Von der Meldung „diese Kunden brauchen Aufmerksamkeit" bis zur bearbeitbaren Liste ist es ein Klick — kein Suchen, kein Nachbauen des Filters, keine Sackgasse bei veralteten Meldungen.
+- **module:** core
+- *(Lifecycle L-3e Deeplinks [D56]/[D57], 2026-07-23.)*
