@@ -531,6 +531,110 @@ Kurzfassung: PROGRESS.md + CHECKLIST.md aktualisieren, neue Komponenten in
 
 ---
 
+## Token-Disziplin (verpflichtend)
+
+Diese Regeln sind bindend. Sie senken Kosten, ohne Prüftiefe zu reduzieren.
+Wenn eine Regel im Einzelfall der Qualität schadet, wird sie nicht still
+umgangen — sondern die Abweichung wird benannt und begründet.
+
+### TD-1 — Keine Gates auf unverändertem Code
+
+Vor jedem Gate-Lauf: `git diff <letzter-gegateter-stand>..HEAD --stat` prüfen.
+
+Besteht der Diff AUSSCHLIESSLICH aus:
+- Kommentarzeilen
+- Dokumentation (PROGRESS, README, *.md)
+- Header-Notizen
+
+dann werden test-runner und auditor NICHT erneut ausgeführt. Stattdessen:
+Diff zeigen und feststellen, dass der ausführbare Code byte-identisch zum
+gegateten Stand ist. Der Diff ist der Beweis — er ersetzt den Gate-Lauf.
+
+Sobald auch nur eine ausführbare Zeile betroffen ist (Code, Migration,
+Config, Test), gilt die Ausnahme nicht und es wird voll gegatet.
+
+Bei Unsicherheit: gaten.
+
+### TD-2 — Kein Full-File-Read als Ersatz für fehlendes Tooling
+
+Eine Datei komplett zu lesen, "um offensichtliche Fehler zu finden", ist
+kein zulässiger Ersatz für einen Typecheck, Linter oder Test. Das ist
+teuer und findet weniger.
+
+Fehlt ein Werkzeug lokal (z.B. Deno für Edge-Functions), wird es
+installiert und in die Gates aufgenommen — nicht durch Lesen kompensiert.
+
+Konkret: `deno check` läuft lokal auf allen Edge-Functions, bevor
+deployed wird. Kein "Typecheck beim Deploy" als Strategie.
+
+Full-File-Reads sind zulässig, wenn du die Datei tatsächlich umbaust oder
+ihre Struktur verstehen musst. Nicht als Qualitätssicherung.
+
+### TD-3 — Verifikation gebündelt, nicht im Einzelschritt
+
+Live-Verifikation und DB-Prüfungen werden als EIN vorbereitetes Skript
+ausgeführt, das alle Snapshots, Invokes und Checks in einem Durchgang
+abarbeitet und eine Ergebnistabelle ausgibt.
+
+Nicht: Setup → prüfen → Invoke → prüfen → Snapshot → prüfen (jeder
+Round-Trip schleppt den gesamten Kontext mit).
+
+Ausnahme: Wenn ein Schritt als Diskriminator dient und das weitere
+Vorgehen von seinem Ergebnis abhängt (z.B. "läuft die Funktion
+überhaupt?"), darf er einzeln vorgezogen werden. Der Rest wird gebündelt.
+
+Skript vorher zeigen, wenn es destruktiv ist oder Zustand verändert.
+
+---
+
+## UI-Verifikation (verpflichtend)
+
+Gilt für jeden Slice mit sichtbarer UI.
+
+### UI-1 — Jeder Zustand muss einmal gerendert gesehen worden sein
+
+"Die Komponente hat einen Fehlerzustand" ist keine Verifikation. Verifikation
+heißt: Der Zustand wurde im Browser gerendert und als Screenshot festgehalten.
+
+Pflicht-Zustände, soweit vorhanden:
+- Leer / kein Inhalt
+- Ladezustand
+- Fehlerzustand
+- ERFOLGSFALL mit echten Daten — der Zustand, für den die Komponente
+  existiert. Wird am häufigsten übersprungen und ist der wichtigste.
+- Null-Ergebnis (0 Treffer) — eigener Fall, nicht mit "leer" verwechseln
+- Deaktiviert / keine Berechtigung, falls vorhanden
+
+Zusätzlich immer: Dark Mode und schmales Viewport.
+
+### UI-2 — Screenshots gelten nur für den Stand, der gemerged wird
+
+Wird nach den Screenshots noch eine ausführbare Zeile an der Komponente
+geändert, sind die Screenshots ungültig. Neu aufnehmen. Im Bericht angeben,
+aus welchem Commit sie stammen.
+
+### UI-3 — Umgebungsmängel sind kein Grund, einen Zustand auszulassen
+
+Ist ein Zustand in der Dev-Umgebung nicht natürlich erreichbar (keine
+Auth-Session, kein Backend), wird er erzwungen: gemocktes Query-Result,
+Fixture, temporär manipulierter State. Ein Vermerk im Bericht ersetzt die
+Prüfung nicht.
+
+### UI-4 — Randfälle mitprüfen
+
+- Singular/Plural bei Zahlen, in allen drei Sprachen
+- Sehr lange Texte — Umbruch statt Layoutbruch
+- Zustandswechsel Zahl → Laden → neue Zahl darf nicht durch den
+  Fehlerzustand springen
+
+### UI-5 — Bericht
+
+Zu jedem Zustand ein Screenshot plus eine Zeile, was zu sehen ist. Keine
+Sammelaufnahme, aus der der Leser die Zustände heraussuchen muss. Fehlt ein
+Pflicht-Zustand, wird er benannt.
+
+---
+
 ## REFERENZ-DATEIEN
 
 Diese acht Dateien in `/docs` sind **ab jetzt die maßgeblichen Referenzen** und ersetzen

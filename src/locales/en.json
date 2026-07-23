@@ -1969,7 +1969,8 @@
         "loading": "Wird geprüft …",
         "error": "Trefferzahl konnte nicht geladen werden",
         "zero": "Trifft aktuell auf nichts zu",
-        "some": "Trifft aktuell auf {{count}} Datensätze zu"
+        "some_one": "Trifft aktuell auf 1 Datensatz zu",
+        "some_other": "Trifft aktuell auf {{count}} Datensätze zu"
       },
       "lastFired": {
         "never": "Noch nicht gefeuert",
