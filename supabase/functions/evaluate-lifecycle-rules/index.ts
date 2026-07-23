@@ -5,6 +5,14 @@
 // (2) DRY-RUN — read-only Auswertung ohne Feuern/Zustandsänderung (Live-Trefferzahl + „jetzt prüfen"),
 // eigener Auth-Pfad; echter Lauf nur mit Service-Rolle. ([D57]/[D54])
 //
+// ⚠ KEY-ROTATION: Der Service-Role-Guard (isServiceRole) hängt am EXAKTEN Wert von SUPABASE_SERVICE_ROLE_KEY.
+// Der einzige echte Aufrufer (Verkettung score-upsell → hier) sendet `Bearer ${SUPABASE_SERVICE_ROLE_KEY}` aus
+// DERSELBEN Env-Variable. Wird der Service-Key rotiert, ziehen beide Seiten automatisch denselben neuen Env-Wert
+// → weiter konsistent. Der Guard prüft KEIN JWT-Claim (der Projekt-Key ist der neue opake `sb_secret_…`-Key, kein
+// JWT) — er vergleicht das Secret direkt. Wer die Funktion von SQL/Vault aus aufruft, MUSS denselben Env-Wert als
+// Bearer nutzen (Vault-Secret `app_service_role_key` = derselbe Service-Key). Weichen Vault und Env voneinander ab,
+// bricht ein Vault-basierter Aufruf mit 403 ab (Produktion via Env==Env bleibt unberührt).
+//
 // Verkettung (C): wird am ENDE der letzten Score-Function (score-upsell) per net.http_post angestoßen
 // → läuft IMMER direkt nach frischen churn/heat/upsell/stagnation-Werten, unabhängig von der Uhrzeit.
 // Sicherheitsnetz (B): prüft zu Beginn in cron_runs, ob die heutigen Score-Läufe wirklich durch sind;

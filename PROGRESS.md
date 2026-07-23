@@ -576,6 +576,10 @@
     **Guard-Fund (behoben):** der Projekt-Service-Key ist der NEUE opake `sb_secret_…`-Key (kein JWT) → der
     Service-Role-Guard vergleicht format-agnostisch exakt gegen den Env-Service-Key (+ JWT-Rolle nur Legacy-Fallback),
     sonst wäre der `score-upsell`-Verkettungs-Aufruf still mit 403 gebrochen.
+    **⚠ KEY-ROTATION (merken):** Der Guard hängt am EXAKTEN Wert von `SUPABASE_SERVICE_ROLE_KEY`. Aufrufer
+    (`score-upsell`) UND Guard ziehen dieselbe Env-Variable → bei einer Key-Rotation bleiben beide automatisch
+    konsistent. Ein SQL/Vault-basierter Aufruf (Vault-Secret `app_service_role_key`) MUSS denselben Service-Key
+    tragen; weicht Vault vom Env-Key ab, bricht NUR der Vault-Aufruf mit 403 ab (Produktion via Env==Env unberührt).
     **▶ FOLGE-SLICE (akzeptiert, NICHT jetzt) — L-2c-Nachtrag „Bulk-`mark_fired` für Bündel":** Beim gebündelten
     `notify` markiert der Auswerter die Treffer in einer per-Datensatz-Schleife. Stürzt der Lauf NACH dem `notify`,
     aber MITTEN in der Schleife ab, sieht der Retry eine kleinere Treffer-Menge → anderer `bundleSourceId` → **eine
