@@ -309,7 +309,7 @@ async function evaluateOrg(sb: SupabaseClient, org: string, appliesTo: Map<strin
   return { fired: plan.fires.length, rearmed: plan.rearms.length, suppressed: plan.suppressed, carried: plan.carried };
 }
 
-/** Rolle aus dem Bearer-JWT (ungeprüft dekodiert — nur zur Pfad-Wahl, nicht als Sicherheitsgrenze). */
+/** Rolle aus einem Legacy-JWT-Service-Token (nur Fallback; neue `sb_secret_`-Keys sind KEINE JWTs). */
 function decodeJwtRole(authHeader: string | null): string | null {
   try {
     const tok = (authHeader ?? "").replace(/^Bearer\s+/i, "");
@@ -321,7 +321,18 @@ function decodeJwtRole(authHeader: string | null): string | null {
     return null;
   }
 }
-const isServiceRole = (authHeader: string | null) => decodeJwtRole(authHeader) === "service_role";
+
+/**
+ * Ist der Aufrufer die Service-Rolle? FORMAT-AGNOSTISCH: primär exakter Vergleich gegen den Env-Service-Key
+ * (dieses Projekt nutzt den NEUEN opaken `sb_secret_…`-Key — KEIN JWT; die Verkettung score-upsell sendet
+ * genau `Bearer ${SUPABASE_SERVICE_ROLE_KEY}` → identischer Env-Wert im selben Projekt → match). JWT-Rollen-
+ * Check nur als Fallback für Legacy-JWT-Service-Tokens. Ein User-/Anon-Token besitzt das Secret NICHT → 403.
+ */
+const isServiceRole = (authHeader: string | null): boolean => {
+  const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+  if (key && authHeader === `Bearer ${key}`) return true;
+  return decodeJwtRole(authHeader) === "service_role";
+};
 
 /**
  * Dry-Run (L-2c): wertet eine (auch ungespeicherte) Regel-Definition aus, OHNE zu feuern und OHNE Zustand
