@@ -648,24 +648,29 @@
     `{anon, authenticated, service_role}` (+PUBLIC) abgleichen, Abweichungen listen; (3) Abweichungen per expliziten
     `grant execute` beheben. **Plus Regel für künftige Migrationen:** nach **jedem** `drop+create` einer Funktion die
     GRANTs **explizit** setzen (kein Verlass auf Default-Privileges) — Kandidat für einen Audit-/structure-check-Check.
-  - **LIFECYCLE L-3d E2E-FUNDE (23.07.2026, echter Backend-Walkthrough) — 4 Bugs, priorisiert:**
-    - **FUND 4 (IN ARBEIT, `fix/lifecycle-deleted-at`): Evaluator ignorierte `deleted_at`.** `groupAnchorIds`
-      (rows + FK-`via`) + `resolveOwner` + Deal-Resolve lasen soft-gelöschte Anker → Regeln feuerten Tasks/Tags/
-      Meldungen auf gelöschte Kontakte (live belegt: `heat in (kalt,tot)` Dry-Run 8 statt 6). **Wurzel-Erkenntnis:**
+  - **LIFECYCLE L-3d E2E-FUNDE (23.07.2026, echter Backend-Walkthrough) — 4 Bugs, alle GEBAUT + gegatet:**
+    - **FUND 4 (GEBAUT, gegatet · `fix/lifecycle-deleted-at` · Deploy ausstehend): Evaluator ignorierte `deleted_at`.**
+      `groupAnchorIds` (rows + FK-`via`) + `resolveOwner` + Deal-Resolve lasen soft-gelöschte Anker → Regeln feuerten
+      Tasks/Tags/Meldungen auf gelöschte Kontakte (live belegt: `heat in (kalt,tot)` Dry-Run 8 statt 6). **Wurzel-Erkenntnis:**
       Change 058 hat den `deleted_at`-Filter systemweit eingezogen (`getContacts`, dyn. Listen) — der Evaluator (089)
       war der **einzige Nachzügler**. Fix = 058-Muster nachziehen (Anker-Reads nach `_shared/lifecycle/anchors.ts`
-      extrahiert + `.is("deleted_at", null)`; vitest-Regressionstest `anchors.test.ts`). **KEIN** Vergangenheits-
-      Cleanup (destruktiv) — stattdessen READ-ONLY-Bestandsaufnahme über alle Orgs in der Live-Verifikation.
-    - **▶ FUND 1 (nächste eigene Diagnose): User-Token-Pfad des Dry-Runs trägt nicht.** Live-Count „Trefferzahl
-      konnte nicht geladen werden" **auch** bei simpler gültiger Bedingung (churn≥61, die im Service-Pfad HTTP 200/
-      matchCount=3 liefert) → **unabhängig** vom enum-Bug. Zu prüfen: Session-Token angehängt? org-Auflösung im
-      User-Pfad? `automation.manage`-Check? CORS? (Weg: `signInWithPassword`-Testuser-Token münzen + invoken, oder
-      Dashboard-Logs, oder Network-Tab-Abgriff von Oliver.)
-    - **▶ FUND 2+3 (UI-Slice danach): enum + `in`/`not_in` erzeugt Skalar statt Array.** `ConditionRow` rendert für
-      enum immer ein Einzel-Select → `validateFilter` wirft „erwartet nicht-leere Liste" (client-seitig, **plain Error,
-      kein [D54]-Code** → roher Backend-Text im Banner). Fix: **Mehrfachauswahl** über `enumValues` (`string[]`);
-      text[]-`has_any` + text/number-`in`/`not_in` → **Chip-Eingabe** statt Komma-Freitext; **Speichern blockieren**
-      solange ungültig; Fehler in Alltagssprache + Zeile markiert + deutliches „nicht gespeichert".
+      extrahiert + `.is("deleted_at", null)`; vitest-Regressionstest `anchors.test.ts`, 12 Fälle). **KEIN** Vergangenheits-
+      Cleanup (destruktiv) — Bestandsaufnahme über ALLE Orgs ergab **0 Schaden** (noch keine produktive Regel existiert).
+    - **FUND 4b (GEBAUT, gegatet · selber Branch): direkte FK-Mappings filterten nur die QUELLE, nicht den ANKER.**
+      contacts←deals / companies←contacts / companies←deals gaben Anker-IDs zurück, ohne den Anker gegen `deleted_at`
+      zu prüfen → gelöschter Anker mit lebendem verknüpftem Datensatz wäre durchgeschlüpft (Demo-Daten hatten 0 solcher
+      Fälle → nur durchs Durchdenken gefunden). Fix: diese 3 Fälle mappen über `via(anchor,"id",…)`. auditor: kein Durchschlupf mehr.
+    - **FUND 1 (GEBAUT, gegatet · selber Branch · Deploy ausstehend): Live-Trefferzahl im Browser = CORS.** Der Browser
+      ruft den Dry-Run per `functions.invoke` **cross-origin** auf; die Function hatte **kein CORS/OPTIONS-Handling** (die
+      Crons laufen server-zu-server, brauchten es nie → erster Browser-Aufruf scheiterte). Empirisch: identischer Request
+      server-seitig HTTP 200, im Browser „Failed to fetch". **Nicht** der Auth-Pfad (`has_permission`-Signatur passt). Fix:
+      `corsHeaders` auf ALLE Antworten (`json()`) + OPTIONS-Preflight-Handler; **Deploy-PFLICHT `--no-verify-jwt`** (die
+      Function macht Auth selbst: isServiceRole / getUser+`automation.manage`) — sonst weist die Plattform den Preflight ab.
+    - **FUND 2+3 (GEBAUT, gegatet, beide Agents PASS · `fix/lifecycle-enum-multiselect` · UI, kein Deploy · Merge ausstehend):**
+      enum + `in`/`not_in` erzeugte Skalar statt Array (Einzel-Select), freie Listen Komma-Freitext. Fix: **EnumMultiSelect**
+      (enum-Liste → Mehrfachauswahl → `string[]`) + **ChipInput** (text/number `in`/`not_in`, tags `has_any` → Chip-Tokens).
+      Speichern bleibt bei ungültiger Bedingung blockiert, betroffene Zeile rot markiert, Fehler-Banner „Nicht gespeichert" +
+      Grund in Alltagssprache. End-to-End-Walkthrough bestanden (anlegen→speichern→wiederfinden→toggle→bearbeiten→verwerfen→löschen).
   - **▶ QUEUED — `score-*`-Crons lesen Anker ohne `deleted_at` (23.07.2026, angrenzend zu FUND 4):** `score-upsell`,
     `score-heat-status`, `score-deal-health`, `score-churn-risk` lesen `contacts`/`deals` **ohne** `deleted_at`-Filter.
     **Kein aktiver Schaden** (schreiben nur Scores, lösen keine user-sichtbaren Aktionen aus) — aber Scores auf
