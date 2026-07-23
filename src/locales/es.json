@@ -1794,5 +1794,184 @@
     "aiHint": "El botón de IA generará más adelante una sugerencia para exactamente este campo. Próximamente.",
     "addItem": "Añadir elemento",
     "removeItem": "Eliminar elemento"
+  },
+  "lifecycle": {
+    "entity": {
+      "contacts": {
+        "label": "Kontakt",
+        "desc": "Eine einzelne Person (Lead, Kunde)."
+      },
+      "deals": {
+        "label": "Deal (Verkaufschance)",
+        "desc": "Ein konkretes Vertriebsprojekt."
+      },
+      "companies": {
+        "label": "Firma",
+        "desc": "Ein Unternehmen / Account."
+      }
+    },
+    "field": {
+      "first_name": "Vorname",
+      "last_name": "Nachname",
+      "email": "E-Mail",
+      "linkedin_url": "LinkedIn-URL",
+      "job_title": "Jobtitel",
+      "seniority": "Seniorität",
+      "city": "Stadt",
+      "country": "Land",
+      "icp_score": "ICP-Score",
+      "churn_score": "Churn-Score",
+      "upsell_score": "Upsell-Score",
+      "health_score": "Health-Score",
+      "heat_status": "Heat-Status",
+      "contact_status": "Kontakt-Status",
+      "lead_status": "Lead-Status",
+      "lead_source": "Lead-Quelle",
+      "email_verified": "E-Mail verifiziert",
+      "tags": "Tags",
+      "last_contacted_at": "Letzter Kontakt",
+      "last_reply_at": "Letzte Antwort",
+      "created_at": "Erstellt am",
+      "stage": "Stage",
+      "value": "Wert",
+      "probability": "Wahrscheinlichkeit",
+      "stagnation_days": "Stagnationstage",
+      "closed_at": "Abgeschlossen am",
+      "name": "Name",
+      "domain": "Domain",
+      "industry": "Branche",
+      "size_range": "Größe",
+      "subscription_plan": "Abo-Plan",
+      "subscription_status": "Abo-Status",
+      "annual_revenue": "Jahresumsatz"
+    },
+    "op": {
+      "eq": "ist gleich",
+      "neq": "ist ungleich",
+      "gt": "größer als",
+      "gte": "größer/gleich",
+      "lt": "kleiner als",
+      "lte": "kleiner/gleich",
+      "contains": "enthält",
+      "starts_with": "beginnt mit",
+      "in": "ist eine(s) von",
+      "not_in": "ist keines von",
+      "is_empty": "ist leer",
+      "is_not_empty": "ist nicht leer",
+      "has_any": "enthält eines von"
+    },
+    "enum": {
+      "heat_status": {
+        "heiss": "Heiß",
+        "warm": "Warm",
+        "lauwarm": "Lauwarm",
+        "kalt": "Kalt",
+        "tot": "Tot"
+      },
+      "contact_status": {
+        "ohne_campaign": "Ohne Kampagne",
+        "in_campaign": "In Kampagne",
+        "pipeline": "Pipeline",
+        "kunde": "Kunde",
+        "archiviert": "Archiviert",
+        "opt_out": "Opt-out"
+      },
+      "lead_status": {
+        "lead": "Lead",
+        "qualified_lead": "Qualified Lead",
+        "mql": "MQL",
+        "sql": "SQL",
+        "customer": "Customer",
+        "churned": "Churned"
+      },
+      "lead_source": {
+        "sherloq": "Sherloq",
+        "csv_upload": "CSV-Upload",
+        "crm_sync": "CRM-Sync",
+        "manual": "Manuell",
+        "webhook_api": "Webhook/API"
+      },
+      "size_range": {
+        "1-10": "1–10",
+        "11-50": "11–50",
+        "51-200": "51–200",
+        "201-500": "201–500",
+        "500+": "500+"
+      },
+      "subscription_status": {
+        "trial": "Trial",
+        "active": "Aktiv",
+        "churned": "Gekündigt"
+      }
+    },
+    "bool": {
+      "true": "Ja",
+      "false": "Nein"
+    },
+    "action": {
+      "notify": "Benachrichtigung senden",
+      "notify_urgent": "Dringende Benachrichtigung senden",
+      "create_task": "Task anlegen",
+      "add_tag": "Tag hinzufügen",
+      "add_to_list": "Zu Liste hinzufügen",
+      "set_contact_status": "Kontakt-Status ändern"
+    },
+    "actionParam": {
+      "title": {
+        "label": "Task-Titel",
+        "ph": "z.B. Churn-Risiko prüfen"
+      },
+      "tag": {
+        "label": "Tag",
+        "ph": "z.B. High-Risk"
+      },
+      "list_id": {
+        "label": "Liste",
+        "ph": "Liste wählen …"
+      },
+      "message": {
+        "label": "Nachricht (optional)",
+        "ph": "Eigener Text – sonst wird der Regelname verwendet"
+      },
+      "due_in_days": {
+        "label": "Fällig in (Tagen)",
+        "ph": "z.B. 3"
+      },
+      "priority": {
+        "label": "Priorität",
+        "ph": ""
+      },
+      "status": {
+        "label": "Neuer Status",
+        "ph": ""
+      }
+    },
+    "ui": {
+      "title": "Automatik-Regeln",
+      "subtitle": "Lass Sherloq Routinearbeit übernehmen: Wenn-Dann-Regeln erstellen Tasks, warnen dein Team oder ordnen Daten.",
+      "sentence": {
+        "when": "Wenn",
+        "then": "dann",
+        "and": "und",
+        "or": "oder",
+        "conditionsPlaceholder": "bestimmte Bedingungen erfüllt sind"
+      },
+      "bundleHint": "Sammelmeldung: eine Benachrichtigung je Prüflauf mit der Zahl der Treffer – nicht eine pro Datensatz.",
+      "comingSoon": "Folgt",
+      "dynamicListReason": "Nur statische Listen wählbar – dynamische Listen berechnen ihre Mitglieder selbst über Filter.",
+      "crossEntityHint": "Verknüpfte Datenarten werden mit EINEM gemeinsamen UND/ODER verbunden (kein gemischtes je Paar).",
+      "liveCount": {
+        "loading": "Wird geprüft …",
+        "error": "Trefferzahl konnte nicht geladen werden",
+        "zero": "Trifft aktuell auf nichts zu",
+        "some": "Trifft aktuell auf {{count}} Datensätze zu"
+      },
+      "lastFired": {
+        "never": "Noch nicht gefeuert",
+        "some": "Zuletzt gefeuert: {{when}} · {{count}} Datensätze"
+      },
+      "limit": "{{used}} / {{limit}} Regeln",
+      "staleWrite": "Diese Regel wurde zwischenzeitlich geändert. Bitte neu laden."
+    }
   }
 }
