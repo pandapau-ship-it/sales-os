@@ -31,6 +31,14 @@
 | N12 | **Aktualisieren statt anhäufen (GitHub-Muster):** Meldet sich dieselbe Quelle erneut (Erinnerung, erneuter Fehlschlag, Statuswechsel), wird die BESTEHENDE Mitteilung aktualisiert (Titel/Kontext/updated_at) und wieder auf ungelesen gesetzt — nie eine zweite Zeile. Der Idempotenz-Key (source_type+source_id+category) ist damit auch der Update-Key. |
 | N13 | **Klick = gelesen = verschwindet (selbstpflegende Glocke):** Klick auf eine Mitteilung (oder Ausführen ihres Inline-Buttons) markiert sie automatisch als gelesen und entfernt sie aus der Standardansicht. Die Standardansicht zeigt NUR Offenes/Ungelesenes — die Liste pflegt sich selbst, leer ist der Normalzustand. Gelesenes bleibt über einen schlichten "Verlauf"-Tab 90 Tage erreichbar (kostet nichts, deckt "wo war nochmal die Meldung von gestern?"), danach greift die bestehende Archivierung. Badge zählt ausschließlich Ungelesenes. |
 
+> **[D57] Benachrichtigungs-/Deeplink-UX für Lifecycle-Regeln (verbindlich für L-3):** (1) **Bündeln** — eine
+> Regel = EINE Mitteilung je Auswerte-Lauf (nicht N Einzelmeldungen; 1 Treffer → Objekt genannt, mehrere → „X Datensätze
+> erfüllen Regel Y"). (2) **Klick-Ziel** — 1 Treffer → Objekt öffnen+hervorheben (`highlightId`/deeplink-flash);
+> mehrere → **gefilterte Liste über die Filter-Lib** (wie dynamische Listen), keine Wegwerf-Seiten. (3) Klick markiert
+> nur gelesen (bleibt im Verlauf, = N13). (4) Regel-Heimat in der UI mit „zuletzt gefeuert für X" + gleichem Link.
+> (5) nie tote Links. **⚠ Bündelung ist eine Verhaltensänderung ggü. L-2a (dort pro Datensatz) → gehört in L-3, NICHT
+> L-2b.** Volltext: PROGRESS.md [D57]; Routing-Lücke: [D56].
+
 ---
 
 ## 2. TIMING (wichtig — zwei Erzeuger existieren VOR diesem Modul)

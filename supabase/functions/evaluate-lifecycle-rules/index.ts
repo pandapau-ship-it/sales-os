@@ -15,7 +15,7 @@
 import { createClient, type SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { compileToPostgrest } from "../_shared/filter/compile.ts";
 import type { FilterNode } from "../_shared/filter/types.ts";
-import { combineAnchorSets, computePlan, type AnchorEntity, type RuleInput } from "../_shared/lifecycle/eval.ts";
+import { actionApplies, combineAnchorSets, computePlan, type AnchorEntity, type RuleInput } from "../_shared/lifecycle/eval.ts";
 
 // Infra-Konstanten (Betriebs-Sicherheitsnetze, kein User-Verhalten → [D51] n.a.).
 const PREREQUISITE_JOBS = [
@@ -94,23 +94,32 @@ async function resolveOwner(sb: SupabaseClient, org: string, anchor: AnchorEntit
   return null; // companies: kein Owner → Fallback Regel-Ersteller
 }
 
-/** Aktions-Handler (L-2a: nur notify/notify_urgent). Strukturiertes Ergebnis für action_result ([D54]). */
-async function runAction(sb: SupabaseClient, org: string, rule: RuleRow, entityId: string, firedCount: number): Promise<Record<string, unknown>> {
-  const at = new Date().toISOString();
+/** action_types-Registry (key → applies_to), einmal je Lauf geladen — Auswerter-defensiver applies_to-Check (D2). */
+async function loadAppliesTo(sb: SupabaseClient): Promise<Map<string, string[]>> {
+  const { data } = await sb.from("action_types").select("key, applies_to");
+  return new Map((data ?? []).map((r) => [r.key as string, (r.applies_to as string[] | null) ?? []]));
+}
+
+// Feuer-INSTANZ-ID (rule:entity:fired_count+1): legitime Re-Fires bleiben distinkt (fired_count wächst),
+// ein Crash-Retry DERSELBEN Instanz (mark_fired schlug fehl → fired_count unverändert) erzeugt dieselbe ID
+// → die Dedup der Ziel-Tabelle greift (2. Idempotenz-Ebene, strikt auch bei Fehl-Lauf): notify on-conflict,
+// tasks.source_ref Unique. Genau daher tragen create_task/notify dieselbe fireInstance.
+const fireInstanceId = (ruleId: string, entityId: string, firedCount: number) => `${ruleId}:${entityId}:${firedCount + 1}`;
+
+/** notify / notify_urgent — Benachrichtigung an Owner (Fallback: Regel-Ersteller). */
+async function notifyHandler(sb: SupabaseClient, org: string, rule: RuleRow, entityId: string, firedCount: number, at: string): Promise<Record<string, unknown>> {
   const type = rule.action.type;
   const message = (rule.action.params?.message as string) ?? rule.name;
   const severity = type === "notify_urgent" ? "high" : "normal";
   const recipient = (await resolveOwner(sb, org, rule.anchor_entity, entityId)) ?? rule.created_by;
   if (!recipient) return { ok: false, handler: type, error_code: "no_recipient", message: "Kein Empfänger auflösbar", at };
-  const link = rule.anchor_entity === "contacts" ? `/app/kontakte/${entityId}` : null;
-  // source_id = Feuer-INSTANZ (rule:entity:fired_count+1): legitime Re-Fires bleiben distinkt (fired_count
-  // wächst), ein Crash-Retry DERSELBEN Instanz (mark_fired schlug fehl → fired_count unverändert) erzeugt
-  // dieselbe source_id → notify-eigene on-conflict-Dedup greift (2. Idempotenz-Ebene, strikt auch bei Fehl-Lauf).
-  const fireInstance = `${rule.id}:${entityId}:${firedCount + 1}`;
+  // [D56]/D5: Deeplink-Routing existiert noch nicht (keine /kontakte/:id- bzw. Deal-Route) → bewusst null,
+  // NIE ein toter Link. Echte Sprungziele (+ Bündeln/Highlight) baut L-3 ([D57]).
+  const link = null;
   try {
     const { error } = await sb.rpc("notify", {
       p_org: org, p_category: "rule", p_severity: severity, p_title: rule.name, p_body: message,
-      p_link: link, p_source_type: "lifecycle_rule", p_source_id: fireInstance,
+      p_link: link, p_source_type: "lifecycle_rule", p_source_id: fireInstanceId(rule.id, entityId, firedCount),
       p_user_ids: [recipient],
     });
     if (error) throw error;
@@ -120,7 +129,92 @@ async function runAction(sb: SupabaseClient, org: string, rule: RuleRow, entityI
   }
 }
 
-async function evaluateOrg(sb: SupabaseClient, org: string) {
+/** create_task — idempotent über tasks.source_ref (= Feuer-Instanz, D1). Anker löst contact_id/deal_id/assigned_to auf. */
+async function createTaskHandler(sb: SupabaseClient, org: string, rule: RuleRow, entityId: string, firedCount: number, at: string): Promise<Record<string, unknown>> {
+  const p = rule.action.params ?? {};
+  const title = (p.title as string) ?? rule.name;
+  const priority = (p.priority as string) ?? "medium";
+  const dueDays = p.due_in_days != null ? Number(p.due_in_days) : null;
+  const due_at = dueDays != null && Number.isFinite(dueDays) ? new Date(Date.now() + dueDays * 86_400_000).toISOString() : null;
+  const sourceRef = fireInstanceId(rule.id, entityId, firedCount);
+
+  let contact_id: string | null = null, deal_id: string | null = null, assigned_to: string | null = null;
+  if (rule.anchor_entity === "contacts") {
+    contact_id = entityId;
+    assigned_to = await resolveOwner(sb, org, "contacts", entityId);
+  } else if (rule.anchor_entity === "deals") {
+    deal_id = entityId;
+    const { data } = await sb.from("deals").select("contact_id, owner_id").eq("organization_id", org).eq("id", entityId).maybeSingle();
+    contact_id = (data?.contact_id as string | null) ?? null;
+    assigned_to = (data?.owner_id as string | null) ?? null;
+  }
+  assigned_to = assigned_to ?? rule.created_by; // Owner-Fallback: Regel-Ersteller
+  try {
+    const { error } = await sb.rpc("lifecycle_create_task", {
+      p_org: org, p_source_ref: sourceRef, p_contact_id: contact_id, p_deal_id: deal_id,
+      p_assigned_to: assigned_to, p_title: title, p_due_at: due_at, p_priority: priority,
+    });
+    if (error) throw error;
+    return { ok: true, handler: "create_task", source_ref: sourceRef, contact_id, deal_id, assigned_to, at };
+  } catch (e) {
+    return { ok: false, handler: "create_task", error_code: "create_task_failed", message: errMsg(e), at };
+  }
+}
+
+/** add_tag — Tag an contacts/companies anhängen (idempotent, append-only). */
+async function addTagHandler(sb: SupabaseClient, org: string, rule: RuleRow, entityId: string, at: string): Promise<Record<string, unknown>> {
+  const tag = rule.action.params?.tag as string | undefined;
+  if (!tag) return { ok: false, handler: "add_tag", error_code: "missing_tag", message: "params.tag fehlt", at };
+  try {
+    const { error } = await sb.rpc("lifecycle_add_tag", { p_org: org, p_entity: entityId, p_entity_type: rule.anchor_entity, p_tag: tag });
+    if (error) throw error;
+    return { ok: true, handler: "add_tag", tag, at };
+  } catch (e) {
+    return { ok: false, handler: "add_tag", error_code: "add_tag_failed", message: errMsg(e), at };
+  }
+}
+
+/** add_to_list — Kontakt in STATISCHE Liste (idempotent). Dynamische Liste → strukturierter Fehler (RPC raise). */
+async function addToListHandler(sb: SupabaseClient, org: string, rule: RuleRow, entityId: string, at: string): Promise<Record<string, unknown>> {
+  const listId = rule.action.params?.list_id as string | undefined;
+  if (!listId) return { ok: false, handler: "add_to_list", error_code: "missing_list_id", message: "params.list_id fehlt", at };
+  try {
+    const { error } = await sb.rpc("lifecycle_add_to_list", { p_org: org, p_list_id: listId, p_contact: entityId });
+    if (error) throw error;
+    return { ok: true, handler: "add_to_list", list_id: listId, at };
+  } catch (e) {
+    return { ok: false, handler: "add_to_list", error_code: "add_to_list_failed", message: errMsg(e), at };
+  }
+}
+
+/**
+ * Aktions-Dispatch (L-2b): endet die frühere „immer notify"-Lücke — je action.type der passende Handler.
+ * Auswerter-defensiver applies_to-Check (D2, 2. Ebene neben der Write-RPC): Anker ∉ applies_to → skip mit
+ * strukturiertem Fehler, statt fälschlich zu feuern. Jeder Handler liefert action_result ([D54]); ein
+ * Handler-Fehler bricht die Auswertung NICHT ab (Aufrufer schreibt das Ergebnis, macht weiter).
+ */
+async function runAction(sb: SupabaseClient, org: string, rule: RuleRow, entityId: string, firedCount: number, appliesTo: Map<string, string[]>): Promise<Record<string, unknown>> {
+  const at = new Date().toISOString();
+  const type = rule.action.type;
+  if (!actionApplies(rule.anchor_entity, appliesTo.get(type))) {
+    return { ok: false, handler: type, error_code: "anchor_not_applicable", message: `Aktion ${type} ist fuer Anker ${rule.anchor_entity} nicht anwendbar`, at };
+  }
+  switch (type) {
+    case "notify":
+    case "notify_urgent":
+      return notifyHandler(sb, org, rule, entityId, firedCount, at);
+    case "create_task":
+      return createTaskHandler(sb, org, rule, entityId, firedCount, at);
+    case "add_tag":
+      return addTagHandler(sb, org, rule, entityId, at);
+    case "add_to_list":
+      return addToListHandler(sb, org, rule, entityId, at);
+    default:
+      return { ok: false, handler: type, error_code: "unknown_action", message: `Unbekannte Aktion ${type}`, at };
+  }
+}
+
+async function evaluateOrg(sb: SupabaseClient, org: string, appliesTo: Map<string, string[]>) {
   const { data: rulesRaw, error } = await sb.from("lifecycle_rules")
     .select("id, anchor_entity, conditions, action, priority, is_terminal, created_at, created_by, name")
     .eq("organization_id", org).eq("is_active", true);
@@ -153,7 +247,7 @@ async function evaluateOrg(sb: SupabaseClient, org: string) {
   for (const f of plan.fires) {
     const rule = byId.get(f.ruleId)!;
     const fc = firedCount.get(`${f.ruleId}:${f.entityId}`) ?? 0;
-    const result = await runAction(sb, org, rule, f.entityId, fc);
+    const result = await runAction(sb, org, rule, f.entityId, fc, appliesTo);
     await sb.rpc("lifecycle_mark_fired", { p_rule: f.ruleId, p_entity: f.entityId, p_org: org, p_result: result });
   }
   return { fired: plan.fires.length, rearmed: plan.rearms.length, suppressed: plan.suppressed, carried: plan.carried };
@@ -181,11 +275,12 @@ Deno.serve(async (req) => {
     const { data: rid } = await sb.rpc("cron_run_start", { p_job: "evaluate-lifecycle-rules" });
     runId = rid as string | null;
 
+    const appliesTo = await loadAppliesTo(sb); // Registry einmal je Lauf (global) → Auswerter-defensiver Check
     const orgs = onlyOrg ? [onlyOrg] : await activeOrgs(sb);
     let fired = 0, rearmed = 0, suppressed = 0, carried = 0, budgetHit = false;
     for (const org of orgs) {
       if (Date.now() - started > TIME_BUDGET_MS) { budgetHit = true; break; }
-      const r = await evaluateOrg(sb, org);
+      const r = await evaluateOrg(sb, org, appliesTo);
       fired += r.fired; rearmed += r.rearmed; suppressed += r.suppressed; carried += r.carried;
     }
     if (carried > 0) await raiseAlert(sb, "info", "lifecycle_backlog",
